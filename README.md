@@ -1,4 +1,4 @@
-The <form.io> Form and API platform.
+The &lt;form.io&gt; Form and API platform.
 ===============================
 Form.io is a revolutionary Form and API platform for developers. This repository serves as the core Form and API engine
 for https://form.io. This system allows you to build next generation Web 3.0 applications using a simple drag-and-drop
