@@ -1,0 +1,79 @@
+{
+  "name": "formio",
+  "version": "0.2.3",
+  "description": "The formio server application.",
+  "main": "index.js",
+  "scripts": {
+    "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000",
+    "start": "node server.js"
+  },
+  "author": "support@form.io",
+  "schema": "2.4.2",
+  "dependencies": {
+    "JSONStream": "^1.0.4",
+    "adal-node": "^0.1.13",
+    "adm-zip": "^0.4.7",
+    "async": "^1.4.2",
+    "bcrypt": "^0.8.0",
+    "body-parser": "^1.10.0",
+    "chance": "^0.8.0",
+    "colors": "^1.1.2",
+    "config": "^1.15.0",
+    "cors": "^2.5.3",
+    "csv": "^0.4.5",
+    "debug": "^2.2.0",
+    "delete-property": "0.0.2",
+    "engine.io": "^1.4.3",
+    "express": "^4.10.6",
+    "fs-extra": "^0.24.0",
+    "joi": "^6.0.8",
+    "jsonwebtoken": "^5.0.0",
+    "lodash": "^2.4.1",
+    "lodash.camelcase": "^3.0.1",
+    "lodash.deburr": "^3.0.2",
+    "lodash.property": "^3.1.2",
+    "lodash.pull": "^3.0.1",
+    "method-override": "^2.3.0",
+    "moment": "^2.10.6",
+    "mongodb": "^2.0.35",
+    "mongoose": "^4.1.5",
+    "mssql": "^2.1.3",
+    "mysql": "^2.7.0",
+    "node-uuid": "^1.4.3",
+    "nodemailer": "^1.3.4",
+    "nodemailer-mandrill-transport": "^0.2.0",
+    "nodemailer-sendgrid-transport": "^0.1.0",
+    "nunjucks": "^1.3.4",
+    "primus": "^2.4.12",
+    "progress": "^1.1.8",
+    "prompt": "^0.2.14",
+    "q": "^1.2.0",
+    "request": "^2.64.0",
+    "resourcejs": "^0.1.25",
+    "restler": "^3.2.2",
+    "semver": "^4.3.6",
+    "through": "^2.3.7",
+    "ws": "^0.7.1"
+  },
+  "devDependencies": {
+    "chance": "^0.8.0",
+    "eslint": "^0.20.0",
+    "mocha": "^2.2.1",
+    "supertest": "^0.15.0"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formio/formio.git"
+  },
+  "keywords": [
+    "Form.io",
+    "nodejs"
+  ],
+  "bugs": {
+    "url": "https://github.com/formio/formio/issues"
+  },
+  "homepage": "https://github.com/formio/formio#readme"
+}
