@@ -26,11 +26,13 @@ application running at the following address in your browser.
 http://localhost:3001
 ```
 
-Usage
---------------------
-Form.io works by creating both Resources and Forms within your application. The easiest way to get started is to use
-https://form.io to bootstrap some existing application to see how they are constructed. The easiest one to start off
-with is the ToDo application found at https://github.com/formio/formio-app-todo.
+The installation process will also ask if you would like to download an application. If selected, the application can be found at the following URL.
+
+```
+http://localhost:8080
+```
+
+You can also see the contents of the application (for modification) within the ```app``` folder which exists inside of the folder where you downloaded this repository.
 
 Help
 --------------------
