@@ -1,3 +1,4 @@
+/* eslint-env mocha */
 'use strict';
 
 var Q = require('q');
@@ -14,7 +15,7 @@ var hook = null;
 require('./bootstrap')()
   .then(function(state) {
     app = state.app;
-    hook = require('../src/util/hook')({});
+    hook = require('../src/util/hook')(state.app.formio);
     template = state.template;
     ready.resolve();
   });
@@ -85,5 +86,6 @@ describe('Bootstrap Test modules', function() {
     require('./nested')(app, template, hook);
     require('./actions')(app, template, hook);
     require('./submission')(app, template, hook);
+    require('./oauth')(app, template, hook);
   });
 });

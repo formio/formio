@@ -103,6 +103,11 @@ module.exports = function (router, resourceName, resourceId) {
             req.body.owner = _old.owner;
           }
 
+          // Keep the oauth info in the payload for the OAuthAction.
+          if (_old.hasOwnProperty('oauth') && _old.oauth && (typeof _old.oauth === 'object')) {
+            req.body.oauth = _old.oauth;
+          }
+
           // Store the original request body in a submission object.
           debug(req.body);
           req.submission = _.clone(req.body, true);

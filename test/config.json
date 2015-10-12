@@ -11,5 +11,17 @@
   "jwt": {
     "secret": "insert-some-secret-here",
     "expireTime": 240
+  },
+  "settings": {
+    "oauth": {
+      "test1": {
+        "clientId": "TESTCLIENTID1",
+        "clientSecret": "TESTCLIENTSECRET1"
+      },
+      "test2": {
+        "clientId": "TESTCLIENTID2",
+        "clientSecret": "TESTCLIENTSECRET2"
+      }
+    }
   }
 }

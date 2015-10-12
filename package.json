@@ -32,6 +32,7 @@
     "lodash": "^2.4.1",
     "lodash.camelcase": "^3.0.1",
     "lodash.deburr": "^3.0.2",
+    "lodash.has": "^3.2.1",
     "lodash.property": "^3.1.2",
     "lodash.pull": "^3.0.1",
     "method-override": "^2.3.0",

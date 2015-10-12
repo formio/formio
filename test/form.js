@@ -1,3 +1,4 @@
+/* eslint-env mocha */
 'use strict';
 
 var request = require('supertest');
@@ -807,6 +808,293 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
+    });
+
+    describe('Form Components Endpoint', function() {
+      it('Bootstrap', function(done) {
+        var testComponentForm = {
+          title: 'Test Component Form',
+          name: 'testComponentForm',
+          path: 'temp/testcomponentform',
+          type: 'form',
+          access: [{
+            type: 'read_all',
+            roles: [
+              template.roles.administrator._id.toString()
+            ]
+          }],
+          submissionAccess: [],
+          components: [
+            {
+              input: true,
+              inputType: 'email',
+              label: 'Email',
+              key: 'email',
+              protected: false,
+              persistent: true,
+              type: 'email'
+            },
+            {
+              input: true,
+              inputType: 'password',
+              label: 'Password',
+              key: 'password',
+              protected: true,
+              persistent: true,
+              type: 'password'
+            },
+            {
+              input: true,
+              inputType: 'number',
+              label: 'Number',
+              key: 'number',
+              protected: false,
+              persistent: false,
+              type: 'number',
+              validate: {
+                step: 23
+              }
+            }
+          ]
+        };
+        // Create the test form
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(testComponentForm)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            assert(res.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+
+            // Update the access rights to only let admins read_all
+            request(app)
+              .put(hook.alter('url', '/form/' + res.body._id , template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send({access: [{
+                type: 'read_all',
+                roles: [template.roles.administrator._id.toString()]
+              }]})
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function(err, res) {
+                if(err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+                assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+                assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+                assert(response.hasOwnProperty('access'), 'The response should contain an the `access`.');
+                assert.equal(response.title, testComponentForm.title);
+                assert.equal(response.name, testComponentForm.name);
+                assert.equal(response.path, testComponentForm.path);
+                assert.equal(response.type, 'form');
+                assert.notEqual(response.access, []);
+                assert.equal(response.access.length, 1);
+                assert.equal(response.access[0].type, 'read_all');
+                assert.equal(response.access[0].roles.length, 1);
+                assert.equal(response.access[0].roles[0], template.roles.administrator._id.toString());
+                assert.deepEqual(response.submissionAccess, []);
+                assert.deepEqual(response.components, testComponentForm.components);
+                template.forms.testComponentForm = response;
+                done();
+
+              });
+          });
+      });
+
+      it('An Anonymous user should not be able to Read their Form\'s components', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components', template))
+          .expect(401)
+          .end(done);
+      });
+
+      it('An Administrator should be able to Read their Form\'s components', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.deepEqual(response, template.forms.testComponentForm.components);
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('An Administrator should be able to Read and filter their Form\'s components with a string', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?type=email', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 1, 'Response should only return one component');
+            assert.deepEqual(response[0], _.find(template.forms.testComponentForm.components, {type: 'email'}));
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('An Administrator should be able to Read and filter their Form\'s components by existence', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?validate.step', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 1, 'Response should only return one component');
+            assert.deepEqual(response[0], _.find(template.forms.testComponentForm.components, {validate: {step: 23}}));
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('An Administrator should be able to Read and filter their Form\'s components with a number', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?validate.step=23', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 1, 'Response should only return one component');
+            assert.deepEqual(response[0], _.find(template.forms.testComponentForm.components, {validate: {step: 23}}));
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('An Administrator should be able to Read and filter their Form\'s components with the boolean `true`', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?protected=true', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 1, 'Response should only return one component');
+            assert.deepEqual(response[0], _.find(template.forms.testComponentForm.components, {protected: true}));
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('An Administrator should be able to Read and filter their Form\'s components with the boolean `false`', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?protected=false', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 2, 'Response should only return two components');
+            assert.deepEqual(response[0], _.find(template.forms.testComponentForm.components, {protected: false}));
+            assert.deepEqual(response[1], _.findLast(template.forms.testComponentForm.components, {protected: false}));
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('An Administrator should be able to Read and filter their Form\'s components with multiple criteria', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?protected=false&validate.step=23&type=number', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 1, 'Response should only return one component');
+            assert.deepEqual(response[0], _.find(template.forms.testComponentForm.components, {protected: false, type: 'number', validate: {step: 23}}));
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('An Administrator should receive empty array when Reading their Form with filter that has no results', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?type=💩', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.deepEqual(response, [], 'Response should return empty array.');
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
     });
   });
 };
