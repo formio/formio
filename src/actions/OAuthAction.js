@@ -239,7 +239,8 @@ module.exports = function(router) {
               clientId: oauthSettings.clientId,
               authURI: provider.authURI,
               state: crypto.randomBytes(64).toString('hex'),
-              scope: provider.scope
+              scope: provider.scope,
+              display: provider.display
             };
           }
         });
@@ -277,6 +278,9 @@ module.exports = function(router) {
         userId = provider.getUserId(userInfo);
         resource = results[1];
 
+        debug('userInfo:', userInfo);
+        debug('userId:', userId);
+
         return router.formio.auth.authenticateOAuth(resource, provider.name, userId);
       })
       .then(function(result) {
@@ -300,20 +304,14 @@ module.exports = function(router) {
           // Add some default resourceData so DefaultAction creates the resource
           // even with empty submission data
           req.resourceData = req.resourceData || {};
-          req.resourceData[resource.name] = {
-            data: {},
-            externalIds: [{
-              type: provider.name,
-              id: userId
-            }]
-          };
+          req.resourceData[resource.name] = { data: {} };
 
           // Find and fill in all the autofill fields
           var regex = new RegExp('autofill-' + provider.name + '-(.+)');
           _.each(self.settings, function(value, key) {
             var match = key.match(regex);
-            if (match && userInfo[match[1]]) {
-              req.resourceData[resource.name].data[value] = userInfo[match[1]];
+            if (match && value && userInfo[match[1]]) {
+              req.body.data[value] = userInfo[match[1]];
             }
           });
 
@@ -333,9 +331,24 @@ module.exports = function(router) {
       method === 'create' &&
       req.oauthDeferredAuthId
     ) {
-      // New resource was created and we need to authenticate it
-      Q.denodeify(router.formio.cache.loadForm.bind(router.formio.cache))(req, 'resource', self.settings.resource)
-      .then(function(resourceForm) {
+      // New resource was created and we need to authenticate it and assign it an externalId
+      Q.all([
+        // Update the resource with the external Id.
+        router.formio.resources.submission.model.update({
+          _id: res.resource.item._id
+        }, {
+          $push: {
+            externalIds: {
+              type: provider.name,
+              id: req.oauthDeferredAuthId
+            }
+          }
+        }),
+        // Load resource form
+        Q.denodeify(router.formio.cache.loadForm.bind(router.formio.cache))(req, 'resource', self.settings.resource)
+      ])
+      .then(function(results) {
+        var resourceForm = results[1];
         return router.formio.auth.authenticateOAuth(resourceForm, provider.name, req.oauthDeferredAuthId);
       })
       .then(function(result) {

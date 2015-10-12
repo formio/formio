@@ -2,7 +2,7 @@
 
 var request = require('request');
 var Q = require('q');
-var _ = require('lodash');
+var url = require('url');
 
 var qRequest = Q.denodeify(request);
 
@@ -11,15 +11,17 @@ module.exports = function(formio) {
   var oauthUtil = require('../util/oauth')(formio);
   return {
     // Name of the oauth provider (used as property name in settings)
-    name: 'github',
+    name: 'facebook',
 
     // Display name of the oauth provider
-    title: 'GitHub',
+    title: 'Facebook',
 
     // URL to redirect user browser to
-    authURI: 'https://github.com/login/oauth/authorize',
+    authURI: 'https://www.facebook.com/v2.3/dialog/oauth',
 
-    scope: 'user:email',
+    scope: 'email',
+
+    display: 'popup',
 
     // List of field data that can be autofilled from user info API request
     autofillFields: [
@@ -28,12 +30,20 @@ module.exports = function(formio) {
         name: 'email'
       },
       {
-        title: 'Username',
-        name: 'login'
-      },
-      {
         title: 'Name',
         name: 'name'
+      },
+      {
+        title: 'First Name',
+        name: 'first_name'
+      },
+      {
+        title: 'Middle Name',
+        name: 'middle_name'
+      },
+      {
+        title: 'Last Name',
+        name: 'last_name'
       }
     ],
 
@@ -47,22 +57,23 @@ module.exports = function(formio) {
         return qRequest({
           method: 'POST',
           json: true,
-          url: 'https://github.com/login/oauth/access_token',
+          url: 'https://graph.facebook.com/v2.3/oauth/access_token',
           body: {
             client_id: settings.clientId,
             client_secret: settings.clientSecret,
             code: code,
-            state: state
+            state: state,
+            redirect_uri: url.parse(redirectURI).href // Facebook requires having a trailing slash
           }
         });
       })
       .then(function(result) {
         var body = result[1]; // body is 2nd param of request
         if (!body) {
-          throw 'No response from GitHub.';
+          throw 'No response from Facebook.';
         }
         if (body.error) {
-          throw body.error;
+          throw body.error.message;
         }
         return body.access_token;
       })
@@ -74,46 +85,19 @@ module.exports = function(formio) {
     getUser: function(accessToken, next) {
       return qRequest({
         method: 'GET',
-        url: 'https://api.github.com/user',
+        url: 'https://graph.facebook.com/v2.3/me',
         json: true,
-        headers: {
-          Authorization: 'token ' + accessToken,
-          'User-Agent': 'formio'
+        qs: {
+          access_token: accessToken,
+          fields: 'id,name,email,first_name,last_name,middle_name'
         }
       })
       .then(function(result) {
-        var userInfo = result[1]; // body is 2nd param of request
-        if (!userInfo) {
-          throw 'No response from GitHub.';
+        var body = result[1]; // body is 2nd param of request
+        if (!body) {
+          throw 'No response from Facebook.';
         }
-        if(userInfo.email) {
-          return userInfo;
-        }
-        else {
-          // GitHub users can make their email private. If they do so,
-          // we have to explicitly request the email endpoint to get an email
-          return qRequest({
-            method: 'GET',
-            url: 'https://api.github.com/user/emails',
-            json: true,
-            headers: {
-              Authorization: 'token ' + accessToken,
-              'User-Agent': 'formio'
-            }
-          })
-          .then(function(result) {
-            var body = result[1]; // body is 2nd param of request
-            if(!body) {
-              throw 'No response from GitHub';
-            }
-            var primaryEmail = _.find(body, 'primary');
-            if(!primaryEmail) {
-              throw 'Could not retrieve primary email';
-            }
-            userInfo.email = primaryEmail.email;
-            return userInfo;
-          });
-        }
+        return body;
       })
       .nodeify(next);
     },
