@@ -25,6 +25,7 @@
     "delete-property": "0.0.2",
     "engine.io": "^1.4.3",
     "express": "^4.10.6",
+    "event-chain": "^0.0.1",
     "fs-extra": "^0.24.0",
     "joi": "^6.0.8",
     "jsonwebtoken": "^5.0.0",
