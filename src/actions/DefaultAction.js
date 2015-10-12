@@ -52,7 +52,7 @@ module.exports = function(router) {
     var initiallyEmpty = (req.body.data && Object.keys(req.body.data).length === 0);
 
     // Establish our resource data array.
-    var resourceData = {};
+    var resourceData = _.assign({}, req.resourceData); // For actions that set resource data like oauth
     var submissionData = {};
 
     // Iterate through all of our data in the request.

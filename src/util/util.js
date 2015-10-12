@@ -53,6 +53,14 @@ module.exports = {
     childReq.modelQuery = null;
     childReq.countQuery = null;
 
+    // Delete default resourceData from actions
+    // otherwise you get an endless loop
+    delete childReq.resourceData;
+
+    // Delete skipResource so child requests can decide
+    // this for themselves
+    delete childReq.skipResource;
+
     return childReq;
   },
 

@@ -199,10 +199,33 @@ module.exports = function(config) {
             if (!form) {
               return res.status(404).send('Form not found');
             }
+            // If query params present, filter components that match params
+            var filter = Object.keys(req.query).length !== 0 ? req.query : null;
+            res.json(
+              _(util.flattenComponents(form.components))
+              .filter(function(component) {
+                if (!filter) {
+                  return true;
+                }
+                return _.reduce(filter, function(prev, value, prop) {
+                  if (!value) {
+                    return prev && component.hasOwnProperty(prop);
+                  }
 
-            res.json(_.values(util.flattenComponents(form.components)));
+                  // loose equality so number values can match
+                  return prev && component[prop] == value || // eslint-disable-line eqeqeq
+                    value === 'true' && component[prop] === true ||
+                    value === 'false' && component[prop] === false;
+                }, true);
+              })
+              .values()
+              .value()
+            );
           });
         });
+
+        // Import the OAuth providers
+        router.formio.oauth = require('./src/oauth/oauth')(router);
 
         // Import the form actions.
         router.formio.Action = require('./src/actions/Action');

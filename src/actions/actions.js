@@ -37,7 +37,8 @@ module.exports = function(router) {
       webhook: require('./WebhookAction')(router),
       sql: require('./SQLAction')(router),
       role: require('./RoleAction')(router),
-      resetpass: require('./ResetPassword')(router)
+      resetpass: require('./ResetPassword')(router),
+      oauth: require('./OAuthAction')(router)
     }),
 
     /**
@@ -104,7 +105,7 @@ module.exports = function(router) {
 
             // Only add the default action if it should be included.
             if (includeDefault) {
-              rows.unshift({
+              var defaultAction = {
                 title: 'Default',
                 name: 'default',
                 handler: ['before'],
@@ -112,7 +113,12 @@ module.exports = function(router) {
                 priority: 10,
                 form: form,
                 settings: {}
+              };
+              // Insert at index that keeps priority order intact
+              var index = _.sortedIndex(rows, defaultAction, function(action) {
+                return -action.priority;
               });
+              rows.splice(index, 0, defaultAction);
             }
           }
 
