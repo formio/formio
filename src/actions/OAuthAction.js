@@ -318,7 +318,10 @@ module.exports = function(router) {
           debug('resourceData:', req.resourceData);
 
           // Add id so the after handler knows to auth
-          req.oauthDeferredAuthId = userId;
+          req.oauthDeferredAuth = {
+            id: userId,
+            provider: provider.name
+          };
 
           next();
 
@@ -329,7 +332,8 @@ module.exports = function(router) {
     else if (
       handler === 'after' &&
       method === 'create' &&
-      req.oauthDeferredAuthId
+      req.oauthDeferredAuth &&
+      req.oauthDeferredAuth.provider === provider.name
     ) {
       // New resource was created and we need to authenticate it and assign it an externalId
       Q.all([
@@ -340,7 +344,7 @@ module.exports = function(router) {
           $push: {
             externalIds: {
               type: provider.name,
-              id: req.oauthDeferredAuthId
+              id: req.oauthDeferredAuth.id
             }
           }
         }),
@@ -349,7 +353,7 @@ module.exports = function(router) {
       ])
       .then(function(results) {
         var resourceForm = results[1];
-        return router.formio.auth.authenticateOAuth(resourceForm, provider.name, req.oauthDeferredAuthId);
+        return router.formio.auth.authenticateOAuth(resourceForm, provider.name, req.oauthDeferredAuth.id);
       })
       .then(function(result) {
         req.user = result.user;
@@ -403,7 +407,9 @@ module.exports = function(router) {
         return submission.save();
 
       })
-      .then(function() {
+      .then(function(submission) {
+        // Update resource with saved submission
+        res.resource.item = submission;
         next();
       })
       .catch(next);

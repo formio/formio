@@ -13,6 +13,7 @@ module.exports = function(app, template, hook) {
 
     var TEST_AUTH_CODE_1 = 'TESTAUTHCODE1';
     var TEST_ACCESS_TOKEN_1 = 'TESTACCESSTOKEN1';
+    var TEST_REDIRECT_URI_1 = 'http://client1.com';
     var TEST_USER_1 = {
       id: 23,
       email: 'user@test1.com'
@@ -20,6 +21,7 @@ module.exports = function(app, template, hook) {
 
     var TEST_AUTH_CODE_2 = 'TESTAUTHCODE2';
     var TEST_ACCESS_TOKEN_2 = 'TESTACCESSTOKEN2';
+    var TEST_REDIRECT_URI_2 = 'http://client2.com';
     var TEST_USER_2 = {
       id: 42,
       email: 'user@test2.com'
@@ -38,6 +40,7 @@ module.exports = function(app, template, hook) {
       }],
       getToken: function(req, code, state, redirectURI, next) {
         assert.equal(code, TEST_AUTH_CODE_1, 'OAuth Action should request access token with expected test code.');
+        assert.equal(redirectURI, TEST_REDIRECT_URI_1, 'OAuth Action should request access token with expected redirect uri.');
         return new Q(TEST_ACCESS_TOKEN_1).nodeify(next);
       },
       getUser: function(accessToken, next) {
@@ -63,6 +66,7 @@ module.exports = function(app, template, hook) {
       }],
       getToken: function(req, code, state, redirectURI, next) {
         assert.equal(code, TEST_AUTH_CODE_2, 'OAuth Action should request access token with expected test code.');
+        assert.equal(redirectURI, TEST_REDIRECT_URI_2, 'OAuth Action should request access token with expected redirect uri.');
         return new Q(TEST_ACCESS_TOKEN_2).nodeify(next);
       },
       getUser: function(accessToken, next) {
@@ -311,6 +315,66 @@ module.exports = function(app, template, hook) {
             assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
             assert.deepEqual(response.submissionAccess, []);
             assert.deepEqual(response.components, oauthLoginForm.components);
+            template.forms.oauthLoginForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('Set up submission create_own access for Anonymous users for Register Form', function(done) {
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.oauthRegisterForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({submissionAccess: [{
+            type: 'create_own',
+            roles: [template.roles.anonymous._id.toString()]
+          }]})
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.submissionAccess[0].type, 'create_own');
+            assert.equal(response.submissionAccess[0].roles.length, 1);
+            assert.equal(response.submissionAccess[0].roles[0], template.roles.anonymous._id.toString());
+
+            // Save this form for later use.
+            template.forms.oauthRegisterForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('Set up submission create_own access for Anonymous users for Login Form', function(done) {
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.oauthLoginForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({submissionAccess: [{
+            type: 'create_own',
+            roles: [template.roles.anonymous._id.toString()]
+          }]})
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.submissionAccess[0].type, 'create_own');
+            assert.equal(response.submissionAccess[0].roles.length, 1);
+            assert.equal(response.submissionAccess[0].roles[0], template.roles.anonymous._id.toString());
+
+            // Save this form for later use.
             template.forms.oauthLoginForm = response;
 
             // Store the JWT for future API calls.
@@ -669,6 +733,184 @@ module.exports = function(app, template, hook) {
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+    });
+
+    describe('OAuth Submission Handler', function() {
+      it('An anonymous user should be able to register with OAuth provider test1', function(done) {
+        var submission = {
+          data: {},
+          oauth: {
+            test1: {
+              code: TEST_AUTH_CODE_1,
+              state: 'teststate', // Scope only matters for client side validation
+              redirectURI: TEST_REDIRECT_URI_1
+            }
+          }
+        };
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.oauthRegisterForm._id + '/submission', template))
+          .send(submission)
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+            assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+            assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+            assert.equal(response.data.email, TEST_USER_1.email, 'The OAuth Action should autofill the email field.');
+            assert.equal(response.form, template.forms.oauthUserResource._id, 'The submission returned should be for the authenticated resource.');
+            assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+            assert.deepEqual(response.roles, [template.roles.authenticated._id.toString()], 'The submission should have the OAuth Action configured role added to it.');
+            assert.equal(response.externalIds.length, 1);
+            assert(response.externalIds[0].hasOwnProperty('_id'), 'The externalId should contain an `_id`.');
+            assert(response.externalIds[0].hasOwnProperty('modified'), 'The externalId should contain a `modified` timestamp.');
+            assert(response.externalIds[0].hasOwnProperty('created'), 'The externalId should contain a `created` timestamp.');
+            assert.equal(response.externalIds[0].type, app.formio.oauth.providers.test1.name, 'The externalId should be for test1 oauth.');
+            assert.equal(response.externalIds[0].id, TEST_USER_1.id, 'The externalId should match test user 1\'s id.');
+            assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
+            assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
+            assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+
+            done();
+          });
+      });
+
+      it('An anonymous user should be able to register with OAuth provider test2', function(done) {
+        var submission = {
+          data: {},
+          oauth: {
+            test2: {
+              code: TEST_AUTH_CODE_2,
+              state: 'teststate', // Scope only matters for client side validation
+              redirectURI: TEST_REDIRECT_URI_2
+            }
+          }
+        };
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.oauthRegisterForm._id + '/submission', template))
+          .send(submission)
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+            assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+            assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+            assert.equal(response.data.email, TEST_USER_2.email, 'The OAuth Action should autofill the email field.');
+            assert.equal(response.form, template.forms.oauthUserResource._id, 'The submission returned should be for the authenticated resource.');
+            assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+            assert.deepEqual(response.roles, [template.roles.authenticated._id.toString()], 'The submission should have the OAuth Action configured role added to it.');
+            assert.equal(response.externalIds.length, 1);
+            assert(response.externalIds[0].hasOwnProperty('_id'), 'The externalId should contain an `_id`.');
+            assert(response.externalIds[0].hasOwnProperty('modified'), 'The externalId should contain a `modified` timestamp.');
+            assert(response.externalIds[0].hasOwnProperty('created'), 'The externalId should contain a `created` timestamp.');
+            assert.equal(response.externalIds[0].type, app.formio.oauth.providers.test2.name, 'The externalId should be for test2 oauth.');
+            assert.equal(response.externalIds[0].id, TEST_USER_2.id, 'The externalId should match test user 2\'s id.');
+            assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
+            assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
+            assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+
+            done();
+          });
+      });
+
+      it('An anonymous user should be able to login with OAuth provider test1', function(done) {
+        var submission = {
+          data: {},
+          oauth: {
+            test1: {
+              code: TEST_AUTH_CODE_1,
+              state: 'teststate', // Scope only matters for client side validation
+              redirectURI: TEST_REDIRECT_URI_1
+            }
+          }
+        };
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.oauthLoginForm._id + '/submission', template))
+          .send(submission)
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+            assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+            assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+            assert.equal(response.data.email, TEST_USER_1.email, 'The OAuth Action should return a user with the right email.');
+            assert.equal(response.form, template.forms.oauthUserResource._id, 'The submission returned should be for the authenticated resource.');
+            assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+            assert.deepEqual(response.roles, [template.roles.authenticated._id.toString()], 'The submission should have the OAuth Action configured role.');
+            assert.equal(response.externalIds.length, 1);
+            assert(response.externalIds[0].hasOwnProperty('_id'), 'The externalId should contain an `_id`.');
+            assert(response.externalIds[0].hasOwnProperty('modified'), 'The externalId should contain a `modified` timestamp.');
+            assert(response.externalIds[0].hasOwnProperty('created'), 'The externalId should contain a `created` timestamp.');
+            assert.equal(response.externalIds[0].type, app.formio.oauth.providers.test1.name, 'The externalId should be for test1 oauth.');
+            assert.equal(response.externalIds[0].id, TEST_USER_1.id, 'The externalId should match test user 1\'s id.');
+            assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
+            assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
+            assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+
+            done();
+          });
+      });
+
+      it('An anonymous user should be able to login with OAuth provider test2', function(done) {
+        var submission = {
+          data: {},
+          oauth: {
+            test2: {
+              code: TEST_AUTH_CODE_2,
+              state: 'teststate', // Scope only matters for client side validation
+              redirectURI: TEST_REDIRECT_URI_2
+            }
+          }
+        };
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.oauthLoginForm._id + '/submission', template))
+          .send(submission)
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+            assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+            assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+            assert.equal(response.data.email, TEST_USER_2.email, 'The OAuth Action should return a user with the right email.');
+            assert.equal(response.form, template.forms.oauthUserResource._id, 'The submission returned should be for the authenticated resource.');
+            assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+            assert.deepEqual(response.roles, [template.roles.authenticated._id.toString()], 'The submission should have the OAuth Action configured role.');
+            assert.equal(response.externalIds.length, 1);
+            assert(response.externalIds[0].hasOwnProperty('_id'), 'The externalId should contain an `_id`.');
+            assert(response.externalIds[0].hasOwnProperty('modified'), 'The externalId should contain a `modified` timestamp.');
+            assert(response.externalIds[0].hasOwnProperty('created'), 'The externalId should contain a `created` timestamp.');
+            assert.equal(response.externalIds[0].type, app.formio.oauth.providers.test2.name, 'The externalId should be for test2 oauth.');
+            assert.equal(response.externalIds[0].id, TEST_USER_2.id, 'The externalId should match test user 2\'s id.');
+            assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
+            assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
+            assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
             done();
           });
