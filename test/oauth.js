@@ -16,7 +16,7 @@ module.exports = function(app, template, hook) {
     var TEST_REDIRECT_URI_1 = 'http://client1.com';
     var TEST_USER_1 = {
       id: 23,
-      email: 'user@test1.com'
+      email: 'user1@test1.com'
     };
 
     var TEST_AUTH_CODE_2 = 'TESTAUTHCODE2';
@@ -24,61 +24,63 @@ module.exports = function(app, template, hook) {
     var TEST_REDIRECT_URI_2 = 'http://client2.com';
     var TEST_USER_2 = {
       id: 42,
-      email: 'user@test2.com'
+      email: 'user2@test2.com'
     };
 
-    // Create a dummy oauth provider
-    app.formio.oauth.providers.test1 = {
-      name: 'test1',
-      title: 'Test1',
-      authURI: 'http://test1.com/oauth/authorize',
-      scope: 'email',
-      display: 'popup',
-      autofillFields: [{
-        title: 'Email',
-        name: 'email'
-      }],
-      getToken: function(req, code, state, redirectURI, next) {
-        assert.equal(code, TEST_AUTH_CODE_1, 'OAuth Action should request access token with expected test code.');
-        assert.equal(redirectURI, TEST_REDIRECT_URI_1, 'OAuth Action should request access token with expected redirect uri.');
-        return new Q(TEST_ACCESS_TOKEN_1).nodeify(next);
-      },
-      getUser: function(accessToken, next) {
-        assert.equal(accessToken, TEST_ACCESS_TOKEN_1,
-          'OAuth Action should request user info with expected test access token.');
-        return new Q(TEST_USER_1).nodeify(next);
-      },
-      getUserId: function(user) {
-        assert.deepEqual(user, TEST_USER_1, 'OAuth Action should get ID from expected test user.');
-        return user.id;
-      }
-    };
+    beforeEach(function() {
+      // Create a dummy oauth provider
+      app.formio.oauth.providers.test1 = {
+        name: 'test1',
+        title: 'Test1',
+        authURI: 'http://test1.com/oauth/authorize',
+        scope: 'email',
+        display: 'popup',
+        autofillFields: [{
+          title: 'Email',
+          name: 'email'
+        }],
+        getToken: function(req, code, state, redirectURI, next) {
+          assert.equal(code, TEST_AUTH_CODE_1, 'OAuth Action should request access token with expected test code.');
+          assert.equal(redirectURI, TEST_REDIRECT_URI_1, 'OAuth Action should request access token with expected redirect uri.');
+          return new Q(TEST_ACCESS_TOKEN_1).nodeify(next);
+        },
+        getUser: function(accessToken, next) {
+          assert.equal(accessToken, TEST_ACCESS_TOKEN_1,
+            'OAuth Action should request user info with expected test access token.');
+          return new Q(TEST_USER_1).nodeify(next);
+        },
+        getUserId: function(user) {
+          assert.deepEqual(user, TEST_USER_1, 'OAuth Action should get ID from expected test user.');
+          return user.id;
+        }
+      };
 
-    // Create another dummy oauth provider
-    app.formio.oauth.providers.test2 = {
-      name: 'test2',
-      title: 'Test2',
-      authURI: 'http://test2.com/oauth/authorize',
-      scope: 'email',
-      autofillFields: [{
-        title: 'Email',
-        name: 'email'
-      }],
-      getToken: function(req, code, state, redirectURI, next) {
-        assert.equal(code, TEST_AUTH_CODE_2, 'OAuth Action should request access token with expected test code.');
-        assert.equal(redirectURI, TEST_REDIRECT_URI_2, 'OAuth Action should request access token with expected redirect uri.');
-        return new Q(TEST_ACCESS_TOKEN_2).nodeify(next);
-      },
-      getUser: function(accessToken, next) {
-        assert.equal(accessToken, TEST_ACCESS_TOKEN_2,
-          'OAuth Action should request user info with expected test access token.');
-        return new Q(TEST_USER_2).nodeify(next);
-      },
-      getUserId: function(user) {
-        assert.deepEqual(user, TEST_USER_2, 'OAuth Action should get ID from expected test user.');
-        return user.id;
-      }
-    };
+      // Create another dummy oauth provider
+      app.formio.oauth.providers.test2 = {
+        name: 'test2',
+        title: 'Test2',
+        authURI: 'http://test2.com/oauth/authorize',
+        scope: 'email',
+        autofillFields: [{
+          title: 'Email',
+          name: 'email'
+        }],
+        getToken: function(req, code, state, redirectURI, next) {
+          assert.equal(code, TEST_AUTH_CODE_2, 'OAuth Action should request access token with expected test code.');
+          assert.equal(redirectURI, TEST_REDIRECT_URI_2, 'OAuth Action should request access token with expected redirect uri.');
+          return new Q(TEST_ACCESS_TOKEN_2).nodeify(next);
+        },
+        getUser: function(accessToken, next) {
+          assert.equal(accessToken, TEST_ACCESS_TOKEN_2,
+            'OAuth Action should request user info with expected test access token.');
+          return new Q(TEST_USER_2).nodeify(next);
+        },
+        getUserId: function(user) {
+          assert.deepEqual(user, TEST_USER_2, 'OAuth Action should get ID from expected test user.');
+          return user.id;
+        }
+      };
+    });
 
     describe('Bootstrap', function() {
       it('Create a User Resource for OAuth Action tests', function(done) {
@@ -324,6 +326,73 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('Create a Link Form for OAuth Action tests', function(done) {
+        var oauthLinkForm = {
+          title: 'OAuth Link Form',
+          name: 'oauthLinkForm',
+          path: 'oauthlinkform',
+          type: 'form',
+          access: [],
+          submissionAccess: [],
+          components: [
+            {
+              input: true,
+              type: 'button',
+              theme: 'primary',
+              disableOnInvalid: 'false',
+              action: 'oauth',
+              key: 'oauthLink1',
+              label: 'Link with Test1'
+            },
+            {
+              input: true,
+              type: 'button',
+              theme: 'primary',
+              disableOnInvalid: 'false',
+              action: 'oauth',
+              key: 'oauthLink2',
+              label: 'Link with Test2'
+            }
+          ]
+        };
+
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(oauthLinkForm)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+            assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+            assert(response.hasOwnProperty('access'), 'The response should contain an the `access`.');
+            assert.equal(response.title, oauthLinkForm.title);
+            assert.equal(response.name, oauthLinkForm.name);
+            assert.equal(response.path, oauthLinkForm.path);
+            assert.equal(response.type, 'form');
+            assert.equal(response.access.length, 1);
+            assert.equal(response.access[0].type, 'read_all');
+            assert.equal(response.access[0].roles.length, 3);
+            assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
+            assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
+            assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
+            assert.deepEqual(response.submissionAccess, []);
+            assert.deepEqual(response.components, oauthLinkForm.components);
+            template.forms.oauthLinkForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
       it('Set up submission create_own access for Anonymous users for Register Form', function(done) {
         request(app)
           .put(hook.alter('url', '/form/' + template.forms.oauthRegisterForm._id, template))
@@ -376,6 +445,36 @@ module.exports = function(app, template, hook) {
 
             // Save this form for later use.
             template.forms.oauthLoginForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('Set up submission create_own access for Authenticated users for Link Form', function(done) {
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.oauthLinkForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({submissionAccess: [{
+            type: 'create_own',
+            roles: [template.roles.authenticated._id.toString()]
+          }]})
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.submissionAccess[0].type, 'create_own');
+            assert.equal(response.submissionAccess[0].roles.length, 1);
+            assert.equal(response.submissionAccess[0].roles[0], template.roles.authenticated._id.toString());
+
+            // Save this form for later use.
+            template.forms.oauthLinkForm = response;
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
@@ -563,6 +662,49 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('Create OAuthAction for test1 provider for Link Form', function(done) {
+        var oauthLinkAction1 = {
+          title: 'OAuth',
+          name: 'oauth',
+          handler: ['after', 'before'],
+          method: ['form', 'create'],
+          priority: 20,
+          settings: {
+            provider: 'test1',
+            association: 'link',
+            button: 'oauthSignin1'
+          }
+        };
+
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.oauthLinkForm._id + '/action', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(oauthLinkAction1)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert.equal(response.title, oauthLinkAction1.title);
+            assert.equal(response.name, oauthLinkAction1.name);
+            assert.deepEqual(response.handler, oauthLinkAction1.handler);
+            assert.deepEqual(response.method, oauthLinkAction1.method);
+            assert.equal(response.priority, oauthLinkAction1.priority);
+            assert.deepEqual(response.settings, oauthLinkAction1.settings);
+            assert.equal(response.form, template.forms.oauthLinkForm._id);
+            oauthLinkAction1 = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
       it('Create OAuthAction for test2 provider for Register Form', function(done) {
         var oauthRegisterAction2 = {
           title: 'OAuth',
@@ -645,6 +787,49 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(response.settings, oauthLoginAction2.settings);
             assert.equal(response.form, template.forms.oauthLoginForm._id);
             oauthLoginAction2 = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('Create OAuthAction for test2 provider for Link Form', function(done) {
+        var oauthLinkAction2 = {
+          title: 'OAuth',
+          name: 'oauth',
+          handler: ['after', 'before'],
+          method: ['form', 'create'],
+          priority: 20,
+          settings: {
+            provider: 'test2',
+            association: 'link',
+            button: 'oauthSignin2'
+          }
+        };
+
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.oauthLinkForm._id + '/action', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(oauthLinkAction2)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert.equal(response.title, oauthLinkAction2.title);
+            assert.equal(response.name, oauthLinkAction2.name);
+            assert.deepEqual(response.handler, oauthLinkAction2.handler);
+            assert.deepEqual(response.method, oauthLinkAction2.method);
+            assert.equal(response.priority, oauthLinkAction2.priority);
+            assert.deepEqual(response.settings, oauthLinkAction2.settings);
+            assert.equal(response.form, template.forms.oauthLinkForm._id);
+            oauthLinkAction2 = response;
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
@@ -740,6 +925,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('OAuth Submission Handler', function() {
+
       it('An anonymous user should be able to register with OAuth provider test1', function(done) {
         var submission = {
           data: {},
@@ -754,13 +940,12 @@ module.exports = function(app, template, hook) {
         request(app)
           .post(hook.alter('url', '/form/' + template.forms.oauthRegisterForm._id + '/submission', template))
           .send(submission)
-          .expect(200)
-          .expect('Content-Type', /json/)
+          // .expect(200)
+          // .expect('Content-Type', /json/)
           .end(function(err, res) {
             if (err) {
               return done(err);
             }
-
             var response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
             assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
@@ -779,6 +964,10 @@ module.exports = function(app, template, hook) {
             assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
             assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
             assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+
+            // Save user for later tests
+            template.users.oauthUser1 = response;
+            template.users.oauthUser1.token = res.headers['x-jwt-token'];
 
             done();
           });
@@ -824,6 +1013,9 @@ module.exports = function(app, template, hook) {
             assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
             assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
+            // Save user for later tests
+            template.users.oauthUser2 = response;
+            template.users.oauthUser2.token = res.headers['x-jwt-token'];
             done();
           });
       });
@@ -915,6 +1107,207 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
+
+      it('An anonymous user should be logged in when registering with a previously registered OAuth provider test1 account', function(done) {
+        var submission = {
+          data: {},
+          oauth: {
+            test1: {
+              code: TEST_AUTH_CODE_1,
+              state: 'teststate', // Scope only matters for client side validation
+              redirectURI: TEST_REDIRECT_URI_1
+            }
+          }
+        };
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.oauthRegisterForm._id + '/submission', template))
+          .send(submission)
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.deepEqual(response, _.omit(template.users.oauthUser1, 'token'), 'The response should match the previously registered user');
+            assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+
+            done();
+          });
+      });
+
+      it('An anonymous user should receive an error when logging in with an unlinked OAuth provider test2 account', function(done) {
+        // Test values for 3rd unlinked test user
+        var TEST_AUTH_CODE_3 = 'TESTAUTHCODE3';
+        var TEST_ACCESS_TOKEN_3 = 'TESTACCESSTOKEN3';
+        var TEST_REDIRECT_URI_3 = 'http://client3.com';
+        var TEST_USER_3 = {
+          id: 777,
+          email: 'user3@test3.com'
+        };
+        // Extend and modify dummy oauth provider to return 3rd unlinked test user
+        app.formio.oauth.providers.test2 = _.create(app.formio.oauth.providers.test2, {
+          getToken: function(req, code, state, redirectURI, next) {
+            assert.equal(code, TEST_AUTH_CODE_3, 'OAuth Action should request access token with expected test code.');
+            assert.equal(redirectURI, TEST_REDIRECT_URI_3, 'OAuth Action should request access token with expected redirect uri.');
+            return new Q(TEST_ACCESS_TOKEN_3).nodeify(next);
+          },
+          getUser: function(accessToken, next) {
+            assert.equal(accessToken, TEST_ACCESS_TOKEN_3,
+              'OAuth Action should request user info with expected test access token.');
+            return new Q(TEST_USER_3).nodeify(next);
+          },
+          getUserId: function(user) {
+            assert.deepEqual(user, TEST_USER_3, 'OAuth Action should get ID from expected test user.');
+            return user.id;
+          }
+        });
+        var submission = {
+          data: {},
+          oauth: {
+            test2: {
+              code: TEST_AUTH_CODE_3,
+              state: 'teststate', // Scope only matters for client side validation
+              redirectURI: TEST_REDIRECT_URI_3
+            }
+          }
+        };
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.oauthLoginForm._id + '/submission', template))
+          .send(submission)
+          .expect(404)
+          .end(done);
+      });
+
+      it('A test1 user should be able to link his submission to his OAuth provider test2 account', function(done) {
+        // Test values for 4rd unlinked test user
+        var TEST_AUTH_CODE_4 = 'TESTAUTHCODE4';
+        var TEST_ACCESS_TOKEN_4 = 'TESTACCESSTOKEN4';
+        var TEST_REDIRECT_URI_4 = 'http://client4.com';
+        var TEST_USER_4 = {
+          id: 808,
+          email: 'user1@test2.com'
+        };
+        // Extend and modify dummy oauth provider to return 4th unlinked test user
+        app.formio.oauth.providers.test2 = _.create(app.formio.oauth.providers.test2, {
+          getToken: function(req, code, state, redirectURI, next) {
+            assert.equal(code, TEST_AUTH_CODE_4, 'OAuth Action should request access token with expected test code.');
+            assert.equal(redirectURI, TEST_REDIRECT_URI_4, 'OAuth Action should request access token with expected redirect uri.');
+            return new Q(TEST_ACCESS_TOKEN_4).nodeify(next);
+          },
+          getUser: function(accessToken, next) {
+            assert.equal(accessToken, TEST_ACCESS_TOKEN_4,
+              'OAuth Action should request user info with expected test access token.');
+            return new Q(TEST_USER_4).nodeify(next);
+          },
+          getUserId: function(user) {
+            assert.deepEqual(user, TEST_USER_4, 'OAuth Action should get ID from expected test user.');
+            return user.id;
+          }
+        });
+        var submission = {
+          data: {},
+          oauth: {
+            test2: {
+              code: TEST_AUTH_CODE_4,
+              state: 'teststate', // Scope only matters for client side validation
+              redirectURI: TEST_REDIRECT_URI_4
+            }
+          }
+        };
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.oauthLinkForm._id + '/submission', template))
+          .set('x-jwt-token', template.users.oauthUser1.token)
+          .send(submission)
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.deepEqual(
+              _.omit(response, 'externalIds'),
+              _.omit(template.users.oauthUser1, 'token', 'externalIds'),
+              'The response should match the previously registered user');
+            assert.equal(response.externalIds.length, 2);
+            assert.notEqual(_.find(response.externalIds, {
+              id: '' + TEST_USER_1.id
+            }), undefined, 'The response should have a test1 external id');
+            assert.notEqual(_.find(response.externalIds, {
+              type: app.formio.oauth.providers.test2.name,
+              id: '' + TEST_USER_4.id
+            }), undefined, 'The response should have a test2 external id');
+            assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+
+            done();
+          });
+      });
+
+      it('An anonymous user should get an error when trying to link an account', function(done) {
+        // Test values for 5rd unlinked test user
+        var TEST_AUTH_CODE_5 = 'TESTAUTHCODE5';
+        var TEST_ACCESS_TOKEN_5 = 'TESTACCESSTOKEN5';
+        var TEST_REDIRECT_URI_5 = 'http://client5.com';
+        var TEST_USER_5 = {
+          id: 808,
+          email: 'user5@test5.com'
+        };
+        // Extend and modify dummy oauth provider to return 5th unlinked test user
+        app.formio.oauth.providers.test2 = _.create(app.formio.oauth.providers.test2, {
+          getToken: function(req, code, state, redirectURI, next) {
+            assert.equal(code, TEST_AUTH_CODE_5, 'OAuth Action should request access token with expected test code.');
+            assert.equal(redirectURI, TEST_REDIRECT_URI_5, 'OAuth Action should request access token with expected redirect uri.');
+            return new Q(TEST_ACCESS_TOKEN_5).nodeify(next);
+          },
+          getUser: function(accessToken, next) {
+            assert.equal(accessToken, TEST_ACCESS_TOKEN_5,
+              'OAuth Action should request user info with expected test access token.');
+            return new Q(TEST_USER_5).nodeify(next);
+          },
+          getUserId: function(user) {
+            assert.deepEqual(user, TEST_USER_5, 'OAuth Action should get ID from expected test user.');
+            return user.id;
+          }
+        });
+        var submission = {
+          data: {},
+          oauth: {
+            test2: {
+              code: TEST_AUTH_CODE_5,
+              state: 'teststate', // Scope only matters for client side validation
+              redirectURI: TEST_REDIRECT_URI_5
+            }
+          }
+        };
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.oauthLinkForm._id + '/submission', template))
+          .send(submission)
+          .expect(401)
+          .end(done);
+      });
+
+      it('A user should get an error when trying to link an already linked account', function(done) {
+        var submission = {
+          data: {},
+          oauth: {
+            test1: {
+              code: TEST_AUTH_CODE_1,
+              state: 'teststate', // Scope only matters for client side validation
+              redirectURI: TEST_REDIRECT_URI_1
+            }
+          }
+        };
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.oauthLinkForm._id + '/submission', template))
+          .set('x-jwt-token', template.users.oauthUser2.token)
+          .send(submission)
+          .expect(400)
+          .end(done);
+      });
+
     });
   });
 };

@@ -6,10 +6,8 @@ var debug = require('debug')('formio:action:oauth');
 var _ = require('lodash');
 var crypto = require('crypto');
 var mongoose = require('mongoose');
-var request = require('request');
 var Q = require('q');
 
-var qRequest = Q.denodeify(request);
 
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
@@ -89,20 +87,24 @@ module.exports = function(router) {
             {
               type: 'select',
               input: true,
-              label: 'Resource Association',
+              label: 'Action',
               key: 'settings[association]',
-              placeholder: 'Select the type of resource to authenticate.',
+              placeholder: 'Select the action to perform',
               template: '<span>{{ item.title }}</span>',
               dataSrc: 'json',
               data: {
                 json: JSON.stringify([
                   {
                     association: 'existing',
-                    title: 'Existing Resource'
+                    title: 'Login Existing Resource'
                   },
                   {
                     association: 'new',
-                    title: 'New Resource'
+                    title: 'Register New Resource'
+                  },
+                  {
+                    association: 'link',
+                    title: 'Link Current User'
                   }
                 ])
               },
@@ -177,8 +179,150 @@ module.exports = function(router) {
             .value()
           ));
         })
-        .catch(next);
+        .catch(this.onError(req, res, next));
       });
+  };
+
+  OAuthAction.prototype.authenticate = function(req, res, provider, accessToken) {
+    debug('Authenticating with Access Token:', accessToken);
+
+    var userInfo = null, userId = null, resource = null;
+    var self = this;
+
+    return Q.all([
+      provider.getUser(accessToken),
+      Q.denodeify(router.formio.cache.loadForm.bind(router.formio.cache))(req, 'resource', self.settings.resource)
+    ])
+    .then(function(results) {
+      userInfo = results[0];
+      userId = provider.getUserId(userInfo);
+      resource = results[1];
+
+      debug('userInfo:', userInfo);
+      debug('userId:', userId);
+
+      return router.formio.auth.authenticateOAuth(resource, provider.name, userId);
+    })
+    .then(function(result) {
+      if (result) { // Authenticated existing resource
+        req.user = result.user;
+        req.token = result.token.decoded;
+        res.token = result.token.token;
+        req['x-jwt-token'] = result.token.token;
+
+        // Manually invoke router.formio.auth.currentUser to trigger resourcejs middleware.
+        return Q.nfcall(router.formio.auth.currentUser, req, res);
+      }
+      else { // Need to create and auth new resource
+        // If we were looking for an existing resource, return an error
+        if (self.settings.association === 'existing') {
+          throw {
+            status: '404',
+            message: provider.title + ' account has not yet been linked.'
+          };
+        }
+        // Add some default resourceData so DefaultAction creates the resource
+        // even with empty submission data
+        req.resourceData = req.resourceData || {};
+        req.resourceData[resource.name] = {data: {}};
+
+        // Find and fill in all the autofill fields
+        var regex = new RegExp('autofill-' + provider.name + '-(.+)');
+        _.each(self.settings, function(value, key) {
+          var match = key.match(regex);
+          if (match && value && userInfo[match[1]]) {
+            req.body.data[value] = userInfo[match[1]];
+          }
+        });
+
+        debug('resourceData:', req.resourceData);
+
+        // Add info so the after handler knows to auth
+        req.oauthDeferredAuth = {
+          id: userId,
+          provider: provider.name
+        };
+      }
+    });
+  };
+
+  OAuthAction.prototype.reauthenticateNewResource = function(req, res, provider) {
+    var self = this;
+    // New resource was created and we need to authenticate it again and assign it an externalId
+    // Also confirm role is actually accessible
+    var roleQuery = hook.alter('roleQuery', {_id: self.settings.role, deleted: {$eq: null}}, req);
+    return Q.all([
+      // Load submission
+      router.formio.resources.submission.model.findOne({_id: res.resource.item._id}),
+      // Load resource
+      Q.denodeify(router.formio.cache.loadForm.bind(router.formio.cache))(req, 'resource', self.settings.resource),
+      // Load role
+      router.formio.roles.resource.model.findOne(roleQuery)
+    ])
+    .then(function(results) {
+      var submission = results[0];
+      var resource = results[1];
+      var role = results[2];
+
+      if (!submission) {
+        throw {
+          status: 404,
+          message: 'No submission found with _id: ' + res.resource.item._id
+        };
+      }
+      if (!resource) {
+        throw {
+          status: 404,
+          message: 'No resource found with _id: ' + self.settings.resource
+        };
+      }
+      if (!role) {
+        throw {
+          status: 404,
+          message: 'The given role was not found.'
+        };
+      }
+
+      // Add role
+      // Convert to just the roleId
+      debug(role);
+      role = role.toObject()._id.toString();
+
+      // Add and store unique roles only.
+      var temp = submission.toObject().roles || [];
+      debug('Submission Roles: ' + JSON.stringify(temp));
+      temp = _.map(temp, function(r) {
+        return r.toString();
+      });
+      debug('Adding: ' + role);
+      temp.push(role);
+      temp = _.uniq(temp);
+      debug('Final Roles: ' + JSON.stringify(temp));
+      temp = _.map(temp, function(r) {
+        return mongoose.Types.ObjectId(r);
+      });
+
+      submission.set('roles', temp);
+
+      // Add external id
+      submission.externalIds.push({
+        type: provider.name,
+        id: req.oauthDeferredAuth.id
+      });
+
+      return submission.save()
+      .then(function() {
+        return router.formio.auth.authenticateOAuth(resource, provider.name, req.oauthDeferredAuth.id);
+      });
+    })
+    .then(function(result) {
+      req.user = result.user;
+      req.token = result.token.decoded;
+      res.token = result.token.token;
+      req['x-jwt-token'] = result.token.token;
+      // Manually invoke router.formio.auth.currentUser to trigger resourcejs middleware.
+      return Q.nfcall(router.formio.auth.currentUser, req, res);
+    });
   };
 
   /**
@@ -206,7 +350,8 @@ module.exports = function(router) {
       return next('OAuth Action is missing Provider setting.');
     }
 
-    if (!this.settings.resource) {
+    // Non-link association requires a resource setting
+    if (this.settings.association !== 'link' && !this.settings.resource) {
       return next('OAuth Action is missing Resource setting.');
     }
 
@@ -263,70 +408,78 @@ module.exports = function(router) {
       // Do not execute the form CRUD methods.
       req.skipResource = true;
 
-      var userInfo = null, userId = null, resource = null;
+      var tokenPromise = provider.getToken(req, oauthResponse.code, oauthResponse.state, oauthResponse.redirectURI)
+      if (self.settings.association === 'new' || self.settings.association === 'existing') {
+        return tokenPromise.then(function(accessToken) {
+          return self.authenticate(req, res, provider, accessToken);
+        })
+        .then(function(){
+          next();
+        }).catch(this.onError(req, res, next));
+      }
+      else if (self.settings.association === 'link') {
+        var userId, currentUser;
+        return tokenPromise.then(function(accessToken){
+          return Q.all([
+            provider.getUser(accessToken),
+            Q.ninvoke(router.formio.auth, 'currentUser', req, res)
+          ]);
+        })
+        .then(function(results) {
+          userId = provider.getUserId(results[0]);
+          currentUser = res.resource.item;
+          debug('userId:', userId);
+          debug('currentUser:', currentUser);
 
-      provider.getToken(req, oauthResponse.code, oauthResponse.state, oauthResponse.redirectURI)
-      .then(function(accessToken) {
-        debug('Access Token:', accessToken);
-        return Q.all([
-          provider.getUser(accessToken),
-          Q.denodeify(router.formio.cache.loadForm.bind(router.formio.cache))(req, 'resource', self.settings.resource)
-        ]);
-      })
-      .then(function(results) {
-        userInfo = results[0];
-        userId = provider.getUserId(userInfo);
-        resource = results[1];
-
-        debug('userInfo:', userInfo);
-        debug('userId:', userId);
-
-        return router.formio.auth.authenticateOAuth(resource, provider.name, userId);
-      })
-      .then(function(result) {
-        if (result) { // Authenticated existing resource
-          req.user = result.user;
-          req.token = result.token.decoded;
-          res.token = result.token.token;
-          req['x-jwt-token'] = result.token.token;
-
-          // Manually invoke router.formio.auth.currentUser to trigger resourcejs middleware.
-          return Q.nfcall(router.formio.auth.currentUser, req, res)
-          .then(function() {
-            next();
-          });
-        }
-        else { // Need to create and auth new resource
-          // If we were looking for an existing resource, return an error
-          if (self.settings.association === 'existing') {
-            throw provider.title + ' account has not yet been linked.';
+          if (!currentUser) {
+            throw {
+              status: 401,
+              message: 'Must be logged in to link ' + provider.title + ' account.'
+            };
           }
-          // Add some default resourceData so DefaultAction creates the resource
-          // even with empty submission data
-          req.resourceData = req.resourceData || {};
-          req.resourceData[resource.name] = { data: {} };
 
-          // Find and fill in all the autofill fields
-          var regex = new RegExp('autofill-' + provider.name + '-(.+)');
-          _.each(self.settings, function(value, key) {
-            var match = key.match(regex);
-            if (match && value && userInfo[match[1]]) {
-              req.body.data[value] = userInfo[match[1]];
+          // Check if this account has already been linked
+          return router.formio.resources.submission.model.findOne(
+            {
+              form: currentUser.form,
+              externalIds: {
+                $elemMatch: {
+                  type: provider.name,
+                  id: userId
+                }
+              },
+              deleted: {$eq: null}
+            }
+          );
+        }).then(function(linkedSubmission){
+          if (linkedSubmission) {
+            throw {
+              status: 400,
+              message: 'This ' + provider.title + ' account has already been linked.'
+            };
+          }
+
+          // Add the external ids
+          return router.formio.resources.submission.model.update({
+            _id: currentUser._id
+          }, {
+            $push: {
+              externalIds: {
+                type: provider.name,
+                id: userId
+              }
             }
           });
-
-          debug('resourceData:', req.resourceData);
-
-          // Add id so the after handler knows to auth
-          req.oauthDeferredAuth = {
-            id: userId,
-            provider: provider.name
-          };
-
+        })
+        .then(function(submission) {
+          // Update current user response
+          return Q.ninvoke(router.formio.auth, 'currentUser', req, res);
+        })
+        .then(function(){
           next();
+        }).catch(this.onError(req, res, next));
+      }
 
-        }
-      }).catch(next);
 
     }
     else if (
@@ -335,91 +488,27 @@ module.exports = function(router) {
       req.oauthDeferredAuth &&
       req.oauthDeferredAuth.provider === provider.name
     ) {
-      // New resource was created and we need to authenticate it and assign it an externalId
-      Q.all([
-        // Update the resource with the external Id.
-        router.formio.resources.submission.model.update({
-          _id: res.resource.item._id
-        }, {
-          $push: {
-            externalIds: {
-              type: provider.name,
-              id: req.oauthDeferredAuth.id
-            }
-          }
-        }),
-        // Load resource form
-        Q.denodeify(router.formio.cache.loadForm.bind(router.formio.cache))(req, 'resource', self.settings.resource)
-      ])
-      .then(function(results) {
-        var resourceForm = results[1];
-        return router.formio.auth.authenticateOAuth(resourceForm, provider.name, req.oauthDeferredAuth.id);
-      })
-      .then(function(result) {
-        req.user = result.user;
-        req.token = result.token.decoded;
-        res.token = result.token.token;
-        req['x-jwt-token'] = result.token.token;
-
-        // Manually invoke router.formio.auth.currentUser to trigger resourcejs middleware.
-        return Q.nfcall(router.formio.auth.currentUser, req, res);
-      })
+      return self.reauthenticateNewResource(req, res, provider)
       .then(function() {
-        // Add role to new resource
-        // Confirm that the given/configured role is actually accessible.
-        var query = hook.alter('roleQuery', {_id: self.settings.role, deleted: {$eq: null}}, req);
-        debug('Role Query: ' + JSON.stringify(query));
-        return Q.all([
-          router.formio.roles.resource.model.findOne(query),
-          router.formio.resources.submission.model.findById(req.user._id)
-        ]);
-      })
-      .then(function(results) {
-        var role = results[0];
-        var submission = results[1];
-
-        if (!role) {
-          throw 'The given role was not found.';
-        }
-        if (!submission) {
-          throw 'No submission found with _id: ' + req.user._id;
-        }
-
-        // Convert to just the roleId
-        debug(role);
-        role = role.toObject()._id.toString();
-
-        // Add and store unique roles only.
-        var temp = submission.toObject().roles || [];
-        debug('Submission Roles: ' + JSON.stringify(temp));
-        temp = _.map(temp, function(r) {
-          return r.toString();
-        });
-        debug('Adding: ' + role);
-        temp.push(role);
-        temp = _.uniq(temp);
-        debug('Final Roles: ' + JSON.stringify(temp));
-        temp = _.map(temp, function(r) {
-          return mongoose.Types.ObjectId(r);
-        });
-
-        submission.set('roles', temp);
-        return submission.save();
-
-      })
-      .then(function(submission) {
-        // Update resource with saved submission
-        res.resource.item = submission;
         next();
       })
-      .catch(next);
-
+      .catch(this.onError(req, res, next));
     }
     else {
       next();
     }
 
   };
+
+  OAuthAction.prototype.onError = function(req, res, next) {
+    return function(err) {
+      if(err.status) {
+        debug('Error', err);
+        return res.status(err.status).send(err.message);
+      }
+      next(err);
+    }
+  }
 
   // Return the OAuthAction.
   return OAuthAction;
