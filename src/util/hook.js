@@ -1,7 +1,7 @@
 module.exports = function(formio) {
   return {
     settings: function(req, cb) {
-      var settings = formio.config.settings || {};
+      var settings = (formio.config && formio.config.settings) || {};
       if (formio.hooks && formio.hooks.settings) {
         return formio.hooks.settings(settings, req, cb);
       }

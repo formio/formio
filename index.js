@@ -8,6 +8,8 @@ var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
 var _ = require('lodash');
+var _property = require('lodash.property');
+var _has = require('lodash.has');
 var events = require('events');
 var fs = require('fs');
 var Q = require('q');
@@ -199,10 +201,33 @@ module.exports = function(config) {
             if (!form) {
               return res.status(404).send('Form not found');
             }
-
-            res.json(_.values(util.flattenComponents(form.components)));
+            // If query params present, filter components that match params
+            var filter = Object.keys(req.query).length !== 0 ? req.query : null;
+            res.json(
+              _(util.flattenComponents(form.components))
+              .filter(function(component) {
+                if (!filter) {
+                  return true;
+                }
+                return _.reduce(filter, function(prev, value, prop) {
+                  if (!value) {
+                    return prev && _has(component, prop);
+                  }
+                  var actualValue = _property(prop)(component);
+                  // loose equality so number values can match
+                  return prev && actualValue == value || // eslint-disable-line eqeqeq
+                    value === 'true' && actualValue === true ||
+                    value === 'false' && actualValue === false;
+                }, true);
+              })
+              .values()
+              .value()
+            );
           });
         });
+
+        // Import the OAuth providers
+        router.formio.oauth = require('./src/oauth/oauth')(router);
 
         // Import the form actions.
         router.formio.Action = require('./src/actions/Action');
