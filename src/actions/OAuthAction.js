@@ -56,7 +56,6 @@ module.exports = function(router) {
    */
   OAuthAction.settingsForm = function(req, res, next) {
     var fieldsSrc = hook.alter('url', '/form/' + req.params.formId + '/components', req);
-    var buttonsSrc = hook.alter('url', '/form/' + req.params.formId + '/components?type=button&action=oauth', req);
     var resourceSrc = hook.alter('url', '/form?type=resource', req);
     router.formio.roles.resource.model.find(hook.alter('roleQuery', {}, req))
       .sort({title: 1})
@@ -64,8 +63,13 @@ module.exports = function(router) {
         if (err || !roles) {
           return res.status(400).send('Could not load the Roles.');
         }
-        oauthUtil.availableProviders(req)
-        .then(function(availableProviders) {
+        Q.all([
+          oauthUtil.availableProviders(req),
+          Q.ninvoke(router.formio.cache, 'loadCurrentForm', req)
+        ])
+        .then(function(results) {
+          var availableProviders = results[0];
+          var form = results[1];
           next(null, [
             {
               type: 'select',
@@ -148,8 +152,10 @@ module.exports = function(router) {
               key: 'settings[button]',
               placeholder: 'Select the button that triggers OAuth sign-in',
               template: '<span>{{ item.label || item.key }}</span>',
-              dataSrc: 'url',
-              data: {url: buttonsSrc},
+              dataSrc: 'json',
+              data: {
+                json: JSON.stringify(_.filter(form.components, {type: 'button', action: 'oauth'}))
+              },
               valueProperty: 'key',
               multiple: false,
               validate: {
@@ -179,7 +185,7 @@ module.exports = function(router) {
             .value()
           ));
         })
-        .catch(this.onError(req, res, next));
+        .catch(next);
       });
   };
 
