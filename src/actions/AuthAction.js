@@ -144,6 +144,10 @@ module.exports = function(router) {
    *   The callback function to execute upon completion.
    */
   AuthAction.prototype.resolve = function(handler, method, req, res, next) {
+    if (req.submission && req.submission.hasOwnProperty('oauth')) {
+      return next(); // OAuth Action will handle authentication
+    }
+
     if (!req.submission || !req.submission.hasOwnProperty('data')) {
       return next('Submission data is required to Authenticate.');
     }
