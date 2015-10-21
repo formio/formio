@@ -5378,7 +5378,7 @@ module.exports = function(app, template, hook) {
             label: 'Non-Persistent',
             inputType: 'text',
             input: true
-          },
+          }
         ]
       };
 
@@ -5500,7 +5500,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
 
-              assert.equal(response.length, 1)
+              assert.equal(response.length, 1);
               assert(response[0].hasOwnProperty('data'), 'The response should contain a submission `data` object.');
               assert.deepEqual(response[0].data, {
                 persistent: 'exists',
@@ -5514,21 +5514,13 @@ module.exports = function(app, template, hook) {
             });
         });
 
-        var updateSubmission = {
-          data: {
-            persistent: 'still exists',
-            implicitPersistent: 'still also exists',
-            nonPersistent: 'still should not exist'
-          }
-        }
-
         it('on Update', function(done) {
           var updateSubmission = _.clone(tempSubmission);
           updateSubmission.data = {
             persistent: 'still exists',
             implicitPersistent: 'still also exists',
             nonPersistent: 'still should not exist'
-          }
+          };
 
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
