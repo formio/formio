@@ -87,6 +87,11 @@ var Validator = function(form, model) {
         break;
     }
 
+    // Add required validator.
+    if (component.validate && component.validate.required) {
+      fieldValidator = fieldValidator.required().empty();
+    }
+
     // Make sure to change this to an array if multiple is checked.
     if (component.multiple) {
       fieldValidator = Joi.array().sparse().items(fieldValidator);
