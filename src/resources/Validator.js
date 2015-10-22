@@ -92,6 +92,12 @@ var Validator = function(form, model) {
       fieldValidator = fieldValidator.required().empty();
     }
 
+    // Add regex validator
+    if (component.validate && component.validate.pattern) {
+      var regex = new RegExp(component.validate.pattern);
+      fieldValidator = fieldValidator.regex(regex);
+    }
+
     // Make sure to change this to an array if multiple is checked.
     if (component.multiple) {
       fieldValidator = Joi.array().sparse().items(fieldValidator);
