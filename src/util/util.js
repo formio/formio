@@ -86,6 +86,22 @@ module.exports = {
   },
 
   /**
+   * Get a component by its key
+   * @param components
+   * @param key The key of the component to get
+   * @returns The component that matches the given key, or undefined if not found.
+   */
+  getComponent: function getComponent(components, key) {
+    var result;
+    this.eachComponent(components, function(component) {
+      if(component.key === key) {
+        result = component;
+      }
+    });
+    return result;
+  },
+
+  /**
    * Flatten the form components for data manipulation.
    * @param components
    * @param flattened
@@ -250,5 +266,18 @@ module.exports = {
    */
   getSubmissionKey: function(key) {
     return key.replace(/\./g, '.data.');
+  },
+
+  /**
+   * Converts a submission key into a form component key
+   * by replacing .data. with .
+   * (ex: `user.data.name` becomes `user.name` in a submission)
+   * @param key
+   *   The key to convert
+   * @return
+   *   The form component key
+   */
+  getFormComponentKey: function(key) {
+    return key.replace(/\.data\./g, '.');
   }
 };
