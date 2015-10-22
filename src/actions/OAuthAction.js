@@ -7,6 +7,7 @@ var _ = require('lodash');
 var crypto = require('crypto');
 var mongoose = require('mongoose');
 var Q = require('q');
+var chance = require('chance').Chance();
 
 
 module.exports = function(router) {
@@ -248,6 +249,18 @@ module.exports = function(router) {
           id: userId,
           provider: provider.name
         };
+
+        return Q.ninvoke(router.formio.cache, 'loadCurrentForm', req)
+        .then(function(currentForm) {
+          debug('Filling in dummy passwords');
+          util.eachComponent(currentForm.components, function(component) {
+            // Fill in password fields with dummy data to pass validation
+            if(component.type === 'password' && component.persistent !== false) {
+              req.body.data[component.key] = 'temp_' + chance.string({length: 16})
+              debug(component.key, 'is now', req.body.data[component.key]);
+            }
+          });
+        });
       }
     });
   };
