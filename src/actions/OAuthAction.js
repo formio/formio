@@ -128,7 +128,7 @@ module.exports = function(router) {
               template: '<span>{{ item.title }}</span>',
               dataSrc: 'url',
               data: {url: resourceSrc},
-              valueProperty: '_id',
+              valueProperty: 'name',
               multiple: false,
               validate: {
                 required: true
@@ -198,7 +198,7 @@ module.exports = function(router) {
 
     return Q.all([
       provider.getUser(accessToken),
-      Q.denodeify(router.formio.cache.loadForm.bind(router.formio.cache))(req, 'resource', self.settings.resource)
+      Q.denodeify(router.formio.cache.loadFormByName.bind(router.formio.cache))(req, self.settings.resource)
     ])
     .then(function(results) {
       userInfo = results[0];
@@ -274,7 +274,7 @@ module.exports = function(router) {
       // Load submission
       router.formio.resources.submission.model.findOne({_id: res.resource.item._id}),
       // Load resource
-      Q.denodeify(router.formio.cache.loadForm.bind(router.formio.cache))(req, 'resource', self.settings.resource),
+      Q.denodeify(router.formio.cache.loadFormByName.bind(router.formio.cache))(req, self.settings.resource),
       // Load role
       router.formio.roles.resource.model.findOne(roleQuery)
     ])
@@ -292,7 +292,7 @@ module.exports = function(router) {
       if (!resource) {
         throw {
           status: 404,
-          message: 'No resource found with _id: ' + self.settings.resource
+          message: 'No resource found with name: ' + self.settings.resource
         };
       }
       if (!role) {
