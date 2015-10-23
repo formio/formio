@@ -587,7 +587,7 @@ module.exports = function(app, template, hook) {
           settings: {
             provider: 'test1',
             association: 'new',
-            resource: template.forms.oauthUserResource._id,
+            resource: template.forms.oauthUserResource.name,
             role: template.roles.authenticated._id.toString(),
             button: 'oauthSignup1',
             'autofill-test1-email': 'oauthUser.email'
@@ -633,7 +633,7 @@ module.exports = function(app, template, hook) {
           settings: {
             provider: 'test1',
             association: 'existing',
-            resource: template.forms.oauthUserResource._id,
+            resource: template.forms.oauthUserResource.name,
             button: 'oauthSignin1'
           }
         };
@@ -720,7 +720,7 @@ module.exports = function(app, template, hook) {
           settings: {
             provider: 'test2',
             association: 'new',
-            resource: template.forms.oauthUserResource._id,
+            resource: template.forms.oauthUserResource.name,
             role: template.roles.authenticated._id.toString(),
             button: 'oauthSignup2',
             'autofill-test2-email': 'oauthUser.email'
@@ -766,7 +766,7 @@ module.exports = function(app, template, hook) {
           settings: {
             provider: 'test2',
             association: 'existing',
-            resource: template.forms.oauthUserResource._id,
+            resource: template.forms.oauthUserResource.name,
             button: 'oauthSignin2'
           }
         };
