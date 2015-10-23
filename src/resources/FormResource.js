@@ -56,7 +56,7 @@ module.exports = function(router) {
   return Resource(router, '', 'form', mongoose.model('form', router.formio.schemas.form)).rest(hook.alter('formRoutes', {
     before: [
       router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-      router.formio.middleware.bootstrapEntityOwner,
+      router.formio.middleware.bootstrapEntityOwner(false),
       router.formio.middleware.formHandler,
       router.formio.middleware.formActionHandler('before'),
       router.formio.middleware.condensePermissionTypes,

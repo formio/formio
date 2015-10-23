@@ -10,7 +10,7 @@ module.exports = function(router) {
   // Manually update the handlers, to add additional middleware.
   handlers.beforePost = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-    router.formio.middleware.bootstrapEntityOwner,
+    router.formio.middleware.bootstrapEntityOwner(true),
     handlers.beforePost
   ];
   handlers.afterPost = [
@@ -29,7 +29,7 @@ module.exports = function(router) {
   ];
   handlers.beforePut = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-    router.formio.middleware.bootstrapEntityOwner,
+    router.formio.middleware.bootstrapEntityOwner(false),
     handlers.beforePut
   ];
   handlers.afterPut = [

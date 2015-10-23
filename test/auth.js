@@ -6,7 +6,7 @@ var assert = require('assert');
 
 module.exports = function(app, template, hook) {
   describe('Authentication', function() {
-    it('Should be able to register an administrator.', function(done) {
+    it('Should be able to register an administrator', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template))
         .send({
