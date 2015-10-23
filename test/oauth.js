@@ -858,7 +858,6 @@ module.exports = function(app, template, hook) {
           done();
         });
       });
-
     });
 
     describe('After Form Handler', function() {
@@ -930,7 +929,6 @@ module.exports = function(app, template, hook) {
     });
 
     describe('OAuth Submission Handler', function() {
-
       it('An anonymous user should be able to register with OAuth provider test1', function(done) {
         var submission = {
           data: {},
@@ -942,15 +940,17 @@ module.exports = function(app, template, hook) {
             }
           }
         };
+
         request(app)
           .post(hook.alter('url', '/form/' + template.forms.oauthRegisterForm._id + '/submission', template))
           .send(submission)
-          // .expect(200)
-          // .expect('Content-Type', /json/)
+          .expect(200)
+          .expect('Content-Type', /json/)
           .end(function(err, res) {
             if (err) {
               return done(err);
             }
+
             var response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
             assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
@@ -969,6 +969,9 @@ module.exports = function(app, template, hook) {
             assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
             assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
             assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+            assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+            assert.notEqual(response.owner, null);
+            assert.equal(response.owner, response._id);
 
             // Save user for later tests
             template.users.oauthUser1 = response;
@@ -989,6 +992,7 @@ module.exports = function(app, template, hook) {
             }
           }
         };
+
         request(app)
           .post(hook.alter('url', '/form/' + template.forms.oauthRegisterForm._id + '/submission', template))
           .send(submission)
@@ -1017,6 +1021,9 @@ module.exports = function(app, template, hook) {
             assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
             assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
             assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+            assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+            assert.notEqual(response.owner, null);
+            assert.equal(response.owner, response._id);
 
             // Save user for later tests
             template.users.oauthUser2 = response;
@@ -1036,6 +1043,7 @@ module.exports = function(app, template, hook) {
             }
           }
         };
+
         request(app)
           .post(hook.alter('url', '/form/' + template.forms.oauthLoginForm._id + '/submission', template))
           .send(submission)
@@ -1064,6 +1072,9 @@ module.exports = function(app, template, hook) {
             assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
             assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
             assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+            assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+            assert.notEqual(response.owner, null);
+            assert.equal(response.owner, response._id);
 
             done();
           });
@@ -1080,6 +1091,7 @@ module.exports = function(app, template, hook) {
             }
           }
         };
+
         request(app)
           .post(hook.alter('url', '/form/' + template.forms.oauthLoginForm._id + '/submission', template))
           .send(submission)
@@ -1108,6 +1120,9 @@ module.exports = function(app, template, hook) {
             assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
             assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
             assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+            assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+            assert.notEqual(response.owner, null);
+            assert.equal(response.owner, response._id);
 
             done();
           });
@@ -1124,6 +1139,7 @@ module.exports = function(app, template, hook) {
             }
           }
         };
+
         request(app)
           .post(hook.alter('url', '/form/' + template.forms.oauthRegisterForm._id + '/submission', template))
           .send(submission)
@@ -1178,6 +1194,7 @@ module.exports = function(app, template, hook) {
             }
           }
         };
+
         request(app)
           .post(hook.alter('url', '/form/' + template.forms.oauthLoginForm._id + '/submission', template))
           .send(submission)
@@ -1221,6 +1238,7 @@ module.exports = function(app, template, hook) {
             }
           }
         };
+
         request(app)
           .post(hook.alter('url', '/form/' + template.forms.oauthLinkForm._id + '/submission', template))
           .set('x-jwt-token', template.users.oauthUser1.token)
@@ -1287,6 +1305,7 @@ module.exports = function(app, template, hook) {
             }
           }
         };
+
         request(app)
           .post(hook.alter('url', '/form/' + template.forms.oauthLinkForm._id + '/submission', template))
           .send(submission)
@@ -1305,6 +1324,7 @@ module.exports = function(app, template, hook) {
             }
           }
         };
+
         request(app)
           .post(hook.alter('url', '/form/' + template.forms.oauthLinkForm._id + '/submission', template))
           .set('x-jwt-token', template.users.oauthUser2.token)
@@ -1312,7 +1332,6 @@ module.exports = function(app, template, hook) {
           .expect(400)
           .end(done);
       });
-
     });
   });
 };
