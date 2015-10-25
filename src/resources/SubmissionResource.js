@@ -38,6 +38,7 @@ module.exports = function(router) {
     router.formio.middleware.filterProtectedFields
   ];
   handlers.beforeIndex = [
+    router.formio.middleware.setFilterQueryTypes,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.ownerFilter,
     handlers.beforeIndex

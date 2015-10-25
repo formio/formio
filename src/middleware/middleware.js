@@ -17,6 +17,7 @@ module.exports = function(router) {
     formActionHandler: require('./formActionHandler')(router),
     ownerFilter: require('./ownerFilter')(router),
     permissionHandler: require('./permissionHandler')(router),
+    setFilterQueryTypes: require('./setFilterQueryTypes')(router),
     sortMongooseQuery: require('./sortMongooseQuery')(router),
     submissionHandler: require('./submissionHandler')(router),
     tokenHandler: require('./tokenHandler')(router)
