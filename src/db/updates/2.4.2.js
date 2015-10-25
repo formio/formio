@@ -150,7 +150,7 @@ module.exports = function(db, config, tools, done) {
 
             next();
           }
-        )
+        );
       }, function(err) {
         if (err) {
           return then(err);

@@ -3,7 +3,10 @@
 var _ = require('lodash');
 var async = require('async');
 var deleteProp = require('delete-property');
-var debug = require('debug')('formio:middleware:submissionHandler');
+var debug = {
+  before: require('debug')('formio:middleware:submissionHandler#before'),
+  after: require('debug')('formio:middleware:submissionHandler#after')
+};
 var util = require('../util/util');
 
 module.exports = function (router, resourceName, resourceId) {
@@ -62,11 +65,11 @@ module.exports = function (router, resourceName, resourceId) {
       // Load the resource.
       router.formio.cache.loadCurrentForm(req, function(err, form) {
         if (err) {
-          debug(err);
+          debug.before(err);
           return next(err);
         }
         if (!form) {
-          debug('Form not found');
+          debug.before('Form not found');
           return next('Form not found');
         }
 
@@ -86,7 +89,7 @@ module.exports = function (router, resourceName, resourceId) {
         // If the request has a body.
         if (!isGet && req.body) {
           var _old = _.clone(req.body, true);
-          debug(_old);
+          debug.before(_old);
 
           // Filter the data received, and only allow submission.data and specific fields specified.
           req.body = {
@@ -109,7 +112,7 @@ module.exports = function (router, resourceName, resourceId) {
           }
 
           // Store the original request body in a submission object.
-          debug(req.body);
+          debug.before(req.body);
           req.submission = _.clone(req.body, true);
 
           // Ensure they cannot reset the submission id.
@@ -126,7 +129,7 @@ module.exports = function (router, resourceName, resourceId) {
             component.hasOwnProperty('persistent') &&
             !component.persistent
           ) {
-            debug('Removing non-persistent field:', component.key);
+            debug.before('Removing non-persistent field:', component.key);
             // Delete the value from the body if it isn't supposed to be persistent.
             deleteProp('data.' + util.getSubmissionKey(component.key))(req.body);
           }
@@ -163,10 +166,12 @@ module.exports = function (router, resourceName, resourceId) {
       // Execute the router action.
       router.formio.actions.execute('after', method.name, req, res, function(err) {
         if (err) {
+          debug.after(err);
           return next(err);
         }
 
         // Load the current form.
+        debug.after('Loading the form.');
         router.formio.cache.loadCurrentForm(req, function(err, currentForm) {
           async.eachSeries(util.flattenComponents(currentForm.components), function(component, done) {
             executeFieldHandler(component, req.handlerName, req, res, done);

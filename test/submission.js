@@ -825,6 +825,7 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
                 assert.equal(response.owner, tempSubmission.owner);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
@@ -841,7 +842,7 @@ module.exports = function(app, template, hook) {
               });
           });
 
-          it('The Project Owner should be able to update the owner of a submission, without permissions', function(done) {
+          it('The Project Owner should be able to update the owner of a submission, without explicit permissions', function(done) {
             request(app)
               .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + temp._id, template))
               .set('x-jwt-token', template.users.admin.token)
@@ -1134,6 +1135,9 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.user1._id);
 
                 // Update the submission data.
                 tempSubmissionUser1 = response;
@@ -1337,6 +1341,9 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.user1._id);
 
                 // Update the submission data.
                 tempSubmissionUser1 = response;
@@ -1372,6 +1379,10 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.user2._id);
+
                 tempSubmissionUser2 = response;
 
                 // Store the JWT for future API calls.
@@ -1458,6 +1469,10 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.admin._id);
+
                 tempSubmissionOwner1 = response;
 
                 // Store the JWT for future API calls.
@@ -1582,6 +1597,9 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.admin._id);
                 tempSubmissionOwner1 = response;
 
                 // Store the JWT for future API calls.
@@ -1953,6 +1971,9 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.user1._id);
 
                 // Update the submission data.
                 tempSubmissionUser1 = response;
@@ -2156,6 +2177,9 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.user1._id);
 
                 // Update the submission data.
                 tempSubmissionUser1 = response;
@@ -2193,6 +2217,10 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.admin._id);
+
                 tempSubmissionOwner1 = response;
 
                 // Store the JWT for future API calls.
@@ -2317,6 +2345,10 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.admin._id);
+
                 tempSubmissionOwner1 = response;
 
                 // Store the JWT for future API calls.
@@ -2666,6 +2698,7 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
                 assert.equal(response.owner, template.users.admin._id);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
@@ -2679,7 +2712,7 @@ module.exports = function(app, template, hook) {
               });
           });
 
-          it('The Project Owner should be able to create a submission in someones name, without permissions', function(done) {
+          it('The Project Owner should be able to create a submission in someones name, without explicit permissions', function(done) {
             var submission = _.clone(tempSubmission);
             submission.owner = template.users.user2._id;
             request(app)
@@ -2705,7 +2738,8 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
-                assert.equal(response.owner, submission.owner);
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.user2._id);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
                 // Update the submission data.
@@ -2778,6 +2812,7 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
                 assert.equal(response.owner, template.users.user1._id);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
@@ -3011,6 +3046,7 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
                 assert.equal(response.owner, template.users.admin._id);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
@@ -3051,7 +3087,8 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
-                assert.equal(response.owner, submission.owner);
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.user2._id);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
                 // Update the submission data.
@@ -3125,6 +3162,7 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
                 assert.equal(response.owner, template.users.user1._id);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
@@ -3165,7 +3203,8 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
-                assert.equal(response.owner, submission.owner);
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.admin._id);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
                 // Update the submission data.
@@ -3321,10 +3360,10 @@ module.exports = function(app, template, hook) {
         // Store the template submission for this test suite.
         var templateSubmission = {data: {value: 'foo'}};
 
-        // Store the annonymous temp submission1 for this test suite.
+        // Store the anonymous temp submission1 for this test suite.
         var tempSubmissionAnon1 = {};
 
-        // Store the annonymous temp submission2 for this test suite.
+        // Store the anonymous temp submission2 for this test suite.
         var tempSubmissionAnon2 = {};
 
         // Store the Project Owners submission1 for this test suite.
@@ -3536,6 +3575,9 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.admin._id);
 
                 tempSubmissionOwner1 = response;
 
@@ -3664,6 +3706,9 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.admin._id);
 
                 tempSubmissionOwner2 = response;
 
@@ -4253,6 +4298,9 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.admin._id);
 
                 tempSubmissionOwner1 = response;
 
@@ -4359,6 +4407,9 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.admin._id);
 
                 tempSubmissionOwner2 = response;
 
@@ -4712,6 +4763,7 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
                 assert.equal(response.owner, template.users.admin._id);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
@@ -4752,7 +4804,8 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
-                assert.equal(response.owner, submission.owner);
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.user2._id);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
                 // Update the submission data.
@@ -5058,6 +5111,7 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
                 assert.equal(response.owner, template.users.admin._id);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
@@ -5098,7 +5152,8 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
-                assert.equal(response.owner, submission.owner);
+                assert.notEqual(response.owner, null);
+                assert.equal(response.owner, template.users.user2._id);
                 assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
                 // Update the submission data.
@@ -5234,6 +5289,7 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
                 assert.deepEqual(response.roles, []);
                 assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.notEqual(response.owner, null);
                 assert.equal(response.owner, submission.owner);
 
                 // Update the submission data.

@@ -6,7 +6,7 @@ var assert = require('assert');
 
 module.exports = function(app, template, hook) {
   describe('Authentication', function() {
-    it('Should be able to register an administrator.', function(done) {
+    it('Should be able to register an administrator', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template))
         .send({
@@ -33,6 +33,9 @@ module.exports = function(app, template, hook) {
           assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.admin._id);
           assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+          assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+          assert.notEqual(response.owner, null);
+          assert.equal(response.owner, response._id);
 
           // Update our testProject.owners data.
           var tempPassword = template.users.admin.data.password;
@@ -101,6 +104,26 @@ module.exports = function(app, template, hook) {
         });
     });
 
+    it('A Form.io User should not be able to login with empty credentials', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.forms.adminLogin._id + '/submission', template))
+        .send({
+          data: {
+            username: '',
+            password: ''
+          }
+        })
+        .expect(500)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(!res.headers['x-jwt-token'], true);
+          done();
+        });
+    });
+
     it('A Form.io User should be able to login using an Alias', function(done) {
       request(app)
         .post(hook.alter('url', '/' + template.forms.adminLogin.path, template))
@@ -156,7 +179,7 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    it('Should be able to register an authenticated user.', function(done) {
+    it('Should be able to register an authenticated user', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template))
         .send({
@@ -183,6 +206,9 @@ module.exports = function(app, template, hook) {
           assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
           assert.equal(response.form, template.resources.user._id);
           assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+          assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+          assert.notEqual(response.owner, null);
+          assert.equal(response.owner, response._id);
 
           // Update our testProject.owners data.
           var tempPassword = template.users.user1.data.password;
@@ -212,9 +238,14 @@ module.exports = function(app, template, hook) {
             return done(err);
           }
 
+          var response = res.body;
+          assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+          assert.notEqual(response.owner, null);
+          assert.equal(response.owner, response._id);
+
           // Update our testProject.owners data.
           var tempPassword = template.users.user2.data.password;
-          template.users.user2 = res.body;
+          template.users.user2 = response;
           template.users.user2.data.password = tempPassword;
 
           // Store the JWT for future API calls.

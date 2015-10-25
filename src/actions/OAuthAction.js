@@ -256,7 +256,7 @@ module.exports = function(router) {
           util.eachComponent(currentForm.components, function(component) {
             // Fill in password fields with dummy data to pass validation
             if(component.type === 'password' && component.persistent !== false) {
-              req.body.data[component.key] = 'temp_' + chance.string({length: 16})
+              req.body.data[component.key] = 'temp_' + chance.string({length: 16});
               debug(component.key, 'is now', req.body.data[component.key]);
             }
           });
@@ -321,6 +321,12 @@ module.exports = function(router) {
         return mongoose.Types.ObjectId(r);
       });
 
+      // Update the submissions owner, if set.
+      if (_.has(req, 'selfOwner')&& req.selfOwner) {
+        submission.owner = submission._id;
+      }
+
+      // Update and save the submissions roles.
       submission.set('roles', temp);
 
       // Add external id
@@ -349,6 +355,8 @@ module.exports = function(router) {
    *
    * Note: Requires req.body to contain an OAuth authorization code.
    *
+   * @param handler
+   * @param method
    * @param req
    *   The Express request object.
    * @param res
@@ -410,7 +418,6 @@ module.exports = function(router) {
         });
         next();
       });
-
     }
     else if (
       handler === 'before' &&
@@ -427,7 +434,7 @@ module.exports = function(router) {
       // Do not execute the form CRUD methods.
       req.skipResource = true;
 
-      var tokenPromise = provider.getToken(req, oauthResponse.code, oauthResponse.state, oauthResponse.redirectURI)
+      var tokenPromise = provider.getToken(req, oauthResponse.code, oauthResponse.state, oauthResponse.redirectURI);
       if (self.settings.association === 'new' || self.settings.association === 'existing') {
         return tokenPromise.then(function(accessToken) {
           return self.authenticate(req, res, provider, accessToken);
@@ -498,8 +505,6 @@ module.exports = function(router) {
           next();
         }).catch(this.onError(req, res, next));
       }
-
-
     }
     else if (
       handler === 'after' &&
@@ -516,7 +521,6 @@ module.exports = function(router) {
     else {
       next();
     }
-
   };
 
   OAuthAction.prototype.onError = function(req, res, next) {
@@ -527,7 +531,7 @@ module.exports = function(router) {
       }
       next(err);
     }
-  }
+  };
 
   // Return the OAuthAction.
   return OAuthAction;

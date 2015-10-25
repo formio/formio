@@ -4,6 +4,10 @@ var async = require('async');
 var _ = require('lodash');
 var Q = require('q');
 var util = require('../util/util');
+var debug = {
+  template: require('debug')('formio:template:template'),
+  _install: require('debug')('formio:template:_install')
+};
 
 /**
  * Perform an installation of a specified template.
@@ -12,7 +16,6 @@ var util = require('../util/util');
  *   The formio object.
  */
 module.exports = function(formio) {
-
   // Provide a default alter method.
   var _alter = function(item) {
     return item;
@@ -95,8 +98,16 @@ module.exports = function(formio) {
       alter = alter || _alter;
       async.forEachOfSeries(items, function(item, name, itemDone) {
         var document = _parse ? _parse(template, item) : item;
-        model.create(alter(document), function (err, result) {
-          if (err) { return itemDone(err); }
+        document = alter(document);
+
+        debug._install(document);
+        model.create(document, function(err, result) {
+          if (err) {
+            debug._install(err);
+            return itemDone(err);
+          }
+
+          debug._install(result);
           items[name] = result.toObject();
           itemDone();
         });
@@ -126,7 +137,11 @@ module.exports = function(formio) {
         async.apply(this.actions, template, template.actions, alter.action),
         async.apply(this.submissions, template, template.submissions, alter.submission)
       ], function(err) {
-        if (err) { return done(err); }
+        if (err) {
+          debug.template(err);
+          return done(err);
+        }
+
         done(null, template);
       });
     }

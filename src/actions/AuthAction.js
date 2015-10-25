@@ -276,6 +276,11 @@ module.exports = function(router) {
               return callback('No submission found with _id: ' + req.user._id);
             }
 
+            // Update the submissions owner, if set.
+            if (_.has(req, 'selfOwner')&& req.selfOwner) {
+              submission.owner = submission._id;
+            }
+
             // Add and store unique roles only.
             var temp = submission.toObject().roles || [];
             debug('Submission Roles: ' + JSON.stringify(temp));
@@ -290,6 +295,7 @@ module.exports = function(router) {
               return mongoose.Types.ObjectId(role);
             });
 
+            // Update and save the submissions roles.
             submission.set('roles', temp);
             submission.save(function(err) {
               if (err) {
@@ -297,6 +303,7 @@ module.exports = function(router) {
                 return callback(err);
               }
 
+              debug(submission);
               authenticateUser.call(this, callback)
             }.bind(this));
           }.bind(this));

@@ -6,7 +6,6 @@ var request = require('supertest');
 var mongoose = require('mongoose');
 var events = require('events');
 var Q = require('q');
-var assert = require('assert');
 
 module.exports = function(app, server, settings, mount, config) {
   // Track the status of the initial test bootstrap.
@@ -23,6 +22,9 @@ module.exports = function(app, server, settings, mount, config) {
   formioServer.init(settings).then(function(_formio) {
     // Allow tests access to formio.
     app.formio = _formio;
+
+    // Expose server internals.
+    app._server = formioServer;
 
     // Use the formio router and optional mounting point.
     if (mount) {
