@@ -401,21 +401,27 @@ module.exports = function(router) {
       debug('Modifying Oauth Button');
       oauthUtil.settings(req, provider.name)
       .then(function(oauthSettings) {
-        if (!oauthSettings.clientId || !oauthSettings.clientSecret) {
-          next(provider.title + ' OAuth provider is missing client ID or client secret');
+        var component = util.getComponent(res.resource.item.components, self.settings.button);
+        if(!component) {
+          return next();
         }
-        util.eachComponent(res.resource.item.components, function (component) {
-          if (component.key === self.settings.button) {
-            component.oauth = {
-              provider: provider.name,
-              clientId: oauthSettings.clientId,
-              authURI: provider.authURI,
-              state: crypto.randomBytes(64).toString('hex'),
-              scope: provider.scope,
-              display: provider.display
-            };
-          }
-        });
+        if (!oauthSettings.clientId || !oauthSettings.clientSecret) {
+          component.oauth = {
+            provider: provider.name,
+            error: provider.title + ' OAuth provider is missing client ID or client secret'
+          };
+        }
+        else {
+          component.oauth = {
+            provider: provider.name,
+            clientId: oauthSettings.clientId,
+            authURI: provider.authURI,
+            state: crypto.randomBytes(64).toString('hex'),
+            scope: provider.scope,
+            display: provider.display
+          };
+        }
+
         next();
       });
     }
