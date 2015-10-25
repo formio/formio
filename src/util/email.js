@@ -149,6 +149,7 @@ module.exports = function(formio) {
             break;
           default:
             hook.invoke('email', emailType, message, settings, req, res);
+            next();
             break;
         }
       });
