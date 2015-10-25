@@ -45,7 +45,8 @@ module.exports = function(formio) {
 
       // The data associated with this submission.
       data: {
-        type: mongoose.Schema.Types.Mixed
+        type: mongoose.Schema.Types.Mixed,
+        required: true
       }
     })
   });
