@@ -147,7 +147,7 @@ module.exports = function(db, config, next) {
             return cb(err);
           }
 
-          collection.insertOne({key: 'formio', isLocked: false, version: '2.0.0'}, cb);
+          collection.insertOne({key: 'formio', isLocked: false, version: config.schema}, cb);
         });
       });
     },
