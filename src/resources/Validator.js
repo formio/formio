@@ -87,15 +87,18 @@ var Validator = function(form, model) {
         break;
     }
 
-    // Add required validator.
-    if (component.validate && component.validate.required) {
-      fieldValidator = fieldValidator.required().empty();
-    }
+    // Only run validations for persistent fields with values but not on embedded.
+    if (component.key && (component.key.indexOf('.') === -1) && component.persistent && component.validate) {
+      // Add required validator.
+      if (component.validate.required) {
+        fieldValidator = fieldValidator.required().empty();
+      }
 
-    // Add regex validator
-    if (component.validate && component.validate.pattern) {
-      var regex = new RegExp(component.validate.pattern);
-      fieldValidator = fieldValidator.regex(regex);
+      // Add regex validator
+      if (component.validate.pattern) {
+        var regex = new RegExp(component.validate.pattern);
+        fieldValidator = fieldValidator.regex(regex);
+      }
     }
 
     // Make sure to change this to an array if multiple is checked.
