@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "0.2.3",
+  "version": "1.0.0",
   "description": "The formio server application.",
   "main": "index.js",
   "scripts": {
