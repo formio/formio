@@ -219,7 +219,7 @@ module.exports = function(router) {
     currentUser: currentUser,
     logout: function(req, res) {
       res.setHeader('x-jwt-token', '');
-      res.sendStatus(204);
+      res.sendStatus(200);
     }
   };
 };

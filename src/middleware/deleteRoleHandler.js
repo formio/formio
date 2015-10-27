@@ -55,7 +55,7 @@ module.exports = function(router) {
         }
 
         debug('Deleted role w/ _id: ' + role._id);
-        res.sendStatus(204);
+        res.sendStatus(200);
       });
     });
   };
