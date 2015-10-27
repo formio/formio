@@ -62,6 +62,7 @@
     "chance": "^0.8.0",
     "eslint": "^0.20.0",
     "mocha": "^2.2.1",
+    "sinon": "^1.17.2",
     "supertest": "^0.15.0"
   },
   "directories": {

@@ -442,7 +442,7 @@ module.exports = function(router) {
       router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
       actionPayload
     ];
-    handlers['after' + method] = [router.formio.middleware.filterResourcejsResponse(['deleted', '__v'])];
+    handlers['after' + method] = [router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens'])];
   });
 
   // Add specific middleware to individual endpoints.

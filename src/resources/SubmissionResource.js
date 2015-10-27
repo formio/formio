@@ -15,7 +15,7 @@ module.exports = function(router) {
   ];
   handlers.afterPost = [
     handlers.afterPost,
-    router.formio.middleware.filterResourcejsResponse(['deleted', '__v']),
+    router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens']),
     router.formio.middleware.filterProtectedFields
   ];
   handlers.beforeGet = [
@@ -24,7 +24,7 @@ module.exports = function(router) {
   ];
   handlers.afterGet = [
     handlers.afterGet,
-    router.formio.middleware.filterResourcejsResponse(['deleted', '__v']),
+    router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens']),
     router.formio.middleware.filterProtectedFields
   ];
   handlers.beforePut = [
@@ -34,7 +34,7 @@ module.exports = function(router) {
   ];
   handlers.afterPut = [
     handlers.afterPut,
-    router.formio.middleware.filterResourcejsResponse(['deleted', '__v']),
+    router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens']),
     router.formio.middleware.filterProtectedFields
   ];
   handlers.beforeIndex = [
@@ -45,7 +45,7 @@ module.exports = function(router) {
   ];
   handlers.afterIndex = [
     handlers.afterIndex,
-    router.formio.middleware.filterResourcejsResponse(['deleted', '__v']),
+    router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens']),
     router.formio.middleware.filterProtectedFields
   ];
   handlers.beforeDelete = [
@@ -55,7 +55,7 @@ module.exports = function(router) {
   ];
   handlers.afterDelete = [
     handlers.afterDelete,
-    router.formio.middleware.filterResourcejsResponse(['deleted', '__v']),
+    router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens']),
     router.formio.middleware.filterProtectedFields
   ];
 

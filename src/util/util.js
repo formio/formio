@@ -279,5 +279,13 @@ module.exports = {
    */
   getFormComponentKey: function(key) {
     return key.replace(/\.data\./g, '.');
-  }
+  },
+
+  /**
+   * A promisified version of request. Use this if you need
+   * to be able to mock requests for tests, as it's much easier
+   * to mock this than the individual required 'request' modules
+   * in each file.
+   */
+  request: Q.denodeify(require('request'))
 };

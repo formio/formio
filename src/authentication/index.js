@@ -15,7 +15,6 @@ var util = require('../util/util');
 
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
-  var oauthUtil = require('../util/oauth')(router.formio);
 
   /**
    * Generate our JWT with the given payload, and pass it to the given callback function.

@@ -13,11 +13,30 @@ module.exports = function(app, template, hook) {
     return;
   }
 
+  // Makes sure given user has external tokens match the expected ones
+  // Does NOT fail if user has more tokens than expected ones
+  // Returns a promise
+  var checkExternalTokens = function(user, expected) {
+    return app.formio.resources.submission.model.findOne({_id: user._id})
+    .then(function(user) {
+      user = user.toObject();
+      _.each(expected, function(expectedToken){
+        var actualToken = _.find(user.externalTokens, {type: expectedToken.type});
+        actualToken = _.omit(actualToken, '_id', 'modified', 'created');
+        assert.deepEqual(actualToken, expectedToken, 'Submission should have expected externalToken of type ' + expectedToken.type);
+      });
+    });
+  };
+
   describe('OAuth', function() {
     var oauthSettings;
 
     var TEST_AUTH_CODE_1 = 'TESTAUTHCODE1';
-    var TEST_ACCESS_TOKEN_1 = 'TESTACCESSTOKEN1';
+    var TEST_ACCESS_TOKEN_1 = {
+      type: 'test1',
+      token: 'TESTACCESSTOKEN1',
+      exp: new Date(Date.now() + 3600000)
+    };
     var TEST_REDIRECT_URI_1 = 'http://client1.com';
     var TEST_USER_1 = {
       id: 23,
@@ -25,7 +44,16 @@ module.exports = function(app, template, hook) {
     };
 
     var TEST_AUTH_CODE_2 = 'TESTAUTHCODE2';
-    var TEST_ACCESS_TOKEN_2 = 'TESTACCESSTOKEN2';
+    var TEST_ACCESS_TOKEN_2 = {
+      type: 'test2',
+      token: 'TESTACCESSTOKEN2',
+      exp: new Date(Date.now()) // Expires immediately to test refreshing
+    };
+    var REFRESHED_TEST_ACCESS_TOKEN_2 = {
+      type: 'test2',
+      token: 'REFRESHEDTESTACCESSTOKEN2',
+      exp: new Date(Date.now() + 3600000)
+    };
     var TEST_REDIRECT_URI_2 = 'http://client2.com';
     var TEST_USER_2 = {
       id: 42,
@@ -33,6 +61,11 @@ module.exports = function(app, template, hook) {
     };
 
     beforeEach(function() {
+      // Update the expiration date, so every test has a unique token expiration
+      // Needed to see if tokens are actually being updated
+      TEST_ACCESS_TOKEN_1.exp = new Date(Date.now() + 3600000);
+      TEST_ACCESS_TOKEN_2.exp = new Date(Date.now()); // Expires immediately to test refreshing
+
       // Create a dummy oauth provider
       app.formio.oauth.providers.test1 = {
         name: 'test1',
@@ -44,13 +77,13 @@ module.exports = function(app, template, hook) {
           title: 'Email',
           name: 'email'
         }],
-        getToken: function(req, code, state, redirectURI, next) {
+        getTokens: function(req, code, state, redirectURI, next) {
           assert.equal(code, TEST_AUTH_CODE_1, 'OAuth Action should request access token with expected test code.');
           assert.equal(redirectURI, TEST_REDIRECT_URI_1, 'OAuth Action should request access token with expected redirect uri.');
-          return new Q(TEST_ACCESS_TOKEN_1).nodeify(next);
+          return new Q([TEST_ACCESS_TOKEN_1]).nodeify(next);
         },
-        getUser: function(accessToken, next) {
-          assert.equal(accessToken, TEST_ACCESS_TOKEN_1,
+        getUser: function(tokens, next) {
+          assert.deepEqual(tokens, [TEST_ACCESS_TOKEN_1],
             'OAuth Action should request user info with expected test access token.');
           return new Q(TEST_USER_1).nodeify(next);
         },
@@ -70,19 +103,23 @@ module.exports = function(app, template, hook) {
           title: 'Email',
           name: 'email'
         }],
-        getToken: function(req, code, state, redirectURI, next) {
+        getTokens: function(req, code, state, redirectURI, next) {
           assert.equal(code, TEST_AUTH_CODE_2, 'OAuth Action should request access token with expected test code.');
           assert.equal(redirectURI, TEST_REDIRECT_URI_2, 'OAuth Action should request access token with expected redirect uri.');
-          return new Q(TEST_ACCESS_TOKEN_2).nodeify(next);
+          return new Q([TEST_ACCESS_TOKEN_2]).nodeify(next);
         },
-        getUser: function(accessToken, next) {
-          assert.equal(accessToken, TEST_ACCESS_TOKEN_2,
+        getUser: function(tokens, next) {
+          assert.deepEqual(tokens, [TEST_ACCESS_TOKEN_2],
             'OAuth Action should request user info with expected test access token.');
           return new Q(TEST_USER_2).nodeify(next);
         },
         getUserId: function(user) {
           assert.deepEqual(user, TEST_USER_2, 'OAuth Action should get ID from expected test user.');
           return user.id;
+        },
+        refreshTokens: function(req, res, user, next) {
+          assert.equal(user._id.toString(), template.users.oauthUser2._id, 'Should refresh token for the right user');
+          return new Q([REFRESHED_TEST_ACCESS_TOKEN_2]).nodeify(next);
         }
       };
     });
@@ -966,6 +1003,7 @@ module.exports = function(app, template, hook) {
             assert(response.externalIds[0].hasOwnProperty('created'), 'The externalId should contain a `created` timestamp.');
             assert.equal(response.externalIds[0].type, app.formio.oauth.providers.test1.name, 'The externalId should be for test1 oauth.');
             assert.equal(response.externalIds[0].id, TEST_USER_1.id, 'The externalId should match test user 1\'s id.');
+            assert(!response.hasOwnProperty('externalTokens'), 'The response should not contain `externalTokens`');
             assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
             assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
             assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
@@ -973,11 +1011,15 @@ module.exports = function(app, template, hook) {
             assert.notEqual(response.owner, null);
             assert.equal(response.owner, response._id);
 
+            checkExternalTokens(response, [TEST_ACCESS_TOKEN_1])
+            .then(function() {
+              done();
+            }).catch(done);
+
             // Save user for later tests
             template.users.oauthUser1 = response;
             template.users.oauthUser1.token = res.headers['x-jwt-token'];
 
-            done();
           });
       });
 
@@ -1018,6 +1060,7 @@ module.exports = function(app, template, hook) {
             assert(response.externalIds[0].hasOwnProperty('created'), 'The externalId should contain a `created` timestamp.');
             assert.equal(response.externalIds[0].type, app.formio.oauth.providers.test2.name, 'The externalId should be for test2 oauth.');
             assert.equal(response.externalIds[0].id, TEST_USER_2.id, 'The externalId should match test user 2\'s id.');
+            assert(!response.hasOwnProperty('externalTokens'), 'The response should not contain `externalTokens`');
             assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
             assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
             assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
@@ -1025,10 +1068,14 @@ module.exports = function(app, template, hook) {
             assert.notEqual(response.owner, null);
             assert.equal(response.owner, response._id);
 
+            checkExternalTokens(response, [TEST_ACCESS_TOKEN_2])
+            .then(function() {
+              done();
+            }).catch(done);
+
             // Save user for later tests
             template.users.oauthUser2 = response;
             template.users.oauthUser2.token = res.headers['x-jwt-token'];
-            done();
           });
       });
 
@@ -1069,6 +1116,7 @@ module.exports = function(app, template, hook) {
             assert(response.externalIds[0].hasOwnProperty('created'), 'The externalId should contain a `created` timestamp.');
             assert.equal(response.externalIds[0].type, app.formio.oauth.providers.test1.name, 'The externalId should be for test1 oauth.');
             assert.equal(response.externalIds[0].id, TEST_USER_1.id, 'The externalId should match test user 1\'s id.');
+            assert(!response.hasOwnProperty('externalTokens'), 'The response should not contain `externalTokens`');
             assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
             assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
             assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
@@ -1076,7 +1124,10 @@ module.exports = function(app, template, hook) {
             assert.notEqual(response.owner, null);
             assert.equal(response.owner, response._id);
 
-            done();
+            checkExternalTokens(response, [TEST_ACCESS_TOKEN_1])
+            .then(function() {
+              done();
+            }).catch(done);
           });
       });
 
@@ -1117,6 +1168,7 @@ module.exports = function(app, template, hook) {
             assert(response.externalIds[0].hasOwnProperty('created'), 'The externalId should contain a `created` timestamp.');
             assert.equal(response.externalIds[0].type, app.formio.oauth.providers.test2.name, 'The externalId should be for test2 oauth.');
             assert.equal(response.externalIds[0].id, TEST_USER_2.id, 'The externalId should match test user 2\'s id.');
+            assert(!response.hasOwnProperty('externalTokens'), 'The response should not contain `externalTokens`');
             assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
             assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
             assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
@@ -1124,7 +1176,10 @@ module.exports = function(app, template, hook) {
             assert.notEqual(response.owner, null);
             assert.equal(response.owner, response._id);
 
-            done();
+            checkExternalTokens(response, [TEST_ACCESS_TOKEN_2])
+            .then(function() {
+              done();
+            }).catch(done);
           });
       });
 
@@ -1151,17 +1206,43 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.deepEqual(response, _.omit(template.users.oauthUser1, 'token'), 'The response should match the previously registered user');
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+            assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+            assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+            assert.equal(response.data.email, TEST_USER_1.email, 'The OAuth Action should return a user with the right email.');
+            assert.equal(response.form, template.forms.oauthUserResource._id, 'The submission returned should be for the authenticated resource.');
+            assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+            assert.deepEqual(response.roles, [template.roles.authenticated._id.toString()], 'The submission should have the OAuth Action configured role.');
+            assert.equal(response.externalIds.length, 1);
+            assert(response.externalIds[0].hasOwnProperty('_id'), 'The externalId should contain an `_id`.');
+            assert(response.externalIds[0].hasOwnProperty('modified'), 'The externalId should contain a `modified` timestamp.');
+            assert(response.externalIds[0].hasOwnProperty('created'), 'The externalId should contain a `created` timestamp.');
+            assert.equal(response.externalIds[0].type, app.formio.oauth.providers.test1.name, 'The externalId should be for test1 oauth.');
+            assert.equal(response.externalIds[0].id, TEST_USER_1.id, 'The externalId should match test user 1\'s id.');
+            assert(!response.hasOwnProperty('externalTokens'), 'The response should not contain `externalTokens`');
+            assert(!response.hasOwnProperty('deleted'), 'The response should not contain `deleted`');
+            assert(!response.hasOwnProperty('__v'), 'The response should not contain `__v`');
             assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+            assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+            assert.notEqual(response.owner, null);
+            assert.equal(response.owner, response._id);
 
-            done();
+            checkExternalTokens(response, [TEST_ACCESS_TOKEN_1])
+            .then(function() {
+              done();
+            }).catch(done);
           });
       });
 
       it('An anonymous user should receive an error when logging in with an unlinked OAuth provider test2 account', function(done) {
         // Test values for 3rd unlinked test user
         var TEST_AUTH_CODE_3 = 'TESTAUTHCODE3';
-        var TEST_ACCESS_TOKEN_3 = 'TESTACCESSTOKEN3';
+        var TEST_ACCESS_TOKEN_3 = {
+          type: 'test2',
+          token: 'TESTACCESSTOKEN3',
+          exp: new Date(Date.now() + 3600000)
+        };
         var TEST_REDIRECT_URI_3 = 'http://client3.com';
         var TEST_USER_3 = {
           id: 777,
@@ -1169,13 +1250,13 @@ module.exports = function(app, template, hook) {
         };
         // Extend and modify dummy oauth provider to return 3rd unlinked test user
         app.formio.oauth.providers.test2 = _.create(app.formio.oauth.providers.test2, {
-          getToken: function(req, code, state, redirectURI, next) {
+          getTokens: function(req, code, state, redirectURI, next) {
             assert.equal(code, TEST_AUTH_CODE_3, 'OAuth Action should request access token with expected test code.');
             assert.equal(redirectURI, TEST_REDIRECT_URI_3, 'OAuth Action should request access token with expected redirect uri.');
-            return new Q(TEST_ACCESS_TOKEN_3).nodeify(next);
+            return new Q([TEST_ACCESS_TOKEN_3]).nodeify(next);
           },
-          getUser: function(accessToken, next) {
-            assert.equal(accessToken, TEST_ACCESS_TOKEN_3,
+          getUser: function(tokens, next) {
+            assert.deepEqual(tokens, [TEST_ACCESS_TOKEN_3],
               'OAuth Action should request user info with expected test access token.');
             return new Q(TEST_USER_3).nodeify(next);
           },
@@ -1205,7 +1286,11 @@ module.exports = function(app, template, hook) {
       it('A test1 user should be able to link his submission to his OAuth provider test2 account', function(done) {
         // Test values for 4rd unlinked test user
         var TEST_AUTH_CODE_4 = 'TESTAUTHCODE4';
-        var TEST_ACCESS_TOKEN_4 = 'TESTACCESSTOKEN4';
+        var TEST_ACCESS_TOKEN_4 = {
+          type: 'test2',
+          token: 'TESTACCESSTOKEN4',
+          exp: new Date(Date.now() + 3600000)
+        };
         var TEST_REDIRECT_URI_4 = 'http://client4.com';
         var TEST_USER_4 = {
           id: 808,
@@ -1213,13 +1298,13 @@ module.exports = function(app, template, hook) {
         };
         // Extend and modify dummy oauth provider to return 4th unlinked test user
         app.formio.oauth.providers.test2 = _.create(app.formio.oauth.providers.test2, {
-          getToken: function(req, code, state, redirectURI, next) {
+          getTokens: function(req, code, state, redirectURI, next) {
             assert.equal(code, TEST_AUTH_CODE_4, 'OAuth Action should request access token with expected test code.');
             assert.equal(redirectURI, TEST_REDIRECT_URI_4, 'OAuth Action should request access token with expected redirect uri.');
-            return new Q(TEST_ACCESS_TOKEN_4).nodeify(next);
+            return new Q([TEST_ACCESS_TOKEN_4]).nodeify(next);
           },
-          getUser: function(accessToken, next) {
-            assert.equal(accessToken, TEST_ACCESS_TOKEN_4,
+          getUser: function(tokens, next) {
+            assert.deepEqual(tokens, [TEST_ACCESS_TOKEN_4],
               'OAuth Action should request user info with expected test access token.');
             return new Q(TEST_USER_4).nodeify(next);
           },
@@ -1252,8 +1337,8 @@ module.exports = function(app, template, hook) {
 
             var response = res.body;
             assert.deepEqual(
-              _.omit(response, 'externalIds'),
-              _.omit(template.users.oauthUser1, 'token', 'externalIds'),
+              _.omit(response, 'externalIds', 'modified'),
+              _.omit(template.users.oauthUser1, 'token', 'externalIds', 'modified'),
               'The response should match the previously registered user');
             assert.equal(response.externalIds.length, 2);
             assert.notEqual(_.find(response.externalIds, {
@@ -1265,14 +1350,21 @@ module.exports = function(app, template, hook) {
             }), undefined, 'The response should have a test2 external id');
             assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
 
-            done();
+            checkExternalTokens(response, [TEST_ACCESS_TOKEN_4])
+            .then(function() {
+              done();
+            }).catch(done);
           });
       });
 
       it('An anonymous user should get an error when trying to link an account', function(done) {
         // Test values for 5rd unlinked test user
         var TEST_AUTH_CODE_5 = 'TESTAUTHCODE5';
-        var TEST_ACCESS_TOKEN_5 = 'TESTACCESSTOKEN5';
+        var TEST_ACCESS_TOKEN_5 = {
+          type: 'test2',
+          token: 'TESTACCESSTOKEN5',
+          exp: new Date(Date.now() + 3600000)
+        };
         var TEST_REDIRECT_URI_5 = 'http://client5.com';
         var TEST_USER_5 = {
           id: 808,
@@ -1280,13 +1372,13 @@ module.exports = function(app, template, hook) {
         };
         // Extend and modify dummy oauth provider to return 5th unlinked test user
         app.formio.oauth.providers.test2 = _.create(app.formio.oauth.providers.test2, {
-          getToken: function(req, code, state, redirectURI, next) {
+          getTokens: function(req, code, state, redirectURI, next) {
             assert.equal(code, TEST_AUTH_CODE_5, 'OAuth Action should request access token with expected test code.');
             assert.equal(redirectURI, TEST_REDIRECT_URI_5, 'OAuth Action should request access token with expected redirect uri.');
-            return new Q(TEST_ACCESS_TOKEN_5).nodeify(next);
+            return new Q([TEST_ACCESS_TOKEN_5]).nodeify(next);
           },
-          getUser: function(accessToken, next) {
-            assert.equal(accessToken, TEST_ACCESS_TOKEN_5,
+          getUser: function(tokens, next) {
+            assert.deepEqual(tokens, [TEST_ACCESS_TOKEN_5],
               'OAuth Action should request user info with expected test access token.');
             return new Q(TEST_USER_5).nodeify(next);
           },
@@ -1333,5 +1425,26 @@ module.exports = function(app, template, hook) {
           .end(done);
       });
     });
+
+    describe('getUserToken', function() {
+      it('should return an unexpired access token', function() {
+        return app.formio.oauth.getUserToken({}, {}, 'test1', template.users.oauthUser1._id)
+        .then(function(token) {
+          assert.deepEqual(token, TEST_ACCESS_TOKEN_1.token, 'Returned token should match correct token.');
+        });
+      });
+
+      it('should refresh an expired token and return the new token', function() {
+        return app.formio.oauth.getUserToken({}, {}, 'test2', template.users.oauthUser2._id)
+        .then(function(token) {
+          assert.deepEqual(token, REFRESHED_TEST_ACCESS_TOKEN_2.token, 'Returned token should match correct token.');
+          checkExternalTokens(template.users.oauthUser2, [REFRESHED_TEST_ACCESS_TOKEN_2]);
+        });
+      });
+    });
+
+    require('./oauth/github')(app, template, hook);
+    require('./oauth/facebook')(app, template, hook);
+    require('./oauth/office365')(app, template, hook);
   });
 };

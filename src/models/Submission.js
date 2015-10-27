@@ -8,6 +8,13 @@ var ExternalIdSchema = mongoose.Schema({
   id: String
 });
 
+// Defines what each external Token should be.
+var ExternalTokenSchema = mongoose.Schema({
+  type: String,
+  token: String,
+  exp: Date
+});
+
 // Add timestamps to the external ids.
 ExternalIdSchema.plugin(require('../plugins/timestamps'));
 
@@ -42,6 +49,9 @@ module.exports = function(formio) {
 
       // An array of external Id's.
       externalIds: [ExternalIdSchema],
+
+      // An array of external tokens.
+      externalTokens: [ExternalTokenSchema],
 
       // The data associated with this submission.
       data: {
