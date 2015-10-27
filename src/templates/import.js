@@ -119,6 +119,7 @@ module.exports = function(formio) {
    * Return an easy way for someone to install a template.
    */
   return {
+    createInstall: _install,
     parse: parse,
     roles: _install(formio.roles.resource.model, parse.role),
     forms: _install(formio.resources.form.model, parse.form),
