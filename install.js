@@ -352,9 +352,8 @@ module.exports = function(formio, items, done) {
         }
       ], function(err, result) {
 
-        var password = require('./src/actions/fields/password.js')(formio);
         console.log('Encrypting password');
-        password.encryptPassword(result.password, function(err, hash) {
+        formio.encrypt(result.password, function(err, hash) {
           if (err) { return done(err); }
 
           // Create the root user submission.
