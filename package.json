@@ -4,7 +4,7 @@
   "description": "The formio server application.",
   "main": "index.js",
   "scripts": {
-    "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000",
+    "test": "env TEST_SUITE=1 mocha -r jscoverage --covout=html test/test.js -b -t 60000",
     "start": "node server.js"
   },
   "author": "support@form.io",
@@ -61,6 +61,7 @@
   "devDependencies": {
     "chance": "^0.8.0",
     "eslint": "^0.20.0",
+    "jscoverage": "^0.6.0",
     "mocha": "^2.2.1",
     "supertest": "^0.15.0"
   },

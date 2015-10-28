@@ -10,3 +10,7 @@ dependencies:
     - sudo /etc/init.d/mongodb stop
     - sudo cp mongodb-linux-x86_64-ubuntu1204-3.0.5/bin/* /usr/bin
     - sudo /etc/init.d/mongodb start
+
+test:
+  post:
+    - mv ./covreporter/ $CIRCLE_ARTIFACTS/coverage
