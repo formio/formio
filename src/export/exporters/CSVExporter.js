@@ -22,7 +22,11 @@ var CSVExporter = function(form, req, res) {
     delimiter: ',',
     quoted: true
   });
-  this.fields = [];
+  this.fields = [
+    {label: 'ID'},
+    {label: 'Created'},
+    {label: 'Modified'}
+  ];
   util.eachComponent(form.components, function(component) {
     if (component.input) {
       this.fields.push(component);
@@ -60,7 +64,12 @@ CSVExporter.prototype.stream = function(stream) {
   var self = this;
   var write = function(row) {
     var data = [];
+    data.push(row._id.toString());
+    data.push(row.created);
+    data.push(row.modified);
     _.each(self.fields, function(field) {
+      if (!field.key) { return; }
+
       // Nested fields are in the data property of their parent
       var value = _property(util.getSubmissionKey(field.key))(row.data);
       if(value && value.url) {
