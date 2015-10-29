@@ -9,7 +9,6 @@ var _ = require('lodash');
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
   var emailer = require('../util/email')(router.formio);
-  var encrypter = require('./fields/password')(router);
 
   /**
    * ResetPasswordAction class.
@@ -292,7 +291,7 @@ module.exports = function(router) {
       }
 
       // Manually encrypt and update the password.
-      encrypter.encryptPassword(password, function(err, hash) {
+      router.formio.encrypt(password, function(err, hash) {
 
         var setValue = {};
         setValue['data.' + passwordField] = hash;
