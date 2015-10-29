@@ -172,9 +172,6 @@ module.exports = function(config) {
         // Load the Resources.
         router.formio.resources = require('./src/resources/resources')(router);
 
-        // Register the roles and permission checks.
-        router.formio.roles = require('./src/roles/index')(router);
-
         // Load the request cache
         router.formio.cache = require('./src/cache/cache')(router);
 

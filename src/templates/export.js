@@ -111,7 +111,7 @@ module.exports = function(formio) {
 
   // Export the roles.
   var exportRoles = function(_export, _map, options, next) {
-    formio.roles.resource.model
+    formio.resources.role.model
       .find(hook.alter('roleQuery', {deleted: {$eq: null}}, options))
       .lean(true)
       .exec(function(err, roles) {

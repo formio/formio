@@ -83,9 +83,16 @@ module.exports = function(formio) {
     }
   };
 
+  var queryParams = {
+    role: ['title'],
+    form: ['name'],
+    action: ['form', 'name'],
+    submission: ['_id']
+  };
+
   // Install a model with a parse method.
-  var _install = function(model, _parse) {
-    return function(template, items, alter, done) {
+  var _install = function(model, _parse, queryParams) {
+    return function(template, items, alter, alterQuery, done) {
       if (!items || _.isEmpty(items)) {
         return done();
       }
@@ -96,20 +103,35 @@ module.exports = function(formio) {
         alter = null;
       }
       alter = alter || _alter;
+      alterQuery = alterQuery || _alter;
       async.forEachOfSeries(items, function(item, name, itemDone) {
         var document = _parse ? _parse(template, item) : item;
         document = alter(document);
 
         debug._install(document);
-        model.create(document, function(err, result) {
+        var query = _.pick(document, queryParams);
+        query = alterQuery(query, document);
+        model.findOne(query, function(err, doc) {
           if (err) {
             debug._install(err);
             return itemDone(err);
           }
+          if (!doc) {
+            doc = new model(document);
+          }
+          else {
+            _.assign(doc, document);
+          }
+          doc.save(function(err, result) {
+            if (err) {
+              debug._install(err);
+              return itemDone(err);
+            }
 
-          debug._install(result);
-          items[name] = result.toObject();
-          itemDone();
+            debug._install(result);
+            items[name] = result.toObject();
+            itemDone();
+          });
         });
       }, done);
     };
@@ -121,10 +143,10 @@ module.exports = function(formio) {
   return {
     createInstall: _install,
     parse: parse,
-    roles: _install(formio.roles.resource.model, parse.role),
-    forms: _install(formio.resources.form.model, parse.form),
-    actions: _install(formio.actions.model, parse.action),
-    submissions: _install(formio.resources.submission.model, parse.submission),
+    roles: _install(formio.resources.role.model, parse.role, queryParams.role),
+    forms: _install(formio.resources.form.model, parse.form, queryParams.form),
+    actions: _install(formio.actions.model, parse.action, queryParams.action),
+    submissions: _install(formio.resources.submission.model, parse.submission, queryParams.submission),
     template: function(template, alter, done) {
       if (!done) {
         done = alter;
@@ -132,11 +154,11 @@ module.exports = function(formio) {
       }
       alter = alter || {};
       async.series([
-        async.apply(this.roles, template, template.roles, alter.role),
-        async.apply(this.forms, template, template.resources, alter.form),
-        async.apply(this.forms, template, template.forms, alter.form),
-        async.apply(this.actions, template, template.actions, alter.action),
-        async.apply(this.submissions, template, template.submissions, alter.submission)
+        async.apply(this.roles, template, template.roles, alter.role, alter.roleQuery),
+        async.apply(this.forms, template, template.resources, alter.form, alter.formQuery),
+        async.apply(this.forms, template, template.forms, alter.form, alter.formQuery),
+        async.apply(this.actions, template, template.actions, alter.action, alter.actionQuery),
+        async.apply(this.submissions, template, template.submissions, alter.submission, alter.submissionQuery)
       ], function(err) {
         if (err) {
           debug.template(err);

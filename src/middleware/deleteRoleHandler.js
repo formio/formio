@@ -35,7 +35,7 @@ module.exports = function(router) {
     }
 
     // Load the role in question.
-    router.formio.roles.resource.model.findById(roleId).exec(function(err, role) {
+    router.formio.resources.role.model.findById(roleId).exec(function(err, role) {
       if (err || !role) {
         debug(err || 'No Role found with roleId: ' + roleId);
         return res.status(404).send('Unknown Role.');

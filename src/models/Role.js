@@ -1,11 +1,10 @@
 'use strict';
 
-var resource = require('resourcejs');
 var mongoose = require('mongoose');
 
 module.exports = function(router) {
   // Include the hook system.
-  var hook = require('../util/hook')(router.formio);
+  var hook = require('../util/hook')(router);
 
   /**
    * The Schema for Roles.
@@ -61,28 +60,6 @@ module.exports = function(router) {
 
   // Return the defined roles and permissions functions.
   return {
-    /**
-     * Create the REST properties for Roles, using ResourceJS
-     *
-     * Adds the endpoints:
-     * [GET]    /role
-     * [POST]   /role
-     * [GET]    /role/:roleId
-     * [PUT]    /role/:roleId
-     * [DELETE] /role/:roleId
-     */
-    resource: resource(router, '', 'role', mongoose.model('role', RoleSchema)).rest(hook.alter('roleRoutes', {
-      before: [
-        router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-        router.formio.middleware.deleteRoleHandler,
-        router.formio.middleware.sortMongooseQuery({title: 1})
-      ],
-      after: [
-        router.formio.middleware.bootstrapNewRoleAccess,
-        router.formio.middleware.filterResourcejsResponse(['deleted', '__v'])
-      ]
-    })),
-
     // The schema for roles.
     schema: RoleSchema
   };
