@@ -395,7 +395,7 @@ module.exports = function(app, template, hook) {
       request(app)
         .get(hook.alter('url', '/logout', template))
         .set('x-jwt-token', template.users.user1.token)
-        .expect(204)
+        .expect(200)
         .end(function(err, res) {
           if (err) {
             return done(err);
