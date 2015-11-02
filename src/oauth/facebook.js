@@ -1,10 +1,10 @@
 'use strict';
 
-var request = require('request');
 var Q = require('q');
 var url = require('url');
+var _ = require('lodash');
 
-var qRequest = Q.denodeify(request);
+var util = require('../util/util');
 
 // Export the Github oauth provider.
 module.exports = function(formio) {
@@ -47,14 +47,13 @@ module.exports = function(formio) {
       }
     ],
 
-    // TODO: have scope option to limit what permissions are asked for
-
     // Exchanges authentication code for auth token
     // Returns a promise, or you can provide the next callback arg
-    getToken: function(req, code, state, redirectURI, next) {
+    // Resolves with array of tokens defined like externalTokenSchema
+    getTokens: function(req, code, state, redirectURI, next) {
       return oauthUtil.settings(req, this.name)
       .then(function(settings) {
-        return qRequest({
+        return util.request({
           method: 'POST',
           json: true,
           url: 'https://graph.facebook.com/v2.3/oauth/access_token',
@@ -67,33 +66,41 @@ module.exports = function(formio) {
           }
         });
       })
-      .then(function(result) {
-        var body = result[1]; // body is 2nd param of request
+      .spread(function(response, body) {
         if (!body) {
           throw 'No response from Facebook.';
         }
         if (body.error) {
           throw body.error.message;
         }
-        return body.access_token;
-      })
+        return [
+          {
+            type: this.name,
+            token: body.access_token,
+            exp: new Date(new Date(response.headers.date).getTime() + body.expires_in * 1000)
+          }
+        ];
+      }.bind(this))
       .nodeify(next);
     },
 
     // Gets user information from oauth access token
     // Returns a promise, or you can provide the next callback arg
-    getUser: function(accessToken, next) {
-      return qRequest({
+    getUser: function(tokens, next) {
+      var accessToken = _.find(tokens, {type: this.name});
+      if(!accessToken) {
+        return Q.reject('No access token found');
+      }
+      return util.request({
         method: 'GET',
         url: 'https://graph.facebook.com/v2.3/me',
         json: true,
         qs: {
-          access_token: accessToken,
+          access_token: accessToken.token,
           fields: 'id,name,email,first_name,last_name,middle_name'
         }
       })
-      .then(function(result) {
-        var body = result[1]; // body is 2nd param of request
+      .spread(function(response, body) {
         if (!body) {
           throw 'No response from Facebook.';
         }
@@ -105,6 +112,13 @@ module.exports = function(formio) {
     // Gets user ID from provider user response from getUser()
     getUserId: function(user) {
       return user.id;
+    },
+
+    // If a facebook token expires, just tell the user to reauthenticate
+    // Returns a promise, or you can provide the next callback arg
+    refreshTokens: function(req, res, user, next) {
+      return Q.reject('Token has expired, please reauthenticate with ' + this.title + '.')
+      .nodeify(next);
     }
   };
 };

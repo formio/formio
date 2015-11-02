@@ -4,6 +4,7 @@ var Action = require('./Action');
 var util = require('../util/util');
 var debug = require('debug')('formio:action:oauth');
 var _ = require('lodash');
+var _prop = require('lodash.property');
 var crypto = require('crypto');
 var mongoose = require('mongoose');
 var Q = require('q');
@@ -68,9 +69,7 @@ module.exports = function(router) {
           oauthUtil.availableProviders(req),
           Q.ninvoke(router.formio.cache, 'loadCurrentForm', req)
         ])
-        .then(function(results) {
-          var availableProviders = results[0];
-          var form = results[1];
+        .spread(function(availableProviders, form) {
           next(null, [
             {
               type: 'select',
@@ -190,14 +189,14 @@ module.exports = function(router) {
       });
   };
 
-  OAuthAction.prototype.authenticate = function(req, res, provider, accessToken) {
-    debug('Authenticating with Access Token:', accessToken);
+  OAuthAction.prototype.authenticate = function(req, res, provider, tokens) {
+    debug('Authenticating with Tokens:', tokens);
 
     var userInfo = null, userId = null, resource = null;
     var self = this;
 
     return Q.all([
-      provider.getUser(accessToken),
+      provider.getUser(tokens),
       Q.denodeify(router.formio.cache.loadFormByName.bind(router.formio.cache))(req, self.settings.resource)
     ])
     .then(function(results) {
@@ -217,8 +216,16 @@ module.exports = function(router) {
         res.token = result.token.token;
         req['x-jwt-token'] = result.token.token;
 
-        // Manually invoke router.formio.auth.currentUser to trigger resourcejs middleware.
-        return Q.nfcall(router.formio.auth.currentUser, req, res);
+        // Update external tokens with new tokens
+        result.user.set('externalTokens',
+          _(tokens).concat(result.user.externalTokens).uniq('type').value()
+        );
+
+        return result.user.save()
+        .then(function() {
+          // Manually invoke router.formio.auth.currentUser to trigger resourcejs middleware.
+          return Q.ninvoke(router.formio.auth, 'currentUser', req, res);
+        });
       }
       else { // Need to create and auth new resource
         // If we were looking for an existing resource, return an error
@@ -247,7 +254,8 @@ module.exports = function(router) {
         // Add info so the after handler knows to auth
         req.oauthDeferredAuth = {
           id: userId,
-          provider: provider.name
+          provider: provider.name,
+          tokens: tokens
         };
 
         return Q.ninvoke(router.formio.cache, 'loadCurrentForm', req)
@@ -272,17 +280,13 @@ module.exports = function(router) {
     var roleQuery = hook.alter('roleQuery', {_id: self.settings.role, deleted: {$eq: null}}, req);
     return Q.all([
       // Load submission
-      router.formio.resources.submission.model.findOne({_id: res.resource.item._id}),
+      router.formio.resources.submission.model.findOne({_id: res.resource.item._id, deleted: {$eq: null}}),
       // Load resource
       Q.denodeify(router.formio.cache.loadFormByName.bind(router.formio.cache))(req, self.settings.resource),
       // Load role
       router.formio.roles.resource.model.findOne(roleQuery)
     ])
-    .then(function(results) {
-      var submission = results[0];
-      var resource = results[1];
-      var role = results[2];
-
+    .spread(function(submission, resource, role) {
       if (!submission) {
         throw {
           status: 404,
@@ -335,6 +339,11 @@ module.exports = function(router) {
         id: req.oauthDeferredAuth.id
       });
 
+      // Update external tokens with new tokens
+      submission.set('externalTokens',
+        _(req.oauthDeferredAuth.tokens).concat(submission.externalTokens).uniq('type').value()
+      );
+
       return submission.save()
       .then(function() {
         return router.formio.auth.authenticateOAuth(resource, provider.name, req.oauthDeferredAuth.id);
@@ -346,7 +355,7 @@ module.exports = function(router) {
       res.token = result.token.token;
       req['x-jwt-token'] = result.token.token;
       // Manually invoke router.formio.auth.currentUser to trigger resourcejs middleware.
-      return Q.nfcall(router.formio.auth.currentUser, req, res);
+      return Q.ninvoke(router.formio.auth, 'currentUser', req, res);
     });
   };
 
@@ -399,31 +408,38 @@ module.exports = function(router) {
       res.resource.item._id
     ) {
       debug('Modifying Oauth Button');
-      oauthUtil.settings(req, provider.name)
-      .then(function(oauthSettings) {
+      return Q.ninvoke(hook, 'settings', req)
+      .then(function(settings) {
         var component = util.getComponent(res.resource.item.components, self.settings.button);
         if(!component) {
           return next();
         }
-        if (!oauthSettings.clientId || !oauthSettings.clientSecret) {
-          component.oauth = {
-            provider: provider.name,
-            error: provider.title + ' OAuth provider is missing client ID or client secret'
-          };
+        var state = crypto.randomBytes(64).toString('hex');
+        if(provider.configureOAuthButton) { // Use custom provider configuration
+          provider.configureOAuthButton(component, settings, state);
         }
-        else {
-          component.oauth = {
-            provider: provider.name,
-            clientId: oauthSettings.clientId,
-            authURI: provider.authURI,
-            state: crypto.randomBytes(64).toString('hex'),
-            scope: provider.scope,
-            display: provider.display
-          };
+        else { // Use default configuration, good for most oauth providers
+          var oauthSettings = _prop('oauth.' + provider.name)(settings);
+          if (!oauthSettings.clientId || !oauthSettings.clientSecret) {
+            component.oauth = {
+              provider: provider.name,
+              error: provider.title + ' OAuth provider is missing client ID or client secret'
+            };
+          }
+          else {
+            component.oauth = {
+              provider: provider.name,
+              clientId: oauthSettings.clientId,
+              authURI: provider.authURI,
+              state: state,
+              scope: provider.scope,
+              display: provider.display
+            };
+          }
         }
-
         next();
-      });
+      })
+      .catch(next);
     }
     else if (
       handler === 'before' &&
@@ -440,20 +456,21 @@ module.exports = function(router) {
       // Do not execute the form CRUD methods.
       req.skipResource = true;
 
-      var tokenPromise = provider.getToken(req, oauthResponse.code, oauthResponse.state, oauthResponse.redirectURI);
+      var tokensPromise = provider.getTokens(req, oauthResponse.code, oauthResponse.state, oauthResponse.redirectURI);
       if (self.settings.association === 'new' || self.settings.association === 'existing') {
-        return tokenPromise.then(function(accessToken) {
-          return self.authenticate(req, res, provider, accessToken);
+        return tokensPromise.then(function(tokens) {
+          return self.authenticate(req, res, provider, tokens);
         })
         .then(function(){
           next();
         }).catch(this.onError(req, res, next));
       }
       else if (self.settings.association === 'link') {
-        var userId, currentUser;
-        return tokenPromise.then(function(accessToken){
+        var userId, currentUser, newTokens;
+        return tokensPromise.then(function(tokens){
+          newTokens = tokens;
           return Q.all([
-            provider.getUser(accessToken),
+            provider.getUser(tokens),
             Q.ninvoke(router.formio.auth, 'currentUser', req, res)
           ]);
         })
@@ -490,20 +507,28 @@ module.exports = function(router) {
               message: 'This ' + provider.title + ' account has already been linked.'
             };
           }
-
-          // Add the external ids
-          return router.formio.resources.submission.model.update({
+          // Need to get the raw user data so we can see the old externalTokens
+          return router.formio.resources.submission.model.findOne({
             _id: currentUser._id
+          });
+        }).then(function(user) {
+          return router.formio.resources.submission.model.update({
+            _id: user._id
           }, {
             $push: {
+              // Add the external ids
               externalIds: {
                 type: provider.name,
                 id: userId
               }
+            },
+            $set: {
+              // Update external tokens with new tokens
+              externalTokens: _(newTokens).concat(user.externalTokens || []).uniq('type').value()
             }
           });
         })
-        .then(function(submission) {
+        .then(function() {
           // Update current user response
           return Q.ninvoke(router.formio.auth, 'currentUser', req, res);
         })
@@ -536,7 +561,7 @@ module.exports = function(router) {
         return res.status(err.status).send(err.message);
       }
       next(err);
-    }
+    };
   };
 
   // Return the OAuthAction.

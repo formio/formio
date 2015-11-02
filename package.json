@@ -63,6 +63,7 @@
     "eslint": "^0.20.0",
     "jscoverage": "^0.6.0",
     "mocha": "^2.2.1",
+    "sinon": "^1.17.2",
     "supertest": "^0.15.0"
   },
   "directories": {
