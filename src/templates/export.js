@@ -56,14 +56,16 @@ module.exports = function(formio) {
         _.each(actions, function(action, index) {
           assignForm(_map, action);
           assignRole(_map, action.settings);
-          _export.actions['action' + index] = _.pick(action,
+          var machineName = action.machineName = hook.alter('machineNameExport', action.machineName);
+          _export.actions[machineName] = _.pick(action,
             'title',
             'name',
             'form',
             'settings',
             'priority',
             'method',
-            'handler'
+            'handler',
+            'machineName'
           );
         });
         next();
@@ -82,16 +84,18 @@ module.exports = function(formio) {
         _.each(forms, function(form) {
           assignRoles(_map, form.access);
           assignRoles(_map, form.submissionAccess);
-          _export[form.type + 's'][form.name] = _.pick(form,
+          var machineName = form.machineName = hook.alter('machineNameExport', form.machineName);
+          _export[form.type + 's'][machineName] = _.pick(form,
             'title',
             'type',
             'name',
             'path',
             'components',
             'access',
-            'submissionAccess'
+            'submissionAccess',
+            'machineName'
           );
-          _map.forms[form._id.toString()] = form.name;
+          _map.forms[form._id.toString()] = machineName;
         });
 
         // Now assign the resource components.
@@ -119,14 +123,15 @@ module.exports = function(formio) {
           return next(err);
         }
         _.each(roles, function(role) {
-          var roleName = role.title.toLowerCase();
-          _export.roles[roleName] = _.pick(role,
+          var machineName = role.machineName = hook.alter('machineNameExport', role.machineName);
+          _export.roles[machineName] = _.pick(role,
             'title',
             'description',
             'admin',
-            'default'
+            'default',
+            'machineName'
           );
-          _map.roles[role._id.toString()] = roleName;
+          _map.roles[role._id.toString()] = machineName;
         });
 
         next();
