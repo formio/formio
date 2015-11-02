@@ -1,6 +1,5 @@
 'use strict';
 
-var Action = require('./Action');
 var util = require('../util/util');
 var debug = require('debug')('formio:action:oauth');
 var _ = require('lodash');
@@ -11,6 +10,7 @@ var chance = require('chance').Chance();
 
 
 module.exports = function(router) {
+  var Action = router.formio.Action;
   var hook = require('../util/hook')(router.formio);
   var oauthUtil = require('../util/oauth')(router.formio);
 

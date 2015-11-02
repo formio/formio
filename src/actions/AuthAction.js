@@ -1,12 +1,12 @@
 'use strict';
 
-var Action = require('./Action');
 var async = require('async');
 var mongoose = require('mongoose');
 var debug = require('debug')('formio:action:auth');
 var _ = require('lodash');
 
 module.exports = function(router) {
+  var Action = router.formio.Action;
   var hook = require('../util/hook')(router.formio);
 
   /**

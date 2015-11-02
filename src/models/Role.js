@@ -55,12 +55,18 @@ module.exports = function(router) {
     });
   }, 'Role title must be unique.');
 
-  // Add timestamps to the schema.
-  RoleSchema.plugin(require('../plugins/timestamps'));
+  var model = require('./BaseModel')({
+    schema: RoleSchema
+  });
+
+  // Add machineName to the schema.
+  model.schema.plugin(require('../plugins/machineName'));
+
+  // Set the default machine name.
+  model.schema.machineName = function(document, done) {
+    return hook.alter('roleMachineName', document.title.toLowerCase(), document, done);
+  };
 
   // Return the defined roles and permissions functions.
-  return {
-    // The schema for roles.
-    schema: RoleSchema
-  };
+  return model;
 };

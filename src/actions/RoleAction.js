@@ -1,6 +1,5 @@
 'use strict';
 
-var Action = require('./Action');
 var util = require('../util/util');
 var _ = require('lodash');
 var mongoose = require('mongoose');
@@ -13,6 +12,7 @@ var debug = {
 };
 
 module.exports = function(router) {
+  var Action = router.formio.Action;
   var hook = require('../util/hook')(router.formio);
 
   /**
