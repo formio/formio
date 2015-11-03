@@ -190,6 +190,7 @@ module.exports = function(router) {
 
       debug('Checking access for roles: ' + roles);
       debug('Checking access for access: ' + JSON.stringify(access));
+      debug('Checking access for entity: ' + JSON.stringify(entity));
       debug('Checking access for method: ' + method);
       debug('Checking access for user: ' + user);
 

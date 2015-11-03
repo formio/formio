@@ -89,7 +89,7 @@ module.exports = function(router) {
         }
 
         // Respond with a token.
-        var token = hook.alter('token', {
+        hook.alter('token', {
           user: {
             _id: user._id,
             roles: user.roles
@@ -97,17 +97,17 @@ module.exports = function(router) {
           form: {
             _id: form._id
           }
-        }, user, form);
+        }, user, form, function(token) {
+          var response = {
+            user: user,
+            token: {
+              token: getToken(token),
+              decoded: token
+            }
+          };
 
-        var response = {
-          user: user,
-          token: {
-            token: getToken(token),
-            decoded: token
-          }
-        };
-
-        next(null, response);
+          next(null, response);
+        });
       });
     });
   };
@@ -148,7 +148,7 @@ module.exports = function(router) {
       }
 
       // Respond with a token.
-      var token = hook.alter('token', {
+      hook.alter('token', {
         user: {
           _id: user._id,
           roles: user.roles
@@ -156,15 +156,15 @@ module.exports = function(router) {
         form: {
           _id: form._id
         }
-      }, user, form);
-
-      return {
-        user: user,
-        token: {
-          token: getToken(token),
-          decoded: token
-        }
-      };
+      }, user, form, function(token) {
+        return {
+          user: user,
+          token: {
+            token: getToken(token),
+            decoded: token
+          }
+        };
+      });
     })
     .nodeify(next);
   };
