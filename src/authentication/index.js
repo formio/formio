@@ -88,8 +88,8 @@ module.exports = function(router) {
           return next(new Error('Incorrect password'));
         }
 
-        // Respond with a token.
-        hook.alter('token', {
+        // Allow anyone to hook and modify the token.
+        var token = hook.alter('token', {
           user: {
             _id: user._id,
             roles: user.roles
@@ -97,16 +97,15 @@ module.exports = function(router) {
           form: {
             _id: form._id
           }
-        }, user, form, function(token) {
-          var response = {
-            user: user,
-            token: {
-              token: getToken(token),
-              decoded: token
-            }
-          };
+        }, form);
 
-          next(null, response);
+        // Continue with the token data.
+        next(null, {
+          user: user,
+          token: {
+            token: getToken(token),
+            decoded: token
+          }
         });
       });
     });
@@ -147,8 +146,8 @@ module.exports = function(router) {
         return null;
       }
 
-      // Respond with a token.
-      hook.alter('token', {
+      // Allow anyone to hook and modify the token.
+      var token = hook.alter('token', {
         user: {
           _id: user._id,
           roles: user.roles
@@ -156,15 +155,16 @@ module.exports = function(router) {
         form: {
           _id: form._id
         }
-      }, user, form, function(token) {
-        return {
-          user: user,
-          token: {
-            token: getToken(token),
-            decoded: token
-          }
-        };
-      });
+      }, form);
+
+      // Continue with the token data.
+      return {
+        user: user,
+        token: {
+          token: getToken(token),
+          decoded: token
+        }
+      };
     })
     .nodeify(next);
   };
