@@ -188,8 +188,8 @@ module.exports = function(app, template, hook) {
             'user.password': template.users.user1.data.password
           }
         })
-        //.expect(200)
-        //.expect('Content-Type', /json/)
+        .expect(200)
+        .expect('Content-Type', /json/)
         .end(function(err, res) {
           if (err) {
             return done(err);

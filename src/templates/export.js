@@ -64,8 +64,7 @@ module.exports = function(formio) {
             'settings',
             'priority',
             'method',
-            'handler',
-            'machineName'
+            'handler'
           );
         });
         next();
@@ -92,8 +91,7 @@ module.exports = function(formio) {
             'path',
             'components',
             'access',
-            'submissionAccess',
-            'machineName'
+            'submissionAccess'
           );
           _map.forms[form._id.toString()] = machineName;
         });
@@ -128,8 +126,7 @@ module.exports = function(formio) {
             'title',
             'description',
             'admin',
-            'default',
-            'machineName'
+            'default'
           );
           _map.roles[role._id.toString()] = machineName;
         });
