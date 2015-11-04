@@ -933,14 +933,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .delete(hook.alter('url', '/form/' + submissionForm._id + '/submission/' + submission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .expect(204)
+            .expect(200)
             .end(function(err, res) {
               if(err) {
                 return done(err);
               }
 
-              var response = res.text;
-              assert.equal(response, '');
+              var response = res.body;
+              assert.deepEqual(response, {});
               submission = response;
 
               // Store the JWT for future API calls.
@@ -954,14 +954,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .delete(hook.alter('url', '/role/' + dummyRole._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .expect(204)
+            .expect(200)
             .end(function(err, res) {
               if(err) {
                 return done(err);
               }
 
-              var response = res.text;
-              assert.equal(response, '');
+              var response = res.body;
+              assert.deepEqual(response, {});
               dummyRole = response;
 
               // Store the JWT for future API calls.
@@ -975,14 +975,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .delete(hook.alter('url', '/form/' + submissionForm._id + '/action/' + submissionAction._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .expect(204)
+            .expect(200)
             .end(function(err, res) {
               if(err) {
                 return done(err);
               }
 
-              var response = res.text;
-              assert.equal(response, '');
+              var response = res.body;
+              assert.deepEqual(response, {});
               submissionAction = response;
 
               // Store the JWT for future API calls.
@@ -996,14 +996,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .delete(hook.alter('url', '/form/' + removeForm._id + '/action/' + removeAction._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .expect(204)
+            .expect(200)
             .end(function(err, res) {
               if(err) {
                 return done(err);
               }
 
-              var response = res.text;
-              assert.equal(response, '');
+              var response = res.body;
+              assert.deepEqual(response, {});
               removeAction = response;
 
               // Store the JWT for future API calls.
@@ -1017,14 +1017,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .delete(hook.alter('url', '/form/' + addForm._id + '/action/' + addAction._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .expect(204)
+            .expect(200)
             .end(function(err, res) {
               if(err) {
                 return done(err);
               }
 
-              var response = res.text;
-              assert.equal(response, '');
+              var response = res.body;
+              assert.deepEqual(response, {});
               addAction = response;
 
               // Store the JWT for future API calls.
@@ -1038,14 +1038,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .delete(hook.alter('url', '/form/' + submissionForm._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .expect(204)
+            .expect(200)
             .end(function(err, res) {
               if(err) {
                 return done(err);
               }
 
-              var response = res.text;
-              assert.equal(response, '');
+              var response = res.body;
+              assert.deepEqual(response, {});
               submissionForm = response;
 
               // Store the JWT for future API calls.
@@ -1059,14 +1059,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .delete(hook.alter('url', '/form/' + removeForm._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .expect(204)
+            .expect(200)
             .end(function(err, res) {
               if(err) {
                 return done(err);
               }
 
-              var response = res.text;
-              assert.equal(response, '');
+              var response = res.body;
+              assert.deepEqual(response, {});
               removeForm = response;
 
               // Store the JWT for future API calls.
@@ -1080,14 +1080,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .delete(hook.alter('url', '/form/' + addForm._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .expect(204)
+            .expect(200)
             .end(function(err, res) {
               if(err) {
                 return done(err);
               }
 
-              var response = res.text;
-              assert.equal(response, '');
+              var response = res.body;
+              assert.deepEqual(response, {});
               addForm = response;
 
               // Store the JWT for future API calls.
@@ -1304,14 +1304,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .delete(hook.alter('url', '/form/' + dummyResource._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .expect(204)
+            .expect(200)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
-              var response = res.text;
-              assert.equal(response, '');
+              var response = res.body;
+              assert.deepEqual(response, {});
               dummyResource = response;
 
               // Store the JWT for future API calls.
@@ -1325,14 +1325,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .delete(hook.alter('url', '/form/' + authForm._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .expect(204)
+            .expect(200)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
-              var response = res.text;
-              assert.equal(response, '');
+              var response = res.body;
+              assert.deepEqual(response, {});
               authForm = response;
 
               // Store the JWT for future API calls.
@@ -1349,14 +1349,14 @@ module.exports = function(app, template, hook) {
         request(app)
           .delete(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
           .set('x-jwt-token', template.users.admin.token)
-          .expect(204)
+          .expect(200)
           .end(function(err, res) {
             if (err) {
               return done(err);
             }
 
-            var response = res.text;
-            assert.equal(response, '');
+            var response = res.body;
+            assert.deepEqual(response, {});
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
@@ -1387,14 +1387,14 @@ module.exports = function(app, template, hook) {
         request(app)
           .delete(hook.alter('url', '/form/' + tempForm._id, template))
           .set('x-jwt-token', template.users.admin.token)
-          .expect(204)
+          .expect(200)
           .end(function(err, res) {
             if (err) {
               return done(err);
             }
 
-            var response = res.text;
-            assert.deepEqual(response, '');
+            var response = res.body;
+            assert.deepEqual(response, {});
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
@@ -1467,7 +1467,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .delete(hook.alter('url', '/form/' + template.forms.userLogin._id + '/action/' + actionLogin._id, template))
           .set('x-jwt-token', template.users.admin.token)
-          .expect(204)
+          .expect(200)
           .end(done);
       });
 
@@ -1519,7 +1519,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .delete(hook.alter('url', '/form/' + template.forms.userRegister._id + '/action/' + actionRegister._id, template))
           .set('x-jwt-token', template.users.admin.token)
-          .expect(204)
+          .expect(200)
           .end(done);
       });
 
@@ -1571,7 +1571,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .delete(hook.alter('url', '/form/' + template.forms.userRegister._id + '/action/' + actionRole._id, template))
           .set('x-jwt-token', template.users.admin.token)
-          .expect(204)
+          .expect(200)
           .end(done);
       });
     });

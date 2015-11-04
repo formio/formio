@@ -55,6 +55,9 @@ module.exports = function(config) {
     // Get the hook sytem.
     router.formio.hook = require('./src/util/hook')(router.formio);
 
+    // Get the encryption system.
+    router.formio.encrypt = require('./src/util/encrypt');
+
     // Run the healthCheck sanity check on /health
     router.formio.update.initialize(function(err, db) {
 

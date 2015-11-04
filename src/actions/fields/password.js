@@ -1,32 +1,7 @@
 'use strict';
 
-var bcrypt = require('bcrypt');
-
-/**
- * Encrypt a password.
- *
- * @param password
- * @param next
- */
-var encryptPassword = function(password, next) {
-  bcrypt.genSalt(10, function(err, salt) {
-    if (err) {
-      return next(err);
-    }
-
-    bcrypt.hash(password, salt, function(error, hash) {
-      if (error) {
-        return next(error);
-      }
-
-      next(null, hash);
-    });
-  });
-};
-
 module.exports = function(formio) {
   return {
-    encryptPassword: encryptPassword,
     beforeGetAction: function(component, req, res, next) {
       req.modelQuery.select('-data.' + component.key);
       next();
@@ -50,7 +25,7 @@ module.exports = function(formio) {
       }
       else {
         // Create a new password from what they provided.
-        encryptPassword(req.body.data[component.key], function(err, hash) {
+        formio.encrypt(req.body.data[component.key], function(err, hash) {
           if (err) {
             return next(err);
           }
@@ -66,7 +41,7 @@ module.exports = function(formio) {
         return next();
       }
 
-      encryptPassword(req.body.data[component.key], function(err, hash) {
+      formio.encrypt(req.body.data[component.key], function(err, hash) {
         if (err) {
           return next(err);
         }

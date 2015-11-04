@@ -27,8 +27,8 @@ module.exports = function(router) {
       // Skip the resource...
       req.skipResource = true;
       res.resource = {
-        status: 204,
-        item: submission,
+        status: 200,
+        item: {},
         deleted: true
       };
       next();

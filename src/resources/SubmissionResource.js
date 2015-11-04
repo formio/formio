@@ -6,7 +6,7 @@ var mongoose = require('mongoose');
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
   var handlers = router.formio.middleware.submissionHandler;
-  var hiddenFields = ['deleted', '__v', 'machineName']
+  var hiddenFields = ['deleted', '__v', 'machineName', 'externalTokens']
 
   // Manually update the handlers, to add additional middleware.
   handlers.beforePost = [

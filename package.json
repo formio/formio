@@ -1,10 +1,10 @@
 {
   "name": "formio",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "The formio server application.",
   "main": "index.js",
   "scripts": {
-    "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000",
+    "test": "env TEST_SUITE=1 mocha -r jscoverage --covout=html test/test.js -b -t 60000",
     "start": "node server.js"
   },
   "author": "support@form.io",
@@ -52,7 +52,7 @@
     "prompt": "^0.2.14",
     "q": "^1.2.0",
     "request": "^2.64.0",
-    "resourcejs": "^0.1.25",
+    "resourcejs": "^1.0.0",
     "restler": "^3.2.2",
     "semver": "^4.3.6",
     "through": "^2.3.7",
@@ -61,7 +61,9 @@
   "devDependencies": {
     "chance": "^0.8.0",
     "eslint": "^0.20.0",
+    "jscoverage": "^0.6.0",
     "mocha": "^2.2.1",
+    "sinon": "^1.17.2",
     "supertest": "^0.15.0"
   },
   "directories": {

@@ -21,7 +21,20 @@
       "test2": {
         "clientId": "TESTCLIENTID2",
         "clientSecret": "TESTCLIENTSECRET2"
+      },
+      "github": {
+        "clientId": "TESTCLIENTIDGITHUB",
+        "clientSecret": "TESTCLIENTSECRETGITHUB"
+      },
+      "facebook": {
+        "clientId": "TESTCLIENTIDFACEBOOK",
+        "clientSecret": "TESTCLIENTSECRETFACEBOOK"
       }
+    },
+    "office365": {
+      "tenant": "testformio.onmicrosoft.com",
+      "clientId": "TESTCLIENTIDOFFICE365",
+      "clientSecret": "TESTCLIENTSECRETOFFICE365"
     }
   }
 }

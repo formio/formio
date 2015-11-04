@@ -3,7 +3,6 @@
 var Q = require('q');
 var _ = require('lodash');
 var _prop = require('lodash.property');
-var debug = require('debug')('formio:settings:oauth');
 
 module.exports = function(formio) {
   var hook = require('./hook')(formio);
@@ -14,13 +13,15 @@ module.exports = function(formio) {
     availableProviders: function(req, next) {
       return Q.ninvoke(hook, 'settings', req)
       .then(function(settings) {
-        return _(settings.oauth)
+        return _(formio.oauth.providers)
         .pick(function(provider, name) {
-          return formio.oauth.providers[name] && provider.clientId && provider.clientSecret;
+          // Use custom isAvailable method if available
+          return provider.isAvailable && provider.isAvailable(settings) ||
+          // Else just check for default client id and secret
+            settings.oauth && settings.oauth[name] &&
+            settings.oauth[name].clientId && settings.oauth[name].clientSecret;
         })
-        .map(function(provider, name) {
-          return _.pick(formio.oauth.providers[name], 'name', 'title');
-        })
+        .map(_.partialRight(_.pick, 'name', 'title'))
         .value();
       })
       .nodeify(next);

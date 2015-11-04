@@ -37,7 +37,7 @@ module.exports = function(router) {
         return next(err);
       }
 
-      return res.sendStatus(204);
+      return res.sendStatus(200);
     });
   };
 };
