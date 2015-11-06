@@ -8,20 +8,15 @@ var ExternalIdSchema = mongoose.Schema({
   id: String
 });
 
-// Defines what each external Token should be.
-var ExternalTokenSchema = mongoose.Schema({
-  type: String,
-  token: String,
-  exp: Date
-});
-
 // Add timestamps to the external ids.
 ExternalIdSchema.plugin(require('../plugins/timestamps'));
 
 // Export the submission model.
 module.exports = function(formio) {
+  var hook = require('../util/hook')(formio);
+
   return require('./BaseModel')({
-    schema: new mongoose.Schema({
+    schema: new mongoose.Schema(hook.alter('submissionSchema', {
       form: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'form',
@@ -50,14 +45,11 @@ module.exports = function(formio) {
       // An array of external Id's.
       externalIds: [ExternalIdSchema],
 
-      // An array of external tokens.
-      externalTokens: [ExternalTokenSchema],
-
       // The data associated with this submission.
       data: {
         type: mongoose.Schema.Types.Mixed,
         required: true
       }
-    })
+    }))
   });
 };

@@ -37,8 +37,7 @@ module.exports = function(router) {
       webhook: require('./WebhookAction')(router),
       sql: require('./SQLAction')(router),
       role: require('./RoleAction')(router),
-      resetpass: require('./ResetPassword')(router),
-      oauth: require('./OAuthAction')(router)
+      resetpass: require('./ResetPassword')(router)
     }),
 
     /**
