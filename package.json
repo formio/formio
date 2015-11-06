@@ -6,7 +6,7 @@
   "scripts": {
     "test": "env TEST_SUITE=1 mocha -r jscoverage --covout=html test/test.js -b -t 60000",
     "start": "node server.js",
-    "lint": "eslint src"
+    "lint": "eslint src *.js"
   },
   "author": "support@form.io",
   "schema": "2.4.3",
