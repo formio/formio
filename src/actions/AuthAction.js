@@ -136,11 +136,13 @@ module.exports = function(router) {
    *
    * Note: Requires req.body to contain the username and password.
    *
-   * @param req
+   * @param handler
+   * @param method
+   * @param req {Object}
    *   The Express request object.
-   * @param res
+   * @param res {Object}
    *   The Express response object.
-   * @param next
+   * @param next {Function}
    *   The callback function to execute upon completion.
    */
   AuthAction.prototype.resolve = function(handler, method, req, res, next) {

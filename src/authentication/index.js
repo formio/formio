@@ -46,13 +46,12 @@ module.exports = function(router) {
   /**
    * Authenticate a user.
    *
-   * @param model
-   * @param query
+   * @param form
+   * @param userField
+   * @param passField
    * @param username
    * @param password
-   * @param getPassword
    * @param next
-   *
    * @returns {*}
    */
   var authenticate = function(form, userField, passField, username, password, next) {
@@ -88,24 +87,27 @@ module.exports = function(router) {
           return next(new Error('Incorrect password'));
         }
 
-        // Allow anyone to hook and modify the token.
-        var token = hook.alter('token', {
-          user: {
-            _id: user._id,
-            roles: user.roles
-          },
-          form: {
-            _id: form._id
-          }
-        }, form);
+        // Allow anyone to hook and modify the user.
+        hook.alter('user', user, function(user) {
+          // Allow anyone to hook and modify the token.
+          var token = hook.alter('token', {
+            user: {
+              _id: user._id,
+              roles: user.roles
+            },
+            form: {
+              _id: form._id
+            }
+          }, form);
 
-        // Continue with the token data.
-        next(null, {
-          user: user,
-          token: {
-            token: getToken(token),
-            decoded: token
-          }
+          // Continue with the token data.
+          next(null, {
+            user: user,
+            token: {
+              token: getToken(token),
+              decoded: token
+            }
+          });
         });
       });
     });
@@ -146,25 +148,31 @@ module.exports = function(router) {
         return null;
       }
 
-      // Allow anyone to hook and modify the token.
-      var token = hook.alter('token', {
-        user: {
-          _id: user._id,
-          roles: user.roles
-        },
-        form: {
-          _id: form._id
-        }
-      }, form);
+      // Ensure were not working with a mongoose object.
+      user = user.toObject();
 
-      // Continue with the token data.
-      return {
-        user: user,
-        token: {
-          token: getToken(token),
-          decoded: token
-        }
-      };
+      // Allow anyone to hook and modify the user.
+      hook.alter('user', user, function(user) {
+        // Allow anyone to hook and modify the token.
+        var token = hook.alter('token', {
+          user: {
+            _id: user._id,
+            roles: user.roles
+          },
+          form: {
+            _id: form._id
+          }
+        }, form);
+
+        // Continue with the token data.
+        return {
+          user: user,
+          token: {
+            token: getToken(token),
+            decoded: token
+          }
+        };
+      });
     })
     .nodeify(next);
   };

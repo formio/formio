@@ -192,6 +192,13 @@ module.exports = function(router) {
 
     /**
      * Load a resource by name.
+     *
+     * @param req {Object}
+     *   The Express request object.
+     * @param name {String}
+     *   The resource name to search for.
+     * @param cb {Function}
+     *   The callback function to run when complete.
      */
     loadFormByName: function(req, name, cb) {
       var cache = this.cache(req);
