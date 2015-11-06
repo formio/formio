@@ -287,5 +287,35 @@ module.exports = {
    * to mock this than the individual required 'request' modules
    * in each file.
    */
-  request: Q.denodeify(require('request'))
+  request: Q.denodeify(require('request')),
+
+  /**
+   * Utility function to ensure the given id is always a BSON object.
+   *
+   * @param _id {String|Object}
+   *   A mongo id as a string or object.
+   *
+   * @returns {Object}
+   *   The mongo BSON id.
+   */
+  idToBson: function(_id) {
+    return _.isObject(_id)
+      ? _id
+      : mongoose.Types.ObjectId(_id);
+  },
+
+  /**
+   * Utility function to ensure the given id is always a string object.
+   *
+   * @param _id {String|Object}
+   *   A mongo id as a string or object.
+   *
+   * @returns {String}
+   *   The mongo string id.
+   */
+  idToString: function(_id) {
+    return _.isObject(_id)
+      ? _id.toString()
+      : _id;
+  }
 };
