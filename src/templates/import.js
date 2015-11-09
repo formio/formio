@@ -108,10 +108,13 @@ module.exports = function(formio) {
               return itemDone(err);
             }
             if (!doc) {
+              debug._install('Existing not found');
               doc = new model(document);
             }
             else {
-              _.assign(doc, document);
+              debug._install('Existing found');
+              doc = _.assign(doc, document);
+              debug._install(doc);
             }
             doc.save(function(err, result) {
               if (err) {
