@@ -144,6 +144,7 @@ module.exports = function(formio) {
         title: options.title ? options.title : 'Export',
         description: options.description ? options.description : '',
         name: options.name ? options.name : 'export',
+        plan: options.plan ? options.plan : 'community',
         roles: {},
         forms: {},
         actions: {},
