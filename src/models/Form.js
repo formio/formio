@@ -2,7 +2,6 @@
 
 var mongoose = require('mongoose');
 var _ = require('lodash');
-var PermissionSchema = require('./PermissionSchema');
 var debug = require('debug')('formio:models:form');
 
 module.exports = function(formio) {
@@ -40,8 +39,8 @@ module.exports = function(formio) {
         type: Number,
         default: null
       },
-      access: [PermissionSchema],
-      submissionAccess: [PermissionSchema],
+      access: [formio.schemas.PermissionSchema],
+      submissionAccess: [formio.schemas.PermissionSchema],
       owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'submission',

@@ -160,7 +160,7 @@ module.exports = function(router) {
      * Checks if the given set of roles has the permissions to perform the given method.
      *
      * @param req {Object}
-     *   The request being made.
+     *   The Express request Object.
      * @param access {Object}
      *   An object of access with the associated roles.
      * @param entity {Object}
