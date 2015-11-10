@@ -14,6 +14,10 @@ module.exports = function(router) {
     /**
      * Get the access for all defined entities.
      *
+     * @param req {Object}
+     *   The Express request Object.
+     * @param res {Object}
+     *   The Express request Object.
      * @param done
      *   The callback function to invoke after completion.
      *
@@ -155,11 +159,11 @@ module.exports = function(router) {
     /**
      * Checks if the given set of roles has the permissions to perform the given method.
      *
-     * @param req
+     * @param req {Object}
      *   The request being made.
-     * @param access
+     * @param access {Object}
      *   An object of access with the associated roles.
-     * @param entity
+     * @param entity {Object}
      *   The entity within the permissions object to use.
      *
      * @returns boolean
@@ -283,23 +287,23 @@ module.exports = function(router) {
    *
    * This middleware will confirm that the request has permissions to perform its request.
    *
-   * @param req
-   * @param res
-   * @param next
+   * @param req {Object}
+   *   The Express request Object.
+   * @param res {Object}
+   *   The Express request Object.
+   * @param next {Function}
+   *   The callback function to invoke after completion.
    */
   return function permissionHandler(req, res, next) {
     // Check for whitelisted paths.
-    var whiteMatch = false;
     var whitelist = ['/health', '/current', '/logout'];
-    _.each(whitelist, function(path) {
-      if ((req.url === path) || (req.url === hook.alter('url', path, req))) {
-        whiteMatch = true;
-        return false;
-      }
+    var skip = _.any(whitelist, function(path) {
+      if ((req.url === path) || (req.url === hook.alter('url', path, req))) return true;
+      return false;
     });
 
     // If there is a whitelist match, then move onto the next middleware.
-    if (whiteMatch) {
+    if (skip) {
       return next();
     }
 
