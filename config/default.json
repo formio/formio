@@ -59,16 +59,6 @@
           "apiKey": ""
         }
       }
-    },
-    "oauth": {
-      "github": {
-        "clientId": "",
-        "clientSecret": ""
-      },
-      "facebook": {
-        "clientId": "",
-        "clientSecret": ""
-      }
     }
   }
 }

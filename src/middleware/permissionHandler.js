@@ -127,7 +127,7 @@ module.exports = function(router) {
           else {
 
             // Load the default role.
-            router.formio.roles.resource.model.findOne(hook.alter('roleQuery', query, req), function(err, role) {
+            router.formio.resources.role.model.findOne(hook.alter('roleQuery', query, req), function(err, role) {
               if (err) {
                 return done(err);
               }
@@ -230,6 +230,14 @@ module.exports = function(router) {
       // Using the given method, iterate the 8 available entity access. Compare the given roles with the roles
       // defined by the entity to have access. If this roleId is found within the defined roles, grant access.
       var search = methods[method];
+
+      if (!search || typeof search === 'undefined') {
+        console.error({
+          method: req.method,
+          _method: method
+        });
+      }
+
       search.forEach(function(type) {
         // Check if the given roles are contained within the allowed roles for our
         roles.forEach(function(role) {

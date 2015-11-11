@@ -10,6 +10,7 @@ var debug = {
 var util = require('../util/util');
 
 module.exports = function (router, resourceName, resourceId) {
+  var hook = require('../util/hook')(router.formio);
   var fieldActions = require('../actions/fields/index')(router);
   var handlers = {};
 
@@ -106,10 +107,7 @@ module.exports = function (router, resourceName, resourceId) {
             req.body.owner = _old.owner;
           }
 
-          // Keep the oauth info in the payload for the OAuthAction.
-          if (_old.hasOwnProperty('oauth') && _old.oauth && (typeof _old.oauth === 'object')) {
-            req.body.oauth = _old.oauth;
-          }
+          req.body = hook.alter('submissionRequest', req.body, _old);
 
           // Store the original request body in a submission object.
           debug.before(req.body);

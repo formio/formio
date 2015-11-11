@@ -1,8 +1,7 @@
 'use strict';
 
-var Action = require('./Action');
-
 module.exports = function(router) {
+  var Action = router.formio.Action;
   var hook = require('../util/hook')(router.formio);
   var emailer = require('../util/email')(router.formio);
 

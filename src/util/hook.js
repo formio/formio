@@ -30,7 +30,13 @@ module.exports = function(formio) {
       ) {
         return formio.hooks.alter[name].apply(this, Array.prototype.slice.call(arguments, 1));
       }
-      return arguments[1];
+      // If this is an async hook instead of a sync.
+      if (typeof arguments[arguments.length - 1] === 'function') {
+        return arguments[arguments.length - 1](null, arguments[1]);
+      }
+      else {
+        return arguments[1];
+      }
     }
   };
 };

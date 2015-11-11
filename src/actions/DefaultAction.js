@@ -1,6 +1,5 @@
 'use strict';
 
-var Action = require('./Action');
 var _ = require('lodash');
 var async = require('async');
 var mongoose = require('mongoose');
@@ -9,6 +8,7 @@ var util = require('../util/util');
 var debug = require('debug')('formio:action:default');
 
 module.exports = function(router) {
+  var Action = router.formio.Action;
   var DefaultAction = function(data, req, res) {
     Action.call(this, data, req, res);
   };
@@ -52,7 +52,7 @@ module.exports = function(router) {
     var initiallyEmpty = (req.body.data && Object.keys(req.body.data).length === 0);
 
     // Establish our resource data array.
-    var resourceData = _.assign({}, req.resourceData); // For actions that set resource data like oauth
+    var resourceData = _.assign({}, req.resourceData); // For actions that set resource data
     var submissionData = {};
 
     // Iterate through all of our data in the request.

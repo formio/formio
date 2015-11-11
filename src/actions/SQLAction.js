@@ -1,11 +1,11 @@
 'use strict';
 
-var Action = require('./Action');
 var mssql = require('mssql');
 var mysql = require('mysql');
 var _ = require('lodash');
 
 module.exports = function(router) {
+  var Action = router.formio.Action;
   var hook = require('../util/hook')(router.formio);
 
   /**
