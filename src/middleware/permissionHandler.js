@@ -64,7 +64,7 @@ module.exports = function(router) {
               });
             }
 
-            // Add the defined acces types for the form submissions.
+            // Add the defined access types for the form submissions.
             if (item.submissionAccess) {
               item.submissionAccess.forEach(function(permission) {
                 // Define this access type.
