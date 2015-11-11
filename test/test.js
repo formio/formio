@@ -86,6 +86,5 @@ describe('Bootstrap Test modules', function() {
     require('./nested')(app, template, hook);
     require('./actions')(app, template, hook);
     require('./submission')(app, template, hook);
-    require('./oauth')(app, template, hook);
   });
 });

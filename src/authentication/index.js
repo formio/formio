@@ -113,63 +113,6 @@ module.exports = function(router) {
   };
 
   /**
-   * Authenticate a user via OAuth. Resolves with null if no user found
-   *
-   * @param form
-   * @param providerName
-   * @param oauthId
-   * @param next
-   *
-   * @returns {Promise}
-   */
-  var authenticateOAuth = function(form, providerName, oauthId, next) {
-    if (!providerName) {
-      return next(new Error('Missing provider'));
-    }
-    if (!oauthId) {
-      return next(new Error('Missing OAuth ID'));
-    }
-
-    return router.formio.resources.submission.model.findOne(
-      {
-        form: form._id,
-        externalIds: {
-          $elemMatch: {
-            type: providerName,
-            id: oauthId
-          }
-        },
-        deleted: {$eq: null}
-      }
-    )
-    .then(function(user) {
-      if (!user) {
-        return null;
-      }
-
-      // Respond with a token.
-      var token = hook.alter('token', {
-        user: {
-          _id: user._id,
-          roles: user.roles
-        },
-        form: {
-          _id: form._id
-        }
-      }, user, form);
-
-      return {
-        user: user,
-        token: {
-          token: getToken(token),
-          decoded: token
-        }
-      };
-    })
-    .nodeify(next);
-  };
-
-  /**
    * Send the current user.
    *
    * @param req
@@ -214,7 +157,6 @@ module.exports = function(router) {
   return {
     getToken: getToken,
     authenticate: authenticate,
-    authenticateOAuth: authenticateOAuth,
     currentUser: currentUser,
     logout: function(req, res) {
       res.setHeader('x-jwt-token', '');
