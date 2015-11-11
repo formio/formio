@@ -229,9 +229,6 @@ module.exports = function(config) {
           });
         });
 
-        // Import the OAuth providers
-        router.formio.oauth = require('./src/oauth/oauth')(router);
-
         // Import the form actions.
         router.formio.Action = require('./src/actions/Action');
         router.formio.actions = require('./src/actions/actions')(router);
