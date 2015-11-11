@@ -32,13 +32,23 @@ module.exports = exports = function(schema, options) {
     }.bind(this));
   });
 
-  schema.methods.save = function(cb){
+  schema.methods.save = function(options, fn){
+    if ('function' == typeof options) {
+      fn = options;
+      options = undefined;
+    }
+
+    if (!options) {
+      options = {
+        __noPromise: true
+      };
+    }
     var self = this;
-    mongoose.Model.prototype.save.call(self, function(e, model, num) {
+    mongoose.Model.prototype.save.call(self, options, function(e, model, num) {
       if (e && (e.code === 11000  || e.code === 11001) && !!~e.errmsg.indexOf(self['machineName'])) {
-        incrementAndSave(self, options, cb);
+        incrementAndSave(self, options, fn);
       } else {
-        cb(e,model,num);
+        fn(e,model,num);
       }
     });
   };
