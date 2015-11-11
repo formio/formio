@@ -65,8 +65,8 @@ CSVExporter.prototype.stream = function(stream) {
   var write = function(row) {
     var data = [];
     data.push(row._id.toString());
-    data.push(row.created);
-    data.push(row.modified);
+    data.push(row.created.toISOString());
+    data.push(row.modified.toISOString());
     _.each(self.fields, function(field) {
       if (!field.key) { return; }
 
