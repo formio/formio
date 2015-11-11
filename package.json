@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "env TEST_SUITE=1 mocha -r jscoverage --covout=html test/test.js -b -t 60000",
-    "start": "node server.js"
+    "start": "node server.js",
+    "lint": "eslint src *.js"
   },
   "author": "support@form.io",
   "schema": "2.4.3",
@@ -60,7 +61,8 @@
   },
   "devDependencies": {
     "chance": "^0.8.0",
-    "eslint": "^0.20.0",
+    "eslint": "^1.9.0",
+    "eslint-config-formio": "0.0.0",
     "jscoverage": "^0.6.0",
     "mocha": "^2.2.1",
     "supertest": "^0.15.0"
