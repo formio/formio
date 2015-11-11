@@ -1,12 +1,12 @@
 'use strict';
 
-var Action = require('./Action');
 var async = require('async');
 var mongoose = require('mongoose');
 var debug = require('debug')('formio:action:auth');
 var _ = require('lodash');
 
 module.exports = function(router) {
+  var Action = router.formio.Action;
   var hook = require('../util/hook')(router.formio);
 
   /**
@@ -51,7 +51,7 @@ module.exports = function(router) {
   AuthAction.settingsForm = function(req, res, next) {
     var dataSrc = hook.alter('url', '/form/' + req.params.formId + '/components', req);
 
-    router.formio.roles.resource.model.find(hook.alter('roleQuery', {}, req))
+    router.formio.resources.role.model.find(hook.alter('roleQuery', {}, req))
       .sort({title: 1})
       .exec(function(err, roles) {
         if (err || !roles) {
@@ -257,7 +257,7 @@ module.exports = function(router) {
         // Confirm that the given/configured role is actually accessible.
         var query = hook.alter('roleQuery', {_id: this.settings.role, deleted: {$eq: null}}, req);
         debug('Role Query: ' + JSON.stringify(query));
-        router.formio.roles.resource.model.findOne(query, function(err, _role) {
+        router.formio.resources.role.model.findOne(query, function(err, _role) {
           if (err || !_role) {
             debug(err || 'Role not found: ' + JSON.stringify(query));
             return res.status(400).send('The given role was not found.');

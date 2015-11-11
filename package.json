@@ -9,7 +9,7 @@
     "lint": "eslint src *.js"
   },
   "author": "support@form.io",
-  "schema": "2.4.3",
+  "schema": "3.0.0",
   "dependencies": {
     "JSONStream": "^1.0.4",
     "adal-node": "^0.1.13",

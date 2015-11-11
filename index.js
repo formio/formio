@@ -175,9 +175,6 @@ module.exports = function(config) {
         // Load the Resources.
         router.formio.resources = require('./src/resources/resources')(router);
 
-        // Register the roles and permission checks.
-        router.formio.roles = require('./src/roles/index')(router);
-
         // Load the request cache
         router.formio.cache = require('./src/cache/cache')(router);
 
@@ -230,7 +227,7 @@ module.exports = function(config) {
         });
 
         // Import the form actions.
-        router.formio.Action = require('./src/actions/Action');
+        router.formio.Action = require('./src/models/Action')(router.formio);
         router.formio.actions = require('./src/actions/actions')(router);
 
         var swagger = require('./src/util/swagger');

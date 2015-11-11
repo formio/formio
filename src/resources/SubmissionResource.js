@@ -6,6 +6,7 @@ var mongoose = require('mongoose');
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
   var handlers = router.formio.middleware.submissionHandler;
+  var hiddenFields = ['deleted', '__v', 'machineName', 'externalTokens']
 
   // Manually update the handlers, to add additional middleware.
   handlers.beforePost = [
@@ -15,7 +16,7 @@ module.exports = function(router) {
   ];
   handlers.afterPost = [
     handlers.afterPost,
-    router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens']),
+    router.formio.middleware.filterResourcejsResponse(hiddenFields),
     router.formio.middleware.filterProtectedFields
   ];
   handlers.beforeGet = [
@@ -24,7 +25,7 @@ module.exports = function(router) {
   ];
   handlers.afterGet = [
     handlers.afterGet,
-    router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens']),
+    router.formio.middleware.filterResourcejsResponse(hiddenFields),
     router.formio.middleware.filterProtectedFields
   ];
   handlers.beforePut = [
@@ -34,7 +35,7 @@ module.exports = function(router) {
   ];
   handlers.afterPut = [
     handlers.afterPut,
-    router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens']),
+    router.formio.middleware.filterResourcejsResponse(hiddenFields),
     router.formio.middleware.filterProtectedFields
   ];
   handlers.beforeIndex = [
@@ -45,7 +46,7 @@ module.exports = function(router) {
   ];
   handlers.afterIndex = [
     handlers.afterIndex,
-    router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens']),
+    router.formio.middleware.filterResourcejsResponse(hiddenFields),
     router.formio.middleware.filterProtectedFields
   ];
   handlers.beforeDelete = [
@@ -55,7 +56,7 @@ module.exports = function(router) {
   ];
   handlers.afterDelete = [
     handlers.afterDelete,
-    router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens']),
+    router.formio.middleware.filterResourcejsResponse(hiddenFields),
     router.formio.middleware.filterProtectedFields
   ];
 

@@ -17,8 +17,8 @@ var debug = {
  */
 module.exports = function(formio) {
   // Provide a default alter method.
-  var _alter = function(item) {
-    return item;
+  var _alter = function(item, done) {
+    done(null, item);
   };
 
   // Assign the role ids.
@@ -84,7 +84,7 @@ module.exports = function(formio) {
   };
 
   // Install a model with a parse method.
-  var _install = function(model, _parse) {
+  var _install = function(model, _parse, machineNameAlter) {
     return function(template, items, alter, done) {
       if (!items || _.isEmpty(items)) {
         return done();
@@ -98,18 +98,35 @@ module.exports = function(formio) {
       alter = alter || _alter;
       async.forEachOfSeries(items, function(item, name, itemDone) {
         var document = _parse ? _parse(template, item) : item;
-        document = alter(document);
+        document.machineName = name;
+        alter(document, function(err, document) {
+          if (err) { itemDone(err); }
+          debug._install(document);
+          model.findOne({machineName: document.machineName}, function(err, doc) {
+            if (err) {
+              debug._install(err);
+              return itemDone(err);
+            }
+            if (!doc) {
+              debug._install('Existing not found');
+              doc = new model(document);
+            }
+            else {
+              debug._install('Existing found');
+              doc = _.assign(doc, document);
+              debug._install(doc);
+            }
+            doc.save(function(err, result) {
+              if (err) {
+                debug._install(err);
+                return itemDone(err);
+              }
 
-        debug._install(document);
-        model.create(document, function(err, result) {
-          if (err) {
-            debug._install(err);
-            return itemDone(err);
-          }
-
-          debug._install(result);
-          items[name] = result.toObject();
-          itemDone();
+              debug._install(result);
+              items[name] = result.toObject();
+              itemDone();
+            });
+          });
         });
       }, done);
     };
@@ -121,7 +138,7 @@ module.exports = function(formio) {
   return {
     createInstall: _install,
     parse: parse,
-    roles: _install(formio.roles.resource.model, parse.role),
+    roles: _install(formio.resources.role.model, parse.role),
     forms: _install(formio.resources.form.model, parse.form),
     actions: _install(formio.actions.model, parse.action),
     submissions: _install(formio.resources.submission.model, parse.submission),

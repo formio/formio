@@ -123,7 +123,7 @@ module.exports = function(router) {
           else {
 
             // Load the default role.
-            router.formio.roles.resource.model.findOne(hook.alter('roleQuery', query, req), function(err, role) {
+            router.formio.resources.role.model.findOne(hook.alter('roleQuery', query, req), function(err, role) {
               if (err) {
                 return done(err);
               }

@@ -3,7 +3,6 @@
 var Resource = require('resourcejs');
 var async = require('async');
 var mongoose = require('mongoose');
-var Action = require('./Action');
 var _ = require('lodash');
 var debug = {
   search: require('debug')('formio:action#search'),
@@ -18,6 +17,8 @@ var debug = {
  * @returns {{actions: {}, register: Function, search: Function, execute: Function}}
  */
 module.exports = function(router) {
+  var Action = router.formio.Action;
+
   var hook = require('../util/hook')(router.formio);
 
   /**

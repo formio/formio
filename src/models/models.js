@@ -9,8 +9,10 @@ module.exports = function(router) {
 
   // Define our models.
   var models = hook.alter('models', {
+    action: require('./Action')(router.formio),
     form: require('./Form')(router.formio),
-    submission: require('./Submission')(router.formio)
+    submission: require('./Submission')(router.formio),
+    role: require('./Role')(router.formio)
   });
 
   // Export the models and specs for each model.

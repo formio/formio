@@ -412,7 +412,7 @@ module.exports = function(router) {
       return next();
     }
 
-    router.formio.roles.resource.model.findOne({_id: roleId, deleted: {$eq: null}}, function(err, role) {
+    router.formio.resources.role.model.findOne({_id: roleId, deleted: {$eq: null}}, function(err, role) {
       if (err) {
         debug.role(err);
         return next(err);

@@ -1,11 +1,10 @@
 'use strict';
 
-var resource = require('resourcejs');
 var mongoose = require('mongoose');
 
 module.exports = function(router) {
   // Include the hook system.
-  var hook = require('../util/hook')(router.formio);
+  var hook = require('../util/hook')(router);
 
   /**
    * The Schema for Roles.
@@ -56,34 +55,18 @@ module.exports = function(router) {
     });
   }, 'Role title must be unique.');
 
-  // Add timestamps to the schema.
-  RoleSchema.plugin(require('../plugins/timestamps'));
+  var model = require('./BaseModel')({
+    schema: RoleSchema
+  });
+
+  // Add machineName to the schema.
+  model.schema.plugin(require('../plugins/machineName'));
+
+  // Set the default machine name.
+  model.schema.machineName = function(document, done) {
+    return hook.alter('roleMachineName', document.title.toLowerCase(), document, done);
+  };
 
   // Return the defined roles and permissions functions.
-  return {
-    /**
-     * Create the REST properties for Roles, using ResourceJS
-     *
-     * Adds the endpoints:
-     * [GET]    /role
-     * [POST]   /role
-     * [GET]    /role/:roleId
-     * [PUT]    /role/:roleId
-     * [DELETE] /role/:roleId
-     */
-    resource: resource(router, '', 'role', mongoose.model('role', RoleSchema)).rest(hook.alter('roleRoutes', {
-      before: [
-        router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-        router.formio.middleware.deleteRoleHandler,
-        router.formio.middleware.sortMongooseQuery({title: 1})
-      ],
-      after: [
-        router.formio.middleware.bootstrapNewRoleAccess,
-        router.formio.middleware.filterResourcejsResponse(['deleted', '__v'])
-      ]
-    })),
-
-    // The schema for roles.
-    schema: RoleSchema
-  };
+  return model;
 };

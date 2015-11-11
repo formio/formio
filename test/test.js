@@ -49,7 +49,7 @@ describe('Bootstrap Test modules', function() {
       async.apply(dropDocuments, app.formio.resources.form.model),
       async.apply(dropDocuments, app.formio.resources.submission.model),
       async.apply(dropDocuments, app.formio.actions.model),
-      async.apply(dropDocuments, app.formio.roles.resource.model)
+      async.apply(dropDocuments, app.formio.resources.role.model)
     ], done);
   });
 

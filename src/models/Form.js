@@ -152,5 +152,13 @@ module.exports = function(formio) {
     return !path.match(/(submission|action)\/?$/);
   }, 'Path cannot end in `submission` or `action`');
 
+  // Add machineName to the schema.
+  model.schema.plugin(require('../plugins/machineName'));
+
+  // Set the default machine name.
+  model.schema.machineName = function(document, done) {
+    hook.alter('formMachineName', document.name, document, done);
+  }
+
   return model;
 };

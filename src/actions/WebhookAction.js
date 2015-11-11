@@ -1,9 +1,9 @@
 'use strict';
 
-var Action = require('./Action');
 var rest = require('restler');
 
 module.exports = function(router) {
+  var Action = router.formio.Action;
   /**
    * WebhookAction class.
    *   This class is used to create webhook interface.
