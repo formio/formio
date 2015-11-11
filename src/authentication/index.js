@@ -12,6 +12,9 @@ var mongoose = require('mongoose');
 var bcrypt = require('bcrypt');
 var jwt = require('jsonwebtoken');
 var util = require('../util/util');
+var debug = {
+  authenticate: require('debug')('formio:authentication:authenticate')
+};
 
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
@@ -88,7 +91,10 @@ module.exports = function(router) {
         }
 
         // Allow anyone to hook and modify the user.
-        hook.alter('user', user, function(user) {
+        hook.alter('user', user, function hookUserCallback(err, user) {
+          debug.authenticate('err: ' + JSON.stringify(err));
+          debug.authenticate('user: ' + JSON.stringify(user));
+
           // Allow anyone to hook and modify the token.
           var token = hook.alter('token', {
             user: {

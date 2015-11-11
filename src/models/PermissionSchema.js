@@ -21,7 +21,7 @@ module.exports = function(formio) {
   available = hook.alter('permissionSchema', available);
 
   // Defines the permissions schema for form permissions.
-  var permissionSchema = {
+  return {
     _id: false,
     type: {
       type: String,
@@ -33,6 +33,4 @@ module.exports = function(formio) {
       ref: 'role'
     }
   };
-
-  return permissionSchema;
 };
