@@ -64,6 +64,7 @@ module.exports = function(router) {
     loadForm: function (req, type, id, cb) {
       var cache = this.cache(req);
       if (cache.forms[id]) {
+        debug.loadForm('Cache hit: ' + id);
         return cb(null, cache.forms[id]);
       }
 
@@ -98,6 +99,8 @@ module.exports = function(router) {
         });
         result.componentMap = componentMap;
         this.updateCache(req, cache, result);
+
+        debug.loadForm('Caching result: ' + JSON.stringify(result));
         cb(null, result);
       }.bind(this));
     },
@@ -138,6 +141,7 @@ module.exports = function(router) {
     loadSubmission: function(req, formId, subId, cb) {
       var cache = this.cache(req);
       if (cache.submissions[subId]) {
+        debug.loadSubmission('Cache hit: ' + subId);
         return cb(null, cache.submissions[subId]);
       }
 
@@ -170,6 +174,8 @@ module.exports = function(router) {
 
           submission = submission.toObject();
           cache.submissions[subId] = submission;
+
+          debug.loadSubmission('Caching result: ' + JSON.stringify(submission));
           cb(null, submission);
         });
     },
@@ -203,6 +209,7 @@ module.exports = function(router) {
     loadFormByName: function(req, name, cb) {
       var cache = this.cache(req);
       if (cache.names[name]) {
+        debug.loadFormByName('Cache hit: ' + name);
         this.loadForm(req, 'resource', cache.names[name], cb);
       }
       else {
@@ -223,6 +230,8 @@ module.exports = function(router) {
 
           result = result.toObject();
           this.updateCache(req, cache, result);
+
+          debug.loadFormByName('Caching result: ' + JSON.stringify(result));
           cb(null, result);
         }.bind(this));
       }
@@ -234,6 +243,7 @@ module.exports = function(router) {
     loadFormByAlias: function(req, alias, cb) {
       var cache = this.cache(req);
       if (cache.aliases[alias]) {
+        debug.loadFormByAlias('Cache hit: ' + alias);
         this.loadForm(req, 'resource', cache.aliases[alias], cb);
       }
       else {
@@ -254,6 +264,8 @@ module.exports = function(router) {
 
           result = result.toObject();
           this.updateCache(req, cache, result);
+
+          debug.loadFormByAlias('Caching result: ' + JSON.stringify(result));
           cb(null, result);
         }.bind(this));
       }
