@@ -310,8 +310,11 @@ module.exports = function(router) {
       return false;
     });
 
+    debug(req.url);
+
     // If there is a whitelist match, then move onto the next middleware.
     if (skip) {
+      debug('Skipping');
       return next();
     }
 

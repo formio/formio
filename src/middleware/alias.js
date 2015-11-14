@@ -1,8 +1,6 @@
 'use strict';
-var url = require("url");
-var debug = {
-  alias: require('debug')('formio:alias')
-};
+var url = require('url');
+var debug = require('debug')('formio:alias');
 
 /**
  * Provides URL alias capabilities.
@@ -10,19 +8,19 @@ var debug = {
  * Middleware to resolve a form alias into its components.
  */
 module.exports = function(router) {
-
   // Setup the reserved forms regex.
   var reserved = router.formio.config.reservedForms || ['submission', 'export', 'role', 'current', 'logout', 'form'];
   var formsRegEx = new RegExp('\/(' + reserved.join('|') + ')($|\/.*)', 'i');
 
   // Handle the request.
   return function aliasHandler(req, res, next) {
-
     // Allow a base url to be provided to the alias handler.
     var baseUrl = aliasHandler.baseUrl ? aliasHandler.baseUrl(req) : '';
 
     // Get the alias from the request.
     var alias = url.parse(req.url).pathname.substr(baseUrl.length).replace(formsRegEx, '').substr(1);
+    debug('url: ' + req.url);
+    debug('Alias: ' + alias);
 
     // If this is normal request, then pass this middleware.
     if (!alias || alias.match(/^(form$|form[\?\/])/) || alias === 'spec.json') {
@@ -32,7 +30,7 @@ module.exports = function(router) {
     // Now load the form by alias.
     router.formio.cache.loadFormByAlias(req, alias, function(error, form) {
       if (error) {
-        debug.alias('Error: ' + error);
+        debug('Error: ' + error);
         return next('Invalid alias');
       }
       if (!form) {
@@ -52,7 +50,7 @@ module.exports = function(router) {
 
       // Create the new URL for the project.
       req.url = baseUrl + '/form/' + form._id + additional;
-      debug.alias('Rewritting the request from the FormCache: ' + req.url);
+      debug('Rewriting the request from the FormCache: ' + req.url);
       next();
     });
   };
