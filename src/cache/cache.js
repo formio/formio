@@ -132,11 +132,14 @@ module.exports = function(router) {
     /**
      * Load a submission using caching.
      *
-     * @param req
-     * @param formId
-     * @param subId
-     * @param cb
-     * @returns {*}
+     * @param req {Object}
+     *   The Express request object.
+     * @param formId {Object|String}
+     *   The submission form id, as BSON or string.
+     * @param subId {Object|String}
+     *   The submission id, as BSON or string.
+     * @param cb {Function}
+     *   The callback function to invoke after loading the submission.
      */
     loadSubmission: function(req, formId, subId, cb) {
       var cache = this.cache(req);

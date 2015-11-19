@@ -17,8 +17,7 @@ module.exports = function(router) {
   handlers.afterPost = [
     handlers.afterPost,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields,
-    router.formio.middleware.tokenRefreshHandler
+    router.formio.middleware.filterProtectedFields
   ];
   handlers.beforeGet = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
@@ -27,8 +26,7 @@ module.exports = function(router) {
   handlers.afterGet = [
     handlers.afterGet,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields,
-    router.formio.middleware.tokenRefreshHandler
+    router.formio.middleware.filterProtectedFields
   ];
   handlers.beforePut = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
@@ -38,8 +36,7 @@ module.exports = function(router) {
   handlers.afterPut = [
     handlers.afterPut,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields,
-    router.formio.middleware.tokenRefreshHandler
+    router.formio.middleware.filterProtectedFields
   ];
   handlers.beforeIndex = [
     router.formio.middleware.setFilterQueryTypes,
@@ -50,8 +47,7 @@ module.exports = function(router) {
   handlers.afterIndex = [
     handlers.afterIndex,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields,
-    router.formio.middleware.tokenRefreshHandler
+    router.formio.middleware.filterProtectedFields
   ];
   handlers.beforeDelete = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
@@ -61,8 +57,7 @@ module.exports = function(router) {
   handlers.afterDelete = [
     handlers.afterDelete,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields,
-    router.formio.middleware.tokenRefreshHandler
+    router.formio.middleware.filterProtectedFields
   ];
 
   return Resource(

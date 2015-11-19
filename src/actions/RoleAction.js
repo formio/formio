@@ -374,9 +374,6 @@ module.exports = function(router) {
       });
     };
 
-    // Flag this request to force reload the users token.
-    req._refreshToken = true;
-
     /**
      * Resolve the action.
      */

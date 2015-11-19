@@ -59,23 +59,49 @@ module.exports = function(router) {
         return res.sendStatus(401);
       }
 
-      // Set the user and token on the request to pass along to other middleware.
-      req.user = decoded.user;
-      req.token = decoded;
+      // Load the formio hooks.
+      var hook = require('../util/hook')(router.formio);
 
-      // Refresh the token when appropriate.
-      var newToken = router.formio.auth.getToken(decoded);
-      res.token = newToken
-        ? newToken
-        : token;
+      // Load the user submission.
+      var cache = router.formio.cache || require('../cache/cache')(router);
+      cache.loadSubmission(req, decoded.form._id, decoded.user._id, function(err, user) {
+        if(err) {
+          // Couldn't load the use, try to fail safely.
+          debug(err);
+          user = decoded.user;
+        }
+        else {
+          try {
+            // Ensure that the user is a js object and not a mongoose document.
+            user = user.toObject();
+          } catch(e) {}
 
-      // Set the headers if they haven't been sent yet.
-      if(!res.headersSent) {
-        res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
-        res.setHeader('x-jwt-token', res.token);
-      }
+          debug(user);
+        }
 
-      next();
+        // Allow anyone to alter the user.
+        hook.alter('user', user, function(err, user) {
+          // Store the user for future use.
+          req.user = user;
+
+          // Store the jwt token sent by the user.
+          req.token = decoded;
+
+          // Refresh the token that is sent back to the user when appropriate.
+          var newToken = router.formio.auth.getToken(decoded);
+          res.token = newToken
+            ? newToken
+            : token;
+
+          // Set the headers if they haven't been sent yet.
+          if(!res.headersSent) {
+            res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
+            res.setHeader('x-jwt-token', res.token);
+          }
+
+          next();
+        });
+      });
     });
   };
 };

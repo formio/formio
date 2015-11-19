@@ -735,11 +735,7 @@ module.exports = function(app, template, hook) {
               // Update the stored token.
               template.users.admin.token = res.headers['x-jwt-token'];
 
-              // Confirm that the token was updated to include the new role.
-              var jwt = require('jsonwebtoken');
-              var token = jwt.decode(template.users.admin.token);
-              assert.notEqual(token.user.roles.indexOf(dummyRole._id.toString()), -1);
-
+              // Confirm that the user was updated to include the new role.
               request(app)
                 .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
                 .set('x-jwt-token', template.users.admin.token)
@@ -785,11 +781,7 @@ module.exports = function(app, template, hook) {
               // Update the stored token.
               template.users.admin.token = res.headers['x-jwt-token'];
 
-              // Confirm that the token was updated to not include the dummy role.
-              var jwt = require('jsonwebtoken');
-              var token = jwt.decode(template.users.admin.token);
-              assert.equal(token.user.roles.indexOf(dummyRole._id.toString()), -1);
-
+              // Confirm that the user was updated to not include the dummy role.
               request(app)
                 .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
                 .set('x-jwt-token', template.users.admin.token)
@@ -835,11 +827,7 @@ module.exports = function(app, template, hook) {
               // Update the stored token.
               template.users.admin.token = res.headers['x-jwt-token'];
 
-              // Confirm that the token was updated to include the new role.
-              var jwt = require('jsonwebtoken');
-              var token = jwt.decode(template.users.admin.token);
-              assert.notEqual(token.user.roles.indexOf(dummyRole._id.toString()), -1);
-
+              // Confirm that the user was updated to include the new role.
               request(app)
                 .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
                 .set('x-jwt-token', template.users.admin.token)
@@ -885,11 +873,7 @@ module.exports = function(app, template, hook) {
               // Update the stored token.
               template.users.admin.token = res.headers['x-jwt-token'];
 
-              // Confirm that the token was updated to not include the dummy role.
-              var jwt = require('jsonwebtoken');
-              var token = jwt.decode(template.users.admin.token);
-              assert.equal(token.user.roles.indexOf(dummyRole._id.toString()), -1);
-
+              // Confirm that the user was updated to not include the dummy role.
               request(app)
                 .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
                 .set('x-jwt-token', template.users.admin.token)

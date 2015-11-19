@@ -8,13 +8,11 @@
  *
  * @type {exports}
  */
-var mongoose = require('mongoose');
 var bcrypt = require('bcrypt');
 var jwt = require('jsonwebtoken');
 var util = require('../util/util');
 var debug = {
-  authenticate: require('debug')('formio:authentication:authenticate'),
-  createToken: require('debug')('formio:authentication:createToken')
+  authenticate: require('debug')('formio:authentication:authenticate')
 };
 
 module.exports = function(router) {
@@ -23,11 +21,11 @@ module.exports = function(router) {
   /**
    * Generate our JWT with the given payload, and pass it to the given callback function.
    *
-   * @param payload
+   * @param payload {Object}
    *   The decoded JWT.
    *
-   * @return
-   *   The JWT from the given payload.
+   * @return {String|Boolean}
+   *   The JWT from the given payload, or false if the jwt payload is still valid.
    */
   var getToken = function(payload) {
     // Ensure that we do not do multiple re-issues consecutively.
@@ -50,13 +48,18 @@ module.exports = function(router) {
   /**
    * Authenticate a user.
    *
-   * @param form
-   * @param userField
-   * @param passField
-   * @param username
-   * @param password
-   * @param next
-   * @returns {*}
+   * @param form {Object}
+   *   The form object to authenticate the given user against.
+   * @param userField {String}
+   *   The user submission field that contains the username.
+   * @param passField {String}
+   *   The user submission field that contains the password.
+   * @param username {String}
+   *   The user submission username to login with.
+   * @param password {String}
+   *   The user submission password to login with.
+   * @param next {Function}
+   *   The callback function to call after authentication.
    */
   var authenticate = function(form, userField, passField, username, password, next) {
     // Make sure they have provided a username and password.
@@ -68,33 +71,52 @@ module.exports = function(router) {
     }
 
     // Get the query to perform on the resource.
-    var query = {form: mongoose.Types.ObjectId(form._id)};
+    var query = {
+      form: util.idToBson(form._id),
+      deleted: {$eq: null}
+    };
     query['data.' + userField] = username;
-    query['deleted'] = {$eq: null};
 
     // Find the user object.
     router.formio.resources.submission.model.findOne(query, function(err, user) {
-      if (err) {
+      if(err) {
         return next(err);
       }
-      if (!user) {
+      if(!user) {
         return next(new Error('Invalid user'));
       }
 
       // Compare the provided password.
       user = user.toObject();
-      bcrypt.compare(password, user.data[passField], function(error, value) {
-        if (error) {
-          return next(error);
+      bcrypt.compare(password, user.data[passField], function(err, value) {
+        if (err) {
+          return next(err);
         }
         if (!value) {
           return next(new Error('Incorrect password'));
         }
 
-        createToken(user, form, function(err, user, token) {
+        // Allow anyone to hook and modify the user.
+        hook.alter('user', user, function hookUserCallback(err, _user) {
           if(err) {
+            // Attempt to fail safely and not update the user reference.
             debug.authenticate(err);
           }
+          else {
+            // Update the user with the hook results.
+            debug.authenticate(user);
+            user = _user;
+          }
+
+          // Allow anyone to hook and modify the token.
+          var token = hook.alter('token', {
+            user: {
+              _id: user._id
+            },
+            form: {
+              _id: form._id
+            }
+          }, form);
 
           // Continue with the token data.
           next(null, {
@@ -121,7 +143,7 @@ module.exports = function(router) {
       return res.sendStatus(401);
     }
 
-    // Set the headers if they havent been sent yet.
+    // Set the headers if they haven't been sent yet.
     if (!res.headersSent) {
       res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
       res.setHeader('x-jwt-token', res.token);
@@ -149,48 +171,10 @@ module.exports = function(router) {
   };
 
   /**
-   * A utility function to create a jwt token payload with for a formio user.
-   *
-   * @param user {Object}
-   *   The formio users submission.
-   * @param form {Object}
-   *   The formio form the given user is authenticated against.
-   * @param next {Function}
-   *   The callback function to call after the token is created.
-   */
-  var createToken = function(user, form, next) {
-    if(!user || !form) {
-      debug.createToken('user: ' + JSON.stringify(user));
-      debug.createToken('form: ' + JSON.stringify(form));
-      return next('No user or form given.');
-    }
-
-    // Allow anyone to hook and modify the user.
-    hook.alter('user', user, function hookUserCallback(err, user) {
-      debug.createToken('err: ' + JSON.stringify(err));
-      debug.createToken('user: ' + JSON.stringify(user));
-
-      // Allow anyone to hook and modify the token.
-      var token = hook.alter('token', {
-        user: {
-          _id: user._id,
-          roles: user.roles
-        },
-        form: {
-          _id: form._id
-        }
-      }, form);
-
-      return next(null, user, token);
-    });
-  };
-
-  /**
    * Return the public methods.
    */
   return {
     getToken: getToken,
-    createToken: createToken,
     authenticate: authenticate,
     currentUser: currentUser,
     logout: function(req, res) {

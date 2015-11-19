@@ -178,11 +178,16 @@ module.exports = function(router) {
       // Determine the roles and user based on the available token.
       var roles = [access.defaultRole];
       var user = null;
-      if (req.token && req.token.user) {
-        user = req.token.user._id;
-        if (req.token.user.roles.length > 0) {
-          debug('Token Roles: ' + JSON.stringify(req.token.user.roles));
-          roles = _.filter(req.token.user.roles);
+      if(req.user) {
+        user = req.user._id;
+
+        // Get the roles for the permission checks.
+        req.user.roles = req.user.roles || [];
+        if(req.user.roles.length > 0) {
+          debug('User Roles: ' + JSON.stringify(req.user.roles));
+
+          // Ensure that all roles are strings to be compatible for comparison.
+          roles = _.uniq(_.map(_.filter(req.user.roles), util.idToString));
         }
       }
 
