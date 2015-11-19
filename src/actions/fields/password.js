@@ -8,10 +8,15 @@ module.exports = function(formio) {
     },
 
     beforePut: function(component, req, res, next) {
+      // If there is not payload data.
+      if (!req.body.data) {
+        return next();
+      }
+
       // If there is no password provided.
       if (!req.body.data[component.key]) {
         // Load the current submission.
-        formio.cache.loadCurrentSubmission(req, function(err, submission) {
+        formio.cache.loadCurrentSubmission(req, function cacheResults(err, submission) {
           if (err) {
             return next(err);
           }
@@ -25,7 +30,7 @@ module.exports = function(formio) {
       }
       else {
         // Create a new password from what they provided.
-        formio.encrypt(req.body.data[component.key], function(err, hash) {
+        formio.encrypt(req.body.data[component.key], function encryptResults(err, hash) {
           if (err) {
             return next(err);
           }
@@ -41,7 +46,7 @@ module.exports = function(formio) {
         return next();
       }
 
-      formio.encrypt(req.body.data[component.key], function(err, hash) {
+      formio.encrypt(req.body.data[component.key], function encryptResults(err, hash) {
         if (err) {
           return next(err);
         }

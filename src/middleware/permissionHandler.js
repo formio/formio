@@ -88,17 +88,20 @@ module.exports = function(router) {
 
           // Skip submission access if no subId was given.
           if (!req.subId) {
+            debug('Skipping submission access, no req.subId found.');
             return callback(null);
           }
 
           // Get the submission by request id and query its access.
           router.formio.cache.loadSubmission(req, req.formId, req.subId, function(err, submission) {
             if (err) {
+              debug(err);
               return callback(400);
             }
 
             // No submission exists.
             if (!submission) {
+              debug('No submission found w/ _id: ' + req.subId);
               return callback(404);
             }
 
@@ -178,6 +181,7 @@ module.exports = function(router) {
       if (req.token && req.token.user) {
         user = req.token.user._id;
         if (req.token.user.roles.length > 0) {
+          debug('Token Roles: ' + JSON.stringify(req.token.user.roles));
           roles = _.filter(req.token.user.roles);
         }
       }
@@ -192,7 +196,7 @@ module.exports = function(router) {
         return true;
       }
 
-      debug('Checking access for roles: ' + roles);
+      debug('Checking access for roles: ' + JSON.stringify(roles));
       debug('Checking access for access: ' + JSON.stringify(access));
       debug('Checking access for entity: ' + JSON.stringify(entity));
       debug('Checking access for method: ' + method);
@@ -321,6 +325,7 @@ module.exports = function(router) {
     // Determine if we are trying to access and entity of the form or submission.
     router.formio.access.getAccess(req, res, function(err, access) {
       if (err) {
+        debug(err);
         return res.status(400).send(err.message || err);
       }
 

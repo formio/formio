@@ -20,6 +20,7 @@ module.exports = function(router) {
     setFilterQueryTypes: require('./setFilterQueryTypes')(router),
     sortMongooseQuery: require('./sortMongooseQuery')(router),
     submissionHandler: require('./submissionHandler')(router),
-    tokenHandler: require('./tokenHandler')(router)
+    tokenHandler: require('./tokenHandler')(router),
+    tokenRefreshHandler: require('./tokenRefreshHandler')(router)
   };
 };

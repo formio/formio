@@ -6,7 +6,7 @@ var mongoose = require('mongoose');
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
   var handlers = router.formio.middleware.submissionHandler;
-  var hiddenFields = ['deleted', '__v', 'machineName', 'externalTokens']
+  var hiddenFields = ['deleted', '__v', 'machineName', 'externalTokens'];
 
   // Manually update the handlers, to add additional middleware.
   handlers.beforePost = [
@@ -17,7 +17,8 @@ module.exports = function(router) {
   handlers.afterPost = [
     handlers.afterPost,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields
+    router.formio.middleware.filterProtectedFields,
+    router.formio.middleware.tokenRefreshHandler
   ];
   handlers.beforeGet = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
@@ -26,7 +27,8 @@ module.exports = function(router) {
   handlers.afterGet = [
     handlers.afterGet,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields
+    router.formio.middleware.filterProtectedFields,
+    router.formio.middleware.tokenRefreshHandler
   ];
   handlers.beforePut = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
@@ -36,7 +38,8 @@ module.exports = function(router) {
   handlers.afterPut = [
     handlers.afterPut,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields
+    router.formio.middleware.filterProtectedFields,
+    router.formio.middleware.tokenRefreshHandler
   ];
   handlers.beforeIndex = [
     router.formio.middleware.setFilterQueryTypes,
@@ -47,7 +50,8 @@ module.exports = function(router) {
   handlers.afterIndex = [
     handlers.afterIndex,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields
+    router.formio.middleware.filterProtectedFields,
+    router.formio.middleware.tokenRefreshHandler
   ];
   handlers.beforeDelete = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
@@ -57,7 +61,8 @@ module.exports = function(router) {
   handlers.afterDelete = [
     handlers.afterDelete,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields
+    router.formio.middleware.filterProtectedFields,
+    router.formio.middleware.tokenRefreshHandler
   ];
 
   return Resource(

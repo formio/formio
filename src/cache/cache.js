@@ -145,7 +145,7 @@ module.exports = function(router) {
         return cb(null, cache.submissions[subId]);
       }
 
-      debug.loadSubmission(typeof formId + ': ' + formId);
+      debug.loadSubmission('Searching for form: ' + formId.toString() + ', and submission: ' + subId.toString());
       try {
         formId = (typeof formId === 'string') ? ObjectId(formId) : formId;
       }
@@ -154,7 +154,6 @@ module.exports = function(router) {
         return cb('Invalid Form Id given.');
       }
 
-      debug.loadSubmission(typeof subId + ': ' + subId);
       try {
         subId = (typeof subId === 'string') ? ObjectId(subId) : subId;
       }
@@ -163,12 +162,16 @@ module.exports = function(router) {
         return cb('Invalid Submission Id given.');
       }
 
-      router.formio.resources.submission.model.findOne({_id: subId, form: formId, deleted: {$eq: null}})
+      var query = {_id: subId, form: formId, deleted: {$eq: null}};
+      debug.loadSubmission(query);
+      router.formio.resources.submission.model.findOne(query)
         .exec(function(err, submission) {
           if (err) {
+            debug.loadSubmission(err);
             return cb(err);
           }
           if (!submission) {
+            debug.loadSubmission('No submission found for the given query.');
             return cb(null, null);
           }
 

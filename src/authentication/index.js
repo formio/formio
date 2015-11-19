@@ -13,7 +13,8 @@ var bcrypt = require('bcrypt');
 var jwt = require('jsonwebtoken');
 var util = require('../util/util');
 var debug = {
-  authenticate: require('debug')('formio:authentication:authenticate')
+  authenticate: require('debug')('formio:authentication:authenticate'),
+  createToken: require('debug')('formio:authentication:createToken')
 };
 
 module.exports = function(router) {
@@ -90,21 +91,10 @@ module.exports = function(router) {
           return next(new Error('Incorrect password'));
         }
 
-        // Allow anyone to hook and modify the user.
-        hook.alter('user', user, function hookUserCallback(err, user) {
-          debug.authenticate('err: ' + JSON.stringify(err));
-          debug.authenticate('user: ' + JSON.stringify(user));
-
-          // Allow anyone to hook and modify the token.
-          var token = hook.alter('token', {
-            user: {
-              _id: user._id,
-              roles: user.roles
-            },
-            form: {
-              _id: form._id
-            }
-          }, form);
+        createToken(user, form, function(err, user, token) {
+          if(err) {
+            debug.authenticate(err);
+          }
 
           // Continue with the token data.
           next(null, {
@@ -159,10 +149,48 @@ module.exports = function(router) {
   };
 
   /**
+   * A utility function to create a jwt token payload with for a formio user.
+   *
+   * @param user {Object}
+   *   The formio users submission.
+   * @param form {Object}
+   *   The formio form the given user is authenticated against.
+   * @param next {Function}
+   *   The callback function to call after the token is created.
+   */
+  var createToken = function(user, form, next) {
+    if(!user || !form) {
+      debug.createToken('user: ' + JSON.stringify(user));
+      debug.createToken('form: ' + JSON.stringify(form));
+      return next('No user or form given.');
+    }
+
+    // Allow anyone to hook and modify the user.
+    hook.alter('user', user, function hookUserCallback(err, user) {
+      debug.createToken('err: ' + JSON.stringify(err));
+      debug.createToken('user: ' + JSON.stringify(user));
+
+      // Allow anyone to hook and modify the token.
+      var token = hook.alter('token', {
+        user: {
+          _id: user._id,
+          roles: user.roles
+        },
+        form: {
+          _id: form._id
+        }
+      }, form);
+
+      return next(null, user, token);
+    });
+  };
+
+  /**
    * Return the public methods.
    */
   return {
     getToken: getToken,
+    createToken: createToken,
     authenticate: authenticate,
     currentUser: currentUser,
     logout: function(req, res) {
