@@ -29,20 +29,25 @@ module.exports = function(router) {
       async.series(hook.alter('getAccess', [
         // Get the permissions for a Form and Submissions with the given ObjectId.
         function getFormAccess(callback) {
+          var _debug = require('debug')('formio:permissions:getAccess#getFormAccess');
+
           access.form = access.form || {};
           access.submission = access.submission || {};
 
           // Skip form access if no formId was given.
           if (!req.formId) {
+            _debug('Skipping, no req.formId');
             return callback(null);
           }
 
           // Load the form, and get its roles/permissions data.
           router.formio.cache.loadForm(req, null, req.formId, function(err, item) {
             if (err) {
+              _debug(err);
               return callback(err);
             }
             if (!item) {
+              _debug('No Form found with formId: ' + req.formId)
               return callback('No Form found with formId: ' + req.formId);
             }
 
@@ -78,30 +83,32 @@ module.exports = function(router) {
             }
 
             // Return the updated access list.
+            _debug(JSON.stringify(access));
             return callback(null);
           });
         },
 
         // Get the permissions for a Submission with the given ObjectId.
         function getSubmissionAccess(callback) {
+          var _debug = require('debug')('formio:permissions:getAccess#getSubmissionAccess');
           access.submission = access.submission || {};
 
           // Skip submission access if no subId was given.
           if (!req.subId) {
-            debug('Skipping submission access, no req.subId found.');
+            _debug('Skipping, no req.subId');
             return callback(null);
           }
 
           // Get the submission by request id and query its access.
           router.formio.cache.loadSubmission(req, req.formId, req.subId, function(err, submission) {
             if (err) {
-              debug(err);
+              _debug(err);
               return callback(400);
             }
 
             // No submission exists.
             if (!submission) {
-              debug('No submission found w/ _id: ' + req.subId);
+              _debug('No submission found w/ _id: ' + req.subId);
               return callback(404);
             }
 
@@ -111,6 +118,7 @@ module.exports = function(router) {
               : null;
 
             // Return the updated access list.
+            _debug(JSON.stringify(access));
             return callback(null);
           });
         }
