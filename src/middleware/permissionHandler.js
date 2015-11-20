@@ -223,9 +223,6 @@ module.exports = function(router) {
       // The return value of user access.
       var _hasAccess = false;
 
-      // Allow anyone to hook and change the access entity.
-      entity = hook.alter('accessEntity', entity, req);
-
       // Determine access based on the given access method.
       var methods = {
         'POST': ['create_all', 'create_own'],
@@ -248,6 +245,7 @@ module.exports = function(router) {
       // defined by the entity to have access. If this roleId is found within the defined roles, grant access.
       var search = methods[method];
 
+      debug('Search: ' + JSON.stringify(search));
       if (!search || typeof search === 'undefined') {
         console.error({
           method: req.method,
@@ -303,7 +301,7 @@ module.exports = function(router) {
       // No prior access was granted, the given role does not have access to this resource using the given method.
       debug('assignOwner: ' + req.assignOwner);
       debug('hasAccess: ' + _hasAccess);
-      return hook.alter('hasAccess', _hasAccess, req, access, entity);
+      return _hasAccess;
     }
   };
 
@@ -327,9 +325,8 @@ module.exports = function(router) {
       return false;
     });
 
-    debug(req.url);
-
     // If there is a whitelist match, then move onto the next middleware.
+    debug(req.url);
     if (skip) {
       debug('Skipping');
       return next();
@@ -359,11 +356,17 @@ module.exports = function(router) {
         };
       }
 
+      // Allow anyone to hook and change the access entity.
+      entity = hook.alter('accessEntity', entity, req);
+
       // Check for access.
-      if (
-        (router.formio.access.hasAccess(req, access, entity)) ||
-        (hook.alter('access', false, req, access))
-      ) {
+      if(router.formio.access.hasAccess(req, access, entity)) {
+        debug('Access Granted!');
+        return next();
+      }
+
+      // Allow anyone to hook the access check.
+      if(hook.alter('hasAccess', false, req, access, entity)) {
         debug('Access Granted!');
         return next();
       }
