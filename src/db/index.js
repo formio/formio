@@ -6,6 +6,7 @@ var semver = require('semver');
 var _ = require('lodash');
 var fs = require('fs');
 var debug = require('debug')('formio:db');
+var path = require('path');
 
 // The mongo database connection.
 var db = null;
@@ -268,8 +269,8 @@ module.exports = function(formio) {
    *   The next function to invoke after this function has finished.
    */
   var getUpdates = function(next) {
-    fs.readdir(__dirname + '/updates', function(err, files) {
-      files = files.map(function (name) {
+    fs.readdir(path.join(__dirname, '/updates'), function(err, files) {
+      files = files.map(function(name) {
         debug('Update found: ' + name);
         return name.split('.js')[0];
       });
