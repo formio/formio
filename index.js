@@ -37,9 +37,6 @@ module.exports = function(config) {
   router.formio.events = new events.EventEmitter();
   router.formio.config.schema = require('./package.json').schema;
 
-  // Load the updates and attach them to the router.
-  router.formio.update = require('./src/db/index')(router.formio.config);
-
   /**
    * Initialize the formio server.
    */
@@ -52,11 +49,14 @@ module.exports = function(config) {
     // Add the utils to the formio object.
     router.formio.util = util;
 
-    // Get the hook sytem.
+    // Get the hook system.
     router.formio.hook = require('./src/util/hook')(router.formio);
 
     // Get the encryption system.
     router.formio.encrypt = require('./src/util/encrypt');
+
+    // Load the updates and attach them to the router.
+    router.formio.update = require('./src/db/index')(router.formio);
 
     // Run the healthCheck sanity check on /health
     router.formio.update.initialize(function(err, db) {
