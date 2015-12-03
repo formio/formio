@@ -6,6 +6,7 @@ var semver = require('semver');
 var _ = require('lodash');
 var fs = require('fs');
 var debug = require('debug')('formio:db');
+var path = require('path');
 
 // The mongo database connection.
 var db = null;
@@ -23,10 +24,12 @@ var updates = null;
  *
  * Compares the version defined within this script and in the database and retroactively applies the updates.
  *
- * @param config
- *   The Form.io configuration.
+ * @param formio {Object}
+ *   The Formio router.
  */
-module.exports = function(config) {
+module.exports = function(formio) {
+  var config = formio.config;
+
   // Current codebase version.
   if (!config.schema && !process.env.TEST_SUITE) {
     throw new Error(
@@ -34,7 +37,10 @@ module.exports = function(config) {
       ' manipulated.');
   }
 
-  // The last time a sanity check occured for GET use only (cache non-manipulative operations).
+  // Allow anyone to hook the current schema version.
+  config.schema = formio.hook.alter('codeSchema', config.schema);
+
+  // The last time a sanity check occurred for GET use only (cache non-manipulative operations).
   var now = (new Date()).getTime();
 
   // The simplex schema cache item.
@@ -124,7 +130,7 @@ module.exports = function(config) {
     if (config.mongoSecretOld) {
       console.log('DB Secret update required.');
       var projects = db.collection('projects');
-      projects.find({}).snapshot({$snapshot: true}).forEach(function(project) {
+      projects.find({}).snapshot().forEach(function(project) {
         if (project.settings_encrypted) {
           try {
             var settings = tools.decrypt(config.mongoSecretOld, project.settings_encrypted.buffer);
@@ -257,21 +263,24 @@ module.exports = function(config) {
   };
 
   /**
-   * Get a list of avialable update files.
+   * Get a list of available update files.
    *
-   * @param next
+   * @param next {Function}
    *   The next function to invoke after this function has finished.
    */
-  var getUpdates = function (next) {
-    fs.readdir(__dirname + '/updates', function (err, files) {
-      files = files.map(function (name) {
+  var getUpdates = function(next) {
+    fs.readdir(path.join(__dirname, '/updates'), function(err, files) {
+      files = files.map(function(name) {
         debug('Update found: ' + name);
         return name.split('.js')[0];
       });
 
-      updates = files.sort(semver.compare);
-      debug('Final updates: ' + JSON.stringify(updates));
-      next();
+      // Allow anyone to hook the update system.
+      formio.hook.alter('getUpdates', files, function(err, files) {
+        updates = files.sort(semver.compare);
+        debug('Final updates: ' + JSON.stringify(updates));
+        next();
+      });
     });
   };
 
@@ -444,13 +453,29 @@ module.exports = function(config) {
         console.log(' > Starting schema update to ' + pending);
 
         // Load the update then update the schema lock version.
-        require(__dirname + '/updates/' + pending)(db, config, tools, function(err) {
-          if (err) {
-            return callback(err);
-          }
+        var _update = null;
 
-          tools.updateLockVersion(pending, callback);
-        });
+        // Attempt to load the the pending update, allow anyone to hook the pending updates location.
+        try {
+          _update = require(__dirname + '/updates/' + pending);
+        }
+        catch(e) {
+          _update = formio.hook.alter('updateLocation', pending);
+        }
+
+        // Attempt to resolve the update.
+        try {
+          _update(db, config, tools, function(err) {
+            if (err) {
+              return callback(err);
+            }
+
+            tools.updateLockVersion(pending, callback);
+          });
+        }
+        catch(e) {
+          return callback('Could not resolve the path for update: ' + pending);
+        }
       }, function(err) {
         if (err) {
           debug(err);

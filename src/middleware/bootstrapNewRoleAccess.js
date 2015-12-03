@@ -37,10 +37,7 @@ module.exports = function(router) {
       debug(query);
 
       // Query the forms collection, to build the updated form access list.
-      router.formio.resources.form.model.find({
-        query: query,
-        $snapshot: true
-      }).exec(function(err, forms) {
+      router.formio.resources.form.model.find(query).snapshot().exec(function(err, forms) {
         if (err) {
           debug(err);
           return done(err);
