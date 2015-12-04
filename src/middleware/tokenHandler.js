@@ -21,6 +21,7 @@ module.exports = function(router) {
 
     // Skip the token handling if no token was given.
     if(!token) {
+      debug('No token');
       req.user = null;
       req.token = null;
       res.token = null;
@@ -31,6 +32,8 @@ module.exports = function(router) {
     // Decode/refresh the token and store for later middleware.
     jwt.verify(token, router.formio.config.jwt.secret, function(err, decoded) {
       if(err || !decoded) {
+        debug(err || 'Token could not decoded: ' + token);
+
         // If the token has expired, send a 440 error (Login Timeout)
         if(
           err &&
@@ -46,6 +49,7 @@ module.exports = function(router) {
 
       // If this is a temporary token, then decode it and set it in the request.
       if(decoded.temp) {
+        debug('Temp token');
         req.tempToken = decoded;
         req.user = null;
         req.token = null;
@@ -67,20 +71,22 @@ module.exports = function(router) {
       cache.loadSubmission(req, decoded.form._id, decoded.user._id, function(err, user) {
         if(err) {
           // Couldn't load the use, try to fail safely.
-          debug(err);
           user = decoded.user;
+          debug('Error: ' + JSON.stringify(err));
         }
         else {
           try {
             // Ensure that the user is a js object and not a mongoose document.
             user = user.toObject();
           } catch(e) {}
-
-          debug(user);
         }
 
         // Allow anyone to alter the user.
+        debug(user);
         hook.alter('user', user, function(err, user) {
+          debug('Error: ' + JSON.stringify(err));
+          debug('User: ' + JSON.stringify(user));
+
           // Store the user for future use.
           req.user = user;
 
