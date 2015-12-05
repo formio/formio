@@ -465,6 +465,10 @@ module.exports = function(formio) {
 
         // Attempt to resolve the update.
         try {
+          if(!_update) {
+            return callback('Could not resolve the path for update: ' + pending);
+          }
+
           _update(db, config, tools, function(err) {
             if (err) {
               return callback(err);
@@ -474,7 +478,7 @@ module.exports = function(formio) {
           });
         }
         catch(e) {
-          return callback('Could not resolve the path for update: ' + pending);
+          return callback(e);
         }
       }, function(err) {
         if (err) {
