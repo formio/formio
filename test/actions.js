@@ -691,7 +691,7 @@ module.exports = function(app, template, hook) {
       describe('RoleAction Functionality tests for Existing Submissions', function() {
         it('The user should not have the dummy Role assigned', function(done) {
           request(app)
-            .get(hook.alter('url', '/form/' + template.resources.user._id + '/submission/' + template.users.user1._id, template))
+            .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect('Content-Type', /json/)
             .expect(200)
@@ -718,7 +718,7 @@ module.exports = function(app, template, hook) {
             .send({
               data: {
                 role: dummyRole._id,
-                submission: template.users.user1._id
+                submission: template.users.admin._id
               }
             })
             .expect('Content-Type', /json/)
@@ -730,10 +730,14 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               assert.equal(response.data.role, dummyRole._id);
-              assert.equal(response.data.submission, template.users.user1._id);
+              assert.equal(response.data.submission, template.users.admin._id);
 
+              // Update the stored token.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              // Confirm that the user was updated to include the new role.
               request(app)
-                .get(hook.alter('url', '/form/' + template.resources.user._id + '/submission/' + template.users.user1._id, template))
+                .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .expect('Content-Type', /json/)
                 .expect(200)
@@ -760,7 +764,7 @@ module.exports = function(app, template, hook) {
             .send({
               data: {
                 role: dummyRole._id,
-                submission: template.users.user1._id
+                submission: template.users.admin._id
               }
             })
             .expect('Content-Type', /json/)
@@ -772,10 +776,14 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               assert.equal(response.data.role, dummyRole._id);
-              assert.equal(response.data.submission, template.users.user1._id);
+              assert.equal(response.data.submission, template.users.admin._id);
 
+              // Update the stored token.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              // Confirm that the user was updated to not include the dummy role.
               request(app)
-                .get(hook.alter('url', '/form/' + template.resources.user._id + '/submission/' + template.users.user1._id, template))
+                .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .expect('Content-Type', /json/)
                 .expect(200)
@@ -802,7 +810,7 @@ module.exports = function(app, template, hook) {
             .send({
               data: {
                 role: dummyRole._id,
-                submission: template.users.user1._id
+                submission: template.users.admin._id
               }
             })
             .expect('Content-Type', /json/)
@@ -814,10 +822,14 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               assert.equal(response.data.role, dummyRole._id);
-              assert.equal(response.data.submission, template.users.user1._id);
+              assert.equal(response.data.submission, template.users.admin._id);
 
+              // Update the stored token.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              // Confirm that the user was updated to include the new role.
               request(app)
-                .get(hook.alter('url', '/form/' + template.resources.user._id + '/submission/' + template.users.user1._id, template))
+                .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .expect('Content-Type', /json/)
                 .expect(200)
@@ -844,7 +856,7 @@ module.exports = function(app, template, hook) {
             .send({
               data: {
                 role: dummyRole._id,
-                submission: template.users.user1._id
+                submission: template.users.admin._id
               }
             })
             .expect('Content-Type', /json/)
@@ -856,10 +868,14 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               assert.equal(response.data.role, dummyRole._id);
-              assert.equal(response.data.submission, template.users.user1._id);
+              assert.equal(response.data.submission, template.users.admin._id);
 
+              // Update the stored token.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              // Confirm that the user was updated to not include the dummy role.
               request(app)
-                .get(hook.alter('url', '/form/' + template.resources.user._id + '/submission/' + template.users.user1._id, template))
+                .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .expect('Content-Type', /json/)
                 .expect(200)

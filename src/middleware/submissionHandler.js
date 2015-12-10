@@ -90,7 +90,7 @@ module.exports = function (router, resourceName, resourceId) {
         // If the request has a body.
         if (!isGet && req.body) {
           var _old = _.clone(req.body, true);
-          debug.before(_old);
+          debug.before('old: ' + JSON.stringify(_old));
 
           // Filter the data received, and only allow submission.data and specific fields specified.
           req.body = {
@@ -110,7 +110,7 @@ module.exports = function (router, resourceName, resourceId) {
           req.body = hook.alter('submissionRequest', req.body, _old);
 
           // Store the original request body in a submission object.
-          debug.before(req.body);
+          debug.before('new: ' + JSON.stringify(req.body));
           req.submission = _.clone(req.body, true);
 
           // Ensure they cannot reset the submission id.

@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = function(formio) {
   return {
     settings: function(req, cb) {
@@ -22,20 +24,29 @@ module.exports = function(formio) {
       return false;
     },
     alter: function () {
+      var debug = require('debug')('formio:hook:alter');
       var name = arguments[0];
+      var fn = (typeof arguments[arguments.length - 1] === 'function') ? arguments[arguments.length - 1] : null;
+
+      debug(name);
       if (
         formio.hooks &&
         formio.hooks.alter &&
         formio.hooks.alter[name]
       ) {
+        debug('Hook found');
         return formio.hooks.alter[name].apply(this, Array.prototype.slice.call(arguments, 1));
       }
-      // If this is an async hook instead of a sync.
-      if (typeof arguments[arguments.length - 1] === 'function') {
-        return arguments[arguments.length - 1](null, arguments[1]);
-      }
       else {
-        return arguments[1];
+        // If this is an async hook instead of a sync.
+        if (fn) {
+          debug('No hook found, w/ async');
+          return fn(null, arguments[1]);
+        }
+        else {
+          debug('No hook found, w/ return');
+          return arguments[1];
+        }
       }
     }
   };

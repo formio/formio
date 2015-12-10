@@ -60,8 +60,7 @@ module.exports = function(config) {
 
     // Run the healthCheck sanity check on /health
     router.formio.update.initialize(function(err, db) {
-
-      // If an error occured, then reject the initialization.
+      // If an error occurred, then reject the initialization.
       if (err) {
         return deferred.reject(err);
       }
@@ -163,7 +162,7 @@ module.exports = function(config) {
         router.formio.plugins = require('./src/plugins/plugins');
 
         router.formio.schemas = {
-          PermissionSchema: require('./src/models/PermissionSchema')
+          PermissionSchema: require('./src/models/PermissionSchema')(router.formio)
         };
 
         // Get the models for our project.

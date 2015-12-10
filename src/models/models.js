@@ -3,7 +3,6 @@
 var _ = require('lodash');
 
 module.exports = function(router) {
-
   // Implement our hook system.
   var hook = require('../util/hook')(router.formio);
 

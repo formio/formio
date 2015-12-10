@@ -64,6 +64,7 @@ module.exports = function(router) {
     loadForm: function (req, type, id, cb) {
       var cache = this.cache(req);
       if (cache.forms[id]) {
+        debug.loadForm('Cache hit: ' + id);
         return cb(null, cache.forms[id]);
       }
 
@@ -98,6 +99,8 @@ module.exports = function(router) {
         });
         result.componentMap = componentMap;
         this.updateCache(req, cache, result);
+
+        debug.loadForm('Caching result: ' + JSON.stringify(result));
         cb(null, result);
       }.bind(this));
     },
@@ -129,19 +132,23 @@ module.exports = function(router) {
     /**
      * Load a submission using caching.
      *
-     * @param req
-     * @param formId
-     * @param subId
-     * @param cb
-     * @returns {*}
+     * @param req {Object}
+     *   The Express request object.
+     * @param formId {Object|String}
+     *   The submission form id, as BSON or string.
+     * @param subId {Object|String}
+     *   The submission id, as BSON or string.
+     * @param cb {Function}
+     *   The callback function to invoke after loading the submission.
      */
     loadSubmission: function(req, formId, subId, cb) {
       var cache = this.cache(req);
       if (cache.submissions[subId]) {
+        debug.loadSubmission('Cache hit: ' + subId);
         return cb(null, cache.submissions[subId]);
       }
 
-      debug.loadSubmission(typeof formId + ': ' + formId);
+      debug.loadSubmission('Searching for form: ' + formId.toString() + ', and submission: ' + subId.toString());
       try {
         formId = (typeof formId === 'string') ? ObjectId(formId) : formId;
       }
@@ -150,7 +157,6 @@ module.exports = function(router) {
         return cb('Invalid Form Id given.');
       }
 
-      debug.loadSubmission(typeof subId + ': ' + subId);
       try {
         subId = (typeof subId === 'string') ? ObjectId(subId) : subId;
       }
@@ -159,17 +165,23 @@ module.exports = function(router) {
         return cb('Invalid Submission Id given.');
       }
 
-      router.formio.resources.submission.model.findOne({_id: subId, form: formId, deleted: {$eq: null}})
+      var query = {_id: subId, form: formId, deleted: {$eq: null}};
+      debug.loadSubmission(query);
+      router.formio.resources.submission.model.findOne(query)
         .exec(function(err, submission) {
           if (err) {
+            debug.loadSubmission(err);
             return cb(err);
           }
           if (!submission) {
+            debug.loadSubmission('No submission found for the given query.');
             return cb(null, null);
           }
 
           submission = submission.toObject();
           cache.submissions[subId] = submission;
+
+          debug.loadSubmission('Caching result: ' + JSON.stringify(submission));
           cb(null, submission);
         });
     },
@@ -192,10 +204,18 @@ module.exports = function(router) {
 
     /**
      * Load a resource by name.
+     *
+     * @param req {Object}
+     *   The Express request object.
+     * @param name {String}
+     *   The resource name to search for.
+     * @param cb {Function}
+     *   The callback function to run when complete.
      */
     loadFormByName: function(req, name, cb) {
       var cache = this.cache(req);
       if (cache.names[name]) {
+        debug.loadFormByName('Cache hit: ' + name);
         this.loadForm(req, 'resource', cache.names[name], cb);
       }
       else {
@@ -216,6 +236,8 @@ module.exports = function(router) {
 
           result = result.toObject();
           this.updateCache(req, cache, result);
+
+          debug.loadFormByName('Caching result: ' + JSON.stringify(result));
           cb(null, result);
         }.bind(this));
       }
@@ -227,6 +249,7 @@ module.exports = function(router) {
     loadFormByAlias: function(req, alias, cb) {
       var cache = this.cache(req);
       if (cache.aliases[alias]) {
+        debug.loadFormByAlias('Cache hit: ' + alias);
         this.loadForm(req, 'resource', cache.aliases[alias], cb);
       }
       else {
@@ -247,6 +270,8 @@ module.exports = function(router) {
 
           result = result.toObject();
           this.updateCache(req, cache, result);
+
+          debug.loadFormByAlias('Caching result: ' + JSON.stringify(result));
           cb(null, result);
         }.bind(this));
       }
