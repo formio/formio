@@ -5,7 +5,6 @@ var util = require('../../util/util');
 var through = require('through');
 var csv = require('csv');
 var _ = require('lodash');
-var _property = require('lodash.property');
 
 /**
  * Create a CSV exporter.
@@ -71,7 +70,7 @@ CSVExporter.prototype.stream = function(stream) {
       if (!field.key) { return; }
 
       // Nested fields are in the data property of their parent
-      var value = _property(util.getSubmissionKey(field.key))(row.data);
+      var value = _.property(util.getSubmissionKey(field.key))(row.data);
       if(value && value.url) {
         // Use the resource URL instead of the whole object
         value = value.url;
