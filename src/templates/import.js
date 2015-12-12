@@ -100,7 +100,10 @@ module.exports = function(formio) {
         var document = _parse ? _parse(template, item) : item;
         document.machineName = name;
         alter(document, function(err, document) {
-          if (err) { itemDone(err); }
+          if (err) {
+            return itemDone(err);
+          }
+
           debug._install(document);
           model.findOne({machineName: document.machineName}, function(err, doc) {
             if (err) {
@@ -116,6 +119,7 @@ module.exports = function(formio) {
               doc = _.assign(doc, document);
               debug._install(doc);
             }
+
             doc.save(function(err, result) {
               if (err) {
                 debug._install(err);
