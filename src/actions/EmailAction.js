@@ -1,9 +1,10 @@
 'use strict';
-
+var _ = require('lodash');
 module.exports = function(router) {
   var Action = router.formio.Action;
   var hook = require('../util/hook')(router.formio);
   var emailer = require('../util/email')(router.formio);
+  var macros = require('./macros/macros');
 
   /**
    * EmailAction class.
@@ -133,8 +134,25 @@ module.exports = function(router) {
       return next();
     }
 
-    // Send the email.
-    emailer.send(req, res, this.settings, req.body, next);
+    // Load the form for this request.
+    router.formio.cache.loadCurrentForm(req, function(err, form) {
+      if (err) {
+        return next(err);
+      }
+      if (!form) {
+        return next(new Error('Form not found.'));
+      }
+
+      // Get the parameters for the email.
+      var params = _.cloneDeep(req.body);
+      params.form = form;
+
+      // Prepend the macros to the message so that they can use them.
+      this.settings.message = macros + this.settings.message;
+
+      // Send the email.
+      emailer.send(req, res, this.settings, params, next);
+    }.bind(this));
   };
 
   // Return the EmailAction.

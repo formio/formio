@@ -1,0 +1,43 @@
+{% macro table(components, title) %}
+  <table>
+    <tbody>
+      {% if title %}
+        <tr><td colspan="2"><h2>{{ title }}</h2></td></tr>
+      {% endif %}
+      {% for component in components %}
+        {% if component.type == 'panel' %}
+        {% elif component.type == 'well' %}
+        {% elif component.type == 'fieldset' %}
+        {% elif component.type == 'columns' %}
+        {% elif not data[component.key] %}
+        {% else %}
+          <tr>
+            <td><strong>{{ component.label }}</strong></td>
+            <td>
+              {% if component.type == 'password' %}
+                --- PASSWORD ---
+              {% elif component.type == 'address' %}
+                {{ data[component.key].formatted_address }}
+              {% else %}
+                {{ data[component.key] }}
+              {% endif %}
+            </td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% for component in components %}
+    {% if component.type == 'panel' %}
+      {{ table(component.components, component.title) }}
+    {% elif component.type == 'well' %}
+      {{ table(component.components) }}
+    {% elif component.type == 'fieldset' %}
+      {{ table(component.components, component.legend) }}
+    {% elif component.type == 'columns' %}
+      {% for column in form.columns %}
+        {{ table(column.components) }}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+{% endmacro %}
