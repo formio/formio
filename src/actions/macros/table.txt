@@ -1,4 +1,13 @@
 {% macro table(components, title) %}
+  {% for component in components %}
+    {% if component.type == 'well' %}
+      {{ table(component.components) }}
+    {% elif component.type == 'columns' %}
+      {% for column in component.columns %}
+        {{ table(column.components) }}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
   <table>
     <tbody>
       {% if title %}
@@ -30,14 +39,8 @@
   {% for component in components %}
     {% if component.type == 'panel' %}
       {{ table(component.components, component.title) }}
-    {% elif component.type == 'well' %}
-      {{ table(component.components) }}
     {% elif component.type == 'fieldset' %}
       {{ table(component.components, component.legend) }}
-    {% elif component.type == 'columns' %}
-      {% for column in form.columns %}
-        {{ table(column.components) }}
-      {% endfor %}
     {% endif %}
   {% endfor %}
 {% endmacro %}
