@@ -2,7 +2,6 @@
 
 var async = require('async');
 var _ = require('lodash');
-var _deburr = require('lodash.deburr');
 
 /**
  * Update 2.4.2
@@ -242,7 +241,7 @@ module.exports = function(db, config, tools, done) {
     var matches = function(item, changes, uniques) {
       var _old = item;
 
-      item = _deburr(item);
+      item = _.deburr(item);
       item = item.replace(removeRegex, '');
       var valid = item.match(validRegex);
 

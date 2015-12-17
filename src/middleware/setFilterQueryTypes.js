@@ -1,11 +1,8 @@
 'use strict';
 
 var _ = require('lodash');
-var _property = require('lodash.property');
-var _words = require('lodash.words');
 var debug = require('debug')('formio:middleware:setFilterQueryTypes');
 var util = require('../util/util');
-
 
 /**
  * Middleware function to coerce filter queries for a submission Index
@@ -37,7 +34,7 @@ module.exports = function(router) {
             }
 
             // Get the filter object.
-            var filter = _.zipObject(['name', 'selector'], _words(name, /[^,_ ]+/g));
+            var filter = _.zipObject(['name', 'selector'], _.words(name, /[^,_ ]+/g));
             // Convert to component key
             var key = util.getFormComponentKey(filter.name).substring(5);
             var component = util.getComponent(currentForm.components, key);

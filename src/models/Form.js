@@ -121,7 +121,7 @@ module.exports = function(formio) {
   var getKeys = function getKeys(component) {
     var components = component.components || component.columns;
     if (components) {
-      return _.map(components, getKeys).concat(component.key);
+      return _.flattenDeep(_.map(components, getKeys).concat(component.key));
     }
     else if (component.input) {
       return component.key;
@@ -157,7 +157,7 @@ module.exports = function(formio) {
   // Set the default machine name.
   model.schema.machineName = function(document, done) {
     hook.alter('formMachineName', document.name, document, done);
-  }
+  };
 
   return model;
 };

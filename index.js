@@ -8,8 +8,6 @@ var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
 var _ = require('lodash');
-var _property = require('lodash.property');
-var _has = require('lodash.has');
 var events = require('events');
 var fs = require('fs');
 var Q = require('q');
@@ -210,9 +208,9 @@ module.exports = function(config) {
                 }
                 return _.reduce(filter, function(prev, value, prop) {
                   if (!value) {
-                    return prev && _has(component, prop);
+                    return prev && _.has(component, prop);
                   }
-                  var actualValue = _property(prop)(component);
+                  var actualValue = _.property(prop)(component);
                   // loose equality so number values can match
                   return prev && actualValue == value || // eslint-disable-line eqeqeq
                     value === 'true' && actualValue === true ||
