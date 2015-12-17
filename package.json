@@ -78,5 +78,6 @@
   "bugs": {
     "url": "https://github.com/formio/formio/issues"
   },
-  "homepage": "https://github.com/formio/formio#readme"
+  "homepage": "https://github.com/formio/formio#readme",
+  "license": "BSD-3-Clause"
 }
