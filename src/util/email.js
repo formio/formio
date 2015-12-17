@@ -59,7 +59,7 @@ module.exports = function(formio) {
             }
           );
         }
-        if(_.get(settings, 'email.mailgun.auth.apiKey')) {
+        if(_.get(settings, 'email.mailgun.auth.api_key')) {
           availableTransports.push(
             {
               transport: 'mailgun',
