@@ -1,8 +1,6 @@
 'use strict';
 var Q = require('q');
-var _ = {
-  camelCase: require('lodash.camelcase')
-};
+var _ = require('lodash');
 var utils = require('../../util/util');
 
 /**

@@ -1,9 +1,17 @@
 'use strict';
+var _ = require('lodash');
+var util = require('../util/util');
+var nunjucks = require('nunjucks');
+
+nunjucks.configure([], {
+  watch: false
+});
 
 module.exports = function(router) {
   var Action = router.formio.Action;
   var hook = require('../util/hook')(router.formio);
   var emailer = require('../util/email')(router.formio);
+  var macros = require('./macros/macros');
 
   /**
    * EmailAction class.
@@ -94,7 +102,7 @@ module.exports = function(router) {
           label: 'Subject',
           key: 'settings[subject]',
           inputType: 'text',
-          defaultValue: '',
+          defaultValue: 'New submission for {{ form.title }}.',
           input: true,
           placeholder: 'Email subject',
           type: 'textfield',
@@ -104,7 +112,7 @@ module.exports = function(router) {
           label: 'Message',
           key: 'settings[message]',
           type: 'textarea',
-          defaultValue: '',
+          defaultValue: '{{ table(form.components) }}',
           multiple: false,
           rows: 3,
           suffix: '',
@@ -133,8 +141,35 @@ module.exports = function(router) {
       return next();
     }
 
-    // Send the email.
-    emailer.send(req, res, this.settings, req.body, next);
+    // Load the form for this request.
+    router.formio.cache.loadCurrentForm(req, function(err, form) {
+      if (err) {
+        return next(err);
+      }
+      if (!form) {
+        return next(new Error('Form not found.'));
+      }
+
+      var params = _.cloneDeep(req.body);
+
+      // Flatten the resource data.
+      util.eachComponent(form.components, function(component) {
+        if (component.type === 'resource' && params.data[component.key]) {
+          params.data[component.key] = nunjucks.renderString(component.template, {
+            item: params.data[component.key]
+          });
+        }
+      });
+
+      // Get the parameters for the email.
+      params.form = form;
+
+      // Prepend the macros to the message so that they can use them.
+      this.settings.message = macros + this.settings.message;
+
+      // Send the email.
+      emailer.send(req, res, this.settings, params, next);
+    }.bind(this));
   };
 
   // Return the EmailAction.

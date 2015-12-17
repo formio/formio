@@ -1,7 +1,6 @@
 'use strict';
 
 var _ = require('lodash');
-var _pull = require('lodash.pull');
 var async = require('async');
 var debug = {
   submission: require('debug')('formio:util:delete#submission'),
@@ -286,7 +285,7 @@ module.exports = function(router) {
 
                 // Remove the given roleId if it was defined in the access.
                 if (temp[b].roles.indexOf(roleId) !== -1) {
-                  _pull(temp[b].roles, roleId);
+                  _.pull(temp[b].roles, roleId);
                 }
               }
 
@@ -342,7 +341,7 @@ module.exports = function(router) {
 
             // Omit the given role from all submissions.
             if (temp.indexOf(roleId) !== -1) {
-              _pull(temp, roleId);
+              _.pull(temp, roleId);
             }
 
             submission.set('roles', temp);

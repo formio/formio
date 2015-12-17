@@ -1,7 +1,8 @@
 {
   "name": "formio",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "The formio server application.",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
   "scripts": {
     "test": "env TEST_SUITE=1 mocha -r jscoverage --covout=html test/test.js -b -t 60000",
@@ -9,6 +10,9 @@
     "lint": "eslint src *.js"
   },
   "author": "support@form.io",
+  "engines": {
+    "node": ">=4.2.0"
+  },
   "schema": "3.0.0",
   "dependencies": {
     "JSONStream": "^1.0.4",
@@ -17,7 +21,6 @@
     "async": "^1.4.2",
     "bcrypt": "^0.8.0",
     "body-parser": "^1.10.0",
-    "chance": "^0.8.0",
     "colors": "^1.1.2",
     "config": "^1.15.0",
     "cors": "^2.5.3",
@@ -30,13 +33,7 @@
     "fs-extra": "^0.24.0",
     "joi": "^6.0.8",
     "jsonwebtoken": "^5.0.0",
-    "lodash": "^2.4.1",
-    "lodash.camelcase": "^3.0.1",
-    "lodash.deburr": "^3.0.2",
-    "lodash.has": "^3.2.1",
-    "lodash.property": "^3.1.2",
-    "lodash.pull": "^3.0.1",
-    "lodash.words": "^3.0.2",
+    "lodash": "^3.10.1",
     "method-override": "^2.3.0",
     "moment": "^2.10.6",
     "mongodb": "^2.0.35",

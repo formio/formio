@@ -42,7 +42,7 @@ module.exports = function(formio) {
     },
 
     beforePost: function(component, req, res, next) {
-      if (!req.body.data.hasOwnProperty(component.key)) {
+      if (!req.body || !req.body.data || !req.body.data.hasOwnProperty(component.key)) {
         return next();
       }
 

@@ -3,9 +3,9 @@
 var nodemailer = require('nodemailer');
 var sgTransport = require('nodemailer-sendgrid-transport');
 var mandrillTransport = require('nodemailer-mandrill-transport');
-var _prop = require('lodash.property');
 var nunjucks = require('nunjucks');
 var debug = require('debug')('formio:settings:email');
+var _ = require('lodash');
 
 // Configure nunjucks to not watch any files
 nunjucks.configure([], {
@@ -32,8 +32,8 @@ module.exports = function(formio) {
             title: 'Default (charges may apply)'
           }
         ];
-        if(_prop('email.gmail.auth.user')(settings)
-          && _prop('email.gmail.auth.pass')(settings)) {
+        if(_.get(settings, 'email.gmail.auth.user')
+          && _.get(settings, 'email.gmail.auth.pass')) {
           availableTransports.push(
             {
               transport: 'gmail',
@@ -41,8 +41,8 @@ module.exports = function(formio) {
             }
           );
         }
-        if(_prop('email.sendgrid.auth.api_user')(settings)
-          && _prop('email.sendgrid.auth.api_key')(settings)) {
+        if(_.get(settings, 'email.sendgrid.auth.api_user')
+          && _.get(settings, 'email.sendgrid.auth.api_key')) {
           availableTransports.push(
             {
               transport: 'sendgrid',
@@ -50,7 +50,7 @@ module.exports = function(formio) {
             }
           );
         }
-        if(_prop('email.mandrill.auth.apiKey')(settings)) {
+        if(_.get(settings, 'email.mandrill.auth.apiKey')) {
           availableTransports.push(
             {
               transport: 'mandrill',
