@@ -17,7 +17,6 @@
     "async": "^1.4.2",
     "bcrypt": "^0.8.0",
     "body-parser": "^1.10.0",
-    "chance": "^0.8.0",
     "colors": "^1.1.2",
     "config": "^1.15.0",
     "cors": "^2.5.3",
@@ -81,5 +80,6 @@
   "bugs": {
     "url": "https://github.com/formio/formio/issues"
   },
-  "homepage": "https://github.com/formio/formio#readme"
+  "homepage": "https://github.com/formio/formio#readme",
+  "license": "BSD-3-Clause"
 }
