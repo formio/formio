@@ -3,6 +3,7 @@
 var nodemailer = require('nodemailer');
 var sgTransport = require('nodemailer-sendgrid-transport');
 var mandrillTransport = require('nodemailer-mandrill-transport');
+var mailgunTransport = require('nodemailer-mailgun-transport');
 var nunjucks = require('nunjucks');
 var debug = require('debug')('formio:settings:email');
 var _ = require('lodash');
@@ -55,6 +56,14 @@ module.exports = function(formio) {
             {
               transport: 'mandrill',
               title: 'Mandrill'
+            }
+          );
+        }
+        if(_.get(settings, 'email.mailgun.auth.api_key')) {
+          availableTransports.push(
+            {
+              transport: 'mailgun',
+              title: 'Mailgun'
             }
           );
         }
@@ -136,6 +145,12 @@ module.exports = function(formio) {
           case 'mandrill':
             if (settings.email.mandrill) {
               transporter = nodemailer.createTransport(mandrillTransport(settings.email.mandrill));
+              sendMail();
+            }
+            break;
+          case 'mailgun':
+            if (settings.email.mailgun) {
+              transporter = nodemailer.createTransport(mailgunTransport(settings.email.mailgun));
               sendMail();
             }
             break;

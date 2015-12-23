@@ -74,7 +74,7 @@ module.exports = function(router) {
         {
           label: 'From:',
           key: 'settings[from]',
-          inputType: 'email',
+          inputType: 'text',
           defaultValue: 'no-reply@form.io',
           input: true,
           placeholder: 'Send the email from the following address',
@@ -86,7 +86,7 @@ module.exports = function(router) {
         {
           label: 'To: Email Address',
           key: 'settings[emails]',
-          inputType: 'email',
+          inputType: 'text',
           defaultValue: '',
           input: true,
           placeholder: 'Send to the following email',
