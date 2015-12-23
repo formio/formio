@@ -271,6 +271,10 @@ module.exports = function(formio) {
    */
   var getUpdates = function(next) {
     fs.readdir(path.join(__dirname, '/updates'), function(err, files) {
+      if(err) {
+        return next(err);
+      }
+
       files = files.map(function(name) {
         debug('Update found: ' + name);
         return name.split('.js')[0];
@@ -278,6 +282,10 @@ module.exports = function(formio) {
 
       // Allow anyone to hook the update system.
       formio.hook.alter('getUpdates', files, function(err, files) {
+        if(err) {
+          return next(err);
+        }
+
         updates = files.sort(semver.compare);
         debug('Final updates: ' + JSON.stringify(updates));
         next();
@@ -404,8 +412,6 @@ module.exports = function(formio) {
       return false;
     }
     else if (semver.gt(database, code)) {
-      // TODO: This should only throw an error if the MAJOR version is different. We can run a more recent MINOR or PATCH version.
-      // The database has a higher version than code, notify that the code needs to be updated and exit.
       unlock(function() {
         throw new Error(
           'The provided codebase version is more recent than the database schema version. Update the codebase and ' +
