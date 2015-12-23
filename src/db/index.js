@@ -30,15 +30,16 @@ var updates = null;
 module.exports = function(formio) {
   var config = formio.config;
 
+  // Allow anyone to hook the current config.
+  config = formio.hook.alter('updateConfig', config);
+
   // Current codebase version.
   if (!config.schema && !process.env.TEST_SUITE) {
     throw new Error(
       'No database schema version defined in the config, terminating process to ensure db schemas are not incorrectly' +
-      ' manipulated.');
+      ' manipulated.'
+    );
   }
-
-  // Allow anyone to hook the current schema version.
-  config.schema = formio.hook.alter('codeSchema', config.schema);
 
   // The last time a sanity check occurred for GET use only (cache non-manipulative operations).
   var now = (new Date()).getTime();
