@@ -1,5 +1,5 @@
 {
-  "extends": "formio",
+  "extends": "eslint-config-formio",
   "env": {
     "node": true
   },

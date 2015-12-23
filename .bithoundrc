@@ -1,0 +1,18 @@
+{
+	"dependencies": {
+		"unused-ignores": [
+			"eslint**"
+		]
+	},
+	"test": [
+		"test/**"
+	],
+	"ignore": [
+		"src/db/updates/**"
+	],
+	"critics": {
+		"lint": {
+			"engine": "eslint"
+		}
+	}
+}
