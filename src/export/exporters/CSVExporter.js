@@ -45,7 +45,7 @@ CSVExporter.prototype.start = function(deferred) {
   var row = null;
 
   this.stringifier.on('readable', function() {
-    while(row = this.stringifier.read()) {
+    while (row = this.stringifier.read()) {
       this.res.write(row.toString());
     }
     deferred.resolve();
@@ -67,11 +67,13 @@ CSVExporter.prototype.stream = function(stream) {
     data.push(row.created.toISOString());
     data.push(row.modified.toISOString());
     _.each(self.fields, function(field) {
-      if (!field.key) { return; }
+      if (!field.key) {
+        return;
+      }
 
       // Nested fields are in the data property of their parent
       var value = _.property(util.getSubmissionKey(field.key))(row.data);
-      if(value && value.url) {
+      if (value && value.url) {
         // Use the resource URL instead of the whole object
         value = value.url;
       }

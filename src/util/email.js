@@ -33,7 +33,7 @@ module.exports = function(formio) {
             title: 'Default (charges may apply)'
           }
         ];
-        if(_.get(settings, 'email.gmail.auth.user')
+        if (_.get(settings, 'email.gmail.auth.user')
           && _.get(settings, 'email.gmail.auth.pass')) {
           availableTransports.push(
             {
@@ -42,7 +42,7 @@ module.exports = function(formio) {
             }
           );
         }
-        if(_.get(settings, 'email.sendgrid.auth.api_user')
+        if (_.get(settings, 'email.sendgrid.auth.api_user')
           && _.get(settings, 'email.sendgrid.auth.api_key')) {
           availableTransports.push(
             {
@@ -51,7 +51,7 @@ module.exports = function(formio) {
             }
           );
         }
-        if(_.get(settings, 'email.mandrill.auth.apiKey')) {
+        if (_.get(settings, 'email.mandrill.auth.apiKey')) {
           availableTransports.push(
             {
               transport: 'mandrill',
@@ -59,7 +59,7 @@ module.exports = function(formio) {
             }
           );
         }
-        if(_.get(settings, 'email.mailgun.auth.api_key')) {
+        if (_.get(settings, 'email.mailgun.auth.api_key')) {
           availableTransports.push(
             {
               transport: 'mailgun',
@@ -82,7 +82,6 @@ module.exports = function(formio) {
       };
     },
     send: function(req, res, message, params, next) {
-
       // The transporter object.
       var transporter = null;
 
@@ -102,17 +101,20 @@ module.exports = function(formio) {
           });
 
           // We do not want to block the request to send an email.
-          next();
+          return next();
         }
         else {
           // No transport configured, dont send an email.
-          next();
+          return next();
         }
       };
 
       // Get the settings.
       hook.settings(req, function(err, settings) {
-        if (err) { return; }
+        if (err) {
+          return;
+        }
+
         var emailType = message.transport ? message.transport : 'default';
         var _config = (formio && formio.config && formio.config.email && formio.config.email.type);
         debug(formio.config);
@@ -164,8 +166,7 @@ module.exports = function(formio) {
             break;
           default:
             hook.invoke('email', emailType, message, settings, req, res);
-            next();
-            break;
+            return next();
         }
       });
     }

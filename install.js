@@ -4,9 +4,9 @@ var fs = require('fs-extra');
 var _ = require('lodash');
 var nunjucks = require('nunjucks');
 nunjucks.configure([], {watch: false});
-var ObjectId = require('mongodb').ObjectId;
-module.exports = function(formio, items, done) {
+var util = require('./src/util/util');
 
+module.exports = function(formio, items, done) {
   // The project that was created.
   var project = {};
 
@@ -24,20 +24,20 @@ module.exports = function(formio, items, done) {
    *
    * @param url
    * @param zipFile
+   * @param dir
    * @param done
    * @returns {*}
    */
   var download = function(url, zipFile, dir, done) {
-
     // Check to see if the client already exists.
     if (fs.existsSync(zipFile)) {
-      console.log(directories[dir] + ' file already exists, skipping download.');
+      util.log(directories[dir] + ' file already exists, skipping download.');
       return done();
     }
 
     var request = require('request');
     var ProgressBar = require('progress');
-    console.log('Downloading ' + dir + '...'.green);
+    util.log('Downloading ' + dir + '...'.green);
 
     // Download the project.
     var downloadError = null;
@@ -50,7 +50,10 @@ module.exports = function(formio, items, done) {
             !res.headers.hasOwnProperty('content-disposition') ||
             !parseInt(res.headers['content-length'], 10)
           ) {
-            if (tries++ > 3) { return done('Unable to download project. Please try again.'); }
+            if (tries++ > 3) {
+              return done('Unable to download project. Please try again.');
+            }
+
             setTimeout(downloadProject, 200);
             return;
           }
@@ -66,8 +69,10 @@ module.exports = function(formio, items, done) {
           res.pipe(fs.createWriteStream(zipFile, {
             flags: 'w'
           }));
-          res.on('data', function (chunk) {
-            if (bar) { bar.tick(chunk.length); }
+          res.on('data', function(chunk) {
+            if (bar) {
+              bar.tick(chunk.length);
+            }
           });
           res.on('error', function(err) {
             downloadError = err;
@@ -91,20 +96,21 @@ module.exports = function(formio, items, done) {
    * @returns {*}
    */
   var extract = function(zipFile, fromDir, dir, done) {
-
     // See if we need to extract.
     if (fs.existsSync(directories[dir])) {
-      console.log(directories[dir] + ' already exists, skipping extraction.');
+      util.log(directories[dir] + ' already exists, skipping extraction.');
       return done();
     }
 
     // Unzip the contents.
     var AdmZip = require('adm-zip');
-    console.log('Extracting contents...'.green);
+    util.log('Extracting contents...'.green);
     var zip = new AdmZip(zipFile);
     zip.extractAllTo('', true);
-    fs.move(fromDir, directories[dir], function (err) {
-      if (err) { return done(err); }
+    fs.move(fromDir, directories[dir], function(err) {
+      if (err) {
+        return done(err);
+      }
 
       // Delete the zip file.
       fs.remove(zipFile);
@@ -133,13 +139,12 @@ module.exports = function(formio, items, done) {
         domain: formio.config.domain ? formio.config.domain : 'https://form.io'
       });
       fs.writeFileSync(directories[dir] + '/config.js', newConfig);
-      done()
+      done();
     });
   };
 
   // All the steps in the installation.
   var steps = {
-
     /**
      * Step to perform the are you sure step.
      *
@@ -177,7 +182,7 @@ module.exports = function(formio, items, done) {
         message += '  ' + (index + 1) + '.) ' + repo + '\n';
       });
       message += '\nOr, you can provide a custom Github repository...\n'.green;
-      console.log(message);
+      util.log(message);
       prompt.get([
         {
           name: 'app',
@@ -194,7 +199,7 @@ module.exports = function(formio, items, done) {
           application = results.app;
         }
         else {
-          var selection = parseInt(results.app, 10)
+          var selection = parseInt(results.app, 10);
           if (_.isNumber(selection)) {
             if ((selection > 1) && (selection <= repos.length)) {
               application = repos[selection - 1];
@@ -319,10 +324,13 @@ module.exports = function(formio, items, done) {
       }
 
       // Get the form.io service.
-      console.log('Importing template...'.green);
+      util.log('Importing template...'.green);
       var importer = require('./src/templates/import')(formio);
       importer.template(template, function(err, template) {
-        if (err) { return done(err); }
+        if (err) {
+          return done(err);
+        }
+
         project = template;
         done(null, template);
       });
@@ -337,7 +345,7 @@ module.exports = function(formio, items, done) {
       if (!items.user) {
         return done();
       }
-      console.log('Creating root user account...'.green);
+      util.log('Creating root user account...'.green);
       prompt.get([
         {
           name: 'email',
@@ -351,13 +359,18 @@ module.exports = function(formio, items, done) {
           hidden: true
         }
       ], function(err, result) {
+        if (err) {
+          return done(err);
+        }
 
-        console.log('Encrypting password');
+        util.log('Encrypting password');
         formio.encrypt(result.password, function(err, hash) {
-          if (err) { return done(err); }
+          if (err) {
+            return done(err);
+          }
 
           // Create the root user submission.
-          console.log('Creating root user account');
+          util.log('Creating root user account');
           formio.resources.submission.model.create({
             form: project.resources.admin._id,
             data: {
@@ -368,7 +381,10 @@ module.exports = function(formio, items, done) {
               project.roles.administrator._id
             ]
           }, function(err, item) {
-            if (err) { return done(err); }
+            if (err) {
+              return done(err);
+            }
+
             done();
           });
         });
@@ -376,7 +392,7 @@ module.exports = function(formio, items, done) {
     }
   };
 
-  console.log('Installing...');
+  util.log('Installing...');
   prompt.start();
   async.series([
     steps.areYouSure,
@@ -389,11 +405,11 @@ module.exports = function(formio, items, done) {
     steps.createRootUser
   ], function(err, result) {
     if (err) {
-      console.log(err);
+      util.log(err);
       return done(err);
     }
 
-    console.log('Install successful!'.green);
+    util.log('Install successful!'.green);
     done();
   });
 };

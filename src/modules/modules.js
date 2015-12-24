@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require('lodash');
+var util = require('../util/util');
 
 module.exports = {
   /**
@@ -18,7 +19,7 @@ module.exports = {
    */
   load: function(router, server) {
     _.each(this.modules, function(module, name) {
-      console.log('Loading module ' + name);
+      util.log('Loading module ' + name);
       module.load(router, server);
     });
   }

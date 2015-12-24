@@ -20,8 +20,7 @@ module.exports = function(req, router, cb) {
    * @returns {undefined}
    */
   var bodyDefinition = function(form) {
-    // FIXME should be built from this definition
-    //console.log(form.components);
+    // TODO should be built from this definition
     return undefined;
   };
 
@@ -33,15 +32,28 @@ module.exports = function(req, router, cb) {
   var swaggerSpec = function(specs, options) {
     // Available Options and Defaults
     options = options || {};
-    if (!options.shortTitle) options.shortTitle = 'Form.io';
-    if (!options.title) options.title = options.shortTitle + ' API';
-    if (!options.description) options.description = options.shortTitle + ' Swagger 2.0 API specification.  This API spec can be used for integrating your Form.io project into non-HTML5 programs like "native" phone apps, "legacy" and "enterprise" systems, embedded "Internet of Things" applications (IoT), and other programming languages.  Note: The URL\'s below are configured for your specific project and form.';
-    if (!options.version) options.version = '1.0.0';
+    if (!options.shortTitle) {
+      options.shortTitle = 'Form.io';
+    }
+    if (!options.title) {
+      options.title = options.shortTitle + ' API';
+    }
+    if (!options.description) {
+      options.description = options.shortTitle + ' Swagger 2.0 API specification.  This API spec can be used for integrating your Form.io project into non-HTML5 programs like "native" phone apps, "legacy" and "enterprise" systems, embedded "Internet of Things" applications (IoT), and other programming languages.  Note: The URL\'s below are configured for your specific project and form.';
+    }
+    if (!options.version) {
+      options.version = '1.0.0';
+    }
     // Requires request object
-    if (!options.host) options.host = router.formio.config.baseUrl;
-    //if (!options.host) options.host = req.data.project.name + '.' + router.formio.config.baseUrl;
-    if (!options.schemes) options.schemes = [router.formio.config.protocol];
-    if (!options.basePath) options.basePath = '/';
+    if (!options.host) {
+      options.host = router.formio.config.baseUrl;
+    }
+    if (!options.schemes) {
+      options.schemes = [router.formio.config.protocol];
+    }
+    if (!options.basePath) {
+      options.basePath = '/';
+    }
 
     // Get paths and definitions
     var paths = {};
@@ -58,17 +70,17 @@ module.exports = function(req, router, cb) {
       info: {
         title: options.title,
         description: options.description,
-        termsOfService: 'http://form.io/terms/',  // FIXME this is 404
+        termsOfService: 'http://form.io/terms/',  // TODO this is 404
         contact: {
           name: 'Form.io Support',
           url: 'http://help.form.io/',
-          email: 'support@form.io',
+          email: 'support@form.io'
         },
         license: {
           name: 'MIT',
           url: 'http://opensource.org/licenses/MIT'
         },
-        version: options.version,  // FIXME:  Major versions: add/remove form.  Minor versions: add/remove field.  Patch: update field.
+        version: options.version  // TODO:  Major versions: add/remove form.  Minor versions: add/remove field.  Patch: update field.
       },
       host: options.host,
       basePath: options.basePath,
@@ -83,13 +95,13 @@ module.exports = function(req, router, cb) {
           name: 'Authorization',
           in: 'header'
         }
-      },
+      }
     };
   };
 
   var options = {
     host: hook.alter('host', router.formio.config.baseUrl, req)
-  }
+  };
 
   if (typeof req.formId !== 'undefined' && req.formId !== null) {
     var form = router.formio.cache.loadCurrentForm(req, function(err, form) {
@@ -97,14 +109,17 @@ module.exports = function(req, router, cb) {
         router.formio.resources.submission.swagger(
           resourceUrl(form),
           bodyDefinition(form)
-        ),
+        )
       ];
       cb(swaggerSpec(specs, options));
     });
   }
   else {
     var forms = router.formio.resources.form.model.find(hook.alter('formQuery', {}, req), function(err, forms) {
-      if (err) throw err;
+      if (err) {
+        throw err;
+      }
+
       var specs = [];
       forms.forEach(function(form) {
         specs.push(

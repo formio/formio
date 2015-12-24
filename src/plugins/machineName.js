@@ -19,20 +19,23 @@ module.exports = exports = function(schema, options) {
     document.machineName = name + number;
     document.markModified('machineName');
     return document.save(cb);
-  }
+  };
 
   schema.pre('save', function(next) {
     if (this.machineName || typeof schema.machineName !== 'function') {
       return next();
     }
     schema.machineName(this, function(err, machineName) {
-      if (err) { return next(err); }
+      if (err) {
+        return next(err);
+      }
+
       this.machineName = machineName;
       next();
     }.bind(this));
   });
 
-  schema.methods.save = function(options, fn){
+  schema.methods.save = function(options, fn) {
     if ('function' == typeof options) {
       fn = options;
       options = undefined;
@@ -47,9 +50,10 @@ module.exports = exports = function(schema, options) {
     mongoose.Model.prototype.save.call(self, options, function(e, model, num) {
       if (e && (e.code === 11000  || e.code === 11001) && !!~e.errmsg.indexOf(self['machineName'])) {
         incrementAndSave(self, options, fn);
-      } else {
+      }
+      else {
         fn(e,model,num);
       }
     });
   };
-}
+};

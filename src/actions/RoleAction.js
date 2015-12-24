@@ -50,7 +50,7 @@ module.exports = function(router) {
   RoleAction.settingsForm = function(req, res, next) {
     router.formio.resources.role.model.find(hook.alter('roleQuery', {deleted: {$eq: null}}, req))
       .sort({title: 1})
-      .exec(function (err, roles) {
+      .exec(function(err, roles) {
         if (err || !roles) {
           return res.status(400).send('Could not load the Roles.');
         }
@@ -151,15 +151,25 @@ module.exports = function(router) {
       return next('Invalid setting `type` for the RoleAction; expecting `add` or `remove`.');
     }
     // Error if no resource is being returned.
-    if (this.settings.association === 'new' && res.hasOwnProperty('resource') && !res.resource.item && this.settings.role) {
+    if (
+      this.settings.association === 'new' &&
+      res.hasOwnProperty('resource') &&
+      !res.resource.item && this.settings.role
+    ) {
       return next('Invalid resource was provided for RoleAction association of `new`.');
     }
     // Error if association is existing and valid data was not provided.
     if (this.settings.association === 'existing' && !(this.settings.role || req.submission.data.role)) {
-      return next('Missing role for RoleAction association of `existing`. Must specify role to assign in action settings or a form component named `role`');
+      return next(
+        'Missing role for RoleAction association of `existing`. Must specify role to assign in action settings or a ' +
+        'form component named `role`'
+      );
     }
     if (this.settings.association === 'existing' && !req.submission.data.submission) {
-      return next('Missing submission for RoleAction association of `existing`. Form must have a resource field named `submission`.');
+      return next(
+        'Missing submission for RoleAction association of `existing`. Form must have a resource field named ' +
+        '`submission`.'
+      );
     }
 
     /**
@@ -235,11 +245,11 @@ module.exports = function(router) {
             querySubmission(submission);
           }
           else {
-            next();
+            return next();
           }
         });
       }
-      catch(e) {
+      catch (e) {
         // Dealing with plain js object, load the submission object.
         router.formio.resources.submission.model.findOne({_id: submission._id}, function(err, submissionModel) {
           if (err || !submissionModel) {
@@ -259,7 +269,7 @@ module.exports = function(router) {
               querySubmission(submission);
             }
             else {
-              next();
+              return next();
             }
           });
         });

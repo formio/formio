@@ -9,13 +9,28 @@ var debug = {
 };
 
 module.exports = {
+  /**
+   * A wrapper around console.log that gets ignored by eslint.
+   *
+   * @param {*} content
+   *   The content to pass to console.log.
+   */
+  log: function(content) {
+    /* eslint-disable */
+    console.log(content);
+    /* eslint-enable */
+  },
 
   /**
-   * Establish an external API to help external libraries.
+   * A wrapper around console.error that gets ignored by eslint.
    *
-   * @param router
+   * @param {*} content
+   *   The content to pass to console.error.
    */
-  api: function(formio) {
+  error: function(content) {
+    /* eslint-disable */
+    console.error(content);
+    /* eslint-enable */
   },
 
   /**
@@ -94,7 +109,7 @@ module.exports = {
   getComponent: function getComponent(components, key) {
     var result;
     this.eachComponent(components, function(component) {
-      if(component.key === key) {
+      if (component.key === key) {
         result = component;
       }
     });

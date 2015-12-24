@@ -2,7 +2,6 @@
 
 var async = require('async');
 var _ = require('lodash');
-var Q = require('q');
 var util = require('../util/util');
 var debug = {
   template: require('debug')('formio:template:template'),

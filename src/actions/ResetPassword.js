@@ -1,10 +1,10 @@
 'use strict';
 
-var async = require('async');
 var util = require('../util/util');
 var jwt = require('jsonwebtoken');
 var mongoose = require('mongoose');
 var _ = require('lodash');
+
 module.exports = function(router) {
   var Action = router.formio.Action;
   var hook = require('../util/hook')(router.formio);
@@ -174,7 +174,6 @@ module.exports = function(router) {
   ResetPasswordAction.prototype.getResourceName = function(type) {
     var resource = '';
     if (this.settings[type].indexOf('.') !== -1) {
-
       // Split the username.
       var parts = this.settings[type].split('.');
 
@@ -215,12 +214,8 @@ module.exports = function(router) {
    * @returns {{}}
    */
   ResetPasswordAction.prototype.submissionQuery = function(token) {
-
     // Get the field name and the username key.
     var usernameField = this.getFieldName('username');
-    if (!usernameField) {
-      return next.call(this, 'Invalid username field.');
-    }
 
     // Set the name of the key for the mongo query.
     var usernamekey = 'data.' + usernameField;
@@ -235,16 +230,19 @@ module.exports = function(router) {
   /**
    * Return a submission based on the token.
    *
+   * @param req
    * @param token
    * @param next
    */
   ResetPasswordAction.prototype.getSubmission = function(req, token, next) {
     // If the resource is provided, get the submission from that form.
     if (token.resource) {
-
       // Load the resource defined by the token.
       router.formio.cache.loadFormByName(req, token.resource, function(err, resource) {
-        if (err) { return next.call(this, 'Unknown resource.'); }
+        if (err) {
+          return next.call(this, 'Unknown resource.');
+        }
+
         token.resource = '';
         token.form = resource._id.toString();
         this.getSubmission(req, token, next);
@@ -270,15 +268,14 @@ module.exports = function(router) {
   /**
    * Update a submission for the password.
    *
+   * @param req
    * @param token
    * @param password
    * @param next
    */
   ResetPasswordAction.prototype.updatePassword = function(req, token, password, next) {
-
     // Get the submission.
     this.getSubmission(req, token, function(err, submission) {
-
       // Make sure we found the user.
       if (err || !submission) {
         return next.call(this, 'User not found.');
@@ -292,6 +289,9 @@ module.exports = function(router) {
 
       // Manually encrypt and update the password.
       router.formio.encrypt(password, function(err, hash) {
+        if (err) {
+          return next.call(this, 'Unable to change password.');
+        }
 
         var setValue = {};
         setValue['data.' + passwordField] = hash;
@@ -310,21 +310,24 @@ module.exports = function(router) {
           }.bind(this)
         );
       }.bind(this));
-    })
+    });
   };
 
   /**
    * Perform a forgot password implementation.
    *
+   * @param handler
+   * @param method
    * @param req
    *   The Express request object.
    * @param res
    *   The Express response object.
-   * @param cb
+   * @param next
    *   The callback function to execute upon completion.
+   *
+   * @returns {*}
    */
   ResetPasswordAction.prototype.resolve = function(handler, method, req, res, next) {
-
     // See if we have a reset password token.
     var hasResetToken = !!(req.tempToken && (req.tempToken.type === 'resetpass'));
 
@@ -337,9 +340,8 @@ module.exports = function(router) {
       res.resource.hasOwnProperty('item') &&
       res.resource.item._id
     ) {
-
       // Modify the form based on if there is a reset token or not.
-      util.eachComponent(res.resource.item.components, function (component) {
+      util.eachComponent(res.resource.item.components, function(component) {
         if (
           !hasResetToken &&
           (component.type === 'button') &&
@@ -357,7 +359,8 @@ module.exports = function(router) {
           }
         }
       }.bind(this));
-      next();
+
+      return next();
     }
 
     // Handle the request for resetting their password.
@@ -366,7 +369,6 @@ module.exports = function(router) {
       (handler === 'before') &&
       (method === 'create')
     ) {
-
       // Figure out the username data.
       var username = req.body ? _.property(this.settings.username)(req.body.data) : '';
 
@@ -411,7 +413,6 @@ module.exports = function(router) {
           subject: this.settings.subject,
           message: this.settings.message
         }, _.assign(params, req.body), function() {
-
           // Let them know an email is on its way.
           res.status(200).json({
             message: 'Password reset email was sent.'
@@ -450,7 +451,7 @@ module.exports = function(router) {
       });
     }
     else {
-      next();
+      return next();
     }
   };
 

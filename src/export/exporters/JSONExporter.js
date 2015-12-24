@@ -13,6 +13,6 @@ JSONExporter.prototype = Object.create(Exporter.prototype);
 JSONExporter.prototype.constructor = JSONExporter;
 JSONExporter.prototype.stream = function(stream) {
   return stream.pipe(JSONStream.stringify());
-}
+};
 
 module.exports = JSONExporter;

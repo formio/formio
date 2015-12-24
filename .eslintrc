@@ -3,4 +3,8 @@
   "env": {
     "node": true
   },
+  "rules": {
+    "curly": [2, "all"],
+    "no-unused-vars": [1, {"args": "all", "argsIgnorePattern": "req|res|next|router"}],
+  }
 }

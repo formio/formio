@@ -62,6 +62,34 @@ module.exports = function(formio) {
   };
 
   /**
+   * Unlock the formio lock.
+   *
+   * @param next
+   *   The next function to invoke after this function has finished.
+   */
+  var unlock = function(next) {
+    if (!currentLock) {
+      return next(new Error('Could not find the formio lock to unlock..'));
+    }
+
+    currentLock.isLocked = false;
+    schema.findOneAndUpdate(
+      {key: 'formio'},
+      {$set: {isLocked: currentLock.isLocked}},
+      {returnOriginal: false},
+      function(err, result) {
+        if (err) {
+          return next(err);
+        }
+
+        currentLock = result.value;
+        debug('Lock unlocked: ' + JSON.stringify(currentLock));
+        next();
+      }
+    );
+  };
+
+  /**
    * Initialize the Mongo Connections for queries.
    *
    * @param next
@@ -109,27 +137,27 @@ module.exports = function(formio) {
    * Test to see if the application has been installed. Install if not.
    */
   var checkInstall = function(next) {
-    console.log('Checking for db install.');
+    formio.util.log('Checking for db install.');
     db.listCollections().toArray().then(function(collections) {
       debug('Collections found: ' + collections.length);
       // 3 is an arbitrary length. We just want a general idea that things have been installed.
       if (collections.length < 3) {
-        console.log(' > No install found. Starting new install.');
+        formio.util.log(' > No install found. Starting new install.');
         require(__dirname + '/install')(db, config, function() {
-          console.log(' > Install complete.\n');
+          formio.util.log(' > Install complete.\n');
           next();
         });
       }
       else {
-        console.log(' > Install found. No install necessary.\n');
-        next();
+        formio.util.log(' > Install found. No install necessary.\n');
+        return next();
       }
     });
   };
 
   var checkEncryption = function(next) {
     if (config.mongoSecretOld) {
-      console.log('DB Secret update required.');
+      formio.util.log('DB Secret update required.');
       var projects = db.collection('projects');
       projects.find({}).snapshot().forEach(function(project) {
         if (project.settings_encrypted) {
@@ -137,7 +165,7 @@ module.exports = function(formio) {
             var settings = tools.decrypt(config.mongoSecretOld, project.settings_encrypted.buffer);
             if (settings) {
               projects.update(
-                { _id: project._id },
+                {_id: project._id},
                 {
                   $set: {
                     settings_encrypted: tools.encrypt(config.mongoSecret, settings)
@@ -146,18 +174,18 @@ module.exports = function(formio) {
               );
             }
           }
-          catch(err) {
-            console.log(' > Unable to use old db secret key.');
+          catch (err) {
+            formio.util.log(' > Unable to use old db secret key.');
           }
         }
       },
       function(err) {
-        console.log(' > Finished updating db secret.\n');
+        formio.util.log(' > Finished updating db secret.\n');
         next(err);
       });
     }
     else {
-      next();
+      return next();
     }
   };
 
@@ -257,7 +285,7 @@ module.exports = function(formio) {
 
           return cache.partial.isValid
             ? handleResponse()
-            : handleResponse(cache.partial.error)
+            : handleResponse(cache.partial.error);
         }
       });
     });
@@ -271,7 +299,7 @@ module.exports = function(formio) {
    */
   var getUpdates = function(next) {
     fs.readdir(path.join(__dirname, '/updates'), function(err, files) {
-      if(err) {
+      if (err) {
         return next(err);
       }
 
@@ -282,7 +310,7 @@ module.exports = function(formio) {
 
       // Allow anyone to hook the update system.
       formio.hook.alter('getUpdates', files, function(err, files) {
-        if(err) {
+        if (err) {
           return next(err);
         }
 
@@ -291,34 +319,6 @@ module.exports = function(formio) {
         next();
       });
     });
-  };
-
-  /**
-   * Unlock the formio lock.
-   *
-   * @param next
-   *   The next function to invoke after this function has finished.
-   */
-  var unlock = function(next) {
-    if (!currentLock) {
-      return next(new Error('Could not find the formio lock to unlock..'));
-    }
-
-    currentLock.isLocked = false;
-    schema.findOneAndUpdate(
-      {key: 'formio'},
-      {$set: {isLocked: currentLock.isLocked}},
-      {returnOriginal: false},
-      function(err, result) {
-        if (err) {
-          return next(err);
-        }
-
-        currentLock = result.value;
-        debug('Lock unlocked: ' + JSON.stringify(currentLock));
-        next();
-      }
-    );
   };
 
   /**
@@ -360,7 +360,7 @@ module.exports = function(formio) {
         currentLock = document[0];
 
         if (currentLock.isLocked) {
-          console.log(' > DB is already locked for updating');
+          formio.util.log(' > DB is already locked for updating');
         }
         else {
           // Lock
@@ -432,11 +432,11 @@ module.exports = function(formio) {
    *   The next function to invoke after this function has finished.
    */
   var doUpdates = function(next) {
-    console.log('Checking for db schema updates.');
+    formio.util.log('Checking for db schema updates.');
 
     // Skip updates if there are no pending updates to apply.
     if (!pendingUpdates(config.schema, currentLock.version)) {
-      console.log(' > No updates found.\n');
+      formio.util.log(' > No updates found.\n');
       return next();
     }
 
@@ -447,7 +447,7 @@ module.exports = function(formio) {
 
       // Display progress.
       if (applicable) {
-        console.log(' > Pending schema update: ' + potential);
+        formio.util.log(' > Pending schema update: ' + potential);
       }
 
       return applicable;
@@ -457,7 +457,7 @@ module.exports = function(formio) {
     debug('Pending updates: ' + JSON.stringify(pending));
     if (pending.length > 0) {
       async.eachSeries(pending, function(pending, callback) {
-        console.log(' > Starting schema update to ' + pending);
+        formio.util.log(' > Starting schema update to ' + pending);
 
         // Load the update then update the schema lock version.
         var _update = null;
@@ -466,13 +466,13 @@ module.exports = function(formio) {
         try {
           _update = require(__dirname + '/updates/' + pending);
         }
-        catch(e) {
+        catch (e) {
           _update = formio.hook.alter('updateLocation', pending);
         }
 
         // Attempt to resolve the update.
         try {
-          if(!_update) {
+          if (!_update) {
             return callback('Could not resolve the path for update: ' + pending);
           }
 
@@ -484,7 +484,7 @@ module.exports = function(formio) {
             tools.updateLockVersion(pending, callback);
           });
         }
-        catch(e) {
+        catch (e) {
           return callback(e);
         }
       }, function(err) {
@@ -493,15 +493,15 @@ module.exports = function(formio) {
           return next(err);
         }
 
-        console.log(' > Done applying pending updates\n');
+        formio.util.log(' > Done applying pending updates\n');
         next();
       });
     }
     else {
-      console.log(' > No pending updates are available.');
-      console.log('   > Code version: ' + version);
-      console.log('   > Schema version: ' + currentLock.version);
-      console.log('   > Latest Available: ' + updates[updates.length-1] + '\n');
+      formio.util.log(' > No pending updates are available.');
+      formio.util.log('   > Code version: ' + config.schema);
+      formio.util.log('   > Schema version: ' + currentLock.version);
+      formio.util.log('   > Latest Available: ' + updates[updates.length-1] + '\n');
       return next();
     }
   };

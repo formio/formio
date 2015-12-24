@@ -5,7 +5,6 @@ var mongoose = require('mongoose');
 var _ = require('lodash');
 
 module.exports = function(router) {
-
   // Include the hook system.
   var hook = require('../util/hook')(router.formio);
 

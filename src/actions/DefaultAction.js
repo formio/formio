@@ -138,7 +138,6 @@ module.exports = function(router) {
             if (router.resourcejs.hasOwnProperty(url) && router.resourcejs[url].hasOwnProperty(method)) {
               // Call the Resource.js
               router.resourcejs[url][method].call(this, childReq, res, function() {
-
                 // Assign the resource item back to the resourceData for saving.
                 resourceData[name] = res.resource.item;
 

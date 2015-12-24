@@ -9,7 +9,7 @@ var debug = {
 };
 var util = require('../util/util');
 
-module.exports = function (router, resourceName, resourceId) {
+module.exports = function(router, resourceName, resourceId) {
   var hook = require('../util/hook')(router.formio);
   var fieldActions = require('../actions/fields/index')(router);
   var handlers = {};
@@ -134,14 +134,14 @@ module.exports = function (router, resourceName, resourceId) {
 
           // Execute the field handler.
           executeFieldHandler(component, (req.handlerName + 'Action'), req, res, done);
-        }, function(error) {
-          if (error) {
-            return next(error);
+        }, function(err) {
+          if (err) {
+            return next(err);
           }
 
-          router.formio.actions.execute('before', method.name, req, res, function(executeErr) {
-            if (executeErr) {
-              return next(executeErr);
+          router.formio.actions.execute('before', method.name, req, res, function(err) {
+            if (err) {
+              return next(err);
             }
 
             // Fix issues with /PUT adding data to the payload with undefined value.

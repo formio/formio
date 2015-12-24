@@ -47,7 +47,7 @@ module.exports = function(router) {
               return callback(err);
             }
             if (!item) {
-              _debug('No Form found with formId: ' + req.formId)
+              _debug('No Form found with formId: ' + req.formId);
               return callback('No Form found with formId: ' + req.formId);
             }
 
@@ -136,7 +136,6 @@ module.exports = function(router) {
             done(null, access);
           }
           else {
-
             // Load the default role.
             router.formio.resources.role.model.findOne(hook.alter('roleQuery', query, req), function(err, role) {
               if (err) {
@@ -186,12 +185,12 @@ module.exports = function(router) {
       // Determine the roles and user based on the available token.
       var roles = [access.defaultRole];
       var user = null;
-      if(req.user) {
+      if (req.user) {
         user = req.user._id;
 
         // Get the roles for the permission checks.
         req.user.roles = req.user.roles || [];
-        if(req.user.roles.length > 0) {
+        if (req.user.roles.length > 0) {
           debug('User Roles: ' + JSON.stringify(req.user.roles));
 
           // Ensure that all roles are strings to be compatible for comparison.
@@ -247,7 +246,7 @@ module.exports = function(router) {
 
       debug('Search: ' + JSON.stringify(search));
       if (!search || typeof search === 'undefined') {
-        console.error({
+        router.formio.util.error({
           method: req.method,
           _method: method
         });
@@ -321,7 +320,10 @@ module.exports = function(router) {
     // Check for whitelisted paths.
     var whitelist = ['/health', '/current', '/logout'];
     var skip = _.any(whitelist, function(path) {
-      if ((req.url === path) || (req.url === hook.alter('url', path, req))) return true;
+      if ((req.url === path) || (req.url === hook.alter('url', path, req))) {
+        return true;
+      }
+
       return false;
     });
 
@@ -360,13 +362,13 @@ module.exports = function(router) {
       entity = hook.alter('accessEntity', entity, req);
 
       // Check for access.
-      if(router.formio.access.hasAccess(req, access, entity)) {
+      if (router.formio.access.hasAccess(req, access, entity)) {
         debug('Access Granted!');
         return next();
       }
 
       // Allow anyone to hook the access check.
-      if(hook.alter('hasAccess', false, req, access, entity)) {
+      if (hook.alter('hasAccess', false, req, access, entity)) {
         debug('Access Granted!');
         return next();
       }

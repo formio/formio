@@ -38,23 +38,24 @@ module.exports = function(router) {
       settings = settings || {};
 
       // Include only server types that have complete configurations
+      var missingSetting = null;
       var serverTypes = [];
-      if(settings.databases && settings.databases.mysql) {
-        var missingSetting = _.find(['host', 'port', 'database', 'user', 'password'], function(prop) {
+      if (settings.databases && settings.databases.mysql) {
+        missingSetting = _.find(['host', 'port', 'database', 'user', 'password'], function(prop) {
           return !settings.databases.mysql[prop];
         });
-        if(!missingSetting) {
+        if (!missingSetting) {
           serverTypes.push({
             type: 'mysql',
             title: 'MySQL'
           });
         }
       }
-      if(settings.databases && settings.databases.mssql) {
-        var missingSetting = _.find(['host', 'port', 'database', 'user', 'password'], function(prop) {
+      if (settings.databases && settings.databases.mssql) {
+        missingSetting = _.find(['host', 'port', 'database', 'user', 'password'], function(prop) {
           return !settings.databases.mssql[prop]
         });
-        if(!missingSetting) {
+        if (!missingSetting) {
           serverTypes.push({
             type: 'mssql',
             title: 'Microsoft SQL Server'
@@ -71,7 +72,9 @@ module.exports = function(router) {
           placeholder: 'Select the SQL Server Type',
           template: '<span>{{ item.title }}</span>',
           dataSrc: 'json',
-          data: { json: JSON.stringify(serverTypes) },
+          data: {
+            json: JSON.stringify(serverTypes)
+          },
           valueProperty: 'type',
           multiple: false
         },
@@ -118,21 +121,19 @@ module.exports = function(router) {
    *   The callback function to execute upon completion.
    */
   SQLAction.prototype.resolve = function(handler, method, req, res, next) {
-
     // Store the current resource.
     var currentResource = res.resource;
 
     // Load the settings.
     hook.settings(req, function(err, settings) {
-
       // Get the settings for this database type.
       settings = settings.databases[this.settings.type];
 
       // Make sure there aren't any missing settings
       var missingSetting = _.find(['host', 'port', 'database', 'user', 'password'], function(prop) {
-        return !settings[prop]
+        return !settings[prop];
       });
-      if(missingSetting) {
+      if (missingSetting) {
         return next(new Error('Database settings is missing `' + missingSetting + '`'));
       }
 
@@ -140,6 +141,8 @@ module.exports = function(router) {
       if (settings.host.search(/localhost|127\.0\.0\.1/) !== -1) {
         return next(new Error('Invalid SQL Host'));
       }
+
+      var method = req.method.toLowerCase();
 
       // Called when the submission is loaded.
       var onSubmission = function(submission) {
@@ -157,7 +160,6 @@ module.exports = function(router) {
             value = _.result(_.find(currentResource.item.externalIds, {type: 'SQLQuery'}), 'id');
           }
           else {
-
             // Replace all others with the data from the submission.
             var parts = arguments[1].split('.');
             for (var i = 0; i < parts.length; i++) {
@@ -185,13 +187,12 @@ module.exports = function(router) {
 
         // Perform a post execution.
         var postExecute = function(result) {
-
           // Update the resource with the external Id.
           router.formio.resources.submission.model.findOne(
             {_id: currentResource.item._id, deleted: {$eq: null}}
           ).exec(function(err, submission) {
               if (err) {
-                return console.log(err);
+                return router.formio.util.log(err);
               }
 
               // Update the submissions externalIds.
@@ -202,7 +203,7 @@ module.exports = function(router) {
               });
               submission.save(function(err, submission) {
                 if (err) {
-                  return console.log(err);
+                  return router.formio.util.log(err);
                 }
               });
             });
@@ -252,7 +253,6 @@ module.exports = function(router) {
         }
       }.bind(this);
 
-      var method = req.method.toLowerCase();
       if (method === 'post' && req.body) {
         onSubmission(req.body);
       }
