@@ -42,8 +42,14 @@ module.exports = function(formio) {
             }
           );
         }
-        if(_.get(settings, 'email.sendgrid.auth.api_user')
-          && _.get(settings, 'email.sendgrid.auth.api_key')) {
+        if(_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key')
+          || (!_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key'))
+        ) {
+          // Omit the username if user has configured sendgrid for api key access.
+          if(_.get(settings, 'email.sendgrid.auth.api_user') === 'apikey') {
+            settings.email.sendgrid.auth = _.omit(settings.email.sendgrid.auth, 'api_user');
+          }
+
           availableTransports.push(
             {
               transport: 'sendgrid',
@@ -82,7 +88,6 @@ module.exports = function(formio) {
       };
     },
     send: function(req, res, message, params, next) {
-
       // The transporter object.
       var transporter = null;
 
@@ -102,10 +107,12 @@ module.exports = function(formio) {
           });
 
           // We do not want to block the request to send an email.
+          debug('We do not want to block the request to send an email.');
           next();
         }
         else {
           // No transport configured, dont send an email.
+          debug('No transport configured, dont send an email.');
           next();
         }
       };
@@ -115,17 +122,28 @@ module.exports = function(formio) {
         if (err) { return; }
         var emailType = message.transport ? message.transport : 'default';
         var _config = (formio && formio.config && formio.config.email && formio.config.email.type);
-        debug(formio.config);
 
+        debug(formio.config);
+        debug(emailType);
         switch (emailType) {
           case 'default':
             if (_config && formio.config.email.type === 'sendgrid') {
-              transporter = nodemailer.createTransport(sgTransport({
-                auth: {
-                  api_user: formio.config.email.username,
-                  api_key: formio.config.email.password
-                }
-              }));
+              // Check if the user has configured sendgrid for api key access.
+              if (!formio.config.email.username && formio.config.email.password) {
+                transporter = nodemailer.createTransport(sgTransport({
+                  auth: {
+                    api_key: formio.config.email.password
+                  }
+                }));
+              }
+              else {
+                transporter = nodemailer.createTransport(sgTransport({
+                  auth: {
+                    api_user: formio.config.email.username,
+                    api_key: formio.config.email.password
+                  }
+                }));
+              }
             }
             else if (_config && formio.config.email.type === 'mandrill') {
               transporter = nodemailer.createTransport(mandrillTransport({
@@ -137,7 +155,14 @@ module.exports = function(formio) {
             sendMail();
             break;
           case 'sendgrid':
+            debug(settings.email.sendgrid);
             if (settings.email.sendgrid) {
+              // Check if the user has configured sendgrid for api key access.
+              if (_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_user').toString() === 'apikey') {
+                settings.email.sendgrid.auth = _.omit(settings.email.sendgrid.auth, 'api_user');
+              }
+
+              debug(settings.email.sendgrid);
               transporter = nodemailer.createTransport(sgTransport(settings.email.sendgrid));
               sendMail();
             }
