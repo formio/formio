@@ -164,6 +164,7 @@ module.exports = function(formio) {
           try {
             var settings = tools.decrypt(config.mongoSecretOld, project.settings_encrypted.buffer);
             if (settings) {
+              /* eslint-disable camelcase */
               projects.update(
                 {_id: project._id},
                 {
@@ -172,6 +173,7 @@ module.exports = function(formio) {
                   }
                 }
               );
+              /* eslint-enable camelcase */
             }
           }
           catch (err) {

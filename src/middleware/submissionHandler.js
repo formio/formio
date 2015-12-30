@@ -171,6 +171,10 @@ module.exports = function(router, resourceName, resourceId) {
         // Load the current form.
         debug.after('Loading the form.');
         router.formio.cache.loadCurrentForm(req, function(err, currentForm) {
+          if (err) {
+            return next(err);
+          }
+
           async.eachSeries(util.flattenComponents(currentForm.components), function(component, done) {
             executeFieldHandler(component, req.handlerName, req, res, done);
           }, next);

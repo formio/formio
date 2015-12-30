@@ -47,6 +47,7 @@ var Validator = function(form, model) {
       this.customValidations[component.key] = component;
     }
 
+    /* eslint-disable max-depth, valid-typeof */
     switch (component.type) {
       case 'textfield':
       case 'textarea':
@@ -87,6 +88,7 @@ var Validator = function(form, model) {
         fieldValidator = Joi.any();
         break;
     }
+    /* eslint-enable max-depth, valid-typeof */
 
     // Only run validations for persistent fields with values but not on embedded.
     if (component.key && (component.key.indexOf('.') === -1) && component.persistent && component.validate) {

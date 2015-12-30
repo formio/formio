@@ -153,7 +153,8 @@ module.exports = function(router) {
           label: 'Message',
           key: 'settings[message]',
           type: 'textarea',
-          defaultValue: '<p>Forgot your password? No problem.</p><p><a href="{{ resetlink }}">Click here to reset your password</a></p> ',
+          defaultValue: '<p>Forgot your password? No problem.</p><p><a href="{{ resetlink }}">'
+                        + 'Click here to reset your password</a></p> ',
           multiple: false,
           rows: 3,
           suffix: '',
@@ -249,7 +250,6 @@ module.exports = function(router) {
       }.bind(this));
       return;
     }
-
 
     // Perform a mongo query to find the submission.
     router.formio.resources.submission.model.findOne(

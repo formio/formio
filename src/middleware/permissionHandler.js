@@ -179,6 +179,7 @@ module.exports = function(router) {
      * @returns boolean
      *   If the user has access to this method, with their given roles.
      */
+    /* eslint-disable max-statements */
     hasAccess: function(req, access, entity) {
       var method = req.method.toUpperCase();
 
@@ -302,6 +303,7 @@ module.exports = function(router) {
       debug('hasAccess: ' + _hasAccess);
       return _hasAccess;
     }
+    /* eslint-enable max-statements */
   };
 
   /**

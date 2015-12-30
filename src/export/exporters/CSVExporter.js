@@ -45,9 +45,11 @@ CSVExporter.prototype.start = function(deferred) {
   var row = null;
 
   this.stringifier.on('readable', function() {
+    /* eslint-disable no-cond-assign */
     while (row = this.stringifier.read()) {
       this.res.write(row.toString());
     }
+    /* eslint-enable no-cond-assign */
     deferred.resolve();
   }.bind(this));
   this.stringifier.write(_.pluck(this.fields, 'label'));

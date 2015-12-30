@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * This is the Form.io application server.
  */
@@ -81,7 +83,7 @@ formioServer.init().then(function(formio) {
   // See if they have any forms available.
   formio.db.collection('forms').count(function(err, numForms) {
     // If there are forms, then go ahead and start the server.
-    if (numForms > 0) {
+    if (!err && numForms > 0) {
       if (!install.download && !install.extract) {
         return start();
       }

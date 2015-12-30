@@ -1,3 +1,5 @@
+'use strict';
+
 var prompt = require('prompt');
 var async = require('async');
 var fs = require('fs-extra');

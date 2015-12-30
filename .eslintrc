@@ -5,6 +5,7 @@
   },
   "rules": {
     "curly": [2, "all"],
-    "no-unused-vars": [1, {"args": "all", "argsIgnorePattern": "req|res|next|router"}],
+    "no-unused-vars": [1, {"args": "none"}],
+    "strict": [2, "global"]
   }
 }

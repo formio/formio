@@ -9,6 +9,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "primus": "^2.4.12"
+    "primus": "^4.0.4"
   }
 }

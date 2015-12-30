@@ -73,7 +73,6 @@ module.exports = function(router) {
             this.queue(row);
           }));
 
-
           // Create the stream.
           exporter.stream(stream).pipe(res);
         })

@@ -1,3 +1,5 @@
+'use strict';
+
 var mongoose = require('mongoose');
 
 module.exports = exports = function(schema, options) {

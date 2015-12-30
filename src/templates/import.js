@@ -111,7 +111,9 @@ module.exports = function(formio) {
             }
             if (!doc) {
               debug._install('Existing not found');
+              /* eslint-disable new-cap */
               doc = new model(document);
+              /* eslint-enable new-cap */
             }
             else {
               debug._install('Existing found');

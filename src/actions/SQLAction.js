@@ -35,6 +35,10 @@ module.exports = function(router) {
   };
   SQLAction.settingsForm = function(req, res, next) {
     hook.settings(req, function(err, settings) {
+      if (err) {
+        return next(null, {});
+      }
+
       settings = settings || {};
 
       // Include only server types that have complete configurations
@@ -53,7 +57,7 @@ module.exports = function(router) {
       }
       if (settings.databases && settings.databases.mssql) {
         missingSetting = _.find(['host', 'port', 'database', 'user', 'password'], function(prop) {
-          return !settings.databases.mssql[prop]
+          return !settings.databases.mssql[prop];
         });
         if (!missingSetting) {
           serverTypes.push({
@@ -126,6 +130,10 @@ module.exports = function(router) {
 
     // Load the settings.
     hook.settings(req, function(err, settings) {
+      if (err) {
+        return next(err);
+      }
+
       // Get the settings for this database type.
       settings = settings.databases[this.settings.type];
 

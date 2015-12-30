@@ -220,7 +220,6 @@ module.exports = function(router) {
         submissionId: submission._id
       }, req);
 
-
       // Execute the resourcejs methods associated with the submissions.
       router.resourcejs[url].get.call(this, childReq, res, next);
     };

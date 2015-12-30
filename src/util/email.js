@@ -122,12 +122,14 @@ module.exports = function(formio) {
         switch (emailType) {
           case 'default':
             if (_config && formio.config.email.type === 'sendgrid') {
+              /* eslint-disable camelcase */
               transporter = nodemailer.createTransport(sgTransport({
                 auth: {
                   api_user: formio.config.email.username,
                   api_key: formio.config.email.password
                 }
               }));
+              /* eslint-enable camelcase */
             }
             else if (_config && formio.config.email.type === 'mandrill') {
               transporter = nodemailer.createTransport(mandrillTransport({

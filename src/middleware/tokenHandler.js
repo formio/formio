@@ -79,7 +79,10 @@ module.exports = function(router) {
             // Ensure that the user is a js object and not a mongoose document.
             user = user.toObject();
           }
-          catch (e) {}
+          /* eslint-disable no-empty */
+          catch (e) {
+          }
+          /* eslint-enable no-empty */
         }
 
         // Allow anyone to alter the user.

@@ -39,7 +39,10 @@ module.exports = function(req, router, cb) {
       options.title = options.shortTitle + ' API';
     }
     if (!options.description) {
-      options.description = options.shortTitle + ' Swagger 2.0 API specification.  This API spec can be used for integrating your Form.io project into non-HTML5 programs like "native" phone apps, "legacy" and "enterprise" systems, embedded "Internet of Things" applications (IoT), and other programming languages.  Note: The URL\'s below are configured for your specific project and form.';
+      options.description = options.shortTitle + ' Swagger 2.0 API specification.  This API spec can be used for '
+        + 'integrating your Form.io project into non-HTML5 programs like "native" phone apps, "legacy" and "enterprise"'
+        + ' systems, embedded "Internet of Things" applications (IoT), and other programming languages.  Note: '
+        + 'The URL\'s below are configured for your specific project and form.';
     }
     if (!options.version) {
       options.version = '1.0.0';
@@ -104,7 +107,11 @@ module.exports = function(req, router, cb) {
   };
 
   if (typeof req.formId !== 'undefined' && req.formId !== null) {
-    var form = router.formio.cache.loadCurrentForm(req, function(err, form) {
+    router.formio.cache.loadCurrentForm(req, function(err, form) {
+      if (err) {
+        throw err;
+      }
+
       var specs = [
         router.formio.resources.submission.swagger(
           resourceUrl(form),
@@ -115,7 +122,7 @@ module.exports = function(req, router, cb) {
     });
   }
   else {
-    var forms = router.formio.resources.form.model.find(hook.alter('formQuery', {}, req), function(err, forms) {
+    router.formio.resources.form.model.find(hook.alter('formQuery', {}, req), function(err, forms) {
       if (err) {
         throw err;
       }
