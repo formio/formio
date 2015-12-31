@@ -2,6 +2,7 @@
 var _ = require('lodash');
 var util = require('../util/util');
 var nunjucks = require('nunjucks');
+var request = require('request');
 
 nunjucks.configure([], {
   watch: false
@@ -109,6 +110,14 @@ module.exports = function(router) {
           multiple: false
         },
         {
+          label: 'Email Template URL',
+          key: 'settings[template]',
+          inputType: 'text',
+          type: 'textfield',
+          multiple: false,
+          placeholder: 'Enter a URL for your external email template.'
+        },
+        {
           label: 'Message',
           key: 'settings[message]',
           type: 'textarea',
@@ -164,11 +173,28 @@ module.exports = function(router) {
       // Get the parameters for the email.
       params.form = form;
 
-      // Prepend the macros to the message so that they can use them.
-      this.settings.message = macros + this.settings.message;
+      var sendEmail = function(message) {
 
-      // Send the email.
-      emailer.send(req, res, this.settings, params, next);
+        // Prepend the macros to the message so that they can use them.
+        this.settings.message = message;
+
+        // Send the email.
+        emailer.send(req, res, this.settings, params, next);
+      }.bind(this);
+
+      if (this.settings.template) {
+        request(this.settings.template, function(error, response, body) {
+          if (!error && response.statusCode == 200) {
+            sendEmail(body);
+          }
+          else {
+            sendEmail(macros + this.settings.message);
+          }
+        }.bind(this));
+      }
+      else {
+        sendEmail(macros + this.settings.message);
+      }
     }.bind(this));
   };
 
