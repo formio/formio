@@ -1,6 +1,7 @@
 'use strict';
 
 var async = require('async');
+var util = require('../util/util');
 
 /**
  * Install script.
@@ -9,7 +10,7 @@ var async = require('async');
  * update is expecting.
  */
 module.exports = function(db, config, next) {
-  console.log(' > Performing install.');
+  util.log(' > Performing install.');
 
   async.parallel([
     function(cb) {

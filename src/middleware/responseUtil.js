@@ -7,7 +7,6 @@
  * @returns {Function}
  */
 module.exports = function(router) {
-
   // Add jsonPretty to res object
   router.use(function(req, res, next) {
     res.jsonPretty = function(obj) {
@@ -16,5 +15,4 @@ module.exports = function(router) {
     };
     next();
   });
-
 };

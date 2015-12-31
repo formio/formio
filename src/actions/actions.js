@@ -6,7 +6,7 @@ var mongoose = require('mongoose');
 var _ = require('lodash');
 var debug = {
   search: require('debug')('formio:action#search'),
-  execute: require('debug')('formio:action#execute'),
+  execute: require('debug')('formio:action#execute')
 };
 
 /**
@@ -18,7 +18,6 @@ var debug = {
  */
 module.exports = function(router) {
   var Action = router.formio.Action;
-
   var hook = require('../util/hook')(router.formio);
 
   /**
@@ -55,7 +54,10 @@ module.exports = function(router) {
      * @param next
      */
     search: function(handler, method, form, next) {
-      if (!form) { return next(); }
+      if (!form) {
+        return next();
+      }
+
       async.waterfall([
         function queryMongo(callback) {
           this.model
@@ -66,7 +68,7 @@ module.exports = function(router) {
               deleted: {$eq: null}
             })
             .sort('-priority')
-            .exec(function (err, rows) {
+            .exec(function(err, rows) {
               if (err) {
                 return callback(err);
               }
@@ -83,8 +85,7 @@ module.exports = function(router) {
             var includeDefault = true;
 
             // Iterate through each action.
-            _.each(rows, function (row, index) {
-
+            _.each(rows, function(row) {
               // If there is already a default action.
               if (row.name === 'default') {
                 includeDefault = false;
@@ -145,7 +146,10 @@ module.exports = function(router) {
      * @param next
      */
     execute: function(handler, method, req, res, next) {
-      if (!req.formId) { return next(); }
+      if (!req.formId) {
+        return next();
+      }
+
       async.waterfall([
         function actionSearch(callback) {
           this.search(handler, method, req.formId, function(err, result) {
@@ -341,7 +345,7 @@ module.exports = function(router) {
 
     // Iterate through each of the available actions.
     async.eachSeries(_.values(ActionIndex.actions), function(action, callback) {
-      action.info(req, res, function (err, info) {
+      action.info(req, res, function(err, info) {
         if (err) {
           return callback(err);
         }
@@ -365,7 +369,11 @@ module.exports = function(router) {
   router.get('/form/:formId/actions/:name', function(req, res, next) {
     if (ActionIndex.actions[req.params.name]) {
       var action = ActionIndex.actions[req.params.name];
-      action.info(req, res, function (err, info) {
+      action.info(req, res, function(err, info) {
+        if (err) {
+          return next(err);
+        }
+
         info.defaults = info.defaults || {};
         info.defaults = _.assign(info.defaults, {
           priority: info.priority || 0,
@@ -375,7 +383,10 @@ module.exports = function(router) {
 
         var settings = getSettingsForm(action);
         action.settingsForm(req, res, function(err, settingsForm) {
-          if (err) { next(err) }
+          if (err) {
+            return next(err);
+          }
+
           settings.actionSettings.components = settingsForm;
           info.settingsForm = settings.settingsForm;
           info.settingsForm.action = hook.alter('url', '/form/' + req.params.formId + '/action', req);
@@ -385,7 +396,7 @@ module.exports = function(router) {
       });
     }
     else {
-      next('Action not found');
+      return next('Action not found');
     }
   });
 
@@ -442,7 +453,9 @@ module.exports = function(router) {
       router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
       actionPayload
     ];
-    handlers['after' + method] = [router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens'])];
+    handlers['after' + method] = [
+      router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens'])
+    ];
   });
 
   // Add specific middleware to individual endpoints.
@@ -461,7 +474,6 @@ module.exports = function(router) {
    *
    * @TODO: Add `action` validation on POST/PUT with the keys inside `available`.
    */
-
   Resource(router, '/form/:formId', 'action', ActionIndex.model).rest(handlers);
 
   // Return the action index.

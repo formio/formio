@@ -20,7 +20,7 @@ module.exports = function(router) {
     var token = util.getRequestValue(req, 'x-jwt-token');
 
     // Skip the token handling if no token was given.
-    if(!token) {
+    if (!token) {
       debug('No token');
       req.user = null;
       req.token = null;
@@ -31,11 +31,11 @@ module.exports = function(router) {
 
     // Decode/refresh the token and store for later middleware.
     jwt.verify(token, router.formio.config.jwt.secret, function(err, decoded) {
-      if(err || !decoded) {
+      if (err || !decoded) {
         debug(err || 'Token could not decoded: ' + token);
 
         // If the token has expired, send a 440 error (Login Timeout)
-        if(
+        if (
           err &&
           (err.name === 'TokenExpiredError') ||
           (err.name === 'JsonWebTokenError')
@@ -48,7 +48,7 @@ module.exports = function(router) {
       }
 
       // If this is a temporary token, then decode it and set it in the request.
-      if(decoded.temp) {
+      if (decoded.temp) {
         debug('Temp token');
         req.tempToken = decoded;
         req.user = null;
@@ -56,10 +56,10 @@ module.exports = function(router) {
         res.token = null;
         return next();
       }
-      if(!decoded.form || !decoded.form._id) {
+      if (!decoded.form || !decoded.form._id) {
         return res.sendStatus(401);
       }
-      if(!decoded.user || !decoded.user._id) {
+      if (!decoded.user || !decoded.user._id) {
         return res.sendStatus(401);
       }
 
@@ -69,7 +69,7 @@ module.exports = function(router) {
       // Load the user submission.
       var cache = router.formio.cache || require('../cache/cache')(router);
       cache.loadSubmission(req, decoded.form._id, decoded.user._id, function(err, user) {
-        if(err) {
+        if (err) {
           // Couldn't load the use, try to fail safely.
           user = decoded.user;
           debug('Error: ' + JSON.stringify(err));
@@ -78,7 +78,11 @@ module.exports = function(router) {
           try {
             // Ensure that the user is a js object and not a mongoose document.
             user = user.toObject();
-          } catch(e) {}
+          }
+          /* eslint-disable no-empty */
+          catch (e) {
+          }
+          /* eslint-enable no-empty */
         }
 
         // Allow anyone to alter the user.
@@ -100,7 +104,7 @@ module.exports = function(router) {
             : token;
 
           // Set the headers if they haven't been sent yet.
-          if(!res.headersSent) {
+          if (!res.headersSent) {
             res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
             res.setHeader('x-jwt-token', res.token);
           }

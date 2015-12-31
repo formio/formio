@@ -97,4 +97,4 @@ module.exports = function(formio) {
   Action.prototype.resolve = function(handler, method, req, res, next) {};
 
   return Action;
-}
+};

@@ -2,7 +2,6 @@
 
 var _ = require('lodash');
 var async = require('async');
-var mongoose = require('mongoose');
 var Validator = require('../resources/Validator');
 var util = require('../util/util');
 var debug = require('debug')('formio:action:default');
@@ -93,6 +92,10 @@ module.exports = function(router) {
 
     // Load the current form.
     router.formio.cache.loadCurrentForm(req, function(err, currentForm) {
+      if (err) {
+        return next(err);
+      }
+
       // Next we need to validate the input.
       var validator = new Validator(currentForm, router.formio.resources.submission.model);
 
@@ -138,7 +141,6 @@ module.exports = function(router) {
             if (router.resourcejs.hasOwnProperty(url) && router.resourcejs[url].hasOwnProperty(method)) {
               // Call the Resource.js
               router.resourcejs[url][method].call(this, childReq, res, function() {
-
                 // Assign the resource item back to the resourceData for saving.
                 resourceData[name] = res.resource.item;
 

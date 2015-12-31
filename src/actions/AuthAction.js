@@ -307,7 +307,7 @@ module.exports = function(router) {
               }
 
               debug(submission);
-              authenticateUser.call(this, callback)
+              authenticateUser.call(this, callback);
             }.bind(this));
           }.bind(this));
         }.bind(this));

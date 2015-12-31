@@ -9,7 +9,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "primus": "^2.4.12",
-    "ws": "^0.7.1"
+    "primus": "^4.0.4"
   }
 }

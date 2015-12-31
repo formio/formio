@@ -28,7 +28,7 @@ module.exports = function(router) {
         method: ['create', 'update', 'delete']
       }
     });
-  }
+  };
   WebhookAction.settingsForm = function(req, res, next) {
     next(null, [
       {

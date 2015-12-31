@@ -1,11 +1,9 @@
 'use strict';
 
-var util = require('../util/util');
 var exporters = require('./index');
 var _ = require('lodash');
-var mongoose = require('mongoose');
 var through = require('through');
-var node_url = require('url');
+var _url = require('url');
 
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
@@ -38,7 +36,7 @@ module.exports = function(router) {
           query = JSON.parse(req.headers['x-query']);
         }
         catch (e) {
-          console.log(e);
+          router.formio.util.log(e);
         }
       }
 
@@ -58,10 +56,10 @@ module.exports = function(router) {
         .then(function() {
           var addUrl = function(data) {
             _.each(data, function(field) {
-              if(field._id) {
+              if (field._id) {
                 // Add url property for resource fields
                 var fieldUrl = hook.alter('fieldUrl', '/form/' + field.form + '/submission/' + field._id, form, field);
-                field.url = node_url.resolve(router.formio.config.apiHost, fieldUrl);
+                field.url = _url.resolve(router.formio.config.apiHost, fieldUrl);
                 // Recurse for nested resources
                 addUrl(field.data);
               }
@@ -75,11 +73,10 @@ module.exports = function(router) {
             this.queue(row);
           }));
 
-
           // Create the stream.
           exporter.stream(stream).pipe(res);
         })
-        .catch(function (error) {
+        .catch(function(error) {
           // Send the error.
           res.status(500).send(error);
         });

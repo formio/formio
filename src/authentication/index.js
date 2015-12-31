@@ -79,10 +79,10 @@ module.exports = function(router) {
 
     // Find the user object.
     router.formio.resources.submission.model.findOne(query, function(err, user) {
-      if(err) {
+      if (err) {
         return next(err);
       }
-      if(!user) {
+      if (!user) {
         return next(new Error('Invalid user'));
       }
 
@@ -98,7 +98,7 @@ module.exports = function(router) {
 
         // Allow anyone to hook and modify the user.
         hook.alter('user', user, function hookUserCallback(err, _user) {
-          if(err) {
+          if (err) {
             // Attempt to fail safely and not update the user reference.
             debug.authenticate(err);
           }

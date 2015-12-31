@@ -1,6 +1,11 @@
 {
-  "extends": "formio",
+  "extends": "eslint-config-formio",
   "env": {
     "node": true
   },
+  "rules": {
+    "curly": [2, "all"],
+    "no-unused-vars": [1, {"args": "none"}],
+    "strict": [2, "global"]
+  }
 }

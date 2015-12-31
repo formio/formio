@@ -67,6 +67,10 @@ describe('Bootstrap Test modules', function() {
       description: template.description,
       name: template.name
     }, function(err, _export) {
+      if (err) {
+        return done(err);
+      }
+
       assert.equal(_export.title, comparison.title);
       assert.equal(_export.description, comparison.description);
       assert.equal(_export.name, comparison.name);

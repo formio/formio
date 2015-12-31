@@ -5,7 +5,6 @@ var mongoose = require('mongoose');
 var _ = require('lodash');
 
 module.exports = function(router) {
-
   // Include the hook system.
   var hook = require('../util/hook')(router.formio);
 
@@ -53,7 +52,8 @@ module.exports = function(router) {
     next();
   };
 
-  return Resource(router, '', 'form', mongoose.model('form', router.formio.schemas.form)).rest(hook.alter('formRoutes', {
+  return Resource(router, '', 'form', mongoose.model('form', router.formio.schemas.form))
+  .rest(hook.alter('formRoutes', {
     before: [
       router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
       router.formio.middleware.bootstrapEntityOwner(false),

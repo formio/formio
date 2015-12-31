@@ -2,7 +2,6 @@
 
 module.exports = {
   load: function(router, server) {
-
     // Create our Primus server for websocket communication.
     var primus = require('primus')(server, {transformer: 'websockets'});
 
@@ -28,7 +27,7 @@ module.exports = {
     });
 
     // Called when a connection has been made.
-    primus.on('connection', function (spark) {
+    primus.on('connection', function(spark) {
       client = spark;
       client.on('data', function(data) {
         if (clientData) {

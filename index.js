@@ -9,7 +9,6 @@ var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
 var _ = require('lodash');
 var events = require('events');
-var fs = require('fs');
 var Q = require('q');
 var nunjucks = require('nunjucks');
 var util = require('./src/util/util');
@@ -19,7 +18,6 @@ router.formio = {};
 
 // Allow custom configurations passed to the Form.IO server.
 module.exports = function(config) {
-
   // Give app a reference to our config.
   router.formio.config = config;
 
@@ -63,7 +61,7 @@ module.exports = function(config) {
         return deferred.reject(err);
       }
 
-      console.log('Initializing API Server.');
+      util.log('Initializing API Server.');
 
       // Add the database connection to the router.
       router.formio.db = db;
@@ -91,20 +89,18 @@ module.exports = function(config) {
         if (err instanceof SyntaxError) {
           res.status(400).send(err.message);
         }
-        else {
-          next();
-        }
+
+        next();
       });
 
       // CORS Support
       var corsRoute = cors(router.formio.hook.alter('cors'));
       router.use(function(req, res, next) {
         if (req.url === '/') {
-          next();
+          return next();
         }
-        else {
-          corsRoute(req, res, next);
-        }
+
+        corsRoute(req, res, next);
       });
 
       // Import our authentication models.
@@ -145,13 +141,13 @@ module.exports = function(config) {
 
       // Trigger when the connection is made.
       mongoose.connection.on('error', function(err) {
-        console.log(err.message);
+        util.log(err.message);
         deferred.reject(err.message);
       });
 
       // Called when the connection is made.
       mongoose.connection.once('open', function() {
-        console.log(' > Mongo connection established.');
+        util.log(' > Mongo connection established.');
 
         // Load the BaseModel.
         router.formio.BaseModel = require('./src/models/BaseModel');
@@ -183,6 +179,10 @@ module.exports = function(config) {
         router.get('/export', function(req, res, next) {
           var exportOptions = router.formio.hook.alter('exportOptions', {}, req, res);
           router.formio.exporter.export(exportOptions, function(err, _export) {
+            if (err) {
+              _export = '';
+            }
+
             res.attachment(exportOptions.name + '.json');
             res.end(JSON.stringify(_export));
           });
@@ -190,7 +190,7 @@ module.exports = function(config) {
 
         // Return the form components.
         router.get('/form/:formId/components', function(req, res, next) {
-          router.formio.resources.form.model.findOne({_id: req.params.formId}, function (err, form) {
+          router.formio.resources.form.model.findOne({_id: req.params.formId}, function(err, form) {
             if (err) {
               return next(err);
             }
