@@ -173,7 +173,6 @@ module.exports = function(router) {
       params.form = form;
 
       var sendEmail = function(message) {
-
         // Prepend the macros to the message so that they can use them.
         this.settings.message = message;
 
@@ -183,7 +182,7 @@ module.exports = function(router) {
 
       if (this.settings.template) {
         request(this.settings.template, function(error, response, body) {
-          if (!error && response.statusCode == 200) {
+          if (!error && response.statusCode === 200) {
             sendEmail(body);
           }
           else {
