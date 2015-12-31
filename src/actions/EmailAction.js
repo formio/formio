@@ -9,7 +9,6 @@ nunjucks.configure([], {
 
 module.exports = function(router) {
   var Action = router.formio.Action;
-  var hook = require('../util/hook')(router.formio);
   var emailer = require('../util/email')(router.formio);
   var macros = require('./macros/macros');
 

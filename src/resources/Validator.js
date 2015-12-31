@@ -33,7 +33,9 @@ var Validator = function(form, model) {
   // Iterate through each component.
   _.each(components, function(component) {
     var fieldValidator = null;
-    if (!component) { return; }
+    if (!component) {
+      return;
+    }
 
     // If the value must be unique.
     if (component.unique) {
@@ -45,6 +47,7 @@ var Validator = function(form, model) {
       this.customValidations[component.key] = component;
     }
 
+    /* eslint-disable max-depth, valid-typeof */
     switch (component.type) {
       case 'textfield':
       case 'textarea':
@@ -63,7 +66,6 @@ var Validator = function(form, model) {
       case 'number':
         fieldValidator = Joi.number().empty(null);
         if (component.validate) {
-
           // If the step is provided... we can infer float vs. integer.
           if (component.validate.step && (typeof component.validate.step !== 'any')) {
             var parts = component.validate.step.split('.');
@@ -75,7 +77,7 @@ var Validator = function(form, model) {
             }
           }
 
-          _.each(['min', 'max', 'greater', 'less'], function (check) {
+          _.each(['min', 'max', 'greater', 'less'], function(check) {
             if (component.validate[check] && (typeof component.validate[check] === 'number')) {
               fieldValidator = fieldValidator[check](component.validate[check]);
             }
@@ -86,6 +88,7 @@ var Validator = function(form, model) {
         fieldValidator = Joi.any();
         break;
     }
+    /* eslint-enable max-depth, valid-typeof */
 
     // Only run validations for persistent fields with values but not on embedded.
     if (component.key && (component.key.indexOf('.') === -1) && component.persistent && component.validate) {

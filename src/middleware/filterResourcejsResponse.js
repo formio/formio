@@ -13,7 +13,7 @@ var debug = require('debug')('formio:middleware:filterResourcejsResponse');
  */
 module.exports = function(router) {
   return function(settings) {
-    return function (req, res, next) {
+    return function(req, res, next) {
       if (!settings || settings === [] || !(settings instanceof Array)) {
         return next();
       }
@@ -48,11 +48,11 @@ module.exports = function(router) {
       // If there were multiple results, update the response list, otherwise return only the original item.
       if (multi) {
         res.resource.item = list;
-        next();
+        return next();
       }
       else {
         res.resource.item = list[0];
-        next();
+        return next();
       }
     };
   };

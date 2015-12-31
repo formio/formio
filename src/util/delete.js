@@ -63,85 +63,34 @@ module.exports = function(router) {
           next(null, submission);
         });
       });
-    } else {
-      router.formio.resources.submission.model.find({form: {$in: forms}, deleted: {$eq: null}}, function(err, submissions) {
-        if (err) {
-          debug.submission(err);
-          return next(err);
-        }
-        if (!submissions || submissions.length === 0) {
-          debug.submission('No submissions found for the forms: ' + JSON.stringify(forms));
-          return next();
-        }
-
-        submissions.forEach(function(submission) {
-          submission.deleted = (new Date()).getTime();
-          submission.save(function(err, submission) {
-            if (err) {
-              debug.submission(err);
-              return next(err);
-            }
-
-            debug.submission(submission);
-          });
-        });
-
-        next();
-      });
     }
-  };
-
-  /**
-   * Flag a form as deleted. If given a formId, one form will be flagged;
-   *
-   * @param formId {string|ObjectId}}
-   *   The form id to flag as deleted.
-   * @param next
-   *   The callback function to return the results.
-   *
-   * @returns {*}
-   */
-  var deleteForm = function(formId, next) {
-    if (!formId) {
-      debug.form('Skipping');
-      return next();
-    }
-
-    router.formio.resources.form.model.findOne({_id: formId, deleted: {$eq: null}}, function(err, form) {
-      if (err) {
-        debug.form(err);
-        return next(err);
-      }
-      if (!form) {
-        debug.form('No form found with the _id: ' + formId);
-        return next();
-      }
-
-      form.deleted = (new Date()).getTime();
-      form.save(function(err, form) {
-        if (err) {
-          debug.form(err);
-          return next(err);
-        }
-
-        deleteAction(null, formId, function(err) {
+    else {
+      router.formio.resources.submission.model.find({form: {$in: forms}, deleted: {$eq: null}})
+        .exec(function(err, submissions) {
           if (err) {
-            debug.form(err);
+            debug.submission(err);
             return next(err);
           }
+          if (!submissions || submissions.length === 0) {
+            debug.submission('No submissions found for the forms: ' + JSON.stringify(forms));
+            return next();
+          }
 
-          deleteSubmission(null, formId, function(err) {
-            if (err) {
-              debug.form(err);
-              return next(err);
-            }
+          submissions.forEach(function(submission) {
+            submission.deleted = (new Date()).getTime();
+            submission.save(function(err, submission) {
+              if (err) {
+                debug.submission(err);
+                return next(err);
+              }
 
-            debug.form(form);
-            next();
+              debug.submission(submission);
+            });
           });
+
+          next();
         });
-      });
-    });
+    }
   };
 
   /**
@@ -220,6 +169,59 @@ module.exports = function(router) {
   };
 
   /**
+   * Flag a form as deleted. If given a formId, one form will be flagged;
+   *
+   * @param formId {string|ObjectId}}
+   *   The form id to flag as deleted.
+   * @param next
+   *   The callback function to return the results.
+   *
+   * @returns {*}
+   */
+  var deleteForm = function(formId, next) {
+    if (!formId) {
+      debug.form('Skipping');
+      return next();
+    }
+
+    router.formio.resources.form.model.findOne({_id: formId, deleted: {$eq: null}}, function(err, form) {
+      if (err) {
+        debug.form(err);
+        return next(err);
+      }
+      if (!form) {
+        debug.form('No form found with the _id: ' + formId);
+        return next();
+      }
+
+      form.deleted = (new Date()).getTime();
+      form.save(function(err, form) {
+        if (err) {
+          debug.form(err);
+          return next(err);
+        }
+
+        deleteAction(null, formId, function(err) {
+          if (err) {
+            debug.form(err);
+            return next(err);
+          }
+
+          deleteSubmission(null, formId, function(err) {
+            if (err) {
+              debug.form(err);
+              return next(err);
+            }
+
+            debug.form(form);
+            next();
+          });
+        });
+      });
+    });
+  };
+
+  /**
    *
    * @param roleId
    * @param next
@@ -277,7 +279,7 @@ module.exports = function(router) {
               var temp = form.toObject()[access] || [];
 
               // Iterate the roles for each permission type, and remove the given roleId.
-              for(var b = 0; b < temp.length; b++) {
+              for (var b = 0; b < temp.length; b++) {
                 // Convert the ObjectIds to strings for comparison.
                 temp[b].roles = _.map((temp[b].roles || []), function(e) {
                   return e.toString();

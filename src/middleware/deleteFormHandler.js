@@ -1,7 +1,6 @@
 'use strict';
 
 var debug = require('debug')('formio:middleware:deleteFormHandler');
-var mongoose = require('mongoose');
 
 /**
  * The deleteFormHandler middleware.

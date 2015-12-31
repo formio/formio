@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = function(router) {
   return {
     alias: require('./alias')(router),

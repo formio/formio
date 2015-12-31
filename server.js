@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * This is the Form.io application server.
  */
@@ -5,15 +7,16 @@ var express = require('express');
 var config = require('config');
 var nunjucks = require('nunjucks');
 var fs = require('fs-extra');
+var util = require('./src/util/util');
 require('colors');
 
-console.log('');
+util.log('');
 var rl = require('readline').createInterface({
   input: require('fs').createReadStream('logo.txt')
 });
 
-rl.on('line', function (line) {
-  console.log(
+rl.on('line', function(line) {
+  util.log(
     line.substring(0,4) +
     line.substring(4, 30).cyan.bold +
     line.substring(30, 33) +
@@ -24,8 +27,8 @@ rl.on('line', function (line) {
 
 rl.on('close', function() {
   // Print the welcome screen.
-  console.log('');
-  console.log(fs.readFileSync('welcome.txt').toString().green);
+  util.log('');
+  util.log(fs.readFileSync('welcome.txt').toString().green);
 });
 
 // Get the express application.
@@ -43,10 +46,8 @@ server.use('/', express.static(__dirname + '/client/dist'));
 // Load the form.io server.
 var formioServer = require('./index')(config);
 formioServer.init().then(function(formio) {
-
   // Called when we are ready to start the server.
   var start = function() {
-
     // Start the application.
     if (fs.existsSync('app')) {
       var app = express();
@@ -54,14 +55,14 @@ formioServer.init().then(function(formio) {
       config.appPort = config.appPort || 8080;
       app.listen(config.appPort);
       var appHost = 'http://localhost:' + config.appPort;
-      console.log(' > Serving application at ' + appHost.green);
+      util.log(' > Serving application at ' + appHost.green);
     }
 
     // Mount the Form.io API platform at /api.
     server.use('/', formioServer);
 
     // Listen on the configured port.
-    console.log(' > Serving the Form.io API Platform at ' + config.domain.green);
+    util.log(' > Serving the Form.io API Platform at ' + config.domain.green);
     server.listen(config.port);
   };
 
@@ -81,15 +82,13 @@ formioServer.init().then(function(formio) {
 
   // See if they have any forms available.
   formio.db.collection('forms').count(function(err, numForms) {
-
     // If there are forms, then go ahead and start the server.
-    if (numForms > 0) {
+    if (!err && numForms > 0) {
       if (!install.download && !install.extract) {
         return start();
       }
     }
     else {
-
       // Import the project and create the user.
       install.import = true;
       install.user = true;
@@ -98,7 +97,7 @@ formioServer.init().then(function(formio) {
     // Install.
     require('./install')(formio, install, function(err) {
       if (err) {
-        return console.log(err.message);
+        return util.log(err.message);
       }
 
       // Start the server.
