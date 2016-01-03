@@ -163,6 +163,7 @@ module.exports = function(router) {
       // Flatten the resource data.
       util.eachComponent(form.components, function(component) {
         if (component.type === 'resource' && params.data[component.key]) {
+          params.data[component.key + 'Obj'] = params.data[component.key];
           params.data[component.key] = nunjucks.renderString(component.template, {
             item: params.data[component.key]
           });
