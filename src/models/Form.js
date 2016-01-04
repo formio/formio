@@ -58,7 +58,8 @@ module.exports = function(formio) {
   var invalidRegex = /[^0-9a-zA-Z\-\/]|^\-|\-$|^\/|\/$/;
   model.schema.path('name').validate(function(name, done) {
     return done(!invalidRegex.test(name));
-  }, 'The Name may only contain letters, numbers, hyphens, and forward slashes (but cannot start or end with a hyphen or forward slash)');
+  }, 'The Name may only contain letters, numbers, hyphens, and forward slashes (but cannot start or end with a hyphen '
+      + 'or forward slash)');
 
   // Validate the uniqueness of the value given for the name.
   model.schema.path('name').validate(function(value, done) {
@@ -89,7 +90,9 @@ module.exports = function(formio) {
   // Validate the path.
   model.schema.path('path').validate(function(value, done) {
     return done(!invalidRegex.test(value));
-  }, 'The Path may only contain letters, numbers, hyphens, and forward slashes (but cannot start or end with a hyphen or forward slash)');
+  }, 'The Path may only contain letters, numbers, hyphens, and forward slashes (but cannot start or end with a hyphen '
+      + 'or forward slash)'
+  );
 
   // Validate the uniqueness of the value given for the name.
   model.schema.path('path').validate(function(value, done) {
@@ -145,7 +148,9 @@ module.exports = function(formio) {
     }).all(function(key) {
       return key.match(validRegex);
     });
-  }, 'A component on this form has an invalid or missing API key. Keys must only contain alphanumeric characters or hyphens, and must start with a letter. Please check each component\'s API Property Name.');
+  }, 'A component on this form has an invalid or missing API key. Keys must only contain alphanumeric characters or '
+      + 'hyphens, and must start with a letter. Please check each component\'s API Property Name.'
+  );
 
   model.schema.path('path').validate(function(path) {
     return !path.match(/(submission|action)\/?$/);

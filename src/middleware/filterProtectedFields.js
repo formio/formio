@@ -13,22 +13,22 @@ var util = require('../util/util');
  * @returns {Function}
  */
 module.exports = function(router) {
-  return function (req, res, next) {
+  return function(req, res, next) {
     if (!res || !res.resource || !res.resource.item) {
       return next();
     }
 
     router.formio.cache.loadCurrentForm(req, function(err, currentForm) {
-      if(err) {
+      if (err) {
         return next(err);
       }
 
       _.each(util.flattenComponents(currentForm.components), function(component) {
-        if(component.protected) {
+        if (component.protected) {
           debug('Removing protected field:', component.key);
           var deleteProtected = deleteProp('data.' + util.getSubmissionKey(component.key));
 
-          if(_.isArray(res.resource.item)) {
+          if (_.isArray(res.resource.item)) {
             _.each(res.resource.item, deleteProtected);
           }
           else {

@@ -2,6 +2,7 @@
 var _ = require('lodash');
 var util = require('../util/util');
 var nunjucks = require('nunjucks');
+var request = require('request');
 
 nunjucks.configure([], {
   watch: false
@@ -9,7 +10,6 @@ nunjucks.configure([], {
 
 module.exports = function(router) {
   var Action = router.formio.Action;
-  var hook = require('../util/hook')(router.formio);
   var emailer = require('../util/email')(router.formio);
   var macros = require('./macros/macros');
 
@@ -109,6 +109,14 @@ module.exports = function(router) {
           multiple: false
         },
         {
+          label: 'Email Template URL',
+          key: 'settings[template]',
+          inputType: 'text',
+          type: 'textfield',
+          multiple: false,
+          placeholder: 'Enter a URL for your external email template.'
+        },
+        {
           label: 'Message',
           key: 'settings[message]',
           type: 'textarea',
@@ -155,6 +163,7 @@ module.exports = function(router) {
       // Flatten the resource data.
       util.eachComponent(form.components, function(component) {
         if (component.type === 'resource' && params.data[component.key]) {
+          params.data[component.key + 'Obj'] = params.data[component.key];
           params.data[component.key] = nunjucks.renderString(component.template, {
             item: params.data[component.key]
           });
@@ -164,11 +173,27 @@ module.exports = function(router) {
       // Get the parameters for the email.
       params.form = form;
 
-      // Prepend the macros to the message so that they can use them.
-      this.settings.message = macros + this.settings.message;
+      var sendEmail = function(message) {
+        // Prepend the macros to the message so that they can use them.
+        this.settings.message = message;
 
-      // Send the email.
-      emailer.send(req, res, this.settings, params, next);
+        // Send the email.
+        emailer.send(req, res, this.settings, params, next);
+      }.bind(this);
+
+      if (this.settings.template) {
+        request(this.settings.template, function(error, response, body) {
+          if (!error && response.statusCode === 200) {
+            sendEmail(body);
+          }
+          else {
+            sendEmail(macros + this.settings.message);
+          }
+        }.bind(this));
+      }
+      else {
+        sendEmail(macros + this.settings.message);
+      }
     }.bind(this));
   };
 

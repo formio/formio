@@ -23,7 +23,7 @@ module.exports = function(formio) {
       }
       return false;
     },
-    alter: function () {
+    alter: function() {
       var debug = require('debug')('formio:hook:alter');
       var name = arguments[0];
       var fn = (typeof arguments[arguments.length - 1] === 'function') ? arguments[arguments.length - 1] : null;

@@ -46,32 +46,33 @@ module.exports = function(router) {
 
         var update = [{type: 'read_all', roles: roles}];
         debug(update);
-        router.formio.resources.form.model.findOne({_id: res.resource.item._id, deleted: {$eq: null}}, function(err, form) {
-          if (err) {
-            debug(err);
-            return next(err);
-          }
-          if (!form) {
-            debug('No form found with _id: ' + res.resource.item._id);
-            return next();
-          }
-
-          // Update the actual form in mongo to reflect the access changes.
-          form.access = update;
-          form.save(function(err, form) {
+        router.formio.resources.form.model.findOne({_id: res.resource.item._id, deleted: {$eq: null}})
+          .exec(function(err, form) {
             if (err) {
               debug(err);
               return next(err);
             }
+            if (!form) {
+              debug('No form found with _id: ' + res.resource.item._id);
+              return next();
+            }
 
-            // Update the response to reflect the access changes.
-            // Filter the response to have no __v and deleted key.
-            var ret = _.omit(_.omit(form.toObject(), 'deleted'), '__v');
-            debug(JSON.stringify(ret));
-            res.resource.item = ret;
-            next();
+            // Update the actual form in mongo to reflect the access changes.
+            form.access = update;
+            form.save(function(err, form) {
+              if (err) {
+                debug(err);
+                return next(err);
+              }
+
+              // Update the response to reflect the access changes.
+              // Filter the response to have no __v and deleted key.
+              var ret = _.omit(_.omit(form.toObject(), 'deleted'), '__v');
+              debug(JSON.stringify(ret));
+              res.resource.item = ret;
+              next();
+            });
           });
-        });
       });
   };
 };

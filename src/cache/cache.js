@@ -33,7 +33,7 @@ module.exports = function(router) {
      * @param req
      * @param result
      */
-    updateCache: function (req, cache, result) {
+    updateCache: function(req, cache, result) {
       var formId = result._id.toString();
       if (!formId) {
         return;
@@ -61,7 +61,7 @@ module.exports = function(router) {
      * @param id {String}
      * @param cb {function}
      */
-    loadForm: function (req, type, id, cb) {
+    loadForm: function(req, type, id, cb) {
       var cache = this.cache(req);
       if (cache.forms[id]) {
         debug.loadForm('Cache hit: ' + id);
@@ -72,7 +72,7 @@ module.exports = function(router) {
       try {
         id = (typeof id === 'string') ? ObjectId(id) : id;
       }
-      catch(e) {
+      catch (e) {
         debug.loadForm(e);
         return cb('Invalid Form Id given.');
       }
@@ -94,7 +94,7 @@ module.exports = function(router) {
 
         var componentMap = {};
         result = result.toObject();
-        _.each(result.components, function (component) {
+        _.each(result.components, function(component) {
           componentMap[component.key] = component;
         });
         result.componentMap = componentMap;
@@ -152,7 +152,7 @@ module.exports = function(router) {
       try {
         formId = (typeof formId === 'string') ? ObjectId(formId) : formId;
       }
-      catch(e) {
+      catch (e) {
         debug.loadSubmission(e);
         return cb('Invalid Form Id given.');
       }
@@ -160,7 +160,7 @@ module.exports = function(router) {
       try {
         subId = (typeof subId === 'string') ? ObjectId(subId) : subId;
       }
-      catch(e) {
+      catch (e) {
         debug.loadSubmission(e);
         return cb('Invalid Submission Id given.');
       }

@@ -1,9 +1,6 @@
 'use strict';
 
-var mongoose = require('mongoose');
-
 module.exports = function(model) {
-
   // Add timestamps to the schema.
   model.schema.plugin(require('../plugins/timestamps'));
 

@@ -42,7 +42,9 @@ module.exports = function(router) {
 
     // Ignore the id of the role, if this is an update.
     if (this._id) {
-      search._id = { $ne: this._id };
+      search._id = {
+        $ne: this._id
+      };
     }
 
     // Search for roles that exist, with the given parameters.
