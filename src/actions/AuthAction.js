@@ -51,7 +51,7 @@ module.exports = function(router) {
   AuthAction.settingsForm = function(req, res, next) {
     var dataSrc = hook.alter('url', '/form/' + req.params.formId + '/components', req);
 
-    router.formio.resources.role.model.find(hook.alter('roleQuery', {}, req))
+    router.formio.resources.role.model.find(hook.alter('roleQuery', {deleted: {$eq: null}}, req))
       .sort({title: 1})
       .exec(function(err, roles) {
         if (err || !roles) {
