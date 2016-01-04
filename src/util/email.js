@@ -42,11 +42,11 @@ module.exports = function(formio) {
             }
           );
         }
-        if(_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key')
+        if (_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key')
           || (!_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key'))
         ) {
           // Omit the username if user has configured sendgrid for api key access.
-          if(_.get(settings, 'email.sendgrid.auth.api_user') === 'apikey') {
+          if (_.get(settings, 'email.sendgrid.auth.api_user') === 'apikey') {
             settings.email.sendgrid.auth = _.omit(settings.email.sendgrid.auth, 'api_user');
           }
           availableTransports.push(
@@ -106,11 +106,11 @@ module.exports = function(formio) {
           });
 
           debug('We do not want to block the request to send an email.');
-          next();
+          return next();
         }
         else {
           debug('No transport configured, dont send an email.');
-          next();
+          return next();
         }
       };
 
@@ -160,7 +160,9 @@ module.exports = function(formio) {
             debug(settings.email.sendgrid);
             if (settings.email.sendgrid) {
               // Check if the user has configured sendgrid for api key access.
-              if (_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_user').toString() === 'apikey') {
+              if (_.get(settings, 'email.sendgrid.auth.api_user')
+                && _.get(settings, 'email.sendgrid.auth.api_user').toString() === 'apikey'
+              ) {
                 settings.email.sendgrid.auth = _.omit(settings.email.sendgrid.auth, 'api_user');
               }
 
