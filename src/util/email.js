@@ -42,10 +42,6 @@ module.exports = function(formio) {
             }
           );
         }
-<<<<<<< HEAD
-        if (_.get(settings, 'email.sendgrid.auth.api_user')
-          && _.get(settings, 'email.sendgrid.auth.api_key')) {
-=======
         if(_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key')
           || (!_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key'))
         ) {
@@ -53,8 +49,6 @@ module.exports = function(formio) {
           if(_.get(settings, 'email.sendgrid.auth.api_user') === 'apikey') {
             settings.email.sendgrid.auth = _.omit(settings.email.sendgrid.auth, 'api_user');
           }
-
->>>>>>> origin/feature/add-sendgrid-api-key
           availableTransports.push(
             {
               transport: 'sendgrid',
