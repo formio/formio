@@ -340,6 +340,10 @@ module.exports = function(router) {
     router.formio.access.getAccess(req, res, function(err, access) {
       if (err) {
         debug(err);
+        if (_.isNumber(err)) {
+          return res.sendStatus(err);
+        }
+
         return res.status(400).send(err.message || err);
       }
 
