@@ -74,6 +74,12 @@ module.exports = function(router) {
           user = decoded.user;
           debug('Error: ' + JSON.stringify(err));
         }
+        else if (!user) {
+          req.user = null;
+          req.token = null;
+          res.token = null;
+          return next();
+        }
         else {
           try {
             // Ensure that the user is a js object and not a mongoose document.
