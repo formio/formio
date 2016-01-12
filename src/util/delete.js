@@ -116,6 +116,7 @@ module.exports = function(router) {
       forms = [forms];
     }
 
+    debug.action('Deleting ' + (actionId ? 'single action' : 'multiple actions'));
     if (actionId) {
       router.formio.actions.model.findOne({_id: actionId, deleted: {$eq: null}}, function(err, action) {
         if (err) {
@@ -127,6 +128,7 @@ module.exports = function(router) {
           return next();
         }
 
+        action.settings = action.settings || {};
         action.deleted = (new Date()).getTime();
         action.save(function(err, action) {
           if (err) {
@@ -151,6 +153,7 @@ module.exports = function(router) {
         }
 
         actions.forEach(function(action) {
+          action.settings = action.settings || {};
           action.deleted = (new Date()).getTime();
           action.save(function(err, action) {
             if (err) {
