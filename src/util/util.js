@@ -4,6 +4,7 @@ var mongoose = require('mongoose');
 var _ = require('lodash');
 var nodeUrl = require('url');
 var Q = require('q');
+var formioUtils = require('formio-utils');
 var debug = {
   getUrlParams: require('debug')('formio:util:getUrlParams')
 };
@@ -84,21 +85,7 @@ module.exports = {
    * @param components
    * @param eachComp
    */
-  eachComponent: function eachComponent(components, eachComp) {
-    _.each(components, function(component) {
-      if (component.columns && (component.columns.length > 0)) {
-        _.each(component.columns, function(column) {
-          eachComponent(column.components, eachComp);
-        });
-      }
-      else if (component.components && (component.components.length > 0)) {
-        eachComponent(component.components, eachComp);
-      }
-      else {
-        eachComp(component);
-      }
-    });
-  },
+  eachComponent: formioUtils.eachComponent,
 
   /**
    * Get a component by its key
@@ -106,15 +93,7 @@ module.exports = {
    * @param key The key of the component to get
    * @returns The component that matches the given key, or undefined if not found.
    */
-  getComponent: function getComponent(components, key) {
-    var result;
-    this.eachComponent(components, function(component) {
-      if (component.key === key) {
-        result = component;
-      }
-    });
-    return result;
-  },
+  getComponent: formioUtils.getComponent,
 
   /**
    * Flatten the form components for data manipulation.
@@ -122,13 +101,7 @@ module.exports = {
    * @param flattened
    * @returns {*|{}}
    */
-  flattenComponents: function flatten(components) {
-    var flattened = {};
-    this.eachComponent(components, function(component) {
-      flattened[component.key] = component;
-    });
-    return flattened;
-  },
+  flattenComponents: formioUtils.flattenComponents,
 
   /**
    * Return the objectId.
