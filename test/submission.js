@@ -5607,5 +5607,289 @@ module.exports = function(app, template, hook) {
         });
       })
     });
+
+    describe('create_all submission access with update_all submission permissions', function() {
+      // Store the temp form for this test suite.
+      var tempForm = {
+        title: 'dummyForm2',
+        name: 'dummyForm2',
+        path: 'dummy/form2',
+        type: 'form',
+        access: [],
+        submissionAccess: [],
+        components: [
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'value',
+            key: 'value',
+            label: 'value',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          }
+        ]
+      };
+
+      // Store the temp submissions for this test suite.
+      var tempSubmission = {data: {value: 'foo'}};
+      var tempSubmissions = [];
+      var temp = {};
+
+      // Before the suite runs, attach the test Project's id to the payload.
+      before(function() {
+        tempForm.access = [
+          {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+        ];
+        tempForm.submissionAccess = [
+          {type: 'update_all', roles: [template.roles.authenticated._id.toString()]}
+        ];
+      });
+
+      describe('Bootstrap', function() {
+        it('Create the Form for Ownership Checks', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(tempForm)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+              assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+              assert(response.hasOwnProperty('access'), 'The response should contain an the `access`.');
+              assert.equal(response.title, tempForm.title);
+              assert.equal(response.name, tempForm.name);
+              assert.equal(response.path, tempForm.path);
+              assert.equal(response.type, 'form');
+              assert.equal(response.access.length, 1);
+              assert.equal(response.access[0].type, 'read_all');
+              assert.equal(response.access[0].roles.length, 3);
+              assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
+              assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
+              assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
+
+              // Build a temp list to compare access without mongo id's.
+              var tempSubmissionAccess = [];
+              response.submissionAccess.forEach(function(role) {
+                tempSubmissionAccess.push(_.omit(role, '_id'));
+              });
+              assert.deepEqual(tempSubmissionAccess, tempForm.submissionAccess);
+              assert.deepEqual(response.components, tempForm.components);
+              tempForm = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+      });
+
+      describe('Authenticated User', function() {
+        it('An Authenticated User should be able create a submission in their name, with update_all permissions', function(done) {
+          var submission = _.clone(tempSubmission);
+
+          request(app)
+            .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.user1.token)
+            .send(submission)
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+              assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+              assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+              assert(response.data.hasOwnProperty('value'), 'The submission `data` should contain the `value`.');
+              assert.equal(response.data.value, tempSubmission.data.value);
+              assert(response.hasOwnProperty('form'), 'The response should contain the `form` id.');
+              assert.equal(response.form, tempForm._id);
+              assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+              assert.deepEqual(response.roles, []);
+              assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+              assert.notEqual(response.owner, null);
+              assert.equal(response.owner, template.users.user1._id);
+              assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+
+              // Update the submission data.
+              tempSubmissions.push(response);
+              temp = response;
+
+              // Store the JWT for future API calls.
+              template.users.user1.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('An Authenticated User should be able to create a submission in someones name, with update_all permissions', function(done) {
+          var submission = _.clone(tempSubmission);
+          submission.owner = template.users.admin._id;
+
+          request(app)
+            .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.user1.token)
+            .send(submission)
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+              assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+              assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+              assert(response.data.hasOwnProperty('value'), 'The submission `data` should contain the `value`.');
+              assert.equal(response.data.value, tempSubmission.data.value);
+              assert(response.hasOwnProperty('form'), 'The response should contain the `form` id.');
+              assert.equal(response.form, tempForm._id);
+              assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+              assert.deepEqual(response.roles, []);
+              assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+              assert.notEqual(response.owner, null);
+              assert.equal(response.owner, template.users.admin._id);
+              assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+
+              // Update the submission data.
+              tempSubmissions.push(response);
+
+              // Store the JWT for future API calls.
+              template.users.user1.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('An Authenticated User should be able to update the owner of a submission, with update_all permissions', function(done) {
+          var doc = {owner: template.users.admin._id};
+
+          request(app)
+            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + temp._id, template))
+            .set('x-jwt-token', template.users.user1.token)
+            .send(doc)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              // Remove the modified timestamp for comparison.
+              response = _.omit(response, 'modified');
+              // Update the owner of temp for comparison.
+              temp.owner = doc.owner;
+
+              assert.deepEqual(response, _.omit(temp, 'modified'));
+
+              // Store the JWT for future API calls.
+              template.users.user1.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+      });
+
+      describe('Anonymous User', function() {
+        it('An Anonymous User should not be able create a submission in their name, without permissions', function(done) {
+          var req = request(app)
+            .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+            .send(tempSubmission);
+
+          request401(req, done);
+        });
+
+        it('An Anonymous User should not be able to create a submission in someones name, without permissions', function(done) {
+          var submission = _.clone(tempSubmission);
+          submission.owner = template.users.user1._id;
+          var req = request(app)
+            .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+            .send(submission);
+
+          request401(req, done);
+        });
+
+        it('An Anonymous User should not be able to update the owner of a submission, without permissions', function(done) {
+          var req = request(app)
+            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + temp._id, template))
+            .send({data: temp.data, owner: template.users.admin._id});
+
+          request401(req, done);
+        });
+      });
+
+      describe('Submission Normalization', function() {
+        it('Delete the temp Submissions', function(done) {
+          tempSubmissions.forEach(function(submission) {
+            request(app)
+              .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.deepEqual(response, {});
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+              });
+          });
+
+          tempSubmissions = [];
+          done();
+        });
+      });
+
+      describe('Form Normalization', function() {
+        it('Delete the temp Form', function(done) {
+          request(app)
+            .delete(hook.alter('url', '/form/' + tempForm._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response, {});
+              tempForm = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+      });
+    });
   });
 };
