@@ -78,7 +78,7 @@ module.exports = function(router) {
                 // If the user has update_all permissions, give them create_all access also, to compensate for the
                 // hidden availability of create_all in the formio ui.
                 if (permission.type === 'update_all') {
-                  access.submission.create_all = access.submission.create_all || [];
+                  access.submission.create_all = access.submission.create_all || []; //eslint-disable-line camelcase
                 }
 
                 permission.roles.forEach(function(id) {
@@ -88,7 +88,7 @@ module.exports = function(router) {
                   // If the user has update_all permissions, give them create_all access also, to compensate for the
                   // hidden availability of create_all in the formio ui.
                   if (permission.type === 'update_all') {
-                    access.submission.create_all.push(id.toString());
+                    access.submission.create_all.push(id.toString()); //eslint-disable-line camelcase
                   }
                 });
               });
