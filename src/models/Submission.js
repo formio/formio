@@ -45,7 +45,7 @@ module.exports = function(formio) {
       // The access associated with this submission.
       // Useful for complex custom permissions.
       access: {
-        type: [formio.schema.AccessSchema],
+        type: [formio.schemas.AccessSchema],
         index: true
       },
 

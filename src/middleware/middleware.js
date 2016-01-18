@@ -10,6 +10,7 @@ module.exports = function(router) {
     condensePermissionTypes: require('./condensePermissionTypes')(router),
     filterMongooseExists: require('./filterMongooseExists')(router),
     filterResourcejsResponse: require('./filterResourcejsResponse')(router),
+    filterSubmissionAccess: require('./filterSubmissionAccess')(router),
     filterProtectedFields: require('./filterProtectedFields')(router),
     deleteActionHandler: require('./deleteActionHandler')(router),
     deleteFormHandler: require('./deleteFormHandler')(router),

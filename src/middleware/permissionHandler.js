@@ -8,6 +8,72 @@ var debug = require('debug')('formio:permissions');
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
 
+  /**
+   * Convert the submissions resource access into the common roles/permissions format for processing during the request.
+   *
+   * @param submission
+   * @param next
+   * @returns {*}
+   */
+  var getSubmissionResourceAccess = function(submission, access, next) {
+    var _debug = require('debug')('formio:permissions:getSubmissionResourceAccess');
+    if (!next) {
+      _debug('No next fn given.');
+      return;
+    }
+    if (!submission || !access) {
+      _debug('No submission (' + !!submission + ') or access (' + !!access + ') given.');
+      return next();
+    }
+    if (!_.has(submission, 'access')) {
+      _debug('No submission access defined for: ' + JSON.stringify(submission));
+      return next();
+    }
+
+    async.forEach(submission.access, function(permission, callback) {
+      // Only process the permission if it's in the correct format.
+      if (!_.has(permission, 'type') || !_.has(permission, 'resources')) {
+        _debug('Unknown permissions format: ' + JSON.stringify(permission));
+        return callback()
+      }
+
+      // Coerce all the resource ids into strings.
+      permission.resources = _(permission.resources).map(util.idToString()).uniq().value();
+
+      // Ensure the submission access permissions are defined before accessing them.
+      access.submission = access.submission || {};
+      access.submission.read_all = access.read_all || [];
+      access.submission.update_all = access.update_all || [];
+      access.submission.delete_all = access.delete_all || [];
+
+      // Convert the simplex read/write/admin rules into *_all permissions.
+      if (permission.type === 'read') {
+        access.submission.read_all.concat(permission.resources);
+      }
+      else if (permission.type === 'write') {
+        access.submission.read_all.concat(permission.resources);
+        access.submission.update_all.concat(permission.resources);
+      }
+      else if (permission.type === 'admin') {
+        access.submission.read_all.concat(permission.resources);
+        access.submission.update_all.concat(permission.resources);
+        access.submission.delete_all.concat(permission.resources);
+      }
+    }, function(err) {
+      // Force all the permissions to be unique and fix nested arrays from quick concat, even if an error occurred.
+      access.submission.read_all = _(access.submission.read_all).flattenDeep().uniq().value();
+      access.submission.update_all = _(access.submission.update_all).flattenDeep().uniq().value();
+      access.submission.delete_all = _(access.submission.delete_all).flattenDeep().uniq().value();
+      _debug('Updated submission access: ' + JSON.stringify(access.submission));
+
+      if (err) {
+        return next(err);
+      }
+
+      next();
+    });
+  };
+
   // Add this access handlers for all to use.
   router.formio.access = {
 
@@ -119,7 +185,8 @@ module.exports = function(router) {
 
             // Return the updated access list.
             _debug(JSON.stringify(access));
-            return callback(null);
+
+            return getSubmissionResourceAccess(submission, access, callback);
           });
         }
       ], req, res, access), function(err) {
