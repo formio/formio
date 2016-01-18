@@ -156,7 +156,8 @@ module.exports = function(config) {
         router.formio.plugins = require('./src/plugins/plugins');
 
         router.formio.schemas = {
-          PermissionSchema: require('./src/models/PermissionSchema')(router.formio)
+          PermissionSchema: require('./src/models/PermissionSchema')(router.formio),
+          AccessSchema: require('./src/models/AccessSchema')(router.formio)
         };
 
         // Get the models for our project.
