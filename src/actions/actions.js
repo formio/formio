@@ -308,7 +308,7 @@ module.exports = function(router) {
     settingsForm.components.push({
       type: 'button',
       input: true,
-      label: 'Submit',
+      label: 'Save',
       key: 'submit',
       size: 'md',
       leftIcon: '',
