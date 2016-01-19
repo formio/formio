@@ -206,6 +206,7 @@ module.exports = function(router) {
       var hasAdminRole = access.adminRole ? (_.indexOf(roles, access.adminRole) !== -1) : false;
       if (hasAdminRole || hook.alter('isAdmin', req.isAdmin, req)) {
         req.isAdmin = true;
+        debug('Admin: true');
         return true;
       }
 

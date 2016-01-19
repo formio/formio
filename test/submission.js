@@ -2755,7 +2755,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('The Project Owner should be able to update the owner of a submission, without permissions', function(done) {
-            var doc = {data: temp.data, owner: template.users.user1._id};
+            var doc = {data: temp.data, owner: template.users.admin._id};
 
             request(app)
               .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + temp._id, template))
@@ -2825,14 +2825,35 @@ module.exports = function(app, template, hook) {
               });
           });
 
+          // The submission will be made, but in there name rather than the one supplied.
           it('An Authenticated User should not be able to create a submission in someones name, with _own permissions', function(done) {
             var submission = _.clone(tempSubmission);
             submission.owner = template.users.admin._id;
-            var req = request(app)
-              .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
-              .send(submission);
 
-            request401(req, done, template.users.user1);
+            request(app)
+              .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+              .set('x-jwt-token', template.users.user1.token)
+              .send(submission)
+              .expect(201)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert(_.has(response, 'owner'));
+                assert.equal(response.owner, template.users.user1._id);
+                assert.notEqual(response.owner, template.users.admin._id);
+
+                // Update the submission data.
+                tempSubmissions.push(response);
+
+                // Store the JWT for future API calls.
+                template.users.user1.token = res.headers['x-jwt-token'];
+
+                done();
+              });
           });
 
           it('An Authenticated User should not be able to update the owner of a submission, with _own permissions', function(done) {
@@ -4821,7 +4842,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('The Project Owner should be able to update the owner of a submission, without permissions', function(done) {
-            var doc = {data: temp.data, owner: template.users.user1._id};
+            var doc = {data: temp.data, owner: template.users.admin._id};
 
             request(app)
               .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + temp._id, template))
@@ -4916,11 +4937,36 @@ module.exports = function(app, template, hook) {
           it('An Anonymous User should not be able to create a submission in someones name, with _own permissions', function(done) {
             var submission = _.clone(tempSubmission);
             submission.owner = template.users.user1._id;
-            var req = request(app)
+            request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
-              .send(submission);
+              .send(submission)
+              .expect(201)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
 
-            request401(req, done);
+                var response = res.body;
+                assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+                assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+                assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+                assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+                assert(response.data.hasOwnProperty('value'), 'The submission `data` should contain the `value`.');
+                assert.equal(response.data.value, tempSubmission.data.value);
+                assert(response.hasOwnProperty('form'), 'The response should contain the `form` id.');
+                assert.equal(response.form, tempForm._id);
+                assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+                assert.deepEqual(response.roles, []);
+                assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+                assert.equal(response.owner, null);
+                assert.notEqual(response.owner, template.users.user1._id);
+
+                // Update the submission data.
+                tempSubmissions.push(response);
+
+                done();
+              });
           });
 
           it('An Anonymous User should not be able to update the owner of a submission, with _own permissions', function(done) {
@@ -5169,7 +5215,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('The Project Owner should be able to update the owner of a submission, without permissions', function(done) {
-            var doc = {data: temp.data, owner: template.users.user1._id};
+            var doc = {data: temp.data, owner: template.users.admin._id};
 
             request(app)
               .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + temp._id, template))
