@@ -130,6 +130,7 @@ var Validator = function(form, model) {
 Validator.prototype.validate = function(submissionData, submissionRequest, next) {
   var valid = true;
   var error = null;
+  debug('Starting validation');
 
   /**
    * Invoke the Joi validator with our data.
@@ -137,12 +138,15 @@ Validator.prototype.validate = function(submissionData, submissionRequest, next)
    * @type {function(this:Validator)}
    */
   var joiValidate = function() {
+    debug('submissionData before: ' + JSON.stringify(submissionData));
+    debug('schema:' + JSON.stringify(this.schema));
     Joi.validate(submissionData, this.schema, {stripUnknown: true}, function(validateErr, value) {
       if (validateErr) {
         debug(validateErr);
         return next(validateErr);
       }
 
+      debug('value after: ' + JSON.stringify(value));
       next(null, value);
     });
   }.bind(this);
@@ -198,6 +202,7 @@ Validator.prototype.validate = function(submissionData, submissionRequest, next)
 
   // Iterate through each of the unique keys.
   var uniques = _.keys(this.unique);
+  debug('uniques:' + JSON.stringify(uniques));
   if (uniques.length > 0) {
     async.eachSeries(uniques, function(key, done) {
       var component = this.unique[key];

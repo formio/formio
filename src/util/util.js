@@ -86,7 +86,11 @@ module.exports = {
    */
   eachComponent: function eachComponent(components, eachComp) {
     _.each(components, function(component) {
-      if (component.columns && (component.columns.length > 0)) {
+      // If the component has a key, don't collapse.
+      if (component.key) {
+        eachComp(component);
+      }
+      else if (component.columns && (component.columns.length > 0)) {
         _.each(component.columns, function(column) {
           eachComponent(column.components, eachComp);
         });

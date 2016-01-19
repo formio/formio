@@ -109,6 +109,7 @@ module.exports = function(router) {
         // Iterate through each item in resource data.
         async.eachSeries(_.keys(resourceData), function(name, done) {
           router.formio.cache.loadFormByName(req, name, function(error, childResource) {
+            debug('childResource: ' + JSON.stringify(childResource));
             if (error) {
               return done(error);
             }
@@ -159,15 +160,17 @@ module.exports = function(router) {
           }
 
           // Update the request body to ignore keys that were removed during validation.
+          debug('value: ' + JSON.stringify(value));
           req.body.data = value;
           req.body.data = _.assign(req.body.data, resourceData);
 
           // Strip out the data object if it is empty, to stop the submission from being cleared.
           if (typeof req.body.data === 'object' && Object.keys(req.body.data).length === 0 && !initiallyEmpty) {
+            debug('Stripping req.body.data' + JSON.stringify(req.body));
             req.body = _.omit(req.body, 'data');
           }
 
-          debug(req.body);
+          debug('req.body: ' + JSON.stringify(req.body));
           next();
         });
       });
