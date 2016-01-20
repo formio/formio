@@ -12,6 +12,7 @@ module.exports = function(router) {
   handlers.beforePost = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.bootstrapEntityOwner(true),
+    router.formio.middleware.bootstrapSubmissionAccess,
     handlers.beforePost
   ];
   handlers.afterPost = [
@@ -31,6 +32,7 @@ module.exports = function(router) {
   handlers.beforePut = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.bootstrapEntityOwner(false),
+    router.formio.middleware.bootstrapSubmissionAccess,
     handlers.beforePut
   ];
   handlers.afterPut = [

@@ -318,6 +318,7 @@ module.exports = function(router) {
         && access[entity.type].hasOwnProperty('owner')
         && req.token.user._id === access[entity.type].owner
       ) {
+        debug('This request is being made by the owner, Access Granted.');
         _hasAccess = true;
       }
 
@@ -360,14 +361,16 @@ module.exports = function(router) {
               }
             }
             else {
-              // Only allow the the bootstrapEntityOwner middleware to assign an owner if defined in the payload.
-              if (
-                (type === 'create_all' || type === 'update_all')
-                && req.body
-                && req.body.hasOwnProperty('owner')
-                && req.body.owner
-              ) {
-                req.assignOwner = true;
+              if (type === 'create_all' || type === 'update_all') {
+                // Only allow the the bootstrapEntityOwner middleware to assign an owner if defined in the payload.
+                if (_.has(req, 'body.owner')) {
+                  req.assignOwner = true;
+                }
+
+                // Only allow the the bootstrapSubmissionAccess middleware to assign access if defined in the payload.
+                if (entity.type === 'submission' && _.has(req, 'body.access')) {
+                  req.assignSubmissionAccess = true;
+                }
               }
 
               // No ownership requirements here.
@@ -380,6 +383,7 @@ module.exports = function(router) {
 
       // No prior access was granted, the given role does not have access to this resource using the given method.
       debug('assignOwner: ' + req.assignOwner);
+      debug('assignSubmissionAccess: ' + req.assignSubmissionAccess);
       debug('hasAccess: ' + _hasAccess);
       return _hasAccess;
     }
