@@ -103,8 +103,13 @@ module.exports = function(router, resourceName, resourceId) {
           }
 
           // Keep the owner in the payload for re-assignment (will be removed by bootstrapEntityOwner if invalid action)
-          if (_old.hasOwnProperty('owner') && _old.owner && (typeof _old.owner === 'string')) {
+          if (_.has(_old, 'owner')) {
             req.body.owner = _old.owner;
+          }
+
+          // Keep the access in the payload if allowed through bootstrapSubmissionAccess and present.
+          if (_.has(_old, 'access')) {
+            req.body.access = _old.access;
           }
 
           req.body = hook.alter('submissionRequest', req.body, _old);

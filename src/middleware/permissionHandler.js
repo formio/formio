@@ -30,11 +30,11 @@ module.exports = function(router) {
       return next();
     }
 
-    async.forEach(submission.access, function(permission, callback) {
+    async.each(submission.access, function(permission, callback) {
       // Only process the permission if it's in the correct format.
       if (!_.has(permission, 'type') || !_.has(permission, 'resources')) {
         _debug('Unknown permissions format: ' + JSON.stringify(permission));
-        return callback()
+        return callback();
       }
 
       // Coerce all the resource ids into strings.
@@ -59,6 +59,8 @@ module.exports = function(router) {
         access.submission.update_all.concat(permission.resources);
         access.submission.delete_all.concat(permission.resources);
       }
+
+      callback();
     }, function(err) {
       // Force all the permissions to be unique and fix nested arrays from quick concat, even if an error occurred.
       access.submission.read_all = _(access.submission.read_all).flattenDeep().uniq().value();
@@ -198,7 +200,7 @@ module.exports = function(router) {
             // Return the updated access list.
             _debug(JSON.stringify(access));
 
-            return getSubmissionResourceAccess(submission, access, callback);
+            getSubmissionResourceAccess(submission, access, callback);
           });
         }
       ], req, res, access), function(err) {
