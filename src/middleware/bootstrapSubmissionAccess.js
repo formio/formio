@@ -5,9 +5,6 @@ var _ = require('lodash');
 
 module.exports = function(router) {
   return function bootstrapSubmissionAccess(req, res, next) {
-    // Util to determine if we have a token to default access.
-    var tokenPresent = (_.has(req, 'token') && req.token !== null && _.has(req, 'token.user._id'));
-
     /**
      * Utility function to sanitize the current request if access was not granted and continue with processing.
      */
