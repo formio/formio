@@ -7739,7 +7739,7 @@ module.exports = function(app, template, hook) {
               tempSubmission = response;
 
               // Store the JWT for future API calls.
-              template.users.user1.token = res.headers['x-jwt-token'];
+              template.users.admin.token = res.headers['x-jwt-token'];
 
               done();
             });
@@ -7839,6 +7839,8 @@ module.exports = function(app, template, hook) {
 
               tempSubmission = response;
 
+              // Store the JWT for future API calls.
+              template.users.user1.token = res.headers['x-jwt-token'];
               done();
             });
         });
