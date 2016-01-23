@@ -44,6 +44,7 @@ module.exports = function(router) {
     router.formio.middleware.setFilterQueryTypes,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.ownerFilter,
+    router.formio.middleware.submissionResourceAccessFilter,
     handlers.beforeIndex
   ];
   handlers.afterIndex = [

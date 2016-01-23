@@ -23,6 +23,7 @@ module.exports = function(router) {
     setFilterQueryTypes: require('./setFilterQueryTypes')(router),
     sortMongooseQuery: require('./sortMongooseQuery')(router),
     submissionHandler: require('./submissionHandler')(router),
+    submissionResourceAccessFilter: require('./submissionResourceAccessFilter')(router),
     tokenHandler: require('./tokenHandler')(router)
   };
 };

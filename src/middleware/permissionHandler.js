@@ -218,6 +218,47 @@ module.exports = function(router) {
 
             getSubmissionResourceAccess(req, submission, access, callback);
           });
+        },
+
+        // Determine if this is a possible index request against submissions.
+        function flagRequestAsSubmissionResourceAccess(callback) {
+          var _debug = require('debug')('formio:permissions:getAccess#flagRequestAsSubmissionResourceAccess');
+          if (req.method !== 'GET') {
+            _debug('Skipping, request type not GET ' + req.method);
+            return callback();
+          }
+
+          if (!req.formId || req.subId) {
+            _debug('Skipping, no req.formId (' + !req.formId + ') or req.subId (' + req.subId + ')');
+            return callback();
+          }
+
+          if (!_.has(req, 'user._id')) {
+            _debug('Skipping, no req.user._id (' + req.user + ')');
+            return callback();
+          }
+
+          var user = req.user._id;
+          var query = {
+            form: util.idToBson(req.formId),
+            deleted: {$eq: null},
+            'access.type': {$in: ['read', 'write', 'admin']},
+            'access.resources': {$in: [util.idToString(user), util.idToBson(user)]}
+          };
+          _debug(JSON.stringify(query));
+          router.formio.resources.submission.model.count(query, function(err, count) {
+            if (err) {
+              _debug(err);
+              return callback();
+            }
+
+            _debug('count: ' + count);
+            if (count > 0) {
+              req.submissionResourceAccessFilter = true;
+            }
+
+            callback();
+          });
         }
       ], req, res, access), function(err) {
         if (err) {
@@ -427,6 +468,7 @@ module.exports = function(router) {
       // No prior access was granted, the given role does not have access to this resource using the given method.
       debug('assignOwner: ' + req.assignOwner);
       debug('assignSubmissionAccess: ' + req.assignSubmissionAccess);
+      debug('req.submissionResourceAccessFilter: ' + req.submissionResourceAccessFilter);
       debug('hasAccess: ' + _hasAccess);
       return _hasAccess;
     }
@@ -503,6 +545,14 @@ module.exports = function(router) {
       // Allow anyone to hook the access check.
       if (hook.alter('hasAccess', false, req, access, entity)) {
         debug('Access Granted!');
+        return next();
+      }
+
+      // Attempt a final access check against submission index requests using the submission resource access.
+      // If this passes, it is up to the submissionResourceAccessFilter middleware to handle permissions.
+      if (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter) {
+        debug('Granting access because req.submissionResourceAccessFilter: ' + req.submissionResourceAccessFilter);
+        req.skipOwnerFilter = true;
         return next();
       }
 
