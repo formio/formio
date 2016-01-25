@@ -8350,7 +8350,268 @@ module.exports = function(app, template, hook) {
         });
       });
 
-      describe('Form Normalization', function() {
+      describe('Condense permissions', function() {
+        it('An Admin can create a submission', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(_.clone(submission))
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+              assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+              assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+              assert(response.data.hasOwnProperty('value'), 'The submission `data` should contain the `value`.');
+              assert.equal(response.data.value, submission.data.value);
+              assert(response.hasOwnProperty('form'), 'The response should contain the `form` id.');
+              assert.equal(response.form, tempForm._id);
+              assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+              assert.deepEqual(response.roles, []);
+              assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+              assert.deepEqual(response.owner, template.users.admin._id);
+              assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+
+              // Update the submission data.
+              tempSubmission = response;
+              tempSubmissions.push(response);
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('An Admin can update the submissions resource access', function(done) {
+          var update = {access: [{type: 'read', resources: [template.users.admin._id]}]};
+          request(app)
+            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(update)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              var expected = _.clone(tempSubmission);
+              expected.access = update.access;
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+              tempSubmission = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('An update to the submissions resource access, will be condensed (single)', function(done) {
+          var update = {access: [
+            {type: 'read', resources: [template.users.admin._id]},
+            {type: 'read', resources: [template.users.admin2._id]}
+          ]};
+          var condensed = {access: [{type: 'read', resources: [template.users.admin._id, template.users.admin2._id]}]};
+          request(app)
+            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(update)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              var expected = _.clone(tempSubmission);
+              expected.access = condensed.access;
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+              tempSubmission = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('An update to the submissions resource access, will be condensed (multi)', function(done) {
+          var update = {access: [
+            {type: 'read', resources: [template.users.admin._id]},
+            {type: 'read', resources: [template.users.admin2._id]},
+            {type: 'write', resources: [template.users.admin._id]},
+            {type: 'write', resources: [template.users.admin2._id]},
+            {type: 'admin', resources: [template.users.admin._id]},
+            {type: 'admin', resources: [template.users.admin2._id]}
+          ]};
+          var condensed = {access: [
+            {type: 'read', resources: [template.users.admin._id, template.users.admin2._id]},
+            {type: 'write', resources: [template.users.admin._id, template.users.admin2._id]},
+            {type: 'admin', resources: [template.users.admin._id, template.users.admin2._id]}
+          ]};
+          request(app)
+            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(update)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              var expected = _.clone(tempSubmission);
+              expected.access = condensed.access;
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+              tempSubmission = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('An update to resource access, with an invalid type, will not be saved (multi)', function(done) {
+          var update = {access: [
+            {type: 'update_all', resources: [template.users.admin._id]},
+            {type: 'read', resources: [template.users.admin2._id]}
+          ]};
+          var filtered = {access: [{type: 'read', resources: [template.users.admin2._id]}]};
+          request(app)
+            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(update)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              var expected = _.clone(tempSubmission);
+              expected.access = filtered.access;
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+              tempSubmission = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('An update to resource access, without a type, will not be saved (multi)', function(done) {
+          var update = {access: [
+            {resources: [template.users.admin._id]},
+            {type: 'read', resources: [template.users.admin2._id]}
+          ]};
+          var filtered = {access: [{type: 'read', resources: [template.users.admin2._id]}]};
+          request(app)
+            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(update)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              var expected = _.clone(tempSubmission);
+              expected.access = filtered.access;
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+              tempSubmission = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('An update to resource access, without resources, will not be saved (multi)', function(done) {
+          var update = {access: [
+            {type: 'admin'},
+            {type: 'read', resources: [template.users.admin2._id]}
+          ]};
+          var filtered = {access: [{type: 'read', resources: [template.users.admin2._id]}]};
+          request(app)
+            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(update)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              var expected = _.clone(tempSubmission);
+              expected.access = filtered.access;
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+              tempSubmission = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('An update to resource access, will not be saved with invalid resources format', function(done) {
+          var update = {access: [
+            {type: 'read', resources: template.users.admin._id},
+            {type: 'read', resources: [template.users.admin2._id]},
+          ]};
+          var filtered = {access: [{type: 'read', resources: [template.users.admin2._id]}]};
+          request(app)
+            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(update)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              var expected = _.clone(tempSubmission);
+              expected.access = filtered.access;
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+              tempSubmission = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+      });
+
+    describe('Form Normalization', function() {
         it('Delete the form', function(done) {
           request(app)
             .delete(hook.alter('url', '/form/' + tempForm._id, template))
