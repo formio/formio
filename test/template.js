@@ -83,6 +83,69 @@ module.exports = function() {
     }
   };
 
+  // Create some circularly dependent resources to make sure
+  // importing this doesn't crash
+  template.resources.a = {
+    title: 'A',
+    type: 'resource',
+    name: 'a',
+    path: 'a',
+    components: [
+      {
+        input: true,
+        tableView: true,
+        label: 'B',
+        key: 'b',
+        placeholder: 'B',
+        resource: 'b',
+        defaultValue: '',
+        template: '<span>{{ item.data }}</span>',
+        selectFields: '',
+        searchFields: '',
+        multiple: false,
+        protected: false,
+        persistent: true,
+        validate: {
+          required: false
+        },
+        type: 'resource'
+      }
+    ],
+    access: [],
+    submissionAccess: []
+  };
+  
+  template.resources.b = {
+    title: 'B',
+    type: 'resource',
+    name: 'b',
+    path: 'b',
+    components: [
+      {
+        isNew: false,
+        type: 'resource',
+        validate: {
+          required: false
+        },
+        persistent: true,
+        protected: false,
+        multiple: false,
+        searchFields: '',
+        selectFields: '',
+        template: '<span>{{ item.data }}</span>',
+        defaultValue: '',
+        resource: 'a',
+        placeholder: 'A',
+        key: 'a',
+        label: 'A',
+        tableView: true,
+        input: true
+      }
+    ],
+    access: [],
+    submissionAccess: []
+  };
+
   // Add some users.
   template.users = {
     // An owner of the project.
