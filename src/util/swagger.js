@@ -97,7 +97,7 @@ module.exports = function(req, router, cb) {
     };
   };
   /*eslint-enable camelcase*/
-  
+
   /**
    * Set the body definition for a swagger spec.
    * @param form
