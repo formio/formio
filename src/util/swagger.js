@@ -15,6 +15,7 @@ module.exports = function(req, router, cb) {
     return '/' + form.path + '/submission';
   };
 
+  /*eslint-disable camelcase*/
   var addressComponent = function() {
     return {
       address: {
@@ -95,7 +96,8 @@ module.exports = function(req, router, cb) {
       }
     };
   };
-
+  /*eslint-enable camelcase*/
+  
   /**
    * Set the body definition for a swagger spec.
    * @param form
@@ -111,7 +113,7 @@ module.exports = function(req, router, cb) {
     util.eachComponent(components, function(component) {
       if (component.key) {
         var property;
-        switch(component.type) {
+        switch (component.type) {
           case 'email':
           case 'textfield':
           case 'password':
@@ -158,7 +160,7 @@ module.exports = function(req, router, cb) {
             property = {
               'type': 'string',
               'description': 'ObjectId'
-            }
+            };
             break;
           case 'datagrid':
             //TODO: finish datagrid swagger def.
@@ -181,7 +183,7 @@ module.exports = function(req, router, cb) {
             property = {
               type: 'array',
               items: property
-            }
+            };
           }
           definitions[name].properties[component.key] = property;
         }
