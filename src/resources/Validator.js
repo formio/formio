@@ -43,7 +43,7 @@ var Validator = function(form, model) {
     }
 
     // Add the custom validations.
-    if (component.validate && component.validate.custom) {
+    if (component.validate && component.validate.custom && component.persistent) {
       this.customValidations[component.key] = component;
     }
 
