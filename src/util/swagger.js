@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require('lodash');
+var util = require('formio-utils');
 
 module.exports = function(req, router, cb) {
   var hook = require('./hook')(router.formio);
@@ -14,14 +15,203 @@ module.exports = function(req, router, cb) {
     return '/' + form.path + '/submission';
   };
 
+  /*eslint-disable camelcase*/
+  var addressComponent = function() {
+    return {
+      address: {
+        properties: {
+          address_components: {
+            type: 'array',
+            items: {
+              $ref: '#/definitions/address_components'
+            }
+          },
+          formatted_address: {
+            type: 'string'
+          },
+          geometry: {
+            $ref: '#/definitions/address_geometry'
+          },
+          place_id: {
+            type: 'string'
+          },
+          types: {
+            type: 'array',
+              items: {
+              type: 'string'
+            }
+          }
+        }
+      },
+      address_components: {
+        properties: {
+          long_name: {
+            type: 'string'
+          },
+          short_name: {
+            type: 'string'
+          },
+          types: {
+            type: 'array',
+            items: {
+              type: 'string'
+            }
+          }
+        }
+      },
+      location: {
+        properties: {
+          lat: {
+            type: 'number',
+            format: 'float'
+          },
+          lng: {
+            type: 'number',
+            format: 'float'
+          }
+        }
+      },
+      viewport: {
+        properties: {
+          northeast: {
+            $ref: '#/definitions/location'
+          },
+          southwest: {
+            $ref: '#/definitions/location'
+          }
+        }
+      },
+      address_geometry: {
+        properties: {
+          location: {
+            $ref: '#/definitions/location'
+          },
+          location_type: {
+            type: 'string'
+          },
+          viewport: {
+            $ref: '#/definitions/viewport'
+          }
+        }
+      }
+    };
+  };
+  /*eslint-enable camelcase*/
+
   /**
    * Set the body definition for a swagger spec.
    * @param form
    * @returns {undefined}
    */
-  var bodyDefinition = function(form) {
-    // TODO should be built from this definition
-    return undefined;
+  var getDefinition = function(components, name) {
+    var definitions = {};
+    definitions[name] = {
+      properties: {},
+      required: []
+    };
+
+    util.eachComponent(components, function(component) {
+      if (component.key) {
+        var property;
+        switch (component.type) {
+          case 'email':
+          case 'textfield':
+          case 'password':
+          case 'phonenumber':
+          case 'select':
+          case 'radio':
+          case 'textarea':
+            property = {
+              type: 'string'
+            };
+            break;
+          case 'number':
+            property = {
+              type: 'integer',
+              format: 'int64'
+            };
+            break;
+          case 'datetime':
+            property = {
+              type: 'string',
+              format: 'date'
+            };
+            break;
+          case 'address':
+            property = {
+              $ref: '#/definitions/address'
+            };
+            definitions = _.merge(definitions, addressComponent());
+            break;
+          case 'checkbox':
+            property = {
+              type: 'boolean'
+            };
+            break;
+          case 'selectboxes':
+            property = {
+              type: 'array',
+              items: {
+                type: 'string'
+              }
+            };
+            break;
+          case 'resource':
+            property = {
+              'type': 'string',
+              'description': 'ObjectId'
+            };
+            break;
+          case 'datagrid':
+            //TODO: finish datagrid swagger def.
+            break;
+          case 'custom':
+            property = {
+              type: 'object'
+            };
+            break;
+          case 'button':
+            property = false;
+            break;
+          default:
+            property = {
+              type: 'string'
+            };
+        }
+        if (property) {
+          if (component.multiple) {
+            property = {
+              type: 'array',
+              items: property
+            };
+          }
+          definitions[name].properties[component.key] = property;
+        }
+        if (component.validate && component.validate.required) {
+          definitions[name].required.push(component.key);
+        }
+      }
+    });
+
+    return definitions;
+  };
+
+  var submissionSwagger = function(form) {
+    // Need to customize per form instead of returning the same swagger for every form.
+    var resource = _.cloneDeep(router.formio.resources.submission);
+    resource.name = form.title;
+    resource.modelName = form.name;
+    resource.route = resourceUrl(form);
+    resource.model.schema.paths = _.omit(resource.model.schema.paths, ['deleted', '__v', 'machineName']);
+    var swagger = resource.swagger(true);
+
+    // Override the body definition.
+    swagger.definitions[resource.modelName].required = ['data'];
+    swagger.definitions[resource.modelName].properties.data = {
+      $ref: '#/definitions/' + resource.modelName + 'Data'
+    };
+    swagger.definitions = _.merge(swagger.definitions, getDefinition(form.components, resource.modelName + 'Data'));
+    return swagger;
   };
 
   /**
@@ -73,7 +263,7 @@ module.exports = function(req, router, cb) {
       info: {
         title: options.title,
         description: options.description,
-        termsOfService: 'http://form.io/terms/',  // TODO this is 404
+        termsOfService: 'http://blog.form.io/form-terms-of-use',
         contact: {
           name: 'Form.io Support',
           url: 'http://help.form.io/',
@@ -112,12 +302,8 @@ module.exports = function(req, router, cb) {
         throw err;
       }
 
-      var specs = [
-        router.formio.resources.submission.swagger(
-          resourceUrl(form),
-          bodyDefinition(form)
-        )
-      ];
+      var specs = [];
+      specs.push(submissionSwagger(form));
       cb(swaggerSpec(specs, options));
     });
   }
@@ -129,13 +315,7 @@ module.exports = function(req, router, cb) {
 
       var specs = [];
       forms.forEach(function(form) {
-        specs.push(
-          router.formio.resources.submission.swagger(
-            resourceUrl(form),
-            bodyDefinition(form),
-            true
-          )
-        );
+        specs.push(submissionSwagger(form));
       });
       cb(swaggerSpec(specs, options));
     });
