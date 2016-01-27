@@ -5,7 +5,8 @@ var _ = require('lodash');
 var util = require('../util/util');
 var debug = {
   template: require('debug')('formio:template:template'),
-  _install: require('debug')('formio:template:_install')
+  _install: require('debug')('formio:template:_install'),
+  postResourceInstall: require('debug')('formio:template:postResourceInstall')
 };
 
 /**
@@ -58,6 +59,11 @@ module.exports = function(formio) {
     role: function(template, role) {
       return role;
     },
+    resource: function(template, form) {
+      assignRoles(template, form.submissionAccess);
+      assignRoles(template, form.access);
+      return form;
+    },
     form: function(template, form) {
       assignRoles(template, form.submissionAccess);
       assignRoles(template, form.access);
@@ -82,8 +88,42 @@ module.exports = function(formio) {
     }
   };
 
+  var postResourceInstall = function(model, template, items, done) {
+    async.forEachOf(items, function(item, name, itemDone) {
+      var changed = false;
+      util.eachComponent(item.components, function(component) {
+        if (
+          (component.type === 'resource') &&
+          (template.resources.hasOwnProperty(component.resource))
+        ) {
+          component.resource = template.resources[component.resource]._id.toString();
+          changed = true;
+        }
+      });
+      if (!changed) {
+        return itemDone();
+      }
+
+      debug.postResourceInstall('Need to update resource component _ids for', name);
+
+      model.findOneAndUpdate(
+        {_id: item._id},
+        {components: item.components},
+        {new: true},
+        function(err, doc) {
+          if (err) {
+            return itemDone(err);
+          }
+          items[name] = doc.toObject();
+          debug.postResourceInstall('Updated resource component _ids for', name);
+          itemDone();
+        }
+      );
+    }, done);
+  };
+
   // Install a model with a parse method.
-  var _install = function(model, _parse, machineNameAlter) {
+  var _install = function(model, _parse, _postInstall) {
     return function(template, items, alter, done) {
       if (!items || _.isEmpty(items)) {
         return done();
@@ -133,7 +173,17 @@ module.exports = function(formio) {
             });
           });
         });
-      }, done);
+      }, function(err) {
+        if (err) {
+          return done(err);
+        }
+        else if (_postInstall) {
+          _postInstall(model, template, items, done);
+        }
+        else {
+          done();
+        }
+      });
     };
   };
 
@@ -144,6 +194,7 @@ module.exports = function(formio) {
     createInstall: _install,
     parse: parse,
     roles: _install(formio.resources.role.model, parse.role),
+    resources: _install(formio.resources.form.model, parse.resource, postResourceInstall),
     forms: _install(formio.resources.form.model, parse.form),
     actions: _install(formio.actions.model, parse.action),
     submissions: _install(formio.resources.submission.model, parse.submission),
@@ -155,7 +206,7 @@ module.exports = function(formio) {
       alter = alter || {};
       async.series([
         async.apply(this.roles, template, template.roles, alter.role),
-        async.apply(this.forms, template, template.resources, alter.form),
+        async.apply(this.resources, template, template.resources, alter.form),
         async.apply(this.forms, template, template.forms, alter.form),
         async.apply(this.actions, template, template.actions, alter.action),
         async.apply(this.submissions, template, template.submissions, alter.submission)
