@@ -5,6 +5,7 @@ var Q = require('q');
 var _ = require('lodash');
 var async = require('async');
 var assert = require('assert');
+var formioUtils = require('formio-utils');
 
 // Bootstrap the test environment.
 var ready = Q.defer();
@@ -57,7 +58,20 @@ describe('Bootstrap Test modules', function() {
     comparison = _.clone(template, true);
 
     var importer = require('../src/templates/import')(app.formio);
-    importer.template(template, done);
+    importer.template(template, function(err) {
+      if (err) {
+        return done(err);
+      }
+
+      var resourceA = template.resources.a;
+      var resourceB = template.resources.b;
+      var resourceComponentA = formioUtils.getComponent(resourceB.components, 'a');
+      var resourceComponentB = formioUtils.getComponent(resourceA.components, 'b');
+
+      assert.equal(resourceA._id, resourceComponentA.resource, 'Resource B\'s resource component for A should have the correct resource id');
+      assert.equal(resourceB._id, resourceComponentB.resource, 'Resource A\'s resource component for B should have the correct resource id');
+      done();
+    });
   });
 
   it('Should be able to export what was imported', function(done) {
