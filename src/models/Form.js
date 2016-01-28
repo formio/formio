@@ -41,7 +41,6 @@ module.exports = function(formio) {
       },
       access: [formio.schemas.PermissionSchema],
       submissionAccess: [formio.schemas.PermissionSchema],
-      submissionResourceAccess: [formio.schemas.AccessSchema],
       owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'submission',
