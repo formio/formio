@@ -94,7 +94,9 @@ module.exports = function(router) {
         // Allow anyone to alter the user.
         debug(user);
         hook.alter('user', user, function(err, user) {
-          debug('Error: ' + JSON.stringify(err));
+          if (err) {
+            debug('Error: ' + JSON.stringify(err));
+          }
           debug('User: ' + JSON.stringify(user));
 
           // Store the user for future use.

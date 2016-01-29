@@ -12,6 +12,8 @@ module.exports = function(router) {
   handlers.beforePost = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.bootstrapEntityOwner(true),
+    router.formio.middleware.bootstrapSubmissionAccess,
+    router.formio.middleware.condenseSubmissionPermissionTypes,
     handlers.beforePost
   ];
   handlers.afterPost = [
@@ -31,6 +33,8 @@ module.exports = function(router) {
   handlers.beforePut = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.bootstrapEntityOwner(false),
+    router.formio.middleware.bootstrapSubmissionAccess,
+    router.formio.middleware.condenseSubmissionPermissionTypes,
     handlers.beforePut
   ];
   handlers.afterPut = [
@@ -42,6 +46,7 @@ module.exports = function(router) {
     router.formio.middleware.setFilterQueryTypes,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.ownerFilter,
+    router.formio.middleware.submissionResourceAccessFilter,
     handlers.beforeIndex
   ];
   handlers.afterIndex = [

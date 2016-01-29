@@ -8,6 +8,90 @@ var debug = require('debug')('formio:permissions');
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
 
+  /**
+   * Convert the submissions resource access into the common roles/permissions format for processing during the request.
+   *
+   * @param submission
+   * @param next
+   * @returns {*}
+   */
+  var getSubmissionResourceAccess = function(req, submission, access, next) {
+    var _debug = require('debug')('formio:permissions:getSubmissionResourceAccess');
+    if (!next) {
+      _debug('No next fn given.');
+      return;
+    }
+    if (!submission || !access) {
+      _debug('No submission (' + !!submission + ') or access (' + !!access + ') given.');
+      return next();
+    }
+    if (!_.has(submission, 'access')) {
+      _debug('No submission access defined for: ' + JSON.stringify(submission));
+      return next();
+    }
+
+    /* eslint-disable camelcase */
+    async.each(submission.access, function(permission, callback) {
+      // Only process the permission if it's in the correct format.
+      if (!_.has(permission, 'type') || !_.has(permission, 'resources')) {
+        _debug('Unknown permissions format: ' + JSON.stringify(permission));
+        return callback();
+      }
+
+      // Coerce all the resource ids into strings.
+      permission.resources = _(permission.resources).map(util.idToString).uniq().value();
+      _debug(permission);
+
+      // Ensure the submission access permissions are defined before accessing them.
+      access.submission = access.submission || {};
+      access.submission.read_all = access.submission.read_all || [];
+      access.submission.update_all = access.submission.update_all || [];
+      access.submission.delete_all = access.submission.delete_all || [];
+
+      // Convert the simplex read/write/admin rules into *_all permissions.
+      if (permission.type === 'read') {
+        _.forEach(permission.resources, function(id) {
+          access.submission.read_all.push(id);
+        });
+      }
+      else if (permission.type === 'write') {
+        _.forEach(permission.resources, function(id) {
+          access.submission.read_all.push(id);
+          access.submission.update_all.push(id);
+        });
+      }
+      else if (permission.type === 'admin') {
+        _.forEach(permission.resources, function(id) {
+          access.submission.read_all.push(id);
+          access.submission.update_all.push(id);
+          access.submission.delete_all.push(id);
+        });
+
+        // Flag this request as having admin access through submission resource access.
+        req.submissionResourceAccessAdmin = true;
+      }
+      else {
+        _debug('Unknown permission type...');
+        _debug(permission);
+      }
+
+      callback();
+    }, function(err) {
+      // Force all the permissions to be unique, even if an error occurred.
+      access.submission.read_all = _(access.submission.read_all).uniq().value();
+      access.submission.update_all = _(access.submission.update_all).uniq().value();
+      access.submission.delete_all = _(access.submission.delete_all).uniq().value();
+      _debug('Updated submission access: ' + JSON.stringify(access.submission));
+
+      if (err) {
+        return next(err);
+      }
+
+      next();
+    });
+    /* eslint-enable camelcase */
+  };
+
   // Add this access handlers for all to use.
   router.formio.access = {
 
@@ -131,7 +215,49 @@ module.exports = function(router) {
 
             // Return the updated access list.
             _debug(JSON.stringify(access));
-            return callback(null);
+
+            getSubmissionResourceAccess(req, submission, access, callback);
+          });
+        },
+
+        // Determine if this is a possible index request against submissions.
+        function flagRequestAsSubmissionResourceAccess(callback) {
+          var _debug = require('debug')('formio:permissions:getAccess#flagRequestAsSubmissionResourceAccess');
+          if (req.method !== 'GET') {
+            _debug('Skipping, request type not GET ' + req.method);
+            return callback();
+          }
+
+          if (!req.formId || req.subId) {
+            _debug('Skipping, no req.formId (' + !req.formId + ') or req.subId (' + req.subId + ')');
+            return callback();
+          }
+
+          if (!_.has(req, 'user._id')) {
+            _debug('Skipping, no req.user._id (' + req.user + ')');
+            return callback();
+          }
+
+          var user = req.user._id;
+          var query = {
+            form: util.idToBson(req.formId),
+            deleted: {$eq: null},
+            'access.type': {$in: ['read', 'write', 'admin']},
+            'access.resources': {$in: [util.idToString(user), util.idToBson(user)]}
+          };
+          _debug(JSON.stringify(query));
+          router.formio.resources.submission.model.count(query, function(err, count) {
+            if (err) {
+              _debug(err);
+              return callback();
+            }
+
+            _debug('count: ' + count);
+            if (count > 0) {
+              req.submissionResourceAccessFilter = true;
+            }
+
+            callback();
           });
         }
       ], req, res, access), function(err) {
@@ -203,11 +329,19 @@ module.exports = function(router) {
 
         // Get the roles for the permission checks.
         req.user.roles = req.user.roles || [];
+        debug('User Roles: ' + JSON.stringify(req.user.roles));
+
+        // If the user actually has roles, remove the default role and check their access using their roles.
         if (req.user.roles.length > 0) {
-          debug('User Roles: ' + JSON.stringify(req.user.roles));
+          // Add the users id to the roles to check for submission resource access.
+          req.user.roles.push(user);
 
           // Ensure that all roles are strings to be compatible for comparison.
-          roles = _.uniq(_.map(_.filter(req.user.roles), util.idToString));
+          roles = _(req.user.roles)
+            .filter()
+            .map(util.idToString)
+            .uniq()
+            .value();
         }
       }
 
@@ -222,6 +356,7 @@ module.exports = function(router) {
         return true;
       }
 
+      debug('req.submissionResourceAccessAdmin: ' + req.submissionResourceAccessAdmin);
       debug('Checking access for roles: ' + JSON.stringify(roles));
       debug('Checking access for access: ' + JSON.stringify(access));
       debug('Checking access for entity: ' + JSON.stringify(entity));
@@ -251,6 +386,7 @@ module.exports = function(router) {
         && access[entity.type].hasOwnProperty('owner')
         && req.token.user._id === access[entity.type].owner
       ) {
+        debug('This request is being made by the owner, Access Granted.');
         _hasAccess = true;
       }
 
@@ -293,14 +429,27 @@ module.exports = function(router) {
               }
             }
             else {
-              // Only allow the the bootstrapEntityOwner middleware to assign an owner if defined in the payload.
+              // If current role in question is the current users _id.
+              var submissionResourceAccess = (user && (role.toString() === user.toString()));
+
+              // If the current request has been flagged for submission resource access (admin permissions).
+              var submissionResourceAdmin = _.get(req, 'submissionResourceAccessAdmin');
+
+              // Only allow certain users to edit the owner and submission access property.
+              // (~A | B) logic for submission access, to not affect old permissions.
               if (
                 (type === 'create_all' || type === 'update_all')
-                && req.body
-                && req.body.hasOwnProperty('owner')
-                && req.body.owner
+                && (!submissionResourceAccess || submissionResourceAdmin)
               ) {
-                req.assignOwner = true;
+                // Only allow the the bootstrapEntityOwner middleware to assign an owner if defined in the payload.
+                if (_.has(req, 'body.owner')) {
+                  req.assignOwner = true;
+                }
+
+                // Only allow the the bootstrapSubmissionAccess middleware to assign access if defined in the payload.
+                if (entity.type === 'submission' && _.has(req, 'body.access')) {
+                  req.assignSubmissionAccess = true;
+                }
               }
 
               // No ownership requirements here.
@@ -308,11 +457,18 @@ module.exports = function(router) {
               _hasAccess = true;
             }
           }
+
+          debug('----------------------------------------------------');
+          debug('type: ' + type);
+          debug('role: ' + role);
+          debug('_hasAccess: ' + _hasAccess);
         });
       });
 
       // No prior access was granted, the given role does not have access to this resource using the given method.
       debug('assignOwner: ' + req.assignOwner);
+      debug('assignSubmissionAccess: ' + req.assignSubmissionAccess);
+      debug('req.submissionResourceAccessFilter: ' + req.submissionResourceAccessFilter);
       debug('hasAccess: ' + _hasAccess);
       return _hasAccess;
     }
@@ -389,6 +545,14 @@ module.exports = function(router) {
       // Allow anyone to hook the access check.
       if (hook.alter('hasAccess', false, req, access, entity)) {
         debug('Access Granted!');
+        return next();
+      }
+
+      // Attempt a final access check against submission index requests using the submission resource access.
+      // If this passes, it is up to the submissionResourceAccessFilter middleware to handle permissions.
+      if (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter) {
+        debug('Granting access because req.submissionResourceAccessFilter: ' + req.submissionResourceAccessFilter);
+        req.skipOwnerFilter = true;
         return next();
       }
 
