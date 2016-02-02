@@ -23,9 +23,10 @@ module.exports = function(router) {
    *   The callback function to return the results.
    */
   var deleteSubmission = function(subId, forms, next) {
-    var _debug = require('debug')('formio:delete:submission');
+    var debug = require('debug')('formio:delete:submission');
+    var util = router.formio.util;
     if (!subId && !forms) {
-      _debug('Skipping');
+      debug('Skipping');
       return next();
     }
     // Convert the forms to an array if only one was provided.
@@ -36,21 +37,25 @@ module.exports = function(router) {
     // Build the query, using either the subId or forms array.
     var query = {deleted: {$eq: null}};
     if (subId) {
-      query._id = subId;
+      query._id = util.idToBson(subId);
     }
     else {
+      forms = _(forms)
+        .map(util.idToBson)
+        .value();
+
       query.form = {$in: forms};
     }
 
-    _debug('Deleting ' + (subId ? 'single submission' : 'multiple submissions'));
-    _debug(query);
+    debug('Deleting ' + (subId ? 'single submission' : 'multiple submissions'));
+    debug(query);
     router.formio.resources.submission.model.find(query, function(err, submissions) {
       if (err) {
-        _debug(err);
+        debug(err);
         return next(err);
       }
       if (!submissions || submissions.length === 0) {
-        _debug('No submissions found.');
+        debug('No submissions found.');
         return next();
       }
 
@@ -59,11 +64,11 @@ module.exports = function(router) {
         submission.markModified('deleted');
         submission.save(function(err, submission) {
           if (err) {
-            _debug(err);
+            debug(err);
             return next(err);
           }
 
-          _debug(submission);
+          debug(submission);
         });
       });
 
@@ -83,9 +88,10 @@ module.exports = function(router) {
    *   The callback function to return the results.
    */
   var deleteAction = function(actionId, forms, next) {
-    var _debug = require('debug')('formio:delete:action');
+    var debug = require('debug')('formio:delete:action');
+    var util = router.formio.util;
     if (!actionId && !forms) {
-      _debug('Skipping');
+      debug('Skipping');
       return next();
     }
     // Convert the forms to an array if only one was provided.
@@ -95,22 +101,25 @@ module.exports = function(router) {
 
     var query = {deleted: {$eq: null}};
     if (actionId) {
-      query._id = actionId;
+      query._id = util.idToBson(actionId);
     }
     else {
+      forms = _(forms)
+        .map(util.idToBson)
+        .value();
+
       query.form = {$in: forms};
     }
 
-
-    _debug('Deleting ' + (actionId ? 'single action' : 'multiple actions'));
-    _debug(query);
+    debug('Deleting ' + (actionId ? 'single action' : 'multiple actions'));
+    debug(query);
     router.formio.actions.model.find(query, function(err, actions) {
       if (err) {
-        _debug(err);
+        debug(err);
         return next(err);
       }
       if (!actions || actions.length === 0) {
-        _debug('No actions found.');
+        debug('No actions found.');
         return next();
       }
 
@@ -120,11 +129,11 @@ module.exports = function(router) {
         action.markModified('deleted');
         action.save(function(err, action) {
           if (err) {
-            _debug(err);
+            debug(err);
             return next(err);
           }
 
-          _debug(action);
+          debug(action);
         });
       });
 
@@ -142,21 +151,22 @@ module.exports = function(router) {
    *   The callback function to return the results.
    */
   var deleteForm = function(formId, next) {
-    var _debug = require('debug')('formio:delete:form');
+    var debug = require('debug')('formio:delete:form');
+    var util = router.formio.util;
     if (!formId) {
-      _debug('Skipping');
+      debug('Skipping');
       return next();
     }
 
-    var query = {_id: formId, deleted: {$eq: null}};
-    _debug(query);
+    var query = {_id: util.idToBson(formId), deleted: {$eq: null}};
+    debug(query);
     router.formio.resources.form.model.findOne(query, function(err, form) {
       if (err) {
-        _debug(err);
+        debug(err);
         return next(err);
       }
       if (!form) {
-        _debug('No form found with the _id: ' + formId);
+        debug('No form found with the _id: ' + formId);
         return next();
       }
 
@@ -164,23 +174,23 @@ module.exports = function(router) {
       form.markModified('deleted');
       form.save(function(err, form) {
         if (err) {
-          _debug(err);
+          debug(err);
           return next(err);
         }
 
         deleteAction(null, formId, function(err) {
           if (err) {
-            _debug(err);
+            debug(err);
             return next(err);
           }
 
           deleteSubmission(null, formId, function(err) {
             if (err) {
-              _debug(err);
+              debug(err);
               return next(err);
             }
 
-            _debug(form);
+            debug(form);
             next();
           });
         });
@@ -199,10 +209,10 @@ module.exports = function(router) {
    *   The callback function to return the results.
    */
   var deleteRoleAccess = function(roleId, req, next) {
+    var debug = require('debug')('formio:delete:roleaccess');
     var util = router.formio.util;
-    var _debug = require('debug')('formio:delete:roleaccess');
     if (!roleId) {
-      _debug('Skipping');
+      debug('Skipping');
       return next();
     }
 
@@ -227,63 +237,68 @@ module.exports = function(router) {
       accessType.forEach(function(access) {
         var temp = {};
         var key = access + '.roles';
-        temp[key] = roleId;
+        temp[key] = util.idToBson(roleId);
         or.push(temp);
       });
 
-      var query = hook.alter('formQuery', {_id: {$in: formIds}, $or: or}, req);
-      _debug(query);
-      router.formio.resources.form.model.find(query)
-        .snapshot(true)
-        .exec(function(err, forms) {
-          if (err) {
-            _debug(err);
-            return cb(err);
-          }
-          if (!forms || forms.length === 0) {
-            _debug('No forms found with the query: ' + JSON.stringify(query));
-            return cb();
-          }
+      // Build the search query, and allow anyone to hook it.
+      var query = {_id: {$in: _.map(formIds, util.idToBson)}, $or: or};
+      query = hook.alter('formQuery', query, req);
 
-          // Iterate each form and remove the role.
-          _debug('Found ' + forms.length + ' forms to modify.');
-          async.eachSeries(forms, function(form, done) {
-            // Iterate each access type to remove the role.
-            accessType.forEach(function(access) {
-              var temp = form.toObject()[access] || [];
+      debug(query);
+      router.formio.resources.form.model.find(query).snapshot(true).exec(function(err, forms) {
+        if (err) {
+          debug(err);
+          return cb(err);
+        }
+        if (!forms || forms.length === 0) {
+          debug('No forms found with the query: ' + JSON.stringify(query));
+          return cb();
+        }
 
-              // Iterate the roles for each permission type, and remove the given roleId.
-              for (var b = 0; b < temp.length; b++) {
-                // Convert the ObjectIds to strings for comparison.
-                temp[b].roles = _.map((temp[b].roles || []), util.idToString);
+        // Iterate each form and remove the role.
+        debug('Found ' + forms.length + ' forms to modify.');
+        async.eachSeries(forms, function(form, done) {
+          // Iterate each access type to remove the role.
+          accessType.forEach(function(access) {
+            var temp = form.toObject()[access] || [];
 
-                // Remove the given roleId if it was defined in the access.
-                if (temp[b].roles.indexOf(roleId) !== -1) {
-                  _.pull(temp[b].roles, roleId);
-                }
+            // Iterate the roles for each permission type, and remove the given roleId.
+            for (var b = 0; b < temp.length; b++) {
+              // Convert the ObjectIds to strings for comparison.
+              temp[b].roles = _.map((temp[b].roles || []), util.idToString);
+
+              // Remove the given roleId if it was defined in the access.
+              if (temp[b].roles.indexOf(roleId) !== -1) {
+                _.pull(temp[b].roles, roleId);
               }
 
-              form.set(access, temp);
-            });
-
-            form.save(function(err, form) {
-              if (err) {
-                _debug(err);
-                return done(err);
-              }
-
-              _debug(JSON.stringify(form));
-              done();
-            });
-          }, function(err) {
-            if (err) {
-              _debug(err);
-              return cb(err);
+              // Convert the role ids back to bson strings for storage.
+              temp[b].roles = _.map((temp[b].roles || []), util.idToBson);
             }
 
-            cb();
+            form.set(access, temp);
+            form.markModified(access);
           });
+
+          form.save(function(err, form) {
+            if (err) {
+              debug(err);
+              return done(err);
+            }
+
+            debug(JSON.stringify(form));
+            done();
+          });
+        }, function(err) {
+          if (err) {
+            debug(err);
+            return cb(err);
+          }
+
+          cb();
         });
+      });
     };
 
     /**
@@ -293,82 +308,86 @@ module.exports = function(router) {
      *   The callback function to invoke after the roles have been removed.
      */
     var removeFromSubmissions = function(cb) {
-      var util = router.formio.util;
       // Find all submissions that contain the role in its roles.
-      var query = {form: {$in: formIds}, deleted: {$eq: null}, roles: roleId};
-      _debug(query);
-      router.formio.resources.submission.model.find(query)
-        .snapshot(true)
-        .exec(function(err, submissions) {
+      var query = {form: {$in: _.map(formIds, util.idToBson)}, deleted: {$eq: null}, roles: util.idToBson(roleId)};
+      debug(query);
+      router.formio.resources.submission.model.find(query).snapshot(true).exec(function(err, submissions) {
+        if (err) {
+          debug(err);
+          return cb(err);
+        }
+        if (!submissions || submissions.length === 0) {
+          debug('No submissions found with given query: ' + JSON.stringify(query));
+          return cb();
+        }
+
+        // Iterate each submission to filter the roles.
+        async.eachSeries(submissions, function(submission, done) {
+          var temp = _.map((submission.toObject().roles || []), util.idToString);
+
+          // Omit the given role from all submissions.
+          if (temp.indexOf(roleId) !== -1) {
+            _.pull(temp, roleId);
+          }
+
+          // Convert all the roles back to bson strings for storage.
+          temp = _.map(temp, util.idToBson);
+
+          submission.set('roles', temp);
+          submission.markModified('roles');
+          submission.save(function(err, submission) {
+            if (err) {
+              debug(err);
+              return done(err);
+            }
+
+            debug(submission);
+            done();
+          });
+        }, function(err) {
           if (err) {
-            _debug(err);
+            debug(err);
             return cb(err);
           }
-          if (!submissions || submissions.length === 0) {
-            _debug('No submissions found with given query: ' + JSON.stringify(query));
-            return cb();
-          }
 
-          // Iterate each submission to filter the roles.
-          async.eachSeries(submissions, function(submission, done) {
-            var temp = _.map((submission.toObject().roles || []), util.idToString);
-
-            // Omit the given role from all submissions.
-            if (temp.indexOf(roleId) !== -1) {
-              _.pull(temp, roleId);
-            }
-
-            submission.set('roles', temp);
-            submission.save(function(err, submission) {
-              if (err) {
-                _debug(err);
-                return done(err);
-              }
-
-              _debug(submission);
-              done();
-            });
-          }, function(err) {
-            if (err) {
-              _debug(err);
-              return cb(err);
-            }
-
-            cb();
-          });
-        });
-    };
-
-    router.formio.resources.form.model.find(hook.alter('formQuery', {deleted: {$eq: null}}, req))
-      .snapshot(true)
-      .exec(function(err, forms) {
-        if (err) {
-          _debug(err);
-          return next(err);
-        }
-        if (!forms) {
-          _debug('No forms given.');
-          return next();
-        }
-
-        // update the list of formIds
-        formIds = _.map(forms, function(form) {
-          return form.toObject()._id.toString();
-        });
-        _debug('Forms: ' + JSON.stringify(formIds));
-
-        async.series([
-          removeFromForm,
-          removeFromSubmissions
-        ], function(err) {
-          if (err) {
-            _debug(err);
-            return next(err);
-          }
-
-          next();
+          cb();
         });
       });
+    };
+
+    // Build the search query and allow anyone to hook it.
+    var query = {deleted: {$eq: null}};
+    query = hook.alter('formQuery', query, req);
+
+    router.formio.resources.form.model.find(query).select('_id').snapshot(true).exec(function(err, ids) {
+      if (err) {
+        debug(err);
+        return next(err);
+      }
+      if (!ids) {
+        debug('No form ids found.');
+        return next();
+      }
+
+      // update the list of formIds
+      formIds = _(ids)
+        .pluck('_id')
+        .map(util.idToString)
+        .value();
+      debug('Forms: ' + JSON.stringify(formIds));
+
+      async.series([
+        removeFromForm,
+        removeFromSubmissions
+      ], function(err) {
+        if (err) {
+          debug(err);
+          return next(err);
+        }
+
+        next();
+      });
+    });
   };
 
   /**
@@ -382,22 +401,22 @@ module.exports = function(router) {
    *   The callback function to return the results.
    */
   var deleteRole = function(roleId, req, next) {
+    var debug = require('debug')('formio:delete:role');
     var util = router.formio.util;
-    var _debug = require('debug')('formio:delete:role');
     if (!roleId) {
-      _debug('Skipping');
+      debug('Skipping');
       return next();
     }
 
     var query = {_id: util.idToBson(roleId), deleted: {$eq: null}};
-    _debug(query);
+    debug(query);
     router.formio.resources.role.model.findOne(query, function(err, role) {
       if (err) {
-        _debug(err);
+        debug(err);
         return next(err);
       }
       if (!role) {
-        _debug('No role found with _id: ' + roleId);
+        debug('No role found with _id: ' + roleId);
         return next();
       }
 
@@ -405,17 +424,17 @@ module.exports = function(router) {
       role.markModified('deleted');
       role.save(function(err, role) {
         if (err) {
-          _debug(err);
+          debug(err);
           return next(err);
         }
 
         deleteRoleAccess(roleId, req, function(err) {
           if (err) {
-            _debug(err);
+            debug(err);
             return next(err);
           }
 
-          _debug(role);
+          debug(role);
           next();
         });
       });
