@@ -49,6 +49,49 @@ module.exports = function(app, template, hook) {
         });
     });
 
+    it('Register another administrator', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template))
+        .send({
+          data: {
+            'admin.email': template.users.admin2.data.email,
+            'admin.password': template.users.admin2.data.password
+          }
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
+          assert.equal(response.data.email, template.users.admin2.data.email);
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
+          assert.equal(response.form, template.resources.admin._id);
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+          assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+          assert.notEqual(response.owner, null);
+          assert.equal(response.owner, response._id);
+
+          // Update our testProject.owners data.
+          var tempPassword = template.users.admin2.data.password;
+          template.users.admin2 = response;
+          template.users.admin2.data.password = tempPassword;
+
+          // Store the JWT for future API calls.
+          template.users.admin2.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
     it('A Form.io User should be able to login as administrator', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.adminLogin._id + '/submission', template))
