@@ -56,6 +56,7 @@ module.exports = function(router) {
 
       submissions.forEach(function(submission) {
         submission.deleted = Date.now();
+        submission.markModified('deleted');
         submission.save(function(err, submission) {
           if (err) {
             _debug(err);
@@ -116,6 +117,7 @@ module.exports = function(router) {
       actions.forEach(function(action) {
         action.settings = action.settings || {};
         action.deleted = Date.now();
+        action.markModified('deleted');
         action.save(function(err, action) {
           if (err) {
             _debug(err);
@@ -159,6 +161,7 @@ module.exports = function(router) {
       }
 
       form.deleted = Date.now();
+      form.markModified('deleted');
       form.save(function(err, form) {
         if (err) {
           _debug(err);
@@ -399,6 +402,7 @@ module.exports = function(router) {
       }
 
       role.deleted = Date.now();
+      role.markModified('deleted');
       role.save(function(err, role) {
         if (err) {
           _debug(err);
