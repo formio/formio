@@ -48,7 +48,7 @@ module.exports = function(router) {
     }
 
     debug('Deleting ' + (subId ? 'single submission' : 'multiple submissions'));
-    debug(query);
+    debug('query: ' + JSON.stringify(query));
     router.formio.resources.submission.model.find(query, function(err, submissions) {
       if (err) {
         debug(err);
@@ -59,20 +59,25 @@ module.exports = function(router) {
         return next();
       }
 
-      submissions.forEach(function(submission) {
+      async.eachSeries(submissions, function(submission, cb) {
         submission.deleted = Date.now();
         submission.markModified('deleted');
-        submission.save(function(err, submission) {
+        submission.save(function(err) {
           if (err) {
             debug(err);
-            return next(err);
+            return cb(err);
           }
 
-          debug(submission);
+          debug('Final submission: ' + JSON.stringify(submission));
+          cb();
         });
-      });
+      }, function(err) {
+        if (err) {
+          return next(err);
+        }
 
-      next();
+        next();
+      });
     });
   };
 
@@ -123,22 +128,26 @@ module.exports = function(router) {
         return next();
       }
 
-      actions.forEach(function(action) {
+      async.eachSeries(actions, function(action, cb) {
         action.settings = action.settings || {};
         action.deleted = Date.now();
         action.markModified('deleted');
-        action.save(function(err, action) {
+        action.save(function(err) {
           if (err) {
             debug(err);
-            return next(err);
+            return cb(err);
           }
 
-          debug(action);
+          debug('Final action: ' + JSON.stringify(action));
+          cb();
         });
-      });
+      }, function(err) {
+        if (err) {
+          return next(err);
+        }
 
-      // Continue once all the forms have been updated.
-      next();
+        next();
+      });
     });
   };
 
@@ -172,7 +181,7 @@ module.exports = function(router) {
 
       form.deleted = Date.now();
       form.markModified('deleted');
-      form.save(function(err, form) {
+      form.save(function(err) {
         if (err) {
           debug(err);
           return next(err);
@@ -190,7 +199,7 @@ module.exports = function(router) {
               return next(err);
             }
 
-            debug(form);
+            debug('Final form: ' + JSON.stringify(form));
             next();
           });
         });
@@ -281,18 +290,17 @@ module.exports = function(router) {
             form.markModified(access);
           });
 
-          form.save(function(err, form) {
+          form.save(function(err) {
             if (err) {
               debug(err);
               return done(err);
             }
 
-            debug(JSON.stringify(form));
+            debug('Final Form: ' + JSON.stringify(form));
             done();
           });
         }, function(err) {
           if (err) {
-            debug(err);
             return cb(err);
           }
 
@@ -335,18 +343,17 @@ module.exports = function(router) {
 
           submission.set('roles', temp);
           submission.markModified('roles');
-          submission.save(function(err, submission) {
+          submission.save(function(err) {
             if (err) {
               debug(err);
               return done(err);
             }
 
-            debug(submission);
+            debug('Final submission: ' + JSON.stringify(submission));
             done();
           });
         }, function(err) {
           if (err) {
-            debug(err);
             return cb(err);
           }
 
@@ -422,7 +429,7 @@ module.exports = function(router) {
 
       role.deleted = Date.now();
       role.markModified('deleted');
-      role.save(function(err, role) {
+      role.save(function(err) {
         if (err) {
           debug(err);
           return next(err);
@@ -434,7 +441,7 @@ module.exports = function(router) {
             return next(err);
           }
 
-          debug(role);
+          debug('Final Role: ' + JSON.stringify(role));
           next();
         });
       });
