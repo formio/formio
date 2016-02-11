@@ -308,7 +308,7 @@ module.exports = function(req, router, cb) {
     });
   }
   else {
-    router.formio.resources.form.model.find(hook.alter('formQuery', {}, req), function(err, forms) {
+    router.formio.resources.form.model.find(hook.alter('formQuery', {deleted: {$eq: null}}, req), function(err, forms) {
       if (err) {
         throw err;
       }
