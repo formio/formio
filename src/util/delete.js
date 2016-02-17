@@ -71,13 +71,7 @@ module.exports = function(router) {
           debug('Final submission: ' + JSON.stringify(submission));
           cb();
         });
-      }, function(err) {
-        if (err) {
-          return next(err);
-        }
-
-        next();
-      });
+      }, next);
     });
   };
 
@@ -141,13 +135,7 @@ module.exports = function(router) {
           debug('Final action: ' + JSON.stringify(action));
           cb();
         });
-      }, function(err) {
-        if (err) {
-          return next(err);
-        }
-
-        next();
-      });
+      }, next);
     });
   };
 

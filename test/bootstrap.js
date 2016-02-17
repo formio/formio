@@ -18,6 +18,9 @@ module.exports = function(app, server, settings, mount, config) {
   config = config || require('./config.json');
   var formioServer = server || require('../index')(config);
 
+  // The default project template.
+  var template = require('./template')();
+
   // Initialize the formio router.
   formioServer.init(settings).then(function(_formio) {
     // Allow tests access to formio.
@@ -39,9 +42,6 @@ module.exports = function(app, server, settings, mount, config) {
       template: template
     });
   });
-
-  // The default project template.
-  var template = require('./template')();
 
   return bootstrap.promise;
 };

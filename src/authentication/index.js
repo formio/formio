@@ -11,6 +11,7 @@
 var bcrypt = require('bcrypt');
 var jwt = require('jsonwebtoken');
 var util = require('../util/util');
+var _ = require('lodash');
 var debug = {
   authenticate: require('debug')('formio:authentication:authenticate')
 };
@@ -48,8 +49,8 @@ module.exports = function(router) {
   /**
    * Authenticate a user.
    *
-   * @param form {Object}
-   *   The form object to authenticate the given user against.
+   * @param forms {Mixed}
+   *   A single form or an array of forms to authenticate against.
    * @param userField {String}
    *   The user submission field that contains the username.
    * @param passField {String}
@@ -61,7 +62,7 @@ module.exports = function(router) {
    * @param next {Function}
    *   The callback function to call after authentication.
    */
-  var authenticate = function(form, userField, passField, username, password, next) {
+  var authenticate = function(forms, userField, passField, username, password, next) {
     // Make sure they have provided a username and password.
     if (!username) {
       return next(new Error('Missing username'));
@@ -70,11 +71,20 @@ module.exports = function(router) {
       return next(new Error('Missing password'));
     }
 
-    // Get the query to perform on the resource.
-    var query = {
-      form: util.idToBson(form._id),
-      deleted: {$eq: null}
-    };
+    var query = {deleted: {$eq: null}};
+
+    // Determine the form id for querying.
+    if (_.isArray(forms)) {
+      query.form = {'$in': _.map(forms, util.idToBson)};
+    }
+    else if (_.isObject(forms)) {
+      query.form = util.idToBson(forms._id);
+    }
+    else if (_.isString(forms)) {
+      query.form = util.idToBson(forms);
+    }
+
+    // Look for the user.
     query['data.' + userField] = username;
 
     // Find the user object.
@@ -96,35 +106,50 @@ module.exports = function(router) {
           return next(new Error('Incorrect password'));
         }
 
-        // Allow anyone to hook and modify the user.
-        hook.alter('user', user, function hookUserCallback(err, _user) {
+        // Load the form associated with this user record.
+        router.formio.resources.form.model.findOne({
+          _id: user.form,
+          deleted: {$eq: null}
+        }, function(err, form) {
           if (err) {
-            // Attempt to fail safely and not update the user reference.
-            debug.authenticate(err);
+            return next(err);
           }
-          else {
-            // Update the user with the hook results.
-            debug.authenticate(user);
-            user = _user;
+          if (!form) {
+            return next(new Error('User form not found.'));
           }
 
-          // Allow anyone to hook and modify the token.
-          var token = hook.alter('token', {
-            user: {
-              _id: user._id
-            },
-            form: {
-              _id: form._id
-            }
-          }, form);
+          form = form.toObject();
 
-          // Continue with the token data.
-          next(null, {
-            user: user,
-            token: {
-              token: getToken(token),
-              decoded: token
+          // Allow anyone to hook and modify the user.
+          hook.alter('user', user, function hookUserCallback(err, _user) {
+            if (err) {
+              // Attempt to fail safely and not update the user reference.
+              debug.authenticate(err);
             }
+            else {
+              // Update the user with the hook results.
+              debug.authenticate(user);
+              user = _user;
+            }
+
+            // Allow anyone to hook and modify the token.
+            var token = hook.alter('token', {
+              user: {
+                _id: user._id
+              },
+              form: {
+                _id: form._id
+              }
+            }, form);
+
+            // Continue with the token data.
+            next(null, {
+              user: user,
+              token: {
+                token: getToken(token),
+                decoded: token
+              }
+            });
           });
         });
       });

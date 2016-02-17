@@ -18,7 +18,7 @@ module.exports = function(formio) {
     _.each(perms, function(access) {
       _.each(access.roles, function(roleId, i) {
         roleId = roleId.toString();
-        if (_map.roles.hasOwnProperty(roleId)) {
+        if (_map.roles && _map.roles.hasOwnProperty(roleId)) {
           access.roles[i] = _map.roles[roleId];
         }
       });
@@ -27,15 +27,43 @@ module.exports = function(formio) {
 
   // Assign the role to an entity.
   var assignRole = function(_map, entity) {
-    if (entity.hasOwnProperty('role') && _map.roles.hasOwnProperty(entity.role)) {
+    if (!entity) {
+      return;
+    }
+    if (entity.hasOwnProperty('role') && _map.roles && _map.roles.hasOwnProperty(entity.role)) {
       entity.role = _map.roles[entity.role];
+    }
+  };
+
+  // Assign the resources.
+  var assignResources = function(_map, entity) {
+    if (!entity) {
+      return;
+    }
+    _.each(entity.resources, function(resource, index) {
+      if (_map.resources && _map.resources.hasOwnProperty(resource)) {
+        entity.resources[index] = _map.resources[resource];
+      }
+    });
+  };
+
+  // Assign the resource of an entity.
+  var assignResource = function(_map, entity) {
+    if (!entity) {
+      return;
+    }
+    if (entity.hasOwnProperty('resource') && _map.resources && _map.resources.hasOwnProperty(entity.resource)) {
+      entity.resource = _map.resources[entity.resource];
     }
   };
 
   // Assign form.
   var assignForm = function(_map, entity) {
+    if (!entity) {
+      return;
+    }
     if (entity.hasOwnProperty('form')) {
-      if (_map.forms.hasOwnProperty(entity.form)) {
+      if (_map.forms && _map.forms.hasOwnProperty(entity.form)) {
         entity.form = _map.forms[entity.form];
       }
     }
@@ -55,6 +83,8 @@ module.exports = function(formio) {
         _.each(actions, function(action, index) {
           assignForm(_map, action);
           assignRole(_map, action.settings);
+          assignResource(_map, action.settings);
+          assignResources(_map, action.settings);
           var machineName = action.machineName = hook.alter('machineNameExport', action.machineName);
           _export.actions[machineName] = _.pick(action,
             'title',
@@ -100,7 +130,7 @@ module.exports = function(formio) {
           util.eachComponent(form.components, function(component) {
             if (
               (component.type === 'resource') &&
-              (_map.forms.hasOwnProperty(component.resource))
+              (_map.forms && _map.forms.hasOwnProperty(component.resource))
             ) {
               component.resource = _map.forms[component.resource];
             }
@@ -141,6 +171,7 @@ module.exports = function(formio) {
     export: function(options, next) {
       var _export = {
         title: options.title ? options.title : 'Export',
+        version: '2.0.0',
         description: options.description ? options.description : '',
         name: options.name ? options.name : 'export',
         plan: options.plan ? options.plan : 'community',

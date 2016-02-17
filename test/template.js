@@ -32,7 +32,7 @@ module.exports = function() {
         suffix: '',
         prefix: '',
         placeholder: 'Enter your email address',
-        key: 'admin.email',
+        key: 'email',
         label: 'Email',
         inputType: 'email',
         tableView: true,
@@ -45,7 +45,7 @@ module.exports = function() {
         suffix: '',
         prefix: '',
         placeholder: 'Enter your password.',
-        key: 'admin.password',
+        key: 'password',
         label: 'Password',
         inputType: 'password',
         tableView: false,
@@ -68,19 +68,45 @@ module.exports = function() {
   };
 
   // Create a register action for this form.
-  template.actions.adminRegister = {
-    title: 'Authentication',
-    name: 'auth',
+  template.actions.adminRegisterResource = {
+    name: 'resource',
+    title: 'Submit to another Resource',
     form: 'adminRegister',
-    handler: ['before'],
+    priority: 10,
     method: ['create'],
-    priority: 0,
+    handler: ['before'],
     settings: {
-      association: 'new',
+      resource: 'admin',
       role: 'administrator',
-      username: 'admin.email',
-      password: 'admin.password'
+      fields: {
+        email: 'email',
+        password: 'password'
+      }
     }
+  };
+
+  template.actions.adminRegisterLogin = {
+    name: 'login',
+    title: 'Login',
+    form: 'adminRegister',
+    priority: 2,
+    method: ['create'],
+    handler: ['before'],
+    settings: {
+      resources: ['admin'],
+      username: 'email',
+      password: 'password'
+    }
+  };
+
+  template.actions.adminRegisterNoSubmit = {
+    name: 'nosubmit',
+    title: 'Skip Form Submission',
+    form: 'adminRegister',
+    priority: 0,
+    method: ['create'],
+    handler: ['before'],
+    settings: {}
   };
 
   // Create some circularly dependent resources to make sure

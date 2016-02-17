@@ -11,8 +11,8 @@ module.exports = function(app, template, hook) {
         .post(hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template))
         .send({
           data: {
-            'admin.email': template.users.admin.data.email,
-            'admin.password': template.users.admin.data.password
+            'email': template.users.admin.data.email,
+            'password': template.users.admin.data.password
           }
         })
         .expect(200)
@@ -36,6 +36,8 @@ module.exports = function(app, template, hook) {
           assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
           assert.notEqual(response.owner, null);
           assert.equal(response.owner, response._id);
+          assert.equal(response.roles.length, 1);
+          assert.equal(response.roles[0].toString(), template.roles.administrator._id.toString());
 
           // Update our testProject.owners data.
           var tempPassword = template.users.admin.data.password;
@@ -54,8 +56,8 @@ module.exports = function(app, template, hook) {
         .post(hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template))
         .send({
           data: {
-            'admin.email': template.users.admin2.data.email,
-            'admin.password': template.users.admin2.data.password
+            'email': template.users.admin2.data.email,
+            'password': template.users.admin2.data.password
           }
         })
         .expect(200)
@@ -79,6 +81,8 @@ module.exports = function(app, template, hook) {
           assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
           assert.notEqual(response.owner, null);
           assert.equal(response.owner, response._id);
+          assert.equal(response.roles.length, 1);
+          assert.equal(response.roles[0].toString(), template.roles.administrator._id.toString());
 
           // Update our testProject.owners data.
           var tempPassword = template.users.admin2.data.password;
@@ -97,8 +101,8 @@ module.exports = function(app, template, hook) {
         .post(hook.alter('url', '/form/' + template.forms.adminLogin._id + '/submission', template))
         .send({
           data: {
-            'admin.email': template.users.admin.data.email,
-            'admin.password': template.users.admin.data.password
+            'email': template.users.admin.data.email,
+            'password': template.users.admin.data.password
           }
         })
         .expect('Content-Type', /json/)
@@ -172,8 +176,8 @@ module.exports = function(app, template, hook) {
         .post(hook.alter('url', '/' + template.forms.adminLogin.path, template))
         .send({
           data: {
-            'admin.email': template.users.admin.data.email,
-            'admin.password': template.users.admin.data.password
+            'email': template.users.admin.data.email,
+            'password': template.users.admin.data.password
           }
         })
         .expect('Content-Type', /json/)
@@ -227,8 +231,8 @@ module.exports = function(app, template, hook) {
         .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template))
         .send({
           data: {
-            'user.email': template.users.user1.data.email,
-            'user.password': template.users.user1.data.password
+            'email': template.users.user1.data.email,
+            'password': template.users.user1.data.password
           }
         })
         .expect(200)
@@ -252,6 +256,8 @@ module.exports = function(app, template, hook) {
           assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
           assert.notEqual(response.owner, null);
           assert.equal(response.owner, response._id);
+          assert.equal(response.roles.length, 1);
+          assert.equal(response.roles[0].toString(), template.roles.authenticated._id.toString());
 
           // Update our testProject.owners data.
           var tempPassword = template.users.user1.data.password;
@@ -270,8 +276,8 @@ module.exports = function(app, template, hook) {
         .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template))
         .send({
           data: {
-            'user.email': template.users.user2.data.email,
-            'user.password': template.users.user2.data.password
+            'email': template.users.user2.data.email,
+            'password': template.users.user2.data.password
           }
         })
         .expect(200)
@@ -303,8 +309,8 @@ module.exports = function(app, template, hook) {
         .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
         .send({
           data: {
-            'user.email': template.users.user1.data.email,
-            'user.password': template.users.user1.data.password
+            'email': template.users.user1.data.email,
+            'password': template.users.user1.data.password
           }
         })
         .expect('Content-Type', /json/)
@@ -343,8 +349,8 @@ module.exports = function(app, template, hook) {
         .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
         .send({
           data: {
-            'user.email': template.users.user2.data.email,
-            'user.password': template.users.user2.data.password
+            'email': template.users.user2.data.email,
+            'password': template.users.user2.data.password
           }
         })
         .expect('Content-Type', /json/)
@@ -458,8 +464,8 @@ module.exports = function(app, template, hook) {
         .post(hook.alter('url', '/' + template.forms.userLogin.path, template))
         .send({
           data: {
-            'user.email': template.users.user1.data.email,
-            'user.password': template.users.user1.data.password
+            'email': template.users.user1.data.email,
+            'password': template.users.user1.data.password
           }
         })
         .expect('Content-Type', /json/)

@@ -1,6 +1,7 @@
 {
   "title": "Default",
   "name": "default",
+  "version": "1.0.0",
   "description": "Provides a simple User authentication system.",
   "roles": {
     "administrator": {
@@ -240,7 +241,7 @@
           "suffix": "",
           "prefix": "",
           "placeholder": "Enter your email address",
-          "key": "user.email",
+          "key": "email",
           "lockKey": true,
           "label": "Email",
           "inputType": "email",
@@ -254,7 +255,7 @@
           "suffix": "",
           "prefix": "",
           "placeholder": "Enter your password.",
-          "key": "user.password",
+          "key": "password",
           "lockKey": true,
           "label": "Password",
           "inputType": "password",
@@ -304,7 +305,7 @@
           "suffix": "",
           "prefix": "",
           "placeholder": "Enter your email address",
-          "key": "user.email",
+          "key": "email",
           "lockKey": true,
           "label": "Email",
           "inputType": "email",
@@ -318,7 +319,7 @@
           "suffix": "",
           "prefix": "",
           "placeholder": "Enter your password.",
-          "key": "user.password",
+          "key": "password",
           "lockKey": true,
           "label": "Password",
           "inputType": "password",
@@ -367,7 +368,7 @@
           "suffix": "",
           "prefix": "",
           "placeholder": "Enter your email address",
-          "key": "admin.email",
+          "key": "email",
           "lockKey": true,
           "label": "Email",
           "inputType": "email",
@@ -381,7 +382,7 @@
           "suffix": "",
           "prefix": "",
           "placeholder": "Enter your password.",
-          "key": "admin.password",
+          "key": "password",
           "lockKey": true,
           "label": "Password",
           "inputType": "password",
@@ -407,44 +408,86 @@
   },
   "actions": {
     "userLogin": {
-      "name": "auth",
-      "title": "Authentication",
+      "name": "login",
+      "title": "Login",
+      "form": "userLogin",
+      "priority": 2,
+      "method": ["create"],
+      "handler": ["before"],
+      "settings": {
+        "resources": ["user"],
+        "username": "email",
+        "password": "password"
+      }
+    },
+    "userLoginNoSubmit": {
+      "name": "nosubmit",
+      "title": "Skip Form Submission",
       "form": "userLogin",
       "priority": 0,
       "handler": ["before"],
       "method": ["create"],
-      "settings": {
-        "username": "user.email",
-        "password": "user.password",
-        "association": "existing"
-      }
+      "settings": {}
     },
-    "userRegister": {
-      "title": "Authentication",
-      "name": "auth",
+    "userRegisterResource": {
+      "title": "Submit to another Resource",
+      "name": "resource",
       "form": "userRegister",
       "handler": ["before"],
       "method": ["create"],
-      "priority": 0,
+      "priority": 10,
       "settings": {
-        "association": "new",
+        "resource": "user",
         "role": "authenticated",
-        "username": "user.email",
-        "password": "user.password"
+        "fields": {
+          "email": "email",
+          "password": "password"
+        }
       }
     },
+    "userRegisterLogin": {
+      "name": "login",
+      "title": "Login",
+      "form": "userRegister",
+      "priority": 2,
+      "method": ["create"],
+      "handler": ["before"],
+      "settings": {
+        "resources": ["user"],
+        "username": "email",
+        "password": "password"
+      }
+    },
+    "userRegisterNoSubmit": {
+      "name": "nosubmit",
+      "title": "Skip Form Submission",
+      "form": "userRegister",
+      "priority": 0,
+      "handler": ["before"],
+      "method": ["create"],
+      "settings": {}
+    },
     "adminLogin": {
-      "name": "auth",
-      "title": "Authentication",
+      "name": "login",
+      "title": "Login",
+      "form": "adminLogin",
+      "priority": 2,
+      "method": ["create"],
+      "handler": ["before"],
+      "settings": {
+        "resources": ["admin"],
+        "username": "email",
+        "password": "password"
+      }
+    },
+    "adminLoginNoSubmit": {
+      "name": "nosubmit",
+      "title": "Skip Form Submission",
       "form": "adminLogin",
       "priority": 0,
       "handler": ["before"],
       "method": ["create"],
-      "settings": {
-        "username": "admin.email",
-        "password": "admin.password",
-        "association": "existing"
-      }
+      "settings": {}
     }
   }
 }
