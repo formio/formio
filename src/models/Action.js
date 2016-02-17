@@ -54,7 +54,7 @@ module.exports = function(formio) {
     },
     settings: {
       type: mongoose.Schema.Types.Mixed,
-      required: true
+      required: false
     },
     form: {
       type: mongoose.Schema.Types.ObjectId,

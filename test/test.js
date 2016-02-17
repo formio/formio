@@ -37,13 +37,7 @@ describe('Bootstrap Test modules', function() {
      *   The callback to execute.
      */
     var dropDocuments = function(model, next) {
-      model.remove({}, function(err) {
-        if (err) {
-          return next(err);
-        }
-
-        next();
-      });
+      model.remove({}, next);
     };
 
     async.series([

@@ -187,11 +187,5 @@ module.exports = function(db, config, next) {
         ], cb);
       });
     }
-  ], function(err) {
-    if (err) {
-      return next(err);
-    }
-
-    next();
-  });
+  ], next);
 };

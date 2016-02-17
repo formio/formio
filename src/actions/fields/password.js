@@ -7,6 +7,17 @@ module.exports = function(formio) {
       next();
     },
 
+    encryptField: function(req, component, next) {
+      formio.encrypt(req.body.data[component.key], function encryptResults(err, hash) {
+        if (err) {
+          return next(err);
+        }
+
+        req.body.data[component.key] = hash;
+        next();
+      });
+    },
+
     beforePut: function(component, req, res, next) {
       // If there is not payload data.
       if (!req.body.data) {
@@ -29,31 +40,16 @@ module.exports = function(formio) {
         });
       }
       else {
-        // Create a new password from what they provided.
-        formio.encrypt(req.body.data[component.key], function encryptResults(err, hash) {
-          if (err) {
-            return next(err);
-          }
-
-          req.body.data[component.key] = hash;
-          next();
-        });
+        this.encryptField(req, component, next);
       }
     },
 
     beforePost: function(component, req, res, next) {
-      if (!req.body || !req.body.data || !req.body.data.hasOwnProperty(component.key)) {
+      if (!req.body || !req.body.data || !req.body.data[component.key]) {
         return next();
       }
 
-      formio.encrypt(req.body.data[component.key], function encryptResults(err, hash) {
-        if (err) {
-          return next(err);
-        }
-
-        req.body.data[component.key] = hash;
-        next();
-      });
+      this.encryptField(req, component, next);
     }
   };
 };

@@ -3,6 +3,8 @@
 var async = require('async');
 var _ = require('lodash');
 var util = require('../util/util');
+var pjson = require('../../package.json');
+var semver = require('semver');
 var debug = {
   template: require('debug')('formio:template:template'),
   _install: require('debug')('formio:template:_install'),
@@ -34,9 +36,14 @@ module.exports = function(formio) {
 
   // Assign the role to an entity.
   var assignRole = function(template, entity) {
+    if (!entity) {
+      return false;
+    }
     if (entity.hasOwnProperty('role') && template.roles.hasOwnProperty(entity.role)) {
       entity.role = template.roles[entity.role]._id.toString();
+      return true;
     }
+    return false;
   };
 
   // Assign form.
@@ -44,11 +51,51 @@ module.exports = function(formio) {
     if (entity.hasOwnProperty('form')) {
       if (template.forms.hasOwnProperty(entity.form)) {
         entity.form = template.forms[entity.form]._id.toString();
+        return true;
       }
       if (template.resources.hasOwnProperty(entity.form)) {
         entity.form = template.resources[entity.form]._id.toString();
+        return true;
       }
     }
+    return false;
+  };
+
+  // Assign resources.
+  var assignResources = function(template, entity) {
+    if (!entity) {
+      return false;
+    }
+    _.each(entity.resources, function(resource, index) {
+      if (template.resources.hasOwnProperty(resource)) {
+        entity.resources[index] = template.resources[resource]._id.toString();
+      }
+    });
+  };
+
+  // Assign resource.
+  var assignResource = function(template, entity) {
+    if (!entity) {
+      return false;
+    }
+    if (entity.hasOwnProperty('resource')) {
+      if (template.resources.hasOwnProperty(entity.resource)) {
+        entity.resource = template.resources[entity.resource]._id.toString();
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Assign resources within a form.
+  var assignComponentResources = function(template, components) {
+    var changed = false;
+    util.eachComponent(components, function(component) {
+      if ((component.type === 'resource') && assignResource(template, component)) {
+        changed = true;
+      }
+    });
+    return changed;
   };
 
   /**
@@ -67,18 +114,13 @@ module.exports = function(formio) {
     form: function(template, form) {
       assignRoles(template, form.submissionAccess);
       assignRoles(template, form.access);
-      util.eachComponent(form.components, function(component) {
-        if (
-          (component.type === 'resource') &&
-          (template.resources.hasOwnProperty(component.resource))
-        ) {
-          component.resource = template.resources[component.resource]._id.toString();
-        }
-      });
+      assignComponentResources(template, form.components);
       return form;
     },
     action: function(template, action) {
       assignForm(template, action);
+      assignResource(template, action.settings);
+      assignResources(template, action.settings);
       assignRole(template, action.settings);
       return action;
     },
@@ -90,17 +132,7 @@ module.exports = function(formio) {
 
   var postResourceInstall = function(model, template, items, done) {
     async.forEachOf(items, function(item, name, itemDone) {
-      var changed = false;
-      util.eachComponent(item.components, function(component) {
-        if (
-          (component.type === 'resource') &&
-          (template.resources.hasOwnProperty(component.resource))
-        ) {
-          component.resource = template.resources[component.resource]._id.toString();
-          changed = true;
-        }
-      });
-      if (!changed) {
+      if (!assignComponentResources(template, item.components)) {
         return itemDone();
       }
 
@@ -188,6 +220,100 @@ module.exports = function(formio) {
   };
 
   /**
+   * Translate a schema from older versions to newer versions.
+   * @param template
+   * @param done
+   */
+  var translateSchema = function(template, done) {
+    // Skip if the template has a correct version.
+    if (template.version && !semver.gt(pjson.templateVersion, template.version)) {
+      return done();
+    }
+
+    // Clone the template so we can modify the original without messing up the iterations.
+    var clone = _.cloneDeep(template);
+
+    // Fix all schemas.
+    _.each(['forms', 'resources'], function(type) {
+      _.each(template[type], function(form) {
+        util.eachComponent(form.components, function(component) {
+          if (component.validate && component.validate.custom) {
+            _.each(template.resources, function(resource) {
+              component.validate.custom = component.validate.custom.replace(resource.name + '.password', 'password');
+            });
+          }
+          if (component.key.indexOf('.') !== -1) {
+            component.key = component.key.split('.')[1];
+          }
+        });
+      });
+    });
+
+    // Turn all "auth" actions into the new authentication system.
+    _.each(clone.actions, function(action, key) {
+      if (action.name === 'auth') {
+        var userparts = action.settings.username.split('.');
+        if (userparts.length > 1) {
+          var resource = userparts[0];
+          var username = userparts[1];
+          var password = action.settings.password.split('.')[1];
+
+          // Add the Resource action for new associations.
+          if (action.settings.association === 'new') {
+            var fields = {};
+            fields[username] = username;
+            fields[password] = password;
+            template.actions[key + 'Resource'] = {
+              title: 'Submit to another Resource',
+              name: 'resource',
+              form: action.form,
+              handler: ['before'],
+              method: ['create'],
+              priority: 10,
+              settings: {
+                resource: resource,
+                role: action.settings.role,
+                fields: fields
+              }
+            };
+          }
+
+          // Add the login action.
+          template.actions[key + 'Login'] = {
+            title: 'Login',
+            name: 'login',
+            form: action.form,
+            handler: ['before'],
+            method: ['create'],
+            priority: 2,
+            settings: {
+              resources: [resource],
+              username: username,
+              password: password
+            }
+          };
+
+          // Add the skip form submission action.
+          template.actions[key + 'NoSubmit'] = {
+            title: 'Skip Form Submission',
+            name: 'nosubmit',
+            form: action.form,
+            handler: ['before'],
+            method: ['create'],
+            priority: 0,
+            settings: {}
+          };
+
+          // Remove the auth action.
+          delete template.actions[key];
+        }
+      }
+    });
+
+    done();
+  };
+
+  /**
    * Return an easy way for someone to install a template.
    */
   return {
@@ -205,6 +331,7 @@ module.exports = function(formio) {
       }
       alter = alter || {};
       async.series([
+        async.apply(translateSchema, template),
         async.apply(this.roles, template, template.roles, alter.role),
         async.apply(this.resources, template, template.resources, alter.form),
         async.apply(this.forms, template, template.forms, alter.form),

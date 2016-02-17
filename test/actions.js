@@ -41,17 +41,13 @@ module.exports = function(app, template, hook) {
     };
 
     // Store the temp action for this test suite.
-    var tempAction = {
-      title: 'Authentication',
-      name: 'auth',
+    var tempAction = {};
+    var tempNoSubmitAction = {
+      title: 'No Submit',
+      name: 'nosubmit',
       handler: ['before'],
       method: ['create'],
-      priority: 0,
-      settings: {
-        association: 'existing',
-        username: 'user.username',
-        password: 'user.password'
-      }
+      priority: 0
     };
 
     describe('Bootstrap', function() {
@@ -85,6 +81,18 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(response.submissionAccess, []);
             assert.deepEqual(response.components, tempForm.components);
             tempForm = response;
+            tempAction = {
+              title: 'Login',
+              name: 'login',
+              handler: ['before'],
+              method: ['create'],
+              priority: 0,
+              settings: {
+                resources: [tempForm._id.toString()],
+                username: 'username',
+                password: 'password'
+              }
+            };
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
@@ -117,6 +125,35 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(response.settings, tempAction.settings);
             assert.equal(response.form, tempForm._id);
             tempAction = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('A Project Owner should be able to Create a NoSubmit Action', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form/' + tempForm._id + '/action', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(tempNoSubmitAction)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+                return done(err);
+            }
+
+            var response = res.body;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert.equal(response.title, tempNoSubmitAction.title);
+            assert.equal(response.name, tempNoSubmitAction.name);
+            assert.deepEqual(response.handler, tempNoSubmitAction.handler);
+            assert.deepEqual(response.method, tempNoSubmitAction.method);
+            assert.equal(response.priority, tempNoSubmitAction.priority);
+            assert.equal(response.form, tempForm._id);
+            tempNoSubmitAction = response;
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
@@ -185,8 +222,15 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.equal(response.length, 1);
-            assert.deepEqual(response, [tempAction]);
+            assert.equal(response.length, 2);
+            _.each(response, function(action) {
+              if (action.name === 'login') {
+                assert.deepEqual(action, tempAction);
+              }
+              else {
+                assert.deepEqual(action, tempNoSubmitAction);
+              }
+            });
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
@@ -256,8 +300,16 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.equal(response.length, 1);
-            assert.deepEqual(response, [tempAction]);
+            assert.equal(response.length, 2);
+            assert.equal(response.length, 2);
+            _.each(response, function(action) {
+              if (action.name === 'login') {
+                assert.deepEqual(action, tempAction);
+              }
+              else {
+                assert.deepEqual(action, tempNoSubmitAction);
+              }
+            });
 
             done();
           });
@@ -311,8 +363,16 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.equal(response.length, 1);
-            assert.deepEqual(response, [tempAction]);
+            assert.equal(response.length, 2);
+            assert.equal(response.length, 2);
+            _.each(response, function(action) {
+              if (action.name === 'login') {
+                assert.deepEqual(action, tempAction);
+              }
+              else {
+                assert.deepEqual(action, tempNoSubmitAction);
+              }
+            });
 
             done();
           });
@@ -1164,21 +1224,41 @@ module.exports = function(app, template, hook) {
         type: 'form',
         access: [],
         submissionAccess: [],
-        components: []
+        components: [
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'username',
+            key: 'username',
+            label: 'username',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          },
+          {
+            type: 'password',
+            suffix: '',
+            prefix: '',
+            placeholder: 'password',
+            key: 'password',
+            label: 'password',
+            inputType: 'password',
+            input: true
+          }
+        ]
       };
 
-      var authAction = {
-        title: 'Authentication',
-        name: 'auth',
-        handler: ['before'],
-        method: ['create'],
-        priority: 0,
-        settings: {
-          association: 'new',
-          username: 'dummy.username',
-          password: 'dummy.password'
-        }
-      };
+      var authAction = {};
 
       describe('Bootstrap', function() {
         it('Create the dummy resource form', function(done) {
@@ -1257,8 +1337,22 @@ module.exports = function(app, template, hook) {
             });
         });
 
-        it('Create the dummy auth action', function(done) {
-          authAction.settings.role = template.users.admin._id; // Some random, but valid ObjectId.
+        it('Create the dummy auth register action', function(done) {
+          authAction = {
+            title: 'Register',
+            name: 'resource',
+            handler: ['before'],
+            method: ['create'],
+            priority: 0,
+            settings: {
+              resource: dummyResource._id.toString(),
+              role: template.users.admin._id.toString(),
+              fields: {
+                username: 'username',
+                password: 'password'
+              }
+            }
+          }
 
           request(app)
             .post(hook.alter('url', '/form/' + authForm._id + '/action', template))
@@ -1288,6 +1382,85 @@ module.exports = function(app, template, hook) {
               done();
             });
         });
+        it('Create the dummy auth login action', function(done) {
+          var authLoginAction = {
+            title: 'Login',
+            name: 'login',
+            handler: ['before'],
+            method: ['create'],
+            priority: 0,
+            settings: {
+              resources: [dummyResource._id.toString()],
+              username: 'username',
+              password: 'password'
+            }
+          }
+
+          request(app)
+            .post(hook.alter('url', '/form/' + authForm._id + '/action', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(authLoginAction)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert.equal(response.title, authLoginAction.title);
+              assert.equal(response.name, authLoginAction.name);
+              assert.deepEqual(response.handler, authLoginAction.handler);
+              assert.deepEqual(response.method, authLoginAction.method);
+              assert.equal(response.priority, authLoginAction.priority);
+              assert.deepEqual(response.settings, authLoginAction.settings);
+              assert.equal(response.form, authForm._id);
+              authLoginAction = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+        it('Create the dummy auth nosubmit action', function(done) {
+          var authNoSubmitAction = {
+            title: 'No Submit',
+            name: 'nosubmit',
+            handler: ['before'],
+            method: ['create'],
+            priority: 0
+          }
+
+          request(app)
+            .post(hook.alter('url', '/form/' + authForm._id + '/action', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(authNoSubmitAction)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert.equal(response.title, authNoSubmitAction.title);
+              assert.equal(response.name, authNoSubmitAction.name);
+              assert.deepEqual(response.handler, authNoSubmitAction.handler);
+              assert.deepEqual(response.method, authNoSubmitAction.method);
+              assert.equal(response.priority, authNoSubmitAction.priority);
+              assert.deepEqual(response.settings, authNoSubmitAction.settings);
+              assert.equal(response.form, authForm._id);
+              authNoSubmitAction = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
       });
 
       describe('AuthAction Functionality tests for New Submissions', function() {
@@ -1297,11 +1470,11 @@ module.exports = function(app, template, hook) {
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
-                'dummy.username': chance.word({length: 10}),
-                'dummy.password': chance.word({length: 10})
+                'username': chance.word({length: 10}),
+                'password': chance.word({length: 10})
               }
             })
-            .expect(400)
+            .expect(401)
             .end(function(err, res) {
               if(err) {
                 return done(err);
@@ -1438,15 +1611,15 @@ module.exports = function(app, template, hook) {
       var actionLogin = null;
       it('A Project Owner should be able to Create an Authentication Action (Login Form)', function(done) {
         actionLogin = {
-          title: 'Authentication',
-          name: 'auth',
+          title: 'Login',
+          name: 'login',
           handler: ['before'],
           method: ['create'],
           priority: 0,
           settings: {
-            association: 'existing',
-            username: 'user.username',
-            password: 'user.password'
+            resources: [template.resources.user._id.toString()],
+            username: 'username',
+            password: 'password'
           }
         };
 
@@ -1479,6 +1652,44 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      var actionNoSubmitLogin = null;
+      it('A Project Owner should be able to Create an Authentication Action (Login Form)', function(done) {
+        actionNoSubmitLogin = {
+          title: 'No Submit',
+          name: 'nosubmit',
+          handler: ['before'],
+          method: ['create'],
+          priority: 0
+        };
+
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/action', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({ data: actionNoSubmitLogin })
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert.equal(response.title, actionNoSubmitLogin.title);
+            assert.equal(response.name, actionNoSubmitLogin.name);
+            assert.deepEqual(response.handler, actionNoSubmitLogin.handler);
+            assert.deepEqual(response.method, actionNoSubmitLogin.method);
+            assert.equal(response.priority, actionNoSubmitLogin.priority);
+            assert.equal(response.form, template.forms.userLogin._id);
+            actionNoSubmitLogin = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
       it('Delete the login action', function(done) {
         request(app)
           .delete(hook.alter('url', '/form/' + template.forms.userLogin._id + '/action/' + actionLogin._id, template))
@@ -1490,15 +1701,15 @@ module.exports = function(app, template, hook) {
       var actionRegister = null;
       it('A Project Owner should be able to Create an Authentication Action (Registration Form)', function(done) {
         actionRegister = {
-          title: 'Authentication',
-          name: 'auth',
+          title: 'Login',
+          name: 'login',
           handler: ['before'],
           method: ['create'],
           priority: 0,
           settings: {
-            association: 'new',
-            username: 'user.username',
-            password: 'user.password'
+            resources: [template.resources.user._id.toString()],
+            username: 'username',
+            password: 'password'
           }
         };
 

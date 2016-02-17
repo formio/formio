@@ -32,12 +32,14 @@ module.exports = function(router) {
      */
     actions: hook.alter('actions', {
       default: require('./DefaultAction')(router),
-      auth: require('./AuthAction')(router),
       email: require('./EmailAction')(router),
       webhook: require('./WebhookAction')(router),
       sql: require('./SQLAction')(router),
       role: require('./RoleAction')(router),
-      resetpass: require('./ResetPassword')(router)
+      resetpass: require('./ResetPassword')(router),
+      resource: require('./ResourceAction')(router),
+      login: require('./LoginAction')(router),
+      nosubmit: require('./NoSubmit.js')(router)
     }),
 
     /**
@@ -161,7 +163,7 @@ module.exports = function(router) {
           });
         }.bind(this),
         function actionExecute(result, callback) {
-          if (!result) {
+          if (!result || !result.length) {
             return callback(null, null);
           }
 
