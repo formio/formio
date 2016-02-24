@@ -47,6 +47,10 @@ module.exports = function(formio) {
       type: String,
       require: true
     }],
+    condition: {
+      type: mongoose.Schema.Types.Mixed,
+      required: false
+    },
     priority: {
       type: Number,
       require: true,

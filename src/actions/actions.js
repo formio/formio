@@ -180,7 +180,15 @@ module.exports = function(router) {
             }
 
             var ActionClass = this.actions[action.name];
-            actions.push(new ActionClass(action, req, res));
+            if (action.condition && action.condition.field) {
+              // If condition is set, make sure it matches.
+              if ((req.body.data[action.condition.field] === action.condition.value) === (action.condition.eq === 'equals')) {
+                actions.push(new ActionClass(action, req, res));
+              }
+            }
+            else {
+              actions.push(new ActionClass(action, req, res));
+            }
           }.bind(this));
 
           // Iterate and execute each action.
@@ -210,7 +218,9 @@ module.exports = function(router) {
    *
    * @param action
    */
-  var getSettingsForm = function(action) {
+  var getSettingsForm = function(action, req) {
+    var basePath = hook.alter('url', '/form', req);
+    var dataSrc = basePath + '/' + req.params.formId + '/components';
     // The default settings form.
     var settingsForm = {
       components: [
@@ -220,16 +230,41 @@ module.exports = function(router) {
       ]
     };
 
+    var mainSettings = {
+      components: []
+    };
+    var conditionalSettings = {
+      components: []
+    };
+
+    var configSettings = {
+      type: 'fieldset',
+      input: false,
+      tree: false,
+      key: 'conditions',
+      legend: 'Action Conditions',
+      components: [
+        {
+          input: false,
+          type: 'columns',
+          columns: [
+            mainSettings,
+            conditionalSettings
+          ]
+        }
+      ]
+    };
+
     // If the defaults are read only.
     if (action.access && (action.access.handler === false)) {
-      settingsForm.components.push({
+      mainSettings.components.push({
         type: 'hidden',
         input: true,
         key: 'handler'
       });
     }
     else {
-      settingsForm.components.push({
+      mainSettings.components.push({
         type: 'select',
         input: true,
         key: 'handler',
@@ -253,17 +288,17 @@ module.exports = function(router) {
     }
 
     if (action.access && (action.access.method === false)) {
-      settingsForm.components.push({
+      mainSettings.components.push({
         type: 'hidden',
         input: true,
         key: 'method'
       });
     }
     else {
-      settingsForm.components.push({
+      mainSettings.components.push({
         type: 'select',
         input: true,
-        label: 'Method',
+        label: 'Methods',
         key: 'method',
         placeholder: 'Trigger action on method(s)',
         dataSrc: 'json',
@@ -295,13 +330,71 @@ module.exports = function(router) {
       });
     }
 
+    conditionalSettings.components.push({
+      type: 'fieldset',
+      input: false,
+      tree: true,
+      key: 'condition',
+      components: [
+        {
+          type: 'select',
+          input: true,
+          label: '(optional) Trigger this action only if field',
+          key: 'condition[field]',
+          placeholder: 'Select the conditional field',
+          template: '<span>{{ item.label || item.key }}</span>',
+          dataSrc: 'url',
+          data: {url: dataSrc},
+          valueProperty: 'key',
+          multiple: false,
+          validate: {}
+        },
+        {
+          type : "select",
+          input : true,
+          label : "",
+          key : "condition[eq]",
+          placeholder : "Select comparison",
+          template : "<span>{{ item.label }}</span>",
+          dataSrc : "values",
+          data : {
+            values : [
+              {
+                value : "equals",
+                label : "Equals"
+              },
+              {
+                value : "notEqual",
+                label : "Does Not Equal"
+              }
+            ],
+            json : "",
+            url : "",
+            resource : ""
+          },
+          valueProperty : "value",
+          multiple : false
+        },
+        {
+          input: true,
+          type: "textfield",
+          inputType: "text",
+          key: "condition[value]",
+          placeholder: "Enter value",
+          multiple: false
+        }
+      ]
+    });
+
+    settingsForm.components.push(configSettings);
+
     // Create the settings form.
     var actionSettings = {
       type: 'fieldset',
       input: false,
       tree: true,
       key: 'settings',
-      legend: 'Settings',
+      legend: 'Action Settings',
       components: []
     };
 
@@ -383,7 +476,7 @@ module.exports = function(router) {
           title: info.title
         });
 
-        var settings = getSettingsForm(action);
+        var settings = getSettingsForm(action, req);
         action.settingsForm(req, res, function(err, settingsForm) {
           if (err) {
             return next(err);
