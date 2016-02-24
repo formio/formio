@@ -5,8 +5,10 @@ var _ = require('lodash');
 var nodeUrl = require('url');
 var Q = require('q');
 var formioUtils = require('formio-utils');
+var deleteProp = require('delete-property');
 var debug = {
-  getUrlParams: require('debug')('formio:util:getUrlParams')
+  getUrlParams: require('debug')('formio:util:getUrlParams'),
+  removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
 
 module.exports = {
@@ -305,5 +307,20 @@ module.exports = {
     return _.isObject(_id)
       ? _id.toString()
       : _id;
+  },
+
+  removeProtectedFields: function(form, submissions) {
+    var self = this;
+    if (!(submissions instanceof Array)) {
+      submissions = [submissions];
+    }
+
+    _.each(self.flattenComponents(form.components), function(component) {
+      if (component.protected) {
+        debug.removeProtectedFields('Removing protected field:', component.key);
+        var deleteProtected = deleteProp('data.' + self.getSubmissionKey(component.key));
+        _.each(submissions, deleteProtected);
+      }
+    });
   }
 };
