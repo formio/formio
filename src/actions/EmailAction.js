@@ -173,27 +173,40 @@ module.exports = function(router) {
       // Get the parameters for the email.
       params.form = form;
 
-      var sendEmail = function(message) {
-        // Prepend the macros to the message so that they can use them.
-        this.settings.message = message;
+      var query = {
+        _id: params.owner,
+        deleted: {$eq: null}
+      };
+      router.formio.resources.submission.model.findOne(query).exec(function(err, owner) {
+        if (err) {
+          // Don't worry about an error.
+        }
+        if (owner) {
+          params.owner = owner;
+        }
 
-        // Send the email.
-        emailer.send(req, res, this.settings, params, next);
-      }.bind(this);
+        var sendEmail = function(message) {
+          // Prepend the macros to the message so that they can use them.
+          this.settings.message = message;
 
-      if (this.settings.template) {
-        request(this.settings.template, function(error, response, body) {
-          if (!error && response.statusCode === 200) {
-            sendEmail(body);
-          }
-          else {
-            sendEmail(macros + this.settings.message);
-          }
-        }.bind(this));
-      }
-      else {
-        sendEmail(macros + this.settings.message);
-      }
+          // Send the email.
+          emailer.send(req, res, this.settings, params, next);
+        }.bind(this);
+
+        if (this.settings.template) {
+          request(this.settings.template, function(error, response, body) {
+            if (!error && response.statusCode === 200) {
+              sendEmail(body);
+            }
+            else {
+              sendEmail(macros + this.settings.message);
+            }
+          }.bind(this));
+        }
+        else {
+          sendEmail(macros + this.settings.message);
+        }
+      }.bind(this));
     }.bind(this));
   };
 
