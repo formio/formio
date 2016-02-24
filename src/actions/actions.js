@@ -182,7 +182,10 @@ module.exports = function(router) {
             var ActionClass = this.actions[action.name];
             if (action.condition && action.condition.field) {
               // If condition is set, make sure it matches.
-              if ((req.body.data[action.condition.field] === action.condition.value) === (action.condition.eq === 'equals')) {
+              if (
+                (req.body.data[action.condition.field] === action.condition.value) ===
+                (action.condition.eq === 'equals')
+              ) {
                 actions.push(new ActionClass(action, req, res));
               }
             }
@@ -350,37 +353,37 @@ module.exports = function(router) {
           validate: {}
         },
         {
-          type : "select",
+          type : 'select',
           input : true,
-          label : "",
-          key : "condition[eq]",
-          placeholder : "Select comparison",
-          template : "<span>{{ item.label }}</span>",
-          dataSrc : "values",
+          label : '',
+          key : 'condition[eq]',
+          placeholder : 'Select comparison',
+          template : '<span>{{ item.label }}</span>',
+          dataSrc : 'values',
           data : {
             values : [
               {
-                value : "equals",
-                label : "Equals"
+                value : 'equals',
+                label : 'Equals'
               },
               {
-                value : "notEqual",
-                label : "Does Not Equal"
+                value : 'notEqual',
+                label : 'Does Not Equal'
               }
             ],
-            json : "",
-            url : "",
-            resource : ""
+            json : '',
+            url : '',
+            resource : ''
           },
-          valueProperty : "value",
+          valueProperty : 'value',
           multiple : false
         },
         {
           input: true,
-          type: "textfield",
-          inputType: "text",
-          key: "condition[value]",
-          placeholder: "Enter value",
+          type: 'textfield',
+          inputType: 'text',
+          key: 'condition[value]',
+          placeholder: 'Enter value',
           multiple: false
         }
       ]
