@@ -12,7 +12,9 @@ var JSONExporter = function(form, req, res) {
 JSONExporter.prototype = Object.create(Exporter.prototype);
 JSONExporter.prototype.constructor = JSONExporter;
 JSONExporter.prototype.stream = function(stream) {
-  return stream.pipe(JSONStream.stringify());
+  return stream
+    .pipe(JSONStream.stringify())
+    .pipe(this.res);
 };
 
 module.exports = JSONExporter;

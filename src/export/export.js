@@ -12,7 +12,7 @@ module.exports = function(router) {
   router.get('/form/:formId/export', function(req, res, next) {
     // Get the export format.
     var format = (req.query && req.query.format)
-      ? req.query.format
+      ? req.query.format.toLowerCase()
       : 'json';
 
     // Handle unknown formats.
@@ -65,16 +65,22 @@ module.exports = function(router) {
               }
             });
           };
+
           // Create the query stream.
-          var stream = router.formio.resources.submission.model.find(query).select({__v: 0, deleted: 0}).stream()
-          .pipe(through(function(doc) {
-            var row = doc.toObject({getters:true, virtuals:false});
-            addUrl(row.data);
-            this.queue(row);
-          }));
+          var stream = router.formio.resources.submission.model.find(query)
+            .snapshot()
+            .stream()
+            .pipe(through(function(doc) {
+              var row = doc.toObject({getters: true, virtuals: false});
+
+              addUrl(row.data);
+              router.formio.util.removeProtectedFields(form, row);
+
+              this.queue(row);
+            }));
 
           // Create the stream.
-          exporter.stream(stream).pipe(res);
+          return exporter.stream(stream);
         })
         .catch(function(error) {
           // Send the error.

@@ -49,6 +49,7 @@ CSVExporter.prototype.start = function(deferred) {
     while (row = this.stringifier.read()) {
       this.res.write(row.toString());
     }
+
     /* eslint-enable no-cond-assign */
     deferred.resolve();
   }.bind(this));
@@ -81,13 +82,14 @@ CSVExporter.prototype.stream = function(stream) {
       }
       data.push(value);
     });
+
     this.queue(data);
   };
 
   return stream
     .pipe(through(write, function() {
-      this.res.end();
-    }.bind(this)))
+      return self.res.end();
+    }))
     .pipe(this.stringifier);
 };
 
