@@ -35,6 +35,10 @@ module.exports = function(formio) {
         type: String,
         description: 'A custom action URL to submit the data to.'
       },
+      tags: {
+        type: [String],
+        index: true
+      },
       deleted: {
         type: Number,
         default: null
