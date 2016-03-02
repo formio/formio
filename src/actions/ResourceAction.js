@@ -117,7 +117,9 @@ module.exports = function(router) {
        */
       var submitResource = function(submission) {
         _.each(this.settings.fields, function(field, key) {
-          submission.data[key] = req.body.data[field];
+          if (req.body.data[field]) {
+            submission.data[key] = req.body.data[field];
+          }
         });
 
         // Next we need to validate the input.
