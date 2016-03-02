@@ -41,8 +41,13 @@ You can also see the contents of the application (for modification) within the `
 
 Help
 --------------------
-We will updating the help guides found @ https://help.form.io as questions arise and also to help you get started with Form.io.
+We will be updating the help guides found @ https://help.form.io as questions arise and also to help you get started with Form.io.
 
 Thanks for using Form.io!
 
 The Form.io Team.
+
+Security
+=========
+If you find and/or think you have found a Security issue, please quietly disclose it to security@form.io, and give us
+sufficient time to patch the issue before disclosing it publicly.
