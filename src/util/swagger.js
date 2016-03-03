@@ -198,12 +198,20 @@ module.exports = function(req, router, cb) {
 
   var submissionSwagger = function(form) {
     // Need to customize per form instead of returning the same swagger for every form.
-    var resource = _.cloneDeep(router.formio.resources.submission);
-    resource.name = form.title;
-    resource.modelName = form.name;
-    resource.route = resourceUrl(form);
-    resource.model.schema.paths = _.omit(resource.model.schema.paths, ['deleted', '__v', 'machineName']);
-    var swagger = resource.swagger(true);
+    var originalPaths = _.clone(router.formio.resources.submission.model.schema.paths);
+    var resource = {
+      name: form.title,
+      modelName: form.name,
+      route: resourceUrl(form),
+      model: {
+        schema: {
+          paths: _.omit(originalPaths, ['deleted', '__v', 'machineName'])
+        }
+      },
+      methods: _.clone(router.formio.resources.submission.methods)
+    };
+
+    var swagger = router.formio.resources.submission.swagger.call(resource, true);
 
     // Override the body definition.
     swagger.definitions[resource.modelName].required = ['data'];
