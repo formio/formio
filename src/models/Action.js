@@ -75,9 +75,6 @@ module.exports = function(formio) {
   // Add machineName to the schema.
   Action.schema.plugin(require('../plugins/machineName'));
 
-  // Add machineName to the schema.
-  Action.schema.plugin(require('../plugins/machineName'));
-
   Action.schema.machineName = function(document, done) {
     hook.alter('actionMachineName', document.name, document, done);
   };

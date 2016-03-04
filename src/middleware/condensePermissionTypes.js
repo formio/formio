@@ -1,7 +1,6 @@
 'use strict';
 
 var _ = require('lodash');
-var debug = require('debug')('formio:middleware:condensePermissionTypes');
 
 /**
  * The Condense Permission Types middleware.
@@ -20,7 +19,6 @@ module.exports = function(router) {
       return next();
     }
 
-    debug('Before: ' + JSON.stringify(req.body));
     var final = null;
     var condensed = null;
 
@@ -88,7 +86,6 @@ module.exports = function(router) {
       req.body.submissionAccess = final;
     }
 
-    debug('After: ' + JSON.stringify(req.body));
     next();
   };
 };

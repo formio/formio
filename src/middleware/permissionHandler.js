@@ -35,7 +35,7 @@ module.exports = function(router) {
       return next();
     }
     if (!_.has(submission, 'access')) {
-      debug.getSubmissionResourceAccess('No submission access defined for: ' + JSON.stringify(submission));
+      debug.getSubmissionResourceAccess('No submission access defined');
       return next();
     }
 
@@ -43,7 +43,7 @@ module.exports = function(router) {
     async.each(submission.access, function(permission, callback) {
       // Only process the permission if it's in the correct format.
       if (!_.has(permission, 'type') || !_.has(permission, 'resources')) {
-        debug.getSubmissionResourceAccess('Unknown permissions format: ' + JSON.stringify(permission));
+        debug.getSubmissionResourceAccess('Unknown permissions format');
         return callback();
       }
 
@@ -90,7 +90,7 @@ module.exports = function(router) {
       access.submission.read_all = _(access.submission.read_all).uniq().value();
       access.submission.update_all = _(access.submission.update_all).uniq().value();
       access.submission.delete_all = _(access.submission.delete_all).uniq().value();
-      debug.getSubmissionResourceAccess('Updated submission access: ' + JSON.stringify(access.submission));
+      debug.getSubmissionResourceAccess('Updated submission access');
 
       if (err) {
         return next(err);
@@ -186,7 +186,6 @@ module.exports = function(router) {
             }
 
             // Return the updated access list.
-            debug.getAccess.getFormAccess(JSON.stringify(access));
             return callback(null);
           });
         },
@@ -219,9 +218,6 @@ module.exports = function(router) {
               ? submission.owner.toString()
               : null;
 
-            // Return the updated access list.
-            debug.getAccess.getSubmissionAccess(JSON.stringify(access));
-
             getSubmissionResourceAccess(req, submission, access, callback);
           });
         },
@@ -251,7 +247,7 @@ module.exports = function(router) {
             'access.type': {$in: ['read', 'write', 'admin']},
             'access.resources': {$in: [util.idToString(user), util.idToBson(user)]}
           };
-          debug.getAccess.flagRequest(JSON.stringify(query));
+
           router.formio.resources.submission.model.count(query, function(err, count) {
             if (err) {
               debug.getAccess.flagRequest(err);
@@ -335,7 +331,6 @@ module.exports = function(router) {
 
         // Get the roles for the permission checks.
         req.user.roles = req.user.roles || [];
-        debug.permissions('User Roles: ' + JSON.stringify(req.user.roles));
 
         // If the user actually has roles, remove the default role and check their access using their roles.
         if (req.user.roles.length > 0) {
@@ -363,9 +358,6 @@ module.exports = function(router) {
       }
 
       debug.permissions('req.submissionResourceAccessAdmin: ' + req.submissionResourceAccessAdmin);
-      debug.permissions('Checking access for roles: ' + JSON.stringify(roles));
-      debug.permissions('Checking access for access: ' + JSON.stringify(access));
-      debug.permissions('Checking access for entity: ' + JSON.stringify(entity));
       debug.permissions('Checking access for method: ' + method);
       debug.permissions('Checking access for user: ' + user);
 
@@ -399,8 +391,6 @@ module.exports = function(router) {
       // Using the given method, iterate the 8 available entity access. Compare the given roles with the roles
       // defined by the entity to have access. If this roleId is found within the defined roles, grant access.
       var search = methods[method];
-
-      debug.permissions('Search: ' + JSON.stringify(search));
       if (!search || typeof search === 'undefined') {
         router.formio.util.error({
           method: req.method,

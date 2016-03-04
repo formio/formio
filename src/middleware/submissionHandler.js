@@ -8,6 +8,7 @@ var debug = {
   after: require('debug')('formio:middleware:submissionHandler#after')
 };
 var util = require('../util/util');
+var Validator = require('../resources/Validator');
 
 module.exports = function(router, resourceName, resourceId) {
   var hook = require('../util/hook')(router.formio);
@@ -59,107 +60,157 @@ module.exports = function(router, resourceName, resourceId) {
       }
     };
 
+    /**
+     * Load the current form into the request.
+     *
+     * @param req
+     * @param done
+     */
+    var loadCurrentForm = function(req, done) {
+      router.formio.cache.loadCurrentForm(req, function(err, form) {
+        if (err) {
+          return done(err);
+        }
+        if (!form) {
+          return done('Form not found.');
+        }
+
+        req.currentForm = form;
+        done();
+      });
+    };
+
+    /**
+     * Initialize the submission object which includes filtering.
+     *
+     * @param req
+     * @param done
+     */
+    var initializeSubmission = function(req, done) {
+      var isGet = (req.method === 'GET');
+
+      // If this is a get method, then filter the model query.
+      if (isGet) {
+        req.countQuery = req.countQuery || this.model;
+        req.modelQuery = req.modelQuery || this.model;
+
+        // Set the model query to filter based on the ID.
+        req.countQuery = req.countQuery.find({form: req.currentForm._id});
+        req.modelQuery = req.modelQuery.find({form: req.currentForm._id});
+      }
+
+      // If the request has a body.
+      if (!isGet && req.body) {
+        // By default skip the resource unless they add the save submission action.
+        req.skipResource = true;
+
+        // Only allow the data to go through.
+        req.body = _.pick(req.body, hook.alter('submissionParams', ['data', 'owner', 'access']));
+
+        // Ensure there is always data provided on POST.
+        if (req.method === 'POST' && !req.body.data) {
+          req.body.data = {};
+        }
+
+        // Ensure they cannot reset the submission id.
+        if (req.params.submissionId) {
+          req.body._id = req.params.submissionId;
+        }
+
+        // Set the form to the current form.
+        req.body.form = req.currentForm._id.toString();
+
+        // Allow them to alter the body.
+        req.body = hook.alter('submissionRequest', req.body);
+
+        // Create a submission object.
+        req.submission = _.clone(req.body, true);
+      }
+
+      done();
+    };
+
+    /**
+     * Validate a submission.
+     *
+     * @param req
+     * @param form
+     * @param done
+     */
+    var validateSubmission = function(req, res, done) {
+      // No need to validate on GET requests.
+      if ((req.method === 'POST') || (req.method === 'PUT')) {
+        // Next we need to validate the input.
+        var validator = new Validator(req.currentForm, router.formio.resources.submission.model);
+
+        // Validate the request.
+        validator.validate(req.body, function(err, value) {
+          if (err) {
+            return res.status(400).json(err);
+          }
+
+          // Reset the value to what the validator returns.
+          req.body.data = value;
+          done();
+        });
+      }
+      else {
+        done();
+      }
+    };
+
+    /**
+     * Execute the application handlers.
+     * @param req
+     * @param done
+     */
+    var executeHandlers = function(req, res, done) {
+      // Iterate through each component and allow them to alter the query.
+      var flattenedComponents = util.flattenComponents(req.currentForm.components);
+      async.eachSeries(flattenedComponents, function(component, done) {
+        if (
+          req.body &&
+          component.hasOwnProperty('persistent') &&
+          !component.persistent
+        ) {
+          debug.before('Removing non-persistent field:', component.key);
+          // Delete the value from the body if it isn't supposed to be persistent.
+          deleteProp('data.' + util.getSubmissionKey(component.key))(req.body);
+        }
+
+        // Execute the field handler.
+        executeFieldHandler(component, (req.handlerName + 'Action'), req, res, done);
+      }, function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        router.formio.actions.execute('before', method.name, req, res, function(err) {
+          if (err) {
+            return done(err);
+          }
+
+          // Fix issues with /PUT adding data to the payload with undefined value.
+          if (req.body && req.body.hasOwnProperty('data') && typeof req.body.data === 'undefined') {
+            req.body = _.omit(req.body, 'data');
+          }
+
+          async.eachSeries(flattenedComponents, function(component, done) {
+            executeFieldHandler(component, req.handlerName, req, res, done);
+          }, done);
+        });
+      });
+    };
+
     var before = 'before' + method.method;
     handlers[before] = function(req, res, next) {
       req.handlerName = before;
-
-      // Load the resource.
-      router.formio.cache.loadCurrentForm(req, function(err, form) {
-        if (err) {
-          debug.before(err);
-          return next(err);
-        }
-        if (!form) {
-          debug.before('Form not found');
-          return next('Form not found');
-        }
-
-        var formId = form._id.toString();
-        var isGet = (req.method === 'GET');
-
-        // If this is a get method, then filter the model query.
-        if (isGet) {
-          req.countQuery = req.countQuery || this.model;
-          req.modelQuery = req.modelQuery || this.model;
-
-          // Set the model query to filter based on the ID.
-          req.countQuery = req.countQuery.find({form: form._id});
-          req.modelQuery = req.modelQuery.find({form: form._id});
-        }
-
-        // If the request has a body.
-        if (!isGet && req.body) {
-          var _old = _.clone(req.body, true);
-          debug.before('old: ' + JSON.stringify(_old));
-
-          // Filter the data received, and only allow submission.data and specific fields specified.
-          req.body = {
-            form: formId // Assign the body form to the value of the ID parameter.
-          };
-
-          // Add the original data if present.
-          if (_old.hasOwnProperty('data') && _old.data) {
-            req.body.data = _old.data;
-          }
-
-          // Keep the owner in the payload for re-assignment (will be removed by bootstrapEntityOwner if invalid action)
-          if (_.has(_old, 'owner')) {
-            req.body.owner = _old.owner;
-          }
-
-          // Keep the access in the payload if allowed through bootstrapSubmissionAccess and present.
-          if (_.has(_old, 'access')) {
-            req.body.access = _old.access;
-          }
-
-          req.body = hook.alter('submissionRequest', req.body, _old);
-
-          // Store the original request body in a submission object.
-          debug.before('new: ' + JSON.stringify(req.body));
-          req.submission = _.clone(req.body, true);
-
-          // Ensure they cannot reset the submission id.
-          if (req.params.submissionId) {
-            req.submission._id = req.params.submissionId;
-          }
-        }
-
-        // Iterate through each component and allow them to alter the query.
-        var flattenedComponents = util.flattenComponents(form.components);
-        async.eachSeries(flattenedComponents, function(component, done) {
-          if (
-            req.body &&
-            component.hasOwnProperty('persistent') &&
-            !component.persistent
-          ) {
-            debug.before('Removing non-persistent field:', component.key);
-            // Delete the value from the body if it isn't supposed to be persistent.
-            deleteProp('data.' + util.getSubmissionKey(component.key))(req.body);
-          }
-
-          // Execute the field handler.
-          executeFieldHandler(component, (req.handlerName + 'Action'), req, res, done);
-        }, function(err) {
-          if (err) {
-            return next(err);
-          }
-
-          router.formio.actions.execute('before', method.name, req, res, function(err) {
-            if (err) {
-              return next(err);
-            }
-
-            // Fix issues with /PUT adding data to the payload with undefined value.
-            if (req.body && req.body.hasOwnProperty('data') && typeof req.body.data === 'undefined') {
-              req.body = _.omit(req.body, 'data');
-            }
-
-            async.eachSeries(flattenedComponents, function(component, done) {
-              executeFieldHandler(component, req.handlerName, req, res, done);
-            }, next);
-          });
-        });
-      }.bind(this));
+      async.series([
+        async.apply(loadCurrentForm, req),
+        async.apply(initializeSubmission, req),
+        async.apply(validateSubmission, req, res),
+        async.apply(executeHandlers, req, res)
+      ], next);
     };
 
     var after = 'after' + method.method;
@@ -173,16 +224,18 @@ module.exports = function(router, resourceName, resourceId) {
           return next(err);
         }
 
-        // Load the current form.
-        debug.after('Loading the form.');
-        router.formio.cache.loadCurrentForm(req, function(err, currentForm) {
+        async.eachSeries(util.flattenComponents(req.currentForm.components), function(component, done) {
+          executeFieldHandler(component, req.handlerName, req, res, done);
+        }, function(err) {
           if (err) {
             return next(err);
           }
 
-          async.eachSeries(util.flattenComponents(currentForm.components), function(component, done) {
-            executeFieldHandler(component, req.handlerName, req, res, done);
-          }, next);
+          // Make sure to send something if no actions sent anything...
+          if (!res.resource && !res.headersSent) {
+            res.status(200).json(true);
+          }
+          next();
         });
       });
     };

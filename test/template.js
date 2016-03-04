@@ -68,16 +68,15 @@ module.exports = function() {
   };
 
   // Create a register action for this form.
-  template.actions.adminRegisterResource = {
-    name: 'resource',
-    title: 'Submit to another Resource',
+  template.actions.adminRegisterSave = {
+    name: 'save',
+    title: 'Save Submission',
     form: 'adminRegister',
-    priority: 10,
-    method: ['create'],
+    priority: 11,
+    method: ['create', 'update'],
     handler: ['before'],
     settings: {
       resource: 'admin',
-      role: 'administrator',
       fields: {
         email: 'email',
         password: 'password'
@@ -97,16 +96,6 @@ module.exports = function() {
       username: 'email',
       password: 'password'
     }
-  };
-
-  template.actions.adminRegisterNoSubmit = {
-    name: 'nosubmit',
-    title: 'Skip Form Submission',
-    form: 'adminRegister',
-    priority: 0,
-    method: ['create'],
-    handler: ['before'],
-    settings: {}
   };
 
   // Create some circularly dependent resources to make sure

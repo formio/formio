@@ -48,7 +48,6 @@ module.exports = function(router) {
     }
 
     debug('Deleting ' + (subId ? 'single submission' : 'multiple submissions'));
-    debug('query: ' + JSON.stringify(query));
     router.formio.resources.submission.model.find(query, function(err, submissions) {
       if (err) {
         debug(err);
@@ -62,15 +61,7 @@ module.exports = function(router) {
       async.eachSeries(submissions, function(submission, cb) {
         submission.deleted = Date.now();
         submission.markModified('deleted');
-        submission.save(function(err) {
-          if (err) {
-            debug(err);
-            return cb(err);
-          }
-
-          debug('Final submission: ' + JSON.stringify(submission));
-          cb();
-        });
+        submission.save(cb);
       }, next);
     });
   };
@@ -126,15 +117,7 @@ module.exports = function(router) {
         action.settings = action.settings || {};
         action.deleted = Date.now();
         action.markModified('deleted');
-        action.save(function(err) {
-          if (err) {
-            debug(err);
-            return cb(err);
-          }
-
-          debug('Final action: ' + JSON.stringify(action));
-          cb();
-        });
+        action.save(cb);
       }, next);
     });
   };
@@ -181,15 +164,7 @@ module.exports = function(router) {
             return next(err);
           }
 
-          deleteSubmission(null, formId, function(err) {
-            if (err) {
-              debug(err);
-              return next(err);
-            }
-
-            debug('Final form: ' + JSON.stringify(form));
-            next();
-          });
+          deleteSubmission(null, formId, next);
         });
       });
     });
@@ -249,7 +224,6 @@ module.exports = function(router) {
           return cb(err);
         }
         if (!forms || forms.length === 0) {
-          debug('No forms found with the query: ' + JSON.stringify(query));
           return cb();
         }
 
@@ -278,22 +252,8 @@ module.exports = function(router) {
             form.markModified(access);
           });
 
-          form.save(function(err) {
-            if (err) {
-              debug(err);
-              return done(err);
-            }
-
-            debug('Final Form: ' + JSON.stringify(form));
-            done();
-          });
-        }, function(err) {
-          if (err) {
-            return cb(err);
-          }
-
-          cb();
-        });
+          form.save(done);
+        }, cb);
       });
     };
 
@@ -313,7 +273,6 @@ module.exports = function(router) {
           return cb(err);
         }
         if (!submissions || submissions.length === 0) {
-          debug('No submissions found with given query: ' + JSON.stringify(query));
           return cb();
         }
 
@@ -331,22 +290,8 @@ module.exports = function(router) {
 
           submission.set('roles', temp);
           submission.markModified('roles');
-          submission.save(function(err) {
-            if (err) {
-              debug(err);
-              return done(err);
-            }
-
-            debug('Final submission: ' + JSON.stringify(submission));
-            done();
-          });
-        }, function(err) {
-          if (err) {
-            return cb(err);
-          }
-
-          cb();
-        });
+          submission.save(done);
+        }, cb);
       });
     };
 
@@ -369,19 +314,11 @@ module.exports = function(router) {
         .pluck('_id')
         .map(util.idToString)
         .value();
-      debug('Forms: ' + JSON.stringify(formIds));
 
       async.series([
         removeFromForm,
         removeFromSubmissions
-      ], function(err) {
-        if (err) {
-          debug(err);
-          return next(err);
-        }
-
-        next();
-      });
+      ], next);
     });
   };
 
@@ -423,15 +360,7 @@ module.exports = function(router) {
           return next(err);
         }
 
-        deleteRoleAccess(roleId, req, function(err) {
-          if (err) {
-            debug(err);
-            return next(err);
-          }
-
-          debug('Final Role: ' + JSON.stringify(role));
-          next();
-        });
+        deleteRoleAccess(roleId, req, next);
       });
     });
   };

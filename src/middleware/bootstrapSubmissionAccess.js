@@ -40,12 +40,10 @@ module.exports = function(router) {
 
     // If req.assignSubmissionAccess was set by the permissionHandler, allow the request to modify the access.
     if (_.has(req, 'assignSubmissionAccess') && req.assignSubmissionAccess) {
-      debug('assignSubmissionAccess: ' + req.assignSubmissionAccess + ', access: ' + JSON.stringify(req.body.access));
       return next();
     }
     // Allow an admin to manually set the access.
     if (_.has(req, 'isAdmin') && req.isAdmin) {
-      debug('Access is being set by Admin, access: ' + JSON.stringify(req.body.access));
       return next();
     }
 

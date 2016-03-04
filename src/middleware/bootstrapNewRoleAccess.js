@@ -48,7 +48,7 @@ module.exports = function(router) {
         }
 
         async.eachSeries(forms, function(form, formDone) {
-          debug('Loaded Form: ' + JSON.stringify(form));
+          debug('Loaded Form');
 
           // Add the new roleId to the access list for read_all (form).
           form.access = form.access || [];

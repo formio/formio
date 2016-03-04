@@ -18,7 +18,6 @@ module.exports = function(router) {
    */
   var ResetPasswordAction = function(data, req, res) {
     Action.call(this, data, req, res);
-    req.disableDefaultAction = true;
   };
 
   // Derive from Action.
@@ -33,7 +32,6 @@ module.exports = function(router) {
         handler: ['after', 'before'],
         method: ['form', 'create']
       },
-      skipDefault: true,
       access: {
         handler: false,
         method: false

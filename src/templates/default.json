@@ -1,7 +1,7 @@
 {
   "title": "Default",
   "name": "default",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Provides a simple User authentication system.",
   "roles": {
     "administrator": {
@@ -407,6 +407,28 @@
     }
   },
   "actions": {
+    "userRole": {
+      "title": "Role Assignment",
+      "name": "role",
+      "priority": 1,
+      "handler": ["after"],
+      "method": ["create"],
+      "form": "user",
+      "settings": {
+        "association": "new",
+        "type": "add",
+        "role": "authenticated"
+      }
+    },
+    "userSave": {
+      "title": "Save Submission",
+      "name": "save",
+      "form": "user",
+      "handler": ["before"],
+      "method": ["create", "update"],
+      "priority": 10,
+      "settings": {}
+    },
     "userLogin": {
       "name": "login",
       "title": "Login",
@@ -420,25 +442,15 @@
         "password": "password"
       }
     },
-    "userLoginNoSubmit": {
-      "name": "nosubmit",
-      "title": "Skip Form Submission",
-      "form": "userLogin",
-      "priority": 0,
-      "handler": ["before"],
-      "method": ["create"],
-      "settings": {}
-    },
-    "userRegisterResource": {
-      "title": "Submit to another Resource",
-      "name": "resource",
+    "userRegisterSave": {
+      "title": "Save Submission",
+      "name": "save",
       "form": "userRegister",
       "handler": ["before"],
-      "method": ["create"],
-      "priority": 10,
+      "method": ["create", "update"],
+      "priority": 11,
       "settings": {
         "resource": "user",
-        "role": "authenticated",
         "fields": {
           "email": "email",
           "password": "password"
@@ -458,13 +470,26 @@
         "password": "password"
       }
     },
-    "userRegisterNoSubmit": {
-      "name": "nosubmit",
-      "title": "Skip Form Submission",
-      "form": "userRegister",
-      "priority": 0,
-      "handler": ["before"],
+    "adminRole": {
+      "title": "Role Assignment",
+      "name": "role",
+      "priority": 1,
+      "handler": ["after"],
       "method": ["create"],
+      "form": "admin",
+      "settings": {
+        "association": "new",
+        "type": "add",
+        "role": "administrator"
+      }
+    },
+    "adminSave": {
+      "title": "Save Submission",
+      "name": "save",
+      "form": "admin",
+      "handler": ["before"],
+      "method": ["create", "update"],
+      "priority": 10,
       "settings": {}
     },
     "adminLogin": {
@@ -479,15 +504,6 @@
         "username": "email",
         "password": "password"
       }
-    },
-    "adminLoginNoSubmit": {
-      "name": "nosubmit",
-      "title": "Skip Form Submission",
-      "form": "adminLogin",
-      "priority": 0,
-      "handler": ["before"],
-      "method": ["create"],
-      "settings": {}
     }
   }
 }
