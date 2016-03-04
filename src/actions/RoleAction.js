@@ -23,9 +23,6 @@ module.exports = function(router) {
    */
   var RoleAction = function(data, req, res) {
     Action.call(this, data, req, res);
-
-    // Disable the default action if the association is existing.
-    req.disableDefaultAction = (data.settings.association.toString() === 'existing');
   };
 
   // Derive from Action.
@@ -286,7 +283,6 @@ module.exports = function(router) {
      */
     var addRole = function(role, submission, association) {
       debug.addRole('Role: ' + role);
-      debug.addRole('Submission: ' + JSON.stringify(submission));
 
       // The given role already exists in the resource.
       var compare = [];
@@ -296,7 +292,6 @@ module.exports = function(router) {
         }
       });
 
-      debug.addRole('Compare (' + compare.indexOf(role) + '): ' + JSON.stringify(compare));
       if (compare.indexOf(role) !== -1) {
         debug.addRole('The given role to add was found in the current list of roles already.');
         return next();
@@ -326,7 +321,6 @@ module.exports = function(router) {
      */
     var removeRole = function(role, submission, association) {
       debug.removeRole('Role: ' + role);
-      debug.removeRole('Submission: ' + JSON.stringify(submission));
 
       // The given role does not exist in the resource.
       var compare = [];
@@ -336,7 +330,6 @@ module.exports = function(router) {
         }
       });
 
-      debug.removeRole('Compare (' + compare.indexOf(role) + '): ' + JSON.stringify(compare));
       if (compare.indexOf(role) === -1) {
         debug.removeRole('The given role to remove was not found.');
         return next();
@@ -365,10 +358,8 @@ module.exports = function(router) {
 
       // Confirm that the given/configured role is actually accessible.
       var query = hook.alter('roleQuery', {_id: role, deleted: {$eq: null}}, req);
-      debug.roleManipulation('roleManipulation: ' + JSON.stringify(query));
       router.formio.resources.role.model.findOne(query, function(err, role) {
         if (err || !role) {
-          debug.roleManipulation(err || 'Role not found: ' + JSON.stringify(query));
           return res.status(400).send('The given role was not found.');
         }
 

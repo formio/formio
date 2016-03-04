@@ -88,7 +88,7 @@ module.exports = function(router) {
           return cb(err);
         }
         if (!result) {
-          debug.loadForm('Resource not found for the query: ' + JSON.stringify(query));
+          debug.loadForm('Resource not found for the query');
           return cb('Resource not found');
         }
 
@@ -99,8 +99,7 @@ module.exports = function(router) {
         });
         result.componentMap = componentMap;
         this.updateCache(req, cache, result);
-
-        debug.loadForm('Caching result: ' + JSON.stringify(result));
+        debug.loadForm('Caching result');
         cb(null, result);
       }.bind(this));
     },
@@ -180,8 +179,6 @@ module.exports = function(router) {
 
           submission = submission.toObject();
           cache.submissions[subId] = submission;
-
-          debug.loadSubmission('Caching result: ' + JSON.stringify(submission));
           cb(null, submission);
         });
     },
@@ -230,14 +227,11 @@ module.exports = function(router) {
             return cb(err);
           }
           if (!result) {
-            debug.loadFormByName('Resource not found for the query: ' + JSON.stringify(query));
             return cb('Resource not found');
           }
 
           result = result.toObject();
           this.updateCache(req, cache, result);
-
-          debug.loadFormByName('Caching result: ' + JSON.stringify(result));
           cb(null, result);
         }.bind(this));
       }
@@ -264,14 +258,11 @@ module.exports = function(router) {
             return cb(err);
           }
           if (!result) {
-            debug.loadFormByAlias('Resource not found for the query: ' + JSON.stringify(query));
             return cb('Resource not found');
           }
 
           result = result.toObject();
           this.updateCache(req, cache, result);
-
-          debug.loadFormByAlias('Caching result: ' + JSON.stringify(result));
           cb(null, result);
         }.bind(this));
       }

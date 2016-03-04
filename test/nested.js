@@ -7,6 +7,7 @@ var _ = require('lodash');
 
 module.exports = function(app, template, hook) {
   describe('Nested Resources', function() {
+    var customerResource = null;
     it('A Project Owner should be able to Create a Customer Resource', function(done) {
       request(app)
         .post(hook.alter('url', '/form', template))
@@ -81,6 +82,7 @@ module.exports = function(app, template, hook) {
             return done(err);
           }
 
+          customerResource = res.body;
           assert(res.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
           assert(res.body.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
           assert(res.body.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -98,6 +100,7 @@ module.exports = function(app, template, hook) {
         });
     });
 
+    var customerForm = null;
     it('Should be able to create a Customer Survey form', function(done) {
       request(app)
         .post(hook.alter('url', '/form', template))
@@ -137,7 +140,7 @@ module.exports = function(app, template, hook) {
               suffix: '',
               prefix: '',
               placeholder: 'First Name',
-              key: 'customer.firstName',
+              key: 'firstName',
               label: 'First Name',
               inputMask: '',
               inputType: 'text',
@@ -157,7 +160,7 @@ module.exports = function(app, template, hook) {
               suffix: '',
               prefix: '',
               placeholder: 'Last Name',
-              key: 'customer.lastName',
+              key: 'lastName',
               label: 'Last Name',
               inputMask: '',
               inputType: 'text',
@@ -172,6 +175,7 @@ module.exports = function(app, template, hook) {
             return done(err);
           }
 
+          customerForm = res.body;
           assert(res.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
           assert(res.body.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
           assert(res.body.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -189,6 +193,52 @@ module.exports = function(app, template, hook) {
         });
     });
 
+    it('Should be able to create the save resource to another field action', function(done) {
+      var saveResourceAction = {
+        title: 'Save Submission',
+        name: 'save',
+        handler: ['before'],
+        method: ['create', 'update'],
+        priority: 11,
+        settings: {
+          resource: customerResource._id.toString(),
+          property: 'customer',
+          fields: {
+            firstName: 'firstName',
+            lastName: 'lastName'
+          }
+        }
+      }
+
+      request(app)
+        .post(hook.alter('url', '/form/' + customerForm._id + '/action', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(saveResourceAction)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.equal(response.title, saveResourceAction.title);
+          assert.equal(response.name, saveResourceAction.name);
+          assert.deepEqual(response.handler, saveResourceAction.handler);
+          assert.deepEqual(response.method, saveResourceAction.method);
+          assert.equal(response.priority, saveResourceAction.priority);
+          assert.deepEqual(response.settings, saveResourceAction.settings);
+          assert.equal(response.form, customerForm._id);
+          saveResourceAction = response;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
     var survey = null;
     it('Should be able to create a submission in the survey', function(done) {
       request(app)
@@ -196,8 +246,8 @@ module.exports = function(app, template, hook) {
         .set('x-jwt-token', template.users.admin.token)
         .send({
           data: {
-            'customer.firstName': 'Joe',
-            'customer.lastName': 'Smith'
+            'firstName': 'Joe',
+            'lastName': 'Smith'
           }
         })
         .expect('Content-Type', /json/)

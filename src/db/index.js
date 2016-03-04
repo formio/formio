@@ -83,7 +83,7 @@ module.exports = function(formio) {
         }
 
         currentLock = result.value;
-        debug('Lock unlocked: ' + JSON.stringify(currentLock));
+        debug('Lock unlocked');
         next();
       }
     );
@@ -317,7 +317,7 @@ module.exports = function(formio) {
         }
 
         updates = files.sort(semver.compare);
-        debug('Final updates: ' + JSON.stringify(updates));
+        debug('Final updates');
         next();
       });
     });
@@ -350,7 +350,7 @@ module.exports = function(formio) {
           }
 
           currentLock = document.ops[0];
-          debug('Created a new lock: ' + JSON.stringify(currentLock));
+          debug('Created a new lock');
           next();
         });
       }
@@ -376,7 +376,7 @@ module.exports = function(formio) {
               }
 
               currentLock = result.value;
-              debug('Lock engaged: ' + JSON.stringify(currentLock));
+              debug('Lock engaged');
               next();
             }
           );
@@ -456,7 +456,7 @@ module.exports = function(formio) {
     });
 
     // Only take action if outstanding updates exist.
-    debug('Pending updates: ' + JSON.stringify(pending));
+    debug('Pending updates');
     if (pending.length > 0) {
       async.eachSeries(pending, function(pending, callback) {
         formio.util.log(' > Starting schema update to ' + pending);

@@ -230,19 +230,38 @@ module.exports = function(formio) {
       return done();
     }
 
-    // Clone the template so we can modify the original without messing up the iterations.
-    var clone = _.cloneDeep(template);
+    // Create a pick method.
+    var name = function(name) {
+      return function(value) {
+        return value.name === name;
+      };
+    };
 
     // Fix all schemas.
     _.each(['forms', 'resources'], function(type) {
-      _.each(template[type], function(form) {
+      _.each(template[type], function(form, formKey) {
+        // If no auth action exists, then add a save submission action.
+        var authAction = _.find(template.actions, {name: 'auth', form: formKey});
+        var noSubmit = _.find(template.actions, {name: 'nosubmit', form: formKey});
+        if (!authAction && !noSubmit) {
+          template.actions[formKey + 'Save'] = {
+            title: 'Save Submission',
+            name: 'save',
+            form: formKey,
+            handler: ['before'],
+            method: ['create', 'update'],
+            priority: 10,
+            settings: {}
+          };
+        }
+
         util.eachComponent(form.components, function(component) {
           if (component.validate && component.validate.custom) {
             _.each(template.resources, function(resource) {
               component.validate.custom = component.validate.custom.replace(resource.name + '.password', 'password');
             });
           }
-          if (component.key.indexOf('.') !== -1) {
+          if (component.key && component.key.indexOf('.') !== -1) {
             component.key = component.key.split('.')[1];
           }
         });
@@ -250,64 +269,106 @@ module.exports = function(formio) {
     });
 
     // Turn all "auth" actions into the new authentication system.
-    _.each(clone.actions, function(action, key) {
-      if (action.name === 'auth') {
-        var userparts = action.settings.username.split('.');
-        if (userparts.length > 1) {
-          var resource = userparts[0];
-          var username = userparts[1];
-          var password = action.settings.password.split('.')[1];
+    _.each(_.pick(template.actions, name('auth')), function(authAction, key) {
+      delete template.actions[key];
+      var userparts = authAction.settings.username.split('.');
+      if (userparts.length > 1) {
+        var resource = userparts[0];
+        var username = userparts[1];
+        var password = authAction.settings.password.split('.')[1];
 
-          // Add the Resource action for new associations.
-          if (action.settings.association === 'new') {
-            var fields = {};
-            fields[username] = username;
-            fields[password] = password;
-            template.actions[key + 'Resource'] = {
-              title: 'Submit to another Resource',
-              name: 'resource',
-              form: action.form,
-              handler: ['before'],
-              method: ['create'],
-              priority: 10,
-              settings: {
-                resource: resource,
-                role: action.settings.role,
-                fields: fields
+        // Add the Resource action for new associations.
+        if (authAction.settings.association === 'new') {
+          // Ensure that the underlying resource has a role assignment action.
+          var roleAction = _.find(template.actions, {name: 'role', form: resource});
+          if (!roleAction) {
+            template.actions[resource + 'Role'] = {
+              title: 'Role Assignment',
+              name: 'role',
+              'priority': 1,
+              'handler': ['after'],
+              'method': ['create'],
+              'form': resource,
+              'settings': {
+                'association': 'new',
+                'type': 'add',
+                'role': authAction.settings.role
               }
             };
           }
 
-          // Add the login action.
-          template.actions[key + 'Login'] = {
-            title: 'Login',
-            name: 'login',
-            form: action.form,
+          var fields = {};
+          fields[username] = username;
+          fields[password] = password;
+          template.actions[key + 'SaveResource'] = {
+            title: 'Save Submission',
+            name: 'save',
+            form: authAction.form,
             handler: ['before'],
-            method: ['create'],
-            priority: 2,
+            method: ['create', 'update'],
+            priority: 11,
             settings: {
-              resources: [resource],
-              username: username,
-              password: password
+              resource: resource,
+              fields: fields
             }
           };
-
-          // Add the skip form submission action.
-          template.actions[key + 'NoSubmit'] = {
-            title: 'Skip Form Submission',
-            name: 'nosubmit',
-            form: action.form,
-            handler: ['before'],
-            method: ['create'],
-            priority: 0,
-            settings: {}
-          };
-
-          // Remove the auth action.
-          delete template.actions[key];
         }
+
+        // Add the login action.
+        template.actions[key + 'Login'] = {
+          title: 'Login',
+          name: 'login',
+          form: authAction.form,
+          handler: ['before'],
+          method: ['create'],
+          priority: 2,
+          settings: {
+            resources: [resource],
+            username: username,
+            password: password
+          }
+        };
       }
+    });
+
+    // Remove all nosubmit actions.
+    _.each(_.pick(template.actions, name('nosubmit')), function(action, key) {
+      delete template.actions[key];
+    });
+
+    // Convert resource actions into Save Submission actions with resource association.
+    _.each(_.pick(template.actions, name('resource')), function(resourceAction, key) {
+      delete template.actions[key];
+
+      var roleAction = _.find(template.actions, {name: 'role', form: resourceAction.settings.resource});
+      if (!roleAction) {
+        template.actions[resourceAction.settings.resource + 'Role'] = {
+          title: 'Role Assignment',
+          name: 'role',
+          'priority': 1,
+          'handler': ['after'],
+          'method': ['create'],
+          'form': resourceAction.settings.resource,
+          'settings': {
+            'association': 'new',
+            'type': 'add',
+            'role': resourceAction.settings.role
+          }
+        };
+      }
+
+      template.actions[key + 'SaveResource'] = {
+        title: 'Save Submission',
+        name: 'save',
+        form: resourceAction.form,
+        handler: ['before'],
+        method: ['create', 'update'],
+        priority: 11,
+        settings: {
+          resource: resourceAction.settings.resource,
+          fields: resourceAction.settings.fields
+        }
+      };
     });
 
     done();

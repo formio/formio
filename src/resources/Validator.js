@@ -122,12 +122,11 @@ var Validator = function(form, model) {
 /**
  * Validate a submission for a form.
  *
- * @param submissionData
- * @param submissionRequest
+ * @param submission
  * @param next
  * @returns {*}
  */
-Validator.prototype.validate = function(submissionData, submissionRequest, next) {
+Validator.prototype.validate = function(submission, next) {
   var valid = true;
   var error = null;
   debug('Starting validation');
@@ -138,15 +137,12 @@ Validator.prototype.validate = function(submissionData, submissionRequest, next)
    * @type {function(this:Validator)}
    */
   var joiValidate = function() {
-    debug('submissionData before: ' + JSON.stringify(submissionData));
-    debug('schema:' + JSON.stringify(this.schema));
-    Joi.validate(submissionData, this.schema, {stripUnknown: true}, function(validateErr, value) {
+    Joi.validate(submission.data, this.schema, {stripUnknown: true}, function(validateErr, value) {
       if (validateErr) {
         debug(validateErr);
         return next(validateErr);
       }
 
-      debug('value after: ' + JSON.stringify(value));
       next(null, value);
     });
   }.bind(this);
@@ -154,19 +150,19 @@ Validator.prototype.validate = function(submissionData, submissionRequest, next)
   // Check for custom validations.
   for (var key in this.customValidations) {
     // If there is a value for this submission....
-    if (this.customValidations.hasOwnProperty(key) && (submissionData[key] !== undefined)) {
+    if (this.customValidations.hasOwnProperty(key) && (submission.data[key] !== undefined)) {
       var component = this.customValidations[key];
 
       // Try a new sandboxed validation.
       try {
         // Replace with variable substitutions.
         component.validate.custom = component.validate.custom.replace(/({{\s+(.*)\s+}})/, function(match, $1, $2) {
-          return submissionRequest.data[$2];
+          return submission.data[$2];
         });
 
         // Create the sandbox.
         var sandbox = vm.createContext({
-          input: submissionRequest.data[key],
+          input: submission.data[key],
           component: component,
           valid: valid
         });
@@ -202,7 +198,6 @@ Validator.prototype.validate = function(submissionData, submissionRequest, next)
 
   // Iterate through each of the unique keys.
   var uniques = _.keys(this.unique);
-  debug('uniques:' + JSON.stringify(uniques));
   if (uniques.length > 0) {
     async.eachSeries(uniques, function(key, done) {
       var component = this.unique[key];
@@ -210,8 +205,8 @@ Validator.prototype.validate = function(submissionData, submissionRequest, next)
       // Unique fields must always be set with a value.
       debug('Key: ' + key);
       if (
-        !submissionData.hasOwnProperty(key) &&
-        !submissionData[key]
+        !submission.data.hasOwnProperty(key) &&
+        !submission.data[key]
       ) {
         // Throw an error if this isn't a resource field.
         if (key.indexOf('.') === -1) {
@@ -224,8 +219,8 @@ Validator.prototype.validate = function(submissionData, submissionRequest, next)
       }
 
       // Get the query.
-      var query = {form: mongoose.Types.ObjectId(submissionRequest.form)};
-      query['data.' + key] = submissionData[key];
+      var query = {form: mongoose.Types.ObjectId(submission.form)};
+      query['data.' + key] = submission.data[key];
 
       // Only search for non-deleted items.
       if (!query.hasOwnProperty('deleted')) {
@@ -239,7 +234,7 @@ Validator.prototype.validate = function(submissionData, submissionRequest, next)
           debug(err);
           return done(err);
         }
-        if (result && submissionRequest._id && (result._id.toString() === submissionRequest._id)) {
+        if (result && submission._id && (result._id.toString() === submission._id)) {
           return done();
         }
         if (result) {

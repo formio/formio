@@ -72,7 +72,6 @@ module.exports = function(router) {
         if (err) {
           // Couldn't load the use, try to fail safely.
           user = decoded.user;
-          debug('Error: ' + JSON.stringify(err));
         }
         else if (!user) {
           req.user = null;
@@ -95,9 +94,8 @@ module.exports = function(router) {
         debug(user);
         hook.alter('user', user, function(err, user) {
           if (err) {
-            debug('Error: ' + JSON.stringify(err));
+            return next();
           }
-          debug('User: ' + JSON.stringify(user));
 
           // Store the user for future use.
           req.user = user;

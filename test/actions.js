@@ -42,14 +42,6 @@ module.exports = function(app, template, hook) {
 
     // Store the temp action for this test suite.
     var tempAction = {};
-    var tempNoSubmitAction = {
-      title: 'No Submit',
-      name: 'nosubmit',
-      handler: ['before'],
-      method: ['create'],
-      priority: 0
-    };
-
     describe('Bootstrap', function() {
       it('Create a Form for Action tests', function(done) {
         request(app)
@@ -133,35 +125,6 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('A Project Owner should be able to Create a NoSubmit Action', function(done) {
-        request(app)
-          .post(hook.alter('url', '/form/' + tempForm._id + '/action', template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send(tempNoSubmitAction)
-          .expect('Content-Type', /json/)
-          .expect(201)
-          .end(function(err, res) {
-            if (err) {
-                return done(err);
-            }
-
-            var response = res.body;
-            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-            assert.equal(response.title, tempNoSubmitAction.title);
-            assert.equal(response.name, tempNoSubmitAction.name);
-            assert.deepEqual(response.handler, tempNoSubmitAction.handler);
-            assert.deepEqual(response.method, tempNoSubmitAction.method);
-            assert.equal(response.priority, tempNoSubmitAction.priority);
-            assert.equal(response.form, tempForm._id);
-            tempNoSubmitAction = response;
-
-            // Store the JWT for future API calls.
-            template.users.admin.token = res.headers['x-jwt-token'];
-
-            done();
-          });
-      });
-
       it('A Project Owner should be able to Read an Action', function(done) {
         request(app)
           .get(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
@@ -228,7 +191,8 @@ module.exports = function(app, template, hook) {
                 assert.deepEqual(action, tempAction);
               }
               else {
-                assert.deepEqual(action, tempNoSubmitAction);
+                // Make sure it added a save action.
+                assert.equal(action.name, 'save');
               }
             });
 
@@ -301,13 +265,12 @@ module.exports = function(app, template, hook) {
 
             var response = res.body;
             assert.equal(response.length, 2);
-            assert.equal(response.length, 2);
             _.each(response, function(action) {
               if (action.name === 'login') {
                 assert.deepEqual(action, tempAction);
               }
               else {
-                assert.deepEqual(action, tempNoSubmitAction);
+                assert.equal(action.name, 'save');
               }
             });
 
@@ -364,13 +327,12 @@ module.exports = function(app, template, hook) {
 
             var response = res.body;
             assert.equal(response.length, 2);
-            assert.equal(response.length, 2);
             _.each(response, function(action) {
               if (action.name === 'login') {
                 assert.deepEqual(action, tempAction);
               }
               else {
-                assert.deepEqual(action, tempNoSubmitAction);
+                assert.equal(action.name, 'save');
               }
             });
 
@@ -788,10 +750,6 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              assert.equal(response.data.role, dummyRole._id);
-              assert.equal(response.data.submission, template.users.admin._id);
-
               // Update the stored token.
               template.users.admin.token = res.headers['x-jwt-token'];
 
@@ -806,8 +764,8 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var _response = res.body;
-                  assert.notEqual(_response.roles.indexOf(dummyRole._id), -1);
+                  var response = res.body;
+                  assert.notEqual(response.roles.indexOf(dummyRole._id), -1);
 
                   // Store the JWT for future API calls.
                   template.users.admin.token = res.headers['x-jwt-token'];
@@ -834,10 +792,6 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              assert.equal(response.data.role, dummyRole._id);
-              assert.equal(response.data.submission, template.users.admin._id);
-
               // Update the stored token.
               template.users.admin.token = res.headers['x-jwt-token'];
 
@@ -852,8 +806,8 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var _response = res.body;
-                  assert.equal(_response.roles.indexOf(dummyRole._id), -1);
+                  var response = res.body;
+                  assert.equal(response.roles.indexOf(dummyRole._id), -1);
 
                   // Store the JWT for future API calls.
                   template.users.admin.token = res.headers['x-jwt-token'];
@@ -880,10 +834,6 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              assert.equal(response.data.role, dummyRole._id);
-              assert.equal(response.data.submission, template.users.admin._id);
-
               // Update the stored token.
               template.users.admin.token = res.headers['x-jwt-token'];
 
@@ -898,8 +848,8 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var _response = res.body;
-                  assert.notEqual(_response.roles.indexOf(dummyRole._id), -1);
+                  var response = res.body;
+                  assert.notEqual(response.roles.indexOf(dummyRole._id), -1);
 
                   // Store the JWT for future API calls.
                   template.users.admin.token = res.headers['x-jwt-token'];
@@ -926,10 +876,6 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              assert.equal(response.data.role, dummyRole._id);
-              assert.equal(response.data.submission, template.users.admin._id);
-
               // Update the stored token.
               template.users.admin.token = res.headers['x-jwt-token'];
 
@@ -944,8 +890,8 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var _response = res.body;
-                  assert.equal(_response.roles.indexOf(dummyRole._id), -1);
+                  var response = res.body;
+                  assert.equal(response.roles.indexOf(dummyRole._id), -1);
 
                   // Store the JWT for future API calls.
                   template.users.admin.token = res.headers['x-jwt-token'];
@@ -1224,6 +1170,7 @@ module.exports = function(app, template, hook) {
         type: 'form',
         access: [],
         submissionAccess: [],
+        noSave: true,
         components: [
           {
             type: 'textfield',
@@ -1258,8 +1205,6 @@ module.exports = function(app, template, hook) {
         ]
       };
 
-      var authAction = {};
-
       describe('Bootstrap', function() {
         it('Create the dummy resource form', function(done) {
           request(app)
@@ -1291,6 +1236,49 @@ module.exports = function(app, template, hook) {
               assert.deepEqual(response.submissionAccess, []);
               assert.deepEqual(response.components, dummyResource.components);
               dummyResource = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('Create the dummy role assignment action', function(done) {
+          var roleAction = {
+            title: 'Role Assignment',
+            name: 'role',
+            priority: 1,
+            handler: ['after'],
+            method: ['create'],
+            settings: {
+              association: 'new',
+              type: 'add',
+              role: template.users.admin._id.toString()
+            }
+          };
+
+          request(app)
+            .post(hook.alter('url', '/form/' + dummyResource._id + '/action', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(roleAction)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert.equal(response.title, roleAction.title);
+              assert.equal(response.name, roleAction.name);
+              assert.deepEqual(response.handler, roleAction.handler);
+              assert.deepEqual(response.method, roleAction.method);
+              assert.equal(response.priority, roleAction.priority);
+              assert.deepEqual(response.settings, roleAction.settings);
+              assert.equal(response.form, dummyResource._id);
+              roleAction = response;
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
@@ -1337,22 +1325,21 @@ module.exports = function(app, template, hook) {
             });
         });
 
-        it('Create the dummy auth register action', function(done) {
-          authAction = {
-            title: 'Register',
-            name: 'resource',
+        it('Create the dummy save submission action', function(done) {
+          var authAction = {
+            title: 'Save Submission',
+            name: 'save',
             handler: ['before'],
-            method: ['create'],
-            priority: 0,
+            method: ['create', 'update'],
+            priority: 11,
             settings: {
               resource: dummyResource._id.toString(),
-              role: template.users.admin._id.toString(),
               fields: {
                 username: 'username',
                 password: 'password'
               }
             }
-          }
+          };
 
           request(app)
             .post(hook.alter('url', '/form/' + authForm._id + '/action', template))
@@ -1424,43 +1411,6 @@ module.exports = function(app, template, hook) {
               done();
             });
         });
-        it('Create the dummy auth nosubmit action', function(done) {
-          var authNoSubmitAction = {
-            title: 'No Submit',
-            name: 'nosubmit',
-            handler: ['before'],
-            method: ['create'],
-            priority: 0
-          }
-
-          request(app)
-            .post(hook.alter('url', '/form/' + authForm._id + '/action', template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(authNoSubmitAction)
-            .expect('Content-Type', /json/)
-            .expect(201)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-              assert.equal(response.title, authNoSubmitAction.title);
-              assert.equal(response.name, authNoSubmitAction.name);
-              assert.deepEqual(response.handler, authNoSubmitAction.handler);
-              assert.deepEqual(response.method, authNoSubmitAction.method);
-              assert.equal(response.priority, authNoSubmitAction.priority);
-              assert.deepEqual(response.settings, authNoSubmitAction.settings);
-              assert.equal(response.form, authForm._id);
-              authNoSubmitAction = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-        });
       });
 
       describe('AuthAction Functionality tests for New Submissions', function() {
@@ -1474,7 +1424,7 @@ module.exports = function(app, template, hook) {
                 'password': chance.word({length: 10})
               }
             })
-            .expect(401)
+            .expect(400)
             .end(function(err, res) {
               if(err) {
                 return done(err);
@@ -1644,44 +1594,6 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(response.settings, actionLogin.settings);
             assert.equal(response.form, template.forms.userLogin._id);
             actionLogin = response;
-
-            // Store the JWT for future API calls.
-            template.users.admin.token = res.headers['x-jwt-token'];
-
-            done();
-          });
-      });
-
-      var actionNoSubmitLogin = null;
-      it('A Project Owner should be able to Create an Authentication Action (Login Form)', function(done) {
-        actionNoSubmitLogin = {
-          title: 'No Submit',
-          name: 'nosubmit',
-          handler: ['before'],
-          method: ['create'],
-          priority: 0
-        };
-
-        request(app)
-          .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/action', template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send({ data: actionNoSubmitLogin })
-          .expect('Content-Type', /json/)
-          .expect(201)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
-
-            var response = res.body;
-            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
-            assert.equal(response.title, actionNoSubmitLogin.title);
-            assert.equal(response.name, actionNoSubmitLogin.name);
-            assert.deepEqual(response.handler, actionNoSubmitLogin.handler);
-            assert.deepEqual(response.method, actionNoSubmitLogin.method);
-            assert.equal(response.priority, actionNoSubmitLogin.priority);
-            assert.equal(response.form, template.forms.userLogin._id);
-            actionNoSubmitLogin = response;
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];

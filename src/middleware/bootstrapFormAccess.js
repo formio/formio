@@ -68,7 +68,6 @@ module.exports = function(router) {
               // Update the response to reflect the access changes.
               // Filter the response to have no __v and deleted key.
               var ret = _.omit(_.omit(form.toObject(), 'deleted'), '__v');
-              debug(JSON.stringify(ret));
               res.resource.item = ret;
               next();
             });

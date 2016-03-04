@@ -31,15 +31,13 @@ module.exports = function(router) {
      * A list of all the actions.
      */
     actions: hook.alter('actions', {
-      default: require('./DefaultAction')(router),
       email: require('./EmailAction')(router),
       webhook: require('./WebhookAction')(router),
       sql: require('./SQLAction')(router),
       role: require('./RoleAction')(router),
       resetpass: require('./ResetPassword')(router),
-      resource: require('./ResourceAction')(router),
-      login: require('./LoginAction')(router),
-      nosubmit: require('./NoSubmit.js')(router)
+      save: require('./SaveSubmission')(router),
+      login: require('./LoginAction')(router)
     }),
 
     /**
@@ -81,49 +79,6 @@ module.exports = function(router) {
         }.bind(this),
         function processResults(rows, callback) {
           rows = rows || [];
-
-          if (handler === 'before') {
-            // Include default action.
-            var includeDefault = true;
-
-            // Iterate through each action.
-            _.each(rows, function(row) {
-              // If there is already a default action.
-              if (row.name === 'default') {
-                includeDefault = false;
-                return false;
-              }
-
-              // Make sure this is a valid action.
-              if (!this.actions.hasOwnProperty(row.name)) {
-                return callback(new Error('Invalid Action'));
-              }
-
-              // If we need to skip the default action.
-              if (this.actions[row.name].skipDefault) {
-                includeDefault = false;
-                return false;
-              }
-            }.bind(this));
-
-            // Only add the default action if it should be included.
-            if (includeDefault) {
-              var defaultAction = {
-                title: 'Default',
-                name: 'default',
-                handler: ['before'],
-                method: ['create', 'update'],
-                priority: 10,
-                form: form,
-                settings: {}
-              };
-              // Insert at index that keeps priority order intact
-              var index = _.sortedIndex(rows, defaultAction, function(action) {
-                return -action.priority;
-              });
-              rows.splice(index, 0, defaultAction);
-            }
-          }
 
           // Execute the callback.
           callback(null, rows);
