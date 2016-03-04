@@ -261,7 +261,7 @@ module.exports = function(formio) {
               component.validate.custom = component.validate.custom.replace(resource.name + '.password', 'password');
             });
           }
-          if (component.key.indexOf('.') !== -1) {
+          if (component.key && component.key.indexOf('.') !== -1) {
             component.key = component.key.split('.')[1];
           }
         });
