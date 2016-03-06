@@ -11,6 +11,21 @@ module.exports = function(formio) {
       // Load the settings directly.
       cb(null, settings);
     },
+    jwt: function(req, cb) {
+
+      // Always return jwt settings.
+      this.settings(req, function(err, settings) {
+        if (err) {
+          return cb(null, formio.config.jwt);
+        }
+        if (!settings || !settings.jwt || !settings.jwt.secret) {
+          return cb(null, formio.config.jwt);
+        }
+
+        // Return the jwt settings.
+        return cb(null, settings.jwt);
+      });
+    },
     invoke: function() {
       var name = arguments[0];
       if (

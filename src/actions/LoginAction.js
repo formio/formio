@@ -128,6 +128,7 @@ module.exports = function(router) {
 
     // Perform an authentication.
     router.formio.auth.authenticate(
+      req,
       this.settings.resources,
       this.settings.username,
       this.settings.password,
