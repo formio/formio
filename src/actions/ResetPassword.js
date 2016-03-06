@@ -393,30 +393,33 @@ module.exports = function(router) {
           return res.status(400).send('User not found.');
         }
 
-        // Generate a temporary token for resetting their password.
-        var resetToken = jwt.sign(token, router.formio.config.jwt.secret, {
-          expiresInMinutes: 5
-        });
-
-        // Create the reset link and add it to the email parameters.
-        var params = {
-          resetlink: this.settings.url + '?x-jwt-token=' + resetToken
-        };
-
-        // Now send them an email.
-        emailer.send(req, res, {
-          transport: this.settings.transport,
-          from: this.settings.from,
-          emails: username,
-          subject: this.settings.subject,
-          message: this.settings.message
-        }, _.assign(params, req.body), function() {
-          // Let them know an email is on its way.
-          res.status(200).json({
-            message: 'Password reset email was sent.'
+        // Get the jwt token.
+        hook.jwt(req, function(err, jwtSettings) {
+          // Generate a temporary token for resetting their password.
+          var resetToken = jwt.sign(token, jwtSettings.secret, {
+            expiresInMinutes: 5
           });
-        });
-      });
+
+          // Create the reset link and add it to the email parameters.
+          var params = {
+            resetlink: this.settings.url + '?x-jwt-token=' + resetToken
+          };
+
+          // Now send them an email.
+          emailer.send(req, res, {
+            transport: this.settings.transport,
+            from: this.settings.from,
+            emails: username,
+            subject: this.settings.subject,
+            message: this.settings.message
+          }, _.assign(params, req.body), function() {
+            // Let them know an email is on its way.
+            res.status(200).json({
+              message: 'Password reset email was sent.'
+            });
+          });
+        }.bind(this));
+      }.bind(this));
     }
 
     // Handle the request after they have come back.

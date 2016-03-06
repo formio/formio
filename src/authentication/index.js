@@ -28,7 +28,7 @@ module.exports = function(router) {
    * @return {String|Boolean}
    *   The JWT from the given payload, or false if the jwt payload is still valid.
    */
-  var getToken = function(payload) {
+  var getToken = function(payload, jwtSettings) {
     // Ensure that we do not do multiple re-issues consecutively.
     // Re-issue at the maximum rate of 1/min.
     if (payload.iat) {
@@ -41,14 +41,15 @@ module.exports = function(router) {
       delete payload.exp;
     }
 
-    return jwt.sign(payload, router.formio.config.jwt.secret, {
-      expiresIn: router.formio.config.jwt.expireTime * 60
+    return jwt.sign(payload, jwtSettings.secret, {
+      expiresIn: jwtSettings.expireTime * 60
     });
   };
 
   /**
    * Authenticate a user.
    *
+   * @param The request object.
    * @param forms {Mixed}
    *   A single form or an array of forms to authenticate against.
    * @param userField {String}
@@ -62,7 +63,7 @@ module.exports = function(router) {
    * @param next {Function}
    *   The callback function to call after authentication.
    */
-  var authenticate = function(forms, userField, passField, username, password, next) {
+  var authenticate = function(req, forms, userField, passField, username, password, next) {
     // Make sure they have provided a username and password.
     if (!username) {
       return next(new Error('Missing username'));
@@ -142,13 +143,17 @@ module.exports = function(router) {
               }
             }, form);
 
-            // Continue with the token data.
-            next(null, {
-              user: user,
-              token: {
-                token: getToken(token),
-                decoded: token
-              }
+            // Get the jwt settings.
+            hook.jwt(req, function(err, jwtSettings) {
+
+              // Continue with the token data.
+              next(null, {
+                user: user,
+                token: {
+                  token: getToken(token, jwtSettings),
+                  decoded: token
+                }
+              });
             });
           });
         });
