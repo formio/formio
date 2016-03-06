@@ -418,8 +418,8 @@ module.exports = function(router) {
               message: 'Password reset email was sent.'
             });
           });
-        });
-      });
+        }.bind(this));
+      }.bind(this));
     }
 
     // Handle the request after they have come back.
