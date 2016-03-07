@@ -15,6 +15,7 @@ var debug = require('debug')('formio:middleware:tokenHandler');
  * @returns {Function}
  *   The middleware for an Express endpoint.
  */
+var jwt = require('jsonwebtoken');
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
   return function tokenHandler(req, res, next) {
@@ -110,19 +111,24 @@ module.exports = function(router) {
             // Store the jwt token sent by the user.
             req.token = decoded;
 
-            // Refresh the token that is sent back to the user when appropriate.
-            var newToken = router.formio.auth.getToken(decoded, jwtSettings);
-            res.token = newToken
-              ? newToken
-              : token;
+            // Get the new token.
+            router.formio.auth.getToken(req, decoded, function(err, newToken) {
+              if (err) {
+                return next(err);
+              }
 
-            // Set the headers if they haven't been sent yet.
-            if (!res.headersSent) {
-              res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
-              res.setHeader('x-jwt-token', res.token);
-            }
+              res.token = newToken
+                ? newToken
+                : token;
 
-            next();
+              // Set the headers if they haven't been sent yet.
+              if (!res.headersSent) {
+                res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
+                res.setHeader('x-jwt-token', res.token);
+              }
+
+              next();
+            });
           });
         });
       });

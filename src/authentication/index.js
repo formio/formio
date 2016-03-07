@@ -20,15 +20,12 @@ module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
 
   /**
-   * Generate our JWT with the given payload, and pass it to the given callback function.
+   * Sign a token.
    *
-   * @param payload {Object}
-   *   The decoded JWT.
-   *
-   * @return {String|Boolean}
-   *   The JWT from the given payload, or false if the jwt payload is still valid.
+   * @param payload
+   * @param jwtSettings
    */
-  var getToken = function(payload, jwtSettings) {
+  var signToken = function(payload, jwtSettings) {
     // Ensure that we do not do multiple re-issues consecutively.
     // Re-issue at the maximum rate of 1/min.
     if (payload.iat) {
@@ -41,8 +38,31 @@ module.exports = function(router) {
       delete payload.exp;
     }
 
+    // Call with the token.
     return jwt.sign(payload, jwtSettings.secret, {
       expiresIn: jwtSettings.expireTime * 60
+    });
+  };
+
+  /**
+   * Generate our JWT with the given payload, and pass it to the given callback function.
+   *
+   * @param payload {Object}
+   *   The decoded JWT.
+   *
+   * @return {String|Boolean}
+   *   The JWT from the given payload, or false if the jwt payload is still valid.
+   */
+  var getToken = function(req, payload, next) {
+
+    // Get the jwt settings.
+    hook.jwt(req, function(err, jwtSettings) {
+      if (err) {
+        return next(err);
+      }
+
+      // Call with the token.
+      next(null, signToken(payload, jwtSettings));
     });
   };
 
@@ -143,14 +163,14 @@ module.exports = function(router) {
               }
             }, form);
 
-            // Get the jwt settings.
-            hook.jwt(req, function(err, jwtSettings) {
+            // Issue a new jwt token.
+            getToken(req, token, function(err, jwtToken) {
 
               // Continue with the token data.
               next(null, {
                 user: user,
                 token: {
-                  token: getToken(token, jwtSettings),
+                  token: jwtToken,
                   decoded: token
                 }
               });
