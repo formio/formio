@@ -151,7 +151,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('An administrator should be able to Update their Form', function(done) {
-        var updatedForm = _.clone(template.forms.tempForm);
+        var updatedForm = _.cloneDeep(template.forms.tempForm);
         updatedForm.title = 'Updated';
 
         request(app)
@@ -312,7 +312,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('An administrator should be able to Update their Form using an alias', function(done) {
-        var updatedForm = _.clone(template.forms.tempForm);
+        var updatedForm = _.cloneDeep(template.forms.tempForm);
         updatedForm.title = 'Updated2';
 
         request(app)
@@ -431,7 +431,7 @@ module.exports = function(app, template, hook) {
           'â', 'ä', 'æ', 'ã', 'å', 'ā', 'ß', 'ś', 'š', 'ł',
           'ž', 'ź', 'ż', 'ç', 'ć', 'č', 'ñ', 'ń', ' ', 'a '
         ].forEach(function(_bad) {
-          var temp = _.clone(tempForm);
+          var temp = _.cloneDeep(tempForm);
           temp.name = chance.word({length: 15});
           temp.path = chance.word({length: 15});
           temp.components[0].key = _bad;
@@ -1095,6 +1095,174 @@ module.exports = function(app, template, hook) {
           });
       });
 
+    });
+
+    describe('Form Validation', function() {
+      // FA-566
+      describe('Negative Min Length', function() {
+        var form = _.cloneDeep(tempForm);
+        form.title = 'validationform';
+        form.name = 'validationform';
+        form.path = 'validationform';
+        form.components[0].validate.minLength = -1;
+
+        it('Bootstrap', function(done) {
+          // Create the test form
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+              assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+              assert(response.hasOwnProperty('access'), 'The response should contain an the `access`.');
+              assert.equal(response.title, form.title);
+              assert.equal(response.name, form.name);
+              assert.equal(response.path, form.path);
+              assert.equal(response.type, 'form');
+              assert.deepEqual(response.submissionAccess, []);
+              assert.deepEqual(response.components, form.components);
+
+              form = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('Negative Min Length validation wont crash the server on submission', function(done) {
+          var submission = {
+            data: {
+              foo: 'bar'
+            }
+          };
+
+          request(app)
+            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.data, submission.data);
+              done();
+            });
+        });
+
+        it('Form cleanup', function(done) {
+          request(app)
+            .delete(hook.alter('url', '/form/' + form._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response, {});
+              done();
+            });
+        });
+      });
+
+      // FA-566
+      describe('Negative Max Length', function() {
+        var form = _.cloneDeep(tempForm);
+        form.title = 'validationform';
+        form.name = 'validationform';
+        form.path = 'validationform';
+        form.components[0].validate.maxLength = -1;
+
+        it('Bootstrap', function(done) {
+          // Create the test form
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+              assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+              assert(response.hasOwnProperty('access'), 'The response should contain an the `access`.');
+              assert.equal(response.title, form.title);
+              assert.equal(response.name, form.name);
+              assert.equal(response.path, form.path);
+              assert.equal(response.type, 'form');
+              assert.deepEqual(response.submissionAccess, []);
+              assert.deepEqual(response.components, form.components);
+
+              form = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('Negative Max Length validation wont crash the server on submission', function(done) {
+          var submission = {
+            data: {
+              foo: 'bar'
+            }
+          };
+
+          request(app)
+            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.data, submission.data);
+              done();
+            });
+        });
+
+        it('Form cleanup', function(done) {
+          request(app)
+            .delete(hook.alter('url', '/form/' + form._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response, {});
+              done();
+            });
+        });
+      });
     });
   });
 };

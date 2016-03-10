@@ -53,10 +53,20 @@ var Validator = function(form, model) {
       case 'textarea':
       case 'phonenumber':
         fieldValidator = Joi.string().empty('');
-        if (component.validate && component.validate.minLength && (typeof component.validate.minLength === 'number')) {
+        if (
+          component.validate &&
+          component.validate.hasOwnProperty('minLength') &&
+          (typeof component.validate.minLength === 'number') &&
+          component.validate.minLength >= 0
+        ) {
           fieldValidator = fieldValidator.min(component.validate.minLength);
         }
-        if (component.validate && component.validate.maxLength && (typeof component.validate.maxLength === 'number')) {
+        if (
+          component.validate &&
+          component.validate.hasOwnProperty('maxLength') &&
+          (typeof component.validate.maxLength === 'number') &&
+          component.validate.maxLength >= 0
+        ) {
           fieldValidator = fieldValidator.max(component.validate.maxLength);
         }
         break;
