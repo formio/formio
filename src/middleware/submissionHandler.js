@@ -3,10 +3,6 @@
 var _ = require('lodash');
 var async = require('async');
 var deleteProp = require('delete-property');
-var debug = {
-  before: require('debug')('formio:middleware:submissionHandler#before'),
-  after: require('debug')('formio:middleware:submissionHandler#after')
-};
 var util = require('../util/util');
 var Validator = require('../resources/Validator');
 
@@ -76,6 +72,7 @@ module.exports = function(router, resourceName, resourceId) {
         }
 
         req.currentForm = form;
+        req.flattenedComponents = util.flattenComponents(form.components);
         done();
       });
     };
@@ -123,11 +120,26 @@ module.exports = function(router, resourceName, resourceId) {
         // Allow them to alter the body.
         req.body = hook.alter('submissionRequest', req.body);
 
-        // Create a submission object.
+        // Assign submission data to the request body.
+        req.submission = req.submission || {data: {}};
+        req.body.data = _.assign(req.body.data, req.submission.data);
+
+        // Clone the submission to the real value of the request body.
         req.submission = _.clone(req.body, true);
       }
 
       done();
+    };
+
+    /**
+     * Initialize the actions.
+     *
+     * @param req
+     * @param res
+     * @param done
+     */
+    var initializeActions = function(req, res, done) {
+      router.formio.actions.initialize(method.name, req, res, done);
     };
 
     /**
@@ -164,80 +176,94 @@ module.exports = function(router, resourceName, resourceId) {
      * @param req
      * @param done
      */
-    var executeHandlers = function(req, res, done) {
+    var executeFieldActionHandlers = function(req, res, done) {
       // Iterate through each component and allow them to alter the query.
-      var flattenedComponents = util.flattenComponents(req.currentForm.components);
-      async.eachSeries(flattenedComponents, function(component, done) {
+      async.eachSeries(req.flattenedComponents, function(component, then) {
         if (
           req.body &&
           component.hasOwnProperty('persistent') &&
           !component.persistent
         ) {
-          debug.before('Removing non-persistent field:', component.key);
-          // Delete the value from the body if it isn't supposed to be persistent.
           deleteProp('data.' + util.getSubmissionKey(component.key))(req.body);
         }
 
         // Execute the field handler.
-        executeFieldHandler(component, (req.handlerName + 'Action'), req, res, done);
-      }, function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        router.formio.actions.execute('before', method.name, req, res, function(err) {
-          if (err) {
-            return done(err);
-          }
-
-          // Fix issues with /PUT adding data to the payload with undefined value.
-          if (req.body && req.body.hasOwnProperty('data') && typeof req.body.data === 'undefined') {
-            req.body = _.omit(req.body, 'data');
-          }
-
-          async.eachSeries(flattenedComponents, function(component, done) {
-            executeFieldHandler(component, req.handlerName, req, res, done);
-          }, done);
-        });
-      });
+        executeFieldHandler(component, (req.handlerName + 'Action'), req, res, then);
+      }, done);
     };
 
+    /**
+     * Execute the actions.
+     *
+     * @param req
+     * @param res
+     * @param done
+     */
+    var executeActions = function(handler) {
+      return function(req, res, done) {
+        // If the body is undefined, then omit the body.
+        if (
+          (handler === 'before') &&
+          (req.body && req.body.hasOwnProperty('data') && typeof req.body.data === 'undefined')
+        ) {
+          req.body = _.omit(req.body, 'data');
+        }
+
+        router.formio.actions.execute(handler, method.name, req, res, done);
+      };
+    };
+
+    /**
+     * Execute the field handlers.
+     *
+     * @param req
+     * @param res
+     * @param done
+     */
+    var executeFieldHandlers = function(req, res, done) {
+      async.eachSeries(req.flattenedComponents, function(component, done) {
+        executeFieldHandler(component, req.handlerName, req, res, done);
+      }, done);
+    };
+
+    /**
+     * Ensure that a response is always sent.
+     *
+     * @param req
+     * @param res
+     * @param done
+     */
+    var ensureResponse = function(req, res, done) {
+      if (!res.resource && !res.headersSent) {
+        res.status(200).json(true);
+      }
+      done();
+    };
+
+    // Add before handlers.
     var before = 'before' + method.method;
     handlers[before] = function(req, res, next) {
       req.handlerName = before;
       async.series([
         async.apply(loadCurrentForm, req),
         async.apply(initializeSubmission, req),
+        async.apply(initializeActions, req, res),
         async.apply(validateSubmission, req, res),
-        async.apply(executeHandlers, req, res)
+        async.apply(executeFieldActionHandlers, req, res),
+        async.apply(executeActions('before'), req, res),
+        async.apply(executeFieldHandlers, req, res)
       ], next);
     };
 
+    // Add after handlers.
     var after = 'after' + method.method;
     handlers[after] = function(req, res, next) {
       req.handlerName = after;
-
-      // Execute the router action.
-      router.formio.actions.execute('after', method.name, req, res, function(err) {
-        if (err) {
-          debug.after(err);
-          return next(err);
-        }
-
-        async.eachSeries(util.flattenComponents(req.currentForm.components), function(component, done) {
-          executeFieldHandler(component, req.handlerName, req, res, done);
-        }, function(err) {
-          if (err) {
-            return next(err);
-          }
-
-          // Make sure to send something if no actions sent anything...
-          if (!res.resource && !res.headersSent) {
-            res.status(200).json(true);
-          }
-          next();
-        });
-      });
+      async.series([
+        async.apply(executeActions('after'), req, res),
+        async.apply(executeFieldHandlers, req, res),
+        async.apply(ensureResponse, req, res)
+      ], next);
     };
   });
 

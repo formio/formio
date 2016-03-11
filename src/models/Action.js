@@ -15,7 +15,8 @@ module.exports = function(formio) {
    *
    * @constructor
    */
-  var Action = function(data, req, res) {
+  var Action = function(data) {
+    this.name = data.name;
     this.title = data.title;
     this.action = data.action;
     this.handler = data.handler;
@@ -23,6 +24,7 @@ module.exports = function(formio) {
     this.priority = data.priority;
     this.form = data.form;
     this.settings = data.settings;
+    this.condition = data.condition;
   };
 
   /**

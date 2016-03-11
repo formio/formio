@@ -71,6 +71,9 @@ module.exports = {
     childReq.modelQuery = null;
     childReq.countQuery = null;
 
+    // Delete the actions cache.
+    delete childReq.actions;
+
     // Delete default resourceData from actions
     // otherwise you get an endless loop
     delete childReq.resourceData;

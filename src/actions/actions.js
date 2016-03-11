@@ -4,10 +4,6 @@ var Resource = require('resourcejs');
 var async = require('async');
 var mongoose = require('mongoose');
 var _ = require('lodash');
-var debug = {
-  search: require('debug')('formio:action#search'),
-  execute: require('debug')('formio:action#execute')
-};
 
 /**
  * The ActionIndex export.
@@ -46,51 +42,115 @@ module.exports = function(router) {
     model: mongoose.model('action', hook.alter('actionSchema', Action.schema)),
 
     /**
-     * Allow search capabilities for finding an Action.
+     * Load all actions for a provided form.
      *
-     * @param handler
-     * @param method
-     * @param form
+     * @param req
      * @param next
+     * @returns {*}
      */
-    search: function(handler, method, form, next) {
+    loadActions: function(req, res, next) {
+      if (!req.actions) {
+        req.actions = {};
+      }
+
+      var form = req.formId;
       if (!form) {
         return next();
       }
 
-      async.waterfall([
-        function queryMongo(callback) {
-          this.model
-            .find({
-              handler: handler,
-              method: method,
-              form: form,
-              deleted: {$eq: null}
-            })
-            .sort('-priority')
-            .exec(function(err, rows) {
-              if (err) {
-                return callback(err);
-              }
+      // Use cache if it is available.
+      if (req.actions && req.actions[form]) {
+        return next(null, req.actions[form]);
+      }
 
-              // Execute the callback.
-              callback(null, rows);
-            });
-        }.bind(this),
-        function processResults(rows, callback) {
-          rows = rows || [];
-
-          // Execute the callback.
-          callback(null, rows);
-        }.bind(this)
-      ], function(err, results) {
+      // Find the actions associated with this form.
+      this.model.find({
+        form: form,
+        deleted: {$eq: null}
+      })
+      .sort('-priority')
+      .exec(function(err, result) {
         if (err) {
-          debug.search(err);
           return next(err);
         }
 
-        next(null, results);
-      });
+        // Iterate through all of the actions and load them.
+        var actions = [];
+        _.each(result, function(action) {
+          if (!this.actions.hasOwnProperty(action.name)) {
+            return;
+          }
+
+          // Create the action class.
+          var ActionClass = this.actions[action.name];
+          actions.push(new ActionClass(action, req, res));
+        }.bind(this));
+
+        req.actions[form] = actions;
+        return next(null, actions);
+      }.bind(this));
+    },
+
+    /**
+     * Find an action within the available actions for this form.
+     *
+     * @param handler
+     * @param method
+     * @param req
+     * @param next
+     */
+    search: function(handler, method, req, res, next) {
+      if (!req.formId) {
+        return next(null, []);
+      }
+
+      // Make sure we have actions attached to the request.
+      if (req.actions) {
+        var actions = [];
+        _.each(req.actions[req.formId], function(action) {
+          if (
+            (!handler || action.handler.indexOf(handler) !== -1) &&
+            (!method || action.method.indexOf(method) !== -1)
+          ) {
+            actions.push(action);
+          }
+        });
+        return next(null, actions);
+      }
+      else {
+        // Load the actions.
+        this.loadActions(req, res, function(err) {
+          if (err) {
+            return next(err);
+          }
+          this.search(handler, method, req, res, next);
+        }.bind(this));
+      }
+    },
+
+    /**
+     * Load an initialize all actions for this form.
+     *
+     * @param req
+     * @param res
+     * @param next
+     */
+    initialize: function(method, req, res, next) {
+      this.search(null, method, req, res, function(err, actions) {
+        if (err) {
+          return next(err);
+        }
+
+        // Iterate through each action.
+        async.forEachOf(actions, function(action, index, done) {
+          if (actions[index].initialize) {
+            actions[index].initialize(req, res, done);
+          }
+          else {
+            done();
+          }
+        }.bind(this), next);
+      }.bind(this));
     },
 
     /**
@@ -103,70 +163,33 @@ module.exports = function(router) {
      * @param next
      */
     execute: function(handler, method, req, res, next) {
-      if (!req.formId) {
-        return next();
-      }
-
-      async.waterfall([
-        function actionSearch(callback) {
-          this.search(handler, method, req.formId, function(err, result) {
-            if (err) {
-              return callback(err);
-            }
-
-            callback(null, result);
-          });
-        }.bind(this),
-        function actionExecute(result, callback) {
-          if (!result || !result.length) {
-            return callback(null, null);
-          }
-
-          // The actions to execute.
-          var actions = [];
-
-          // Iterate over each action.
-          _.each(result, function(action) {
-            if (!action.name) {
-              return callback(new Error('No action was provided'));
-            }
-            if (!this.actions.hasOwnProperty(action.name)) {
-              return callback(new Error('Action not found.'));
-            }
-
-            var ActionClass = this.actions[action.name];
-            if (action.condition && action.condition.field) {
-              // If condition is set, make sure it matches.
-              if (
-                (req.body.data[action.condition.field] === action.condition.value) ===
-                (action.condition.eq === 'equals')
-              ) {
-                actions.push(new ActionClass(action, req, res));
-              }
-            }
-            else {
-              actions.push(new ActionClass(action, req, res));
-            }
-          }.bind(this));
-
-          // Iterate and execute each action.
-          async.eachSeries(actions, function(action, cb) {
-            action.resolve(handler, method, req, res, cb);
-          }, function(err) {
-            if (err) {
-              return callback(err);
-            }
-
-            callback();
-          });
-        }.bind(this)
-      ], function(err) {
+      // Find the available actions.
+      this.search(handler, method, req, res, function(err, actions) {
         if (err) {
-          debug.execute(err);
           return next(err);
         }
 
-        next();
+        // Iterate and execute each action.
+        async.eachSeries(actions, function(action, cb) {
+          // See if a condition is not established within the action.
+          if (
+            action.condition &&
+            action.condition.field &&
+            (action.condition.eq === 'equals') &&
+            (req.body.data[action.condition.field] !== action.condition.value)
+          ) {
+            return cb();
+          }
+
+          // Resolve the action.
+          action.resolve(handler, method, req, res, cb);
+        }, function(err) {
+          if (err) {
+            return next(err);
+          }
+
+          next();
+        });
       });
     }
   };
