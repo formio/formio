@@ -246,8 +246,8 @@ module.exports = function(router, resourceName, resourceId) {
       req.handlerName = before;
       async.series([
         async.apply(loadCurrentForm, req),
-        async.apply(initializeSubmission, req),
         async.apply(initializeActions, req, res),
+        async.apply(initializeSubmission, req),
         async.apply(validateSubmission, req, res),
         async.apply(executeFieldActionHandlers, req, res),
         async.apply(executeActions('before'), req, res),
