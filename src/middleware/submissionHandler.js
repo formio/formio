@@ -119,13 +119,6 @@ module.exports = function(router, resourceName, resourceId) {
 
         // Allow them to alter the body.
         req.body = hook.alter('submissionRequest', req.body);
-
-        // Assign submission data to the request body.
-        req.submission = req.submission || {data: {}};
-        req.body.data = _.assign(req.body.data, req.submission.data);
-
-        // Clone the submission to the real value of the request body.
-        req.submission = _.clone(req.body, true);
       }
 
       done();
@@ -151,7 +144,14 @@ module.exports = function(router, resourceName, resourceId) {
      */
     var validateSubmission = function(req, res, done) {
       // No need to validate on GET requests.
-      if ((req.method === 'POST') || (req.method === 'PUT')) {
+      if ((req.method !== 'GET') && req.body) {
+        // Assign submission data to the request body.
+        req.submission = req.submission || {data: {}};
+        req.body.data = _.assign(req.body.data, req.submission.data);
+
+        // Clone the submission to the real value of the request body.
+        req.submission = _.clone(req.body, true);
+
         // Next we need to validate the input.
         var validator = new Validator(req.currentForm, router.formio.resources.submission.model);
 
@@ -246,8 +246,8 @@ module.exports = function(router, resourceName, resourceId) {
       req.handlerName = before;
       async.series([
         async.apply(loadCurrentForm, req),
-        async.apply(initializeActions, req, res),
         async.apply(initializeSubmission, req),
+        async.apply(initializeActions, req, res),
         async.apply(validateSubmission, req, res),
         async.apply(executeFieldActionHandlers, req, res),
         async.apply(executeActions('before'), req, res),
