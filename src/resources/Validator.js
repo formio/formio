@@ -141,6 +141,12 @@ Validator.prototype.validate = function(submission, next) {
   var error = null;
   debug('Starting validation');
 
+  // Skip validation if no data is provided.
+  if (!submission.data) {
+    debug('No data skipping validation');
+    return next();
+  }
+
   /**
    * Invoke the Joi validator with our data.
    *
