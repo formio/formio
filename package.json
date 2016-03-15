@@ -50,7 +50,7 @@
     "prompt": "^0.2.14",
     "q": "^1.2.0",
     "request": "^2.64.0",
-    "resourcejs": "^1.0.5",
+    "resourcejs": "^1.0.7",
     "restler": "^3.2.2",
     "semver": "^5.1.0",
     "through": "^2.3.7"

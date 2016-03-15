@@ -144,10 +144,10 @@ module.exports = function(router, resourceName, resourceId) {
      */
     var validateSubmission = function(req, res, done) {
       // No need to validate on GET requests.
-      if ((req.method !== 'GET') && req.body && !req.noValidate) {
+      if ((req.method === 'POST' || req.method === 'PUT') && req.body && !req.noValidate) {
         // Assign submission data to the request body.
         req.submission = req.submission || {data: {}};
-        req.body.data = _.assign(req.body.data, req.submission.data);
+        req.body.data = _.assign({}, req.body.data, req.submission.data);
 
         // Clone the submission to the real value of the request body.
         req.submission = _.clone(req.body, true);
