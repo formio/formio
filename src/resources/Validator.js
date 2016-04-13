@@ -42,8 +42,8 @@ var Validator = function(form, model) {
       this.unique[component.key] = component;
     }
 
-    // The value is persistent if it doesn't say otherwise or explicitely says so.
-    var isPersistent = !component.hasOwnProperty('persistent') ||  component.persistent;
+    // The value is persistent if it doesn't say otherwise or explicitly says so.
+    var isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
 
     // Add the custom validations.
     if (component.validate && component.validate.custom && isPersistent) {
