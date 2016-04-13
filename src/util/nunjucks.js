@@ -1,6 +1,7 @@
+'use strict';
+
 var clone = require('clone');
 var vm = require('vm');
-var util = require('util');
 var nunjucks = require('nunjucks');
 
 // Configure nunjucks to not watch any files
@@ -41,8 +42,7 @@ module.exports = {
         environment: environment,
         context: context
       };
-      var context = new vm.createContext(sandbox);
-      script.runInContext(context, {
+      script.runInContext(vm.createContext(sandbox), {
         timeout: 500
       });
       rendered = sandbox.output;
@@ -62,8 +62,7 @@ module.exports = {
         environment: environment,
         context: context
       };
-      var context = new vm.createContext(sandbox);
-      objScript.runInContext(context, {
+      objScript.runInContext(vm.createContext(sandbox), {
         timeout: 500
       });
       rendered = sandbox.output;
@@ -72,5 +71,5 @@ module.exports = {
       rendered = e.message;
     }
     return rendered;
-  },
+  }
 };
