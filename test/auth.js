@@ -280,6 +280,20 @@ module.exports = function(app, template, hook) {
       done();
     });
 
+    it('Should be able to validate a request with the validate param.', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission?dryrun=1', template))
+        .send({
+          data: {
+            'email': template.users.user2.data.email,
+            'password': template.users.user2.data.password
+          }
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(done);
+    });
+
     it('Should be able to register another authenticated user.', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template))
