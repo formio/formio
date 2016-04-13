@@ -100,6 +100,7 @@ module.exports = function(formio) {
       };
 
       var getMail = function(cb) {
+        var mail = {};
         try {
           var emails = (typeof message.emails === 'string') ? message.emails : message.emails.join(', ');
           // Allow disabling of sending emails to external email accounts.
@@ -108,7 +109,7 @@ module.exports = function(formio) {
           }
 
           // Render the mail objects
-          var mail = nunjucks.renderObj({
+          mail = nunjucks.renderObj({
             from: message.from ? message.from : 'no-reply@form.io',
             to: emails,
             subject: message.subject,
@@ -119,7 +120,7 @@ module.exports = function(formio) {
           hook.alter('email', mail, req, res, params, cb);
         }
         catch (e) {
-          cb();
+          cb(null, mail);
         }
       };
 
