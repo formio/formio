@@ -18,8 +18,16 @@ module.exports = function(app, server, settings, mount, config) {
   config = config || require('./config.json');
   var formioServer = server || require('../index')(config);
 
+  // Set the settings.
+  settings = settings || require('./hooks');
+  if (!settings.getLastEmail) {
+    settings.getLastEmail = function() { return {}; };
+  }
+
   // The default project template.
   var template = require('./template')();
+
+  template.hooks = settings;
 
   // Initialize the formio router.
   formioServer.init(settings).then(function(_formio) {

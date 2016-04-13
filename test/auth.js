@@ -271,6 +271,15 @@ module.exports = function(app, template, hook) {
         });
     });
 
+    it('Should have sent an email to the user with an auth token', function(done) {
+      var email = template.hooks.getLastEmail();
+      assert.equal(email.from, 'no-reply@form.io');
+      assert.equal(email.to, template.users.user1.data.email);
+      assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
+      assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
+      done();
+    });
+
     it('Should be able to validate a request with the validate param.', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission?dryrun=1', template))
@@ -284,7 +293,7 @@ module.exports = function(app, template, hook) {
         .expect('Content-Type', /json/)
         .end(done);
     });
-    
+
     it('Should be able to register another authenticated user.', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template))
