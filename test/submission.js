@@ -1111,6 +1111,18 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Authenticated User Submission', function() {
+          it('A bad user should be able to run a dry run and get unauthorized.', function(done) {
+            request(app)
+              .post(hook.alter('url', '/form/' + tempForm._id + '/submission?dryrun=1', template))
+              .set('x-jwt-token', 'badtoken')
+              .send({data: {}})
+              .expect(400)
+              .end(function(err, res) {
+                assert.equal(res.text, 'Bad Token');
+                done();
+              });
+          });
+
           it('A Registered user should be able to run a dry run and get validation errors', function(done) {
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission?dryrun=1', template))

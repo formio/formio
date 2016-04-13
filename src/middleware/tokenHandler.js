@@ -35,11 +35,10 @@ module.exports = function(router) {
         debug(err || 'Token could not decoded: ' + token);
 
         // If the token has expired, send a 440 error (Login Timeout)
-        if (
-          err &&
-          (err.name === 'TokenExpiredError') ||
-          (err.name === 'JsonWebTokenError')
-        ) {
+        if (err && (err.name === 'JsonWebTokenError')) {
+          return res.status(400).send('Bad Token');
+        }
+        else if (err && (err.name === 'TokenExpiredError')) {
           return res.status(440).send('Login Timeout');
         }
         else {
