@@ -1,12 +1,8 @@
 'use strict';
 var _ = require('lodash');
 var util = require('../util/util');
-var nunjucks = require('nunjucks');
+var nunjucks = require('../util/nunjucks');
 var request = require('request');
-
-nunjucks.configure([], {
-  watch: false
-});
 
 module.exports = function(router) {
   var Action = router.formio.Action;
@@ -159,12 +155,15 @@ module.exports = function(router) {
       }
 
       var params = _.cloneDeep(req.body);
+      if (res && res.resource && res.resource.item) {
+        params = _.assign(params, res.resource.item);
+      }
 
       // Flatten the resource data.
       util.eachComponent(form.components, function(component) {
         if (component.type === 'resource' && params.data[component.key]) {
           params.data[component.key + 'Obj'] = params.data[component.key];
-          params.data[component.key] = nunjucks.renderString(component.template, {
+          params.data[component.key] = nunjucks.render(component.template, {
             item: params.data[component.key]
           });
         }

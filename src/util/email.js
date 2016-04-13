@@ -4,14 +4,10 @@ var nodemailer = require('nodemailer');
 var sgTransport = require('nodemailer-sendgrid-transport');
 var mandrillTransport = require('nodemailer-mandrill-transport');
 var mailgunTransport = require('nodemailer-mailgun-transport');
-var nunjucks = require('nunjucks');
+var nunjucks = require('./nunjucks');
+var jwt = require('jsonwebtoken');
 var debug = require('debug')('formio:settings:email');
 var _ = require('lodash');
-
-// Configure nunjucks to not watch any files
-nunjucks.configure([], {
-  watch: false
-});
 
 /**
  * The email sender for emails.
@@ -90,22 +86,50 @@ module.exports = function(formio) {
       // The transporter object.
       var transporter = null;
 
-      // To send the mail.
-      var sendMail = function() {
-        if (transporter) {
+      // Add the request params.
+      params.req = {
+        user: req.user,
+        token: req.token,
+        params: req.params,
+        query: req.query
+      };
+
+      // Add the response parameters.
+      params.res = {
+        token: res.token
+      };
+
+      var getMail = function(cb) {
+        try {
           var emails = (typeof message.emails === 'string') ? message.emails : message.emails.join(', ');
           // Allow disabling of sending emails to external email accounts.
           if (process.env.EMAIL_OVERRIDE) {
             emails = process.env.EMAIL_OVERRIDE;
           }
-          transporter.sendMail({
-            from: message.from ? message.from : 'no-reply@form.io',
-            to: nunjucks.renderString(emails, params),
-            subject: nunjucks.renderString(message.subject, params),
-            html: nunjucks.renderString(message.message, params)
-          });
 
-          debug('We do not want to block the request to send an email.');
+          // Render the mail objects
+          var mail = nunjucks.renderObj({
+            from: message.from ? message.from : 'no-reply@form.io',
+            to: emails,
+            subject: message.subject,
+            html: message.message
+          }, params);
+
+          // Allow others to alter the email.
+          hook.alter('email', mail, req, res, params, cb);
+        }
+        catch (e) {
+          cb();
+        }
+      };
+
+      // To send the mail.
+      var sendMail = function(err, mail) {
+        if (err) {
+          return next(err);
+        }
+        if (transporter && mail) {
+          transporter.sendMail(mail);
           return next();
         }
         else {
@@ -154,7 +178,7 @@ module.exports = function(formio) {
                 }
               }));
             }
-            sendMail();
+            getMail(sendMail);
             break;
           case 'sendgrid':
             debug(settings.email.sendgrid);
@@ -168,19 +192,19 @@ module.exports = function(formio) {
 
               debug(settings.email.sendgrid);
               transporter = nodemailer.createTransport(sgTransport(settings.email.sendgrid));
-              sendMail();
+              getMail(sendMail);
             }
             break;
           case 'mandrill':
             if (settings.email.mandrill) {
               transporter = nodemailer.createTransport(mandrillTransport(settings.email.mandrill));
-              sendMail();
+              getMail(sendMail);
             }
             break;
           case 'mailgun':
             if (settings.email.mailgun) {
               transporter = nodemailer.createTransport(mailgunTransport(settings.email.mailgun));
-              sendMail();
+              getMail(sendMail);
             }
             break;
           case 'gmail':
@@ -188,8 +212,17 @@ module.exports = function(formio) {
               var options = settings.email.gmail;
               options.service = 'Gmail';
               transporter = nodemailer.createTransport(options);
-              sendMail();
+              getMail(sendMail);
             }
+            break;
+          case 'test':
+            getMail(function(err, mail) {
+              if (err) {
+                return next(err);
+              }
+              hook.invoke('email', emailType, mail);
+              return next();
+            });
             break;
           default:
             hook.invoke('email', emailType, message, settings, req, res, params);

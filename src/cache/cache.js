@@ -125,6 +125,7 @@ module.exports = function(router) {
       if (!formId) {
         return cb('No form found.');
       }
+      req.formId = formId;
       this.loadForm(req, null, formId, cb);
     },
 

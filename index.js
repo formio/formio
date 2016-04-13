@@ -45,6 +45,9 @@ module.exports = function(config) {
     // Add the utils to the formio object.
     router.formio.util = util;
 
+    // Add nunjucks for renderings.
+    router.formio.nunjucks = require('./src/util/nunjucks');
+
     // Get the hook system.
     router.formio.hook = require('./src/util/hook')(router.formio);
 

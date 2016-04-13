@@ -67,6 +67,23 @@ module.exports = function() {
     ]
   };
 
+  // Create an email template.
+  template.actions.newUserEmail = {
+    name: 'email',
+    title: 'Email',
+    form: 'user',
+    priority: 0,
+    method: ['create'],
+    handler: ['after'],
+    settings: {
+      transport: 'test',
+      from: 'no-reply@form.io',
+      emails: '{{ data.email }}',
+      subject: 'New user {{ _id }} created',
+      message: 'Email: {{ data.email }}'
+    }
+  };
+
   // Create a register action for this form.
   template.actions.adminRegisterSave = {
     name: 'save',
