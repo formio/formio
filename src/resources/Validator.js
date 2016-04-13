@@ -42,8 +42,11 @@ var Validator = function(form, model) {
       this.unique[component.key] = component;
     }
 
+    // The value is persistent if it doesn't say otherwise or explicitely says so.
+    var isPersistent = !component.hasOwnProperty('persistent') ||  component.persistent;
+
     // Add the custom validations.
-    if (component.validate && component.validate.custom && component.persistent) {
+    if (component.validate && component.validate.custom && isPersistent) {
       this.customValidations[component.key] = component;
     }
 
@@ -101,7 +104,7 @@ var Validator = function(form, model) {
     /* eslint-enable max-depth, valid-typeof */
 
     // Only run validations for persistent fields with values but not on embedded.
-    if (component.key && (component.key.indexOf('.') === -1) && component.persistent && component.validate) {
+    if (component.key && (component.key.indexOf('.') === -1) && isPersistent && component.validate) {
       // Add required validator.
       if (component.validate.required) {
         fieldValidator = fieldValidator.required().empty();
