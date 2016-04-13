@@ -5,7 +5,6 @@ var sgTransport = require('nodemailer-sendgrid-transport');
 var mandrillTransport = require('nodemailer-mandrill-transport');
 var mailgunTransport = require('nodemailer-mailgun-transport');
 var nunjucks = require('./nunjucks');
-var jwt = require('jsonwebtoken');
 var debug = require('debug')('formio:settings:email');
 var _ = require('lodash');
 
@@ -120,7 +119,7 @@ module.exports = function(formio) {
           hook.alter('email', mail, req, res, params, cb);
         }
         catch (e) {
-          cb(null, mail);
+          return cb(null, mail);
         }
       };
 
