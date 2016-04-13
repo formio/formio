@@ -1023,7 +1023,7 @@ module.exports = function(app, template, hook) {
                 pattern: '',
                 maxLength: '',
                 minLength: '',
-                required: false
+                required: true
               },
               defaultValue: '',
               multiple: false,
@@ -1111,6 +1111,60 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Authenticated User Submission', function() {
+          it('A bad user should be able to run a dry run and get unauthorized.', function(done) {
+            request(app)
+              .post(hook.alter('url', '/form/' + tempForm._id + '/submission?dryrun=1', template))
+              .set('x-jwt-token', 'badtoken')
+              .send({data: {}})
+              .expect(400)
+              .end(function(err, res) {
+                assert.equal(res.text, 'Bad Token');
+                done();
+              });
+          });
+
+          it('A Registered user should be able to run a dry run and get validation errors', function(done) {
+            request(app)
+              .post(hook.alter('url', '/form/' + tempForm._id + '/submission?dryrun=1', template))
+              .set('x-jwt-token', template.users.user1.token)
+              .send({data: {}})
+              .expect(400)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert(response.name, 'ValidationError');
+                assert(res.headers.hasOwnProperty('x-jwt-token') && !!res.headers['x-jwt-token'], 'The response should contain token.');
+                template.users.user1.token = res.headers['x-jwt-token'];
+                done();
+              });
+          });
+
+          it('A Registered user should be able to run a dry run to create a submission', function(done) {
+            request(app)
+              .post(hook.alter('url', '/form/' + tempForm._id + '/submission?dryrun=1', template))
+              .set('x-jwt-token', template.users.user1.token)
+              .send(templateSubmission)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert(res.headers.hasOwnProperty('x-jwt-token') && !!res.headers['x-jwt-token'], 'The response should contain token.');
+
+                // Store the JWT for future API calls.
+                template.users.user1.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
           it('A Registered user should be able to Create a submission with explicit Own permissions', function(done) {
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
@@ -1862,7 +1916,7 @@ module.exports = function(app, template, hook) {
                 pattern: '',
                 maxLength: '',
                 minLength: '',
-                required: false
+                required: true
               },
               defaultValue: '',
               multiple: false,
@@ -2591,7 +2645,7 @@ module.exports = function(app, template, hook) {
                 pattern: '',
                 maxLength: '',
                 minLength: '',
-                required: false
+                required: true
               },
               defaultValue: '',
               multiple: false,
@@ -2959,7 +3013,7 @@ module.exports = function(app, template, hook) {
                 pattern: '',
                 maxLength: '',
                 minLength: '',
-                required: false
+                required: true
               },
               defaultValue: '',
               multiple: false,
@@ -3361,7 +3415,7 @@ module.exports = function(app, template, hook) {
                 pattern: '',
                 maxLength: '',
                 minLength: '',
-                required: false
+                required: true
               },
               defaultValue: '',
               multiple: false,

@@ -132,6 +132,11 @@ module.exports = function(router, resourceName, resourceId) {
      * @param done
      */
     var initializeActions = function(req, res, done) {
+      // If they wish to disable actions, then just skip.
+      if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
+        return done();
+      }
+
       router.formio.actions.initialize(method.name, req, res, done);
     };
 
@@ -177,6 +182,11 @@ module.exports = function(router, resourceName, resourceId) {
      * @param done
      */
     var executeFieldActionHandlers = function(req, res, done) {
+      // If they wish to disable actions, then just skip.
+      if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
+        return done();
+      }
+
       // Iterate through each component and allow them to alter the query.
       async.eachSeries(req.flattenedComponents, function(component, then) {
         if (
@@ -201,6 +211,11 @@ module.exports = function(router, resourceName, resourceId) {
      */
     var executeActions = function(handler) {
       return function(req, res, done) {
+        // If they wish to disable actions, then just skip.
+        if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
+          return done();
+        }
+
         // If the body is undefined, then omit the body.
         if (
           (handler === 'before') &&
@@ -221,6 +236,11 @@ module.exports = function(router, resourceName, resourceId) {
      * @param done
      */
     var executeFieldHandlers = function(req, res, done) {
+      // If they wish to disable actions, then just skip.
+      if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
+        return done();
+      }
+
       async.eachSeries(req.flattenedComponents, function(component, done) {
         executeFieldHandler(component, req.handlerName, req, res, done);
       }, done);
