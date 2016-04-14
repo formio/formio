@@ -18,7 +18,7 @@ module.exports = function(formio) {
         formio.hooks.on &&
         formio.hooks.on[name]
       ) {
-        var retVal = formio.hooks.on[name].apply(formio.hooks.on[name], Array.prototype.slice.call(arguments, 1));
+        var retVal = formio.hooks.on[name].apply(formio.hooks.on, Array.prototype.slice.call(arguments, 1));
         return (retVal !== undefined) ? !!retVal : true;
       }
       return false;
@@ -35,7 +35,7 @@ module.exports = function(formio) {
         formio.hooks.alter[name]
       ) {
         debug('Hook found');
-        return formio.hooks.alter[name].apply(formio.hooks.alter[name], Array.prototype.slice.call(arguments, 1));
+        return formio.hooks.alter[name].apply(formio.hooks.alter, Array.prototype.slice.call(arguments, 1));
       }
       else {
         // If this is an async hook instead of a sync.
