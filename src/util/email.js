@@ -125,16 +125,8 @@ module.exports = function(formio) {
 
       // To send the mail.
       var sendMail = function(err, mail) {
-        if (err) {
-          return next(err);
-        }
         if (transporter && mail) {
           transporter.sendMail(mail);
-          return next();
-        }
-        else {
-          debug('No transport configured, dont send an email.');
-          return next();
         }
       };
 
@@ -218,17 +210,19 @@ module.exports = function(formio) {
           case 'test':
             getMail(function(err, mail) {
               if (err) {
-                return next(err);
+                return;
               }
               hook.invoke('email', emailType, mail);
-              return next();
             });
             break;
           default:
             hook.invoke('email', emailType, message, settings, req, res, params);
-            return next();
+            break;;
         }
       });
+
+      // Move onto the next action immediately.
+      return next();
     }
   };
 };
