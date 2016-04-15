@@ -1498,6 +1498,64 @@ module.exports = function(app, template, hook) {
           });
         });
 
+        describe('Submission Exists Endpoints', function() {
+          it('Test if a submissions exists', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=foo&owner=' + template.users.user1._id.toString(), template))
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                assert.equal(res.body._id, tempSubmissionUser1._id.toString());
+                done();
+              });
+          });
+
+          it('Test if a submissions exists', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=foo&owner=' + template.users.user2._id.toString(), template))
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                assert.equal(res.body._id, tempSubmissionUser2._id.toString());
+                done();
+              });
+          });
+
+          it('Test if a submissions exists', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/exists?owner=' + template.users.user2._id.toString(), template))
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                assert.equal(res.body._id, tempSubmissionUser2._id.toString());
+                done();
+              });
+          });
+
+          it('Should 404 if it does not exist', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=test&owner=' + template.users.user2._id.toString(), template))
+              .expect(404)
+              .end(done);
+          });
+
+          it('Should 404 if it does not exist', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=test', template))
+              .expect(404)
+              .end(done);
+          });
+        });
+
         describe('Project Owner Submission', function() {
           it('The Project owner should be able to Create a submission without explicit Own permissions', function(done) {
             request(app)

@@ -9,7 +9,7 @@ var debug = require('debug')('formio:alias');
  */
 module.exports = function(router) {
   // Setup the reserved forms regex.
-  var reserved = router.formio.config.reservedForms || ['submission', 'export', 'role', 'current', 'logout', 'form'];
+  var reserved = router.formio.config.reservedForms || ['submission', 'exists', 'export', 'role', 'current', 'logout', 'form'];
   var formsRegEx = new RegExp('\/(' + reserved.join('|') + ')($|\/.*)', 'i');
 
   // Handle the request.
