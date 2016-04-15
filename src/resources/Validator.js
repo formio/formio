@@ -188,7 +188,9 @@ Validator.prototype.validate = function(submission, next) {
 
         // Execute the script.
         var script = new vm.Script(component.validate.custom);
-        script.runInContext(sandbox);
+        script.runInContext(sandbox, {
+          timeout: 100
+        });
         valid = sandbox.valid;
       }
       catch (err) {
