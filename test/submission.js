@@ -1499,6 +1499,27 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Submission Exists Endpoints', function() {
+          it('Should not allow you to create a reserved form path', function(done) {
+            request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send({
+                title: 'Bad Form',
+                name: 'exists',
+                path: 'exists',
+                type: 'form',
+                components: []
+              })
+              .expect(400)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                assert(res.text.indexOf('Form path cannot be one of the following names') === 0, 'Form path not valid');
+                done();
+              });
+          });
+
           it('Test if a submissions exists', function(done) {
             request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=foo&owner=' + template.users.user1._id.toString(), template))
