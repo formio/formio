@@ -1550,6 +1550,13 @@ module.exports = function(app, template, hook) {
 
           it('Test if a submissions exists', function(done) {
             request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=foo', template))
+              .expect(200)
+              .end(done);
+          });
+
+          it('Test if a submissions exists', function(done) {
+            request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/exists?owner=' + template.users.user2._id.toString(), template))
               .expect(200)
               .end(function(err, res) {

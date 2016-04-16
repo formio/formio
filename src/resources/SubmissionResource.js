@@ -91,12 +91,8 @@ module.exports = function(router) {
           !component.protected &&
           (!component.hasOwnProperty('persistent') || component.persistent)
         ) {
-          if (!query.data) {
-            query.data = {};
-          }
-
           // Add this to the query data.
-          query.data[component.key] = req.query['data.' + component.key];
+          query['data.' + component.key] = req.query['data.' + component.key];
         }
       });
 
