@@ -125,7 +125,7 @@ module.exports = function(formio) {
 
       // To send the mail.
       var sendMail = function(err, mail) {
-        if (transporter && mail) {
+        if (!err && transporter && mail) {
           transporter.sendMail(mail);
         }
       };
