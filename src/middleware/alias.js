@@ -9,8 +9,11 @@ var debug = require('debug')('formio:alias');
  */
 module.exports = function(router) {
   // Setup the reserved forms regex.
-  var reserved = router.formio.config.reservedForms || ['submission', 'export', 'role', 'current', 'logout', 'form'];
-  var formsRegEx = new RegExp('\/(' + reserved.join('|') + ')($|\/.*)', 'i');
+  if (!router.formio.config.reservedForms || !router.formio.config.reservedForms.length) {
+    router.formio.config.reservedForms = ['submission', 'exists', 'export', 'role', 'current', 'logout', 'form'];
+  }
+
+  var formsRegEx = new RegExp('\/(' + router.formio.config.reservedForms.join('|') + ')($|\/.*)', 'i');
 
   // Handle the request.
   return function aliasHandler(req, res, next) {

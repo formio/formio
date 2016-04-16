@@ -125,7 +125,7 @@ module.exports = function(formio) {
 
       // To send the mail.
       var sendMail = function(err, mail) {
-        if (transporter && mail) {
+        if (!err && transporter && mail) {
           transporter.sendMail(mail);
         }
       };
@@ -217,7 +217,7 @@ module.exports = function(formio) {
             break;
           default:
             hook.invoke('email', emailType, message, settings, req, res, params);
-            break;;
+            break;
         }
       });
 
