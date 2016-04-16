@@ -3,7 +3,6 @@
 var Resource = require('resourcejs');
 var mongoose = require('mongoose');
 var utils = require('formio-utils');
-var _ = require('lodash');
 
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
@@ -99,7 +98,7 @@ module.exports = function(router) {
           // Add this to the query data.
           query.data[component.key] = req.query['data.' + component.key];
         }
-      })
+      });
 
       // Query the submissions for this submission.
       router.formio.resources.submission.model.findOne(query, function(err, submission) {
