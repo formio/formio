@@ -98,9 +98,6 @@ module.exports = function(router) {
         }
       });
 
-      // Allow other modules to alter the form query.
-      query = hook.alter('formQuery', query, req);
-
       // Query the submissions for this submission.
       router.formio.resources.submission.model.findOne(query, function(err, submission) {
         if (err) {
