@@ -76,7 +76,8 @@ module.exports = function(router) {
 
       // Start the query.
       var query = {
-        form: form._id
+        form: form._id,
+        deleted: {$eq: null}
       };
 
       // Allow them to provide the owner flag.
@@ -84,6 +85,7 @@ module.exports = function(router) {
         query.owner = req.query.owner;
       }
 
+      // Build the data query.
       utils.eachComponent(form.components, function(component) {
         // Only add components that are not protected and are persistent.
         if (
@@ -95,6 +97,9 @@ module.exports = function(router) {
           query['data.' + component.key] = req.query['data.' + component.key];
         }
       });
+
+      // Allow other modules to alter the form query.
+      query = hook.alter('formQuery', query, req);
 
       // Query the submissions for this submission.
       router.formio.resources.submission.model.findOne(query, function(err, submission) {
