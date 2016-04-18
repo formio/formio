@@ -257,6 +257,10 @@ module.exports = function(router) {
             debug.getAccess.flagRequest('count: ' + count);
             if (count > 0) {
               req.submissionResourceAccessFilter = true;
+
+              // Since the access is now determined by the submission resource access, we
+              // can skip the owner filter.
+              req.skipOwnerFilter = true;
             }
 
             callback();
