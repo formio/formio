@@ -5,6 +5,12 @@ for https://form.io. This system allows you to build next generation Web 3.0 app
 form builder interface. These forms can then easily be embedded within your Angular.js and React applications using the
 ```<formio>``` HTML element. 
 
+Form Building & Rendering Demo
+-------------------
+Here is a link to a demo of the Form Building and Form Rendering capability that can be hooked into this API platform. 
+
+https://embed.plnkr.co/OlaYjN/
+
 Installation
 -------------------
 To get started you will first need the following installed on your machine.
