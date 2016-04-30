@@ -35,8 +35,15 @@ module.exports = function(router) {
     var query = {
       form: util.idToBson(req.formId),
       deleted: {$eq: null},
-      'access.type': {$in: ['read', 'write', 'admin']},
-      'access.resources': {$in: [util.idToString(user), util.idToBson(user)]}
+      $or: [
+        {
+          'access.type': {$in: ['read', 'write', 'admin']},
+          'access.resources': {$in: [util.idToString(user), util.idToBson(user)]}
+        },
+        {
+          owner: req.token.user._id
+        }
+      ]
     };
 
     debug(query);
