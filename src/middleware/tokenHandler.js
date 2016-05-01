@@ -17,6 +17,11 @@ var debug = require('debug')('formio:middleware:tokenHandler');
  */
 module.exports = function(router) {
   return function tokenHandler(req, res, next) {
+    // If someone else provided then skip.
+    if (req.user && req.token && res.token) {
+      return next();
+    }
+
     var token = util.getRequestValue(req, 'x-jwt-token');
 
     // Skip the token handling if no token was given.
