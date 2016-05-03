@@ -6,6 +6,7 @@ var mandrillTransport = require('nodemailer-mandrill-transport');
 var mailgunTransport = require('nodemailer-mailgun-transport');
 var nunjucks = require('./nunjucks');
 var debug = require('debug')('formio:settings:email');
+var rest = require('restler');
 var _ = require('lodash');
 
 /**
@@ -28,6 +29,14 @@ module.exports = function(formio) {
             title: 'Default (charges may apply)'
           }
         ];
+          if (_.get(settings, 'email.custom.url')) {
+          availableTransports.push(
+            {
+              transport: 'custom',
+              title: 'Custom'
+            }
+          );
+        }
         if (_.get(settings, 'email.gmail.auth.user')
           && _.get(settings, 'email.gmail.auth.pass')) {
           availableTransports.push(
@@ -197,6 +206,19 @@ module.exports = function(formio) {
             if (settings.email.mailgun) {
               transporter = nodemailer.createTransport(mailgunTransport(settings.email.mailgun));
               getMail(sendMail);
+            }
+            break;
+          case 'custom':
+            if (settings.email.custom) {
+              getMail(function(err, mail) {
+                var options = {};
+                if (settings.email.custom.username) {
+                  options.username = settings.email.custom.username;
+                  options.password = settings.email.custom.password;
+                }
+
+                rest.postJson(settings.email.custom.url, mail, options);
+              });
             }
             break;
           case 'gmail':

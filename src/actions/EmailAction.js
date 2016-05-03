@@ -156,7 +156,8 @@ module.exports = function(router) {
 
       var params = _.cloneDeep(req.body);
       if (res && res.resource && res.resource.item) {
-        params = _.assign(params, res.resource.item);
+        params = _.assign(params, res.resource.item.toObject());
+        params.id = params._id.toString();
       }
 
       // Flatten the resource data.
