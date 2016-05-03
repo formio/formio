@@ -203,7 +203,7 @@ module.exports = function(config) {
               return res.status(404).send('Form not found');
             }
             // If query params present, filter components that match params
-            var filter = Object.keys(req.query).length !== 0 ? req.query : null;
+            var filter = Object.keys(req.query).length !== 0 ? _.omit(req.query, ['limit', 'skip']) : null;
             res.json(
               _(util.flattenComponents(form.components))
               .filter(function(component) {
