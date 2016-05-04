@@ -156,8 +156,12 @@ module.exports = function(router) {
 
       var params = _.cloneDeep(req.body);
       if (res && res.resource && res.resource.item) {
-        var resourceObj = (typeof res.resource.item.toObject === 'function') ? res.resource.item.toObject() : res.resource.item;
-        params = _.assign(params, resourceObj);
+        if (typeof res.resource.item.toObject === 'function') {
+          params = _.assign(params, res.resource.item.toObject());
+        }
+        else {
+          params = _.assign(params, res.resource.item);
+        }
         params.id = params._id.toString();
       }
 
