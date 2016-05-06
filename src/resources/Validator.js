@@ -64,7 +64,6 @@ var Validator = function(form, model) {
   this.schema = Joi.object().keys(keys);
 };
 
-
 /**
  * Returns a validator per component.
  */
