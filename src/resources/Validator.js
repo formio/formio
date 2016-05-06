@@ -19,10 +19,20 @@ var Validator = function(form, model) {
   this.customValidations = {};
   this.schema = null;
   this.model = model;
+  this.ignore = {};
   this.unique = {};
 
   // Flatten the components array.
   var components = util.flattenComponents(form.components);
+
+  // Remove all keys within a data grid.
+  _.each(components, function(component) {
+    if (component.type === 'datagrid') {
+      util.eachComponent(component.components, function(dgridComp) {
+        this.ignore[dgridComp.key] = true;
+      }.bind(this));
+    }
+  }.bind(this));
 
   // Build the Joi validation schema.
   var keys = {
@@ -32,97 +42,19 @@ var Validator = function(form, model) {
 
   // Iterate through each component.
   _.each(components, function(component) {
-    var fieldValidator = null;
     if (!component) {
       return;
     }
 
-    // If the value must be unique.
-    if (component.unique) {
-      this.unique[component.key] = component;
+    // See if we should ignore validation for this component.
+    if (this.ignore.hasOwnProperty(component.key)) {
+      return;
     }
 
-    // The value is persistent if it doesn't say otherwise or explicitly says so.
-    var isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
+    // Get the validator.
+    var fieldValidator = this.getValidator(component);
 
-    // Add the custom validations.
-    if (component.validate && component.validate.custom && isPersistent) {
-      this.customValidations[component.key] = component;
-    }
-
-    /* eslint-disable max-depth, valid-typeof */
-    switch (component.type) {
-      case 'textfield':
-      case 'textarea':
-      case 'phonenumber':
-        fieldValidator = Joi.string().empty('');
-        if (
-          component.validate &&
-          component.validate.hasOwnProperty('minLength') &&
-          (typeof component.validate.minLength === 'number') &&
-          component.validate.minLength >= 0
-        ) {
-          fieldValidator = fieldValidator.min(component.validate.minLength);
-        }
-        if (
-          component.validate &&
-          component.validate.hasOwnProperty('maxLength') &&
-          (typeof component.validate.maxLength === 'number') &&
-          component.validate.maxLength >= 0
-        ) {
-          fieldValidator = fieldValidator.max(component.validate.maxLength);
-        }
-        break;
-      case 'email':
-        fieldValidator = Joi.string().email().empty('');
-        break;
-      case 'number':
-        fieldValidator = Joi.number().empty(null);
-        if (component.validate) {
-          // If the step is provided... we can infer float vs. integer.
-          if (component.validate.step && (typeof component.validate.step !== 'any')) {
-            var parts = component.validate.step.split('.');
-            if (parts.length === 1) {
-              fieldValidator = fieldValidator.integer();
-            }
-            else {
-              fieldValidator = fieldValidator.precision(parts[1].length);
-            }
-          }
-
-          _.each(['min', 'max', 'greater', 'less'], function(check) {
-            if (component.validate[check] && (typeof component.validate[check] === 'number')) {
-              fieldValidator = fieldValidator[check](component.validate[check]);
-            }
-          });
-        }
-        break;
-      default:
-        fieldValidator = Joi.any();
-        break;
-    }
-    /* eslint-enable max-depth, valid-typeof */
-
-    // Only run validations for persistent fields with values but not on embedded.
-    if (component.key && (component.key.indexOf('.') === -1) && isPersistent && component.validate) {
-      // Add required validator.
-      if (component.validate.required) {
-        fieldValidator = fieldValidator.required().empty();
-      }
-
-      // Add regex validator
-      if (component.validate.pattern) {
-        var regex = new RegExp(component.validate.pattern);
-        fieldValidator = fieldValidator.regex(regex);
-      }
-    }
-
-    // Make sure to change this to an array if multiple is checked.
-    if (component.multiple) {
-      fieldValidator = Joi.array().sparse().items(fieldValidator);
-    }
-
-    // Create the validator.
+    // Add the validator.
     if (fieldValidator) {
       keys[component.key] = fieldValidator;
     }
@@ -130,6 +62,111 @@ var Validator = function(form, model) {
 
   // Create the validator schema.
   this.schema = Joi.object().keys(keys);
+};
+
+
+/**
+ * Returns a validator per component.
+ */
+Validator.prototype.getValidator = function(component) {
+  var fieldValidator = null;
+  if (!component) {
+    return;
+  }
+
+  // If the value must be unique.
+  if (component.unique) {
+    this.unique[component.key] = component;
+  }
+
+  // The value is persistent if it doesn't say otherwise or explicitly says so.
+  var isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
+
+  // Add the custom validations.
+  if (component.validate && component.validate.custom && isPersistent) {
+    this.customValidations[component.key] = component;
+  }
+
+  /* eslint-disable max-depth, valid-typeof */
+  switch (component.type) {
+    case 'datagrid':
+      var objectSchema = {};
+      util.eachComponent(component.components, function(dgridComp) {
+        objectSchema[dgridComp.key] = this.getValidator(dgridComp);
+      }.bind(this));
+      fieldValidator = Joi.array().items(Joi.object(objectSchema));
+      break;
+    case 'textfield':
+    case 'textarea':
+    case 'phonenumber':
+      fieldValidator = Joi.string().empty('');
+      if (
+        component.validate &&
+        component.validate.hasOwnProperty('minLength') &&
+        (typeof component.validate.minLength === 'number') &&
+        component.validate.minLength >= 0
+      ) {
+        fieldValidator = fieldValidator.min(component.validate.minLength);
+      }
+      if (
+        component.validate &&
+        component.validate.hasOwnProperty('maxLength') &&
+        (typeof component.validate.maxLength === 'number') &&
+        component.validate.maxLength >= 0
+      ) {
+        fieldValidator = fieldValidator.max(component.validate.maxLength);
+      }
+      break;
+    case 'email':
+      fieldValidator = Joi.string().email().empty('');
+      break;
+    case 'number':
+      fieldValidator = Joi.number().empty(null);
+      if (component.validate) {
+        // If the step is provided... we can infer float vs. integer.
+        if (component.validate.step && (typeof component.validate.step !== 'any')) {
+          var parts = component.validate.step.split('.');
+          if (parts.length === 1) {
+            fieldValidator = fieldValidator.integer();
+          }
+          else {
+            fieldValidator = fieldValidator.precision(parts[1].length);
+          }
+        }
+
+        _.each(['min', 'max', 'greater', 'less'], function(check) {
+          if (component.validate[check] && (typeof component.validate[check] === 'number')) {
+            fieldValidator = fieldValidator[check](component.validate[check]);
+          }
+        });
+      }
+      break;
+    default:
+      fieldValidator = Joi.any();
+      break;
+  }
+  /* eslint-enable max-depth, valid-typeof */
+
+  // Only run validations for persistent fields with values but not on embedded.
+  if (component.key && (component.key.indexOf('.') === -1) && isPersistent && component.validate) {
+    // Add required validator.
+    if (component.validate.required) {
+      fieldValidator = fieldValidator.required().empty();
+    }
+
+    // Add regex validator
+    if (component.validate.pattern) {
+      var regex = new RegExp(component.validate.pattern);
+      fieldValidator = fieldValidator.regex(regex);
+    }
+  }
+
+  // Make sure to change this to an array if multiple is checked.
+  if (component.multiple) {
+    fieldValidator = Joi.array().sparse().items(fieldValidator);
+  }
+
+  return fieldValidator;
 };
 
 /**
