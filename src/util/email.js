@@ -211,6 +211,10 @@ module.exports = function(formio) {
           case 'custom':
             if (settings.email.custom) {
               getMail(function(err, mail) {
+                if (err) {
+                  debug('Error sending email: ' + err.toString());
+                  return;
+                }
                 var options = {};
                 if (settings.email.custom.username) {
                   options.username = settings.email.custom.username;
