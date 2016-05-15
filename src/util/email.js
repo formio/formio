@@ -123,22 +123,21 @@ module.exports = function(formio) {
           })();
         }
         else if (transporter && (typeof transporter.sendMail === 'function')) {
+          // Compile the email with nunjucks.
+          try {
+            mail = nunjucks.renderObj(mail, params);
+          }
+          catch (e) {
+            mail = null;
+          }
+
+          if (!mail) {
+            return;
+          }
+
           // Allow others to alter the email before it is sent.
           hook.alter('email', mail, req, res, params, function(err, mail) {
             if (err) {
-              return;
-            }
-
-            // Compile the email with nunjucks.
-            try {
-              mail = nunjucks.renderObj(mail, params);
-            }
-            catch (e) {
-              mail = null;
-            }
-
-            // Do not send an empty email.
-            if (!mail) {
               return;
             }
 
