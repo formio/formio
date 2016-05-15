@@ -92,7 +92,7 @@ module.exports = function(formio) {
     },
     send: function(req, res, message, params, next) {
       // The transporter object.
-      var transporter = null;
+      var transporter = {sendMail: null};
 
       // Add the request params.
       params.req = {
@@ -107,35 +107,49 @@ module.exports = function(formio) {
         token: res.token
       };
 
-      var getMail = function(cb) {
-        var mail = {};
-        try {
-          var emails = (typeof message.emails === 'string') ? message.emails : message.emails.join(', ');
-          // Allow disabling of sending emails to external email accounts.
-          if (process.env.EMAIL_OVERRIDE) {
-            emails = process.env.EMAIL_OVERRIDE;
-          }
-
-          // Render the mail objects
-          mail = nunjucks.renderObj({
-            from: message.from ? message.from : 'no-reply@form.io',
-            to: emails,
-            subject: message.subject,
-            html: message.message
-          }, params);
-
-          // Allow others to alter the email.
-          hook.alter('email', mail, req, res, params, cb);
-        }
-        catch (e) {
-          return cb(null, mail);
-        }
-      };
+      var emailType = message.transport ? message.transport : 'default';
 
       // To send the mail.
-      var sendMail = function(err, mail) {
-        if (!err && transporter && mail) {
-          transporter.sendMail(mail);
+      var sendMail = function(mail, sendEach) {
+        if (sendEach) {
+          var emails = _.uniq(_.map(mail.to.split(','), _.trim));
+          (function sendNext() {
+            sendMail(_.assign({}, mail, {
+              to: emails.shift()
+            }));
+            if (emails.length > 0) {
+              process.nextTick(sendNext);
+            }
+          })();
+        }
+        else if (transporter && (typeof transporter.sendMail === 'function')) {
+          // Allow others to alter the email before it is sent.
+          hook.alter('email', mail, req, res, params, function(err, mail) {
+            if (err) {
+              return;
+            }
+
+            // Compile the email with nunjucks.
+            try {
+              mail = nunjucks.renderObj(mail, params);
+            }
+            catch (e) {
+              mail = null;
+            }
+
+            // Do not send an empty email.
+            if (!mail) {
+              return;
+            }
+
+            // Override the "to" email if provided on a test server.
+            if (process.env.EMAIL_OVERRIDE) {
+              mail.to = process.env.EMAIL_OVERRIDE;
+            }
+
+            // Send the email.
+            transporter.sendMail(mail);
+          });
         }
       };
 
@@ -145,7 +159,6 @@ module.exports = function(formio) {
           return;
         }
 
-        var emailType = message.transport ? message.transport : 'default';
         var _config = (formio && formio.config && formio.config.email && formio.config.email.type);
 
         debug(formio.config);
@@ -179,7 +192,6 @@ module.exports = function(formio) {
                 }
               }));
             }
-            getMail(sendMail);
             break;
           case 'sendgrid':
             debug(settings.email.sendgrid);
@@ -193,28 +205,21 @@ module.exports = function(formio) {
 
               debug(settings.email.sendgrid);
               transporter = nodemailer.createTransport(sgTransport(settings.email.sendgrid));
-              getMail(sendMail);
             }
             break;
           case 'mandrill':
             if (settings.email.mandrill) {
               transporter = nodemailer.createTransport(mandrillTransport(settings.email.mandrill));
-              getMail(sendMail);
             }
             break;
           case 'mailgun':
             if (settings.email.mailgun) {
               transporter = nodemailer.createTransport(mailgunTransport(settings.email.mailgun));
-              getMail(sendMail);
             }
             break;
           case 'custom':
             if (settings.email.custom) {
-              getMail(function(err, mail) {
-                if (err) {
-                  debug('Error sending email: ' + err.toString());
-                  return;
-                }
+              transporter.sendMail = function(mail) {
                 var options = {};
                 if (settings.email.custom.username) {
                   options.username = settings.email.custom.username;
@@ -222,7 +227,7 @@ module.exports = function(formio) {
                 }
 
                 rest.postJson(settings.email.custom.url, mail, options);
-              });
+              };
             }
             break;
           case 'gmail':
@@ -230,22 +235,28 @@ module.exports = function(formio) {
               var options = settings.email.gmail;
               options.service = 'Gmail';
               transporter = nodemailer.createTransport(options);
-              getMail(sendMail);
             }
             break;
           case 'test':
-            getMail(function(err, mail) {
-              if (err) {
-                return;
-              }
+            transporter.sendMail = function(mail) {
               hook.invoke('email', emailType, mail);
-            });
+            };
             break;
           default:
-            hook.invoke('email', emailType, message, settings, req, res, params);
+            transporter = hook.invoke('email', emailType, message, settings, req, res, params);
             break;
         }
-      });
+
+        // Ensure we have a valid transporter to send the email.
+        if (transporter && (typeof transporter.sendMail === 'function')) {
+          sendMail({
+            from: message.from ? message.from : 'no-reply@form.io',
+            to: (typeof message.emails === 'string') ? message.emails : message.emails.join(', '),
+            subject: message.subject,
+            html: message.message
+          }, message.sendEach);
+        }
+      }.bind(this));
 
       // Move onto the next action immediately.
       return next();
