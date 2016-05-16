@@ -110,31 +110,34 @@ module.exports = function(formio) {
       var emailType = message.transport ? message.transport : 'default';
 
       // To send the mail.
-      var sendMail = function(mail, sendEach) {
-        if (sendEach) {
-          var emails = _.uniq(_.map(mail.to.split(','), _.trim));
-          (function sendNext() {
-            sendMail(_.assign({}, mail, {
-              to: emails.shift()
-            }));
-            if (emails.length > 0) {
-              process.nextTick(sendNext);
-            }
-          })();
-        }
-        else if (transporter && (typeof transporter.sendMail === 'function')) {
-          // Compile the email with nunjucks.
+      var sendMail = function(mail, sendEach, noCompile) {
+
+        // Compile the email with nunjucks.
+        if (!noCompile) {
           try {
             mail = nunjucks.renderObj(mail, params);
           }
           catch (e) {
             mail = null;
           }
+        }
 
-          if (!mail) {
-            return;
-          }
+        if (!mail) {
+          return;
+        }
 
+        if (sendEach) {
+          var emails = _.uniq(_.map(mail.to.split(','), _.trim));
+          (function sendNext() {
+            sendMail(_.assign({}, mail, {
+              to: emails.shift()
+            }), false, true);
+            if (emails.length > 0) {
+              process.nextTick(sendNext);
+            }
+          })();
+        }
+        else if (transporter && (typeof transporter.sendMail === 'function')) {
           // Allow others to alter the email before it is sent.
           hook.alter('email', mail, req, res, params, function(err, mail) {
             if (err) {

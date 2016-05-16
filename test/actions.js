@@ -487,6 +487,16 @@ module.exports = function(app, template, hook) {
             return done(err);
           }
 
+          // Check for an email.
+          template.hooks.onEmails(1, function(emails) {
+            var email = emails.shift();
+            assert.equal(email.from, 'travis@form.io');
+            assert.equal(email.to, 'test@example.com');
+            assert.equal(email.html.indexOf('Howdy, '), 0);
+            assert.equal(email.subject, 'Hello there Test Person');
+            done();
+          });
+
           request(app)
             .post(hook.alter('url', '/form/' + testForm._id + '/submission', template))
             .set('x-jwt-token', template.users.admin.token)
@@ -503,13 +513,6 @@ module.exports = function(app, template, hook) {
               if (err) {
                 return done(err);
               }
-
-              var email = template.hooks.getLastEmail();
-              assert.equal(email.from, 'travis@form.io');
-              assert.equal(email.to, 'test@example.com');
-              assert.equal(email.html, 'Howdy, ' + res.body._id);
-              assert.equal(email.subject, 'Hello there Test Person');
-              done();
             });
         });
       });
@@ -524,6 +527,16 @@ module.exports = function(app, template, hook) {
           if (err) {
             return done(err);
           }
+
+          // Check for an email.
+          template.hooks.onEmails(1, function(emails) {
+            var email = emails.shift();
+            assert.equal(email.from, 'joe@example.com');
+            assert.equal(email.to, 'joe@example.com, gary@form.io');
+            assert.equal(email.html.indexOf('Howdy, '), 0);
+            assert.equal(email.subject, 'Hello there Joe Smith');
+            done();
+          });
 
           request(app)
             .post(hook.alter('url', '/form/' + testForm._id + '/submission', template))
@@ -541,14 +554,6 @@ module.exports = function(app, template, hook) {
               if (err) {
                 return done(err);
               }
-
-              var emails = template.hooks.getEmails();
-              assert.equal(emails.length, 1);
-              assert.equal(emails[0].from, 'joe@example.com');
-              assert.equal(emails[0].to, 'joe@example.com, gary@form.io');
-              assert.equal(emails[0].html, 'Howdy, ' + res.body._id);
-              assert.equal(emails[0].subject, 'Hello there Joe Smith');
-              done();
             });
         });
       });
@@ -564,6 +569,19 @@ module.exports = function(app, template, hook) {
           if (err) {
             return done(err);
           }
+
+          template.hooks.onEmails(2, function(emails) {
+            assert.equal(emails.length, 2);
+            assert.equal(emails[0].from, 'travis@form.io');
+            assert.equal(emails[0].to, 'test@example.com');
+            assert.equal(emails[0].html.indexOf('Howdy, '), 0);
+            assert.equal(emails[0].subject, 'Hello there Test Person');
+            assert.equal(emails[1].from, 'travis@form.io');
+            assert.equal(emails[1].to, 'gary@form.io');
+            assert.equal(emails[1].html.indexOf('Howdy, '), 0);
+            assert.equal(emails[1].subject, 'Hello there Test Person');
+            done();
+          });
 
           request(app)
             .post(hook.alter('url', '/form/' + testForm._id + '/submission', template))
@@ -581,18 +599,6 @@ module.exports = function(app, template, hook) {
               if (err) {
                 return done(err);
               }
-
-              var emails = template.hooks.getEmails();
-              assert.equal(emails.length, 2);
-              assert.equal(emails[0].from, 'travis@form.io');
-              assert.equal(emails[0].to, 'test@example.com');
-              assert.equal(emails[0].html, 'Howdy, ' + res.body._id);
-              assert.equal(emails[0].subject, 'Hello there Test Person');
-              assert.equal(emails[1].from, 'travis@form.io');
-              assert.equal(emails[1].to, 'gary@form.io');
-              assert.equal(emails[1].html, 'Howdy, ' + res.body._id);
-              assert.equal(emails[1].subject, 'Hello there Test Person');
-              done();
             });
         });
       });
