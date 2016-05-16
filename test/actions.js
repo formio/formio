@@ -350,6 +350,10 @@ module.exports = function(app, template, hook) {
     });
 
     describe('EmailAction Functionality tests', function() {
+      if (process.env.DOCKER) {
+        return;
+      }
+
       // The temp form with the add RoleAction for existing submissions.
       var emailForm = {
         title: 'Email Form',
