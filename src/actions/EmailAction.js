@@ -95,6 +95,12 @@ module.exports = function(router) {
           }
         },
         {
+          label: 'Send a separate email to each recipient',
+          key: 'settings[sendEach]',
+          type: 'checkbox',
+          input: true
+        },
+        {
           label: 'Subject',
           key: 'settings[subject]',
           inputType: 'text',
