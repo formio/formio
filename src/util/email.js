@@ -111,7 +111,6 @@ module.exports = function(formio) {
 
       // To send the mail.
       var sendMail = function(mail, sendEach, noCompile) {
-
         // Compile the email with nunjucks.
         if (!noCompile) {
           try {
