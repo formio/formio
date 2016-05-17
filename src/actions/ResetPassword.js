@@ -44,23 +44,39 @@ module.exports = function(router) {
   };
 
   ResetPasswordAction.settingsForm = function(req, res, next) {
-    var dataSrc = hook.alter('url', '/form/' + req.params.formId + '/components', req);
-
     // Get the available email transports.
     emailer.availableTransports(req, function(err, availableTransports) {
       if (err) {
         return next(err);
       }
 
+      var basePath = hook.alter('url', '/form', req);
+      var dataSrc = basePath + '/' + req.params.formId + '/components';
+
       // Return the reset password information.
       next(null, [
         {
           type: 'select',
           input: true,
+          label: 'Resources',
+          key: 'settings[resources]',
+          placeholder: 'Select the resources we should reset password against.',
+          dataSrc: 'url',
+          data: {url: basePath + '?type=resource'},
+          valueProperty: '_id',
+          template: '<span>{{ item.title }}</span>',
+          multiple: true,
+          validate: {
+            required: true
+          }
+        },
+        {
+          type: 'select',
+          input: true,
           label: 'Username Field',
           key: 'settings[username]',
-          placeholder: 'Select the username field to reset password against.',
-          template: '<span>{{ item.label }}</span>',
+          placeholder: 'Select the username field',
+          template: '<span>{{ item.label || item.key }}</span>',
           dataSrc: 'url',
           data: {url: dataSrc},
           valueProperty: 'key',
@@ -74,8 +90,8 @@ module.exports = function(router) {
           input: true,
           label: 'Password Field',
           key: 'settings[password]',
-          placeholder: 'Select the password field for resetting the password.',
-          template: '<span>{{ item.label }}</span>',
+          placeholder: 'Select the password field',
+          template: '<span>{{ item.label || item.key }}</span>',
           dataSrc: 'url',
           data: {url: dataSrc},
           valueProperty: 'key',
@@ -165,68 +181,6 @@ module.exports = function(router) {
   };
 
   /**
-   * Return the resource name.
-   *
-   * @param type
-   *   The type of settings to pull from.
-   */
-  ResetPasswordAction.prototype.getResourceName = function(type) {
-    var resource = '';
-    if (this.settings[type].indexOf('.') !== -1) {
-      // Split the username.
-      var parts = this.settings[type].split('.');
-
-      // Ensure that there is only two levels of nesting.
-      if (parts.length > 2) {
-        return '';
-      }
-
-      // The resource name should be the first item.
-      resource = parts.shift();
-    }
-    return resource;
-  };
-
-  /**
-   * Returns the field name.
-   * @param type
-   * @returns {*}
-   */
-  ResetPasswordAction.prototype.getFieldName = function(type) {
-    var fieldName = this.settings[type];
-    if (fieldName.indexOf('.') !== -1) {
-      var parts = this.settings[type].split('.');
-
-      // Ensure we don't have deeply nested resources.
-      if (parts.length > 2) {
-        return '';
-      }
-
-      // The field name is the last item.
-      fieldName = parts.pop();
-    }
-    return fieldName;
-  };
-
-  /**
-   * Get the submission query to find a submission.
-   * @returns {{}}
-   */
-  ResetPasswordAction.prototype.submissionQuery = function(token) {
-    // Get the field name and the username key.
-    var usernameField = this.getFieldName('username');
-
-    // Set the name of the key for the mongo query.
-    var usernamekey = 'data.' + usernameField;
-
-    // Create the query.
-    var query = {};
-    query[usernamekey] = token.username;
-    query.form = mongoose.Types.ObjectId(token.form);
-    return query;
-  };
-
-  /**
    * Return a submission based on the token.
    *
    * @param req
@@ -234,33 +188,30 @@ module.exports = function(router) {
    * @param next
    */
   ResetPasswordAction.prototype.getSubmission = function(req, token, next) {
-    // If the resource is provided, get the submission from that form.
-    if (token.resource) {
-      // Load the resource defined by the token.
-      router.formio.cache.loadFormByName(req, token.resource, function(err, resource) {
-        if (err) {
-          return next.call(this, 'Unknown resource.');
-        }
-
-        token.resource = '';
-        token.form = resource._id.toString();
-        this.getSubmission(req, token, next);
-      }.bind(this));
+    // Only continue if the resources are provided.
+    if (!token.resources || !token.resources.length) {
       return;
     }
 
-    // Perform a mongo query to find the submission.
-    router.formio.resources.submission.model.findOne(
-      this.submissionQuery(token),
-      function(err, submission) {
-        if (err || !submission) {
-          return next.call(this, 'Submission not found.');
-        }
+    // Set the name of the key for the mongo query.
+    var usernamekey = 'data.' + this.settings.username;
 
-        // Submission found.
-        next.call(this, null, submission);
-      }.bind(this)
-    );
+    // Create the query.
+    var query = {
+      deleted: {$eq: null}
+    };
+    query[usernamekey] = token.username;
+    query.form = {$in: [_.map(token.resources, mongoose.Types.ObjectId)]};
+
+    // Perform a mongo query to find the submission.
+    router.formio.resources.submission.model.findOne(query, function(err, submission) {
+      if (err || !submission) {
+        return next.call(this, 'Submission not found.');
+      }
+
+      // Submission found.
+      next.call(this, null, submission);
+    }.bind(this));
   };
 
   /**
@@ -280,8 +231,7 @@ module.exports = function(router) {
       }
 
       // Get the name of the password field.
-      var passwordField = this.getFieldName('password');
-      if (!passwordField) {
+      if (!this.settings.password) {
         return next.call(this, 'Invalid password field');
       }
 
@@ -292,23 +242,88 @@ module.exports = function(router) {
         }
 
         var setValue = {};
-        setValue['data.' + passwordField] = hash;
+        setValue['data.' + this.settings.password] = hash;
 
         // Update the password.
         router.formio.resources.submission.model.update(
-          this.submissionQuery(token),
-          setValue,
+          {_id: submission._id},
+          {$set: setValue},
           function(err, newSub) {
             if (err) {
               return next.call(this, 'Unable to reset password.');
             }
 
             // The submission was saved!
-            next.call(this, null, newSub);
+            next.call(this, null, submission);
           }.bind(this)
         );
       }.bind(this));
     });
+  };
+
+  /**
+   * Initiialize the action.
+   */
+  ResetPasswordAction.prototype.initialize = function(method, req, res, next) {
+    // See if we have a reset password token.
+    var hasResetToken = !!(req.tempToken && (req.tempToken.type === 'resetpass'));
+    if (!hasResetToken && (method === 'create')) {
+      // Figure out the username data.
+      var username = req.body ? _.property(this.settings.username)(req.body.data) : '';
+
+      // Make sure they have a username.
+      if (!username) {
+        return res.status(400).send('You must provide a username to reset your password.');
+      }
+
+      // Create a token.
+      var token = {
+        username: username,
+        form: req.formId,
+        resources: this.settings.resources,
+        temp: true,
+        type: 'resetpass'
+      };
+
+      // Look up the user.
+      this.getSubmission(req, token, function(err, submission) {
+        if (err || !submission) {
+          return res.status(400).send('User not found.');
+        }
+
+        // Generate a temporary token for resetting their password.
+        var resetToken = jwt.sign(token, router.formio.config.jwt.secret, {
+          expiresInMinutes: 5
+        });
+
+        // Create the reset link and add it to the email parameters.
+        var params = {
+          resetlink: this.settings.url + '?x-jwt-token=' + resetToken
+        };
+
+        // Now send them an email.
+        emailer.send(req, res, {
+          transport: this.settings.transport,
+          from: this.settings.from,
+          emails: username,
+          subject: this.settings.subject,
+          message: this.settings.message
+        }, _.assign(params, req.body), function() {
+          // Let them know an email is on its way.
+          res.status(200).json({
+            message: 'Password reset email was sent.'
+          });
+        });
+      });
+    }
+    else {
+      // Set the username for validation purposes.
+      if (req.tempToken && req.tempToken.type === 'resetpass') {
+        req.body.data[this.settings.username] = req.tempToken.username;
+      }
+
+      return next();
+    }
   };
 
   /**
@@ -359,64 +374,6 @@ module.exports = function(router) {
       }.bind(this));
 
       return next();
-    }
-
-    // Handle the request for resetting their password.
-    else if (
-      !hasResetToken &&
-      (handler === 'before') &&
-      (method === 'create')
-    ) {
-      // Figure out the username data.
-      var username = req.body ? _.property(this.settings.username)(req.body.data) : '';
-
-      // Make sure they have a username.
-      if (!username) {
-        return res.status(400).send('You must provide a username to reset your password.');
-      }
-
-      // Get the resource name.
-      var resource = this.getResourceName('username');
-
-      // Create a token.
-      var token = {
-        username: username,
-        form: req.formId,
-        resource: resource,
-        temp: true,
-        type: 'resetpass'
-      };
-
-      // Look up the user.
-      this.getSubmission(req, token, function(err, submission) {
-        if (err || !submission) {
-          return res.status(400).send('User not found.');
-        }
-
-        // Generate a temporary token for resetting their password.
-        var resetToken = jwt.sign(token, router.formio.config.jwt.secret, {
-          expiresInMinutes: 5
-        });
-
-        // Create the reset link and add it to the email parameters.
-        var params = {
-          resetlink: this.settings.url + '?x-jwt-token=' + resetToken
-        };
-
-        // Now send them an email.
-        emailer.send(req, res, {
-          transport: this.settings.transport,
-          from: this.settings.from,
-          emails: username,
-          subject: this.settings.subject,
-          message: this.settings.message
-        }, _.assign(params, req.body), function() {
-          // Let them know an email is on its way.
-          res.status(200).json({
-            message: 'Password reset email was sent.'
-          });
-        });
-      });
     }
 
     // Handle the request after they have come back.

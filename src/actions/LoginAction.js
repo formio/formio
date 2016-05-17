@@ -88,8 +88,8 @@ module.exports = function(router) {
         validate: {
           required: true
         }
-      }]
-    );
+      }
+    ]);
   };
 
   /**

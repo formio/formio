@@ -144,7 +144,7 @@ module.exports = function(router) {
         // Iterate through each action.
         async.forEachOf(actions, function(action, index, done) {
           if (actions[index].initialize) {
-            actions[index].initialize(req, res, done);
+            actions[index].initialize(method, req, res, done);
           }
           else {
             done();
