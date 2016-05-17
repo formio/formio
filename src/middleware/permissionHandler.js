@@ -21,9 +21,14 @@ module.exports = function(router) {
   /**
    * Convert the submissions resource access into the common roles/permissions format for processing during the request.
    *
-   * @param submission
-   * @param next
-   * @returns {*}
+   * @param {Object} req
+   *   The express request object.
+   * @param {Object} submission
+   *   The submission.
+   * @param {Object} access
+   *   The compiled access list.
+   * @param {Function} next
+   *   The callback function to invoke with the results.
    */
   var getSubmissionResourceAccess = function(req, submission, access, next) {
     if (!next) {
@@ -101,6 +106,43 @@ module.exports = function(router) {
     /* eslint-enable camelcase */
   };
 
+  /**
+   * Attempts to add Self Access Permissions if present in the form access.
+   *
+   * @param {Object} req
+   *   The express request object.
+   * @param {Object} form
+   *   The form definition.
+   * @param {Object} access
+   *   The compiled access list.
+   */
+  var getSelfAccessPermissions = function(req, form, access) {
+    if (!form || !access || !form.access || !(form.access instanceof Array)) return;
+
+    // Check for self submission flag.
+    var done = false;
+    for(var a = 0; a < form.access.length; a++) {
+      if (done) continue; // Only search while not found.
+
+      if (form.access[a].hasOwnProperty('type') && form.access[a].type === 'self') {
+        done = true;
+
+        // Ensure the roles array is present.
+        form.access[a].roles = form.access[a].roles || [];
+
+        // If there is any truthy value, add self access to read_all.
+        if (_.any(form.access[a].roles)) {
+          // Flag the request for self access, so that the submission permission handler can add it in.
+          req.selfAccess = true;
+        }
+
+        // Remove the self access type, so we dont disturb the regular _all/_own permissions.
+        delete form.access[a];
+        form.access = _.filter(form.access);
+      }
+    }
+  };
+
   // Add this access handlers for all to use.
   router.formio.access = {
 
@@ -140,6 +182,12 @@ module.exports = function(router) {
             if (!item) {
               debug.getAccess.getFormAccess('No Form found with formId: ' + req.formId);
               return callback('No Form found with formId: ' + req.formId);
+            }
+
+            // If this a Resource, search for the presence of Self Access Permissions.
+            if (item.type === 'resource') {
+              // Attempt to load the Self Access Permissions.
+              getSelfAccessPermissions(item, access);
             }
 
             // Add the defined access types for the form.
@@ -218,6 +266,13 @@ module.exports = function(router) {
               ? submission.owner.toString()
               : null;
 
+            // Add self access if previously defined.
+            if (req.selfAccess && req.selfAccess === true) {
+              access.submission.read_all = access.form.read_all || [];
+              access.submission.read_all.push(util.idToString(submission._id));
+            }
+
+            // Load Submission Resource Access.
             getSubmissionResourceAccess(req, submission, access, callback);
           });
         },
