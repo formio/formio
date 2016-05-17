@@ -265,7 +265,6 @@ module.exports = function(router) {
    * Initiialize the action.
    */
   ResetPasswordAction.prototype.initialize = function(method, req, res, next) {
-
     // See if we have a reset password token.
     var hasResetToken = !!(req.tempToken && (req.tempToken.type === 'resetpass'));
     if (!hasResetToken && (method === 'create')) {
@@ -318,13 +317,12 @@ module.exports = function(router) {
       });
     }
     else {
-
       // Set the username for validation purposes.
       if (req.tempToken && req.tempToken.type === 'resetpass') {
         req.body.data[this.settings.username] = req.tempToken.username;
       }
 
-      next();
+      return next();
     }
   };
 
