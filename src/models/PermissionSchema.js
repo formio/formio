@@ -14,7 +14,8 @@ module.exports = function(formio) {
     'create_own',
     'read_own',
     'update_own',
-    'delete_own'
+    'delete_own',
+    'self'
   ];
 
   // Allow anyone to hook and modify the available permissions.

@@ -3,6 +3,7 @@
 
 var request = require('supertest');
 var assert = require('assert');
+var chance = new (require('chance'))();
 
 module.exports = function(app, template, hook) {
   describe('Authentication', function() {
@@ -564,26 +565,99 @@ module.exports = function(app, template, hook) {
           done();
         });
     });
-  });
+  });8
 
+  /**
+   * partially authentication tests
+   * partially permissions tests
+   * partially submissions tests
+   */
   describe('Self Access Permissions', function() {
     var dummy = {
       data: {
-        email: 'dummy123@example.com',
-        password: 'foobar123'
+        email: chance.email(),
+        password: chance.word({length: 10})
       }
     };
+    var oldAccess = null;
+    before('Store the old user resource permissions', function(done) {
+      request(app)
+        .get(hook.alter('url', '/form/' + template.resources.user._id, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
 
-    it('An Administrator with permissions can make a user Account', function(done) {
+          var response = res.body;
+          var oldAccess = {
+            access: response.access,
+            submissionAccess: response.submissionAccess,
+          };
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
+    after('Restore the old user resource permissions', function(done) {
+      request(app)
+        .put(hook.alter('url', '/form/' + template.resources.user._id, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(oldAccess)
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          template.resources.user = response;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
+    it('Update the user resource to have no access', function(done) {
+      request(app)
+        .put(hook.alter('url', '/form/' + template.resources.user._id, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          access: [],
+          submissionAccess: []
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          assert.equal(response.access.length, 0);
+          assert.equal(response.submissionAccess.length, 0);
+          template.resources.user = response;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
+    it('The resource owner can make a user account without permissions', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.resources.user._id + '/submission', template))
         .set('x-jwt-token', template.users.admin.token)
-        .send({
-          data: {
-            'email': dummy.data.email,
-            'password': dummy.data.password
-          }
-        })
+        .send(dummy)
         .expect(200)
         .expect('Content-Type', /json/)
         .end(function(err, res) {
@@ -617,6 +691,19 @@ module.exports = function(app, template, hook) {
 
           done();
         });
+    });
+
+    it('An anonymous user should not be able to create a user account without permissions', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.resources.user._id + '/submission', template))
+        .send({
+          data: {
+            email: chance.email(),
+            password: chance.word({length: 10})
+          }
+        })
+        .expect(401)
+        .end(done);
     });
 
     it('A user (created by an admin) can login to their account', function(done) {
@@ -659,9 +746,286 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    it('A user without read permissions, should not be able to access the /current endpoint', function(done) {
+    it('A user without read permissions, should not be able to read their submission', function(done) {
       request(app)
-        .get(hook.alter('url', '/current', template))
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user without read permissions, should not be able to read their submission, via index', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user without update permissions, should not be able to update their submission', function(done) {
+      request(app)
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .send({
+          data: {
+            email: chance.email()
+          }
+        })
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user without delete permissions, should not be able to delete their submission', function(done) {
+      request(app)
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    //it('A user without read permissions, should not be able to access the /current endpoint', function(done) {
+    //  request(app)
+    //    .get(hook.alter('url', '/current', template))
+    //    .set('x-jwt-token', dummy.token)
+    //    .expect(401)
+    //    .end(done);
+    //});
+
+    it('Update the user resource to have read_own access', function(done) {
+      request(app)
+        .put(hook.alter('url', '/form/' + template.resources.user._id, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          access: [],
+          submissionAccess: [
+            {
+              type: 'read_own',
+              roles: [template.roles.authenticated._id]
+            }
+          ]
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          assert.equal(response.access.length, 0);
+          assert.equal(response.submissionAccess.length, 1);
+          assert.equal(response.submissionAccess[0].type, 'read_own');
+          template.resources.user = response;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
+    it('A user without read permissions (not the owner), should not be able to read their submission', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user without read permissions (not the owner), should not be able to read their submission, via index', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
+        .set('x-jwt-token', dummy.token)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          assert(response instanceof Array);
+          assert.equal(response.length, 0);
+
+          // Store the JWT for future API calls.
+          dummy.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
+    it('A user without update permissions (not the owner), should not be able to update their submission', function(done) {
+      request(app)
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .send({
+          data: {
+            email: chance.email()
+          }
+        })
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user without delete permissions (not the owner), should not be able to delete their submission', function(done) {
+      request(app)
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    it('Update the user resource to have only self access', function(done) {
+      request(app)
+        .put(hook.alter('url', '/form/' + template.resources.user._id, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          access: [],
+          submissionAccess: [
+            {
+              type: 'self'
+            }
+          ]
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          assert.equal(response.access.length, 0);
+          assert.equal(response.submissionAccess.length, 1);
+          assert.equal(response.submissionAccess[0].type, 'self');
+          assert(response.submissionAccess[0].roles instanceof Array);
+          assert.deepEqual(response.submissionAccess[0].roles, []);
+          template.resources.user = response;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
+    it('A user without read permissions, but self access (not the owner), should not be able to read their submission', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user without read permissions, but self access (not the owner), should not be able to read their submission, via index', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user without update permissions, but self access (not the owner), should not be able to update their submission', function(done) {
+      request(app)
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .send({
+          data: {
+            email: chance.email()
+          }
+        })
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user without delete permissions, but self access (not the owner), should not be able to delete their submission', function(done) {
+      request(app)
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    it('Update the user resource to have read_own and self access', function(done) {
+      request(app)
+        .put(hook.alter('url', '/form/' + template.resources.user._id, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          access: [],
+          submissionAccess: [
+            {
+              type: 'read_own',
+              roles: [template.roles.authenticated._id]
+            },
+            {
+              type: 'self'
+            }
+          ]
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          assert.equal(response.access.length, 0);
+          assert.equal(response.submissionAccess.length, 2);
+          template.resources.user = response;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
+    it('A user with read_own and self access, not the owner, should be able to read their submission', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(200)
+        .end(done);
+    });
+
+    //it('A user with read_own and self access, not the owner, should be able to read their submission, via index', function(done) {
+    //  request(app)
+    //    .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
+    //    .set('x-jwt-token', dummy.token)
+    //    .expect(200)
+    //    .end(function(err, res) {
+    //      if (err) {
+    //        return done(err);
+    //      }
+    //
+    //      var response = res.body;
+    //      assert(response instanceof Array);
+    //      assert.equal(response.length, 1);
+    //      assert.equal(response[0]._id, dummy._id);
+    //
+    //      // Store the JWT for future API calls.
+    //      dummy.token = res.headers['x-jwt-token'];
+    //
+    //      done();
+    //    });
+    //});
+
+    it('A user without update permissions but with self access (not the owner), should not be able to update their submission', function(done) {
+      request(app)
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .send({
+          data: {
+            email: chance.email()
+          }
+        })
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user without delete permissions but with self access (not the owner), should not be able to delete their submission', function(done) {
+      request(app)
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
         .end(done);

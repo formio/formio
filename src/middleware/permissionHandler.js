@@ -117,28 +117,23 @@ module.exports = function(router) {
    *   The compiled access list.
    */
   var getSelfAccessPermissions = function(req, form, access) {
-    if (!form || !access || !form.access || !(form.access instanceof Array)) return;
+    if (!form || !access || !form.submissionAccess || !(form.submissionAccess instanceof Array)) return;
 
     // Check for self submission flag.
     var done = false;
-    for(var a = 0; a < form.access.length; a++) {
+    for(var a = 0; a < form.submissionAccess.length; a++) {
       if (done) continue; // Only search while not found.
 
-      if (form.access[a].hasOwnProperty('type') && form.access[a].type === 'self') {
+      debug.permissions('')
+      if (form.submissionAccess[a].hasOwnProperty('type') && form.submissionAccess[a].type === 'self') {
         done = true;
 
-        // Ensure the roles array is present.
-        form.access[a].roles = form.access[a].roles || [];
-
-        // If there is any truthy value, add self access to read_all.
-        if (_.any(form.access[a].roles)) {
-          // Flag the request for self access, so that the submission permission handler can add it in.
-          req.selfAccess = true;
-        }
+        // Flag the request for self access, so that the submission permission handler can add it in.
+        req.selfAccess = true;
 
         // Remove the self access type, so we dont disturb the regular _all/_own permissions.
-        delete form.access[a];
-        form.access = _.filter(form.access);
+        delete form.submissionAccess[a];
+        form.access = _.filter(form.submissionAccess);
       }
     }
   };
@@ -187,7 +182,7 @@ module.exports = function(router) {
             // If this a Resource, search for the presence of Self Access Permissions.
             if (item.type === 'resource') {
               // Attempt to load the Self Access Permissions.
-              getSelfAccessPermissions(item, access);
+              getSelfAccessPermissions(req, item, access);
             }
 
             // Add the defined access types for the form.
@@ -268,8 +263,8 @@ module.exports = function(router) {
 
             // Add self access if previously defined.
             if (req.selfAccess && req.selfAccess === true) {
-              access.submission.read_all = access.form.read_all || [];
-              access.submission.read_all.push(util.idToString(submission._id));
+              // Add the submission id to the access entity.
+              access.submission._id = util.idToString(submission._id);
             }
 
             // Load Submission Resource Access.
@@ -473,7 +468,11 @@ module.exports = function(router) {
             }
             else if (type.toString().indexOf('_own') !== -1) {
               // Entity has an owner, Request is from a User, and the User is the Owner.
-              if (access[entity.type].hasOwnProperty('owner') && user && access[entity.type].owner === user) {
+              // OR, selfAccess was flagged, and the user is the entity.
+              if (
+                (access[entity.type].hasOwnProperty('owner') && user && access[entity.type].owner === user)
+                || (req.selfAccess && user && access[entity.type].hasOwnProperty('_id') && user.toString() === access[entity.type]._id.toString())
+              ) {
                 _hasAccess = true;
               }
               // Exception for Index endpoint, the
@@ -517,6 +516,7 @@ module.exports = function(router) {
           debug.permissions('type: ' + type);
           debug.permissions('role: ' + role);
           debug.permissions('_hasAccess: ' + _hasAccess);
+          debug.permissions('selfAccess: ' + req.selfAccess);
         });
       });
 
