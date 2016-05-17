@@ -8751,7 +8751,7 @@ module.exports = function(app, template, hook) {
         });
       });
 
-    describe('Form Normalization', function() {
+      describe('Form Normalization', function() {
         it('Delete the form', function(done) {
           request(app)
             .delete(hook.alter('url', '/form/' + tempForm._id, template))

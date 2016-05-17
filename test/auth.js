@@ -565,4 +565,106 @@ module.exports = function(app, template, hook) {
         });
     });
   });
+
+  describe('Self Access Permissions', function() {
+    var dummy = {
+      data: {
+        email: 'dummy123@example.com',
+        password: 'foobar123'
+      }
+    };
+
+    it('An Administrator with permissions can make a user Account', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.resources.user._id + '/submission', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          data: {
+            'email': dummy.data.email,
+            'password': dummy.data.password
+          }
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
+          assert.equal(response.data.email, dummy.data.email);
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
+          assert.equal(response.form, template.resources.user._id);
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+          assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+          assert.equal(response.owner, template.users.admin._id);
+          assert.equal(response.roles.length, 1);
+          assert.equal(response.roles[0].toString(), template.roles.authenticated._id.toString());
+
+          // Update our testProject.owners data.
+          var tempPassword = dummy.data.password;
+          dummy = response;
+          dummy.data.password = tempPassword;
+
+          // Store the JWT for future API calls.
+          dummy.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
+    it('A user (created by an admin) can login to their account', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
+        .send({
+          data: {
+            'email': dummy.data.email,
+            'password': dummy.data.password
+          }
+        })
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+          assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
+          assert.equal(response.data.email, dummy.data.email);
+          assert(!response.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+          assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
+          assert.equal(response.form, template.resources.user._id);
+          assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+
+          // Update our dummys data.
+          var tempPassword = dummy.data.password;
+          dummy = response;
+          dummy.data.password = tempPassword;
+
+          // Store the JWT for future API calls.
+          dummy.token = res.headers['x-jwt-token'];
+          done();
+        });
+    });
+
+    it('A user without read permissions, should not be able to access the /current endpoint', function(done) {
+      request(app)
+        .get(hook.alter('url', '/current', template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+  });
 };
