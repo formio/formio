@@ -5,7 +5,9 @@ var express = require('express');
 var request = require('supertest');
 var mongoose = require('mongoose');
 var events = require('events');
+var _ = require('lodash');
 var Q = require('q');
+var hooks = require('./hooks');
 
 module.exports = function(app, server, settings, mount, config) {
   // Track the status of the initial test bootstrap.
@@ -19,10 +21,7 @@ module.exports = function(app, server, settings, mount, config) {
   var formioServer = server || require('../index')(config);
 
   // Set the settings.
-  settings = settings || require('./hooks');
-  if (!settings.getLastEmail) {
-    settings.getLastEmail = function() { return {}; };
-  }
+  settings = _.merge(settings, hooks) || hooks;
 
   // The default project template.
   var template = require('./template')();

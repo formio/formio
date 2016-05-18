@@ -349,6 +349,265 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('EmailAction Functionality tests', function() {
+      if (process.env.DOCKER) {
+        return;
+      }
+
+      // The temp form with the add RoleAction for existing submissions.
+      var emailForm = {
+        title: 'Email Form',
+        name: 'emailform',
+        path: 'emailform',
+        type: 'form',
+        access: [],
+        submissionAccess: [],
+        components: [
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'foo',
+            key: 'firstName',
+            label: 'First Name',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          },
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'foo',
+            key: 'lastName',
+            label: 'Last Name',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          },
+          {
+            type: 'email',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: 'Enter your email address',
+            key: 'email',
+            label: 'Email',
+            inputType: 'email',
+            tableView: true,
+            input: true
+          }
+        ]
+      };
+
+      // The temp role add action for existing submissions.
+      var emailAction = {
+        title: 'Email',
+        name: 'email',
+        handler: ['after'],
+        method: ['create'],
+        priority: 1,
+        settings: {}
+      };
+
+      var numTests = 0;
+      var newEmailTest = function(settings, done) {
+        numTests++;
+        settings.transport = 'test';
+        var testForm = _.assign(_.cloneDeep(emailForm), {
+          title: (emailForm.title + numTests),
+          name: (emailForm.name + numTests),
+          path: (emailForm.path + numTests)
+        });
+        var testAction = _.assign(_.cloneDeep(emailAction), {
+          settings: settings
+        });
+
+        // Create the form.
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(testForm)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            testForm = res.body;
+            testAction.form = testForm._id;
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            // Add the action to the form.
+            request(app)
+              .post(hook.alter('url', '/form/' + testForm._id + '/action', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(testAction)
+              .expect('Content-Type', /json/)
+              .expect(201)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                testAction = res.body;
+                template.users.admin.token = res.headers['x-jwt-token'];
+                done(null, testForm, testAction);
+              });
+          });
+      };
+
+      it('Should send an email with messages.', function(done) {
+        newEmailTest({
+          from: 'travis@form.io',
+          emails: '{{ data.email }}',
+          sendEach: false,
+          subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
+          message: 'Howdy, {{ id }}'
+        }, function(err, testForm, testAction) {
+          if (err) {
+            return done(err);
+          }
+
+          // Check for an email.
+          template.hooks.onEmails(1, function(emails) {
+            var email = emails.shift();
+            assert.equal(email.from, 'travis@form.io');
+            assert.equal(email.to, 'test@example.com');
+            assert.equal(email.html.indexOf('Howdy, '), 0);
+            assert.equal(email.subject, 'Hello there Test Person');
+            done();
+          });
+
+          request(app)
+            .post(hook.alter('url', '/form/' + testForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                firstName: 'Test',
+                lastName: 'Person',
+                email: 'test@example.com'
+              }
+            })
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+            });
+        });
+      });
+
+      it('Should send an email with multiple recipients.', function(done) {
+        newEmailTest({
+          from: '{{ data.email }}',
+          emails: '{{ data.email }}, gary@form.io',
+          subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
+          message: 'Howdy, {{ id }}'
+        }, function(err, testForm, testAction) {
+          if (err) {
+            return done(err);
+          }
+
+          // Check for an email.
+          template.hooks.onEmails(1, function(emails) {
+            var email = emails.shift();
+            assert.equal(email.from, 'joe@example.com');
+            assert.equal(email.to, 'joe@example.com, gary@form.io');
+            assert.equal(email.html.indexOf('Howdy, '), 0);
+            assert.equal(email.subject, 'Hello there Joe Smith');
+            done();
+          });
+
+          request(app)
+            .post(hook.alter('url', '/form/' + testForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                firstName: 'Joe',
+                lastName: 'Smith',
+                email: 'joe@example.com'
+              }
+            })
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+            });
+        });
+      });
+
+      it('Should send an email with multiple separate messages.', function(done) {
+        newEmailTest({
+          from: 'travis@form.io',
+          emails: '{{ data.email }}, gary@form.io',
+          sendEach: true,
+          subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
+          message: 'Howdy, {{ id }}'
+        }, function(err, testForm, testAction) {
+          if (err) {
+            return done(err);
+          }
+
+          template.hooks.onEmails(2, function(emails) {
+            assert.equal(emails.length, 2);
+            assert.equal(emails[0].from, 'travis@form.io');
+            assert.equal(emails[0].to, 'test@example.com');
+            assert.equal(emails[0].html.indexOf('Howdy, '), 0);
+            assert.equal(emails[0].subject, 'Hello there Test Person');
+            assert.equal(emails[1].from, 'travis@form.io');
+            assert.equal(emails[1].to, 'gary@form.io');
+            assert.equal(emails[1].html.indexOf('Howdy, '), 0);
+            assert.equal(emails[1].subject, 'Hello there Test Person');
+            done();
+          });
+
+          request(app)
+            .post(hook.alter('url', '/form/' + testForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                firstName: 'Test',
+                lastName: 'Person',
+                email: 'test@example.com'
+              }
+            })
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+            });
+        });
+      });
+    });
+
     describe('RoleAction Functionality tests', function() {
       // The temp form with the add RoleAction for existing submissions.
       var addForm = {
