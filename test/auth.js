@@ -784,14 +784,6 @@ module.exports = function(app, template, hook) {
         .end(done);
     });
 
-    //it('A user without read permissions, should not be able to access the /current endpoint', function(done) {
-    //  request(app)
-    //    .get(hook.alter('url', '/current', template))
-    //    .set('x-jwt-token', dummy.token)
-    //    .expect(401)
-    //    .end(done);
-    //});
-
     it('Update the user resource to have read_own access', function(done) {
       request(app)
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
