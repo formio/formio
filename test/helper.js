@@ -99,35 +99,40 @@ module.exports = function(app) {
     }.bind(this));
   };
 
-  Helper.prototype.initialize = function() {
-    this.series.push(this.getRolesAndForms.bind(this));
-    return this;
-  };
-
   Helper.prototype.createProject = function(done) {
-    request(app)
-      .post('/project')
-      .send({
-        title: chance.word(),
-        name: chance.word(),
-        description: chance.sentence()
-      })
-      .set('x-jwt-token', this.owner.token)
-      .expect('Content-Type', /json/)
-      .expect(201)
-      .end(function(err, res) {
-        if (err) {
-          return done(err);
-        }
-
-        this.template.project = res.body;
-        this.initialize(function(err) {
+    if (app.hasProjects) {
+      request(app)
+        .post('/project')
+        .send({
+          title: chance.word(),
+          name: chance.word(),
+          description: chance.sentence()
+        })
+        .set('x-jwt-token', this.owner.token)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end(function(err, res) {
           if (err) {
             return done(err);
           }
-          return done(null, res.body);
-        });
+
+          this.template.project = res.body;
+          this.getRolesAndForms(function(err) {
+            if (err) {
+              return done(err);
+            }
+            return done(null, res.body);
+          });
+        }.bind(this));
+    }
+    else {
+      this.getRolesAndForms(function(err) {
+        if (err) {
+          return done(err);
+        }
+        return done(null, this.template);
       }.bind(this));
+    }
   };
 
   Helper.prototype.project = function() {
