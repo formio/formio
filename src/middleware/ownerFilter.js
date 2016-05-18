@@ -17,8 +17,21 @@ module.exports = function(router) {
       return res.sendStatus(401);
     }
 
+    // The default ownerFilter query.
+    var query = {owner: req.token.user._id};
+
+    // If the self access flag was enabled in the permissionHandler, allow resources to access themselves.
+    if (req.selfAccess) {
+      query = {
+        $or: [
+          query,
+          {_id: req.token.user._id}
+        ]
+      }
+    }
+
     req.modelQuery = req.modelQuery || this.model;
-    req.modelQuery = req.modelQuery.find({owner: req.token.user._id});
+    req.modelQuery = req.modelQuery.find(query);
     next();
   };
 };

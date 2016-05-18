@@ -3,6 +3,7 @@
 
 var request = require('supertest');
 var assert = require('assert');
+var _ = require('lodash');
 var chance = new (require('chance'))();
 
 module.exports = function(app, template, hook) {
@@ -1109,8 +1110,11 @@ module.exports = function(app, template, hook) {
           }
 
           var response = res.body;
+          var types = _.pluck(response.submissionAccess, 'type');
           assert.equal(response.access.length, 0);
           assert.equal(response.submissionAccess.length, 2);
+          assert(types.indexOf('read_own') !== -1);
+          assert(types.indexOf('self') !== -1);
           template.resources.user = response;
 
           // Store the JWT for future API calls.
@@ -1128,29 +1132,29 @@ module.exports = function(app, template, hook) {
         .end(done);
     });
 
-    //it('A user with read_own and self access, not the owner, should be able to read their submission, via index', function(done) {
-    //  request(app)
-    //    .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
-    //    .set('x-jwt-token', dummy.token)
-    //    .expect(200)
-    //    .end(function(err, res) {
-    //      if (err) {
-    //        return done(err);
-    //      }
-    //
-    //      var response = res.body;
-    //      assert(response instanceof Array);
-    //      assert.equal(response.length, 1);
-    //      assert.equal(response[0]._id, dummy._id);
-    //
-    //      // Store the JWT for future API calls.
-    //      dummy.token = res.headers['x-jwt-token'];
-    //
-    //      done();
-    //    });
-    //});
+    it('A user with read_own and self access, not the owner, should be able to read their submission, via index', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
+        .set('x-jwt-token', dummy.token)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
 
-    it('A user without update permissions but with self access (not the owner), should not be able to update their submission', function(done) {
+          var response = res.body;
+          assert(response instanceof Array);
+          assert.equal(response.length, 1);
+          assert.equal(response[0]._id, dummy._id);
+
+          // Store the JWT for future API calls.
+          dummy.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
+    it('A user with read_own and self access, not the owner, should not be able to update their submission', function(done) {
       request(app)
         .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
@@ -1163,11 +1167,161 @@ module.exports = function(app, template, hook) {
         .end(done);
     });
 
-    it('A user without delete permissions but with self access (not the owner), should not be able to delete their submission', function(done) {
+    it('A user with read_own and self access, not the owner, should not be able to delete their submission', function(done) {
       request(app)
         .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
         .set('x-jwt-token', dummy.token)
         .expect(401)
+        .end(done);
+    });
+
+    it('Update the user resource to have update_own and self access', function(done) {
+      request(app)
+        .put(hook.alter('url', '/form/' + template.resources.user._id, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          access: [],
+          submissionAccess: [
+            {
+              type: 'update_own',
+              roles: [template.roles.authenticated._id]
+            },
+            {
+              type: 'self'
+            }
+          ]
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          var types = _.pluck(response.submissionAccess, 'type');
+          assert.equal(response.access.length, 0);
+          assert.equal(response.submissionAccess.length, 2);
+          assert(types.indexOf('update_own') !== -1);
+          assert(types.indexOf('self') !== -1);
+          template.resources.user = response;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
+    it('A user with update_own and self access, not the owner, should not be able to read their submission', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user with update_own and self access, not the owner, should not be able to read their submission, via index', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user with update_own and self access, not the owner, should be able to update their submission', function(done) {
+      request(app)
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .send({
+          data: {
+            email: chance.email()
+          }
+        })
+        .expect(200)
+        .end(done);
+    });
+
+    it('A user with update_own and self access, not the owner, should not be able to delete their submission', function(done) {
+      request(app)
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    it('Update the user resource to have delete_own and self access', function(done) {
+      request(app)
+        .put(hook.alter('url', '/form/' + template.resources.user._id, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          access: [],
+          submissionAccess: [
+            {
+              type: 'delete_own',
+              roles: [template.roles.authenticated._id]
+            },
+            {
+              type: 'self'
+            }
+          ]
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          var types = _.pluck(response.submissionAccess, 'type');
+          assert.equal(response.access.length, 0);
+          assert.equal(response.submissionAccess.length, 2);
+          assert(types.indexOf('delete_own') !== -1);
+          assert(types.indexOf('self') !== -1);
+          template.resources.user = response;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          done();
+        });
+    });
+
+    it('A user with delete_own and self access, not the owner, should not be able to read their submission', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user with delete_own and self access, not the owner, should not be able to read their submission, via index', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path + '/submission', template))
+        .set('x-jwt-token', dummy.token)
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user with delete_own and self access, not the owner, should not be able to update their submission', function(done) {
+      request(app)
+        .put(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .send({
+          data: {
+            email: chance.email()
+          }
+        })
+        .expect(401)
+        .end(done);
+    });
+
+    it('A user with delete_own and self access, not the owner, should be able to delete their submission', function(done) {
+      request(app)
+        .delete(hook.alter('url', '/' + template.resources.user.path + '/submission/' + dummy._id, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(200)
         .end(done);
     });
   });
