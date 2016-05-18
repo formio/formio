@@ -443,7 +443,7 @@ module.exports = function(router) {
       legend: 'Action Conditions (optional)',
       components: conditionalSettings.components
     });
-    
+
     settingsForm.components.push({
       type: 'htmlelement',
       tag: 'hr',
