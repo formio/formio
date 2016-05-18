@@ -21,9 +21,14 @@ module.exports = function(router) {
   /**
    * Convert the submissions resource access into the common roles/permissions format for processing during the request.
    *
-   * @param submission
-   * @param next
-   * @returns {*}
+   * @param {Object} req
+   *   The express request object.
+   * @param {Object} submission
+   *   The submission.
+   * @param {Object} access
+   *   The compiled access list.
+   * @param {Function} next
+   *   The callback function to invoke with the results.
    */
   var getSubmissionResourceAccess = function(req, submission, access, next) {
     if (!next) {
@@ -101,6 +106,42 @@ module.exports = function(router) {
     /* eslint-enable camelcase */
   };
 
+  /**
+   * Attempts to add Self Access Permissions if present in the form access.
+   *
+   * @param {Object} req
+   *   The express request object.
+   * @param {Object} form
+   *   The form definition.
+   * @param {Object} access
+   *   The compiled access list.
+   */
+  var getSelfAccessPermissions = function(req, form, access) {
+    if (!form || !access || !form.submissionAccess || !(form.submissionAccess instanceof Array)) {
+      return;
+    }
+
+    // Check for self submission flag.
+    var done = false;
+    for (var a = 0; a < form.submissionAccess.length; a++) {
+      // Only search while not found.
+      if (done) {
+        continue;
+      }
+
+      if (form.submissionAccess[a].hasOwnProperty('type') && form.submissionAccess[a].type === 'self') {
+        done = true;
+
+        // Flag the request for self access, so that the submission permission handler can add it in.
+        req.selfAccess = true;
+
+        // Remove the self access type, so we dont disturb the regular _all/_own permissions.
+        delete form.submissionAccess[a];
+        form.access = _.filter(form.submissionAccess);
+      }
+    }
+  };
+
   // Add this access handlers for all to use.
   router.formio.access = {
 
@@ -140,6 +181,12 @@ module.exports = function(router) {
             if (!item) {
               debug.getAccess.getFormAccess('No Form found with formId: ' + req.formId);
               return callback('No Form found with formId: ' + req.formId);
+            }
+
+            // If this a Resource, search for the presence of Self Access Permissions.
+            if (item.type === 'resource') {
+              // Attempt to load the Self Access Permissions.
+              getSelfAccessPermissions(req, item, access);
             }
 
             // Add the defined access types for the form.
@@ -218,6 +265,13 @@ module.exports = function(router) {
               ? submission.owner.toString()
               : null;
 
+            // Add self access if previously defined.
+            if (req.selfAccess && req.selfAccess === true) {
+              // Add the submission id to the access entity.
+              access.submission._id = util.idToString(submission._id);
+            }
+
+            // Load Submission Resource Access.
             getSubmissionResourceAccess(req, submission, access, callback);
           });
         },
@@ -418,7 +472,12 @@ module.exports = function(router) {
             }
             else if (type.toString().indexOf('_own') !== -1) {
               // Entity has an owner, Request is from a User, and the User is the Owner.
-              if (access[entity.type].hasOwnProperty('owner') && user && access[entity.type].owner === user) {
+              // OR, selfAccess was flagged, and the user is the entity.
+              /* eslint-disable max-len */
+              if (
+                (access[entity.type].hasOwnProperty('owner') && user && access[entity.type].owner === user)
+                || (req.selfAccess && user && access[entity.type].hasOwnProperty('_id') && user.toString() === access[entity.type]._id.toString())
+              ) {
                 _hasAccess = true;
               }
               // Exception for Index endpoint, the
@@ -427,6 +486,7 @@ module.exports = function(router) {
                 // ownerFilter middleware.
                 _hasAccess = true;
               }
+              /* eslint-enable max-len */
             }
             else {
               // If current role in question is the current users _id.
@@ -462,6 +522,7 @@ module.exports = function(router) {
           debug.permissions('type: ' + type);
           debug.permissions('role: ' + role);
           debug.permissions('_hasAccess: ' + _hasAccess);
+          debug.permissions('selfAccess: ' + req.selfAccess);
         });
       });
 
