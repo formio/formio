@@ -27,7 +27,7 @@ module.exports = function(router) {
           query,
           {_id: req.token.user._id}
         ]
-      }
+      };
     }
 
     req.modelQuery = req.modelQuery || this.model;

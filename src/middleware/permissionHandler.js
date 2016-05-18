@@ -117,14 +117,18 @@ module.exports = function(router) {
    *   The compiled access list.
    */
   var getSelfAccessPermissions = function(req, form, access) {
-    if (!form || !access || !form.submissionAccess || !(form.submissionAccess instanceof Array)) return;
+    if (!form || !access || !form.submissionAccess || !(form.submissionAccess instanceof Array)) {
+      return;
+    }
 
     // Check for self submission flag.
     var done = false;
-    for(var a = 0; a < form.submissionAccess.length; a++) {
-      if (done) continue; // Only search while not found.
+    for (var a = 0; a < form.submissionAccess.length; a++) {
+      // Only search while not found.
+      if (done) {
+        continue;
+      }
 
-      debug.permissions('')
       if (form.submissionAccess[a].hasOwnProperty('type') && form.submissionAccess[a].type === 'self') {
         done = true;
 
@@ -469,6 +473,7 @@ module.exports = function(router) {
             else if (type.toString().indexOf('_own') !== -1) {
               // Entity has an owner, Request is from a User, and the User is the Owner.
               // OR, selfAccess was flagged, and the user is the entity.
+              /* eslint-disable max-len */
               if (
                 (access[entity.type].hasOwnProperty('owner') && user && access[entity.type].owner === user)
                 || (req.selfAccess && user && access[entity.type].hasOwnProperty('_id') && user.toString() === access[entity.type]._id.toString())
@@ -481,6 +486,7 @@ module.exports = function(router) {
                 // ownerFilter middleware.
                 _hasAccess = true;
               }
+              /* eslint-enable max-len */
             }
             else {
               // If current role in question is the current users _id.
