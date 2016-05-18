@@ -3,6 +3,7 @@
 var Resource = require('resourcejs');
 var async = require('async');
 var mongoose = require('mongoose');
+var vm = require('vm');
 var _ = require('lodash');
 
 /**
@@ -171,6 +172,29 @@ module.exports = function(router) {
 
         // Iterate and execute each action.
         async.eachSeries(actions, function(action, cb) {
+          var execute = true;
+
+          // See if there is a custom condition.
+          if (
+            action.condition &&
+            action.condition.custom
+          ) {
+            try {
+              var script = new vm.Script(action.condition.custom);
+              var sandbox = {
+                data: req.body.data,
+                execute: false
+              };
+              script.runInContext(vm.createContext(sandbox), {
+                timeout: 500
+              });
+              execute = sandbox.execute;
+            }
+            catch (e) {
+              execute = false;
+            }
+          }
+
           // See if a condition is not established within the action.
           if (
             action.condition &&
@@ -178,6 +202,10 @@ module.exports = function(router) {
             (action.condition.eq === 'equals') &&
             (req.body.data[action.condition.field] !== action.condition.value)
           ) {
+            execute = false;
+          }
+
+          if (!execute) {
             return cb();
           }
 
@@ -216,24 +244,6 @@ module.exports = function(router) {
     };
     var conditionalSettings = {
       components: []
-    };
-
-    var configSettings = {
-      type: 'fieldset',
-      input: false,
-      tree: false,
-      key: 'conditions',
-      legend: 'Action Conditions',
-      components: [
-        {
-          input: false,
-          type: 'columns',
-          columns: [
-            mainSettings,
-            conditionalSettings
-          ]
-        }
-      ]
     };
 
     // If the defaults are read only.
@@ -311,6 +321,8 @@ module.exports = function(router) {
       });
     }
 
+    var customPlaceHolder = "// Example: Only execute if submitted roles has 'authenticated'.\n";
+    customPlaceHolder +=    "execute = (data.roles.indexOf('authenticated') !== -1);";
     conditionalSettings.components.push({
       type: 'fieldset',
       input: false,
@@ -318,56 +330,88 @@ module.exports = function(router) {
       key: 'condition',
       components: [
         {
-          type: 'select',
-          input: true,
-          label: '(optional) Trigger this action only if field',
-          key: 'condition[field]',
-          placeholder: 'Select the conditional field',
-          template: '<span>{{ item.label || item.key }}</span>',
-          dataSrc: 'url',
-          data: {url: dataSrc},
-          valueProperty: 'key',
-          multiple: false,
-          validate: {}
-        },
-        {
-          type : 'select',
-          input : true,
-          label : '',
-          key : 'condition[eq]',
-          placeholder : 'Select comparison',
-          template : '<span>{{ item.label }}</span>',
-          dataSrc : 'values',
-          data : {
-            values : [
-              {
-                value : 'equals',
-                label : 'Equals'
-              },
-              {
-                value : 'notEqual',
-                label : 'Does Not Equal'
-              }
-            ],
-            json : '',
-            url : '',
-            resource : ''
-          },
-          valueProperty : 'value',
-          multiple : false
-        },
-        {
-          input: true,
-          type: 'textfield',
-          inputType: 'text',
-          key: 'condition[value]',
-          placeholder: 'Enter value',
-          multiple: false
+          type: 'columns',
+          input: false,
+          columns: [
+            {
+              components: [
+                {
+                  type: 'select',
+                  input: true,
+                  label: 'Trigger this action only if field',
+                  key: 'condition[field]',
+                  placeholder: 'Select the conditional field',
+                  template: '<span>{{ item.label || item.key }}</span>',
+                  dataSrc: 'url',
+                  data: {url: dataSrc},
+                  valueProperty: 'key',
+                  multiple: false,
+                  validate: {}
+                },
+                {
+                  type : 'select',
+                  input : true,
+                  label : '',
+                  key : 'condition[eq]',
+                  placeholder : 'Select comparison',
+                  template : '<span>{{ item.label }}</span>',
+                  dataSrc : 'values',
+                  data : {
+                    values : [
+                      {
+                        value : 'equals',
+                        label : 'Equals'
+                      },
+                      {
+                        value : 'notEqual',
+                        label : 'Does Not Equal'
+                      }
+                    ],
+                    json : '',
+                    url : '',
+                    resource : ''
+                  },
+                  valueProperty : 'value',
+                  multiple : false
+                },
+                {
+                  input: true,
+                  type: 'textfield',
+                  inputType: 'text',
+                  key: 'condition[value]',
+                  placeholder: 'Enter value',
+                  multiple: false
+                }
+              ]
+            },
+            {
+              components: [
+                {
+                  type: 'well',
+                  input: false,
+                  components: [
+                    {
+                      type: 'htmlelement',
+                      tag: 'h4',
+                      input: false,
+                      content: 'Or you can provide your own custom JavaScript condition logic here',
+                      className: ''
+                    },
+                    {
+                      label: '',
+                      type: 'textarea',
+                      input: true,
+                      key: 'condition[custom]',
+                      placeholder: customPlaceHolder
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     });
-
-    settingsForm.components.push(configSettings);
 
     // Create the settings form.
     var actionSettings = {
@@ -381,10 +425,36 @@ module.exports = function(router) {
 
     // Add the settings form to the action settings.
     settingsForm.components.push(actionSettings);
+
+    settingsForm.components.push({
+      type: 'fieldset',
+      input: false,
+      tree: false,
+      key: 'conditions',
+      legend: 'Action Execution',
+      components: mainSettings.components
+    });
+
+    settingsForm.components.push({
+      type: 'fieldset',
+      input: false,
+      tree: false,
+      key: 'conditions',
+      legend: 'Action Conditions (optional)',
+      components: conditionalSettings.components
+    });
+
+    settingsForm.components.push({
+      type: 'htmlelement',
+      tag: 'hr',
+      input: false,
+      content: '',
+      className: ''
+    });
     settingsForm.components.push({
       type: 'button',
       input: true,
-      label: 'Save',
+      label: 'Save Action',
       key: 'submit',
       size: 'md',
       leftIcon: '',
@@ -463,7 +533,14 @@ module.exports = function(router) {
             return next(err);
           }
 
-          settings.actionSettings.components = settingsForm;
+          // Add the ability to change the title, and add the other settings.
+          settings.actionSettings.components = [{
+            type: 'textfield',
+            input: true,
+            label: 'Title',
+            key: 'title'
+          }].concat(settingsForm);
+
           info.settingsForm = settings.settingsForm;
           info.settingsForm.action = hook.alter('url', '/form/' + req.params.formId + '/action', req);
           hook.alter('actionInfo', info, req);

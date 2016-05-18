@@ -659,7 +659,7 @@ module.exports = function(app, template, hook) {
         .post(hook.alter('url', '/form/' + template.resources.user._id + '/submission', template))
         .set('x-jwt-token', template.users.admin.token)
         .send(dummy)
-        .expect(200)
+        .expect(201)
         .expect('Content-Type', /json/)
         .end(function(err, res) {
           if (err) {
