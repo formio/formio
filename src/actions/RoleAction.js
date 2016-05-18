@@ -205,22 +205,6 @@ module.exports = function(router) {
       role = this.settings.role;
     }
 
-    var querySubmission = function(submission) {
-      var url = '/form/:formId/submission/:submissionId';
-      var childReq = util.createSubRequest(req);
-      childReq.method = 'GET';
-      childReq.skipResource = false;
-
-      // Update the url parameters to use our updated submission.
-      childReq.params = hook.alter('submissionRequestQuery', {
-        formId: submission.form,
-        submissionId: submission._id
-      }, req);
-
-      // Execute the resourcejs methods associated with the submissions.
-      router.resourcejs[url].get.call(this, childReq, res, next);
-    };
-
     /**
      * Attempts to save the submission. Will load the submission if not currently loaded.
      *
@@ -229,45 +213,14 @@ module.exports = function(router) {
     var updateModel = function(submission, association) {
       // Try to update the submission directly.
       debug.updateModel(association);
-      try {
+      if (typeof submission.save === 'function') {
         submission.save(function(err) {
           if (err) {
             debug.updateModel(err);
             return next(err);
           }
 
-          // Only return the updated submission if this was a new resource.
-          if (association === 'new') {
-            querySubmission(submission);
-          }
-          else {
-            return next();
-          }
-        });
-      }
-      catch (e) {
-        // Dealing with plain js object, load the submission object.
-        router.formio.resources.submission.model.findOne({_id: submission._id}, function(err, submissionModel) {
-          if (err || !submissionModel) {
-            debug.updateModel(err || 'Submission not found: ' + submission._id);
-            return res.status(404).send('Submission not found.');
-          }
-
-          submissionModel.roles = submission.roles;
-          submissionModel.save(function(err) {
-            if (err) {
-              debug.updateModel(err);
-              return next(err);
-            }
-
-            // Only return the updated submission if this was a new resource.
-            if (association === 'new') {
-              querySubmission(submission);
-            }
-            else {
-              return next();
-            }
-          });
+          return next();
         });
       }
     };

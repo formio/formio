@@ -7,6 +7,7 @@ var _ = require('lodash');
 var chance = new (require('chance'))();
 
 module.exports = function(app, template, hook) {
+  var Helper = require('./helper')(app);
   describe('Actions', function() {
     // Store the temp form for this test suite.
     var tempForm = {
@@ -1194,7 +1195,7 @@ module.exports = function(app, template, hook) {
               }
             })
             .expect('Content-Type', /json/)
-            .expect(200)
+            .expect(201)
             .end(function(err, res) {
               if(err) {
                 return done(err);
@@ -1971,6 +1972,213 @@ module.exports = function(app, template, hook) {
           .set('x-jwt-token', template.users.admin.token)
           .expect(200)
           .end(done);
+      });
+    });
+
+    describe('Conditional Actions', function() {
+      var helper = null;
+      it('Create the forms', function(done) {
+        helper = new Helper(template.users.admin);
+        helper
+          .initialize()
+          .resource([
+            {
+              type: 'email',
+              persistent: true,
+              unique: false,
+              protected: false,
+              defaultValue: '',
+              suffix: '',
+              prefix: '',
+              placeholder: 'Enter your email address',
+              key: 'email',
+              label: 'Email',
+              inputType: 'email',
+              tableView: true,
+              input: true
+            },
+            {
+              type: 'selectboxes',
+              label: 'Roles',
+              key: 'roles',
+              input: true,
+              values: [
+                {
+                  label: 'Administrator',
+                  value: 'administrator'
+                },
+                {
+                  label: 'Authenticated',
+                  value: 'authenticated'
+                }
+              ]
+            }
+          ])
+          .action({
+            title: 'Role Assignment',
+            name: 'role',
+            priority: 1,
+            handler: ['after'],
+            method: ['create'],
+            condition: {
+              field: 'email',
+              eq: 'equals',
+              value: 'admin@example.com'
+            },
+            settings: {
+              association: 'new',
+              type: 'add',
+              role: 'administrator'
+            }
+          })
+          .action({
+            title: 'Role Assignment',
+            name: 'role',
+            priority: 1,
+            handler: ['after'],
+            method: ['create'],
+            condition: {
+              field: 'email',
+              eq: 'equals',
+              value: 'auth@example.com'
+            },
+            settings: {
+              association: 'new',
+              type: 'add',
+              role: 'authenticated'
+            }
+          })
+          .action({
+            title: 'Role Assignment',
+            name: 'role',
+            priority: 1,
+            handler: ['after'],
+            method: ['create'],
+            condition: {
+              custom: 'execute = (data.roles.indexOf("administrator") !== -1)'
+            },
+            settings: {
+              association: 'new',
+              type: 'add',
+              role: 'administrator'
+            }
+          })
+          .action({
+            title: 'Role Assignment',
+            name: 'role',
+            priority: 1,
+            handler: ['after'],
+            method: ['create'],
+            condition: {
+              custom: 'execute = (data.roles.indexOf("authenticated") !== -1)'
+            },
+            settings: {
+              association: 'new',
+              type: 'add',
+              role: 'authenticated'
+            }
+          })
+          .execute(done);
+      });
+      it('Should conditionally execute the add role action.', function(done) {
+        helper
+          .submission({
+            email: 'test@example.com',
+            roles: ['administrator']
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert(submission.roles.indexOf(helper.template.roles.administrator._id) !== -1);
+            assert(submission.roles.indexOf(helper.template.roles.authenticated._id) === -1);
+            done();
+          })
+      });
+      it('Should conditionally execute the add role action.', function(done) {
+        helper
+          .submission({
+            email: 'test@example.com',
+            roles: ['authenticated']
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
+            assert(submission.roles.indexOf(helper.template.roles.authenticated._id) !== -1);
+            done();
+          })
+      });
+      it('Should conditionally execute the add role action.', function(done) {
+        helper
+          .submission({
+            email: 'admin@example.com'
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert(submission.roles.indexOf(helper.template.roles.administrator._id) !== -1);
+            assert(submission.roles.indexOf(helper.template.roles.authenticated._id) === -1);
+            done();
+          })
+      });
+      it('Should conditionally execute the add role action.', function(done) {
+        helper
+          .submission({
+            email: 'auth@example.com'
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
+            assert(submission.roles.indexOf(helper.template.roles.authenticated._id) !== -1);
+            done();
+          })
+      });
+      it('Should execute ALL role actions.', function(done) {
+        helper
+          .submission({
+            email: 'auth@example.com',
+            roles: ['administrator']
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert(submission.roles.indexOf(helper.template.roles.administrator._id) !== -1);
+            assert(submission.roles.indexOf(helper.template.roles.authenticated._id) !== -1);
+            done();
+          })
+      });
+      it('Should NOT execute any role actions.', function(done) {
+        helper
+          .submission({
+            email: 'test@example.com',
+            roles: ['test']
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
+            assert(submission.roles.indexOf(helper.template.roles.authenticated._id) === -1);
+            done();
+          })
       });
     });
   });

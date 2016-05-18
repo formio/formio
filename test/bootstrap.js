@@ -25,8 +25,10 @@ module.exports = function(app, server, settings, mount, config) {
 
   // The default project template.
   var template = require('./template')();
-
   template.hooks = settings;
+
+  // Establish the helper library.
+  template.Helper = require('./helper')(app, template);
 
   // Initialize the formio router.
   formioServer.init(settings).then(function(_formio) {
