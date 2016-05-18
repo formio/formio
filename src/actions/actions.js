@@ -246,24 +246,6 @@ module.exports = function(router) {
       components: []
     };
 
-    var configSettings = {
-      type: 'fieldset',
-      input: false,
-      tree: false,
-      key: 'conditions',
-      legend: 'Action Conditions',
-      components: [
-        {
-          input: false,
-          type: 'columns',
-          columns: [
-            mainSettings,
-            conditionalSettings
-          ]
-        }
-      ]
-    };
-
     // If the defaults are read only.
     if (action.access && (action.access.handler === false)) {
       mainSettings.components.push({
@@ -339,6 +321,8 @@ module.exports = function(router) {
       });
     }
 
+    var customPlaceHolder = "// Example: Only execute if submitted roles has 'authenticated'.\n";
+    customPlaceHolder +=    "execute = (data.roles.indexOf('authenticated') !== -1);";
     conditionalSettings.components.push({
       type: 'fieldset',
       input: false,
@@ -418,7 +402,7 @@ module.exports = function(router) {
                       type: 'textarea',
                       input: true,
                       key: 'condition[custom]',
-                      placeholder: "// Example: Only execute if submitted roles has 'authenticated'.\nexecute = (data.roles.indexOf('authenticated') !== -1);"
+                      placeholder: customPlaceHolder
                     }
                   ]
                 }
@@ -459,8 +443,7 @@ module.exports = function(router) {
       legend: 'Action Conditions (optional)',
       components: conditionalSettings.components
     });
-
-
+    
     settingsForm.components.push({
       type: 'htmlelement',
       tag: 'hr',
