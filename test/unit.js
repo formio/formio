@@ -37,7 +37,9 @@ module.exports = function(app, template, hook) {
           while (true) {};
         }
       })
-      assert.equal(test, 'Script execution timed out.');
+
+      // FA-857 - No email will be sent if bad code if given.
+      assert.equal(test, null);
       done();
     });
 
