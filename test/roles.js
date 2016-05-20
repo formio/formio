@@ -255,6 +255,27 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
+
+      it('The default Admin Role for a Project cannot be deleted', function(done) {
+        request(app)
+          .delete(hook.alter('url', '/role/' + template.roles.administrator._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /text\/plain/)
+          .expect(405)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.text;
+            assert.equal(response, 'Method Not Allowed');
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
     });
 
     describe('Role Normalization', function() {
