@@ -121,7 +121,7 @@ module.exports = function(formio) {
           }
         }
 
-        if (!mail) {
+        if (!mail || !mail.to) {
           return;
         }
 
