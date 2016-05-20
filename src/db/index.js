@@ -464,12 +464,21 @@ module.exports = function(formio) {
         // Load the update then update the schema lock version.
         var _update = null;
 
-        // Attempt to load the the pending update, allow anyone to hook the pending updates location.
+        // Attempt to load the the pending update.
+        // Allow anyone to hook the pending updates location.
         try {
-          _update = require(__dirname + '/updates/' + pending);
+          _update = formio.hook.alter('updateLocation', pending);
         }
         catch (e) {
-          _update = formio.hook.alter('updateLocation', pending);
+        }
+
+        // No private update was found, check the public location.
+        if (_update === null) {
+          try {
+            _update = require(__dirname + '/updates/' + pending);
+          }
+          catch (e) {
+          }
         }
 
         // Attempt to resolve the update.
