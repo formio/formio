@@ -1977,6 +1977,9 @@ module.exports = function(app, template, hook) {
 
     describe('Conditional Actions', function() {
       var helper = null;
+      if (process.env.DOCKER) {
+        return;
+      }
       it('Create the forms', function(done) {
         var owner = app.hasProjects ? template.formio.owner : template.users.admin;
         helper = new Helper(owner);
