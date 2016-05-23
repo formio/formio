@@ -20,61 +20,60 @@ module.exports = function(formio) {
     availableTransports: function(req, next) {
       hook.settings(req, function(err, settings) {
         if (err) {
+          debug(err);
           return next(err);
         }
 
-        var availableTransports = [
-          {
-            transport: 'default',
-            title: 'Default (charges may apply)'
-          }
-        ];
-          if (_.get(settings, 'email.custom.url')) {
-          availableTransports.push(
-            {
-              transport: 'custom',
-              title: 'Custom'
-            }
-          );
+        // Build the list of available transports, based on the present project settings.
+        var availableTransports = [{
+          transport: 'default',
+          title: 'Default (charges may apply)'
+        }];
+        if (_.get(settings, 'email.custom.url')) {
+          availableTransports.push({
+            transport: 'custom',
+            title: 'Custom'
+          });
         }
-        if (_.get(settings, 'email.gmail.auth.user')
-          && _.get(settings, 'email.gmail.auth.pass')) {
-          availableTransports.push(
-            {
-              transport: 'gmail',
-              title: 'G-Mail'
-            }
-          );
+        if (_.get(settings, 'email.gmail.auth.user') && _.get(settings, 'email.gmail.auth.pass')) {
+          availableTransports.push({
+            transport: 'gmail',
+            title: 'G-Mail'
+          });
         }
-        if (_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key')
-          || (!_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key'))
+        if (
+          (_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key'))
+          || ((!_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key')))
         ) {
           // Omit the username if user has configured sendgrid for api key access.
           if (_.get(settings, 'email.sendgrid.auth.api_user') === 'apikey') {
             settings.email.sendgrid.auth = _.omit(settings.email.sendgrid.auth, 'api_user');
           }
-          availableTransports.push(
-            {
-              transport: 'sendgrid',
-              title: 'SendGrid'
-            }
-          );
+          availableTransports.push({
+            transport: 'sendgrid',
+            title: 'SendGrid'
+          });
         }
         if (_.get(settings, 'email.mandrill.auth.apiKey')) {
-          availableTransports.push(
-            {
-              transport: 'mandrill',
-              title: 'Mandrill'
-            }
-          );
+          availableTransports.push({
+            transport: 'mandrill',
+            title: 'Mandrill'
+          });
         }
         if (_.get(settings, 'email.mailgun.auth.api_key')) {
-          availableTransports.push(
-            {
-              transport: 'mailgun',
-              title: 'Mailgun'
-            }
-          );
+          availableTransports.push({
+            transport: 'mailgun',
+            title: 'Mailgun'
+          });
+        }
+        if (_.get(settings, 'email.smtp.host')
+          && _.get(settings, 'email.smtp.auth.user')
+          && _.get(settings, 'email.smtp.auth.pass')
+        ) {
+          availableTransports.push({
+            transport: 'smtp',
+            title: 'SMTP'
+          });
         }
 
         availableTransports = hook.alter('emailTransports', availableTransports, settings);
@@ -121,7 +120,7 @@ module.exports = function(formio) {
           }
         }
 
-        if (!mail) {
+        if (!mail || !mail.to) {
           return;
         }
 
@@ -155,8 +154,9 @@ module.exports = function(formio) {
       };
 
       // Get the settings.
-      hook.settings(req, function(err, settings) {
+      hook.settings(req, function(err, settings) { // eslint-disable-line max-statements
         if (err) {
+          debug(err);
           return;
         }
 
@@ -216,6 +216,36 @@ module.exports = function(formio) {
           case 'mailgun':
             if (settings.email.mailgun) {
               transporter = nodemailer.createTransport(mailgunTransport(settings.email.mailgun));
+            }
+            break;
+          case 'smtp':
+            if (_.has(settings, 'email.smtp')) {
+              var _settings = {
+                debug: true
+              };
+
+              if (_.has(settings, 'email.smtp.port')) {
+                _settings['port'] = parseInt(_.get(settings, 'email.smtp.port'));
+              }
+              if (_.has(settings, 'email.smtp.secure')) {
+                var boolean = {
+                  'true': true,
+                  'false': false
+                };
+
+                _settings['secure'] = _.get(boolean, _.get(settings, 'email.smtp.secure')) || false;
+              }
+              if (_.has(settings, 'email.smtp.host')) {
+                _settings['host'] = _.get(settings, 'email.smtp.host');
+              }
+              if (_.has(settings, 'email.smtp.auth')) {
+                _settings['auth'] = {
+                  user: _.get(settings, 'email.smtp.auth.user'),
+                  pass: _.get(settings, 'email.smtp.auth.pass')
+                };
+              }
+
+              transporter = nodemailer.createTransport(_settings);
             }
             break;
           case 'custom':

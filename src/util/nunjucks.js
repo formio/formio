@@ -3,6 +3,7 @@
 var clone = require('clone');
 var vm = require('vm');
 var nunjucks = require('nunjucks');
+var debug = require('debug')('formio:util:nunjucks');
 
 // Configure nunjucks to not watch any files
 var environment = nunjucks.configure([], {
@@ -48,7 +49,8 @@ module.exports = {
       rendered = sandbox.output;
     }
     catch (e) {
-      rendered = e.message;
+      debug(e);
+      rendered = null;
     }
     return rendered;
   },
@@ -68,7 +70,8 @@ module.exports = {
       rendered = sandbox.output;
     }
     catch (e) {
-      rendered = e.message;
+      debug(e);
+      rendered = null;
     }
     return rendered;
   }
