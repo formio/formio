@@ -1,7 +1,6 @@
 'use strict';
 
 var async = require('async');
-var util = require('../../util/util');
 var _ = require('lodash');
 
 /**
@@ -45,7 +44,7 @@ module.exports = function(db, config, tools, done) {
         }
         // Default role exists.
         else if (count === 1) {
-          return callback()
+          return callback();
         }
         else {
           console.log('Unknown count of the default role: ' + count);
@@ -77,7 +76,7 @@ module.exports = function(db, config, tools, done) {
         }
         // Default role exists.
         else if (count === 1) {
-          return callback()
+          return callback();
         }
         else {
           console.log('Unknown count of the admin role: ' + count);

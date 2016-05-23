@@ -469,16 +469,20 @@ module.exports = function(formio) {
         try {
           _update = formio.hook.alter('updateLocation', pending);
         }
+        /* eslint-disable no-empty */
         catch (e) {
         }
+        /* eslint-enable no-empty */
 
         // No private update was found, check the public location.
         if (_update === null) {
           try {
             _update = require(__dirname + '/updates/' + pending);
           }
+          /* eslint-disable no-empty */
           catch (e) {
           }
+          /* eslint-enable no-empty */
         }
 
         // Attempt to resolve the update.
