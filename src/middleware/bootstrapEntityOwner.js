@@ -20,6 +20,9 @@ module.exports = function(router) {
       // Util to determine if we have a token to default access.
       var tokenPresent = (_.has(req, 'token') && req.token !== null && _.has(req, 'token.user._id'));
 
+      // See if this request has provided an owner.
+      var hasOwner = _.has(req, 'body.owner');
+
       // Confirm we are only modifying PUT/POST requests.
       var isPut = (req.method === 'PUT');
       var isPost = (req.method === 'POST');
@@ -35,8 +38,13 @@ module.exports = function(router) {
       }
       else if (isPost) {
         // Allow an admin to manually override the owner property.
-        if (_.has(req, 'body.owner') && _.has(req, 'isAdmin') && req.isAdmin) {
+        if (hasOwner && _.has(req, 'isAdmin') && req.isAdmin) {
           debug('Owner override by Admin, owner: ' + _.get(req, 'body.owner'));
+          return next();
+        }
+
+        else if (hasOwner && !tokenPresent && req.ownerAssign) {
+          debug('Owner override by Anonymous permission with create_all access, owner: ' + _.get(req, 'body.owner'));
           return next();
         }
 
@@ -49,13 +57,13 @@ module.exports = function(router) {
       }
       else if (isPut) {
         // Allow an admin to manually override the owner property.
-        if (_.has(req, 'body.owner') && _.has(req, 'isAdmin') && req.isAdmin) {
+        if (hasOwner && _.has(req, 'isAdmin') && req.isAdmin) {
           debug('Owner override by Admin, owner: ' + _.get(req, 'body.owner'));
           return next();
         }
 
         // Do not let a non-admin user modify the owner property.
-        if (_.has(req, 'body.owner')) {
+        if (hasOwner) {
           req.body = _.omit(req.body, 'owner');
           debug('Non-admin user cant edit the owner, omitting.');
           return next();
@@ -63,7 +71,7 @@ module.exports = function(router) {
       }
 
       // If the payload has a owner, but we could not determine who the owner should be, strip the owner data.
-      if (_.has(req, 'body.owner')) {
+      if (hasOwner) {
         req.body = _.omit(req.body, 'owner');
       }
 
