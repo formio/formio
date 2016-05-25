@@ -44,8 +44,8 @@ module.exports = function(router) {
           return next();
         }
 
-        else if (hasOwner && !tokenPresent && req.ownerAssign) {
-          debug('Owner override by Anonymous permission with create_all access, owner: ' + _.get(req, 'body.owner'));
+        else if (hasOwner && req.ownerAssign) {
+          debug('Owner override with create_all access, owner: ' + _.get(req, 'body.owner'));
           return next();
         }
 
