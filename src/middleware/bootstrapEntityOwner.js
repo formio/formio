@@ -1,4 +1,5 @@
 'use strict';
+/*eslint max-statements: 0*/
 
 var debug = require('debug')('formio:middleware:bootstrapEntityOwner');
 var _ = require('lodash');
