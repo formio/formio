@@ -1534,6 +1534,13 @@ module.exports = function(app, template, hook) {
               });
           });
 
+          it('Should give me an error if no query is provided', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/exists', template))
+              .expect(400)
+              .end(done);
+          });
+
           it('Test if a submissions exists', function(done) {
             request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=foo&owner=' + template.users.user2._id.toString(), template))
