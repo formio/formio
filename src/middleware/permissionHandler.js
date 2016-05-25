@@ -404,6 +404,18 @@ module.exports = function(router) {
         }
       }
 
+      // See if we have an anonymous user with the default role included in the create_all access.
+      if (
+        !user &&
+        access.submission.hasOwnProperty('create_all') &&
+        _.indexOf(access.submission.create_all, access.defaultRole)
+      ) {
+        req.ownerAssign = true;
+      }
+      else {
+        req.ownerAssign = false;
+      }
+
       // Setup some flags for other handlers.
       req.isAdmin = false;
 

@@ -3651,6 +3651,89 @@ module.exports = function(app, template, hook) {
             request401(req, done);
           });
 
+          it('An anonymous user should not be able to Create a submission without Anonymous added to create_all', function(done) {
+            var ownerSubmission = _.cloneDeep(templateSubmission);
+            ownerSubmission.owner = template.users.user1._id;
+            request(app)
+              .post(hook.alter('url', '/' + tempForm.path + '/submission', template))
+              .send(ownerSubmission)
+              .expect(201)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+                assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+                assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+                assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+                assert(response.data.hasOwnProperty('value'), 'The submission `data` should contain the `value`.');
+                assert.equal(response.data.value, templateSubmission.data.value);
+                assert(response.hasOwnProperty('form'), 'The response should contain the `form` id.');
+                assert.equal(response.form, tempForm._id);
+                assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+                assert.deepEqual(response.roles, []);
+                assert.equal(response.owner, null);
+                done();
+              });
+          });
+
+          it('Should be able to update the form with create_all permissions', function(done) {
+            tempForm.submissionAccess.push({
+              type: 'create_all',
+              roles: [
+                template.roles.anonymous._id.toString()
+              ]
+            });
+            request(app)
+              .put(hook.alter('url', '/' + tempForm.path, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(tempForm)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                var response = res.body;
+                assert.equal(response.submissionAccess.length, 5);
+                assert.equal(response.submissionAccess[4].roles.indexOf(template.roles.anonymous._id.toString()), 0);
+                assert.equal(response.submissionAccess[4].type, 'create_all');
+                done();
+              });
+          });
+
+          it('An anonymous user should be able to Create a submission with owner set with Anonymous role within create_all', function(done) {
+            var ownerSubmission = _.cloneDeep(templateSubmission);
+            ownerSubmission.owner = template.users.user1._id;
+            request(app)
+              .post(hook.alter('url', '/' + tempForm.path + '/submission', template))
+              .send(ownerSubmission)
+              .expect(201)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+                assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+                assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+                assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+                assert(response.data.hasOwnProperty('value'), 'The submission `data` should contain the `value`.');
+                assert.equal(response.data.value, templateSubmission.data.value);
+                assert(response.hasOwnProperty('form'), 'The response should contain the `form` id.');
+                assert.equal(response.form, tempForm._id);
+                assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+                assert.deepEqual(response.roles, []);
+                assert.equal(response.owner, template.users.user1._id);
+                done();
+              });
+          });
+
           it('An Anonymous user should be able to Create a submission with explicit Own permissions with the Form alias', function(done) {
             request(app)
               .post(hook.alter('url', '/' + tempForm.path + '/submission', template))
@@ -3811,7 +3894,7 @@ module.exports = function(app, template, hook) {
                 }
 
                 var response = res.body;
-                assert.equal(response.length, 3);
+                assert.equal(response.length, 5);
 
                 // Store the JWT for future API calls.
                 template.users.admin.token = res.headers['x-jwt-token'];
@@ -3942,7 +4025,7 @@ module.exports = function(app, template, hook) {
                 }
 
                 var response = res.body;
-                assert.equal(response.length, 3);
+                assert.equal(response.length, 5);
 
                 // Store the JWT for future API calls.
                 template.users.admin.token = res.headers['x-jwt-token'];
