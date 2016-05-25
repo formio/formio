@@ -3,6 +3,7 @@
 var Resource = require('resourcejs');
 var mongoose = require('mongoose');
 var utils = require('formio-utils');
+var _ = require('lodash');
 
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
@@ -80,23 +81,48 @@ module.exports = function(router) {
         deleted: {$eq: null}
       };
 
+      // Default the query to not be valid.
+      var queryValid = false;
+
       // Allow them to provide the owner flag.
       if (req.query.owner) {
         query.owner = req.query.owner;
+        queryValid = true;
       }
+
+      var queryComponents = {};
+      _.each(req.query, function(value, key) {
+        var parts = key.split('.');
+        if (parts[0] === 'data' && parts.length > 1) {
+          queryComponents[parts[1]] = {
+            value: value,
+            key: key
+          };
+        }
+      });
 
       // Build the data query.
       utils.eachComponent(form.components, function(component) {
         // Only add components that are not protected and are persistent.
         if (
-          req.query.hasOwnProperty('data.' + component.key) &&
+          queryComponents.hasOwnProperty(component.key) &&
           !component.protected &&
           (!component.hasOwnProperty('persistent') || component.persistent)
         ) {
+          queryValid = true;
+
+          // Get the query component.
+          var queryComponent = queryComponents[component.key];
+
           // Add this to the query data.
-          query['data.' + component.key] = req.query['data.' + component.key];
+          query[queryComponent.key] = queryComponent.value;
         }
       });
+
+      // Ensure they provide query components.
+      if (!queryValid) {
+        return res.status(400).send('Invalid Query.');
+      }
 
       // Query the submissions for this submission.
       router.formio.resources.submission.model.findOne(query, function(err, submission) {
