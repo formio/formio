@@ -5,7 +5,6 @@ var _ = require('lodash');
 var vm = require('vm');
 var util = require('../util/util');
 var async = require('async');
-var mongoose = require('mongoose');
 var debug = require('debug')('formio:validator');
 
 /**
@@ -21,6 +20,7 @@ var Validator = function(form, model) {
   this.model = model;
   this.ignore = {};
   this.unique = {};
+  this.form = form;
 
   // Flatten the components array.
   var components = util.flattenComponents(form.components);
@@ -187,6 +187,66 @@ Validator.prototype.validate = function(submission, next) {
   }
 
   /**
+   * Using the submission and the form, determine which fields are supposed to be shown; Only validate displayed fields.
+   */
+  var boolean = {
+    'true': true,
+    'false': false
+  };
+  var show = {};
+  util.eachComponent(this.form.components, function(component) {
+    // By default, each field is shown.
+    show[component.key] = true;
+
+    // Only change display options if all required conditional properties are present.
+    if (
+      component.conditional
+      && (component.conditional.show !== null && component.conditional.show !== '')
+      && (component.conditional.when !== null && component.conditional.when !== '')
+    ) {
+      // Default the conditional values.
+      component.conditional.show = boolean[component.conditional.show];
+      component.conditional.eq = component.conditional.eq || '';
+
+      // Get the conditional component.
+      var cond = util.getComponent(this.form.components, component.conditional.when.toString());
+      if (!cond) {
+        return;
+      }
+      var value = submission.data[cond.key];
+
+      if (value && typeof value !== 'object') {
+        // Check if the conditional value is equal to the trigger value
+        show[component.key] = value.toString() === component.conditional.eq.toString()
+          ? boolean[component.conditional.show]
+          : !boolean[component.conditional.show];
+      }
+      // Special check for check boxes component.
+      else if (value && typeof value === 'object') {
+        // Check if the conditional trigger value is true.
+        show[component.key] = boolean[value[component.conditional.eq].toString()];
+      }
+      // Check against the components default value, if present and the components hasnt been interacted with.
+      else if (!value && cond.defaultValue) {
+        show[component.key] = cond.defaultValue.toString() === component.conditional.eq.toString()
+          ? boolean[component.conditional.show]
+          : !boolean[component.conditional.show];
+      }
+      // If there is no value, we still need to process as not equal.
+      else {
+        show[component.key] = !boolean[component.conditional.show];
+      }
+    }
+  }.bind(this));
+
+  // Iterate each component were supposed to show, if we find one we're not supposed to show, add it to the ignore.
+  _.each(show, function(value, key) {
+    if (!boolean[value]) {
+      this.ignore[key] = true;
+    }
+  }.bind(this))
+
+  /**
    * Invoke the Joi validator with our data.
    *
    * @type {function(this:Validator)}
@@ -276,7 +336,7 @@ Validator.prototype.validate = function(submission, next) {
       }
 
       // Get the query.
-      var query = {form: mongoose.Types.ObjectId(submission.form)};
+      var query = {form: util.idToBson(submission.form)};
       query['data.' + key] = submission.data[key];
 
       // Only search for non-deleted items.
