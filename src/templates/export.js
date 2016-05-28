@@ -37,23 +37,23 @@ module.exports = function(formio) {
 
   // Assign the resources.
   var assignResources = function(_map, entity) {
-    if (!entity) {
+    if (!entity || !entity.resources) {
       return;
     }
     _.each(entity.resources, function(resource, index) {
-      if (_map.resources && _map.resources.hasOwnProperty(resource)) {
-        entity.resources[index] = _map.resources[resource];
+      if (_map.forms && _map.forms.hasOwnProperty(resource)) {
+        entity.resources[index] = _map.forms[resource];
       }
     });
   };
 
   // Assign the resource of an entity.
   var assignResource = function(_map, entity) {
-    if (!entity) {
+    if (!entity || !entity.resource) {
       return;
     }
-    if (entity.hasOwnProperty('resource') && _map.resources && _map.resources.hasOwnProperty(entity.resource)) {
-      entity.resource = _map.resources[entity.resource];
+    if (_map.forms && _map.forms.hasOwnProperty(entity.resource)) {
+      entity.resource = _map.forms[entity.resource];
     }
   };
 
@@ -134,6 +134,9 @@ module.exports = function(formio) {
             ) {
               component.resource = _map.forms[component.resource];
             }
+
+            // Allow hooks to alter fields.
+            hook.alter('exportComponent', _export, _map, options, component);
           });
         });
         next();
