@@ -2,6 +2,9 @@
 	"dependencies": {
 		"unused-ignores": [
 			"eslint**"
+		],
+		"mute": [
+		    "delete-property"
 		]
 	},
 	"test": [
