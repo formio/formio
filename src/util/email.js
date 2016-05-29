@@ -128,7 +128,7 @@ module.exports = function(formio) {
         }
 
         if (mail.html && (typeof mail.html === 'string')) {
-          mail.html = mail.html.replace(/\s|\v/g, '');
+          mail.html = mail.html.replace(/\n/g, '');
         }
 
         if (sendEach) {
@@ -172,9 +172,9 @@ module.exports = function(formio) {
         debug(formio.config);
         debug(emailType);
 
-        // Force the email type to be default if they do not have anything configured.
+        // Force the email type to be test if they do not have anything configured.
         if (!settings.email) {
-          emailType = 'default;';
+          emailType = 'test';
           settings.email = {};
         }
 
