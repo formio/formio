@@ -127,6 +127,10 @@ module.exports = function(formio) {
           return;
         }
 
+        if (mail.html && (typeof mail.html === 'string')) {
+          mail.html = mail.html.replace(/\s|\v/g, '');
+        }
+
         if (sendEach) {
           var emails = _.uniq(_.map(mail.to.split(','), _.trim));
           (function sendNext() {
@@ -167,6 +171,13 @@ module.exports = function(formio) {
 
         debug(formio.config);
         debug(emailType);
+
+        // Force the email type to be default if they do not have anything configured.
+        if (!settings.email) {
+          emailType = 'default;';
+          settings.email = {};
+        }
+
         switch (emailType) {
           case 'default':
             if (_config && formio.config.email.type === 'sendgrid') {
