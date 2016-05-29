@@ -90,6 +90,7 @@ module.exports = function(formio) {
             'title',
             'name',
             'form',
+            'condition',
             'settings',
             'priority',
             'method',
@@ -118,6 +119,9 @@ module.exports = function(formio) {
             'type',
             'name',
             'path',
+            'display',
+            'action',
+            'tags',
             'components',
             'access',
             'submissionAccess'
