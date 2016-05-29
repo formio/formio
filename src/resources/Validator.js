@@ -27,7 +27,7 @@ var Validator = function(form, model) {
 
   // Remove all keys within a data grid.
   _.each(components, function(component) {
-    if (component.type === 'datagrid') {
+    if (component.type === 'datagrid' || component.type === 'container') {
       util.eachComponent(component.components, function(dgridComp) {
         this.ignore[dgridComp.key] = true;
       }.bind(this));
@@ -94,6 +94,13 @@ Validator.prototype.getValidator = function(component) {
         objectSchema[dgridComp.key] = this.getValidator(dgridComp);
       }.bind(this));
       fieldValidator = Joi.array().items(Joi.object(objectSchema));
+      break;
+    case 'container':
+      var objectSchema = {};
+      util.eachComponent(component.components, function(dgridComp) {
+        objectSchema[dgridComp.key] = this.getValidator(dgridComp);
+      }.bind(this));
+      fieldValidator = Joi.object(objectSchema);
       break;
     case 'textfield':
     case 'textarea':
