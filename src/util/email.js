@@ -171,13 +171,6 @@ module.exports = function(formio) {
 
         debug(formio.config);
         debug(emailType);
-
-        // Force the email type to be test if they do not have anything configured.
-        if (!settings.email) {
-          emailType = 'test';
-          settings.email = {};
-        }
-
         switch (emailType) {
           case 'default':
             if (_config && formio.config.email.type === 'sendgrid') {
