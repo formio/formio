@@ -1,10 +1,30 @@
-{% macro table(components, title) %}
+{% macro dataValue(dValue) %}
+  {% if dValue | is_object %}
+    <table>
+      {% for dValueKey, dValueValue in dValue %}
+        <tr>
+          <td>{{ dValueKey }}<td>
+          <td>{{ dataValue(dValueValue) }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% elif dValue | is_array %}
+    <ul>
+      {% for arrayValue in dValue %}
+        <li>{{ dataValue(arrayValue) }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    {{ dValue }}
+  {% endif %}
+{% endmacro %}
+{% macro dataTable(components, submissionData, title) %}
   {% for component in components %}
     {% if component.type == 'well' %}
-      {{ table(component.components) }}
+      {{ dataTable(component.components, submissionData) }}
     {% elif component.type == 'columns' %}
       {% for column in component.columns %}
-        {{ table(column.components) }}
+        {{ dataTable(column.components, submissionData) }}
       {% endfor %}
     {% endif %}
   {% endfor %}
@@ -18,7 +38,7 @@
         {% elif component.type == 'well' %}
         {% elif component.type == 'fieldset' %}
         {% elif component.type == 'columns' %}
-        {% elif not data[component.key] %}
+        {% elif not submissionData[component.key] %}
         {% else %}
           <tr>
             <td><strong>{{ component.label }}</strong></td>
@@ -26,9 +46,9 @@
               {% if component.type == 'password' %}
                 --- PASSWORD ---
               {% elif component.type == 'address' %}
-                {{ data[component.key].formatted_address }}
+                {{ submissionData[component.key].formatted_address }}
               {% else %}
-                {{ data[component.key] }}
+                {{ dataValue(submissionData[component.key]) }}
               {% endif %}
             </td>
           </tr>
@@ -38,9 +58,12 @@
   </table>
   {% for component in components %}
     {% if component.type == 'panel' %}
-      {{ table(component.components, component.title) }}
+      {{ dataTable(component.components, submissionData, component.title) }}
     {% elif component.type == 'fieldset' %}
-      {{ table(component.components, component.legend) }}
+      {{ dataTable(component.components, submissionData, component.legend) }}
     {% endif %}
   {% endfor %}
+{% endmacro %}
+{% macro table(components, title) %}
+  {{ dataTable(components, data, title) }}
 {% endmacro %}

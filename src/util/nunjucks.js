@@ -3,11 +3,24 @@
 var clone = require('clone');
 var vm = require('vm');
 var nunjucks = require('nunjucks');
+var _ = require('lodash');
 var debug = require('debug')('formio:util:nunjucks');
 
 // Configure nunjucks to not watch any files
 var environment = nunjucks.configure([], {
   watch: false
+});
+
+environment.addFilter('is_string', function(obj) {
+  return _.isString(obj);
+});
+
+environment.addFilter('is_array', function(obj) {
+  return _.isArray(obj);
+});
+
+environment.addFilter('is_object', function(obj) {
+  return _.isPlainObject(obj);
 });
 
 // Script to render a single string.

@@ -18,6 +18,8 @@ var debug = {
  *   The formio object.
  */
 module.exports = function(formio) {
+  var hook = require('../util/hook')(formio);
+
   // Provide a default alter method.
   var _alter = function(item, done) {
     done(null, item);
@@ -63,7 +65,7 @@ module.exports = function(formio) {
 
   // Assign resources.
   var assignResources = function(template, entity) {
-    if (!entity) {
+    if (!entity || !entity.resources) {
       return false;
     }
     _.each(entity.resources, function(resource, index) {
@@ -75,23 +77,26 @@ module.exports = function(formio) {
 
   // Assign resource.
   var assignResource = function(template, entity) {
-    if (!entity) {
+    if (!entity || !entity.resource) {
       return false;
     }
-    if (entity.hasOwnProperty('resource')) {
-      if (template.resources.hasOwnProperty(entity.resource)) {
-        entity.resource = template.resources[entity.resource]._id.toString();
-        return true;
-      }
+    if (template.resources.hasOwnProperty(entity.resource)) {
+      entity.resource = template.resources[entity.resource]._id.toString();
+      return true;
     }
     return false;
   };
 
   // Assign resources within a form.
-  var assignComponentResources = function(template, components) {
+  var assignComponent = function(template, components) {
     var changed = false;
     util.eachComponent(components, function(component) {
       if ((component.type === 'resource') && assignResource(template, component)) {
+        changed = true;
+      }
+
+      // Allow importing of compoennts.
+      if (hook.alter('importComponent', template, components, component)) {
         changed = true;
       }
     });
@@ -114,7 +119,7 @@ module.exports = function(formio) {
     form: function(template, form) {
       assignRoles(template, form.submissionAccess);
       assignRoles(template, form.access);
-      assignComponentResources(template, form.components);
+      assignComponent(template, form.components);
       return form;
     },
     action: function(template, action) {
@@ -132,7 +137,7 @@ module.exports = function(formio) {
 
   var postResourceInstall = function(model, template, items, done) {
     async.forEachOf(items, function(item, name, itemDone) {
-      if (!assignComponentResources(template, item.components)) {
+      if (!assignComponent(template, item.components)) {
         return itemDone();
       }
 
