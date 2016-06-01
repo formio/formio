@@ -1264,5 +1264,23 @@ module.exports = function(app, template, hook) {
         });
       });
     });
+
+    describe('Access Information', function() {
+      it('Should be able to see the access for the forms and roles.', function(done) {
+        request(app)
+          .get(hook.alter('url', '/access', template))
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            assert.equal(Object.keys(res.body.roles).length, 3);
+            assert(Object.keys(res.body.forms).length > 3);
+            done();
+          });
+      });
+    });
   });
 };
