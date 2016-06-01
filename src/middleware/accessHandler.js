@@ -25,7 +25,9 @@ module.exports = function(router) {
 
         var roles = {};
         _.each(roleResult, function(role) {
-          roles[_.camelCase(role.title)] = role.toObject();
+          if (role.title) {
+            roles[role.title.replace(/\s/g, '').toLowerCase()] = role.toObject();
+          }
         });
 
         // Load all the forms.
