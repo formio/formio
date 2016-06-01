@@ -39,7 +39,7 @@ module.exports = function(app, template, hook) {
         var tempForm = {
           title: 'Project owner access check',
           name: 'access',
-          path: 'access/owner',
+          path: 'accessowner',
           type: 'form',
           access: [],
           submissionAccess: [],
@@ -1013,7 +1013,7 @@ module.exports = function(app, template, hook) {
         var tempForm = {
           title: 'Authenticated access check',
           name: 'access',
-          path: 'access/authenticated',
+          path: 'accessauthenticated',
           type: 'form',
           components: [
             {
@@ -1515,7 +1515,7 @@ module.exports = function(app, template, hook) {
                 if (err) {
                   return done(err);
                 }
-                assert(res.text.indexOf('Form path cannot be one of the following names') === 0, 'Form path not valid');
+                assert(res.text.indexOf('Form path cannot contain one of the following names') === 0, 'Form path not valid');
                 done();
               });
           });
@@ -1999,7 +1999,7 @@ module.exports = function(app, template, hook) {
         var tempForm = {
           title: 'Authenticated access check',
           name: 'access',
-          path: 'access/authenticated',
+          path: 'accessauthenticated',
           type: 'form',
           components: [
             {
@@ -3498,7 +3498,7 @@ module.exports = function(app, template, hook) {
         var tempForm = {
           title: 'Anonymous access check',
           name: 'access',
-          path: 'access/anonymous',
+          path: 'accessanonymous',
           type: 'form',
           components: [
             {
@@ -4354,7 +4354,7 @@ module.exports = function(app, template, hook) {
         var tempForm = {
           title: 'Anonymous access check',
           name: 'access',
-          path: 'access/anonymous',
+          path: 'accessanonymous',
           type: 'form',
           components: [
             {
