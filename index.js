@@ -58,6 +58,7 @@ module.exports = function(config) {
     router.formio.update = require('./src/db/index')(router.formio);
 
     // Run the healthCheck sanity check on /health
+    /* eslint-disable max-statements */
     router.formio.update.initialize(function(err, db) {
       // If an error occurred, then reject the initialization.
       if (err) {
@@ -261,6 +262,7 @@ module.exports = function(config) {
         deferred.resolve(router.formio);
       });
     });
+    /* eslint-enable max-statements */
 
     return deferred.promise;
   };
