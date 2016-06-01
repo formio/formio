@@ -50,6 +50,40 @@ module.exports = function(app, template, hook) {
           .end(done);
       });
 
+      it('Should not be able to create a form with a reserved name', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'Bad Form',
+            name: 'tempForm',
+            path: 'access',
+            type: 'form',
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(400)
+          .end(done);
+      });
+
+      it('Should not be able to create a form with a reserved name', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'Bad Form',
+            name: 'tempForm',
+            path: 'access/test',
+            type: 'form',
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(400)
+          .end(done);
+      });
+
       it('An administrator should be able to Create a Form', function(done) {
         request(app)
           .post(hook.alter('url', '/form', template))
