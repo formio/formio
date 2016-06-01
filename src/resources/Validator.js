@@ -21,47 +21,6 @@ var Validator = function(form, model) {
   this.ignore = {};
   this.unique = {};
   this.form = form;
-
-  // Flatten the components array.
-  var components = util.flattenComponents(form.components);
-
-  // Remove all keys within a data grid.
-  _.each(components, function(component) {
-    if (component.type === 'datagrid' || component.type === 'container') {
-      util.eachComponent(component.components, function(dgridComp) {
-        this.ignore[dgridComp.key] = true;
-      }.bind(this));
-    }
-  }.bind(this));
-
-  // Build the Joi validation schema.
-  var keys = {
-    // Start off with the _id key.
-    _id: Joi.string().meta({primaryKey: true})
-  };
-
-  // Iterate through each component.
-  _.each(components, function(component) {
-    if (!component) {
-      return;
-    }
-
-    // See if we should ignore validation for this component.
-    if (this.ignore.hasOwnProperty(component.key)) {
-      return;
-    }
-
-    // Get the validator.
-    var fieldValidator = this.getValidator(component);
-
-    // Add the validator.
-    if (fieldValidator) {
-      keys[component.key] = fieldValidator;
-    }
-  }.bind(this));
-
-  // Create the validator schema.
-  this.schema = Joi.object().keys(keys);
 };
 
 /**
@@ -176,26 +135,12 @@ Validator.prototype.getValidator = function(component) {
 };
 
 /**
- * Validate a submission for a form.
+ * Using the submission, determine which fields need to be validated and ignored.
  *
- * @param submission
- * @param next
- * @returns {*}
+ * @param {Object} submission
+ *   The data submission object.
  */
-Validator.prototype.validate = function(submission, next) {
-  var valid = true;
-  var error = null;
-  debug('Starting validation');
-
-  // Skip validation if no data is provided.
-  if (!submission.data) {
-    debug('No data skipping validation');
-    return next();
-  }
-
-  /**
-   * Using the submission and the form, determine which fields are supposed to be shown; Only validate displayed fields.
-   */
+Validator.prototype.buildIgnoreList = function(submission) {
   var boolean = {
     'true': true,
     'false': false
@@ -248,10 +193,88 @@ Validator.prototype.validate = function(submission, next) {
 
   // Iterate each component were supposed to show, if we find one we're not supposed to show, add it to the ignore.
   _.each(show, function(value, key) {
-    if (!boolean[value]) {
-      this.ignore[key] = true;
+    try {
+      // If this component isn't being displayed, dont require it.
+      if (!boolean[value]) {
+        this.ignore[key] = true;
+      }
     }
-  }.bind(this))
+    catch (e) {
+      debug(e);
+    }
+
+  }.bind(this));
+};
+
+/**
+ * Using the form, ignore list and unique list, build the joi schema for validation.
+ */
+Validator.prototype.buildSchema = function() {
+  // Flatten the components array.
+  var components = util.flattenComponents(this.form.components);
+
+  // Remove all keys within a data grid.
+  _.each(components, function(component) {
+    if (component.type === 'datagrid' || component.type === 'container') {
+      util.eachComponent(component.components, function(dgridComp) {
+        this.ignore[dgridComp.key] = true;
+      }.bind(this));
+    }
+  }.bind(this));
+
+  // Build the Joi validation schema.
+  var keys = {
+    // Start off with the _id key.
+    _id: Joi.string().meta({primaryKey: true})
+  };
+
+  // Iterate through each component.
+  _.each(components, function(component) {
+    if (!component) {
+      return;
+    }
+
+    // See if we should ignore validation for this component.
+    if (this.ignore.hasOwnProperty(component.key)) {
+      return;
+    }
+
+    // Get the validator.
+    var fieldValidator = this.getValidator(component);
+
+    // Add the validator.
+    if (fieldValidator) {
+      keys[component.key] = fieldValidator;
+    }
+  }.bind(this));
+
+  // Create the validator schema.
+  this.schema = Joi.object().keys(keys);
+};
+
+/**
+ * Validate a submission for a form.
+ *
+ * @param submission
+ * @param next
+ * @returns {*}
+ */
+Validator.prototype.validate = function(submission, next) {
+  var valid = true;
+  var error = null;
+  debug('Starting validation');
+
+  // Skip validation if no data is provided.
+  if (!submission.data) {
+    debug('No data skipping validation');
+    return next();
+  }
+
+  // Using the submission, determine which fields are supposed to be shown; Only validate displayed fields.
+  this.buildIgnoreList(submission);
+
+  // Build the validator schema.
+  this.buildSchema();
 
   /**
    * Invoke the Joi validator with our data.
