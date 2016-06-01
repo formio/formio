@@ -15,7 +15,6 @@ module.exports = function(router) {
     router.formio.resources.role.model.find(hook.alter('roleQuery', {deleted: {$eq: null}}, req))
       .select({
         title: 1,
-        description: 1,
         admin: 1,
         default: 1
       })
@@ -35,7 +34,6 @@ module.exports = function(router) {
             title: 1,
             name: 1,
             path: 1,
-            owner: 1,
             access: 1,
             submissionAccess: 1
           })
