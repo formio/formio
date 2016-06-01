@@ -50,6 +50,40 @@ module.exports = function(app, template, hook) {
           .end(done);
       });
 
+      it('Should not be able to create a form with a reserved name', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'Bad Form',
+            name: 'tempForm',
+            path: 'access',
+            type: 'form',
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(400)
+          .end(done);
+      });
+
+      it('Should not be able to create a form with a reserved name', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: 'Bad Form',
+            name: 'tempForm',
+            path: 'access/test',
+            type: 'form',
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(400)
+          .end(done);
+      });
+
       it('An administrator should be able to Create a Form', function(done) {
         request(app)
           .post(hook.alter('url', '/form', template))
@@ -1262,6 +1296,24 @@ module.exports = function(app, template, hook) {
               done();
             });
         });
+      });
+    });
+
+    describe('Access Information', function() {
+      it('Should be able to see the access for the forms and roles.', function(done) {
+        request(app)
+          .get(hook.alter('url', '/access', template))
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            assert.equal(Object.keys(res.body.roles).length, 3);
+            assert(Object.keys(res.body.forms).length > 3);
+            done();
+          });
       });
     });
   });

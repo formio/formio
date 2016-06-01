@@ -124,6 +124,11 @@ module.exports = function(config) {
         router.get('/current', router.formio.auth.currentUser);
       }
 
+      // The access handler.
+      if (!router.formio.hook.invoke('init', 'access', router.formio)) {
+        router.get('/access', router.formio.middleware.accessHandler);
+      }
+
       // Authorize all urls based on roles and permissions.
       if (!router.formio.hook.invoke('init', 'perms', router.formio)) {
         router.use(router.formio.middleware.permissionHandler);
