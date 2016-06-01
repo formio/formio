@@ -3,6 +3,7 @@
 var clone = require('clone');
 var vm = require('vm');
 var nunjucks = require('nunjucks');
+var dateFilter = require('nunjucks-date-filter');
 var _ = require('lodash');
 var debug = require('debug')('formio:util:nunjucks');
 
@@ -22,6 +23,8 @@ environment.addFilter('is_array', function(obj) {
 environment.addFilter('is_object', function(obj) {
   return _.isPlainObject(obj);
 });
+
+environment.addFilter('date', dateFilter);
 
 // Script to render a single string.
 var script = new vm.Script(
