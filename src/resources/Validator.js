@@ -87,16 +87,15 @@ Validator.prototype.getValidator = function(component) {
   }
 
   /* eslint-disable max-depth, valid-typeof */
+  var objectSchema = {};
   switch (component.type) {
     case 'datagrid':
-      var objectSchema = {};
       util.eachComponent(component.components, function(dgridComp) {
         objectSchema[dgridComp.key] = this.getValidator(dgridComp);
       }.bind(this));
       fieldValidator = Joi.array().items(Joi.object(objectSchema));
       break;
     case 'container':
-      var objectSchema = {};
       util.eachComponent(component.components, function(dgridComp) {
         objectSchema[dgridComp.key] = this.getValidator(dgridComp);
       }.bind(this));
