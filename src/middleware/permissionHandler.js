@@ -560,7 +560,7 @@ module.exports = function(router) {
    */
   return function permissionHandler(req, res, next) {
     // Check for whitelisted paths.
-    var whitelist = ['/health', '/current', '/logout', '/access'];
+    var whitelist = ['/health', '/current', '/logout', '/access', '/'];
     var skip = _.any(whitelist, function(path) {
       if ((req.url === path) || (req.url === hook.alter('url', path, req))) {
         return true;
