@@ -201,7 +201,6 @@ Validator.prototype.buildIgnoreList = function(submission) {
     catch (e) {
       debug(e);
     }
-
   }.bind(this));
 };
 
