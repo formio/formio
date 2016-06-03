@@ -10,6 +10,7 @@ module.exports = function() {
     name: 'adminRegister',
     path: 'admin/register',
     type: 'form',
+    tags: [],
     access: [
       {
         type: 'read_all',
@@ -122,6 +123,7 @@ module.exports = function() {
     type: 'resource',
     name: 'a',
     path: 'a',
+    tags: [],
     components: [
       {
         input: true,
@@ -152,6 +154,7 @@ module.exports = function() {
     type: 'resource',
     name: 'b',
     path: 'b',
+    tags: [],
     components: [
       {
         isNew: false,

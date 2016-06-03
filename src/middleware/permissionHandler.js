@@ -406,6 +406,7 @@ module.exports = function(router) {
 
       // Setup some flags for other handlers.
       req.isAdmin = false;
+      req.ownerAssign = false;
 
       // Check to see if this user has an admin role.
       var hasAdminRole = access.adminRole ? (_.indexOf(roles, access.adminRole) !== -1) : false;
@@ -413,6 +414,15 @@ module.exports = function(router) {
         req.isAdmin = true;
         debug.permissions('Admin: true');
         return true;
+      }
+
+      // See if we have an anonymous user with the default role included in the create_all access.
+      if (
+        access.submission.hasOwnProperty('create_all') &&
+        (_.intersection(access.submission.create_all, roles).length > 0)
+      ) {
+        debug.permissions('Assign Owner: true');
+        req.ownerAssign = true;
       }
 
       debug.permissions('req.submissionResourceAccessAdmin: ' + req.submissionResourceAccessAdmin);
@@ -550,7 +560,7 @@ module.exports = function(router) {
    */
   return function permissionHandler(req, res, next) {
     // Check for whitelisted paths.
-    var whitelist = ['/health', '/current', '/logout'];
+    var whitelist = ['/health', '/current', '/logout', '/access', '/'];
     var skip = _.any(whitelist, function(path) {
       if ((req.url === path) || (req.url === hook.alter('url', path, req))) {
         return true;

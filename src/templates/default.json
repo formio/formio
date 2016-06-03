@@ -29,6 +29,7 @@
       "type": "resource",
       "name": "user",
       "path": "user",
+      "tags": [],
       "submissionAccess": [
         {
           "type": "create_all",
@@ -123,6 +124,7 @@
       "type": "resource",
       "name": "admin",
       "path": "admin",
+      "tags": [],
       "submissionAccess": [
         {
           "type": "create_all",
@@ -219,6 +221,7 @@
       "type": "form",
       "name": "userLogin",
       "path": "user/login",
+      "tags": [],
       "access": [
         {
           "type": "read_all",
@@ -283,6 +286,7 @@
       "name": "userRegister",
       "path": "user/register",
       "type": "form",
+      "tags": [],
       "access": [
         {
           "type": "read_all",
@@ -346,6 +350,7 @@
       "type": "form",
       "name": "adminLogin",
       "path": "admin/login",
+      "tags": [],
       "access": [
         {
           "type": "read_all",

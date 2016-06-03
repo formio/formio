@@ -58,6 +58,7 @@ module.exports = function(config) {
     router.formio.update = require('./src/db/index')(router.formio);
 
     // Run the healthCheck sanity check on /health
+    /* eslint-disable max-statements */
     router.formio.update.initialize(function(err, db) {
       // If an error occurred, then reject the initialization.
       if (err) {
@@ -122,6 +123,11 @@ module.exports = function(config) {
       // The current user handler.
       if (!router.formio.hook.invoke('init', 'current', router.formio)) {
         router.get('/current', router.formio.auth.currentUser);
+      }
+
+      // The access handler.
+      if (!router.formio.hook.invoke('init', 'access', router.formio)) {
+        router.get('/access', router.formio.middleware.accessHandler);
       }
 
       // Authorize all urls based on roles and permissions.
@@ -256,6 +262,7 @@ module.exports = function(config) {
         deferred.resolve(router.formio);
       });
     });
+    /* eslint-enable max-statements */
 
     return deferred.promise;
   };

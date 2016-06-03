@@ -39,7 +39,7 @@ module.exports = function(app, template, hook) {
         var tempForm = {
           title: 'Project owner access check',
           name: 'access',
-          path: 'access/owner',
+          path: 'accessowner',
           type: 'form',
           access: [],
           submissionAccess: [],
@@ -1013,7 +1013,7 @@ module.exports = function(app, template, hook) {
         var tempForm = {
           title: 'Authenticated access check',
           name: 'access',
-          path: 'access/authenticated',
+          path: 'accessauthenticated',
           type: 'form',
           components: [
             {
@@ -1515,7 +1515,7 @@ module.exports = function(app, template, hook) {
                 if (err) {
                   return done(err);
                 }
-                assert(res.text.indexOf('Form path cannot be one of the following names') === 0, 'Form path not valid');
+                assert(res.text.indexOf('Form path cannot contain one of the following names') === 0, 'Form path not valid');
                 done();
               });
           });
@@ -1532,6 +1532,13 @@ module.exports = function(app, template, hook) {
                 assert.equal(res.body._id, tempSubmissionUser1._id.toString());
                 done();
               });
+          });
+
+          it('Should give me an error if no query is provided', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/exists', template))
+              .expect(400)
+              .end(done);
           });
 
           it('Test if a submissions exists', function(done) {
@@ -1992,7 +1999,7 @@ module.exports = function(app, template, hook) {
         var tempForm = {
           title: 'Authenticated access check',
           name: 'access',
-          path: 'access/authenticated',
+          path: 'accessauthenticated',
           type: 'form',
           components: [
             {
@@ -3491,7 +3498,7 @@ module.exports = function(app, template, hook) {
         var tempForm = {
           title: 'Anonymous access check',
           name: 'access',
-          path: 'access/anonymous',
+          path: 'accessanonymous',
           type: 'form',
           components: [
             {
@@ -3649,6 +3656,228 @@ module.exports = function(app, template, hook) {
               .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmissionAnon1._id, template));
 
             request401(req, done);
+          });
+
+          it('An anonymous user should not be able to Create a submission without Anonymous added to create_all', function(done) {
+            var ownerSubmission = _.cloneDeep(templateSubmission);
+            ownerSubmission.owner = template.users.user1._id;
+            request(app)
+              .post(hook.alter('url', '/' + tempForm.path + '/submission', template))
+              .send(ownerSubmission)
+              .expect(201)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+                assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+                assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+                assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+                assert(response.data.hasOwnProperty('value'), 'The submission `data` should contain the `value`.');
+                assert.equal(response.data.value, templateSubmission.data.value);
+                assert(response.hasOwnProperty('form'), 'The response should contain the `form` id.');
+                assert.equal(response.form, tempForm._id);
+                assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+                assert.deepEqual(response.roles, []);
+                assert.equal(response.owner, null);
+                done();
+              });
+          });
+
+          it('Should be able to update the form with create_all permissions', function(done) {
+            tempForm.submissionAccess.push({
+              type: 'create_all',
+              roles: [
+                template.roles.anonymous._id.toString()
+              ]
+            });
+            request(app)
+              .put(hook.alter('url', '/' + tempForm.path, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(tempForm)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                var response = res.body;
+                assert.equal(response.submissionAccess.length, 5);
+                assert.equal(response.submissionAccess[4].roles.indexOf(template.roles.anonymous._id.toString()), 0);
+                assert.equal(response.submissionAccess[4].type, 'create_all');
+                done();
+              });
+          });
+
+          it('An anonymous user should be able to Create a submission with owner set with Anonymous role within create_all', function(done) {
+            var ownerSubmission = _.cloneDeep(templateSubmission);
+            ownerSubmission.owner = template.users.user1._id;
+            request(app)
+              .post(hook.alter('url', '/' + tempForm.path + '/submission', template))
+              .send(ownerSubmission)
+              .expect(201)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+                assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+                assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+                assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+                assert(response.data.hasOwnProperty('value'), 'The submission `data` should contain the `value`.');
+                assert.equal(response.data.value, templateSubmission.data.value);
+                assert(response.hasOwnProperty('form'), 'The response should contain the `form` id.');
+                assert.equal(response.form, tempForm._id);
+                assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+                assert.deepEqual(response.roles, []);
+                assert.equal(response.owner, template.users.user1._id);
+                done();
+              });
+          });
+
+          it('An authenticated user should not be able to create a submission', function(done) {
+            var ownerSubmission = _.cloneDeep(templateSubmission);
+            ownerSubmission.owner = template.users.user1._id;
+            request(app)
+              .post(hook.alter('url', '/' + tempForm.path + '/submission', template))
+              .send(ownerSubmission)
+              .set('x-jwt-token', template.users.user2.token)
+              .expect(401)
+              .end(done);
+          });
+
+          it('Should be able to update the form with create_own permissions for authenticated', function(done) {
+            _.each(tempForm.submissionAccess, function(access) {
+              if (access.type === 'create_own') {
+                access.roles.push(template.roles.authenticated._id.toString());
+              }
+            });
+            request(app)
+              .put(hook.alter('url', '/' + tempForm.path, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(tempForm)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                var response = res.body;
+                _.each(response.submissionAccess, function(access) {
+                  if (access.type === 'create_own') {
+                    assert(access.roles.indexOf(template.roles.authenticated._id.toString()) !== -1);
+                  }
+                });
+                done();
+              });
+          });
+
+          it('An authenticated user should be able to Create a submission but cannot change owner.', function(done) {
+            var ownerSubmission = _.cloneDeep(templateSubmission);
+            ownerSubmission.owner = template.users.user1._id;
+            request(app)
+              .post(hook.alter('url', '/' + tempForm.path + '/submission', template))
+              .send(ownerSubmission)
+              .set('x-jwt-token', template.users.user2.token)
+              .expect(201)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+                assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+                assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+                assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+                assert(response.data.hasOwnProperty('value'), 'The submission `data` should contain the `value`.');
+                assert.equal(response.data.value, templateSubmission.data.value);
+                assert(response.hasOwnProperty('form'), 'The response should contain the `form` id.');
+                assert.equal(response.form, tempForm._id);
+                assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+                assert.deepEqual(response.roles, []);
+                assert.equal(response.owner, template.users.user2._id);
+                done();
+              });
+          });
+
+          it('Should be able to update the form with create_all permissions for authenticated', function(done) {
+            _.each(tempForm.submissionAccess, function(access) {
+              if (access.type === 'create_all') {
+                access.roles.push(template.roles.authenticated._id.toString());
+              }
+            });
+            request(app)
+              .put(hook.alter('url', '/' + tempForm.path, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(tempForm)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                var response = res.body;
+                _.each(response.submissionAccess, function(access) {
+                  if (access.type === 'create_all') {
+                    assert(access.roles.indexOf(template.roles.authenticated._id.toString()) !== -1);
+                  }
+                });
+                done();
+              });
+          });
+
+          it('An authenticated user should be able to Create a submission AND change owner.', function(done) {
+            var ownerSubmission = _.cloneDeep(templateSubmission);
+            ownerSubmission.owner = template.users.user1._id;
+            request(app)
+              .post(hook.alter('url', '/' + tempForm.path + '/submission', template))
+              .send(ownerSubmission)
+              .set('x-jwt-token', template.users.user2.token)
+              .expect(201)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+                assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+                assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+                assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+                assert(response.data.hasOwnProperty('value'), 'The submission `data` should contain the `value`.');
+                assert.equal(response.data.value, templateSubmission.data.value);
+                assert(response.hasOwnProperty('form'), 'The response should contain the `form` id.');
+                assert.equal(response.form, tempForm._id);
+                assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+                assert.deepEqual(response.roles, []);
+                assert.equal(response.owner, template.users.user1._id);
+                done();
+              });
+          });
+
+          it('Reset the form permission settings', function(done) {
+            tempForm.submissionAccess = [
+              {type: 'create_own', roles: [template.roles.anonymous._id.toString()]},
+              {type: 'read_own', roles: [template.roles.anonymous._id.toString()]},
+              {type: 'update_own', roles: [template.roles.anonymous._id.toString()]},
+              {type: 'delete_own', roles: [template.roles.anonymous._id.toString()]}
+            ];
+            request(app)
+              .put(hook.alter('url', '/' + tempForm.path, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(tempForm)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(done);
           });
 
           it('An Anonymous user should be able to Create a submission with explicit Own permissions with the Form alias', function(done) {
@@ -3811,7 +4040,7 @@ module.exports = function(app, template, hook) {
                 }
 
                 var response = res.body;
-                assert.equal(response.length, 3);
+                assert.equal(response.length, 7);
 
                 // Store the JWT for future API calls.
                 template.users.admin.token = res.headers['x-jwt-token'];
@@ -3942,7 +4171,7 @@ module.exports = function(app, template, hook) {
                 }
 
                 var response = res.body;
-                assert.equal(response.length, 3);
+                assert.equal(response.length, 7);
 
                 // Store the JWT for future API calls.
                 template.users.admin.token = res.headers['x-jwt-token'];
@@ -4125,7 +4354,7 @@ module.exports = function(app, template, hook) {
         var tempForm = {
           title: 'Anonymous access check',
           name: 'access',
-          path: 'access/anonymous',
+          path: 'accessanonymous',
           type: 'form',
           components: [
             {

@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "1.8.2",
+  "version": "1.8.11",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
@@ -46,6 +46,7 @@
     "nodemailer-mandrill-transport": "^1.0.0",
     "nodemailer-sendgrid-transport": "^0.2.0",
     "nunjucks": "^2.2.0",
+    "nunjucks-date-filter": "^0.1.1",
     "primus": "^4.0.4",
     "progress": "^1.1.8",
     "prompt": "^0.2.14",

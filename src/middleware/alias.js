@@ -10,7 +10,9 @@ var debug = require('debug')('formio:alias');
 module.exports = function(router) {
   // Setup the reserved forms regex.
   if (!router.formio.config.reservedForms || !router.formio.config.reservedForms.length) {
-    router.formio.config.reservedForms = ['submission', 'exists', 'export', 'role', 'current', 'logout', 'form'];
+    /* eslint-disable max-len */
+    router.formio.config.reservedForms = ['submission', 'exists', 'export', 'role', 'current', 'logout', 'form', 'access'];
+    /* eslint-enable max-len */
   }
 
   var formsRegEx = new RegExp('\/(' + router.formio.config.reservedForms.join('|') + ')($|\/.*)', 'i');

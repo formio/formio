@@ -110,6 +110,9 @@ module.exports = function(formio) {
 
       // To send the mail.
       var sendMail = function(mail, sendEach, noCompile) {
+        // Allow the nunjucks templates to be reflective.
+        params.mail = mail;
+
         // Compile the email with nunjucks.
         if (!noCompile) {
           try {
@@ -122,6 +125,10 @@ module.exports = function(formio) {
 
         if (!mail || !mail.to) {
           return;
+        }
+
+        if (mail.html && (typeof mail.html === 'string')) {
+          mail.html = mail.html.replace(/\n/g, '');
         }
 
         if (sendEach) {
