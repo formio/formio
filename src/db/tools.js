@@ -1,10 +1,9 @@
 'use strict';
 
 var crypto = require('crypto');
+var util = require('../util/util');
 
-module.exports = function(db, schema, formio) {
-  var util = formio.util;
-
+module.exports = function(db, schema) {
   return {
     /**
      * Include the formio utils.

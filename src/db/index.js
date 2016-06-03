@@ -127,7 +127,7 @@ module.exports = function(formio) {
         schema = collection;
 
         // Load the tools available to help manage updates.
-        tools = require('./tools')(db, schema, formio);
+        tools = require('./tools')(db, schema);
         next();
       });
     });
