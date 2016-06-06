@@ -514,7 +514,7 @@ module.exports = function(formio) {
   var initialize = function(next) {
     if (process.env.TEST_SUITE) {
       async.series([
-        connection,
+        connection
       ], function(err) {
         if (err) {
           debug(err);
