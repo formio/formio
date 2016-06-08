@@ -46,8 +46,8 @@ module.exports = function(router) {
           return false;
         });
 
-        if (permission.type) {
-          condensed[permission.type] = _.filter(condensed[permission.type] || [], _.isString);
+        if (_.isString(permission.type)) {
+          condensed[permission.type] = condensed[permission.type] || [];
           condensed[permission.type] = condensed[permission.type].concat(permission.roles);
           condensed[permission.type] = _.compact(_.uniq(condensed[permission.type]));
         }
@@ -85,8 +85,8 @@ module.exports = function(router) {
           return false;
         });
 
-        if (permission.type) {
-          condensed[permission.type] = _.filter(condensed[permission.type] || [], _.isString);
+        if (_.isString(permission.type)) {
+          condensed[permission.type] = condensed[permission.type] || [];
           condensed[permission.type] = condensed[permission.type].concat(permission.roles);
           condensed[permission.type] = _.compact(_.uniq(condensed[permission.type]));
         }

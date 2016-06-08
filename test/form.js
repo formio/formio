@@ -664,7 +664,13 @@ module.exports = function(app, template, hook) {
             undefined,
             'null',
             '{}',
-            'undefined'
+            'undefined',
+            {type: null},
+            {type: {}},
+            {type: undefined},
+            {roles: null},
+            {roles: {}},
+            {roles: undefined}
           ]})
           .expect('Content-Type', /json/)
           .expect(200)
@@ -839,7 +845,13 @@ module.exports = function(app, template, hook) {
             undefined,
             'null',
             '{}',
-            'undefined'
+            'undefined',
+            {type: null},
+            {type: {}},
+            {type: undefined},
+            {roles: null},
+            {roles: {}},
+            {roles: undefined}
           ]})
           .expect('Content-Type', /json/)
           .expect(200)
