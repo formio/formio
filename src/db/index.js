@@ -513,17 +513,16 @@ module.exports = function(formio) {
    */
   var initialize = function(next) {
     if (process.env.TEST_SUITE) {
-      async.series([
-        connection
-      ], function(err) {
+      return connection(function(err) {
         if (err) {
           debug(err);
           return next(err);
         }
 
-        return next(null, db);
+        next(null, db);
       });
     }
+
     async.series([
       connection,
       checkInstall,
