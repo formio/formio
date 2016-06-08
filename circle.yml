@@ -22,6 +22,6 @@ test:
     - node --version
     - mongo --version
   override:
-    - DEBUG=formio:*,formio:*:* npm test
+    - npm test
   post:
     - mv ./covreporter/ $CIRCLE_ARTIFACTS/coverage

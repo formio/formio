@@ -90,7 +90,7 @@ describe('Bootstrap Test modules', function() {
     });
   });
 
-  it('Load all tests', function() {
+  after(function() {
     require('./unit')(app, template, hook);
     require('./auth')(app, template, hook);
     require('./roles')(app, template, hook);
