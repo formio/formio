@@ -61,7 +61,7 @@
     "chance": "^0.8.0",
     "eslint": "^1.10.3",
     "jscoverage": "^0.6.0",
-    "mocha": "^2.2.1",
+    "mocha": "^2.5.3",
     "supertest": "^1.1.0"
   },
   "directories": {
