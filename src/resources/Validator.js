@@ -188,6 +188,34 @@ Validator.prototype.buildIgnoreList = function(submission) {
         show[component.key] = !boolean[component.conditional.show];
       }
     }
+    // Custom conditional logic.
+    else if (component.customConditional) {
+      try {
+        // Create the sandbox.
+        var sandbox = vm.createContext({
+          data: submission.data
+        });
+
+        // Execute the script.
+        var script = new vm.Script(component.customConditional);
+        script.runInContext(sandbox, {
+          timeout: 250
+        });
+
+        if (boolean.hasOwnProperty(sandbox.show)) {
+          show[component.key] = boolean[sandbox.show];
+        }
+        else {
+          show[component.key] = true;
+        }
+      }
+      catch (e) {
+        debug('Custom Conditional Error: ');
+        debug(e);
+        // Default to true, if a validation error occurred.
+        show[component.key] = true;
+      }
+    }
   }.bind(this));
 
   // Iterate each component were supposed to show, if we find one we're not supposed to show, add it to the ignore.
