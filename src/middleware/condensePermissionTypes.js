@@ -2,7 +2,7 @@
 
 var _ = require('lodash');
 var debug = require('debug')('formio:middleware:condensePermissionTypes');
-var BSON = new RegExp("^[0-9a-fA-F]{24}$");
+var BSON = new RegExp('^[0-9a-fA-F]{24}$');
 
 /**
  * The Condense Permission Types middleware.
