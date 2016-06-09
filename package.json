@@ -27,7 +27,7 @@
     "cors": "^2.5.3",
     "csv": "^0.4.5",
     "debug": "^2.2.0",
-    "delete-property": "0.0.2",
+    "delete-property": "0.0.4",
     "eslint-config-formio": "^1.1.0",
     "event-chain": "^0.0.1",
     "express": "^4.10.6",

@@ -5,13 +5,15 @@ var _ = require('lodash');
 var nodeUrl = require('url');
 var Q = require('q');
 var formioUtils = require('formio-utils');
-var deleteProp = require('delete-property');
+var deleteProp = require('delete-property').default;
 var debug = {
   getUrlParams: require('debug')('formio:util:getUrlParams'),
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
 
 module.exports = {
+  deleteProp: deleteProp,
+
   /**
    * A wrapper around console.log that gets ignored by eslint.
    *

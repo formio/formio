@@ -2,7 +2,6 @@
 
 var _ = require('lodash');
 var async = require('async');
-var deleteProp = require('delete-property');
 var util = require('../util/util');
 var Validator = require('../resources/Validator');
 
@@ -194,7 +193,7 @@ module.exports = function(router, resourceName, resourceId) {
           component.hasOwnProperty('persistent') &&
           !component.persistent
         ) {
-          deleteProp('data.' + path)(req.body);
+          util.deleteProp('data.' + path)(req.body);
         }
 
         // Execute the field handler.
