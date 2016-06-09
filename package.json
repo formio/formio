@@ -47,7 +47,7 @@
     "nodemailer-sendgrid-transport": "^0.2.0",
     "nunjucks": "^2.4.2",
     "nunjucks-date-filter": "^0.1.1",
-    "primus": "^4.0.4",
+    "primus": "5.0.x",
     "progress": "^1.1.8",
     "prompt": "^0.2.14",
     "q": "^1.2.0",
