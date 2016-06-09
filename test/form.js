@@ -576,6 +576,10 @@ module.exports = function(app, template, hook) {
             {
               type: 'read_all',
               roles: roleAccess
+            },
+            {
+              type: 'read_all',
+              roles: roleAccess
             }
           ]})
           .expect('Content-Type', /json/)
@@ -600,8 +604,192 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('Updating a Form with duplicate access permission roles will condense the access permissions', function(done) {
+        var roleAccess = [
+          template.roles.authenticated._id.toString(),
+          template.roles.authenticated._id.toString(),
+          template.roles.anonymous._id.toString()
+        ];
+        var expected = [
+          template.roles.authenticated._id.toString(),
+          template.roles.anonymous._id.toString()
+        ];
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({access: [
+            {
+              type: 'read_all',
+              roles: roleAccess
+            }
+          ]})
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.access[0].type, 'read_all');
+            assert.equal(response.access[0].roles.length, 2);
+            assert.deepEqual(response.access[0].roles, expected);
+
+            // Save this form for later use.
+            template.forms.tempForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      // FA-892
+      it('Updating a Form with a malformed access permission type will condense the access permissions', function(done) {
+        var roleAccess = [
+          template.roles.authenticated._id.toString(),
+          template.roles.anonymous._id.toString()
+        ];
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({access: [
+            {
+              type: 'read_all',
+              roles: roleAccess
+            },
+            null,
+            {},
+            undefined,
+            'null',
+            '{}',
+            'undefined',
+            {type: null},
+            {type: {}},
+            {type: undefined},
+            {roles: null},
+            {roles: {}},
+            {roles: undefined}
+          ]})
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.access.length, 1);
+            assert.equal(response.access[0].type, 'read_all');
+            assert.equal(response.access[0].roles.length, 2);
+            assert.deepEqual(response.access[0].roles, roleAccess);
+
+            // Save this form for later use.
+            template.forms.tempForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      // FA-892
+      it('Updating a Form with a malformed access permission role will condense the access permissions', function(done) {
+        var roleAccess = [
+          template.roles.authenticated._id.toString(),
+          template.roles.anonymous._id.toString(),
+          null,
+          {},
+          undefined,
+          'null',
+          '{}',
+          'undefined'
+        ];
+        var expected = [
+          template.roles.authenticated._id.toString(),
+          template.roles.anonymous._id.toString()
+        ];
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({access: [
+            {
+              type: 'read_all',
+              roles: roleAccess
+            }
+          ]})
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.access[0].type, 'read_all');
+            assert.equal(response.access[0].roles.length, 2);
+            assert.deepEqual(response.access[0].roles, expected);
+
+            // Save this form for later use.
+            template.forms.tempForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
       it('Updating a Form with duplicate submissionAccess permission types will condense the submissionAccess permissions', function(done) {
         var updatedSubmissionAccess  = [
+          template.roles.authenticated._id.toString(),
+          template.roles.anonymous._id.toString()
+        ];
+
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({submissionAccess: [
+            {
+              type: 'read_all',
+              roles: updatedSubmissionAccess
+            },
+            {
+              type: 'read_all',
+              roles: updatedSubmissionAccess
+            }
+          ]})
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.submissionAccess[0].type, 'read_all');
+            assert.equal(response.submissionAccess[0].roles.length, 2);
+            assert.deepEqual(response.submissionAccess[0].roles, updatedSubmissionAccess);
+
+            // Save this form for later use.
+            template.forms.tempForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('Updating a Form with duplicate submissionAccess permission roles will condense the submissionAccess permissions', function(done) {
+        var updatedSubmissionAccess  = [
+          template.roles.authenticated._id.toString(),
+          template.roles.authenticated._id.toString(),
+          template.roles.anonymous._id.toString()
+        ];
+        var expected = [
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString()
         ];
@@ -625,7 +813,106 @@ module.exports = function(app, template, hook) {
             var response = res.body;
             assert.equal(response.submissionAccess[0].type, 'read_all');
             assert.equal(response.submissionAccess[0].roles.length, 2);
+            assert.deepEqual(response.submissionAccess[0].roles, expected);
+
+            // Save this form for later use.
+            template.forms.tempForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      // FA-892
+      it('Updating a Form with a malformed submissionAccess permission type will condense the submissionAccess permissions', function(done) {
+        var updatedSubmissionAccess  = [
+          template.roles.authenticated._id.toString(),
+          template.roles.anonymous._id.toString()
+        ];
+
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({submissionAccess: [
+            {
+              type: 'read_all',
+              roles: updatedSubmissionAccess
+            },
+            null,
+            {},
+            undefined,
+            'null',
+            '{}',
+            'undefined',
+            {type: null},
+            {type: {}},
+            {type: undefined},
+            {roles: null},
+            {roles: {}},
+            {roles: undefined}
+          ]})
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.submissionAccess.length, 1);
+            assert.equal(response.submissionAccess[0].type, 'read_all');
+            assert.equal(response.submissionAccess[0].roles.length, 2);
             assert.deepEqual(response.submissionAccess[0].roles, updatedSubmissionAccess);
+
+            // Save this form for later use.
+            template.forms.tempForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      // FA-892
+      it('Updating a Form with a malformed submissionAccess permission role will condense the submissionAccess permissions', function(done) {
+        var updatedSubmissionAccess  = [
+          template.roles.authenticated._id.toString(),
+          template.roles.anonymous._id.toString(),
+          null,
+          {},
+          undefined,
+          'null',
+          '{}',
+          'undefined'
+        ];
+        var expected = [
+          template.roles.authenticated._id.toString(),
+          template.roles.anonymous._id.toString()
+        ];
+
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({submissionAccess: [
+            {
+              type: 'read_all',
+              roles: updatedSubmissionAccess
+            }
+          ]})
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.submissionAccess[0].type, 'read_all');
+            assert.equal(response.submissionAccess[0].roles.length, 2);
+            assert.deepEqual(response.submissionAccess[0].roles, expected);
 
             // Save this form for later use.
             template.forms.tempForm = response;

@@ -1,6 +1,8 @@
 'use strict';
 
 var _ = require('lodash');
+var debug = require('debug')('formio:middleware:condensePermissionTypes');
+var BSON = new RegExp('^[0-9a-fA-F]{24}$');
 
 /**
  * The Condense Permission Types middleware.
@@ -19,6 +21,7 @@ module.exports = function(router) {
       return next();
     }
 
+    debug(req.body);
     var final = null;
     var condensed = null;
 
@@ -33,10 +36,17 @@ module.exports = function(router) {
       condensed = {};
 
       // Iterate each defined permission in the access payload, and squash them together.
+      req.body.access = _.filter(req.body.access, _.isObject);
       req.body.access.forEach(function(permission) {
-        permission.roles = permission.roles || [];
+        permission.roles = _.filter(permission.roles || [], function(item) {
+          if (_.isString(item) && BSON.test(item)) {
+            return true;
+          }
 
-        if (permission.type) {
+          return false;
+        });
+
+        if (_.isString(permission.type)) {
           condensed[permission.type] = condensed[permission.type] || [];
           condensed[permission.type] = condensed[permission.type].concat(permission.roles);
           condensed[permission.type] = _.compact(_.uniq(condensed[permission.type]));
@@ -65,10 +75,17 @@ module.exports = function(router) {
       condensed = {};
 
       // Iterate each defined permission in the submissionAccess payload, and squash them together.
+      req.body.submissionAccess = _.filter(req.body.submissionAccess, _.isObject);
       req.body.submissionAccess.forEach(function(permission) {
-        permission.roles = permission.roles || [];
+        permission.roles = _.filter(permission.roles || [], function(item) {
+          if (_.isString(item) && BSON.test(item)) {
+            return true;
+          }
 
-        if (permission.type) {
+          return false;
+        });
+
+        if (_.isString(permission.type)) {
           condensed[permission.type] = condensed[permission.type] || [];
           condensed[permission.type] = condensed[permission.type].concat(permission.roles);
           condensed[permission.type] = _.compact(_.uniq(condensed[permission.type]));

@@ -8886,6 +8886,69 @@ module.exports = function(app, template, hook) {
             });
         });
 
+        // FA-892
+        it('An update to resource access, with null access, will not be saved (single)', function(done) {
+          var update = {access: [
+            null
+          ]};
+          var filtered = {access: []};
+          request(app)
+            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(update)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              var expected = _.clone(tempSubmission);
+              expected.access = filtered.access;
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+              tempSubmission = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        // FA-892
+        it('An update to resource access, with null access, will not be saved (multi)', function(done) {
+          var update = {access: [
+            {type: 'read', resources: [template.users.admin2._id]},
+            null
+          ]};
+          var filtered = {access: [{type: 'read', resources: [template.users.admin2._id]}]};
+          request(app)
+            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(update)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              var expected = _.clone(tempSubmission);
+              expected.access = filtered.access;
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+              tempSubmission = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
         it('An update to resource access, without a type, will not be saved (multi)', function(done) {
           var update = {access: [
             {resources: [template.users.admin._id]},
