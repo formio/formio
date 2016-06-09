@@ -25,9 +25,9 @@ module.exports = function(db, config, tools, done) {
         // Filter for non-persistent components
         return (component.hasOwnProperty('persistent') && !component.persistent)
       })
-      .map(function(component) {
+      .map(function(component, path) {
         return function(obj) {
-          deleteProp('data.' + util.getSubmissionKey(component.key))(obj);
+          deleteProp('data.' + path)(obj);
         }
       })
       .value();

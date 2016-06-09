@@ -316,18 +316,38 @@ module.exports = {
       : _id;
   },
 
-  removeProtectedFields: function(form, submissions) {
-    var self = this;
+  removeProtectedFields: function(form, action, submissions) {
     if (!(submissions instanceof Array)) {
       submissions = [submissions];
     }
 
-    _.each(self.flattenComponents(form.components), function(component) {
+    // Initialize our delete fields array.
+    var modifyFields = [];
+
+    // Iterate through all components.
+    this.eachComponent(form.components, function(component, path) {
+      path = 'data.' + path;
       if (component.protected) {
         debug.removeProtectedFields('Removing protected field:', component.key);
-        var deleteProtected = deleteProp('data.' + self.getSubmissionKey(component.key));
-        _.each(submissions, deleteProtected);
+        modifyFields.push(deleteProp(path));
       }
-    });
+      else if ((component.type === 'signature') && (action === 'index')) {
+        modifyFields.push((function(fieldPath) {
+          return function(sub) {
+            var data = _.get(sub, fieldPath);
+            _.set(sub, fieldPath, (!data || (data.length < 25)) ? '' : 'YES');
+          };
+        })(path));
+      }
+    }.bind(this), true);
+
+    // Iterate through each submission once.
+    if (modifyFields.length > 0) {
+      _.each(submissions, function(submission) {
+        _.each(modifyFields, function(modifyField) {
+          modifyField(submission);
+        });
+      });
+    }
   }
 };
