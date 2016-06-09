@@ -1,19 +1,19 @@
 {
   "name": "formio",
-  "version": "1.8.13",
+  "version": "1.8.16",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
   "scripts": {
-    "test": "env TEST_SUITE=1 mocha -r jscoverage --covout=html test/test.js -b -t 60000",
+    "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000",
     "start": "node server.js",
-    "lint": "eslint src *.js"
+    "lint": "eslint *.js src/**/**.js"
   },
   "author": "support@form.io",
   "engines": {
     "node": ">=4.2.0"
   },
-  "schema": "3.0.3",
+  "schema": "3.0.4",
   "templateVersion": "2.0.0",
   "dependencies": {
     "JSONStream": "^1.0.4",
@@ -27,11 +27,11 @@
     "cors": "^2.5.3",
     "csv": "^0.4.5",
     "debug": "^2.2.0",
-    "delete-property": "0.0.2",
-    "eslint-config-formio": "^1.0.0",
+    "delete-property": "0.0.4",
+    "eslint-config-formio": "^1.1.0",
     "event-chain": "^0.0.1",
     "express": "^4.10.6",
-    "formio-utils": "^0.1.3",
+    "formio-utils": "^0.1.8",
     "fs-extra": "^0.26.3",
     "joi": "^7.1.0",
     "jsonwebtoken": "^5.0.0",
@@ -47,7 +47,7 @@
     "nodemailer-sendgrid-transport": "^0.2.0",
     "nunjucks": "^2.4.2",
     "nunjucks-date-filter": "^0.1.1",
-    "primus": "^4.0.4",
+    "primus": "5.0.x",
     "progress": "^1.1.8",
     "prompt": "^0.2.14",
     "q": "^1.2.0",
@@ -59,9 +59,8 @@
   },
   "devDependencies": {
     "chance": "^0.8.0",
-    "eslint": "^1.10.3",
-    "jscoverage": "^0.6.0",
-    "mocha": "^2.2.1",
+    "eslint": "^2.11.1",
+    "mocha": "^2.5.3",
     "supertest": "^1.1.0"
   },
   "directories": {

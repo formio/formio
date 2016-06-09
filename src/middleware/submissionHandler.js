@@ -2,7 +2,6 @@
 
 var _ = require('lodash');
 var async = require('async');
-var deleteProp = require('delete-property');
 var util = require('../util/util');
 var Validator = require('../resources/Validator');
 
@@ -188,13 +187,13 @@ module.exports = function(router, resourceName, resourceId) {
       }
 
       // Iterate through each component and allow them to alter the query.
-      async.eachSeries(req.flattenedComponents, function(component, then) {
+      async.eachOfSeries(req.flattenedComponents, function(component, path, then) {
         if (
           req.body &&
           component.hasOwnProperty('persistent') &&
           !component.persistent
         ) {
-          deleteProp('data.' + util.getSubmissionKey(component.key))(req.body);
+          util.deleteProp('data.' + path)(req.body);
         }
 
         // Execute the field handler.

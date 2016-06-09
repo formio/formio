@@ -2,16 +2,11 @@
 	"dependencies": {
 		"unused-ignores": [
 			"eslint**"
-		],
-		"mute": [
-		    "delete-property"
 		]
 	},
-	"test": [
-		"test/**"
-	],
 	"ignore": [
-		"src/db/updates/**"
+		"src/db/updates/**",
+		"test/**"
 	],
 	"critics": {
 		"lint": {

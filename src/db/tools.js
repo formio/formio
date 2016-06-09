@@ -6,6 +6,11 @@ var util = require('../util/util');
 module.exports = function(db, schema) {
   return {
     /**
+     * Include the formio utils.
+     */
+    util: util,
+
+    /**
      * Update the version store in the schema lock, using the provided schema and the mongo native driver.
      *
      * @param version

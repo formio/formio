@@ -464,12 +464,29 @@ module.exports = function(formio) {
         // Load the update then update the schema lock version.
         var _update = null;
 
-        // Attempt to load the the pending update, allow anyone to hook the pending updates location.
+        // Attempt to load the the pending update.
+        // Allow anyone to hook the pending updates location.
         try {
-          _update = require(__dirname + '/updates/' + pending);
-        }
-        catch (e) {
           _update = formio.hook.alter('updateLocation', pending);
+        }
+        /* eslint-disable no-empty */
+        catch (e) {
+          debug(e);
+        }
+        /* eslint-enable no-empty */
+
+        // No private update was found, check the public location.
+        debug('_update:');
+        debug(_update);
+        if (_update === null) {
+          try {
+            _update = require(__dirname + '/updates/' + pending);
+          }
+          /* eslint-disable no-empty */
+          catch (e) {
+            debug(e);
+          }
+          /* eslint-enable no-empty */
         }
 
         // Attempt to resolve the update.
@@ -478,6 +495,10 @@ module.exports = function(formio) {
             return callback('Could not resolve the path for update: ' + pending);
           }
 
+          debug('Update Params:');
+          debug(db);
+          debug(config);
+          debug(tools);
           _update(db, config, tools, function(err) {
             if (err) {
               return callback(err);
@@ -513,17 +534,16 @@ module.exports = function(formio) {
    */
   var initialize = function(next) {
     if (process.env.TEST_SUITE) {
-      async.series([
-        connection
-      ], function(err) {
+      return connection(function(err) {
         if (err) {
           debug(err);
           return next(err);
         }
 
-        return next(null, db);
+        next(null, db);
       });
     }
+
     async.series([
       connection,
       checkInstall,

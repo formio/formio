@@ -13,18 +13,16 @@ var app = null;
 var template = null;
 var comparison = null;
 var hook = null;
-require('./bootstrap')()
-  .then(function(state) {
-    app = state.app;
-    hook = require('../src/util/hook')(state.app.formio);
-    template = state.template;
-    ready.resolve();
-  });
+var loadServer = require('./bootstrap')();
 
-// Bootstrap all test suites.
 describe('Bootstrap Test modules', function() {
   before(function(done) {
-    ready.promise.then(done);
+    loadServer.then(function(state) {
+      app = state.app;
+      hook = require('../src/util/hook')(state.app.formio);
+      template = state.template;
+      done();
+    });
   });
 
   it('Should remove old test data', function(done) {
@@ -90,7 +88,7 @@ describe('Bootstrap Test modules', function() {
     });
   });
 
-  it('Load all tests', function() {
+  after(function() {
     require('./unit')(app, template, hook);
     require('./auth')(app, template, hook);
     require('./roles')(app, template, hook);
