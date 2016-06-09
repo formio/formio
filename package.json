@@ -7,7 +7,7 @@
   "scripts": {
     "test": "env TEST_SUITE=1 mocha -r jscoverage --covout=html test/test.js -b -t 60000",
     "start": "node server.js",
-    "lint": "eslint src *.js"
+    "lint": "eslint *.js src/**/**.js"
   },
   "author": "support@form.io",
   "engines": {
@@ -28,7 +28,7 @@
     "csv": "^0.4.5",
     "debug": "^2.2.0",
     "delete-property": "0.0.2",
-    "eslint-config-formio": "^1.0.0",
+    "eslint-config-formio": "^1.1.0",
     "event-chain": "^0.0.1",
     "express": "^4.10.6",
     "formio-utils": "^0.1.8",
@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "chance": "^0.8.0",
-    "eslint": "^1.10.3",
+    "eslint": "^2.11.1",
     "jscoverage": "^0.6.0",
     "mocha": "^2.5.3",
     "supertest": "^1.1.0"
