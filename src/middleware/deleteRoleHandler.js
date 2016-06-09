@@ -44,7 +44,7 @@ module.exports = function(router) {
       debug(role);
 
       // Do not allow default roles to be deleted.
-      if (role.default) {
+      if (role.default || role.admin) {
         return res.sendStatus(405);
       }
 
