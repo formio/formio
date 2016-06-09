@@ -1,14 +1,13 @@
 machine:
   node:
-    version: 4.2.3
+    version: 4.2.5
   services:
     - mongodb
 
 dependencies:
   pre:
-    - if [[ ! -d mongodb-linux-x86_64-ubuntu1204-3.0.5 ]]; then wget http://downloads.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1204-3.0.5.tgz && tar xvzf mongodb-linux-x86_64-ubuntu1204-3.0.5.tgz; fi
-    - sudo /etc/init.d/mongodb stop
-    - sudo cp mongodb-linux-x86_64-ubuntu1204-3.0.5/bin/* /usr/bin
+    - sudo /etc/init.d/mongodb stop && wget http://downloads.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1204-3.2.6.tgz && tar xvzf mongodb-linux-x86_64-ubuntu1204-3.2.6.tgz
+    - sudo cp mongodb-linux-x86_64-ubuntu1204-3.2.6/bin/* /usr/bin
     - sudo /etc/init.d/mongodb start
     - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test && sudo apt-get update
     - sudo apt-get install -y gcc-4.9 g++-4.9
@@ -18,5 +17,10 @@ dependencies:
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 20
 
 test:
+  pre:
+    - node --version
+    - mongo --version
+  override:
+    - npm test
   post:
     - mv ./covreporter/ $CIRCLE_ARTIFACTS/coverage
