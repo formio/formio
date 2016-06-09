@@ -1,7 +1,7 @@
 'use strict';
 var Q = require('q');
 var util = require('../../util/util');
-var deleteProp = require('delete-property');
+var deleteProp = require('delete-property').default;
 var ObjectID = require('mongodb').ObjectID;
 var _ = require('lodash');
 /**

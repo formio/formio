@@ -491,7 +491,7 @@ module.exports = function(router) {
                 _hasAccess = true;
               }
               // Exception for Index endpoint, the
-              else if (type === 'read_own' && !Boolean(entity.id) && entity.id === '') {
+              else if (type === 'read_own' && entity.hasOwnProperty('id') && entity.id === '') {
                 // The user has access to this endpoint, however the results will need to be filtered by the
                 // ownerFilter middleware.
                 _hasAccess = true;

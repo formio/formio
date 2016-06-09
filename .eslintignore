@@ -1,3 +1,4 @@
-#Ignore the test suite.
-test/**/**.js
-src/db/updates/**.js
+test/*
+src/db/updates/*
+node_modules/*
+bower_components/*

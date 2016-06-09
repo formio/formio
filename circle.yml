@@ -22,5 +22,3 @@ test:
     - mongo --version
   override:
     - npm test
-  post:
-    - mv ./covreporter/ $CIRCLE_ARTIFACTS/coverage
