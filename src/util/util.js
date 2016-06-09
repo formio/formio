@@ -19,6 +19,10 @@ module.exports = {
    *   The content to pass to console.log.
    */
   log: function(content) {
+    if (process.env.TEST_SUITE) {
+      return;
+    }
+
     /* eslint-disable */
     console.log(content);
     /* eslint-enable */
