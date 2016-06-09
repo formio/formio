@@ -1,7 +1,7 @@
 'use strict';
 var Q = require('q');
 var util = require('../../util/util');
-var deleteProp = require('delete-property');
+var deleteProp = require('delete-property').default;
 var ObjectID = require('mongodb').ObjectID;
 var _ = require('lodash');
 /**
@@ -25,9 +25,9 @@ module.exports = function(db, config, tools, done) {
         // Filter for non-persistent components
         return (component.hasOwnProperty('persistent') && !component.persistent)
       })
-      .map(function(component) {
+      .map(function(component, path) {
         return function(obj) {
-          deleteProp('data.' + util.getSubmissionKey(component.key))(obj);
+          deleteProp('data.' + path)(obj);
         }
       })
       .value();
