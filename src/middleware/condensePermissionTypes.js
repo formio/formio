@@ -36,7 +36,7 @@ module.exports = function(router) {
       condensed = {};
 
       // Iterate each defined permission in the access payload, and squash them together.
-      req.body.access = _.filter(req.body.access);
+      req.body.access = _.filter(req.body.access, _.isObject);
       req.body.access.forEach(function(permission) {
         permission.roles = _.filter(permission.roles || [], function(item) {
           if (_.isString(item) && BSON.test(item)) {
@@ -75,7 +75,7 @@ module.exports = function(router) {
       condensed = {};
 
       // Iterate each defined permission in the submissionAccess payload, and squash them together.
-      req.body.submissionAccess = _.filter(req.body.submissionAccess);
+      req.body.submissionAccess = _.filter(req.body.submissionAccess, _.isObject);
       req.body.submissionAccess.forEach(function(permission) {
         permission.roles = _.filter(permission.roles || [], function(item) {
           if (_.isString(item) && BSON.test(item)) {
