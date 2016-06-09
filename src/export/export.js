@@ -74,7 +74,7 @@ module.exports = function(router) {
               var row = doc.toObject({getters: true, virtuals: false});
 
               addUrl(row.data);
-              router.formio.util.removeProtectedFields(form, row);
+              router.formio.util.removeProtectedFields(form, 'export', row);
 
               this.queue(row);
             }));
