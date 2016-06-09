@@ -101,7 +101,7 @@ module.exports = function(router) {
    * @returns {*}
    */
   SQLAction.prototype.escape = function(query) {
-    return query.replace(/[\0\n\r\b\t\\\'\'\x1a]/g, function(s) {
+    return query.replace(/[\0\n\r\b\t\\\'\'\x1a]/g, function(s) { // eslint-disable-line no-control-regex
       switch (s) {
         case '\0': return '\\0';
         case '\n': return '\\n';
