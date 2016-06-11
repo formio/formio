@@ -175,9 +175,10 @@ module.exports = function(formio, items, done) {
     whatApp: function(done) {
       var repos = [
         'None',
+        'https://github.com/formio/formio-app-servicetracker',
         'https://github.com/formio/formio-app-todo',
         'https://github.com/formio/formio-app-salesquote',
-        'https://github.com/formio/formio-app-movie'
+        'https://github.com/formio/formio-app-basic'
       ];
       var message = '\nWhich Github application would you like to install?\n'.green;
       _.each(repos, function(repo, index) {
