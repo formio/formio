@@ -1,8 +1,7 @@
 Form.io: The Form and API platform.
 ===============================
 Form.io is a revolutionary Form and API platform for developers. This repository serves as the core Form and API engine
-for https://form.io. This system allows you to build next generation Web 3.0 applications using a simple drag-and-drop
-form builder interface. These forms can then easily be embedded within your Angular.js and React applications using the
+for https://form.io. This system allows you to build "serverless" data management applications using a simple drag-and-drop form builder interface. These forms can then easily be embedded within your Angular.js and React applications using the
 ```<formio>``` HTML element. 
 
 Form Building & Rendering Demo
