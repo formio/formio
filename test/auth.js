@@ -627,12 +627,11 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    it('Update the user resource to have no access', function(done) {
+    it('Update the user resource to have no submissionAccess', function(done) {
       request(app)
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
-          access: [],
           submissionAccess: []
         })
         .expect(200)
@@ -643,7 +642,6 @@ module.exports = function(app, template, hook) {
           }
 
           var response = res.body;
-          assert.equal(response.access.length, 0);
           assert.equal(response.submissionAccess.length, 0);
           template.resources.user = response;
 
@@ -707,6 +705,14 @@ module.exports = function(app, template, hook) {
         .end(done);
     });
 
+    // FA-923
+    it('An anonymous user should be able to access the resource form without submissionAccess permissions', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path, template))
+        .expect(200)
+        .end(done);
+    });
+
     it('A user (created by an admin) can login to their account', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
@@ -745,6 +751,15 @@ module.exports = function(app, template, hook) {
           dummy.token = res.headers['x-jwt-token'];
           done();
         });
+    });
+
+    // FA-923
+    it('A user without read submissionAccess permissions and no self access, can still read the resource form', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(200)
+        .end(done);
     });
 
     it('A user without read permissions, should not be able to read their submission', function(done) {
@@ -789,7 +804,6 @@ module.exports = function(app, template, hook) {
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
-          access: [],
           submissionAccess: [
             {
               type: 'read_own',
@@ -805,7 +819,6 @@ module.exports = function(app, template, hook) {
           }
 
           var response = res.body;
-          assert.equal(response.access.length, 0);
           assert.equal(response.submissionAccess.length, 1);
           assert.equal(response.submissionAccess[0].type, 'read_own');
           template.resources.user = response;
@@ -815,6 +828,15 @@ module.exports = function(app, template, hook) {
 
           done();
         });
+    });
+
+    // FA-923
+    it('A user with read submissionAccess permissions and no self access, can still read the resource form', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(200)
+        .end(done);
     });
 
     it('A user without read permissions (not the owner), should not be able to read their submission', function(done) {
@@ -872,7 +894,6 @@ module.exports = function(app, template, hook) {
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
-          access: [],
           submissionAccess: [
             {
               type: 'update_own',
@@ -888,7 +909,6 @@ module.exports = function(app, template, hook) {
           }
 
           var response = res.body;
-          assert.equal(response.access.length, 0);
           assert.equal(response.submissionAccess.length, 1);
           assert.equal(response.submissionAccess[0].type, 'update_own');
           template.resources.user = response;
@@ -898,6 +918,15 @@ module.exports = function(app, template, hook) {
 
           done();
         });
+    });
+
+    // FA-923
+    it('A user with update submissionAccess permissions and no self access, can still read the resource form', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(200)
+        .end(done);
     });
 
     it('A user without read permissions (not the owner), should not be able to read their submission', function(done) {
@@ -942,7 +971,6 @@ module.exports = function(app, template, hook) {
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
-          access: [],
           submissionAccess: [
             {
               type: 'delete_own',
@@ -958,7 +986,6 @@ module.exports = function(app, template, hook) {
           }
 
           var response = res.body;
-          assert.equal(response.access.length, 0);
           assert.equal(response.submissionAccess.length, 1);
           assert.equal(response.submissionAccess[0].type, 'delete_own');
           template.resources.user = response;
@@ -968,6 +995,15 @@ module.exports = function(app, template, hook) {
 
           done();
         });
+    });
+
+    // FA-923
+    it('A user with delete submissionAccess permissions and no self access, can still read the resource form', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(200)
+        .end(done);
     });
 
     it('A user without read permissions (not the owner), should not be able to read their submission', function(done) {
@@ -1012,7 +1048,6 @@ module.exports = function(app, template, hook) {
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
-          access: [],
           submissionAccess: [
             {
               type: 'self'
@@ -1027,7 +1062,6 @@ module.exports = function(app, template, hook) {
           }
 
           var response = res.body;
-          assert.equal(response.access.length, 0);
           assert.equal(response.submissionAccess.length, 1);
           assert.equal(response.submissionAccess[0].type, 'self');
           assert(response.submissionAccess[0].roles instanceof Array);
@@ -1039,6 +1073,15 @@ module.exports = function(app, template, hook) {
 
           done();
         });
+    });
+
+    // FA-923
+    it('A user with no submissionAccess permissions and self access, can still read the resource form', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(200)
+        .end(done);
     });
 
     it('A user without read permissions, but self access (not the owner), should not be able to read their submission', function(done) {
@@ -1083,7 +1126,6 @@ module.exports = function(app, template, hook) {
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
-          access: [],
           submissionAccess: [
             {
               type: 'read_own',
@@ -1103,7 +1145,6 @@ module.exports = function(app, template, hook) {
 
           var response = res.body;
           var types = _.pluck(response.submissionAccess, 'type');
-          assert.equal(response.access.length, 0);
           assert.equal(response.submissionAccess.length, 2);
           assert(types.indexOf('read_own') !== -1);
           assert(types.indexOf('self') !== -1);
@@ -1114,6 +1155,15 @@ module.exports = function(app, template, hook) {
 
           done();
         });
+    });
+
+    // FA-923
+    it('A user with read submissionAccess permissions and self access, can still read the resource form', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(200)
+        .end(done);
     });
 
     it('A user with read_own and self access, not the owner, should be able to read their submission', function(done) {
@@ -1172,7 +1222,6 @@ module.exports = function(app, template, hook) {
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
-          access: [],
           submissionAccess: [
             {
               type: 'update_own',
@@ -1192,7 +1241,6 @@ module.exports = function(app, template, hook) {
 
           var response = res.body;
           var types = _.pluck(response.submissionAccess, 'type');
-          assert.equal(response.access.length, 0);
           assert.equal(response.submissionAccess.length, 2);
           assert(types.indexOf('update_own') !== -1);
           assert(types.indexOf('self') !== -1);
@@ -1203,6 +1251,15 @@ module.exports = function(app, template, hook) {
 
           done();
         });
+    });
+
+    // FA-923
+    it('A user with update submissionAccess permissions and self access, can still read the resource form', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(200)
+        .end(done);
     });
 
     it('A user with update_own and self access, not the owner, should not be able to read their submission', function(done) {
@@ -1247,7 +1304,6 @@ module.exports = function(app, template, hook) {
         .put(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
-          access: [],
           submissionAccess: [
             {
               type: 'delete_own',
@@ -1267,7 +1323,6 @@ module.exports = function(app, template, hook) {
 
           var response = res.body;
           var types = _.pluck(response.submissionAccess, 'type');
-          assert.equal(response.access.length, 0);
           assert.equal(response.submissionAccess.length, 2);
           assert(types.indexOf('delete_own') !== -1);
           assert(types.indexOf('self') !== -1);
@@ -1278,6 +1333,15 @@ module.exports = function(app, template, hook) {
 
           done();
         });
+    });
+
+    // FA-923
+    it('A user with delete submissionAccess permissions and self access, can still read the resource form', function(done) {
+      request(app)
+        .get(hook.alter('url', '/' + template.resources.user.path, template))
+        .set('x-jwt-token', dummy.token)
+        .expect(200)
+        .end(done);
     });
 
     it('A user with delete_own and self access, not the owner, should not be able to read their submission', function(done) {
