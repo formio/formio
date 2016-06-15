@@ -173,9 +173,10 @@ Validator.prototype.buildIgnoreList = function(submission) {
           : !boolean[component.conditional.show];
       }
       // Special check for check boxes component.
-      else if (value && typeof value === 'object') {
-        // Check if the conditional trigger value is true.
-        show[component.key] = boolean[value[component.conditional.eq].toString()];
+      else if (typeof value !== 'undefined' && typeof value === 'object') {
+        show[component.key] = boolean.hasOwnProperty(value[component.conditional.eq])
+          ? boolean[value[component.conditional.eq]]
+          : true;
       }
       // Check against the components default value, if present and the components hasnt been interacted with.
       else if (!value && cond.defaultValue) {
