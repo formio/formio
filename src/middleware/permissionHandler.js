@@ -126,7 +126,7 @@ module.exports = function(router) {
     for (var a = 0; a < form.submissionAccess.length; a++) {
       // Only search while not found.
       if (done) {
-        continue;
+        break;
       }
 
       if (form.submissionAccess[a].hasOwnProperty('type') && form.submissionAccess[a].type === 'self') {
@@ -137,7 +137,7 @@ module.exports = function(router) {
 
         // Remove the self access type, so we dont disturb the regular _all/_own permissions.
         delete form.submissionAccess[a];
-        form.access = _.filter(form.submissionAccess);
+        form.submissionAccess = _.filter(form.submissionAccess);
       }
     }
   };
