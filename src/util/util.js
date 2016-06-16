@@ -2,6 +2,7 @@
 
 var mongoose = require('mongoose');
 var _ = require('lodash');
+var moment = require('moment');
 var nodeUrl = require('url');
 var Q = require('q');
 var formioUtils = require('formio-utils');
@@ -144,6 +145,124 @@ module.exports = {
     }
 
     return false;
+  },
+
+  /**
+   * Renders a specific component value, which is also able
+   * to handle Containers, Data Grids, as well as other more advanced
+   * components such as Signatures, Dates, etc.
+   *
+   * @param data
+   * @param key
+   * @param components
+   * @returns {{label: *, value: *}}
+   */
+  renderComponentValue: function(data, key, components) {
+    var value = _.get(data, key);
+    var compValue = {
+      label: key,
+      value: value
+    };
+    if (!components.hasOwnProperty(key)) {
+      return compValue;
+    }
+    var component = components[key];
+    compValue.label = component.label || component.key;
+    if (component.multiple) {
+      components[key].multiple = false;
+      compValue.value = _.map(value, function(subValue) {
+        var subValues = {};
+        subValues[key] = subValue;
+        return this.renderComponentValue(subValues, key, components).value;
+      }.bind(this)).join(', ');
+      return compValue;
+    }
+
+    switch (component.type) {
+      case 'password':
+        compValue.value = '--- PASSWORD ---';
+        break;
+      case 'address':
+        compValue.value = compValue.value.formatted_address
+        break;
+      case 'signature':
+        compValue.value = '<img src="' + value + '" />';
+        break;
+      case 'container':
+        compValue.value = '<table border="1" style="width:100%">';
+        _.each(value, function(subValue, subKey) {
+          var subCompValue = this.renderComponentValue(value, subKey, components);
+          compValue.value += '<tr>';
+          compValue.value += '<th>' + subCompValue.label + '</th>';
+          compValue.value += '<td>' + subCompValue.value + '</td>';
+          compValue.value += '</tr>';
+        }.bind(this));
+        compValue.value += '</table>';
+        break;
+      case 'datagrid':
+        compValue.value = '<table border="1" style="width:100%">';
+        var columns = [];
+        if (value.length > 0) {
+          _.each(value[0], function(column, columnKey) {
+            if (components.hasOwnProperty(columnKey)) {
+              columns.push(components[columnKey]);
+            }
+          }.bind(this));
+        }
+        compValue.value += '<tr>';
+        _.each(columns, function(column) {
+          var subLabel = column.label || column.key;
+          compValue.value += '<th>' + subLabel + '</th>';
+        });
+        compValue.value += '</tr>';
+        _.each(value, function(subValue) {
+          compValue.value += '<tr>';
+          _.each(columns, function(column) {
+            compValue.value += '<td>' + this.renderComponentValue(subValue, column.key, components).value + '</td>';
+          }.bind(this));
+          compValue.value += '</tr>';
+        }.bind(this));
+        compValue.value += '</table>';
+        break;
+        break;
+      case 'datetime':
+        var dateFormat = '';
+        if (component.enableDate) {
+          dateFormat = component.format.toUpperCase();
+        }
+        if (component.enableTime) {
+          dateFormat += ' hh:mm:ss A';
+        }
+        if (dateFormat) {
+          compValue.value = moment(value).format(dateFormat);
+        }
+        break;
+      case 'select':
+      case 'selectboxes':
+        var values = [];
+        if (component.hasOwnProperty('values')) {
+          values = component.values;
+        }
+        else if (component.hasOwnProperty('data') && component.data.values) {
+          values = component.data.values;
+        }
+        for (var i in values) {
+          var subCompValue = values[i];
+          if (subCompValue.value === value) {
+            compValue.value = subCompValue.label;
+            break;
+          }
+        }
+        break;
+      default:
+        break;
+    }
+
+    if (component.protected) {
+      compValue.value = '--- PROTECTED ---';
+    }
+
+    return compValue;
   },
 
   /**

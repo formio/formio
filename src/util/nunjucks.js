@@ -6,6 +6,7 @@ var nunjucks = require('nunjucks');
 var dateFilter = require('nunjucks-date-filter');
 var _ = require('lodash');
 var debug = require('debug')('formio:util:nunjucks');
+var util = require('./util');
 
 // Configure nunjucks to not watch any files
 var environment = nunjucks.configure([], {
@@ -25,6 +26,21 @@ environment.addFilter('is_object', function(obj) {
 });
 
 environment.addFilter('date', dateFilter);
+
+environment.addFilter('componentValue', function(obj, key, components) {
+  var compValue = util.renderComponentValue(obj, key, components);
+  return new nunjucks.runtime.SafeString(compValue.value);
+});
+
+environment.addFilter('componentLabel', function(key, components) {
+  var label = key;
+  if (!components.hasOwnProperty(key)) {
+    return label;
+  }
+  var component = components[key];
+  label = component.label || component.key;
+  return label;
+});
 
 // Script to render a single string.
 var script = new vm.Script(
@@ -60,7 +76,7 @@ module.exports = {
         context: context
       };
       script.runInContext(vm.createContext(sandbox), {
-        timeout: 500
+        timeout: 100
       });
       rendered = sandbox.output;
     }
@@ -81,7 +97,7 @@ module.exports = {
         context: context
       };
       objScript.runInContext(vm.createContext(sandbox), {
-        timeout: 500
+        timeout: 100
       });
       rendered = sandbox.output;
     }

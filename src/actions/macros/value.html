@@ -1,0 +1,6 @@
+{% macro value(key) %}
+{{ data | componentValue(key, components) }}
+{% endmacro %}
+{% macro label(key) %}
+{{ key | componentLabel(components) }}
+{% endmacro %}
