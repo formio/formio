@@ -7,6 +7,7 @@ var mailgunTransport = require('nodemailer-mailgun-transport');
 var nunjucks = require('./nunjucks');
 var debug = require('debug')('formio:settings:email');
 var rest = require('restler');
+var util = require('./util');
 var _ = require('lodash');
 
 /**
@@ -88,6 +89,36 @@ module.exports = function(formio) {
         subject: subject,
         message: message
       };
+    },
+    getParams: function(res, form, submission) {
+      var params = _.cloneDeep(submission);
+      if (res && res.resource && res.resource.item) {
+        if (typeof res.resource.item.toObject === 'function') {
+          params = _.assign(params, res.resource.item.toObject());
+        }
+        else {
+          params = _.assign(params, res.resource.item);
+        }
+        params.id = params._id.toString();
+      }
+
+      // The form components.
+      params.components = {};
+
+      // Flatten the resource data.
+      util.eachComponent(form.components, function(component) {
+        params.components[component.key] = component;
+        if (component.type === 'resource' && params.data[component.key]) {
+          params.data[component.key + 'Obj'] = params.data[component.key];
+          params.data[component.key] = nunjucks.render(component.template, {
+            item: params.data[component.key]
+          });
+        }
+      });
+
+      // Get the parameters for the email.
+      params.form = form;
+      return params;
     },
     send: function(req, res, message, params, next) {
       // The transporter object.
@@ -297,7 +328,9 @@ module.exports = function(formio) {
       }.bind(this));
 
       // Move onto the next action immediately.
-      return next();
+      if (next) {
+        return next();
+      }
     }
   };
 };

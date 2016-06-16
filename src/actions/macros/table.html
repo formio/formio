@@ -1,9 +1,9 @@
 {% macro dataValue(dValue) %}
   {% if dValue | is_object %}
-    <table>
+    <table border="1" style="width:100%">
       {% for dValueKey, dValueValue in dValue %}
         <tr>
-          <td>{{ dValueKey }}<td>
+          <th>{{ dValueKey }}<th>
           <td>{{ dataValue(dValueValue) }}</td>
         </tr>
       {% endfor %}
@@ -28,7 +28,7 @@
       {% endfor %}
     {% endif %}
   {% endfor %}
-  <table>
+  <table border="1" style="width:100%">
     <tbody>
       {% if title %}
         <tr><td colspan="2"><h2>{{ title }}</h2></td></tr>

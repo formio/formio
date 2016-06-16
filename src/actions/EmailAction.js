@@ -1,7 +1,4 @@
 'use strict';
-var _ = require('lodash');
-var util = require('../util/util');
-var nunjucks = require('../util/nunjucks');
 var request = require('request');
 
 module.exports = function(router) {
@@ -160,29 +157,8 @@ module.exports = function(router) {
         return next(new Error('Form not found.'));
       }
 
-      var params = _.cloneDeep(req.body);
-      if (res && res.resource && res.resource.item) {
-        if (typeof res.resource.item.toObject === 'function') {
-          params = _.assign(params, res.resource.item.toObject());
-        }
-        else {
-          params = _.assign(params, res.resource.item);
-        }
-        params.id = params._id.toString();
-      }
-
-      // Flatten the resource data.
-      util.eachComponent(form.components, function(component) {
-        if (component.type === 'resource' && params.data[component.key]) {
-          params.data[component.key + 'Obj'] = params.data[component.key];
-          params.data[component.key] = nunjucks.render(component.template, {
-            item: params.data[component.key]
-          });
-        }
-      });
-
-      // Get the parameters for the email.
-      params.form = form;
+      // Get the email parameters.
+      var params = emailer.getParams(res, form, req.body);
 
       var query = {
         _id: params.owner,

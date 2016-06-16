@@ -2,6 +2,7 @@
 'use strict';
 
 var assert = require('assert');
+var fs = require('fs');
 
 module.exports = function(app, template, hook) {
 
@@ -96,6 +97,84 @@ module.exports = function(app, template, hook) {
       var test = nunjucks.render('{{ "test" | secret }}', params);
       assert.equal(test, '5678');
       done();
+    });
+  });
+
+  describe('Email Template Rendering', function() {
+    var email = require('../src/util/email')(app.formio);
+    var macros = require('../src/actions/macros/macros');
+    var sendMessage = function(to, from, message, cb) {
+      var dirName = 'fixtures/email/' + message + '/';
+      var submission = require('./' + dirName + 'submission.json');
+      var form = require('./' + dirName + 'form.json');
+      var res = {
+        token: '098098098098',
+        resource: {
+          item: submission
+        }
+      };
+      var req = {
+        params: {
+          formId: form._id
+        },
+        query: {
+          test: 1
+        },
+        user: {
+          _id: '123123123',
+          data: {
+            email: 'test@example.com',
+            fullName: 'Joe Smith'
+          }
+        }
+      };
+      var messageText = macros;
+      messageText += fs.readFileSync(__dirname + '/' + dirName + 'message.html').toString()
+      var message = {
+        transport: 'test',
+        from: from,
+        emails: to,
+        sendEach: false,
+        subject: 'New submission for {{ form.title }}.',
+        template: '',
+        message: messageText
+      };
+      var params = email.getParams(res, form, submission);
+      email.send(req, res, message, params, cb);
+    };
+
+    var getProp = function(type, name, message) {
+      var regExp = new RegExp('---' + name + type + ':(.*?)---');
+      var matches = message.match(regExp);
+      if (matches.length > 1) {
+        return matches[1];
+      }
+      return '';
+    };
+
+    var getValue = function(name, message) {
+      return getProp('Value', name, message);
+    };
+
+    var getLabel = function(name, message) {
+      return getProp('Label', name, message);
+    };
+
+    it('Should render an email with all the form and submission variables.', function(done) {
+      template.hooks.onEmails(1, function(emails) {
+        var email = emails[0];
+        assert.equal(email.subject, 'New submission for Test Form.');
+        assert.equal(getLabel('firstName', email.html), 'First Name');
+        assert.equal(getValue('firstName', email.html), 'Joe');
+        assert.equal(getLabel('lastName', email.html), 'Last Name');
+        assert.equal(getValue('lastName', email.html), 'Smith');
+        assert.equal(getLabel('birthdate', email.html), 'Birth Date');
+        assert.equal(getValue('birthdate', email.html), '2016-06-17');
+        assert.equal(getValue('vehicles', email.html), '<table border="1" style="width:100%"><tr><th>Make</th><th>Model</th><th>Year</th></tr><tr><td>Chevy</td><td>Suburban</td><td>2014</td></tr><tr><td>Chevy</td><td>Tahoe</td><td>2014</td></tr><tr><td>Ford</td><td>F150</td><td>2011</td></tr></table>');
+        assert.equal(getValue('house', email.html), '<table border="1" style="width:100%"><tr><th>Area</th><td>2500</td></tr><tr><th>Single Family</th><td>true</td></tr><tr><th>Rooms</th><td>Master, Bedroom, Full Bath, Half Bath, Kitchen, Dining, Living, Garage</td></tr><tr><th>Address</th><td>1234 Main, Hampton, AR 71744, USA</td></tr></table>');
+        done();
+      });
+      sendMessage(['test@example.com'], 'me@example.com', 'test1');
     });
   });
 };
