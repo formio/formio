@@ -1,7 +1,4 @@
 'use strict';
-var _ = require('lodash');
-var util = require('../util/util');
-var nunjucks = require('../util/nunjucks');
 var request = require('request');
 
 module.exports = function(router) {

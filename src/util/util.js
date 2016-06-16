@@ -183,7 +183,7 @@ module.exports = {
         compValue.value = '--- PASSWORD ---';
         break;
       case 'address':
-        compValue.value = compValue.value.formatted_address
+        compValue.value = compValue.value.formatted_address;
         break;
       case 'signature':
         compValue.value = '<img src="' + value + '" />';
@@ -223,7 +223,6 @@ module.exports = {
           compValue.value += '</tr>';
         }.bind(this));
         compValue.value += '</table>';
-        break;
         break;
       case 'datetime':
         var dateFormat = '';
