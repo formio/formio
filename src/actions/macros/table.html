@@ -7,7 +7,7 @@
           <td style="width:100%;padding:5px 10px;">{{ dataValue(dValueValue) }}</td>
         </tr>
       {% endfor %}
-    </table>
+    </table><br/>
   {% elif dValue | is_array %}
     <ul>
       {% for arrayValue in dValue %}
@@ -55,7 +55,7 @@
         {% endif %}
       {% endfor %}
     </tbody>
-  </table>
+  </table><br/>
   {% for component in components %}
     {% if component.type == 'panel' %}
       {{ dataTable(component.components, submissionData, component.title) }}
