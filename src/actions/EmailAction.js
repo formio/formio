@@ -183,7 +183,7 @@ module.exports = function(router) {
         if (this.settings.template) {
           request(this.settings.template, function(error, response, body) {
             if (!error && response.statusCode === 200) {
-              sendEmail(body);
+              sendEmail(macros + body);
             }
             else {
               sendEmail(macros + this.settings.message);
