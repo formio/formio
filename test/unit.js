@@ -101,6 +101,10 @@ module.exports = function(app, template, hook) {
   });
 
   describe('Email Template Rendering', function() {
+    if (process.env.DOCKER) {
+      return;
+    }
+
     var email = require('../src/util/email')(app.formio);
     var macros = require('../src/actions/macros/macros');
     var sendMessage = function(to, from, message, cb) {
