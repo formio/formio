@@ -158,7 +158,15 @@ Validator.prototype.buildIgnoreList = function(submission) {
    *
    * @private
    */
+  var _sweepConditionalsCalled = false;
   var _sweepConditionals = function() {
+    if (_sweepConditionalsCalled) {
+      return;
+    }
+    else {
+      _sweepConditionalsCalled = true;
+    }
+
     this.form = this.form || {};
     this.form.components = this.form.components || [];
     util.eachComponent(this.form.components, function(component) {
@@ -286,12 +294,12 @@ Validator.prototype.buildIgnoreList = function(submission) {
 
   // Toggle every conditional.
   var allConditionals = Object.keys(_conditionals);
-  _.forEach(allConditionals || [], function(componentKey) {
+  (allConditionals || []).forEach(function(componentKey) {
     _toggleConditional(componentKey);
   });
 
   var allCustomConditionals = Object.keys(_customConditionals);
-  _.forEach(allCustomConditionals || [], function(componentKey) {
+  (allCustomConditionals || []).forEach(function(componentKey) {
     _toggleCustomConditional(componentKey);
   });
 
