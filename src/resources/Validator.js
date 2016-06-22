@@ -303,10 +303,16 @@ Validator.prototype.buildIgnoreList = function(submission) {
           : !boolean[cond.show];
       }
       // Special check for check boxes component.
-      else if (typeof value !== 'undefined' && typeof value === 'object' && Object.keys(value).length !== 0) {
-        show[componentKey] = boolean.hasOwnProperty(value[cond.eq])
-          ? boolean[value[cond.eq]]
-          : true;
+      else if (typeof value !== 'undefined' && typeof value === 'object') {
+        // Only update the visibility is present, otherwise hide, because it was deleted by the submission sweep.
+        if (value.hasOwnProperty(cond.eq)) {
+          show[componentKey] = boolean.hasOwnProperty(value[cond.eq])
+            ? boolean[value[cond.eq]]
+            : true;
+        }
+        else {
+          show[componentKey] = false;
+        }
       }
       // Check against the components default value, if present and the components hasnt been interacted with.
       else if (typeof value === 'undefined' && cond.hasOwnProperty('defaultValue')) {
@@ -317,11 +323,6 @@ Validator.prototype.buildIgnoreList = function(submission) {
       // If there is no value, we still need to process as not equal.
       else {
         show[componentKey] = !boolean[cond.show];
-      }
-
-      // If a component is hidden, delete its value, so other conditionals are property chain reacted.
-      if (!show[componentKey]) {
-        return sweepSubmission();
       }
     }
   };
@@ -363,11 +364,6 @@ Validator.prototype.buildIgnoreList = function(submission) {
         // Default to true, if a validation error occurred.
         show[componentKey] = true;
       }
-
-      // If a component is hidden, delete its value, so other conditionals are property chain reacted.
-      if (!show[componentKey]) {
-        return sweepSubmission();
-      }
     }
   };
 
@@ -383,6 +379,14 @@ Validator.prototype.buildIgnoreList = function(submission) {
   var allCustomConditionals = Object.keys(_customConditionals);
   (allCustomConditionals || []).forEach(function(componentKey) {
     _toggleCustomConditional(componentKey);
+  });
+
+  var allHidden = Object.keys(show);
+  (allHidden || []).forEach(function(componentKey) {
+    // If a component is hidden, delete its value, so other conditionals are property chain reacted.
+    if (!show[componentKey]) {
+      return sweepSubmission();
+    }
   });
 
   // Iterate each component were supposed to show, if we find one we're not supposed to show, add it to the ignore.
