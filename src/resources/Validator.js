@@ -147,6 +147,83 @@ Validator.prototype.buildIgnoreList = function(submission) {
     'false': false
   };
 
+  /**
+   * Sweep the current submission, to identify and remove data that has been conditionally hidden.
+   *
+   * This will iterate over every key in the submission data obj, regardless of the structure.
+   */
+  var sweepSubmission = function() {
+    /**
+     * Sweep the given component keys and remove any data for the given keys which are being conditionally hidden.
+     *
+     * @param {Object} components
+     *   The list of components to sweep.
+     * @param {Boolean} ret
+     *   Whether or not you want to know if a modification needs to be made.
+     */
+    var sweep = function sweep(components, ret) {
+      // Skip our unwanted types.
+      if (components === null || typeof components === 'undefined') {
+        if (ret) {
+          return false;
+        }
+        return;
+      }
+
+      // If given a string, then we are looking at the api key of a component.
+      if (typeof components === 'string') {
+        if (!show[components]) {
+          if (ret) {
+            return true;
+          }
+          return;
+        }
+      }
+      // If given an array, iterate over each element, assuming its not a string itself.
+      // If each element is a string, then we aren't looking at a component, but data itself.
+      else if (components instanceof Array) {
+        var filtered = [];
+
+        components.forEach(function(component) {
+          if (typeof component === 'string') {
+            filtered.push(component);
+            return;
+          }
+
+          // Recurse into the components of this component.
+          var modified = sweep(component, true);
+          if (!modified) {
+            filtered.push(component);
+          }
+        });
+
+        components = filtered;
+        return;
+      }
+      // If given an object, iterate the properties as component keys.
+      else if (typeof components === 'object') {
+        Object.keys(components).forEach(function(key) {
+          // If the key is deleted, delete the whole obj.
+          var modifiedKey = sweep(key, true);
+          if (modifiedKey) {
+            delete components[key];
+          }
+          else {
+            // If a child leaf is modified (non key) delete its whole subtree.
+            if (components[key] instanceof Array || typeof components[key] === 'object') {
+              // If the component can have sub-components, recurse.
+              sweep(components[key]);
+            }
+          }
+        });
+        return;
+      }
+
+      return;
+    };
+    return sweep(submission.data || {});
+  };
+
   // The list of all conditionals.
   var _conditionals = {};
 
@@ -192,6 +269,11 @@ Validator.prototype.buildIgnoreList = function(submission) {
 
         // Keys should be unique, so don't worry about clobbering an existing duplicate.
         _conditionals[component.key] = component.conditional;
+
+        // Store the components default value for conditional logic, if present.
+        if (component.hasOwnProperty('defaultValue')) {
+          _conditionals[component.key].defaultValue = component.defaultValue;
+        }
       }
       // Custom conditional logic.
       else if (component.customConditional) {
@@ -212,7 +294,7 @@ Validator.prototype.buildIgnoreList = function(submission) {
   var _toggleConditional = function(componentKey) {
     if (_conditionals.hasOwnProperty(componentKey)) {
       var cond = _conditionals[componentKey];
-      var value = submission.data[cond.when];
+      var value = util.getValue(submission, cond.when);
 
       if (typeof value !== 'undefined' && typeof value !== 'object') {
         // Check if the conditional value is equal to the trigger value
@@ -221,7 +303,7 @@ Validator.prototype.buildIgnoreList = function(submission) {
           : !boolean[cond.show];
       }
       // Special check for check boxes component.
-      else if (typeof value !== 'undefined' && typeof value === 'object') {
+      else if (typeof value !== 'undefined' && typeof value === 'object' && Object.keys(value).length !== 0) {
         show[componentKey] = boolean.hasOwnProperty(value[cond.eq])
           ? boolean[value[cond.eq]]
           : true;
@@ -239,7 +321,7 @@ Validator.prototype.buildIgnoreList = function(submission) {
 
       // If a component is hidden, delete its value, so other conditionals are property chain reacted.
       if (!show[componentKey]) {
-        delete submission.data[componentKey];
+        return sweepSubmission();
       }
     }
   };
@@ -284,7 +366,7 @@ Validator.prototype.buildIgnoreList = function(submission) {
 
       // If a component is hidden, delete its value, so other conditionals are property chain reacted.
       if (!show[componentKey]) {
-        delete submission.data[componentKey];
+        return sweepSubmission();
       }
     }
   };
