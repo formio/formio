@@ -220,8 +220,8 @@ module.exports = {
         _.each(value, function(subValue, subKey) {
           var subCompValue = this.renderComponentValue(value, subKey, components);
           compValue.value += '<tr>';
-          compValue.value += '<th>' + subCompValue.label + '</th>';
-          compValue.value += '<td>' + subCompValue.value + '</td>';
+          compValue.value += '<th style="text-align:right;padding: 5px 10px;">' + subCompValue.label + '</th>';
+          compValue.value += '<td style="width:100%;padding:5px 10px;">' + subCompValue.value + '</td>';
           compValue.value += '</tr>';
         }.bind(this));
         compValue.value += '</table>';
@@ -239,13 +239,15 @@ module.exports = {
         compValue.value += '<tr>';
         _.each(columns, function(column) {
           var subLabel = column.label || column.key;
-          compValue.value += '<th>' + subLabel + '</th>';
+          compValue.value += '<th style="padding: 5px 10px;">' + subLabel + '</th>';
         });
         compValue.value += '</tr>';
         _.each(value, function(subValue) {
           compValue.value += '<tr>';
           _.each(columns, function(column) {
-            compValue.value += '<td>' + this.renderComponentValue(subValue, column.key, components).value + '</td>';
+            compValue.value += '<td style="padding:5px 10px;">';
+            compValue.value += this.renderComponentValue(subValue, column.key, components).value;
+            compValue.value += '</td>';
           }.bind(this));
           compValue.value += '</tr>';
         }.bind(this));
@@ -288,6 +290,8 @@ module.exports = {
       compValue.value = '--- PROTECTED ---';
     }
 
+    // Ensure the value is a string.
+    compValue.value = compValue.value.toString();
     return compValue;
   },
 

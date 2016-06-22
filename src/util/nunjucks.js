@@ -76,7 +76,7 @@ module.exports = {
         context: context
       };
       script.runInContext(vm.createContext(sandbox), {
-        timeout: 100
+        timeout: 500
       });
       rendered = sandbox.output;
     }
@@ -97,7 +97,7 @@ module.exports = {
         context: context
       };
       objScript.runInContext(vm.createContext(sandbox), {
-        timeout: 100
+        timeout: 500
       });
       rendered = sandbox.output;
     }

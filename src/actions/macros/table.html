@@ -3,11 +3,11 @@
     <table border="1" style="width:100%">
       {% for dValueKey, dValueValue in dValue %}
         <tr>
-          <th>{{ dValueKey }}<th>
-          <td>{{ dataValue(dValueValue) }}</td>
+          <th style="text-align:right;padding: 5px 10px;">{{ dValueKey }}<th>
+          <td style="width:100%;padding:5px 10px;">{{ dataValue(dValueValue) }}</td>
         </tr>
       {% endfor %}
-    </table>
+    </table><br/>
   {% elif dValue | is_array %}
     <ul>
       {% for arrayValue in dValue %}
@@ -41,8 +41,8 @@
         {% elif not submissionData[component.key] %}
         {% else %}
           <tr>
-            <td><strong>{{ component.label }}</strong></td>
-            <td>
+            <th style="text-align:right;padding: 5px 10px;">{{ component.label }}</th>
+            <td style="width:100%;padding:5px 10px;">
               {% if component.type == 'password' %}
                 --- PASSWORD ---
               {% elif component.type == 'address' %}
@@ -55,7 +55,7 @@
         {% endif %}
       {% endfor %}
     </tbody>
-  </table>
+  </table><br/>
   {% for component in components %}
     {% if component.type == 'panel' %}
       {{ dataTable(component.components, submissionData, component.title) }}
