@@ -265,7 +265,7 @@ Validator.prototype.buildIgnoreList = function(submission) {
             component.key = key;
           }
         }
-        catch(e) {
+        catch (e) {
           show[component.key] = true;
         }
       }
