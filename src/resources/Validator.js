@@ -141,7 +141,11 @@ Validator.prototype.getValidator = function(component) {
  */
 Validator.prototype.buildIgnoreList = function(submission) {
   // Build the display map.
-  var show = {};
+  var show = {
+    '': true,
+    'undefined': true,
+    'null': true
+  };
   var boolean = {
     'true': true,
     'false': false
@@ -230,6 +234,9 @@ Validator.prototype.buildIgnoreList = function(submission) {
   // The list of all custom conditionals, segregated because they must be run on every change to data.
   var _customConditionals = {};
 
+  // Regex for getting component subkeys.
+  var subkey = /^.+\[(.+)\]$/;
+
   /**
    * Sweep all the components and build the conditionals map.
    *
@@ -248,8 +255,19 @@ Validator.prototype.buildIgnoreList = function(submission) {
     this.form.components = this.form.components || [];
     util.eachComponent(this.form.components, function(component) {
       if (!component.hasOwnProperty('key')) {
-        show[''] = true;
         return;
+      }
+      // Get key inside: something[key]
+      if (subkey.test(component.key)) {
+        try {
+          var key = subkey.exec(component.key)[1];
+          if (key) {
+            component.key = key;
+          }
+        }
+        catch(e) {
+          show[component.key] = true;
+        }
       }
 
       // Show everything by default.
