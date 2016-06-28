@@ -8,7 +8,8 @@ var debug = {
   loadForm: require('debug')('formio:cache:loadForm'),
   loadFormByName: require('debug')('formio:cache:loadFormByName'),
   loadFormByAlias: require('debug')('formio:cache:loadFormByAlias'),
-  loadSubmission: require('debug')('formio:cache:loadSubmission')
+  loadSubmission: require('debug')('formio:cache:loadSubmission'),
+  error: require('debug')('formio:error')
 };
 
 module.exports = function(router) {
@@ -74,6 +75,7 @@ module.exports = function(router) {
       }
       catch (e) {
         debug.loadForm(e);
+        debug.error(e);
         return cb('Invalid Form Id given.');
       }
 
@@ -154,6 +156,7 @@ module.exports = function(router) {
       }
       catch (e) {
         debug.loadSubmission(e);
+        debug.error(e);
         return cb('Invalid Form Id given.');
       }
 
@@ -162,6 +165,7 @@ module.exports = function(router) {
       }
       catch (e) {
         debug.loadSubmission(e);
+        debug.error(e);
         return cb('Invalid Submission Id given.');
       }
 

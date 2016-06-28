@@ -5,6 +5,7 @@ var async = require('async');
 var mongoose = require('mongoose');
 var vm = require('vm');
 var _ = require('lodash');
+var debug = require('debug')('formio:error');
 
 /**
  * The ActionIndex export.
@@ -191,6 +192,7 @@ module.exports = function(router) {
               execute = sandbox.execute;
             }
             catch (e) {
+              debug(e);
               execute = false;
             }
           }

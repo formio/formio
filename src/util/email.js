@@ -5,7 +5,10 @@ var sgTransport = require('nodemailer-sendgrid-transport');
 var mandrillTransport = require('nodemailer-mandrill-transport');
 var mailgunTransport = require('nodemailer-mailgun-transport');
 var nunjucks = require('./nunjucks');
-var debug = require('debug')('formio:settings:email');
+var debug = {
+  email: require('debug')('formio:settings:email'),
+  error: require('debug')('formio:error')
+};
 var rest = require('restler');
 var util = require('./util');
 var _ = require('lodash');
@@ -21,7 +24,7 @@ module.exports = function(formio) {
     availableTransports: function(req, next) {
       hook.settings(req, function(err, settings) {
         if (err) {
-          debug(err);
+          debug.email(err);
           return next(err);
         }
 
@@ -150,6 +153,7 @@ module.exports = function(formio) {
             mail = nunjucks.renderObj(mail, params);
           }
           catch (e) {
+            debug.error(e);
             mail = null;
           }
         }
@@ -194,14 +198,14 @@ module.exports = function(formio) {
       // Get the settings.
       hook.settings(req, function(err, settings) { // eslint-disable-line max-statements
         if (err) {
-          debug(err);
+          debug.email(err);
           return;
         }
 
         var _config = (formio && formio.config && formio.config.email && formio.config.email.type);
 
-        debug(formio.config);
-        debug(emailType);
+        debug.email(formio.config);
+        debug.email(emailType);
         switch (emailType) {
           case 'default':
             if (_config && formio.config.email.type === 'sendgrid') {
@@ -233,7 +237,7 @@ module.exports = function(formio) {
             }
             break;
           case 'sendgrid':
-            debug(settings.email.sendgrid);
+            debug.email(settings.email.sendgrid);
             if (settings.email.sendgrid) {
               // Check if the user has configured sendgrid for api key access.
               if (_.get(settings, 'email.sendgrid.auth.api_user')
@@ -242,7 +246,7 @@ module.exports = function(formio) {
                 settings.email.sendgrid.auth = _.omit(settings.email.sendgrid.auth, 'api_user');
               }
 
-              debug(settings.email.sendgrid);
+              debug.email(settings.email.sendgrid);
               transporter = nodemailer.createTransport(sgTransport(settings.email.sendgrid));
             }
             break;
