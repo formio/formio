@@ -92,7 +92,7 @@ module.exports = function(router) {
             user = user.toObject();
           }
           catch (e) {
-            debug.error(e);
+            //debug.error(e);
           }
         }
 
