@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "1.8.26",
+  "version": "1.8.27",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
@@ -53,7 +53,7 @@
     "prompt": "^0.2.14",
     "q": "^1.2.0",
     "request": "^2.64.0",
-    "resourcejs": "1.2.1",
+    "resourcejs": "1.2.2",
     "restler": "^3.2.2",
     "semver": "^5.1.0",
     "through": "^2.3.7"
