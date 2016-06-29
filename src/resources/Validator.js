@@ -5,7 +5,10 @@ var _ = require('lodash');
 var vm = require('vm');
 var util = require('../util/util');
 var async = require('async');
-var debug = require('debug')('formio:validator');
+var debug = {
+  validator: require('debug')('formio:validator'),
+  error: require('debug')('formio:error')
+};
 
 /**
  * @TODO: Add description.
@@ -266,6 +269,7 @@ Validator.prototype.buildIgnoreList = function(submission) {
           }
         }
         catch (e) {
+          debug.error(e);
           show[component.key] = true;
         }
       }
@@ -377,8 +381,9 @@ Validator.prototype.buildIgnoreList = function(submission) {
         }
       }
       catch (e) {
-        debug('Custom Conditional Error: ');
-        debug(e);
+        debug.validator('Custom Conditional Error: ');
+        debug.validator(e);
+        debug.error(e);
         // Default to true, if a validation error occurred.
         show[componentKey] = true;
       }
@@ -416,7 +421,8 @@ Validator.prototype.buildIgnoreList = function(submission) {
       }
     }
     catch (e) {
-      debug(e);
+      debug.error(e);
+      debug.validator(e);
     }
   }.bind(this));
 };
@@ -477,11 +483,11 @@ Validator.prototype.buildSchema = function() {
 Validator.prototype.validate = function(submission, next) {
   var valid = true;
   var error = null;
-  debug('Starting validation');
+  debug.validator('Starting validation');
 
   // Skip validation if no data is provided.
   if (!submission.data) {
-    debug('No data skipping validation');
+    debug.validator('No data skipping validation');
     return next();
   }
 
@@ -499,7 +505,7 @@ Validator.prototype.validate = function(submission, next) {
   var joiValidate = function() {
     Joi.validate(submission.data, this.schema, {stripUnknown: true}, function(validateErr, value) {
       if (validateErr) {
-        debug(validateErr);
+        debug.validator(validateErr);
         return next(validateErr);
       }
 
@@ -535,6 +541,7 @@ Validator.prototype.validate = function(submission, next) {
         valid = sandbox.valid;
       }
       catch (err) {
+        debug.error(err);
         // Say this isn't valid based on bad code executed...
         valid = err.toString();
       }
@@ -554,7 +561,7 @@ Validator.prototype.validate = function(submission, next) {
   // If an error has occured in custom validation, fail immediately.
   if (error) {
     var temp = {name: 'ValidationError', details: [error]};
-    debug(error);
+    debug.validator(error);
     return next(temp);
   }
 
@@ -565,14 +572,14 @@ Validator.prototype.validate = function(submission, next) {
       var component = this.unique[key];
 
       // Unique fields must always be set with a value.
-      debug('Key: ' + key);
+      debug.validator('Key: ' + key);
       if (
         !submission.data.hasOwnProperty(key) &&
         !submission.data[key]
       ) {
         // Throw an error if this isn't a resource field.
         if (key.indexOf('.') === -1) {
-          debug('Unique field: ' + key + ', was not a resource field.');
+          debug.validator('Unique field: ' + key + ', was not a resource field.');
           return done(new Error('Unique fields cannot be empty.'));
         }
         else {
@@ -590,10 +597,10 @@ Validator.prototype.validate = function(submission, next) {
       }
 
       // Try to find an existing value within the form.
-      debug(query);
+      debug.validator(query);
       this.model.findOne(query, function(err, result) {
         if (err) {
-          debug(err);
+          debug.validator(err);
           return done(err);
         }
         if (result && submission._id && (result._id.toString() === submission._id)) {

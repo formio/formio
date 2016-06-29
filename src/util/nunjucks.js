@@ -5,7 +5,10 @@ var vm = require('vm');
 var nunjucks = require('nunjucks');
 var dateFilter = require('nunjucks-date-filter');
 var _ = require('lodash');
-var debug = require('debug')('formio:util:nunjucks');
+var debug = {
+  nunjucks: require('debug')('formio:util:nunjucks'),
+  error: require('debug')('formio:error')
+};
 var util = require('./util');
 
 // Configure nunjucks to not watch any files
@@ -81,7 +84,8 @@ module.exports = {
       rendered = sandbox.output;
     }
     catch (e) {
-      debug(e);
+      debug.nunjucks(e);
+      debug.error(e);
       rendered = null;
     }
     return rendered;
@@ -102,7 +106,8 @@ module.exports = {
       rendered = sandbox.output;
     }
     catch (e) {
-      debug(e);
+      debug.nunjucks(e);
+      debug.error(e);
       rendered = null;
     }
     return rendered;

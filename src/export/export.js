@@ -4,6 +4,7 @@ var exporters = require('./index');
 var _ = require('lodash');
 var through = require('through');
 var _url = require('url');
+var debug = require('debug')('formio:error');
 
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
@@ -36,6 +37,7 @@ module.exports = function(router) {
           query = JSON.parse(req.headers['x-query']);
         }
         catch (e) {
+          debug(e);
           router.formio.util.log(e);
         }
       }

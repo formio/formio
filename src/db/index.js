@@ -5,7 +5,10 @@ var MongoClient = require('mongodb').MongoClient;
 var semver = require('semver');
 var _ = require('lodash');
 var fs = require('fs');
-var debug = require('debug')('formio:db');
+var debug = {
+  db: require('debug')('formio:db'),
+  error: require('debug')('formio:error')
+};
 var path = require('path');
 
 // The mongo database connection.
@@ -83,7 +86,7 @@ module.exports = function(formio) {
         }
 
         currentLock = result.value;
-        debug('Lock unlocked');
+        debug.db('Lock unlocked');
         next();
       }
     );
@@ -111,7 +114,7 @@ module.exports = function(formio) {
     // Establish a connection and continue with execution.
     MongoClient.connect(dbUrl, function(err, connection) {
       if (err) {
-        debug('Connection Error: ' + err);
+        debug.db('Connection Error: ' + err);
         unlock(function() {
           throw new Error('Could not connect to the given Database for server updates: ' + dbUrl + '.');
         });
@@ -139,7 +142,7 @@ module.exports = function(formio) {
   var checkInstall = function(next) {
     formio.util.log('Checking for db install.');
     db.listCollections().toArray().then(function(collections) {
-      debug('Collections found: ' + collections.length);
+      debug.db('Collections found: ' + collections.length);
       // 3 is an arbitrary length. We just want a general idea that things have been installed.
       if (collections.length < 3) {
         formio.util.log(' > No install found. Starting new install.');
@@ -177,6 +180,7 @@ module.exports = function(formio) {
             }
           }
           catch (err) {
+            debug.error(err);
             formio.util.log(' > Unable to use old db secret key.');
           }
         }
@@ -306,7 +310,7 @@ module.exports = function(formio) {
       }
 
       files = files.map(function(name) {
-        debug('Update found: ' + name);
+        debug.db('Update found: ' + name);
         return name.split('.js')[0];
       });
 
@@ -317,7 +321,7 @@ module.exports = function(formio) {
         }
 
         updates = files.sort(semver.compare);
-        debug('Final updates');
+        debug.db('Final updates');
         next();
       });
     });
@@ -343,14 +347,14 @@ module.exports = function(formio) {
       // Engage the lock.
       else if (!document || document.length === 0) {
         // Create a new lock, because one was not present.
-        debug('Creating a lock, because one was not found.');
+        debug.db('Creating a lock, because one was not found.');
         schema.insertOne({key: 'formio', isLocked: (new Date()).getTime(), version: '0.0.0'}, function(err, document) {
           if (err) {
             return next(err);
           }
 
           currentLock = document.ops[0];
-          debug('Created a new lock');
+          debug.db('Created a new lock');
           next();
         });
       }
@@ -358,7 +362,7 @@ module.exports = function(formio) {
         return next('More than one lock was found, terminating updates.');
       }
       else {
-        debug(document);
+        debug.db(document);
         currentLock = document[0];
 
         if (currentLock.isLocked) {
@@ -376,7 +380,7 @@ module.exports = function(formio) {
               }
 
               currentLock = result.value;
-              debug('Lock engaged');
+              debug.db('Lock engaged');
               next();
             }
           );
@@ -410,7 +414,7 @@ module.exports = function(formio) {
 
     // Versions are the same, skip updates.
     if (semver.eq(code, database)) {
-      debug('Current database (' + database + ') and Pending code sversions (' + code + ') are the same.');
+      debug.db('Current database (' + database + ') and Pending code sversions (' + code + ') are the same.');
       return false;
     }
     else if (semver.gt(database, code)) {
@@ -456,7 +460,7 @@ module.exports = function(formio) {
     });
 
     // Only take action if outstanding updates exist.
-    debug('Pending updates');
+    debug.db('Pending updates');
     if (pending.length > 0) {
       async.eachSeries(pending, function(pending, callback) {
         formio.util.log(' > Starting schema update to ' + pending);
@@ -469,24 +473,22 @@ module.exports = function(formio) {
         try {
           _update = formio.hook.alter('updateLocation', pending);
         }
-        /* eslint-disable no-empty */
         catch (e) {
-          debug(e);
+          debug.error(e);
+          debug.db(e);
         }
-        /* eslint-enable no-empty */
 
         // No private update was found, check the public location.
-        debug('_update:');
-        debug(_update);
+        debug.db('_update:');
+        debug.db(_update);
         if (_update === null) {
           try {
             _update = require(__dirname + '/updates/' + pending);
           }
-          /* eslint-disable no-empty */
           catch (e) {
-            debug(e);
+            debug.error(e);
+            debug.db(e);
           }
-          /* eslint-enable no-empty */
         }
 
         // Attempt to resolve the update.
@@ -495,10 +497,10 @@ module.exports = function(formio) {
             return callback('Could not resolve the path for update: ' + pending);
           }
 
-          debug('Update Params:');
-          debug(db);
-          debug(config);
-          debug(tools);
+          debug.db('Update Params:');
+          debug.db(db);
+          debug.db(config);
+          debug.db(tools);
           _update(db, config, tools, function(err) {
             if (err) {
               return callback(err);
@@ -508,11 +510,12 @@ module.exports = function(formio) {
           });
         }
         catch (e) {
+          debug.error(e);
           return callback(e);
         }
       }, function(err) {
         if (err) {
-          debug(err);
+          debug.db(err);
           return next(err);
         }
 
@@ -536,7 +539,7 @@ module.exports = function(formio) {
     if (process.env.TEST_SUITE) {
       return connection(function(err) {
         if (err) {
-          debug(err);
+          debug.db(err);
           return next(err);
         }
 
@@ -555,7 +558,7 @@ module.exports = function(formio) {
     ], function(err) {
       unlock(function() {
         if (err) {
-          debug(err);
+          debug.db(err);
           return next(err);
         }
 

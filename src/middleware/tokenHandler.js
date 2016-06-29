@@ -2,7 +2,10 @@
 
 var jwt = require('jsonwebtoken');
 var util = require('../util/util');
-var debug = require('debug')('formio:middleware:tokenHandler');
+var debug = {
+  error: require('debug')('formio:error'),
+  handler: require('debug')('formio:middleware:tokenHandler')
+};
 
 /**
  * The Token Handler middleware.
@@ -26,7 +29,7 @@ module.exports = function(router) {
 
     // Skip the token handling if no token was given.
     if (!token) {
-      debug('No token');
+      debug.handler('No token');
       req.user = null;
       req.token = null;
       res.token = null;
@@ -37,7 +40,7 @@ module.exports = function(router) {
     // Decode/refresh the token and store for later middleware.
     jwt.verify(token, router.formio.config.jwt.secret, function(err, decoded) {
       if (err || !decoded) {
-        debug(err || 'Token could not decoded: ' + token);
+        debug.handler(err || 'Token could not decoded: ' + token);
 
         // If the token has expired, send a 440 error (Login Timeout)
         if (err && (err.name === 'JsonWebTokenError')) {
@@ -53,7 +56,7 @@ module.exports = function(router) {
 
       // If this is a temporary token, then decode it and set it in the request.
       if (decoded.temp) {
-        debug('Temp token');
+        debug.handler('Temp token');
         req.tempToken = decoded;
         req.user = null;
         req.token = null;
@@ -88,14 +91,13 @@ module.exports = function(router) {
             // Ensure that the user is a js object and not a mongoose document.
             user = user.toObject();
           }
-          /* eslint-disable no-empty */
           catch (e) {
+            //debug.error(e);
           }
-          /* eslint-enable no-empty */
         }
 
         // Allow anyone to alter the user.
-        debug(user);
+        debug.handler(user);
         hook.alter('user', user, function(err, user) {
           if (err) {
             return next();

@@ -7,6 +7,7 @@ var _ = require('lodash');
 var nunjucks = require('nunjucks');
 nunjucks.configure([], {watch: false});
 var util = require('./src/util/util');
+var debug = require('debug')('formio:error');
 
 module.exports = function(formio, items, done) {
   // The project that was created.
@@ -123,6 +124,7 @@ module.exports = function(formio, items, done) {
         info = JSON.parse(fs.readFileSync(directories[dir] + '/package.json'));
       }
       catch (err) {
+        debug(err);
         done(err);
       }
 
@@ -305,6 +307,7 @@ module.exports = function(formio, items, done) {
           info = JSON.parse(fs.readFileSync(directories[dir] + '/package.json'));
         }
         catch (err) {
+          debug(err);
           done(err);
         }
 
@@ -323,6 +326,7 @@ module.exports = function(formio, items, done) {
         template = JSON.parse(fs.readFileSync(directories[dir] + '/project.json'));
       }
       catch (err) {
+        debug(err);
         done(err);
       }
 
