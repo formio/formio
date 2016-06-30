@@ -232,15 +232,6 @@ module.exports = function(router) {
   var getSettingsForm = function(action, req) {
     var basePath = hook.alter('url', '/form', req);
     var dataSrc = basePath + '/' + req.params.formId + '/components';
-    // The default settings form.
-    var settingsForm = {
-      components: [
-        {type: 'hidden', input: true, key: 'priority'},
-        {type: 'hidden', input: true, key: 'name'},
-        {type: 'hidden', input: true, key: 'title'}
-      ]
-    };
-
     var mainSettings = {
       components: []
     };
@@ -329,7 +320,6 @@ module.exports = function(router) {
       type: 'fieldset',
       input: false,
       tree: true,
-      key: 'condition',
       components: [
         {
           type: 'columns',
@@ -341,7 +331,7 @@ module.exports = function(router) {
                   type: 'select',
                   input: true,
                   label: 'Trigger this action only if field',
-                  key: 'condition[field]',
+                  key: 'field',
                   placeholder: 'Select the conditional field',
                   template: '<span>{{ item.label || item.key }}</span>',
                   dataSrc: 'url',
@@ -354,7 +344,7 @@ module.exports = function(router) {
                   type : 'select',
                   input : true,
                   label : '',
-                  key : 'condition[eq]',
+                  key : 'eq',
                   placeholder : 'Select comparison',
                   template : '<span>{{ item.label }}</span>',
                   dataSrc : 'values',
@@ -380,7 +370,7 @@ module.exports = function(router) {
                   input: true,
                   type: 'textfield',
                   inputType: 'text',
-                  key: 'condition[value]',
+                  key: 'value',
                   placeholder: 'Enter value',
                   multiple: false
                 }
@@ -403,7 +393,7 @@ module.exports = function(router) {
                       label: '',
                       type: 'textarea',
                       input: true,
-                      key: 'condition[custom]',
+                      key: 'custom',
                       placeholder: customPlaceHolder
                     }
                   ]
@@ -420,52 +410,55 @@ module.exports = function(router) {
       type: 'fieldset',
       input: false,
       tree: true,
-      key: 'settings',
       legend: 'Action Settings',
       components: []
     };
 
-    // Add the settings form to the action settings.
-    settingsForm.components.push(actionSettings);
-
-    settingsForm.components.push({
-      type: 'fieldset',
-      input: false,
-      tree: false,
-      key: 'conditions',
-      legend: 'Action Execution',
-      components: mainSettings.components
-    });
-
-    settingsForm.components.push({
-      type: 'fieldset',
-      input: false,
-      tree: false,
-      key: 'conditions',
-      legend: 'Action Conditions (optional)',
-      components: conditionalSettings.components
-    });
-
-    settingsForm.components.push({
-      type: 'htmlelement',
-      tag: 'hr',
-      input: false,
-      content: '',
-      className: ''
-    });
-    settingsForm.components.push({
-      type: 'button',
-      input: true,
-      label: 'Save Action',
-      key: 'submit',
-      size: 'md',
-      leftIcon: '',
-      rightIcon: '',
-      block: false,
-      action: 'submit',
-      disableOnInvalid: true,
-      theme: 'primary'
-    });
+    // The default settings form.
+    var settingsForm = {
+      components: [
+        {type: 'hidden', input: true, key: 'priority'},
+        {type: 'hidden', input: true, key: 'name'},
+        {type: 'hidden', input: true, key: 'title'},
+        actionSettings,
+        {
+          type: 'fieldset',
+          input: false,
+          tree: false,
+          key: 'conditions',
+          legend: 'Action Execution',
+          components: mainSettings.components
+        },
+        {
+          type: 'fieldset',
+          input: false,
+          tree: false,
+          key: 'conditional',
+          legend: 'Action Conditions (optional)',
+          components: conditionalSettings.components
+        },
+        {
+          type: 'htmlelement',
+          tag: 'hr',
+          input: false,
+          content: '',
+          className: ''
+        },
+        {
+          type: 'button',
+          input: true,
+          label: 'Save Action',
+          key: 'submit',
+          size: 'md',
+          leftIcon: '',
+          rightIcon: '',
+          block: false,
+          action: 'submit',
+          disableOnInvalid: true,
+          theme: 'primary'
+        }
+      ]
+    };
 
     // Return the settings form.
     return {
@@ -537,11 +530,16 @@ module.exports = function(router) {
 
           // Add the ability to change the title, and add the other settings.
           settings.actionSettings.components = [{
-            type: 'textfield',
-            input: true,
-            label: 'Title',
-            key: 'title'
-          }].concat(settingsForm);
+            input: false,
+            type: 'container',
+            key: 'settings',
+            components: [{
+              type: 'textfield',
+              input: true,
+              label: 'Title',
+              key: 'title'
+            }].concat(settingsForm)
+          }];
 
           info.settingsForm = settings.settingsForm;
           info.settingsForm.action = hook.alter('url', '/form/' + req.params.formId + '/action', req);
