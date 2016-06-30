@@ -317,7 +317,8 @@ module.exports = function(router) {
     var customPlaceHolder = "// Example: Only execute if submitted roles has 'authenticated'.\n";
     customPlaceHolder +=    "execute = (data.roles.indexOf('authenticated') !== -1);";
     conditionalSettings.components.push({
-      type: 'fieldset',
+      type: 'container',
+      key: 'condition',
       input: false,
       tree: true,
       components: [
@@ -419,7 +420,12 @@ module.exports = function(router) {
       components: [
         {type: 'hidden', input: true, key: 'priority'},
         {type: 'hidden', input: true, key: 'name'},
-        {type: 'hidden', input: true, key: 'title'},
+        {
+          type: 'textfield',
+          input: true,
+          label: 'Title',
+          key: 'title'
+        },
         actionSettings,
         {
           type: 'fieldset',
@@ -433,7 +439,6 @@ module.exports = function(router) {
           type: 'fieldset',
           input: false,
           tree: false,
-          key: 'conditional',
           legend: 'Action Conditions (optional)',
           components: conditionalSettings.components
         },
@@ -533,12 +538,7 @@ module.exports = function(router) {
             input: false,
             type: 'container',
             key: 'settings',
-            components: [{
-              type: 'textfield',
-              input: true,
-              label: 'Title',
-              key: 'title'
-            }].concat(settingsForm)
+            components: settingsForm
           }];
 
           info.settingsForm = settings.settingsForm;
