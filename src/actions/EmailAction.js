@@ -50,7 +50,7 @@ module.exports = function(router) {
           type: 'select',
           input: true,
           label: 'Transport',
-          key: 'settings[transport]',
+          key: 'transport',
           placeholder: 'Select the email transport.',
           template: '<span>{{ item.title }}</span>',
           defaultValue: 'default',
@@ -66,7 +66,7 @@ module.exports = function(router) {
         },
         {
           label: 'From:',
-          key: 'settings[from]',
+          key: 'from',
           inputType: 'text',
           defaultValue: 'no-reply@form.io',
           input: true,
@@ -78,7 +78,7 @@ module.exports = function(router) {
         },
         {
           label: 'To: Email Address',
-          key: 'settings[emails]',
+          key: 'emails',
           inputType: 'text',
           defaultValue: '',
           input: true,
@@ -93,13 +93,13 @@ module.exports = function(router) {
         },
         {
           label: 'Send a separate email to each recipient',
-          key: 'settings[sendEach]',
+          key: 'sendEach',
           type: 'checkbox',
           input: true
         },
         {
           label: 'Subject',
-          key: 'settings[subject]',
+          key: 'subject',
           inputType: 'text',
           defaultValue: 'New submission for {{ form.title }}.',
           input: true,
@@ -109,7 +109,7 @@ module.exports = function(router) {
         },
         {
           label: 'Email Template URL',
-          key: 'settings[template]',
+          key: 'template',
           inputType: 'text',
           type: 'textfield',
           multiple: false,
@@ -117,7 +117,7 @@ module.exports = function(router) {
         },
         {
           label: 'Message',
-          key: 'settings[message]',
+          key: 'message',
           type: 'textarea',
           defaultValue: '{{ table(form.components) }}',
           multiple: false,

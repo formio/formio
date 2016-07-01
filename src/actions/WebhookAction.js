@@ -33,7 +33,7 @@ module.exports = function(router) {
     next(null, [
       {
         label: 'Webhook URL',
-        key: 'settings[url]',
+        key: 'url',
         inputType: 'text',
         defaultValue: '',
         input: true,
@@ -48,7 +48,7 @@ module.exports = function(router) {
       },
       {
         label: 'Authorize User',
-        key: 'settings[username]',
+        key: 'username',
         inputType: 'text',
         defaultValue: '',
         input: true,
@@ -58,7 +58,7 @@ module.exports = function(router) {
       },
       {
         label: 'Authorize Password',
-        key: 'settings[password]',
+        key: 'password',
         inputType: 'password',
         defaultValue: '',
         input: true,

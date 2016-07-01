@@ -47,7 +47,7 @@ module.exports = function(router) {
     next(null, [
       {
         type: 'resourcefields',
-        key: 'settings[resource]',
+        key: 'resource',
         title: 'Save submission to',
         placeholder: 'This form',
         basePath: hook.alter('url', '/form', req),
