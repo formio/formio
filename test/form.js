@@ -5,6 +5,8 @@ var request = require('supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var chance = new (require('chance'))();
+var formioUtils = require('formio-utils');
+var async = require('async');
 
 module.exports = function(app, template, hook) {
   describe('Forms', function() {
@@ -82,6 +84,84 @@ module.exports = function(app, template, hook) {
           })
           .expect(400)
           .end(done);
+      });
+
+      it('Form components with invalid keys, are filtered', function(done) {
+        var temp = {
+          title: chance.word(),
+          name: chance.word(),
+          path: chance.word(),
+          components: [{
+            inputType: 'text',
+            type: 'textfield',
+            key: 'bad[key]',
+            input: true
+          }, {
+            inputType: 'text',
+            type: 'textfield',
+            input: false,
+            key: 'another[something]'
+          }, {
+            inputType: 'text',
+            type: 'textfield',
+            key: 'invalid[true]'
+          }, {
+            type: 'container',
+            key: 'container',
+            input: true,
+            components: [
+              {
+                inputType: 'text',
+                type: 'textfield',
+                key: 'nestedBad[key]',
+                input: true
+              },
+              {
+                inputType: 'text',
+                type: 'textfield',
+                key: 'nest[true]',
+                input: false
+              }, {
+                inputType: 'text',
+                type: 'textfield',
+                key: 'nested[something]'
+              }
+            ]
+          }]
+        };
+
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(temp)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var badCharacters = /^[^A-Za-z]+|[^A-Za-z0-9\-\.]+/g;
+            formioUtils.eachComponent(res.body.components, function(component) {
+              if (component.hasOwnProperty('key')) {
+                assert.equal(badCharacters.test(component.key), false);
+              }
+            }, true);
+
+            // Delete this temp form.
+            request(app)
+              .delete(hook.alter('url', '/form/' + res.body._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect('Content-Type', /text/)
+              .expect(200)
+              .end(function(err) {
+                if (err) {
+                  return done(err);
+                }
+
+                done();
+              });
+          });
       });
 
       it('An administrator should be able to Create a Form', function(done) {
@@ -458,13 +538,13 @@ module.exports = function(app, template, hook) {
       });
 
       it('Cant make a Form with invalid Form component keys', function(done) {
-        [
+        async.each([
           '', 'è', 'é', 'ê', 'ë', 'ē', 'ė', 'ę', 'ÿ', 'û',
           'ü', 'ù', 'ú', 'ū', 'î', 'ï', 'í', 'ī', 'į', 'ì',
           'ô', 'ö', 'ò', 'ó', 'œ', 'ø', 'ō', 'õ', 'à', 'á',
           'â', 'ä', 'æ', 'ã', 'å', 'ā', 'ß', 'ś', 'š', 'ł',
-          'ž', 'ź', 'ż', 'ç', 'ć', 'č', 'ñ', 'ń', ' ', 'a '
-        ].forEach(function(_bad) {
+          'ž', 'ź', 'ż', 'ç', 'ć', 'č', 'ñ', 'ń', ' '
+        ], function(_bad, callback) {
           var temp = _.cloneDeep(tempForm);
           temp.name = chance.word({length: 15});
           temp.path = chance.word({length: 15});
@@ -476,16 +556,67 @@ module.exports = function(app, template, hook) {
             .send(temp)
             .expect(400)
             .end(function(err, res) {
-              if(err) {
-                return done(err);
+              if (err) {
+                return callback(err);
               }
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
+              callback();
             });
-        });
+        }, function(err) {
+          if (err) {
+            return done(err);
+          }
 
-        done();
+          done();
+        });
+      });
+
+      it('Invalid Form component keys are filtered', function(done) {
+        async.each([
+          // Will be filtered
+          'a ', '1a', '.a',
+
+          // Disallowed characters
+          '[a', ']a', '\'a', '!a', ',a', '/a', '?a', '<a', '>a', '~a', '`a', '@a', '#a', '$a', '%a', '^a', '&a',
+          'a[', 'a]', 'a\'', 'a!', 'a,', 'a/', 'a?', 'a<', 'a>', 'a~', 'a`', 'a@', 'a#', 'a$', 'a%', 'a^', 'a&',
+          '*a', '(a', ')a', '-a', '_a', '=a', '+a', '|a', '\\a', '{a', '}a', ';a', ':a',
+          'a*', 'a(', 'a)',       'a_', 'a=', 'a+', 'a|', 'a\\', 'a{', 'a}', 'a;', 'a:'
+
+        ], function(_bad, callback) {
+          var temp = _.cloneDeep(tempForm);
+          temp.name = chance.word({length: 15});
+          temp.path = chance.word({length: 15});
+          temp.components[0].key = _bad;
+
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(temp)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return callback(err);
+              }
+
+              formioUtils.eachComponent(res.body.components, function(component) {
+                if (component.hasOwnProperty('key')) {
+                  assert.notEqual(component.key, _bad);
+                }
+              }, true);
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+              callback();
+            });
+        }, function(err) {
+          if (err) {
+            return done(err);
+          }
+
+          done();
+        });
       });
     });
 

@@ -183,8 +183,9 @@ Validator.prototype.buildIgnoreList = function(submission) {
           if (ret) {
             return true;
           }
-          return;
         }
+
+        return;
       }
       // If given an array, iterate over each element, assuming its not a string itself.
       // If each element is a string, then we aren't looking at a component, but data itself.
@@ -237,9 +238,6 @@ Validator.prototype.buildIgnoreList = function(submission) {
   // The list of all custom conditionals, segregated because they must be run on every change to data.
   var _customConditionals = {};
 
-  // Regex for getting component subkeys.
-  var subkey = /^.+\[(.+)\]$/;
-
   /**
    * Sweep all the components and build the conditionals map.
    *
@@ -259,19 +257,6 @@ Validator.prototype.buildIgnoreList = function(submission) {
     util.eachComponent(this.form.components, function(component) {
       if (!component.hasOwnProperty('key')) {
         return;
-      }
-      // Get key inside: something[key]
-      if (subkey.test(component.key)) {
-        try {
-          var key = subkey.exec(component.key)[1];
-          if (key) {
-            component.key = key;
-          }
-        }
-        catch (e) {
-          debug.error(e);
-          show[component.key] = true;
-        }
       }
 
       // Show everything by default.
@@ -558,7 +543,7 @@ Validator.prototype.validate = function(submission, next) {
     }
   }
 
-  // If an error has occured in custom validation, fail immediately.
+  // If an error has occurred in custom validation, fail immediately.
   if (error) {
     var temp = {name: 'ValidationError', details: [error]};
     debug.validator(error);

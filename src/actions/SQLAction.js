@@ -72,7 +72,7 @@ module.exports = function(router) {
           type: 'select',
           input: true,
           label: 'SQL ServerType',
-          key: 'settings[type]',
+          key: 'type',
           placeholder: 'Select the SQL Server Type',
           template: '<span>{{ item.title }}</span>',
           dataSrc: 'json',
@@ -84,7 +84,7 @@ module.exports = function(router) {
         },
         {
           label: 'Query',
-          key: 'settings[query]',
+          key: 'query',
           placeholder: 'Enter the SQL query.',
           type: 'textarea',
           multiple: false,
