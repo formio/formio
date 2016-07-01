@@ -143,6 +143,17 @@ module.exports = {
   getValue: formioUtils.getValue,
 
   /**
+   * Determine if a component is a layout component or not.
+   *
+   * @param {Object} component
+   *   The component to check.
+   *
+   * @returns {Boolean}
+   *   Whether or not the component is a layout component.
+   */
+  isLayoutComponent: formioUtils.isLayoutComponent,
+
+  /**
    * Return the objectId.
    *
    * @param id
