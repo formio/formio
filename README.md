@@ -1,3 +1,5 @@
+[![Gitter](https://badges.gitter.im/formio/formio.svg)](https://gitter.im/formio/formio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 Form.io: The Form and API platform.
 ===============================
 Form.io is a revolutionary Form and API platform for developers. This repository serves as the core Form and API engine
