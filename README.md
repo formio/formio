@@ -2,6 +2,8 @@
 
 Form.io: The Form and API platform.
 ===============================
+
+[![Join the chat at https://gitter.im/formio/formio](https://badges.gitter.im/formio/formio.svg)](https://gitter.im/formio/formio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Form.io is a revolutionary Form and API platform for developers. This repository serves as the core Form and API engine
 for https://form.io. This system allows you to build "serverless" data management applications using a simple drag-and-drop form builder interface. These forms can then easily be embedded within your Angular.js and React applications using the
 ```<formio>``` HTML element. 
