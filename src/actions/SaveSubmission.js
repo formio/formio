@@ -94,6 +94,9 @@ module.exports = function(router) {
       // and parameters to make it seem like a separate request to update
       // the child submissions.
       var childReq = util.createSubRequest(req);
+      if (!childReq) {
+        return done('Too many recursive requests.');
+      }
       childReq.noResponse = true;
       childReq.body = body;
       childReq.formId = childReq.params.formId = resource._id.toString();

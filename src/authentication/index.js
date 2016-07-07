@@ -177,6 +177,9 @@ module.exports = function(router) {
     // Duplicate the current request get the users information.
     var url = '/form/:formId/submission/:submissionId';
     var childReq = util.createSubRequest(req);
+    if (!childReq) {
+      return next('Too many recursive requests.');
+    }
     childReq.method = 'GET';
     childReq.skipResource = false;
 

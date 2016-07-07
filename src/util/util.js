@@ -65,6 +65,14 @@ module.exports = {
    * @param req
    */
   createSubRequest: function(req) {
+    // Determine how many child requests have been made.
+    var childRequests = req.childRequests || 0;
+
+    // Break recursive child requests.
+    if (childRequests > 5) {
+      return null;
+    }
+
     // Save off formio for fast cloning...
     var cache = req.formioCache;
     delete req.formioCache;
@@ -77,6 +85,7 @@ module.exports = {
     childReq.user = req.user;
     childReq.modelQuery = null;
     childReq.countQuery = null;
+    childReq.childRequests = ++childRequests;
 
     // Delete the actions cache.
     delete childReq.actions;
