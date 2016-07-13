@@ -10,6 +10,7 @@ var fs = require('fs-extra');
 var util = require('./src/util/util');
 require('colors');
 var Q = require('q');
+var test = process.env.TEST_SUITE;
 
 module.exports = function() {
   var q = Q.defer();
@@ -65,8 +66,12 @@ module.exports = function() {
       // Mount the Form.io API platform at /api.
       server.use('/', formioServer);
 
+      // Allow tests access server internals.
+      server.formio = formio;
+      server._server = formioServer;
+
       // Listen on the configured port.
-      q.resolve({
+      return q.resolve({
         server: server,
         config: config
       });
@@ -83,7 +88,7 @@ module.exports = function() {
     };
 
     // Check for the client folder.
-    if (!fs.existsSync('client')) {
+    if (!fs.existsSync('client') && !test) {
       install.download = true;
       install.extract = true;
     }
@@ -91,7 +96,7 @@ module.exports = function() {
     // See if they have any forms available.
     formio.db.collection('forms').count(function(err, numForms) {
       // If there are forms, then go ahead and start the server.
-      if (!err && numForms > 0) {
+      if ((!err && numForms > 0) || test) {
         if (!install.download && !install.extract) {
           return start();
         }
