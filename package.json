@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000",
-    "start": "node server.js",
+    "start": "node main.js",
     "lint": "eslint *.js src/**/**.js"
   },
   "author": "support@form.io",
