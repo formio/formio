@@ -95,6 +95,9 @@ module.exports = function(router) {
       if (!user) {
         return next(new Error('Invalid user'));
       }
+      if (!user.data[passField]) {
+        return next(new Error('Your account does not have a password. You must reset your password to login.'));
+      }
 
       // Compare the provided password.
       user = user.toObject();
