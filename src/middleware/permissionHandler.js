@@ -621,7 +621,7 @@ module.exports = function(router) {
       }
 
       // Allow anyone to hook the access check.
-      if (hook.alter('hasAccess', false, req, res, access, entity)) {
+      if (hook.alter('hasAccess', false, req, access, entity, res)) {
         debug.permissions('Access Granted!');
         return next();
       }
