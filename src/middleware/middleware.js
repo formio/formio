@@ -26,6 +26,7 @@ module.exports = function(router) {
     sortMongooseQuery: require('./sortMongooseQuery')(router),
     submissionHandler: require('./submissionHandler')(router),
     submissionResourceAccessFilter: require('./submissionResourceAccessFilter')(router),
-    tokenHandler: require('./tokenHandler')(router)
+    tokenHandler: require('./tokenHandler')(router),
+    restrictRequestTypes: require('./restrictRequestTypes')(router)
   };
 };
