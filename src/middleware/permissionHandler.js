@@ -373,12 +373,14 @@ module.exports = function(router) {
      *   An object of access with the associated roles.
      * @param entity {Object}
      *   The entity within the permissions object to use.
+     * @param res {Object}
+     *   The Express response Object.
      *
      * @returns boolean
      *   If the user has access to this method, with their given roles.
      */
     /* eslint-disable max-statements */
-    hasAccess: function(req, access, entity) {
+    hasAccess: function(req, access, entity, res) {
       var method = req.method.toUpperCase();
 
       // Determine the roles and user based on the available token.
@@ -464,6 +466,14 @@ module.exports = function(router) {
           method: req.method,
           _method: method
         });
+      }
+
+      // Unsupported request method.
+      if (search === undefined) {
+        if (res) {
+          res.sendStatus(404);
+        }
+        return false;
       }
 
       search.forEach(function(type) {
@@ -615,7 +625,7 @@ module.exports = function(router) {
       entity = hook.alter('accessEntity', entity, req);
 
       // Check for access.
-      if (router.formio.access.hasAccess(req, access, entity)) {
+      if (router.formio.access.hasAccess(req, access, entity, res)) {
         debug.permissions('Access Granted!');
         return next();
       }
