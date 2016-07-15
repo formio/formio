@@ -560,20 +560,27 @@ module.exports = function(router) {
    */
   return function permissionHandler(req, res, next) {
     // Check for whitelisted paths.
-    var whitelist = ['/health', '/current', '/logout', '/access'];
-    var skip = _.any(whitelist, function(path) {
-      if ((req.url === path) || (req.url === hook.alter('url', path, req))) {
-        return true;
+    if (req.method === 'GET') {
+      var whitelist = ['/health', '/current', '/logout', '/access'];
+      var skip = _.any(whitelist, function(path) {
+        if ((req.url === path) || (req.url === hook.alter('url', path, req))) {
+          return true;
+        }
+
+        return false;
+      });
+
+      // Allow the private hook of skip to be run, if it didnt already pass the whitelist.
+      if (!skip) {
+        skip = hook.alter('skip', false, req);
       }
 
-      return false;
-    });
-
-    // If there is a whitelist match, then move onto the next middleware.
-    debug.permissions(req.url);
-    if (skip) {
-      debug.permissions('Skipping');
-      return next();
+      // If there is a whitelist match, then move onto the next middleware.
+      debug.permissions(req.url);
+      if (skip) {
+        debug.permissions('Skipping');
+        return next();
+      }
     }
 
     // Determine if we are trying to access and entity of the form or submission.
@@ -614,7 +621,7 @@ module.exports = function(router) {
       }
 
       // Allow anyone to hook the access check.
-      if (hook.alter('hasAccess', false, req, access, entity)) {
+      if (hook.alter('hasAccess', false, req, res, access, entity)) {
         debug.permissions('Access Granted!');
         return next();
       }
