@@ -108,7 +108,6 @@ module.exports = function(formio) {
       return next();
     }
 
-
     // Get a connection to mongo, using the config settings.
     var dbUrl = (typeof config.mongo === 'string')
       ? config.mongo
