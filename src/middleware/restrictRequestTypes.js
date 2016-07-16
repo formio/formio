@@ -21,5 +21,6 @@ module.exports = function(router) {
     }
 
     return res.sendStatus(405);
-  }
+  };
 };
+
