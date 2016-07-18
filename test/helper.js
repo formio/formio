@@ -1,11 +1,12 @@
 'use strict';
+
 var request = require('supertest');
 var chance = new (require('chance'))();
 var assert = require('assert');
 var _ = require('lodash');
 var async = require('async');
-module.exports = function(app) {
 
+module.exports = function(app) {
   // The Helper class.
   var Helper = function(owner) {
     this.contextName = '';

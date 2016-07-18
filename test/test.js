@@ -13,20 +13,20 @@ var app = null;
 var template = null;
 var comparison = null;
 var hook = null;
-var loadServer = require('../server')();
 var template = require('./template')();
 
 describe('Bootstrap Test modules', function() {
   before(function(done) {
-    loadServer.then(function(state) {
-      app = state.server;
-      app.formio.hooks = template.hooks = require('./hooks');
-      hook = require('../src/util/hook')(app.formio);
+    require('../server')()
+      .then(function(state) {
+        app = state.server;
+        app.formio.hooks = template.hooks = require('./hooks');
+        hook = require('../src/util/hook')(app.formio);
 
-      // Establish the helper library.
-      template.Helper = require('./helper')(app, template);
-      done();
-    });
+        // Establish the helper library.
+        template.Helper = require('./helper')(app, template);
+        done();
+      });
   });
 
   it('Should remove old test data', function(done) {

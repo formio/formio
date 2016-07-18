@@ -69,7 +69,6 @@ module.exports = function() {
 
       // Allow tests access server internals.
       server.formio = formio;
-      server._server = formioServer;
 
       // Listen on the configured port.
       return q.resolve({
