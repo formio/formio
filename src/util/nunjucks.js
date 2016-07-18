@@ -30,6 +30,10 @@ environment.addFilter('is_object', function(obj) {
 
 environment.addFilter('date', dateFilter);
 
+environment.addFilter('submissionTable', function(obj, components) {
+  return new nunjucks.runtime.SafeString(util.renderFormSubmission(obj, components));
+});
+
 environment.addFilter('componentValue', function(obj, key, components) {
   var compValue = util.renderComponentValue(obj, key, components);
   return new nunjucks.runtime.SafeString(compValue.value);
@@ -41,7 +45,7 @@ environment.addFilter('componentLabel', function(key, components) {
     return label;
   }
   var component = components[key];
-  label = component.label || component.key;
+  label = component.label || component.placeholder || component.key;
   return label;
 });
 
@@ -108,7 +112,7 @@ module.exports = {
     catch (e) {
       debug.nunjucks(e);
       debug.error(e);
-      rendered = null;
+      rendered = e.name + ': ' + e.message;
     }
     return rendered;
   }

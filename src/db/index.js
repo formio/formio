@@ -7,7 +7,8 @@ var _ = require('lodash');
 var fs = require('fs');
 var debug = {
   db: require('debug')('formio:db'),
-  error: require('debug')('formio:error')
+  error: require('debug')('formio:error'),
+  sanity: require('debug')('formio:sanityCheck')
 };
 var path = require('path');
 
@@ -103,6 +104,7 @@ module.exports = function(formio) {
   var connection = function(next) {
     // If a connection exists, skip the initialization.
     if (db) {
+      debug.db('Connection exists');
       return next();
     }
 
@@ -110,6 +112,8 @@ module.exports = function(formio) {
     var dbUrl = (typeof config.mongo === 'string')
       ? config.mongo
       : config.mongo[0];
+
+    debug.db('Opening new connection to ' + dbUrl);
 
     // Establish a connection and continue with execution.
     MongoClient.connect(dbUrl, function(err, connection) {
@@ -121,7 +125,10 @@ module.exports = function(formio) {
       }
       db = connection;
 
+      debug.db('Connection successful');
+
       db.collection('schema', function(err, collection) {
+        debug.db('Schema collection opened');
         if (err) {
           return next(err);
         }
@@ -209,6 +216,7 @@ module.exports = function(formio) {
 
     // Skip functionality if testing.
     if (process.env.TEST_SUITE) {
+      debug.db('Skipping for TEST_SUITE');
       return response
         ? res.sendStatus(200)
         : next();
@@ -236,16 +244,19 @@ module.exports = function(formio) {
     connection(function() {
       // Skip update if request was a get and update was less than 10 seconds ago (in ms).
       if (req.method === 'GET') {
+        debug.sanity('Checking GET');
         now = (new Date()).getTime();
 
         // Do a full sanity check when expecting a response.
         if (response) {
           if ((cache.full.last + 10000) > now) {
+            debug.sanity('Response and Less than 10 seconds');
             return cache.full.isValid
               ? handleResponse()
               : handleResponse(cache.full.error);
           }
           else {
+            debug.sanity('Response and More than 10 seconds');
             // Update the last check time.
             cache.full.last = now;
           }
@@ -253,17 +264,20 @@ module.exports = function(formio) {
         // Do a partial sanity check when expecting a response.
         else {
           if ((cache.partial.last + 10000) > now) {
+            debug.sanity('No Response and Less than 10 seconds');
             return cache.partial.isValid
               ? handleResponse()
               : handleResponse(cache.partial.error);
           }
           else {
+            debug.sanity('No Response and More than 10 seconds');
             // Update the last check time.
             cache.partial.last = now;
           }
         }
       }
 
+      debug.sanity('Checking formio schema');
       // A cached response was not viable here, query and update the cache.
       schema.findOne({key: 'formio'}, function(err, document) {
         if (err || !document) {
@@ -272,6 +286,7 @@ module.exports = function(formio) {
 
           throw new Error('The formio lock was not found..');
         }
+        debug.sanity('Schema found');
 
         // When sending a response, a direct query was performed, check for different versions.
         if (response) {
@@ -280,6 +295,7 @@ module.exports = function(formio) {
             ? false
             : true;
 
+          debug.sanity('Has Response is valid: ' + cache.full.isValid);
           return cache.full.isValid
             ? handleResponse()
             : handleResponse(cache.full.error);
@@ -289,6 +305,7 @@ module.exports = function(formio) {
           // Update the valid cache for following GET requests.
           cache.partial.isValid = semver.major(document.version) === semver.major(config.schema);
 
+          debug.sanity('Has Partial Response is valid: ' + cache.partial.isValid);
           return cache.partial.isValid
             ? handleResponse()
             : handleResponse(cache.partial.error);

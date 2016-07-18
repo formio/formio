@@ -50,6 +50,7 @@ module.exports = function() {
 
   // Load the form.io server.
   var formioServer = require('./index')(config);
+  server.use(formioServer.formio.middleware.restrictRequestTypes);
   formioServer.init().then(function(formio) {
     // Called when we are ready to start the server.
     var start = function() {

@@ -194,6 +194,30 @@ module.exports = {
     return false;
   },
 
+  renderFormSubmission: function(data, components) {
+    var comps = this.flattenComponents(components);
+    var submission = '<table border="1" style="width:100%">';
+    _.each(comps, function(component, key) {
+      // Containers will get rendered as flat.
+      if (
+        (component.type === 'container') ||
+        (component.type === 'button') ||
+        (component.type === 'hidden')
+      ) {
+        return;
+      }
+      var cmpValue = this.renderComponentValue(data, key, comps);
+      if (typeof cmpValue.value === 'string') {
+        submission += '<tr>';
+        submission += '<th style="padding: 5px 10px;">' + cmpValue.label + '</th>';
+        submission += '<td style="width:100%;padding:5px 10px;">' + cmpValue.value + '</td>';
+        submission += '</tr>';
+      }
+    }.bind(this));
+    submission += '</table>';
+    return submission;
+  },
+
   /**
    * Renders a specific component value, which is also able
    * to handle Containers, Data Grids, as well as other more advanced
@@ -206,6 +230,9 @@ module.exports = {
    */
   renderComponentValue: function(data, key, components) {
     var value = _.get(data, key);
+    if (!value) {
+      value = '';
+    }
     var compValue = {
       label: key,
       value: value
@@ -214,7 +241,7 @@ module.exports = {
       return compValue;
     }
     var component = components[key];
-    compValue.label = component.label || component.key;
+    compValue.label = component.label || component.placeholder || component.key;
     if (component.multiple) {
       components[key].multiple = false;
       compValue.value = _.map(value, function(subValue) {
@@ -230,7 +257,7 @@ module.exports = {
         compValue.value = '--- PASSWORD ---';
         break;
       case 'address':
-        compValue.value = compValue.value.formatted_address;
+        compValue.value = compValue.value ? compValue.value.formatted_address : '';
         break;
       case 'signature':
         compValue.value = '<img src="' + value + '" />';
@@ -285,6 +312,7 @@ module.exports = {
           compValue.value = moment(value).format(dateFormat);
         }
         break;
+      case 'radio':
       case 'select':
       case 'selectboxes':
         var values = [];
@@ -311,7 +339,7 @@ module.exports = {
     }
 
     // Ensure the value is a string.
-    compValue.value = compValue.value.toString();
+    compValue.value = compValue.value ? compValue.value.toString() : '';
     return compValue;
   },
 
