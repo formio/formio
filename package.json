@@ -7,7 +7,7 @@
   "scripts": {
     "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000",
     "start": "node main.js",
-    "lint": "eslint *.js src/**/**.js"
+    "lint": "eslint ."
   },
   "author": "support@form.io",
   "engines": {
