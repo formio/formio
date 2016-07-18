@@ -1,14 +1,12 @@
 /* eslint-env mocha */
 'use strict';
 
-var Q = require('q');
 var _ = require('lodash');
 var async = require('async');
 var assert = require('assert');
 var formioUtils = require('formio-utils');
 
 // Bootstrap the test environment.
-var ready = Q.defer();
 var app = null;
 var template = null;
 var comparison = null;
@@ -17,10 +15,10 @@ var template = require('./template')();
 
 describe('Bootstrap Test modules', function() {
   before(function(done) {
-    require('../server')()
+    var hooks = require('./hooks');
+    require('../server')(hooks)
       .then(function(state) {
         app = state.server;
-        app.formio.hooks = template.hooks = require('./hooks');
         hook = require('../src/util/hook')(app.formio);
 
         // Establish the helper library.

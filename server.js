@@ -12,7 +12,7 @@ require('colors');
 var Q = require('q');
 var test = process.env.TEST_SUITE;
 
-module.exports = function() {
+module.exports = function(hooks) {
   var q = Q.defer();
 
   util.log('');
@@ -51,7 +51,7 @@ module.exports = function() {
   // Load the form.io server.
   var formioServer = require('./index')(config);
   server.use(formioServer.formio.middleware.restrictRequestTypes);
-  formioServer.init().then(function(formio) {
+  formioServer.init(hooks).then(function(formio) {
     // Called when we are ready to start the server.
     var start = function() {
       // Start the application.

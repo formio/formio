@@ -16,12 +16,12 @@ var Emailer = {
     emailCallback = cb;
   },
   getLastEmail: function() {
-    var email = _.clone(emails[(emails.length - 1)]);
+    var email = _.cloneDeep(emails.pop()) || {};
     Emailer.reset();
     return email;
   },
   getEmails: function() {
-    var _emails = _.clone(emails);
+    var _emails = _.cloneDeep(emails) || [];
     Emailer.reset();
     return _emails;
   },

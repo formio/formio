@@ -493,7 +493,7 @@ module.exports = function(app, template, hook) {
           }
 
           // Check for an email.
-          template.hooks.onEmails(1, function(emails) {
+          app.formio.hooks.onEmails(1, function(emails) {
             var email = emails.shift();
             assert.equal(email.from, 'travis@form.io');
             assert.equal(email.to, 'test@example.com');
@@ -534,7 +534,7 @@ module.exports = function(app, template, hook) {
           }
 
           // Check for an email.
-          template.hooks.onEmails(1, function(emails) {
+          app.formio.hooks.onEmails(1, function(emails) {
             var email = emails.shift();
             assert.equal(email.from, 'joe@example.com');
             assert.equal(email.to, 'joe@example.com, gary@form.io');
@@ -575,7 +575,7 @@ module.exports = function(app, template, hook) {
             return done(err);
           }
 
-          template.hooks.onEmails(2, function(emails) {
+          app.formio.hooks.onEmails(2, function(emails) {
             assert.equal(emails.length, 2);
             assert.equal(emails[0].from, 'travis@form.io');
             assert.equal(emails[0].to, 'test@example.com');
