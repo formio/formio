@@ -18,12 +18,10 @@ var template = require('./template')();
 
 describe('Bootstrap Test modules', function() {
   before(function(done) {
-    template.hooks = require('./hooks');
-
     loadServer.then(function(state) {
       app = state.server;
-      hook = require('../src/util/hook')(state.server.formio);
-      //template = state.template;
+      app.formio.hooks = template.hooks = require('./hooks');
+      hook = require('../src/util/hook')(app.formio);
 
       // Establish the helper library.
       template.Helper = require('./helper')(app, template);

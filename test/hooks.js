@@ -1,11 +1,11 @@
+'use strict';
+
 var _ = require('lodash');
 var emails = [];
 var emailCallback = null;
 var emailExpects = 0;
-var emailCounter = 0;
 var Emailer = {
   reset: function() {
-    emailCounter = 0;
     emails = [];
     emailCallback = null;
     emailExpects = 0;
@@ -27,11 +27,13 @@ var Emailer = {
   },
   on: {
     email: function(transport, mail) {
+      // Only cache 10 emails.
       if (emails.length > 9) {
         emails.shift();
       }
       emails.push(mail);
-      if (emailCallback && (++emailCounter >= emailExpects)) {
+
+      if (emailCallback && (emails.length >= emailExpects)) {
         emailCallback(Emailer.getEmails());
       }
     }

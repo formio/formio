@@ -133,7 +133,7 @@ module.exports = function(app, template, hook) {
         }
       };
       var messageText = macros;
-      messageText += fs.readFileSync(__dirname + '/' + dirName + 'message.html').toString()
+      messageText += (fs.readFileSync(__dirname + '/' + dirName + 'message.html')).toString();
       var message = {
         transport: 'test',
         from: from,
