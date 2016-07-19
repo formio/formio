@@ -1076,9 +1076,12 @@ module.exports = function(app, template, hook) {
       });
 
       it('A deleted Form should remain in the database', function(done) {
-        if (!app.formio) return done();
+        var formio = hook.alter('formio', app.formio);
+        if (!formio) {
+          return done();
+        }
 
-        app.formio.resources.form.model.findOne({_id: template.forms.tempForm._id})
+        formio.resources.form.model.findOne({_id: template.forms.tempForm._id})
           .exec(function(err, form) {
             if (err) {
               return done(err);

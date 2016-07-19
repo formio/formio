@@ -394,9 +394,12 @@ module.exports = function(app, template, hook) {
           });
 
           it('A deleted Submission should remain in the database', function(done) {
-            if (!app.formio) return done();
+            var formio = hook.alter('formio', app.formio);
+            if (!formio) {
+              return done();
+            }
 
-            app.formio.resources.submission.model.findOne({_id: deleteTest._id}, function(err, submission) {
+            formio.resources.submission.model.findOne({_id: deleteTest._id}, function(err, submission) {
               if (err) {
                 return done(err);
               }
@@ -602,9 +605,12 @@ module.exports = function(app, template, hook) {
           });
 
           it('A deleted Submission should remain in the database', function(done) {
-            if (!app.formio) return done();
+            var formio = hook.alter('formio', app.formio);
+            if (!formio) {
+              return done();
+            }
 
-            app.formio.resources.submission.model.findOne({_id: tempSubmission._id})
+            formio.resources.submission.model.findOne({_id: tempSubmission._id})
               .exec(function(err, submission) {
                 if (err) {
                   return done(err);
@@ -665,9 +671,12 @@ module.exports = function(app, template, hook) {
           });
 
           it('A deleted Form should not have active submissions in the database', function(done) {
-            if (!app.formio) return done();
+            var formio = hook.alter('formio', app.formio);
+            if (!formio) {
+              return done();
+            }
 
-            app.formio.resources.submission.model.findOne({form: tempForm._id, deleted: {$eq: null}})
+            formio.resources.submission.model.findOne({form: tempForm._id, deleted: {$eq: null}})
               .exec(function(err, submissions) {
                 if (err) {
                   return done(err);

@@ -165,7 +165,7 @@ module.exports = function(app, template, hook) {
     };
 
     it('Should render an email with all the form and submission variables.', function(done) {
-      app.formio.hooks.onEmails(1, function(emails) {
+      template.hooks.onEmails(1, function(emails) {
         var email = emails[0];
         assert.equal(email.subject, 'New submission for Test Form.');
         assert.equal(getLabel('firstName', email.html), 'First Name');

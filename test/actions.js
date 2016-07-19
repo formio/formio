@@ -493,7 +493,7 @@ module.exports = function(app, template, hook) {
           }
 
           // Check for an email.
-          app.formio.hooks.onEmails(1, function(emails) {
+          template.hooks.onEmails(1, function(emails) {
             var email = emails.shift();
             assert.equal(email.from, 'travis@form.io');
             assert.equal(email.to, 'test@example.com');
@@ -534,7 +534,7 @@ module.exports = function(app, template, hook) {
           }
 
           // Check for an email.
-          app.formio.hooks.onEmails(1, function(emails) {
+          template.hooks.onEmails(1, function(emails) {
             var email = emails.shift();
             assert.equal(email.from, 'joe@example.com');
             assert.equal(email.to, 'joe@example.com, gary@form.io');
@@ -575,7 +575,7 @@ module.exports = function(app, template, hook) {
             return done(err);
           }
 
-          app.formio.hooks.onEmails(2, function(emails) {
+          template.hooks.onEmails(2, function(emails) {
             assert.equal(emails.length, 2);
             assert.equal(emails[0].from, 'travis@form.io');
             assert.equal(emails[0].to, 'test@example.com');
@@ -1765,9 +1765,12 @@ module.exports = function(app, template, hook) {
       });
 
       it('A deleted Action should remain in the database', function(done) {
-        if (!app.formio) return done();
+        var formio = hook.alter('formio', app.formio);
+        if (!formio) {
+          return done();
+        }
 
-        app.formio.actions.model.findOne({_id: tempAction._id})
+        formio.actions.model.findOne({_id: tempAction._id})
           .exec(function(err, action) {
             if (err) {
               return done(err);
@@ -1803,9 +1806,12 @@ module.exports = function(app, template, hook) {
       });
 
       it('A deleted Form should not have active actions in the database', function(done) {
-        if (!app.formio) return done();
+        var formio = hook.alter('formio', app.formio);
+        if (!formio) {
+          return done();
+        }
 
-        app.formio.actions.model.find({form: tempForm._id, deleted: {$eq: null}})
+        formio.actions.model.find({form: tempForm._id, deleted: {$eq: null}})
           .exec(function(err, action) {
             if (err) {
               return done(err);

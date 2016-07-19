@@ -300,9 +300,12 @@ module.exports = function(app, template, hook) {
       });
 
       it('Deleted roles should remain in the DB', function(done) {
-        if (!app.formio) return done();
+        var formio = hook.alter('formio', app.formio);
+        if (!formio) {
+          return done();
+        }
 
-        app.formio.resources.role.model.findOne({_id: template.roles.tempRole._id}, function(err, role) {
+        formio.resources.role.model.findOne({_id: template.roles.tempRole._id}, function(err, role) {
           if (err) {
             return done(err);
           }

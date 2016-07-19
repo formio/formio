@@ -16,15 +16,18 @@ var template = require('./template')();
 describe('Bootstrap Test modules', function() {
   before(function(done) {
     var hooks = require('./hooks');
-    require('../server')(hooks)
-      .then(function(state) {
-        app = state.server;
-        hook = require('../src/util/hook')(app.formio);
+    require('../server')({
+      hooks: hooks
+    })
+    .then(function(state) {
+      app = state.server;
+      hook = require('../src/util/hook')(app.formio);
 
-        // Establish the helper library.
-        template.Helper = require('./helper')(app, template);
-        done();
-      });
+      // Establish the helper library.
+      template.Helper = require('./helper')(app, template);
+      template.hooks = app.formio.hooks || {};
+      done();
+    });
   });
 
   it('Should remove old test data', function(done) {
