@@ -4,7 +4,6 @@
  * This is the Form.io application server.
  */
 var express = require('express');
-var config = require('config');
 var nunjucks = require('nunjucks');
 var fs = require('fs-extra');
 var util = require('./src/util/util');
@@ -12,7 +11,8 @@ require('colors');
 var Q = require('q');
 var test = process.env.TEST_SUITE;
 
-module.exports = function(hooks) {
+module.exports = function(options) {
+  options = options || {};
   var q = Q.defer();
 
   util.log('');
@@ -36,22 +36,27 @@ module.exports = function(hooks) {
     util.log(fs.readFileSync('welcome.txt').toString().green);
   });
 
-  // Get the express application.
-  var server = express();
+  // Use the express application.
+  var app = options.app || express();
+
+  // Use the given config.
+  var config = options.config || require('config');
 
   // Configure nunjucks.
   nunjucks.configure('client', {
     autoescape: true,
-    express: server
+    express: app
   });
 
   // Mount the client application.
-  server.use('/', express.static(__dirname + '/client/dist'));
+  app.use('/', express.static(__dirname + '/client/dist'));
 
   // Load the form.io server.
-  var formioServer = require('./index')(config);
-  server.use(formioServer.formio.middleware.restrictRequestTypes);
-  formioServer.init(hooks).then(function(formio) {
+  var server = options.server || require('./index')(config);
+  var hooks = options.hooks || {};
+
+  app.use(server.formio.middleware.restrictRequestTypes);
+  server.init(hooks).then(function(formio) {
     // Called when we are ready to start the server.
     var start = function() {
       // Start the application.
@@ -64,15 +69,15 @@ module.exports = function(hooks) {
         util.log(' > Serving application at ' + appHost.green);
       }
 
-      // Mount the Form.io API platform at /api.
-      server.use('/', formioServer);
+      // Mount the Form.io API platform.
+      app.use(options.mount || '/', server);
 
       // Allow tests access server internals.
-      server.formio = formio;
+      app.formio = formio;
 
       // Listen on the configured port.
       return q.resolve({
-        server: server,
+        server: app,
         config: config
       });
       //util.log(' > Serving the Form.io API Platform at ' + config.domain.green);
