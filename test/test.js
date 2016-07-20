@@ -8,7 +8,6 @@ var formioUtils = require('formio-utils');
 
 // Bootstrap the test environment.
 var app = null;
-var template = null;
 var comparison = null;
 var hook = null;
 var template = require('./template')();
@@ -24,7 +23,7 @@ describe('Bootstrap Test modules', function() {
       hook = require('../src/util/hook')(app.formio);
 
       // Establish the helper library.
-      template.Helper = require('./helper')(app, template);
+      template.Helper = require('./helper')(app);
       template.hooks = app.formio.hooks || {};
       done();
     });
