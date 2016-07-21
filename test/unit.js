@@ -105,7 +105,8 @@ module.exports = function(app, template, hook) {
       return;
     }
 
-    var email = require('../src/util/email')(app.formio);
+    var formio = hook.alter('formio', app.formio);
+    var email = require('../src/util/email')(formio);
     var macros = require('../src/actions/macros/macros');
     var sendMessage = function(to, from, message, cb) {
       var dirName = 'fixtures/email/' + message + '/';
