@@ -3,6 +3,7 @@
 
 var assert = require('assert');
 var fs = require('fs');
+var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
 
@@ -101,7 +102,7 @@ module.exports = function(app, template, hook) {
   });
 
   describe('Email Template Rendering', function() {
-    if (process.env.DOCKER) {
+    if (docker) {
       return;
     }
 

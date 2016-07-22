@@ -3,7 +3,6 @@
 
 var request = require('supertest');
 var assert = require('assert');
-var _ = require('lodash');
 
 module.exports = function(app, template, hook) {
   describe('Nested Resources', function() {
@@ -208,7 +207,7 @@ module.exports = function(app, template, hook) {
             lastName: 'lastName'
           }
         }
-      }
+      };
 
       request(app)
         .post(hook.alter('url', '/form/' + customerForm._id + '/action', template))
@@ -375,9 +374,9 @@ module.exports = function(app, template, hook) {
                   persistent: true,
                   type: 'password'
                 }
-              ],
+              ]
             }
-          ],
+          ]
         })
         .expect('Content-Type', /json/)
         .expect(201)

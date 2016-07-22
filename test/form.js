@@ -7,6 +7,7 @@ var _ = require('lodash');
 var chance = new (require('chance'))();
 var formioUtils = require('formio-utils');
 var async = require('async');
+var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
   describe('Forms', function() {
@@ -1075,12 +1076,9 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      if (!docker)
       it('A deleted Form should remain in the database', function(done) {
         var formio = hook.alter('formio', app.formio);
-        if (!formio) {
-          return done();
-        }
-
         formio.resources.form.model.findOne({_id: template.forms.tempForm._id})
           .exec(function(err, form) {
             if (err) {

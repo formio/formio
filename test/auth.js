@@ -5,6 +5,7 @@ var request = require('supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var chance = new (require('chance'))();
+var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
   describe('Authentication', function() {
@@ -273,16 +274,15 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    if (!process.env.DOCKER) {
-      it('Should have sent an email to the user with an auth token', function(done) {
-        var email = template.hooks.getLastEmail();
-        assert.equal(email.from, 'no-reply@form.io');
-        assert.equal(email.to, template.users.user1.data.email);
-        assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
-        assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
-        done();
-      });
-    }
+    if (!docker)
+    it('Should have sent an email to the user with an auth token', function(done) {
+      var email = template.hooks.getLastEmail();
+      assert.equal(email.from, 'no-reply@form.io');
+      assert.equal(email.to, template.users.user1.data.email);
+      assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
+      assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
+      done();
+    });
 
     it('Should be able to validate a request with the validate param.', function(done) {
       request(app)
@@ -566,7 +566,7 @@ module.exports = function(app, template, hook) {
           done();
         });
     });
-  });8
+  });
 
   /**
    * partially authentication tests

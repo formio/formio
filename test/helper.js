@@ -5,6 +5,7 @@ var chance = new (require('chance'))();
 var assert = require('assert');
 var _ = require('lodash');
 var async = require('async');
+var docker = process.env.DOCKER;
 
 module.exports = function(app) {
   // The Helper class.
@@ -101,7 +102,7 @@ module.exports = function(app) {
   };
 
   Helper.prototype.createProject = function(done) {
-    if (app.hasProjects) {
+    if (app.hasProjects || docker) {
       request(app)
         .post('/project')
         .send({

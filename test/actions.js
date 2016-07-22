@@ -5,6 +5,7 @@ var request = require('supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var chance = new (require('chance'))();
+var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
   var Helper = require('./helper')(app);
@@ -351,7 +352,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('EmailAction Functionality tests', function() {
-      if (process.env.DOCKER) {
+      if (docker) {
         return;
       }
 
@@ -1764,12 +1765,9 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      if (!docker)
       it('A deleted Action should remain in the database', function(done) {
         var formio = hook.alter('formio', app.formio);
-        if (!formio) {
-          return done();
-        }
-
         formio.actions.model.findOne({_id: tempAction._id})
           .exec(function(err, action) {
             if (err) {
@@ -1805,12 +1803,9 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      if (!docker)
       it('A deleted Form should not have active actions in the database', function(done) {
         var formio = hook.alter('formio', app.formio);
-        if (!formio) {
-          return done();
-        }
-
         formio.actions.model.find({form: tempForm._id, deleted: {$eq: null}})
           .exec(function(err, action) {
             if (err) {
@@ -1983,11 +1978,8 @@ module.exports = function(app, template, hook) {
 
     describe('Conditional Actions', function() {
       var helper = null;
-      if (process.env.DOCKER) {
-        return;
-      }
       it('Create the forms', function(done) {
-        var owner = app.hasProjects ? template.formio.owner : template.users.admin;
+        var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
         helper = new Helper(owner);
         helper
           .project()
@@ -2090,6 +2082,7 @@ module.exports = function(app, template, hook) {
           })
           .execute(done);
       });
+
       it('Should conditionally execute the add role action.', function(done) {
         helper
           .submission({
@@ -2107,6 +2100,7 @@ module.exports = function(app, template, hook) {
             done();
           })
       });
+
       it('Should conditionally execute the add role action.', function(done) {
         helper
           .submission({
@@ -2124,6 +2118,7 @@ module.exports = function(app, template, hook) {
             done();
           })
       });
+
       it('Should conditionally execute the add role action.', function(done) {
         helper
           .submission({
@@ -2140,6 +2135,7 @@ module.exports = function(app, template, hook) {
             done();
           })
       });
+
       it('Should conditionally execute the add role action.', function(done) {
         helper
           .submission({
@@ -2156,6 +2152,7 @@ module.exports = function(app, template, hook) {
             done();
           })
       });
+
       it('Should execute ALL role actions.', function(done) {
         helper
           .submission({
@@ -2173,6 +2170,7 @@ module.exports = function(app, template, hook) {
             done();
           })
       });
+
       it('Should NOT execute any role actions.', function(done) {
         helper
           .submission({
@@ -2188,7 +2186,7 @@ module.exports = function(app, template, hook) {
             assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
             assert(submission.roles.indexOf(helper.template.roles.authenticated._id) === -1);
             done();
-          })
+          });
       });
     });
   });
