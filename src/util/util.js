@@ -8,6 +8,7 @@ var Q = require('q');
 var formioUtils = require('formio-utils');
 var deleteProp = require('delete-property').default;
 var debug = {
+  idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
@@ -495,9 +496,17 @@ module.exports = {
    *   The mongo BSON id.
    */
   idToBson: function(_id) {
-    return _.isObject(_id)
-      ? _id
-      : mongoose.Types.ObjectId(_id);
+    try {
+      _id = _.isObject(_id)
+        ? _id
+        : mongoose.Types.ObjectId(_id);
+    }
+    catch (e) {
+      debug.idToBson('Unknown _id given: ' + _id + ', typeof: ' + typeof _id);
+      _id = false;
+    }
+
+    return _id;
   },
 
   /**

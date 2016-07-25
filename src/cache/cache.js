@@ -69,7 +69,12 @@ module.exports = function(router) {
       }
 
       debug.loadForm(typeof id + ': ' + id);
-      var query = {_id: util.idToBson(id), deleted: {$eq: null}};
+      id = util.idToBson(id);
+      if (id === false) {
+        return cb('Invalid form _id given.');
+      }
+
+      var query = {_id: id, deleted: {$eq: null}};
       if (type) {
         query.type = type;
       }
@@ -140,10 +145,18 @@ module.exports = function(router) {
         return cb(null, cache.submissions[subId]);
       }
 
-      debug.loadSubmission(
-        'Searching for form: ' + (formId || '').toString() + ', and submission: ' + (subId || '').toString()
-      );
-      var query = {_id: util.idToBson(subId), form: util.idToBson(formId), deleted: {$eq: null}};
+      subId = util.idToBson(subId);
+      if (subId === false) {
+        return cb('Invalid submission _id given.');
+      }
+
+      formId = util.idToBson(formId);
+      if (formId === false) {
+        return cb('Invalid form _id given.');
+      }
+
+      debug.loadSubmission('Searching for form: ' + formId + ', and submission: ' + subId);
+      var query = {_id: subId, form: formId, deleted: {$eq: null}};
       debug.loadSubmission(query);
       router.formio.resources.submission.model.findOne(query)
         .exec(function(err, submission) {
