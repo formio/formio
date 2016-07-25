@@ -1,7 +1,5 @@
 'use strict';
 
-var mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
 var _ = require('lodash');
 var debug = {
   form: require('debug')('formio:cache:form'),
@@ -14,6 +12,7 @@ var debug = {
 
 module.exports = function(router) {
   var hook = require('../util/hook')(router.formio);
+  var util = router.formio.util;
 
   return {
     cache: function(req) {
@@ -70,16 +69,7 @@ module.exports = function(router) {
       }
 
       debug.loadForm(typeof id + ': ' + id);
-      try {
-        id = (typeof id === 'string') ? ObjectId(id) : id;
-      }
-      catch (e) {
-        debug.loadForm(e);
-        debug.error(e);
-        return cb('Invalid Form Id given.');
-      }
-
-      var query = {_id: id, deleted: {$eq: null}};
+      var query = {_id: util.idToBson(id), deleted: {$eq: null}};
       if (type) {
         query.type = type;
       }
@@ -150,26 +140,10 @@ module.exports = function(router) {
         return cb(null, cache.submissions[subId]);
       }
 
-      debug.loadSubmission('Searching for form: ' + formId.toString() + ', and submission: ' + subId.toString());
-      try {
-        formId = (typeof formId === 'string') ? ObjectId(formId) : formId;
-      }
-      catch (e) {
-        debug.loadSubmission(e);
-        debug.error(e);
-        return cb('Invalid Form Id given.');
-      }
-
-      try {
-        subId = (typeof subId === 'string') ? ObjectId(subId) : subId;
-      }
-      catch (e) {
-        debug.loadSubmission(e);
-        debug.error(e);
-        return cb('Invalid Submission Id given.');
-      }
-
-      var query = {_id: subId, form: formId, deleted: {$eq: null}};
+      debug.loadSubmission(
+        'Searching for form: ' + (formId || '').toString() + ', and submission: ' + (subId || '').toString()
+      );
+      var query = {_id: util.idToBson(subId), form: util.idToBson(formId), deleted: {$eq: null}};
       debug.loadSubmission(query);
       router.formio.resources.submission.model.findOne(query)
         .exec(function(err, submission) {
