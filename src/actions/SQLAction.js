@@ -142,12 +142,12 @@ module.exports = function(router) {
         return !settings[prop];
       });
       if (missingSetting) {
-        return next(new Error('Database settings is missing `' + missingSetting + '`'));
+        return next('Database settings is missing `' + missingSetting + '`');
       }
 
       // Make sure they cannot connect to localhost.
       if (settings.host.search(/localhost|127\.0\.0\.1/) !== -1) {
-        return next(new Error('Invalid SQL Host'));
+        return next('Invalid SQL Host');
       }
 
       var method = req.method.toLowerCase();
