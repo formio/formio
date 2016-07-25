@@ -274,10 +274,10 @@ module.exports = function(router) {
           }
         });
       }
-    }.bind(this));
 
-    // Do not wait for the query to execute.
-    next();
+      // Do not wait for the query to execute.
+      next();
+    }.bind(this));
   };
 
   // Return the SQLAction.
