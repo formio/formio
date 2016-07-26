@@ -175,12 +175,12 @@ module.exports = function(router) {
         async.eachSeries(actions, function(action, cb) {
           var execute = true;
 
-          // See if there is a custom condition.
-          if (
-            action.condition &&
-            action.condition.custom
-          ) {
-            try {
+          try {
+            // See if there is a custom condition.
+            if (
+              action.condition &&
+              action.condition.custom
+            ) {
               var script = new vm.Script(action.condition.custom);
               var sandbox = {
                 data: req.body.data,
@@ -191,19 +191,19 @@ module.exports = function(router) {
               });
               execute = sandbox.execute;
             }
-            catch (e) {
-              debug(e);
+
+            // See if a condition is not established within the action.
+            if (
+              action.condition &&
+              action.condition.field &&
+              (action.condition.eq === 'equals') &&
+              (req.body.data[action.condition.field] !== action.condition.value)
+            ) {
               execute = false;
             }
           }
-
-          // See if a condition is not established within the action.
-          if (
-            action.condition &&
-            action.condition.field &&
-            (action.condition.eq === 'equals') &&
-            (req.body.data[action.condition.field] !== action.condition.value)
-          ) {
+          catch (e) {
+            debug(e);
             execute = false;
           }
 
