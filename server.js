@@ -61,10 +61,10 @@ module.exports = function(options) {
     var start = function() {
       // Start the application.
       if (fs.existsSync('app')) {
-        var app = express();
-        app.use('/', express.static(__dirname + '/app/dist'));
+        var application = express();
+        application.use('/', express.static(__dirname + '/app/dist'));
         config.appPort = config.appPort || 8080;
-        app.listen(config.appPort);
+        application.listen(config.appPort);
         var appHost = 'http://localhost:' + config.appPort;
         util.log(' > Serving application at ' + appHost.green);
       }
