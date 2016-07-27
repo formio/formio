@@ -80,8 +80,6 @@ module.exports = function(options) {
         server: app,
         config: config
       });
-      //util.log(' > Serving the Form.io API Platform at ' + config.domain.green);
-      //server.listen(config.port);
     };
 
     // Which items should be installed.
