@@ -5,13 +5,13 @@ module.exports = function(formio) {
   return {
     beforePut: function(component, req, res, next) {
       if (!hook.invoke('validateEmail', component, req, res, next)) {
-        next();
+        return next();
       }
     },
 
     beforePost: function(component, req, res, next) {
       if (!hook.invoke('validateEmail', component, req, res, next)) {
-        next();
+        return next();
       }
     }
   };
