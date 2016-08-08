@@ -528,24 +528,30 @@ module.exports = function(router) {
         });
 
         var settings = getSettingsForm(action, req);
-        action.settingsForm(req, res, function(err, settingsForm) {
-          if (err) {
-            return next(err);
-          }
+        try {
+          action.settingsForm(req, res, function(err, settingsForm) {
+            if (err) {
+              return next(err);
+            }
 
-          // Add the ability to change the title, and add the other settings.
-          settings.actionSettings.components = [{
-            input: false,
-            type: 'container',
-            key: 'settings',
-            components: settingsForm
-          }];
+            // Add the ability to change the title, and add the other settings.
+            settings.actionSettings.components = [{
+              input: false,
+              type: 'container',
+              key: 'settings',
+              components: settingsForm
+            }];
 
-          info.settingsForm = settings.settingsForm;
-          info.settingsForm.action = hook.alter('url', '/form/' + req.params.formId + '/action', req);
-          hook.alter('actionInfo', info, req);
-          res.json(info);
-        });
+            info.settingsForm = settings.settingsForm;
+            info.settingsForm.action = hook.alter('url', '/form/' + req.params.formId + '/action', req);
+            hook.alter('actionInfo', info, req);
+            res.json(info);
+          });
+        }
+        catch (e) {
+          debug(e);
+          return res.sendStatus(500);
+        }
       });
     }
     else {
