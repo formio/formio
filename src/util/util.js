@@ -557,5 +557,32 @@ module.exports = {
         });
       });
     }
+  },
+
+  base64: {
+    /**
+     * Base64 encode the given data.
+     *
+     * @param {String} decoded
+     *   The decoded data to encode.
+     *
+     * @return {String}
+     *   The base64 representation of the given data.
+     */
+    encode: function(decoded) {
+      return new Buffer(decoded.toString()).toString('base64');
+    },
+    /**
+     * Base64 decode the given data.
+     *
+     * @param {String} encoded
+     *   The encoded data to decode.
+     *
+     * @return {String}
+     *   The ascii representation of the given encoded data.
+     */
+    decode: function(encoded) {
+      return new Buffer(encoded.toString()).toString('ascii');
+    }
   }
 };
