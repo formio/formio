@@ -5,6 +5,7 @@ var request = require('supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var async = require('async');
+var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
   describe('Roles', function() {
@@ -299,10 +300,10 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      if (!docker)
       it('Deleted roles should remain in the DB', function(done) {
-        if (!app.formio) return done();
-
-        app.formio.resources.role.model.findOne({_id: template.roles.tempRole._id}, function(err, role) {
+        var formio = hook.alter('formio', app.formio);
+        formio.resources.role.model.findOne({_id: template.roles.tempRole._id}, function(err, role) {
           if (err) {
             return done(err);
           }
