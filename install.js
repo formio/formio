@@ -8,6 +8,7 @@ var nunjucks = require('nunjucks');
 nunjucks.configure([], {watch: false});
 var util = require('./src/util/util');
 var debug = require('debug')('formio:error');
+var path = require('path');
 
 module.exports = function(formio, items, done) {
   // The project that was created.
@@ -15,8 +16,8 @@ module.exports = function(formio, items, done) {
 
   // The directory for the client application.
   var directories = {
-    client: 'client',
-    app: 'app'
+    client: path.join(__dirname, 'client'),
+    app: path.join(__dirname, 'app')
   };
 
   // The application they wish to install.
@@ -121,28 +122,28 @@ module.exports = function(formio, items, done) {
       // Get the package json file.
       var info = {};
       try {
-        info = JSON.parse(fs.readFileSync(directories[dir] + '/package.json'));
+        info = JSON.parse(fs.readFileSync(path.join(directories[dir], 'package.json')));
       }
       catch (err) {
         debug(err);
-        done(err);
+        return done(err);
       }
 
       // Change the document root if we need to.
       if (info.formio && info.formio.docRoot) {
-        directories[dir] += '/' + info.formio.docRoot;
+        directories[dir] = path.join(directories[dir], info.formio.docRoot);
       }
 
-      if (!fs.existsSync(directories[dir] + '/config.template.js')) {
+      if (!fs.existsSync(path.join(directories[dir], 'config.template.js'))) {
         return done('Missing config.template.js file');
       }
 
       // Change the project configuration.
-      var config = fs.readFileSync(directories[dir] + '/config.template.js');
+      var config = fs.readFileSync(path.join(directories[dir], 'config.template.js'));
       var newConfig = nunjucks.renderString(config.toString(), {
         domain: formio.config.domain ? formio.config.domain : 'https://form.io'
       });
-      fs.writeFileSync(directories[dir] + '/config.js', newConfig);
+      fs.writeFileSync(path.join(directories[dir], 'config.js'), newConfig);
       done();
     });
   };
@@ -308,12 +309,12 @@ module.exports = function(formio, items, done) {
         }
         catch (err) {
           debug(err);
-          done(err);
+          return done(err);
         }
 
         // Change the document root if we need to.
         if (info.formio && info.formio.docRoot) {
-          directories[dir] += '/' + info.formio.docRoot;
+          directories[dir] = path.join(directories[dir], info.formio.docRoot);
         }
       }
 
@@ -323,11 +324,11 @@ module.exports = function(formio, items, done) {
 
       var template = {};
       try {
-        template = JSON.parse(fs.readFileSync(directories[dir] + '/project.json'));
+        template = JSON.parse(fs.readFileSync(path.join(directories[dir], 'project.json')));
       }
       catch (err) {
         debug(err);
-        done(err);
+        return done(err);
       }
 
       // Get the form.io service.

@@ -3,6 +3,7 @@
 
 var assert = require('assert');
 var fs = require('fs');
+var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
 
@@ -101,11 +102,12 @@ module.exports = function(app, template, hook) {
   });
 
   describe('Email Template Rendering', function() {
-    if (process.env.DOCKER) {
+    if (docker) {
       return;
     }
 
-    var email = require('../src/util/email')(app.formio);
+    var formio = hook.alter('formio', app.formio);
+    var email = require('../src/util/email')(formio);
     var macros = require('../src/actions/macros/macros');
     var sendMessage = function(to, from, message, cb) {
       var dirName = 'fixtures/email/' + message + '/';
@@ -133,7 +135,7 @@ module.exports = function(app, template, hook) {
         }
       };
       var messageText = macros;
-      messageText += fs.readFileSync(__dirname + '/' + dirName + 'message.html').toString()
+      messageText += (fs.readFileSync(__dirname + '/' + dirName + 'message.html')).toString();
       var message = {
         transport: 'test',
         from: from,

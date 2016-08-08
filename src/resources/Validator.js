@@ -473,6 +473,7 @@ Validator.prototype.validate = function(submission, next) {
   // Skip validation if no data is provided.
   if (!submission.data) {
     debug.validator('No data skipping validation');
+    debug.validator(submission);
     return next();
   }
 
@@ -556,20 +557,16 @@ Validator.prototype.validate = function(submission, next) {
     async.eachSeries(uniques, function(key, done) {
       var component = this.unique[key];
 
-      // Unique fields must always be set with a value.
       debug.validator('Key: ' + key);
-      if (
-        !submission.data.hasOwnProperty(key) &&
-        !submission.data[key]
-      ) {
-        // Throw an error if this isn't a resource field.
-        if (key.indexOf('.') === -1) {
-          debug.validator('Unique field: ' + key + ', was not a resource field.');
-          return done(new Error('Unique fields cannot be empty.'));
-        }
-        else {
-          return done();
-        }
+      // Skip validation of this field, because data wasn't included.
+      if (!submission.data.hasOwnProperty(key) && !submission.data[key]) {
+        debug.validator('Skipping Key: ' + key);
+        return done();
+      }
+      if (submission.data.hasOwnProperty(key) && _.isEmpty(submission.data[key])) {
+        debug.validator('Skipping Key: ' + key + ', typeof: ' + typeof submission.data[key]);
+        debug.validator(submission.data[key]);
+        return done();
       }
 
       // Get the query.

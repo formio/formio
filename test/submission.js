@@ -5,6 +5,7 @@ var request = require('supertest');
 var assert = require('assert');
 var async = require('async');
 var _ = require('lodash');
+var docker = process.env.DOCKER;
 
 // Request a 401.
 var request401 = function(request, done, user) {
@@ -393,10 +394,10 @@ module.exports = function(app, template, hook) {
               });
           });
 
+          if (!docker)
           it('A deleted Submission should remain in the database', function(done) {
-            if (!app.formio) return done();
-
-            app.formio.resources.submission.model.findOne({_id: deleteTest._id}, function(err, submission) {
+            var formio = hook.alter('formio', app.formio);
+            formio.resources.submission.model.findOne({_id: deleteTest._id}, function(err, submission) {
               if (err) {
                 return done(err);
               }
@@ -601,10 +602,10 @@ module.exports = function(app, template, hook) {
               });
           });
 
+          if (!docker)
           it('A deleted Submission should remain in the database', function(done) {
-            if (!app.formio) return done();
-
-            app.formio.resources.submission.model.findOne({_id: tempSubmission._id})
+            var formio = hook.alter('formio', app.formio);
+            formio.resources.submission.model.findOne({_id: tempSubmission._id})
               .exec(function(err, submission) {
                 if (err) {
                   return done(err);
@@ -664,10 +665,10 @@ module.exports = function(app, template, hook) {
               });
           });
 
+          if (!docker)
           it('A deleted Form should not have active submissions in the database', function(done) {
-            if (!app.formio) return done();
-
-            app.formio.resources.submission.model.findOne({form: tempForm._id, deleted: {$eq: null}})
+            var formio = hook.alter('formio', app.formio);
+            formio.resources.submission.model.findOne({form: tempForm._id, deleted: {$eq: null}})
               .exec(function(err, submissions) {
                 if (err) {
                   return done(err);
