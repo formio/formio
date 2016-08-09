@@ -11,6 +11,10 @@ module.exports = function(router) {
 
   // Mount the export endpoint using the url.
   router.get('/form/:formId/export', function(req, res, next) {
+    if (!_.has(req, 'token') || !_.has(req, 'token.user._id')) {
+      return res.sendStatus(400);
+    }
+
     // Get the export format.
     var format = (req.query && req.query.format)
       ? req.query.format.toLowerCase()
@@ -67,6 +71,12 @@ module.exports = function(router) {
               }
             });
           };
+
+          // Skip this owner filter, if the user is the admin or owner.
+          if (req.skipOwnerFilter !== true && req.isAdmin !== true) {
+            // The default ownerFilter query.
+            query.owner = req.token.user._id;
+          }
 
           // Create the query stream.
           var stream = router.formio.resources.submission.model.find(query)
