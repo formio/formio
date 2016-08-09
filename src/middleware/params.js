@@ -20,6 +20,11 @@ module.exports = function(router) {
       ? params.submission
       : null;
 
+    // FA-993 - Update the request to check submission index in the case of submission exports.
+    if (subId === null && formId !== null && params.hasOwnProperty('export')) {
+      subId = '';
+    }
+
     // Attach the known id's to the request for other middleware.
     req.formId = formId;
     req.subId = subId;
