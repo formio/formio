@@ -259,8 +259,8 @@ Validator.prototype.buildIgnoreList = function(submission) {
       }
     }
     // Check against the components default value, if present and the components hasnt been interacted with.
-    else if (typeof value === 'undefined' && cond.hasOwnProperty('defaultValue')) {
-      return cond.defaultValue.toString() === conditional.eq.toString()
+    else if (typeof value === 'undefined' && conditional.hasOwnProperty('defaultValue')) {
+      return conditional.defaultValue.toString() === conditional.eq.toString()
         ? boolean[conditional.show]
         : !boolean[conditional.show];
     }
