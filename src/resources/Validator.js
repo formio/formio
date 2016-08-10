@@ -370,7 +370,7 @@ Validator.prototype.buildIgnoreList = function(submission) {
       }
 
       // If there are rows, check all components and pass through nested visibility
-      if(component.rows && Array.isArray(component.rows)) {
+      if (component.rows && Array.isArray(component.rows)) {
         [].concat.apply([], component.rows).forEach(function(row) {
           checkVisibility(row.components, visible);
         });
