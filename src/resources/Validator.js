@@ -233,6 +233,78 @@ Validator.prototype.buildIgnoreList = function(submission) {
   };
 
   /**
+   * Calculate whether the conditional settings evaluate to true or false.
+   *
+   * @private
+   */
+  var _evaluateConditional = function(conditional) {
+    var value = util.getValue(submission, conditional.when);
+
+    if (typeof value !== 'undefined' && typeof value !== 'object') {
+      // Check if the conditional value is equal to the trigger value
+      return value.toString() === conditional.eq.toString()
+        ? boolean[conditional.show]
+        : !boolean[conditional.show];
+    }
+    // Special check for check boxes component.
+    else if (typeof value !== 'undefined' && typeof value === 'object') {
+      // Only update the visibility is present, otherwise hide, because it was deleted by the submission sweep.
+      if (value.hasOwnProperty(conditional.eq)) {
+        return boolean.hasOwnProperty(value[conditional.eq])
+          ? boolean[value[conditional.eq]]
+          : true;
+      }
+      else {
+        return false;
+      }
+    }
+    // Check against the components default value, if present and the components hasnt been interacted with.
+    else if (typeof value === 'undefined' && cond.hasOwnProperty('defaultValue')) {
+      return cond.defaultValue.toString() === conditional.eq.toString()
+        ? boolean[conditional.show]
+        : !boolean[conditional.show];
+    }
+    // If there is no value, we still need to process as not equal.
+    else {
+      return !boolean[conditional.show];
+    }
+  };
+
+  /**
+   * Calculate whether custom logic evaluates to true or false.
+   *
+   * @private
+   */
+  var _evaluateCustomConditional = function(customLogic) {
+    try {
+      // Create the sandbox.
+      var sandbox = vm.createContext({
+        data: submission.data
+      });
+
+      // Execute the script.
+      var script = new vm.Script(customLogic);
+      script.runInContext(sandbox, {
+        timeout: 250
+      });
+
+      if (boolean.hasOwnProperty(sandbox.show)) {
+        return boolean[sandbox.show];
+      }
+      else {
+        return true;
+      }
+    }
+    catch (e) {
+      debug.validator('Custom Conditional Error: ');
+      debug.validator(e);
+      debug.error(e);
+      // Default to true, if a validation error occurred.
+      return true;
+    }
+  };
+
+  /**
    * Check a specific component for wether it is visible or not based on conditional and custom logic.
    *
    * @param component
@@ -312,78 +384,6 @@ Validator.prototype.buildIgnoreList = function(submission) {
       // Set this in the show variable.
       show[component.key] = visible;
     });
-  };
-
-  /**
-   * Calculate whether the conditional settings evaluate to true or false.
-   *
-   * @private
-   */
-  var _evaluateConditional = function(conditional) {
-    var value = util.getValue(submission, conditional.when);
-
-    if (typeof value !== 'undefined' && typeof value !== 'object') {
-      // Check if the conditional value is equal to the trigger value
-      return value.toString() === conditional.eq.toString()
-        ? boolean[conditional.show]
-        : !boolean[conditional.show];
-    }
-    // Special check for check boxes component.
-    else if (typeof value !== 'undefined' && typeof value === 'object') {
-      // Only update the visibility is present, otherwise hide, because it was deleted by the submission sweep.
-      if (value.hasOwnProperty(conditional.eq)) {
-        return boolean.hasOwnProperty(value[conditional.eq])
-          ? boolean[value[conditional.eq]]
-          : true;
-      }
-      else {
-        return false;
-      }
-    }
-    // Check against the components default value, if present and the components hasnt been interacted with.
-    else if (typeof value === 'undefined' && cond.hasOwnProperty('defaultValue')) {
-      return cond.defaultValue.toString() === conditional.eq.toString()
-        ? boolean[conditional.show]
-        : !boolean[conditional.show];
-    }
-    // If there is no value, we still need to process as not equal.
-    else {
-      return !boolean[conditional.show];
-    }
-  };
-
-  /**
-   * Calculate whether custom logic evaluates to true or false.
-   *
-   * @private
-   */
-  var _evaluateCustomConditional = function(customLogic) {
-    try {
-      // Create the sandbox.
-      var sandbox = vm.createContext({
-        data: submission.data
-      });
-
-      // Execute the script.
-      var script = new vm.Script(customLogic);
-      script.runInContext(sandbox, {
-        timeout: 250
-      });
-
-      if (boolean.hasOwnProperty(sandbox.show)) {
-        return boolean[sandbox.show];
-      }
-      else {
-        return true;
-      }
-    }
-    catch (e) {
-      debug.validator('Custom Conditional Error: ');
-      debug.validator(e);
-      debug.error(e);
-      // Default to true, if a validation error occurred.
-      return true;
-    }
   };
 
   // Ensure this.form.components has a value.
