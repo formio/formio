@@ -232,163 +232,168 @@ Validator.prototype.buildIgnoreList = function(submission) {
     return sweep(submission.data || {});
   };
 
-  // The list of all conditionals.
-  var _conditionals = {};
-
-  // The list of all custom conditionals, segregated because they must be run on every change to data.
-  var _customConditionals = {};
-
   /**
-   * Sweep all the components and build the conditionals map.
+   * Check the visibility of each component recursively.
    *
-   * @private
+   * @param components
    */
-  var _sweepConditionalsCalled = false;
-  var _sweepConditionals = function() {
-    if (_sweepConditionalsCalled) {
-      return;
-    }
-    else {
-      _sweepConditionalsCalled = true;
-    }
+  var checkVisibility = function(components, parentVisibility) {
+    parentVisibility = (typeof parentVisibility !== 'undefined' ? parentVisibility : true);
 
-    this.form = this.form || {};
-    this.form.components = this.form.components || [];
-    util.eachComponent(this.form.components, function(component) {
-      if (!component.hasOwnProperty('key')) {
-        return;
+    components.forEach(function(component) {
+      var visible = true;
+      // If the paren't isn't visibly, this component isn't either.
+      if (!parentVisibility) {
+        visible = parentVisibility;
       }
-
-      // Show everything by default.
-      show[component.key] = true;
-
-      // We only care about valid/complete conditional settings.
-      if (
-        component.conditional
-        && (component.conditional.show !== null && component.conditional.show !== '')
-        && (component.conditional.when !== null && component.conditional.when !== '')
-      ) {
-        // Default the conditional values.
-        component.conditional.show = boolean.hasOwnProperty(component.conditional.show)
-          ? boolean[component.conditional.show]
-          : true;
-        component.conditional.eq = component.conditional.eq || '';
-
-        // Keys should be unique, so don't worry about clobbering an existing duplicate.
-        _conditionals[component.key] = component.conditional;
-
-        // Store the components default value for conditional logic, if present.
-        if (component.hasOwnProperty('defaultValue')) {
-          _conditionals[component.key].defaultValue = component.defaultValue;
-        }
-      }
-      // Custom conditional logic.
-      else if (component.customConditional) {
-        // Add this customConditional to the conditionals list.
-        _customConditionals[component.key] = component.customConditional;
-      }
-    }.bind(this), true);
-  };
-
-  /**
-   * Using the conditionals map, invoke the conditionals for each component.
-   *
-   * @param {String} componentKey
-   *   The component to toggle conditional logic for.
-   *
-   * @private
-   */
-  var _toggleConditional = function(componentKey) {
-    if (_conditionals.hasOwnProperty(componentKey)) {
-      var cond = _conditionals[componentKey];
-      var value = util.getValue(submission, cond.when);
-
-      if (typeof value !== 'undefined' && typeof value !== 'object') {
-        // Check if the conditional value is equal to the trigger value
-        show[componentKey] = value.toString() === cond.eq.toString()
-          ? boolean[cond.show]
-          : !boolean[cond.show];
-      }
-      // Special check for check boxes component.
-      else if (typeof value !== 'undefined' && typeof value === 'object') {
-        // Only update the visibility is present, otherwise hide, because it was deleted by the submission sweep.
-        if (value.hasOwnProperty(cond.eq)) {
-          show[componentKey] = boolean.hasOwnProperty(value[cond.eq])
-            ? boolean[value[cond.eq]]
-            : true;
-        }
-        else {
-          show[componentKey] = false;
-        }
-      }
-      // Check against the components default value, if present and the components hasnt been interacted with.
-      else if (typeof value === 'undefined' && cond.hasOwnProperty('defaultValue')) {
-        show[componentKey] = cond.defaultValue.toString() === cond.eq.toString()
-          ? boolean[cond.show]
-          : !boolean[cond.show];
-      }
-      // If there is no value, we still need to process as not equal.
       else {
-        show[componentKey] = !boolean[cond.show];
+        visible = checkComponentVisibility(component);
       }
+
+      // If there are columns, check all components and pass through nested visibility
+      if (component.columns && Array.isArray(component.columns)) {
+        component.columns.forEach(function(column) {
+          checkVisibility(column.components, visible);
+        });
+      }
+
+      // If there are rows, check all components and pass through nested visibility
+      if(component.rows && Array.isArray(component.rows)) {
+        [].concat.apply([], component.rows).forEach(function(row) {
+          checkVisibility(row.components, visible);
+        });
+      }
+
+      // If there are components, check all components and pass through nested visibility
+      if (component.components && Array.isArray(component.components)) {
+        checkVisibility(component.components, visible);
+      }
+
+      // Set this in the show variable.
+      show[component.key] = visible;
+    });
+  };
+
+  /**
+   * Check a specific component for wether it is visible or not based on conditional and custom logic.
+   *
+   * @param component
+   * @returns {boolean}
+   */
+  var checkComponentVisibility = function(component) {
+    if (!component.hasOwnProperty('key')) {
+      return true;
+    }
+
+    // We only care about valid/complete conditional settings.
+    if (
+      component.conditional
+      && (component.conditional.show !== null && component.conditional.show !== '')
+      && (component.conditional.when !== null && component.conditional.when !== '')
+    ) {
+      // Default the conditional values.
+      component.conditional.show = boolean.hasOwnProperty(component.conditional.show)
+        ? boolean[component.conditional.show]
+        : true;
+      component.conditional.eq = component.conditional.eq || '';
+
+      let conditional = component.conditional;
+
+      // Store the components default value for conditional logic, if present.
+      if (component.hasOwnProperty('defaultValue')) {
+        conditional.defaultValue = component.defaultValue;
+      }
+      return _evaluateConditional(conditional);
+    }
+    // Custom conditional logic.
+    else if (component.customConditional) {
+      return _evaluateCustomConditional(component.customConditional);
+    }
+
+    // If neither conditional nor custom logic is set, it is visibile.
+    return true;
+  };
+
+  /**
+   * Calculate whether the conditional settings evaluate to true or false.
+   *
+   * @private
+   */
+  var _evaluateConditional = function(conditional) {
+    var value = util.getValue(submission, conditional.when);
+
+    if (typeof value !== 'undefined' && typeof value !== 'object') {
+      // Check if the conditional value is equal to the trigger value
+      return value.toString() === conditional.eq.toString()
+        ? boolean[conditional.show]
+        : !boolean[conditional.show];
+    }
+    // Special check for check boxes component.
+    else if (typeof value !== 'undefined' && typeof value === 'object') {
+      // Only update the visibility is present, otherwise hide, because it was deleted by the submission sweep.
+      if (value.hasOwnProperty(conditional.eq)) {
+        return boolean.hasOwnProperty(value[conditional.eq])
+          ? boolean[value[conditional.eq]]
+          : true;
+      }
+      else {
+        return false;
+      }
+    }
+    // Check against the components default value, if present and the components hasnt been interacted with.
+    else if (typeof value === 'undefined' && cond.hasOwnProperty('defaultValue')) {
+      return cond.defaultValue.toString() === conditional.eq.toString()
+        ? boolean[conditional.show]
+        : !boolean[conditional.show];
+    }
+    // If there is no value, we still need to process as not equal.
+    else {
+      return !boolean[conditional.show];
     }
   };
 
   /**
-   * Using the custom conditionals map, invoke the conditionals for each component.
-   *
-   * @param {String} componentKey
-   *   The component to toggle conditional logic for.
+   * Calculate whether custom logic evaluates to true or false.
    *
    * @private
    */
-  var _toggleCustomConditional = function(componentKey) {
-    if (_customConditionals.hasOwnProperty(componentKey)) {
-      var cond = _customConditionals[componentKey];
+  var _evaluateCustomConditional = function(customLogic) {
+    try {
+      // Create the sandbox.
+      var sandbox = vm.createContext({
+        data: submission.data
+      });
 
-      try {
-        // Create the sandbox.
-        var sandbox = vm.createContext({
-          data: submission.data
-        });
+      // Execute the script.
+      var script = new vm.Script(customLogic);
+      script.runInContext(sandbox, {
+        timeout: 250
+      });
 
-        // Execute the script.
-        var script = new vm.Script(cond);
-        script.runInContext(sandbox, {
-          timeout: 250
-        });
-
-        if (boolean.hasOwnProperty(sandbox.show)) {
-          show[componentKey] = boolean[sandbox.show];
-        }
-        else {
-          show[componentKey] = true;
-        }
+      if (boolean.hasOwnProperty(sandbox.show)) {
+        return boolean[sandbox.show];
       }
-      catch (e) {
-        debug.validator('Custom Conditional Error: ');
-        debug.validator(e);
-        debug.error(e);
-        // Default to true, if a validation error occurred.
-        show[componentKey] = true;
+      else {
+        return true;
       }
+    }
+    catch (e) {
+      debug.validator('Custom Conditional Error: ');
+      debug.validator(e);
+      debug.error(e);
+      // Default to true, if a validation error occurred.
+      return true;
     }
   };
 
-  // Build the conditional map.
-  _sweepConditionals.call(this);
+  // Ensure this.form.components has a value.
+  this.form = this.form || {};
+  this.form.components = this.form.components || [];
+
+  // Iterate over form components and checkVisibility()
+  checkVisibility(this.form.components);
 
   // Toggle every conditional.
-  var allConditionals = Object.keys(_conditionals);
-  (allConditionals || []).forEach(function(componentKey) {
-    _toggleConditional(componentKey);
-  });
-
-  var allCustomConditionals = Object.keys(_customConditionals);
-  (allCustomConditionals || []).forEach(function(componentKey) {
-    _toggleCustomConditional(componentKey);
-  });
-
   var allHidden = Object.keys(show);
   (allHidden || []).forEach(function(componentKey) {
     // If a component is hidden, delete its value, so other conditionals are property chain reacted.
@@ -397,7 +402,7 @@ Validator.prototype.buildIgnoreList = function(submission) {
     }
   });
 
-  // Iterate each component were supposed to show, if we find one we're not supposed to show, add it to the ignore.
+  // Iterate each component we're supposed to show, if we find one we're not supposed to show, add it to the ignore.
   _.each(show, function(value, key) {
     try {
       // If this component isn't being displayed, don't require it.
