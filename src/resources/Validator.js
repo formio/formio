@@ -297,7 +297,7 @@ Validator.prototype.buildIgnoreList = function(submission) {
         : true;
       component.conditional.eq = component.conditional.eq || '';
 
-      let conditional = component.conditional;
+      var conditional = component.conditional;
 
       // Store the components default value for conditional logic, if present.
       if (component.hasOwnProperty('defaultValue')) {
