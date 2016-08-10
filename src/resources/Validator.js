@@ -233,6 +233,46 @@ Validator.prototype.buildIgnoreList = function(submission) {
   };
 
   /**
+   * Check a specific component for wether it is visible or not based on conditional and custom logic.
+   *
+   * @param component
+   * @returns {boolean}
+   */
+  var checkComponentVisibility = function(component) {
+    if (!component.hasOwnProperty('key')) {
+      return true;
+    }
+
+    // We only care about valid/complete conditional settings.
+    if (
+      component.conditional
+      && (component.conditional.show !== null && component.conditional.show !== '')
+      && (component.conditional.when !== null && component.conditional.when !== '')
+    ) {
+      // Default the conditional values.
+      component.conditional.show = boolean.hasOwnProperty(component.conditional.show)
+        ? boolean[component.conditional.show]
+        : true;
+      component.conditional.eq = component.conditional.eq || '';
+
+      var conditional = component.conditional;
+
+      // Store the components default value for conditional logic, if present.
+      if (component.hasOwnProperty('defaultValue')) {
+        conditional.defaultValue = component.defaultValue;
+      }
+      return _evaluateConditional(conditional);
+    }
+    // Custom conditional logic.
+    else if (component.customConditional) {
+      return _evaluateCustomConditional(component.customConditional);
+    }
+
+    // If neither conditional nor custom logic is set, it is visibile.
+    return true;
+  };
+
+  /**
    * Check the visibility of each component recursively.
    *
    * @param components
@@ -272,46 +312,6 @@ Validator.prototype.buildIgnoreList = function(submission) {
       // Set this in the show variable.
       show[component.key] = visible;
     });
-  };
-
-  /**
-   * Check a specific component for wether it is visible or not based on conditional and custom logic.
-   *
-   * @param component
-   * @returns {boolean}
-   */
-  var checkComponentVisibility = function(component) {
-    if (!component.hasOwnProperty('key')) {
-      return true;
-    }
-
-    // We only care about valid/complete conditional settings.
-    if (
-      component.conditional
-      && (component.conditional.show !== null && component.conditional.show !== '')
-      && (component.conditional.when !== null && component.conditional.when !== '')
-    ) {
-      // Default the conditional values.
-      component.conditional.show = boolean.hasOwnProperty(component.conditional.show)
-        ? boolean[component.conditional.show]
-        : true;
-      component.conditional.eq = component.conditional.eq || '';
-
-      var conditional = component.conditional;
-
-      // Store the components default value for conditional logic, if present.
-      if (component.hasOwnProperty('defaultValue')) {
-        conditional.defaultValue = component.defaultValue;
-      }
-      return _evaluateConditional(conditional);
-    }
-    // Custom conditional logic.
-    else if (component.customConditional) {
-      return _evaluateCustomConditional(component.customConditional);
-    }
-
-    // If neither conditional nor custom logic is set, it is visibile.
-    return true;
   };
 
   /**
