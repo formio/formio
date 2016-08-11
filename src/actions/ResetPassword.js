@@ -50,7 +50,7 @@ module.exports = function(router) {
         return next(err);
       }
 
-      var basePath = hook.alter('url', '/form', req);
+      var basePath = hook.alter('path', '/form', req);
       var dataSrc = basePath + '/' + req.params.formId + '/components';
 
       // Return the reset password information.
