@@ -41,7 +41,7 @@ module.exports = function(router) {
    * @param next
    */
   LoginAction.settingsForm = function(req, res, next) {
-    var basePath = hook.alter('url', '/form', req);
+    var basePath = hook.alter('path', '/form', req);
     var dataSrc = basePath + '/' + req.params.formId + '/components';
     next(null, [
       {

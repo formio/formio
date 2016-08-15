@@ -9066,5 +9066,404 @@ module.exports = function(app, template, hook) {
         });
       });
     });
+
+    // FA-993
+    describe('Submission Export Permissions', function() {
+      var tempForm = {
+        title: 'Exportform test',
+        name: 'exportform',
+        path: 'exportform',
+        type: 'form',
+        access: [],
+        submissionAccess: [],
+        components: [
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'value',
+            key: 'value',
+            label: 'value',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          }
+        ]
+      };
+      var adminValues = ['test1', 'test2', 'test3', 'test4'];
+      var userValues = ['test5', 'test6', 'test7', 'test8'];
+
+      before(function() {
+        tempForm.access = [{
+          type: 'read_all',
+          roles: [template.roles.authenticated._id.toString(), template.roles.anonymous._id.toString()]
+        }];
+        tempForm.submissionAccess = [
+          {type: 'create_own', roles: [template.roles.authenticated._id.toString(), template.roles.anonymous._id.toString()]},
+          {type: 'read_own', roles: [template.roles.authenticated._id.toString(), template.roles.anonymous._id.toString()]}
+        ];
+      });
+
+      it('Bootstrap the form', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(tempForm)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+            assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+            assert(response.hasOwnProperty('access'), 'The response should contain an the `access`.');
+            assert.equal(response.title, tempForm.title);
+            assert.equal(response.name, tempForm.name);
+            assert.equal(response.path, tempForm.path);
+            assert.equal(response.type, 'form');
+            assert.equal(response.access.length, 1);
+            assert.equal(response.access[0].type, 'read_all');
+            assert.equal(response.access[0].roles.length, 3);
+            assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
+            assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
+            assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
+
+            // Build a temp list to compare access without mongo id's.
+            var tempSubmissionAccess = [];
+            response.submissionAccess.forEach(function(role) {
+              tempSubmissionAccess.push(_.omit(role, '_id'));
+            });
+            assert.deepEqual(tempSubmissionAccess, tempForm.submissionAccess);
+            assert.deepEqual(response.components, tempForm.components);
+            tempForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('Bootstrap the admin submissions', function(done) {
+        async.each(adminValues, function(value, cb) {
+          request(app)
+            .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                value: value
+              }
+            })
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              cb();
+            });
+        }, function(err) {
+          if (err) {
+            return done(err);
+          }
+
+          done();
+        });
+      });
+
+      it('Bootstrap the user submissions', function(done) {
+        async.each(userValues, function(value, cb) {
+          request(app)
+            .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.user1.token)
+            .send({
+              data: {
+                value: value
+              }
+            })
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              // Store the JWT for future API calls.
+              template.users.user1.token = res.headers['x-jwt-token'];
+
+              cb();
+            });
+        }, function(err) {
+          if (err) {
+            return done(err);
+          }
+
+          done();
+        });
+      });
+
+      it('An Admin should see all submissions', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, (adminValues.length + userValues.length));
+            assert(response instanceof Array);
+
+            var values = [].concat(adminValues, userValues);
+            async.each(response, function(value, cb) {
+              assert(value.hasOwnProperty('data'));
+              assert(value.data.hasOwnProperty('value'));
+              assert.notEqual(values.indexOf(value.data.value), -1);
+              cb();
+            }, function(err) {
+              if (err) {
+                return done(err);
+              }
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+          });
+      });
+
+      it('A user should only be able to see their submissions', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+          .set('x-jwt-token', template.users.user1.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, userValues.length);
+            assert(response instanceof Array);
+
+            async.each(response, function(value, cb) {
+              assert(value.hasOwnProperty('data'));
+              assert(value.data.hasOwnProperty('value'));
+              assert.notEqual(userValues.indexOf(value.data.value), -1);
+              assert.equal(adminValues.indexOf(value.data.value), -1);
+
+              cb();
+            }, function(err) {
+              if (err) {
+                return done(err);
+              }
+
+              // Store the JWT for future API calls.
+              template.users.user1.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+          });
+      });
+
+      it('A user without submissions will not see results', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+          .set('x-jwt-token', template.users.user2.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 0);
+            assert(response instanceof Array);
+
+            // Store the JWT for future API calls.
+            template.users.user2.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('An anonymous user will not be able to export', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+          .expect('Content-Type', /text/)
+          .expect(400)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            done()
+          });
+      });
+
+      it('Update the form permissions to allow all users to export data', function(done) {
+        request(app)
+          .put(hook.alter('url', '/form/' + tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            submissionAccess: [
+              {type: 'read_all', roles: [template.roles.authenticated._id.toString(), template.roles.anonymous._id.toString()]}
+            ]
+          })
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            tempForm = res.body;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('An Admin should see all submissions', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, (adminValues.length + userValues.length));
+            assert(response instanceof Array);
+
+            var values = [].concat(adminValues, userValues);
+            async.each(response, function(value, cb) {
+              assert(value.hasOwnProperty('data'));
+              assert(value.data.hasOwnProperty('value'));
+              assert.notEqual(values.indexOf(value.data.value), -1);
+              cb();
+            }, function(err) {
+              if (err) {
+                return done(err);
+              }
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+          });
+      });
+
+      it('A user should be able to see all submissions', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+          .set('x-jwt-token', template.users.user1.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, (adminValues.length + userValues.length));
+            assert(response instanceof Array);
+
+            var values = [].concat(adminValues, userValues);
+            async.each(response, function(value, cb) {
+              assert(value.hasOwnProperty('data'));
+              assert(value.data.hasOwnProperty('value'));
+              assert.notEqual(values.indexOf(value.data.value), -1);
+              cb();
+            }, function(err) {
+              if (err) {
+                return done(err);
+              }
+
+              // Store the JWT for future API calls.
+              template.users.user1.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+          });
+      });
+
+      it('A user without submissions will not see results', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+          .set('x-jwt-token', template.users.user2.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, (adminValues.length + userValues.length));
+            assert(response instanceof Array);
+
+            var values = [].concat(adminValues, userValues);
+            async.each(response, function(value, cb) {
+              assert(value.hasOwnProperty('data'));
+              assert(value.data.hasOwnProperty('value'));
+              assert.notEqual(values.indexOf(value.data.value), -1);
+              cb();
+            }, function(err) {
+              if (err) {
+                return done(err);
+              }
+
+              // Store the JWT for future API calls.
+              template.users.user2.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+          });
+      });
+
+      it('An anonymous user will not be able to export', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+          .expect('Content-Type', /text/)
+          .expect(400)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            done()
+          });
+      });
+    });
   });
 };
