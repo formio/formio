@@ -101,48 +101,56 @@ module.exports = function(router) {
       return next();
     }
 
-    if (req.method.toLowerCase() === 'delete') {
-      options.query = req.params;
-      return rest.del(this.settings.url, options)
-        .on('response', function(event) {
-          debug(event);
-        })
-        .on('error', function(event) {
-          debug(event);
-        });
-    }
-
-    // Setup the post data.
-    var postData = {
-      request: req.body,
-      response: res.resource,
-      params: req.params
+    var payload = {
+      request: _.get(req, 'body'),
+      response: _.get(req, 'response'),
+      params: _.get(req, 'params')
     };
+
+    // Dont block on the request.
+    next(); // eslint-disable-line callback-return
 
     // Make the request.
     debug('Request: ' + req.method.toLowerCase());
     switch (req.method.toLowerCase()) {
       case 'post':
-        rest.postJson(this.settings.url, postData, options)
-          .on('response', function(event) {
-            debug(event);
-          })
-          .on('error', function(event) {
-            debug(event);
+        rest.postJson(this.settings.url, payload, options)
+          .on('complete', function(err, event) {
+            if (err) {
+              debug(err);
+              return;
+            }
+
+            debug(event.res);
           });
         break;
       case 'put':
-        rest.putJson(this.settings.url, postData, options)
-          .on('response', function(event) {
-            debug(event);
-          })
-          .on('error', function(event) {
+        rest.putJson(this.settings.url, payload, options)
+          .on('complete', function(err, event) {
+            if (err) {
+              debug(err);
+              return;
+            }
+
+            debug(event.res);
+          });
+        break;
+      case 'delete':
+        options.query = req.params;
+        rest.del(this.settings.url, options)
+          .on('complete', function(err, event) {
+            if (err) {
+              debug(err);
+              return;
+            }
+
             debug(event);
           });
         break;
+      default:
+        debug('Could not match request method: ' + req.method.toLowerCase());
+        break;
     }
-
-    next();
   };
 
   // Return the WebhookAction.
