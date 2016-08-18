@@ -230,7 +230,7 @@ module.exports = function(router) {
    * @param action
    */
   var getSettingsForm = function(action, req) {
-    var basePath = hook.alter('url', '/form', req);
+    var basePath = hook.alter('path', '/form', req);
     var dataSrc = basePath + '/' + req.params.formId + '/components';
     var mainSettings = {
       components: []
@@ -543,7 +543,7 @@ module.exports = function(router) {
             }];
 
             info.settingsForm = settings.settingsForm;
-            info.settingsForm.action = hook.alter('url', '/form/' + req.params.formId + '/action', req);
+            info.settingsForm.action = hook.alter('path', '/form/' + req.params.formId + '/action', req);
             hook.alter('actionInfo', info, req);
             res.json(info);
           });

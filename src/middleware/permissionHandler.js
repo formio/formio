@@ -573,7 +573,7 @@ module.exports = function(router) {
     if (req.method === 'GET') {
       var whitelist = ['/health', '/current', '/logout', '/access'];
       var skip = _.any(whitelist, function(path) {
-        if ((req.url === path) || (req.url === hook.alter('whitelist', path, req))) {
+        if ((req.url === path) || (req.url === hook.alter('path', path, req))) {
           return true;
         }
 
