@@ -183,6 +183,8 @@ module.exports = function(router) {
         if (this.settings.template) {
           request(this.settings.template, function(error, response, body) {
             if (!error && response.statusCode === 200) {
+              // Save the content before overwriting the message.
+              params.content = this.settings.message;
               sendEmail(macros + body);
             }
             else {
