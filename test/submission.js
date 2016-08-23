@@ -907,6 +907,7 @@ module.exports = function(app, template, hook) {
                       "components": [
                         {
                           "input": false,
+                          "type": "well",
                           "components": [
                             {
                               "input": false,
@@ -936,7 +937,6 @@ module.exports = function(app, template, hook) {
                               }
                             }
                           ],
-                          "type": "well",
                           "conditional": {
                             "show": null,
                             "when": null,
@@ -2224,6 +2224,24 @@ module.exports = function(app, template, hook) {
             done();
           });
 
+      });
+    });
+
+    describe('Complex form with hidden fields and embedded datagrids', function() {
+      it('Saves a complex form correctly', function(done) {
+        var test = require('./forms/apparatus.js');
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(test.submission, submission.data);
+            done();
+          });
       });
     });
   });

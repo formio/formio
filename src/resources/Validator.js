@@ -29,7 +29,7 @@ var Validator = function(form, model) {
 /**
  * Returns a validator per component.
  */
-Validator.prototype.getValidator = function(component) {
+Validator.prototype.addValidator = function(schema, component) {
   var fieldValidator = null;
   if (!component) {
     return;
@@ -52,16 +52,39 @@ Validator.prototype.getValidator = function(component) {
   var objectSchema = {};
   switch (component.type) {
     case 'datagrid':
-      util.eachComponent(component.components, function(dgridComp) {
-        objectSchema[dgridComp.key] = this.getValidator(dgridComp);
+      component.components.forEach(function(itemComponent) {
+        this.addValidator(objectSchema, itemComponent);
       }.bind(this));
       fieldValidator = Joi.array().items(Joi.object(objectSchema));
       break;
     case 'container':
-      util.eachComponent(component.components, function(dgridComp) {
-        objectSchema[dgridComp.key] = this.getValidator(dgridComp);
+      component.components.forEach(function(itemComponent) {
+        this.addValidator(objectSchema, itemComponent);
       }.bind(this));
       fieldValidator = Joi.object(objectSchema);
+      break;
+    case 'fieldset':
+    case 'panel':
+    case 'well':
+      component.components.forEach(function(itemComponent) {
+        this.addValidator(schema, itemComponent);
+      }.bind(this));
+      break;
+    case 'table':
+      component.rows.forEach(function(row) {
+        row.forEach(function(column) {
+          column.components.forEach(function(itemComponent) {
+            this.addValidator(schema, itemComponent);
+          }.bind(this));
+        }.bind(this));
+      }.bind(this));
+      break;
+    case 'columns':
+      component.columns.forEach(function(column) {
+        column.components.forEach(function(itemComponent) {
+          this.addValidator(schema, itemComponent);
+        }.bind(this));
+      }.bind(this));
       break;
     case 'textfield':
     case 'textarea':
@@ -133,7 +156,11 @@ Validator.prototype.getValidator = function(component) {
     fieldValidator = Joi.array().sparse().items(fieldValidator);
   }
 
-  return fieldValidator;
+  if (component.key && fieldValidator) {
+    schema[component.key] = fieldValidator;
+  }
+
+  return schema;
 };
 
 /**
@@ -421,18 +448,6 @@ Validator.prototype.buildIgnoreList = function(submission) {
  * Using the form, ignore list and unique list, build the joi schema for validation.
  */
 Validator.prototype.buildSchema = function() {
-  // Flatten the components array.
-  var components = util.flattenComponents(this.form.components);
-
-  // Remove all keys within a data grid.
-  _.each(components, function(component) {
-    if (component.type === 'datagrid' || component.type === 'container') {
-      util.eachComponent(component.components, function(dgridComp) {
-        this.ignore[dgridComp.key] = true;
-      }.bind(this));
-    }
-  }.bind(this));
-
   // Build the Joi validation schema.
   var keys = {
     // Start off with the _id key.
@@ -440,7 +455,7 @@ Validator.prototype.buildSchema = function() {
   };
 
   // Iterate through each component.
-  _.each(components, function(component) {
+  _.each(this.form.components, function(component) {
     if (!component) {
       return;
     }
@@ -451,12 +466,8 @@ Validator.prototype.buildSchema = function() {
     }
 
     // Get the validator.
-    var fieldValidator = this.getValidator(component);
+    this.addValidator(keys, component);
 
-    // Add the validator.
-    if (fieldValidator) {
-      keys[component.key] = fieldValidator;
-    }
   }.bind(this));
 
   // Create the validator schema.
