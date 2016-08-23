@@ -497,114 +497,114 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      //it('Nests a container in a container', function(done) {
-      //  var test = require('./forms/singlecomponents1.js');
-      //  var components = [{
-      //    "input": true,
-      //    "tree": true,
-      //    "components": [{
-      //      "input": true,
-      //      "tree": true,
-      //      "components": test.components,
-      //      "tableView": true,
-      //      "label": "Container",
-      //      "key": "container1",
-      //      "protected": false,
-      //      "persistent": true,
-      //      "type": "container",
-      //      "conditional": {
-      //        "show": null,
-      //        "when": null,
-      //        "eq": ""
-      //      }
-      //    }],
-      //    "tableView": true,
-      //    "label": "Container",
-      //    "key": "container2",
-      //    "protected": false,
-      //    "persistent": true,
-      //    "type": "container",
-      //    "conditional": {
-      //      "show": null,
-      //      "when": null,
-      //      "eq": ""
-      //    }
-      //
-      //  }];
-      //
-      //  var values = {
-      //    container1: {
-      //      container2: test.submission
-      //    }
-      //  };
-      //
-      //  helper
-      //    .form('test', components)
-      //    .submission(values)
-      //    .execute(function(err) {
-      //      if (err) {
-      //        return done(err);
-      //      }
-      //
-      //      var submission = helper.getLastSubmission();
-      //      assert.deepEqual(values, submission.data);
-      //      done();
-      //    });
-      //});
-      //
-      //it('Nests a container in a datagrid', function(done) {
-      //  var test = require('./forms/singlecomponents1.js');
-      //  var components = [{
-      //    "conditional": {
-      //      "eq": "",
-      //      "when": null,
-      //      "show": null
-      //    },
-      //    "type": "datagrid",
-      //    "persistent": true,
-      //    "protected": false,
-      //    "key": "datagrid1",
-      //    "label": "Datagrid",
-      //    "tableView": true,
-      //    "tree": true,
-      //    "input": true,
-      //    "components": [{
-      //      "input": true,
-      //      "tree": true,
-      //      "components": test.components,
-      //      "tableView": true,
-      //      "label": "Container",
-      //      "key": "container1",
-      //      "protected": false,
-      //      "persistent": true,
-      //      "type": "container",
-      //      "conditional": {
-      //        "show": null,
-      //        "when": null,
-      //        "eq": ""
-      //      }
-      //    }]
-      //  }];
-      //
-      //  var values = {
-      //    datagrid1: [{
-      //      container2: test.submission
-      //    }]
-      //  };
-      //
-      //  helper
-      //    .form('test', components)
-      //    .submission(values)
-      //    .execute(function(err) {
-      //      if (err) {
-      //        return done(err);
-      //      }
-      //
-      //      var submission = helper.getLastSubmission();
-      //      assert.deepEqual(values, submission.data);
-      //      done();
-      //    });
-      //});
+      it('Nests a container in a container', function(done) {
+        var test = require('./forms/singlecomponents1.js');
+        var components = [{
+          "input": true,
+          "tree": true,
+          "components": [{
+            "input": true,
+            "tree": true,
+            "components": test.components,
+            "tableView": true,
+            "label": "Container",
+            "key": "container2",
+            "protected": false,
+            "persistent": true,
+            "type": "container",
+            "conditional": {
+              "show": null,
+              "when": null,
+              "eq": ""
+            }
+          }],
+          "tableView": true,
+          "label": "Container",
+          "key": "container1",
+          "protected": false,
+          "persistent": true,
+          "type": "container",
+          "conditional": {
+            "show": null,
+            "when": null,
+            "eq": ""
+          }
+
+        }];
+
+        var values = {
+          container1: {
+            container2: test.submission
+          }
+        };
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(values, submission.data);
+            done();
+          });
+      });
+
+      it('Nests a container in a datagrid', function(done) {
+        var test = require('./forms/singlecomponents1.js');
+        var components = [{
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": null
+          },
+          "type": "datagrid",
+          "persistent": true,
+          "protected": false,
+          "key": "datagrid1",
+          "label": "Datagrid",
+          "tableView": true,
+          "tree": true,
+          "input": true,
+          "components": [{
+            "input": true,
+            "tree": true,
+            "components": test.components,
+            "tableView": true,
+            "label": "Container",
+            "key": "container2",
+            "protected": false,
+            "persistent": true,
+            "type": "container",
+            "conditional": {
+              "show": null,
+              "when": null,
+              "eq": ""
+            }
+          }]
+        }];
+
+        var values = {
+          datagrid1: [{
+            container2: test.submission
+          }]
+        };
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(values, submission.data);
+            done();
+          });
+      });
     });
 
     describe('Datagrid nesting', function() {
@@ -689,117 +689,117 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      //it('Nests a datagrid in a datagrid', function(done) {
-      //  var test = require('./forms/singlecomponents1.js');
-      //  var components = [{
-      //    "conditional": {
-      //      "eq": "",
-      //      "when": null,
-      //      "show": null
-      //    },
-      //    "type": "datagrid",
-      //    "persistent": true,
-      //    "protected": false,
-      //    "key": "datagrid1",
-      //    "label": "Datagrid",
-      //    "tableView": true,
-      //    "components": [
-      //      {
-      //        "conditional": {
-      //          "eq": "",
-      //          "when": null,
-      //          "show": null
-      //        },
-      //        "type": "datagrid",
-      //        "persistent": true,
-      //        "protected": false,
-      //        "key": "datagrid2",
-      //        "label": "Datagrid",
-      //        "tableView": true,
-      //        "components": test.components,
-      //        "tree": true,
-      //        "input": true
-      //      }
-      //    ],
-      //    "tree": true,
-      //    "input": true
-      //  }];
-      //
-      //  var values = {
-      //    datagrid1: [{
-      //      datagrid2: [test.submission]
-      //    }]
-      //  };
-      //
-      //  helper
-      //    .form('test', components)
-      //    .submission(values)
-      //    .execute(function(err) {
-      //      if (err) {
-      //        return done(err);
-      //      }
-      //
-      //      var submission = helper.getLastSubmission();
-      //      assert.deepEqual(values, submission.data);
-      //      done();
-      //    });
-      //});
-      //
-      //it('Nests a datagrid in a container', function(done) {
-      //  var test = require('./forms/singlecomponents1.js');
-      //  var components = [{
-      //    "input": true,
-      //    "tree": true,
-      //    "tableView": true,
-      //    "label": "Container",
-      //    "key": "container1",
-      //    "protected": false,
-      //    "persistent": true,
-      //    "type": "container",
-      //    "conditional": {
-      //      "show": null,
-      //      "when": null,
-      //      "eq": ""
-      //    },
-      //    "components": [
-      //      {
-      //        "conditional": {
-      //          "eq": "",
-      //          "when": null,
-      //          "show": null
-      //        },
-      //        "type": "datagrid",
-      //        "persistent": true,
-      //        "protected": false,
-      //        "key": "datagrid2",
-      //        "label": "Datagrid",
-      //        "tableView": true,
-      //        "components": test.components,
-      //        "tree": true,
-      //        "input": true
-      //      }
-      //    ]
-      //  }];
-      //
-      //  var values = {
-      //    container1: {
-      //      datagrid2: [test.submission]
-      //    }
-      //  };
-      //
-      //  helper
-      //    .form('test', components)
-      //    .submission(values)
-      //    .execute(function(err) {
-      //      if (err) {
-      //        return done(err);
-      //      }
-      //
-      //      var submission = helper.getLastSubmission();
-      //      assert.deepEqual(values, submission.data);
-      //      done();
-      //    });
-      //});
+      it('Nests a datagrid in a datagrid', function(done) {
+        var test = require('./forms/singlecomponents1.js');
+        var components = [{
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": null
+          },
+          "type": "datagrid",
+          "persistent": true,
+          "protected": false,
+          "key": "datagrid1",
+          "label": "Datagrid",
+          "tableView": true,
+          "components": [
+            {
+              "conditional": {
+                "eq": "",
+                "when": null,
+                "show": null
+              },
+              "type": "datagrid",
+              "persistent": true,
+              "protected": false,
+              "key": "datagrid2",
+              "label": "Datagrid",
+              "tableView": true,
+              "components": test.components,
+              "tree": true,
+              "input": true
+            }
+          ],
+          "tree": true,
+          "input": true
+        }];
+
+        var values = {
+          datagrid1: [{
+            datagrid2: [test.submission]
+          }]
+        };
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(values, submission.data);
+            done();
+          });
+      });
+
+      it('Nests a datagrid in a container', function(done) {
+        var test = require('./forms/singlecomponents1.js');
+        var components = [{
+          "input": true,
+          "tree": true,
+          "tableView": true,
+          "label": "Container",
+          "key": "container1",
+          "protected": false,
+          "persistent": true,
+          "type": "container",
+          "conditional": {
+            "show": null,
+            "when": null,
+            "eq": ""
+          },
+          "components": [
+            {
+              "conditional": {
+                "eq": "",
+                "when": null,
+                "show": null
+              },
+              "type": "datagrid",
+              "persistent": true,
+              "protected": false,
+              "key": "datagrid2",
+              "label": "Datagrid",
+              "tableView": true,
+              "components": test.components,
+              "tree": true,
+              "input": true
+            }
+          ]
+        }];
+
+        var values = {
+          container1: {
+            datagrid2: [test.submission]
+          }
+        };
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(values, submission.data);
+            done();
+          });
+      });
     });
 
     describe('Deep nesting', function() {
@@ -1236,7 +1236,7 @@ module.exports = function(app, template, hook) {
       });
     });
 
-    describe('Test various field validations', function() {
+    describe('Test various field validations like min, max, regex, etc', function() {
 
     });
 
@@ -2171,7 +2171,7 @@ module.exports = function(app, template, hook) {
       });
     });
 
-    describe('Test Unique', function() {
+    describe('Unique Fields', function() {
       it('Returns an error when non-unique', function(done) {
         var components = [
           {
