@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 var request = require('supertest');
 var assert = require('assert');
+var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
   var Helper = require('./helper')(app);
