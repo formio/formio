@@ -2229,7 +2229,7 @@ module.exports = function(app, template, hook) {
 
     describe('Complex form with hidden fields and embedded datagrids', function() {
       it('Saves a complex form correctly', function(done) {
-        var test = require('./forms/apparatus.js');
+        var test = require('./forms/complex.js');
         helper
           .form('test', test.components)
           .submission(test.submission)
