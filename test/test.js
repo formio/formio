@@ -100,6 +100,7 @@ describe('Bootstrap Test modules', function() {
     require('./resource')(app, template, hook);
     require('./nested')(app, template, hook);
     require('./actions')(app, template, hook);
+    require('./submission-access')(app, template, hook);
     require('./submission')(app, template, hook);
   });
 });
