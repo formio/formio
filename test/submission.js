@@ -1,7 +1,6 @@
 /* eslint-env mocha */
 var request = require('supertest');
 var assert = require('assert');
-var sinon = require('sinon');
 
 module.exports = function(app, template, hook) {
   var Helper = require('./helper')(app);

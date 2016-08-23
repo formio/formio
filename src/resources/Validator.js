@@ -467,7 +467,6 @@ Validator.prototype.buildSchema = function() {
 
     // Get the validator.
     this.addValidator(keys, component);
-
   }.bind(this));
 
   // Create the validator schema.
