@@ -58,6 +58,10 @@ module.exports = function(formio) {
       components: {
         type: [mongoose.Schema.Types.Mixed],
         description: 'An array of components within the form.'
+      },
+      settings: {
+        type: mongoose.Schema.Types.Mixed,
+        description: 'Custom form settings object.'
       }
     })
   });
