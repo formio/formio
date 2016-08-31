@@ -414,6 +414,49 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('Custom components', function() {
+      it('Saves custom components', function(done) {
+        var test = require('./forms/custom.js');
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(test.submission, submission.data);
+            done();
+          });
+      });
+
+      it('Nests single value components in a custom component', function(done) {
+        var test = require('./forms/singlecomponents1.js');
+        var components = [{
+          "input": false,
+          "tableView": true,
+          "legend": "Custom",
+          "components": test.components,
+          "type": "mycustomtype"
+        }];
+
+        helper
+          .form('customform', components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(test.submission, submission.data);
+            done();
+          });
+      });
+
+    });
+
     describe('Container nesting', function() {
       it('Nests single value components in a container', function(done) {
         var test = require('./forms/singlecomponents1.js');
