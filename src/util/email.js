@@ -189,6 +189,15 @@ module.exports = function(formio) {
               mail.to = process.env.EMAIL_OVERRIDE;
             }
 
+            // Add pdf as a attachment to the mail (PDF feature).
+            if (message.pdfAsMail) {
+              mail.attachments = [
+                {
+                  path: message.pdfPath
+                }
+              ];
+            }
+
             // Send the email.
             transporter.sendMail(mail);
           });
