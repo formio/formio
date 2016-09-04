@@ -169,7 +169,7 @@ module.exports = function(router) {
           // Don't worry about an error.
         }
         if (owner) {
-          params.owner = owner;
+          params.owner = owner.toObject();
         }
 
         var sendEmail = function(message) {
