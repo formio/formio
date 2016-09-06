@@ -1735,5 +1735,46 @@ module.exports = function(app, template, hook) {
           });
       });
     });
+
+    describe('Form Settings', function() {
+      it('Sets additional form settings', function(done) {
+        var form = {
+          title: 'Settings Form',
+          name: 'settingsForm',
+          path: 'settingsform',
+          type: 'form',
+          access: [],
+          submissionAccess: [],
+          components: [],
+          settings: {
+            one: 'true',
+            two: ['foo', 'bar'],
+            three: {
+              foo: 'true',
+              bar: 'true'
+            }
+          }
+        };
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(form)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.deepEqual(response.settings, form.settings);
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+    });
   });
 };
