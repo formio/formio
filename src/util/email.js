@@ -190,10 +190,11 @@ module.exports = function(formio) {
             }
 
             // Add pdf as a attachment to the mail (PDF feature).
-            if (message.pdfAsMail) {
+            if (res.pdfName) {
               mail.attachments = [
                 {
-                  path: message.pdfPath
+                  filename: res.pdfName + '.pdf',
+                  content: new Buffer(res.pdfData,'utf-8')
                 }
               ];
             }
