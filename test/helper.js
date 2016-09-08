@@ -101,14 +101,38 @@ module.exports = function(app) {
     }.bind(this));
   };
 
-  Helper.prototype.createProject = function(done) {
+  Helper.prototype.getProject = function(done) {
+    if (!app.hasProjects && !docker) {
+      return done('No project');
+    }
+    if (!this.template.project) {
+      return done('No project');
+    }
+
+    request(app)
+      .get('/project/' + this.template.project._id)
+      .set('x-jwt-token', this.owner.token)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end(function(err, res) {
+        if (err) {
+          return done(err);
+        }
+
+        this.template.project = res.body;
+        return done(null, res.body);
+      }.bind(this));
+  };
+
+  Helper.prototype.createProject = function(settings, done) {
     if (app.hasProjects || docker) {
       request(app)
         .post('/project')
         .send({
           title: chance.word(),
           name: chance.word(),
-          description: chance.sentence()
+          description: chance.sentence(),
+          settings: settings !== undefined ? settings : {}
         })
         .set('x-jwt-token', this.owner.token)
         .expect('Content-Type', /json/)
@@ -137,8 +161,8 @@ module.exports = function(app) {
     }
   };
 
-  Helper.prototype.project = function() {
-    this.series.push(this.createProject.bind(this));
+  Helper.prototype.project = function(settings) {
+    this.series.push(async.apply(this.createProject.bind(this), settings));
     return this;
   };
 
