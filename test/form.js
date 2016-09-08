@@ -1716,6 +1716,146 @@ module.exports = function(app, template, hook) {
             });
         });
       });
+
+      // FOR-132
+      describe('Email addresses are case sensitive', function() {
+        var testEmailForm = {
+          title: 'Test email Form',
+          name: 'testEmailForm',
+          path: 'temp/testemailform',
+          type: 'form',
+          access: [],
+          submissionAccess: [{
+            type: 'create_own',
+            roles: [
+              template.roles.anonymous._id.toString()
+            ]
+          }],
+          components: [
+            {
+              input: true,
+              tableView: true,
+              inputType: 'email',
+              label: 'Email',
+              key: 'email',
+              placeholder: '',
+              prefix: '',
+              suffix: '',
+              defaultValue: '',
+              protected: false,
+              unique: true,
+              persistent: true,
+              kickbox: {
+                enabled: false
+              },
+              type: 'email',
+              tags: [],
+              conditional: {
+                show: '',
+                when: null,
+                eq: ''
+              }
+            }
+          ]
+        };
+        var email = chance.email();
+
+        it('Bootstrap', function(done) {
+          // Create the test form
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(testEmailForm)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+              assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+              assert(response.hasOwnProperty('access'), 'The response should contain an the `access`.');
+              assert.equal(response.title, testEmailForm.title);
+              assert.equal(response.name, testEmailForm.name);
+              assert.equal(response.path, testEmailForm.path);
+              assert.equal(response.type, 'form');
+              assert.deepEqual(response.submissionAccess, testEmailForm.submissionAccess);
+              assert.deepEqual(response.components, testEmailForm.components);
+
+              testEmailForm = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('A submission can be made with a random email', function(done) {
+          var submission = {
+            data: {
+              email: email.toString().toLowerCase()
+            }
+          };
+
+          request(app)
+            .post(hook.alter('url', '/form/' + testEmailForm._id + '/submission', template))
+            .send(submission)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.data, submission.data);
+              done();
+            });
+        });
+
+        it('A submission can not be made with a duplicate email, but different case', function(done) {
+          var submission = {
+            data: {
+              email: email.toString().toUpperCase()
+            }
+          };
+
+          request(app)
+            .post(hook.alter('url', '/form/' + testEmailForm._id + '/submission', template))
+            .send(submission)
+            .expect('Content-Type', /json/)
+            .expect(400)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              done();
+            });
+        });
+
+        it('Form cleanup', function(done) {
+          request(app)
+            .delete(hook.alter('url', '/form/' + testEmailForm._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              testEmailForm = response;
+              assert.deepEqual(response, {});
+              done();
+            });
+        });
+      });
     });
 
     describe('Access Information', function() {
