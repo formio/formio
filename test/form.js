@@ -1719,46 +1719,50 @@ module.exports = function(app, template, hook) {
 
       // FOR-132
       describe('Unique fields are case insensitive', function() {
-        var testEmailForm = {
-          title: 'Test email Form',
-          name: 'testEmailForm',
-          path: 'temp/testemailform',
-          type: 'form',
-          access: [],
-          submissionAccess: [{
-            type: 'create_own',
-            roles: [
-              template.roles.anonymous._id.toString()
-            ]
-          }],
-          components: [
-            {
-              input: true,
-              tableView: true,
-              inputType: 'email',
-              label: 'Email',
-              key: 'email',
-              placeholder: '',
-              prefix: '',
-              suffix: '',
-              defaultValue: '',
-              protected: false,
-              unique: true,
-              persistent: true,
-              kickbox: {
-                enabled: false
-              },
-              type: 'email',
-              tags: [],
-              conditional: {
-                show: '',
-                when: null,
-                eq: ''
-              }
-            }
-          ]
-        };
+        var testEmailForm;
         var email = chance.email();
+
+        before(function() {
+          testEmailForm = {
+            title: 'Test email Form',
+            name: 'testEmailForm',
+            path: 'temp/testemailform',
+            type: 'form',
+            access: [],
+            submissionAccess: [{
+              type: 'create_own',
+              roles: [
+                template.roles.anonymous._id.toString()
+              ]
+            }],
+            components: [
+              {
+                input: true,
+                tableView: true,
+                inputType: 'email',
+                label: 'Email',
+                key: 'email',
+                placeholder: '',
+                prefix: '',
+                suffix: '',
+                defaultValue: '',
+                protected: false,
+                unique: true,
+                persistent: true,
+                kickbox: {
+                  enabled: false
+                },
+                type: 'email',
+                tags: [],
+                conditional: {
+                  show: '',
+                  when: null,
+                  eq: ''
+                }
+              }
+            ]
+          };
+        });
 
         it('Bootstrap', function(done) {
           // Create the test form
@@ -1859,70 +1863,74 @@ module.exports = function(app, template, hook) {
 
       // FOR-136
       describe('Unique fields work inside layout components', function() {
-        var testUniqueField = {
-          title: 'nested uniques',
-          display: 'form',
-          type: 'form',
-          name: 'nestedUniques',
-          path: 'nesteduniques',
-          access: [],
-          submissionAccess: [{
-            type: 'create_own',
-            roles: [
-              template.roles.anonymous._id.toString()
-            ]
-          }],
-          components: [
-            {
-              input: true,
-              tree: true,
-              components: [{
+        var testUniqueField;
+        var data = chance.word();
+
+        before(function() {
+          testUniqueField = {
+            title: 'nested uniques',
+            display: 'form',
+            type: 'form',
+            name: 'nestedUniques',
+            path: 'nesteduniques',
+            access: [],
+            submissionAccess: [{
+              type: 'create_own',
+              roles: [
+                template.roles.anonymous._id.toString()
+              ]
+            }],
+            components: [
+              {
                 input: true,
+                tree: true,
+                components: [{
+                  input: true,
+                  tableView: true,
+                  inputType: 'text',
+                  inputMask: '',
+                  label: 'unique',
+                  key: 'unique',
+                  placeholder: '',
+                  prefix: '',
+                  suffix: '',
+                  multiple: false,
+                  defaultValue: '',
+                  protected: false,
+                  unique: true,
+                  persistent: true,
+                  validate: {
+                    required: false,
+                    minLength: '',
+                    maxLength: '',
+                    pattern: '',
+                    custom: '',
+                    customPrivate: false
+                  },
+                  conditional: {
+                    show: '',
+                    when: null,
+                    eq: ''
+                  },
+                  type: 'textfield',
+                  tags: []
+                }],
                 tableView: true,
-                inputType: 'text',
-                inputMask: '',
-                label: 'unique',
-                key: 'unique',
-                placeholder: '',
-                prefix: '',
-                suffix: '',
-                multiple: false,
-                defaultValue: '',
+                label: 'container',
+                key: 'container1',
                 protected: false,
-                unique: true,
                 persistent: true,
-                validate: {
-                  required: false,
-                  minLength: '',
-                  maxLength: '',
-                  pattern: '',
-                  custom: '',
-                  customPrivate: false
-                },
+                type: 'container',
+                tags: [],
                 conditional: {
                   show: '',
                   when: null,
                   eq: ''
-                },
-                type: 'textfield',
-                tags: []
-              }],
-              tableView: true,
-              label: 'container',
-              key: 'container1',
-              protected: false,
-              persistent: true,
-              type: 'container',
-              tags: [],
-              conditional: {
-                show: '',
-                when: null,
-                eq: ''
+                }
               }
-            }
-          ]
-        };
-        var data = chance.word();
+            ]
+          };
+        });
 
         it('Bootstrap', function(done) {
           // Create the test form
