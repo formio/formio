@@ -4,6 +4,7 @@ var _ = require('lodash');
 var async = require('async');
 var util = require('../util/util');
 var Validator = require('../resources/Validator');
+var Q = require('q');
 
 module.exports = function(router, resourceName, resourceId) {
   var hook = require('../util/hook')(router.formio);
@@ -43,16 +44,37 @@ module.exports = function(router, resourceName, resourceId) {
      * @param done
      */
     var executeFieldHandler = function(component, handlerName, req, res, done) {
-      if (
-        fieldActions.hasOwnProperty(component.type) &&
-        fieldActions[component.type].hasOwnProperty(handlerName)
-      ) {
-        // Execute the field handler.
-        fieldActions[component.type][handlerName](component, req, res, done);
-      }
-      else {
-        done();
-      }
+      return Q()
+        .then(function() {
+          // Call the unique field action if applicable.
+          if (
+            fieldActions.hasOwnProperty('unique')
+            && fieldActions.unique.hasOwnProperty(handlerName)
+            && _.get(component, 'settings.unique') === true
+          ) {
+            return Q.nfcall(fieldActions.unique[handlerName], component, req, res);
+          }
+
+          return Q();
+        })
+        .then(function() {
+          // Check for the field action if available.
+          if (
+            fieldActions.hasOwnProperty(component.type) &&
+            fieldActions[component.type].hasOwnProperty(handlerName)
+          ) {
+            // Execute the field handler.
+            return Q.nfcall(fieldActions[component.type][handlerName], component, req, res);
+          }
+
+          return Q();
+        })
+        .then(function() {
+          return done();
+        })
+        .catch(function(err) {
+          return done();
+        });
     };
 
     /**
@@ -178,6 +200,7 @@ module.exports = function(router, resourceName, resourceId) {
 
     /**
      * Execute the application handlers.
+     *
      * @param req
      * @param done
      */
