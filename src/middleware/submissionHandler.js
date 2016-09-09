@@ -50,9 +50,9 @@ module.exports = function(router, resourceName, resourceId) {
           if (
             fieldActions.hasOwnProperty('unique')
             && fieldActions.unique.hasOwnProperty(handlerName)
-            && _.get(component, 'settings.unique') === true
+            && _.get(component, 'unique') === true
           ) {
-            return Q.nfcall(fieldActions.unique[handlerName], component, req, res);
+            return Q.ninvoke(fieldActions.unique, handlerName, component, req, res);
           }
 
           return Q();
@@ -64,7 +64,7 @@ module.exports = function(router, resourceName, resourceId) {
             fieldActions[component.type].hasOwnProperty(handlerName)
           ) {
             // Execute the field handler.
-            return Q.nfcall(fieldActions[component.type][handlerName], component, req, res);
+            return Q.ninvoke(fieldActions[component.type], handlerName, component, req, res);
           }
 
           return Q();

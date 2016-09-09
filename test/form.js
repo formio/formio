@@ -1922,7 +1922,7 @@ module.exports = function(app, template, hook) {
             }
           ]
         };
-        var email = chance.email();
+        var data = chance.word();
 
         it('Bootstrap', function(done) {
           // Create the test form
@@ -1961,7 +1961,9 @@ module.exports = function(app, template, hook) {
         it('A unique submission can be made', function(done) {
           var submission = {
             data: {
-              email: email.toString().toLowerCase()
+              container1: {
+                unique: data
+              }
             }
           };
 
@@ -1984,7 +1986,9 @@ module.exports = function(app, template, hook) {
         it('A duplicate submission can not be made', function(done) {
           var submission = {
             data: {
-              email: email.toString().toUpperCase()
+              container1: {
+                unique: data
+              }
             }
           };
 
