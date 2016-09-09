@@ -43,8 +43,8 @@ module.exports = function(router, resourceName, resourceId) {
      * @param res
      * @param done
      */
-    var executeFieldHandler = function(component, handlerName, req, res, done) {
-      return Q()
+    var executeFieldHandler = function(component, path, validation, handlerName, req, res, done) {
+      Q()
         .then(function() {
           // Call the unique field action if applicable.
           if (
@@ -52,7 +52,7 @@ module.exports = function(router, resourceName, resourceId) {
             && fieldActions.unique.hasOwnProperty(handlerName)
             && _.get(component, 'unique') === true
           ) {
-            return Q.ninvoke(fieldActions.unique, handlerName, component, req, res);
+            return Q.ninvoke(fieldActions.unique, handlerName, component, path, validation, req, res);
           }
 
           return Q();
@@ -64,7 +64,7 @@ module.exports = function(router, resourceName, resourceId) {
             fieldActions[component.type].hasOwnProperty(handlerName)
           ) {
             // Execute the field handler.
-            return Q.ninvoke(fieldActions[component.type], handlerName, component, req, res);
+            return Q.ninvoke(fieldActions[component.type], handlerName, component, path, validation, req, res);
           }
 
           return Q();
@@ -227,11 +227,13 @@ module.exports = function(router, resourceName, resourceId) {
     /**
      * Execute the field handlers.
      *
+     * @param {boolean} validation
+     *   Whether or not validation is require before running the field actions.
      * @param req
      * @param res
      * @param done
      */
-    var executeFieldHandlers = function(req, res, done) {
+    var executeFieldHandlers = function(validation, req, res, done) {
       // If they wish to disable actions, then just skip.
       if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
         return done();
@@ -246,7 +248,7 @@ module.exports = function(router, resourceName, resourceId) {
           util.deleteProp('data.' + path)(req.body);
         }
 
-        executeFieldHandler(component, req.handlerName, req, res, cb);
+        executeFieldHandler(component, path, validation, req.handlerName, req, res, cb);
       }, done);
     };
 
@@ -272,8 +274,9 @@ module.exports = function(router, resourceName, resourceId) {
         async.apply(loadCurrentForm, req),
         async.apply(initializeSubmission, req),
         async.apply(initializeActions, req, res),
+        async.apply(executeFieldHandlers, false, req, res),
         async.apply(validateSubmission, req, res),
-        async.apply(executeFieldHandlers, req, res),
+        async.apply(executeFieldHandlers, true, req, res),
         async.apply(executeActions('before'), req, res)
       ], next);
     };
@@ -284,7 +287,7 @@ module.exports = function(router, resourceName, resourceId) {
       req.handlerName = after;
       async.series([
         async.apply(executeActions('after'), req, res),
-        async.apply(executeFieldHandlers, req, res),
+        async.apply(executeFieldHandlers, true, req, res),
         async.apply(ensureResponse, req, res)
       ], next);
     };
