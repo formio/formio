@@ -2,7 +2,7 @@
 
 module.exports = function(formio) {
   return {
-    beforeGetAction: function(component, req, res, next) {
+    beforeGet: function(component, req, res, next) {
       req.modelQuery.select('-data.' + component.key);
       next();
     },

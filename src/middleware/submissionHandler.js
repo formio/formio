@@ -199,33 +199,6 @@ module.exports = function(router, resourceName, resourceId) {
     };
 
     /**
-     * Execute the application handlers.
-     *
-     * @param req
-     * @param done
-     */
-    var executeFieldActionHandlers = function(req, res, done) {
-      // If they wish to disable actions, then just skip.
-      if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
-        return done();
-      }
-
-      // Iterate through each component and allow them to alter the query.
-      async.eachOfSeries(req.flattenedComponents, function(component, path, then) {
-        if (
-          req.body &&
-          component.hasOwnProperty('persistent') &&
-          !component.persistent
-        ) {
-          util.deleteProp('data.' + path)(req.body);
-        }
-
-        // Execute the field handler.
-        executeFieldHandler(component, (req.handlerName + 'Action'), req, res, then);
-      }, done);
-    };
-
-    /**
      * Execute the actions.
      *
      * @param req
@@ -264,8 +237,16 @@ module.exports = function(router, resourceName, resourceId) {
         return done();
       }
 
-      async.eachSeries(req.flattenedComponents, function(component, done) {
-        executeFieldHandler(component, req.handlerName, req, res, done);
+      async.eachOfSeries(req.flattenedComponents, function(component, path, cb) {
+        if (
+          req.body &&
+          component.hasOwnProperty('persistent') &&
+          !component.persistent
+        ) {
+          util.deleteProp('data.' + path)(req.body);
+        }
+
+        executeFieldHandler(component, req.handlerName, req, res, cb);
       }, done);
     };
 
@@ -292,9 +273,8 @@ module.exports = function(router, resourceName, resourceId) {
         async.apply(initializeSubmission, req),
         async.apply(initializeActions, req, res),
         async.apply(validateSubmission, req, res),
-        async.apply(executeFieldActionHandlers, req, res),
-        async.apply(executeActions('before'), req, res),
-        async.apply(executeFieldHandlers, req, res)
+        async.apply(executeFieldHandlers, req, res),
+        async.apply(executeActions('before'), req, res)
       ], next);
     };
 
