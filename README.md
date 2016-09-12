@@ -28,7 +28,7 @@ You can then download this repository, navigate to the folder in your Terminal, 
 
 ```
 npm install
-node server
+node main
 ```
 
 This will walk you through the installation process.  When it is done, you will have a running Form.io management
