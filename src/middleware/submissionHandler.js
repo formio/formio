@@ -38,6 +38,11 @@ module.exports = function(router, resourceName, resourceId) {
      * Execute the field handler.
      *
      * @param component
+     *   The form component.
+     * @param path
+     *   The path to the data in the request body.
+     * @param validation
+     *   Whether or not validation is required before executing.
      * @param handlerName
      * @param req
      * @param res

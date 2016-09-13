@@ -262,14 +262,14 @@ module.exports = function(router) {
   };
 
   /**
-   * Initiialize the action.
+   * Initialize the action.
    */
   ResetPasswordAction.prototype.initialize = function(method, req, res, next) {
     // See if we have a reset password token.
     var hasResetToken = !!(req.tempToken && (req.tempToken.type === 'resetpass'));
     if (!hasResetToken && (method === 'create')) {
       // Figure out the username data.
-      var username = req.body ? _.property(this.settings.username)(req.body.data) : '';
+      var username = _.get(req.body.data, this.settings.username);
 
       // Make sure they have a username.
       if (!username) {
@@ -319,7 +319,7 @@ module.exports = function(router) {
     else {
       // Set the username for validation purposes.
       if (req.tempToken && req.tempToken.type === 'resetpass') {
-        req.body.data[this.settings.username] = req.tempToken.username;
+        _.set(req.body.data, this.settings.username, req.tempToken.username);
       }
 
       return next();
@@ -390,7 +390,7 @@ module.exports = function(router) {
       }
 
       // Get the password
-      var password = _.property(this.settings.password)(req.body.data);
+      var password = _.get(req.submission.data, this.settings.password);
       if (!password) {
         return next.call(this, 'No password provided.');
       }

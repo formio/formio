@@ -516,6 +516,8 @@ Validator.prototype.validate = function(submission, next) {
         return next(validateErr);
       }
 
+      debug.validator('Valid:');
+      debug.validator(value);
       next(null, value);
     });
   }.bind(this);
@@ -594,6 +596,7 @@ Validator.prototype.validate = function(submission, next) {
     var data = _.get(submission.data, _.get(paths, key));
     if (!data) {
       debug.validator('Skipping Key: ' + key);
+      debug.validator(data);
       return done();
     }
     if (_.isEmpty(data)) {
