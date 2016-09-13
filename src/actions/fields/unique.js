@@ -19,9 +19,23 @@ module.exports = function(formio) {
     if (!_.has(req.body, 'data.' + path)) {
       return next();
     }
+    var item = _.get(req.body, 'data.' + path);
 
-    // Coerce all unique fields to be lowercase.
-    _.set(req.body, 'data.' + path, (_.get(req.body, 'data.' + path)).toString().toLowerCase());
+    // Coerce all unique string fields to be lowercase.
+    if (typeof item === 'string') {
+      _.set(req.body, 'data.' + path, (_.get(req.body, 'data.' + path)).toString().toLowerCase());
+    }
+
+    // Coerce all unique string fields in an array to be lowercase.
+    if (item instanceof Array && (item.length > 0) && (typeof item[0] === 'string')) {
+      _.map(item, function(element) {
+        return element.toString().toLowerCase();
+      });
+
+      // Coerce all unique string fields to be lowercase.
+      _.set(req.body, 'data.' + path, item);
+    }
+
     return next();
   };
 
