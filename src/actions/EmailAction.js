@@ -126,6 +126,18 @@ module.exports = function(router) {
           prefix: '',
           placeholder: 'Enter the message you would like to send.',
           input: true
+        },
+        {
+          label: 'Attach Link To Mail',
+          key: 'submissionLink',
+          type: 'textfield',
+          defaultValue:  '<p><a href="{{ submissionLink }}">'
+          + 'View submission on form.io-view</a></p> ',
+          multiple: false,
+          suffix: '',
+          prefix: '',
+          placeholder: 'Attach the link of submission to email',
+          input: true
         }
       ];
 

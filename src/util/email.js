@@ -93,6 +93,12 @@ module.exports = function(formio) {
         message: message
       };
     },
+    submissionLink: function (form) {
+      var basePath = 'https://form.io/view/#/';
+      var projectID = form.machineName.replace(/:/g, '/');
+      var submissionID = '/submission/' + form._id;
+      return basePath + projectID + submissionID;
+    },
     getParams: function(res, form, submission) {
       var params = _.cloneDeep(submission);
       if (res && res.resource && res.resource.item) {
@@ -121,6 +127,10 @@ module.exports = function(formio) {
 
       // Get the parameters for the email.
       params.form = form;
+
+      //Get the submission link
+      params.submissionLink = this.submissionLink(form);
+
       return params;
     },
     send: function(req, res, message, params, next) {
@@ -326,7 +336,7 @@ module.exports = function(formio) {
             from: message.from ? message.from : 'no-reply@form.io',
             to: (typeof message.emails === 'string') ? message.emails : message.emails.join(', '),
             subject: message.subject,
-            html: message.message
+            html: message.submissionLink ? message.message + message.submissionLink : message.message
           }, message.sendEach);
         }
       }.bind(this));
