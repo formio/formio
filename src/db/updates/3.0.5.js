@@ -186,6 +186,88 @@ module.exports = function(db, config, tools, done) {
       });
   };
 
+  var getFormsWithUniqueComponentsInLayoutComponentsInLayoutComponents = function(next) {
+    formCollection.find({
+      _id: {$nin: fixedForms},
+      components: {
+        $elemMatch: {
+          $or: [
+            {columns: {$elemMatch: {
+              $or: [
+                {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true}}}]},
+                {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true}}}]},
+                {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true}}}]}
+              ]
+            }}},
+            {rows: {$elemMatch: {
+              $or: [
+                {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true}}}]},
+                {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true}}}]},
+                {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true}}}]}
+              ]
+            }}},
+            {components: {$elemMatch: {
+              $or: [
+                {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true}}}]},
+                {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true}}}]},
+                {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true}}}]}
+              ]
+            }}}
+          ]
+        }
+      }
+    })
+    .snapshot(true)
+    .toArray(function(err, forms) {
+      if (err) {
+        return next(err);
+      }
+
+      return next(null, forms);
+    });
+  };
+
+  var getFormsWithPotentialUniqueComponentsInLayoutComponents = function(next) {
+    formCollection.find({
+      _id: {$nin: fixedForms},
+      components: {
+        $elemMatch: {
+          $or: [
+            {columns: {$elemMatch: {
+              $or: [
+                {columns: {$exists: true}},
+                {rows: {$exists: true}},
+                {components: {$exists: true}}
+              ]
+            }}},
+            {rows: {$elemMatch: {
+              $or: [
+                {columns: {$exists: true}},
+                {rows: {$exists: true}},
+                {components: {$exists: true}}
+              ]
+            }}},
+            {components: {$elemMatch: {
+              $or: [
+                {columns: {$exists: true}},
+                {rows: {$exists: true}},
+                {components: {$exists: true}}
+              ]
+            }}}
+          ]
+        }
+      }
+    })
+    .snapshot(true)
+    .toArray(function(err, forms) {
+      if (err) {
+        return next(err);
+      }
+
+      return next(null, forms);
+    });
+  };
+
   /**
    * Fix each of the given forms, before continuing
    *
@@ -211,7 +293,8 @@ module.exports = function(db, config, tools, done) {
     getFormsWithUniqueComponents,
     fixEachForm,
     getFormsWithUniqueComponentsInLayoutComponents,
-    fixEachForm
+    fixEachForm,
+    getFormsWithPotentialUniqueComponentsInLayoutComponents
   ], function(err) {
     if (err) {
       return done(err);
