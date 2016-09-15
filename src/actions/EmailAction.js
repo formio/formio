@@ -119,24 +119,14 @@ module.exports = function(router) {
           label: 'Message',
           key: 'message',
           type: 'textarea',
-          defaultValue: '{{ table(form.components) }}',
+          defaultValue: '{{ table(form.components) }}' + '<br>' +
+          '<p><a href="{{ submissionLink }}">'
+          + 'View submission on form.io-view</a></p> ',
           multiple: false,
           rows: 3,
           suffix: '',
           prefix: '',
           placeholder: 'Enter the message you would like to send.',
-          input: true
-        },
-        {
-          label: 'Attach Link To Mail',
-          key: 'submissionLink',
-          type: 'textfield',
-          defaultValue:  '<p><a href="{{ submissionLink }}">'
-          + 'View submission on form.io-view</a></p> ',
-          multiple: false,
-          suffix: '',
-          prefix: '',
-          placeholder: 'Attach the link of submission to email',
           input: true
         }
       ];
