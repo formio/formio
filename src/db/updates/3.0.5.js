@@ -155,37 +155,31 @@ module.exports = function(db, config, tools, done) {
   var getFormsWithUniqueComponentsInLayoutComponents = function(next) {
     formCollection.find({
       _id: {$nin: fixedForms},
-      $or: [
-        {
-          $and: [
-            {components: {$elemMatch: {columns: {$exists: true}}}},
-            {components: {$elemMatch: {columns: {$elemMatch: {unique: true}}}}}
-          ]
-        },
-        {
-          $and: [
-            {components: {$elemMatch: {rows: {$exists: true}}}},
-            {components: {$elemMatch: {rows: {$elemMatch: {unique: true}}}}}
-          ]
-        },
-        {
-          $and: [
-            {components: {$elemMatch: {components: {$exists: true}}}},
-            {components: {$elemMatch: {components: {$elemMatch: {unique: true}}}}}
+      components: {
+        $elemMatch: {
+          $or: [
+            {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true}}}]},
+            {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true}}}]},
+            {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true}}}]}
           ]
         }
-      ]
-      })
-      .snapshot(true)
-      .toArray(function(err, forms) {
-        if (err) {
-          return next(err);
-        }
+      }
+    })
+    .snapshot(true)
+    .toArray(function(err, forms) {
+      if (err) {
+        return next(err);
+      }
 
-        return next(null, forms);
-      });
+      return next(null, forms);
+    });
   };
 
+  /**
+   * Get all the forms with a unique component within a layout component in a layout component, that hasnt already been modified.
+   *
+   * @param next
+   */
   var getFormsWithUniqueComponentsInLayoutComponentsInLayoutComponents = function(next) {
     formCollection.find({
       _id: {$nin: fixedForms},
@@ -227,6 +221,11 @@ module.exports = function(db, config, tools, done) {
     });
   };
 
+  /**
+   * Get all the forms with a layout component in a layout component, that hasnt already been modified.
+   *
+   * @param next
+   */
   var getFormsWithPotentialUniqueComponentsInLayoutComponents = function(next) {
     formCollection.find({
       _id: {$nin: fixedForms},
