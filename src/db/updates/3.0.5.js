@@ -255,6 +255,39 @@ module.exports = function(db, config, tools, done) {
             }}}
           ]
         }
+      },
+      $where: function() {
+        var form = this;
+        var walkComponents = function(components) {
+          for(var a = 0; a < components.length; a++) {
+            // Check the current component, to see if its unique.
+            var component = components[a];
+            if (component.unique === true) {
+              return true;
+            }
+
+            // Check any column components.
+            if (component.hasOwnProperty('columns')) {
+              if (walkComponents(component.columns) === true) {
+                return true;
+              }
+            }
+            // Check any row components.
+            if (component.hasOwnProperty('rows')) {
+              if (walkComponents(component.rows) === true) {
+                return true;
+              }
+            }
+            // Check any component components.
+            if (component.hasOwnProperty('components')) {
+              if (walkComponents(component.components) === true) {
+                return true;
+              }
+            }
+          }
+        };
+
+        return (walkComponents(form.components) === true);
       }
     })
     .snapshot(true)
@@ -293,7 +326,8 @@ module.exports = function(db, config, tools, done) {
     fixEachForm,
     getFormsWithUniqueComponentsInLayoutComponents,
     fixEachForm,
-    getFormsWithPotentialUniqueComponentsInLayoutComponents
+    getFormsWithPotentialUniqueComponentsInLayoutComponents,
+    fixEachForm
   ], function(err) {
     if (err) {
       return done(err);
