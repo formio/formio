@@ -2,7 +2,11 @@
 
 var async = require('async');
 var _ = require('lodash');
-var Q = require('q');
+var debug = {
+  getFormsWithUniqueComponents: require('debug')('formio:update:3.0.5-getFormsWithUniqueComponents'),
+  fixEachForm: require('debug')('formio:update:3.0.5-fixEachForm'),
+  fixFormUniques: require('debug')('formio:update:3.0.5-fixFormUniques')
+};
 
 /**
  * Update 3.0.5
@@ -80,24 +84,28 @@ module.exports = function(db, config, tools, done) {
   var fixFormUniques = function(form, next) {
     var uniques = {};
 
+    debug.fixFormUniques(form._id.toString());
     async.waterfall([
       function buildUniqueComponentList(callback) {
-        tools.util.eachComponent(form.components, function(component, path, cb) {
+        tools.util.eachComponent(form.components, function(component, path) {
           // We only care about non-layout components.
           if (!_.get(component, 'key')) {
-            return cb();
+            return;
           }
 
           // We only care about unique components.
           if (_.get(component, 'unique') !== true) {
-            return cb();
+            return;
           }
 
+          debug.fixFormUniques('buildUniqueComponentList');
           uniques[component.key] = path;
-          cb();
-        }, callback);
+        }, true);
+
+        return callback();
       },
       function getFormSubmissions(callback) {
+        debug.fixFormUniques('getFormSubmissions');
         submissionCollection.find({form: tools.util.idToBson(form._id)})
           .snapshot(true)
           .toArray(function(err, submissions) {
@@ -105,6 +113,7 @@ module.exports = function(db, config, tools, done) {
               return callback(err);
             }
 
+            debug.fixFormUniques('Form: ' + form._id.toString() + ', Submissions: ' + submissions.length);
             return callback(null, submissions);
           });
       },
@@ -113,6 +122,7 @@ module.exports = function(db, config, tools, done) {
           return callback();
         }
 
+        debug.fixFormUniques(uniques);
         async.each(submissions, function(submission, cb) {
           fixSubmissionUniques(submission, uniques, cb);
         }, callback);
@@ -124,6 +134,7 @@ module.exports = function(db, config, tools, done) {
       }
 
       fixedForms.push(tools.util.idToBson(form._id));
+      debug.fixFormUniques('Form Done: ' + form._id.toString());
       next();
     });
   };
@@ -143,6 +154,7 @@ module.exports = function(db, config, tools, done) {
         return next(err);
       }
 
+      debug.getFormsWithUniqueComponents(forms.length);
       return next(null, forms);
     });
   };
@@ -309,14 +321,17 @@ module.exports = function(db, config, tools, done) {
    */
   var fixEachForm = function(forms, next) {
     if (!forms || forms.length === 0) {
-      return callback();
+      debug.fixEachForm('No forms');
+      return next();
     }
 
+    debug.fixEachForm('Fixing Stage');
     async.each(forms, fixFormUniques, function(err) {
       if (err) {
         return next(err);
       }
 
+      debug.fixEachForm('done');
       return next();
     });
   };
