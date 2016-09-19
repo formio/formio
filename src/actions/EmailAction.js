@@ -121,7 +121,7 @@ module.exports = function(router) {
           type: 'textarea',
           defaultValue: '{{ table(form.components) }}' + '<br>' +
           '<p><a href="{{ submissionLink }}">'
-          + 'View submission on form.io-view</a></p> ',
+          + 'View submission on Form.io</a></p> ',
           multiple: false,
           rows: 3,
           suffix: '',
