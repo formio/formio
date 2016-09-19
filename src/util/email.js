@@ -93,7 +93,7 @@ module.exports = function(formio) {
         message: message
       };
     },
-    submissionLink: function (form) {
+    submissionLink: function(form) {
       var basePath = 'https://form.io/view/#/';
       var projectID = form.machineName.replace(/:/g, '/');
       var submissionID = '/submission/' + form._id;
