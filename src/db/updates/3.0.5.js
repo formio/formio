@@ -24,6 +24,7 @@ var debug = {
 module.exports = function(db, config, tools, done) {
   var formCollection = db.collection('forms');
   var submissionCollection = db.collection('submissions');
+  var blackListedComponents = ['select', 'address'];
 
   // The list of fixed forms.
   var fixedForms = [];
@@ -61,7 +62,7 @@ module.exports = function(db, config, tools, done) {
       return next();
     }
 
-    submissionCollection.findOneAndUpdate(
+    submissionCollection.update(
       {_id: tools.util.idToBson(submission._id)},
       {$set: update},
       function(err) {
@@ -93,8 +94,8 @@ module.exports = function(db, config, tools, done) {
             return;
           }
 
-          // We only care about unique components.
-          if (_.get(component, 'unique') !== true) {
+          // We only care about unique components, that have not been blacklisted.
+          if (_.get(component, 'unique') !== true || blackListedComponents.indexOf(_.get(component, 'type')) !== -1) {
             return;
           }
 
@@ -146,7 +147,8 @@ module.exports = function(db, config, tools, done) {
    */
   var getFormsWithUniqueComponents = function(next) {
     formCollection.find({
-      components: {$elemMatch: {unique: true}}
+      components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}},
+      deleted: {$eq: null}
     })
     .snapshot(true)
     .toArray(function(err, forms) {
@@ -167,12 +169,13 @@ module.exports = function(db, config, tools, done) {
   var getFormsWithUniqueComponentsInLayoutComponents = function(next) {
     formCollection.find({
       _id: {$nin: fixedForms},
+      deleted: {$eq: null},
       components: {
         $elemMatch: {
           $or: [
-            {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true}}}]},
-            {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true}}}]},
-            {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true}}}]}
+            {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
+            {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
+            {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]}
           ]
         }
       }
@@ -195,28 +198,29 @@ module.exports = function(db, config, tools, done) {
   var getFormsWithUniqueComponentsInLayoutComponentsInLayoutComponents = function(next) {
     formCollection.find({
       _id: {$nin: fixedForms},
+      deleted: {$eq: null},
       components: {
         $elemMatch: {
           $or: [
             {columns: {$elemMatch: {
               $or: [
-                {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true}}}]},
-                {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true}}}]},
-                {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true}}}]}
+                {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
+                {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
+                {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]}
               ]
             }}},
             {rows: {$elemMatch: {
               $or: [
-                {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true}}}]},
-                {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true}}}]},
-                {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true}}}]}
+                {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
+                {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
+                {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]}
               ]
             }}},
             {components: {$elemMatch: {
               $or: [
-                {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true}}}]},
-                {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true}}}]},
-                {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true}}}]}
+                {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
+                {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
+                {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]}
               ]
             }}}
           ]
@@ -241,6 +245,7 @@ module.exports = function(db, config, tools, done) {
   var getFormsWithPotentialUniqueComponentsInLayoutComponents = function(next) {
     formCollection.find({
       _id: {$nin: fixedForms},
+      deleted: {$eq: null},
       components: {
         $elemMatch: {
           $or: [
@@ -269,12 +274,13 @@ module.exports = function(db, config, tools, done) {
         }
       },
       $where: function() {
+        var blackListedComponents = ['select', 'address'];
         var form = this;
         var walkComponents = function(components) {
           for(var a = 0; a < components.length; a++) {
             // Check the current component, to see if its unique.
             var component = components[a];
-            if (component.unique === true) {
+            if (component.unique === true && blackListedComponents.indexOf(component.type) === -1) {
               return true;
             }
 
