@@ -4,8 +4,11 @@ var async = require('async');
 var _ = require('lodash');
 var debug = {
   getFormsWithUniqueComponents: require('debug')('formio:update:3.0.5-getFormsWithUniqueComponents'),
-  fixEachForm: require('debug')('formio:update:3.0.5-fixEachForm'),
-  fixFormUniques: require('debug')('formio:update:3.0.5-fixFormUniques')
+  getFormsWithUniqueComponentsInLayoutComponents: require('debug')('formio:update:3.0.5-getFormsWithUniqueComponentsInLayoutComponents'),
+  getFormsWithPotentialUniqueComponentsInLayoutComponents: require('debug')('formio:update:3.0.5-getFormsWithPotentialUniqueComponentsInLayoutComponents'),
+  getAffectedSubmissions: require('debug')('formio:update:3.0.5-getAffectedSubmissions'),
+  buildUniqueComponentList: require('debug')('formio:update:3.0.5-buildUniqueComponentList'),
+  fixSubmissionUniques: require('debug')('formio:update:3.0.5-fixSubmissionUniques')
 };
 
 /**
@@ -26,8 +29,11 @@ module.exports = function(db, config, tools, done) {
   var submissionCollection = db.collection('submissions');
   var blackListedComponents = ['select', 'address'];
 
-  // The list of fixed forms.
-  var fixedForms = [];
+  // List of forms to sweep.
+  var forms = [];
+
+  // Unique map for all sweepable forms.
+  var uniques = {};
 
   /**
    * Fix the submissions unique fields.
@@ -37,107 +43,76 @@ module.exports = function(db, config, tools, done) {
    * @param next
    * @returns {*}
    */
-  var fixSubmissionUniques = function(submission, uniques, next) {
-    var update = {};
-    _.each(uniques, function(path, key) {
-      var item = _.get(submission, 'data.' + path);
-      if (item) {
-        // Coerce all unique string fields to be lowercase.
-        if (typeof item === 'string') {
-          update['data.' + path] = item.toString().toLowerCase();
-        }
-        // Coerce all unique string fields in an array to be lowercase.
-        else if (item instanceof Array && (item.length > 0) && (typeof item[0] === 'string')) {
-          _.map(item, function(element) {
-            return element.toString().toLowerCase();
-          });
-
+  var fixSubmissionUniques = function(submissions, next) {
+    async.each(submissions, function(submission, cb) {
+      var update = {};
+      _.each(uniques[submission.form.toString()], function(path, key) {
+        var item = _.get(submission, 'data.' + path);
+        if (item) {
           // Coerce all unique string fields to be lowercase.
-          update['data.' + path] = item;
+          if (typeof item === 'string') {
+            debug.fixSubmissionUniques(submission._id.toString())
+            update['data.' + path] = item.toString().toLowerCase();
+          }
+          // Coerce all unique string fields in an array to be lowercase.
+          else if (item instanceof Array && (item.length > 0) && (typeof item[0] === 'string')) {
+            _.map(item, function(element) {
+              return element.toString().toLowerCase();
+            });
+
+            // Coerce all unique string fields to be lowercase.
+            update['data.' + path] = item;
+          }
         }
+      });
+
+      if (Object.keys(update).length === 0) {
+        return cb();
       }
-    });
 
-    if (Object.keys(update).length === 0) {
-      return next();
-    }
-
-    submissionCollection.update(
-      {_id: tools.util.idToBson(submission._id)},
-      {$set: update},
-      function(err) {
-        if (err) {
-          return next(err);
-        }
-
-
-        return next();
-      }
-    );
-  };
-
-  /**
-   * Fix all the submissions of the given form, to have comparable unique fields.
-   *
-   * @param form
-   * @param next
-   */
-  var fixFormUniques = function(form, next) {
-    var uniques = {};
-
-    debug.fixFormUniques(form._id.toString());
-    async.waterfall([
-      function buildUniqueComponentList(callback) {
-        tools.util.eachComponent(form.components, function(component, path) {
-          // We only care about non-layout components.
-          if (!_.get(component, 'key')) {
-            return;
+      submissionCollection.update(
+        {_id: tools.util.idToBson(submission._id)},
+        {$set: update},
+        function(err) {
+          if (err) {
+            return cb(err);
           }
 
-          // We only care about unique components, that have not been blacklisted.
-          if (_.get(component, 'unique') !== true || blackListedComponents.indexOf(_.get(component, 'type')) !== -1) {
-            return;
-          }
-
-          debug.fixFormUniques('buildUniqueComponentList');
-          uniques[component.key] = path;
-        }, true);
-
-        return callback();
-      },
-      function getFormSubmissions(callback) {
-        debug.fixFormUniques('getFormSubmissions');
-        submissionCollection.find({form: tools.util.idToBson(form._id)})
-          .snapshot(true)
-          .toArray(function(err, submissions) {
-            if (err) {
-              return callback(err);
-            }
-
-            debug.fixFormUniques('Form: ' + form._id.toString() + ', Submissions: ' + submissions.length);
-            return callback(null, submissions);
-          });
-      },
-      function fixEachSubmission(submissions, callback) {
-        if (!submissions || submissions.length === 0) {
-          return callback();
+          return cb();
         }
-
-        debug.fixFormUniques(uniques);
-        async.each(submissions, function(submission, cb) {
-          fixSubmissionUniques(submission, uniques, cb);
-        }, callback);
-      }
-    ],
-    function(err) {
+      );
+    }, function(err) {
       if (err) {
         return next(err);
       }
 
-      fixedForms.push(tools.util.idToBson(form._id));
-      debug.fixFormUniques('Form Done: ' + form._id.toString());
-      next();
+      return next();
     });
+  };
+
+  /**
+   * Sweep all the forms to get all their uniques.
+   *
+   * @param next
+   * @returns {*}
+   */
+  var buildUniqueComponentList = function(next) {
+    formCollection.find({_id: {$in: forms}, deleted: {$eq: null}})
+      .snapshot(true)
+      .forEach(function(form) {
+        tools.util.eachComponent(form.components, function(component, path) {
+          // We only care about non-layout components, which are not unique, and have not been blacklisted.
+          if (
+            _.get(component, 'key')
+            && _.get(component, 'unique') === true
+            && blackListedComponents.indexOf(_.get(component, 'type')) === -1
+          ) {
+            debug.buildUniqueComponentList(form._id.toString() + ' -> ' + path);
+            uniques[form._id.toString()] = uniques[form._id.toString()] || {};
+            uniques[form._id.toString()][component.key] = path;
+          }
+        }, true);
+      }, next());
   };
 
   /**
@@ -149,8 +124,11 @@ module.exports = function(db, config, tools, done) {
     formCollection.find({
       components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}},
       deleted: {$eq: null}
-    })
+    }, {_id: 1})
     .snapshot(true)
+    .map(function(form) {
+      return form._id;
+    })
     .toArray(function(err, forms) {
       if (err) {
         return next(err);
@@ -168,7 +146,7 @@ module.exports = function(db, config, tools, done) {
    */
   var getFormsWithUniqueComponentsInLayoutComponents = function(next) {
     formCollection.find({
-      _id: {$nin: fixedForms},
+      _id: {$nin: forms},
       deleted: {$eq: null},
       components: {
         $elemMatch: {
@@ -179,60 +157,17 @@ module.exports = function(db, config, tools, done) {
           ]
         }
       }
-    })
+    }, {_id: 1})
     .snapshot(true)
+    .map(function(form) {
+      return form._id;
+    })
     .toArray(function(err, forms) {
       if (err) {
         return next(err);
       }
 
-      return next(null, forms);
-    });
-  };
-
-  /**
-   * Get all the forms with a unique component within a layout component in a layout component, that hasnt already been modified.
-   *
-   * @param next
-   */
-  var getFormsWithUniqueComponentsInLayoutComponentsInLayoutComponents = function(next) {
-    formCollection.find({
-      _id: {$nin: fixedForms},
-      deleted: {$eq: null},
-      components: {
-        $elemMatch: {
-          $or: [
-            {columns: {$elemMatch: {
-              $or: [
-                {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
-                {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
-                {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]}
-              ]
-            }}},
-            {rows: {$elemMatch: {
-              $or: [
-                {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
-                {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
-                {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]}
-              ]
-            }}},
-            {components: {$elemMatch: {
-              $or: [
-                {$and: [{columns: {$exists: true}}, {columns: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
-                {$and: [{rows: {$exists: true}}, {rows: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]},
-                {$and: [{components: {$exists: true}}, {components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}}}]}
-              ]
-            }}}
-          ]
-        }
-      }
-    })
-    .snapshot(true)
-    .toArray(function(err, forms) {
-      if (err) {
-        return next(err);
-      }
-
+      debug.getFormsWithUniqueComponentsInLayoutComponents(forms.length);
       return next(null, forms);
     });
   };
@@ -244,7 +179,7 @@ module.exports = function(db, config, tools, done) {
    */
   var getFormsWithPotentialUniqueComponentsInLayoutComponents = function(next) {
     formCollection.find({
-      _id: {$nin: fixedForms},
+      _id: {$nin: forms},
       deleted: {$eq: null},
       components: {
         $elemMatch: {
@@ -307,48 +242,63 @@ module.exports = function(db, config, tools, done) {
 
         return (walkComponents(form.components) === true);
       }
-    })
+    }, {_id: 1})
     .snapshot(true)
+    .map(function(form) {
+      return form._id;
+    })
     .toArray(function(err, forms) {
       if (err) {
         return next(err);
       }
 
+      debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(forms.length);
       return next(null, forms);
     });
   };
 
   /**
-   * Fix each of the given forms, before continuing
+   * Get all submissions for modification.
    *
-   * @param forms
    * @param next
-   * @returns {*}
    */
-  var fixEachForm = function(forms, next) {
-    if (!forms || forms.length === 0) {
-      debug.fixEachForm('No forms');
-      return next();
-    }
-
-    debug.fixEachForm('Fixing Stage');
-    async.each(forms, fixFormUniques, function(err) {
+  var getAffectedSubmissions = function(next) {
+    submissionCollection.find({
+      deleted: {$eq: null},
+      form: {$in: forms}
+    })
+    .snapshot(true)
+    .toArray(function(err, submissions) {
       if (err) {
         return next(err);
       }
 
-      debug.fixEachForm('done');
-      return next();
+      debug.getAffectedSubmissions(submissions.length);
+      return next(null, submissions);
     });
+  };
+
+  /**
+   * Build the list of forms.
+   *
+   * @param newForms
+   * @param next
+   */
+  var mergeForms = function(newForms, next) {
+    forms = forms.concat(newForms);
+    next();
   };
 
   async.waterfall([
     getFormsWithUniqueComponents,
-    fixEachForm,
+    mergeForms,
     getFormsWithUniqueComponentsInLayoutComponents,
-    fixEachForm,
+    mergeForms,
     getFormsWithPotentialUniqueComponentsInLayoutComponents,
-    fixEachForm
+    mergeForms,
+    buildUniqueComponentList,
+    getAffectedSubmissions,
+    fixSubmissionUniques
   ], function(err) {
     if (err) {
       return done(err);
