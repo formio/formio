@@ -8,7 +8,8 @@ var debug = {
   getFormsWithPotentialUniqueComponentsInLayoutComponents: require('debug')('formio:update:3.0.5-getFormsWithPotentialUniqueComponentsInLayoutComponents'),
   getAffectedSubmissions: require('debug')('formio:update:3.0.5-getAffectedSubmissions'),
   buildUniqueComponentList: require('debug')('formio:update:3.0.5-buildUniqueComponentList'),
-  fixSubmissionUniques: require('debug')('formio:update:3.0.5-fixSubmissionUniques')
+  fixSubmissionUniques: require('debug')('formio:update:3.0.5-fixSubmissionUniques'),
+  mergeForms: require('debug')('formio:update:3.0.5-mergeForms')
 };
 
 /**
@@ -51,7 +52,7 @@ module.exports = function(db, config, tools, done) {
         if (item) {
           // Coerce all unique string fields to be lowercase.
           if (typeof item === 'string') {
-            debug.fixSubmissionUniques(submission._id.toString())
+            debug.fixSubmissionUniques(submission._id.toString());
             update['data.' + path] = item.toString().toLowerCase();
           }
           // Coerce all unique string fields in an array to be lowercase.
@@ -67,7 +68,12 @@ module.exports = function(db, config, tools, done) {
       });
 
       if (Object.keys(update).length === 0) {
+        debug.fixSubmissionUniques(submission.form + ': No updates! -> ' + submission._id.toString());
         return cb();
+      }
+      else {
+        debug.fixSubmissionUniques(submission.form + ': Updates! -> ');
+        debug.fixSubmissionUniques(update);
       }
 
       submissionCollection.update(
@@ -134,6 +140,7 @@ module.exports = function(db, config, tools, done) {
         return next(err);
       }
 
+      console.log(forms[0])
       debug.getFormsWithUniqueComponents(forms.length);
       return next(null, forms);
     });
@@ -207,53 +214,55 @@ module.exports = function(db, config, tools, done) {
             }}}
           ]
         }
-      },
-      $where: function() {
-        var blackListedComponents = ['select', 'address'];
-        var form = this;
-        var walkComponents = function(components) {
-          for(var a = 0; a < components.length; a++) {
-            // Check the current component, to see if its unique.
-            var component = components[a];
-            if (component.unique === true && blackListedComponents.indexOf(component.type) === -1) {
-              return true;
-            }
-
-            // Check any column components.
-            if (component.hasOwnProperty('columns')) {
-              if (walkComponents(component.columns) === true) {
-                return true;
-              }
-            }
-            // Check any row components.
-            if (component.hasOwnProperty('rows')) {
-              if (walkComponents(component.rows) === true) {
-                return true;
-              }
-            }
-            // Check any component components.
-            if (component.hasOwnProperty('components')) {
-              if (walkComponents(component.components) === true) {
-                return true;
-              }
-            }
-          }
-        };
-
-        return (walkComponents(form.components) === true);
       }
-    }, {_id: 1})
-    .snapshot(true)
-    .map(function(form) {
-      return form._id;
     })
+    .snapshot(true)
     .toArray(function(err, forms) {
       if (err) {
         return next(err);
       }
 
-      debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(forms.length);
-      return next(null, forms);
+      var walkComponents = function(components) {
+        for(var a = 0; a < components.length; a++) {
+          // Check the current component, to see if its unique.
+          var component = components[a];
+          if (
+            component.hasOwnProperty('unique')
+            && component.unique === true
+            && blackListedComponents.indexOf(component.type) === -1
+          ) {
+            return true;
+          }
+
+          // Check any column components.
+          if (component.hasOwnProperty('columns') && walkComponents(component.columns) === true) {
+            return true;
+          }
+          // Check any row components.
+          if (component.hasOwnProperty('rows') && walkComponents(component.rows) === true) {
+            return true;
+          }
+          // Check any component components.
+          if (component.hasOwnProperty('components') && walkComponents(component.components) === true) {
+            return true;
+          }
+        }
+
+        return false;
+      };
+
+      var filtered = [];
+      forms.forEach(function(form) {
+        var res = (walkComponents(form.components) === true);
+
+        if (res) {
+          filtered.push(form._id);
+        }
+      });
+
+      debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(filtered);
+      debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(filtered.length);
+      return next(null, filtered);
     });
   };
 
@@ -285,7 +294,11 @@ module.exports = function(db, config, tools, done) {
    * @param next
    */
   var mergeForms = function(newForms, next) {
+    debug.mergeForms('Old: ' + forms.length);
+    debug.mergeForms('New: ' + newForms.length);
     forms = forms.concat(newForms);
+    debug.mergeForms('Total: ' + forms.length);
+
     next();
   };
 
