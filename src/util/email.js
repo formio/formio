@@ -237,8 +237,8 @@ module.exports = function(formio) {
             }
             break;
           case 'sendgrid':
-            debug.email(settings.email.sendgrid);
-            if (settings.email.sendgrid) {
+            if (_.has(settings, 'email.sendgrid')) {
+              debug.email(settings.email.sendgrid);
               // Check if the user has configured sendgrid for api key access.
               if (_.get(settings, 'email.sendgrid.auth.api_user')
                 && _.get(settings, 'email.sendgrid.auth.api_user').toString() === 'apikey'
@@ -251,12 +251,12 @@ module.exports = function(formio) {
             }
             break;
           case 'mandrill':
-            if (settings.email.mandrill) {
+            if (_.has(settings, 'email.mandrill')) {
               transporter = nodemailer.createTransport(mandrillTransport(settings.email.mandrill));
             }
             break;
           case 'mailgun':
-            if (settings.email.mailgun) {
+            if (_.has(settings, 'email.mailgun')) {
               transporter = nodemailer.createTransport(mailgunTransport(settings.email.mailgun));
             }
             break;
@@ -291,7 +291,7 @@ module.exports = function(formio) {
             }
             break;
           case 'custom':
-            if (settings.email.custom) {
+            if (_.has(settings, 'email.custom')) {
               transporter.sendMail = function(mail) {
                 var options = {};
                 if (settings.email.custom.username) {
@@ -304,7 +304,7 @@ module.exports = function(formio) {
             }
             break;
           case 'gmail':
-            if (settings.email.gmail) {
+            if (_.has(settings, 'email.gmail')) {
               var options = settings.email.gmail;
               options.service = 'Gmail';
               transporter = nodemailer.createTransport(options);
