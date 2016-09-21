@@ -77,7 +77,7 @@ module.exports = function(router, resourceName, resourceId) {
         .then(function() {
           return done();
         })
-        .catch(function(err) {
+        .catch(function() {
           return done();
         });
     };
