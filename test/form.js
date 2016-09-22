@@ -8,6 +8,7 @@ var chance = new (require('chance'))();
 var formioUtils = require('formio-utils');
 var async = require('async');
 var docker = process.env.DOCKER;
+var customer = process.env.CUSTOMER;
 
 module.exports = function(app, template, hook) {
   describe('Forms', function() {
@@ -1715,6 +1716,45 @@ module.exports = function(app, template, hook) {
               done();
             });
         });
+      });
+
+      // FOR-155
+      if (!docker && !customer)
+      describe('Invalid Form paths', function() {
+        it('None of the reserved form names should be allowed as form paths for new forms', function(done) {
+          var formio = hook.alter('formio', app.formio);
+          async.each(formio.config.reservedForms, function(path, callback) {
+            var form = _.cloneDeep(tempForm);
+            form.path = path;
+
+            // Create the test form
+            request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)
+              .expect('Content-Type', /text/)
+              .expect(400)
+              .end(function(err, res) {
+                if (err) {
+                  return callback(err);
+                }
+
+                var response = res.text;
+                assert.equal(response, 'Form path cannot contain one of the following names: ' + formio.config.reservedForms.join(', '));
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                callback();
+              });
+          }, function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            return done();
+          });
+        })
       });
     });
 
