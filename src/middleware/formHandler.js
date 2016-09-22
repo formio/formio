@@ -11,7 +11,7 @@ module.exports = function(router) {
   var formio = hook.alter('formio', router.formio);
 
   return function formHandler(req, res, next) {
-    if (req.method === 'POST' && req.body.path) {
+    if (['POST', 'PUT'].indexOf(req.method) !== -1 && req.body.path) {
       var fragments = req.body.path.split('/');
       if (
         formio.config.reservedForms.indexOf(req.body.path) !== -1 // Check the full path
