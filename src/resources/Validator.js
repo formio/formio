@@ -516,6 +516,8 @@ Validator.prototype.validate = function(submission, next) {
         return next(validateErr);
       }
 
+      debug.validator('Valid:');
+      debug.validator(value);
       next(null, value);
     });
   }.bind(this);
@@ -574,58 +576,67 @@ Validator.prototype.validate = function(submission, next) {
 
   // Iterate through each of the unique keys.
   var uniques = _.keys(this.unique);
-  if (uniques.length > 0) {
-    async.eachSeries(uniques, function(key, done) {
-      var component = this.unique[key];
+  if (uniques.length === 0) {
+    return joiValidate();
+  }
 
-      debug.validator('Key: ' + key);
-      // Skip validation of this field, because data wasn't included.
-      if (!submission.data.hasOwnProperty(key) && !submission.data[key]) {
-        debug.validator('Skipping Key: ' + key);
-        return done();
-      }
-      if (submission.data.hasOwnProperty(key) && _.isEmpty(submission.data[key])) {
-        debug.validator('Skipping Key: ' + key + ', typeof: ' + typeof submission.data[key]);
-        debug.validator(submission.data[key]);
-        return done();
-      }
+  // Iterate the list of components one time to build the path map.
+  var paths = {};
+  util.eachComponent(this.form.components, function(component, path) {
+    if (component.hasOwnProperty('key')) {
+      paths[component.key] = path;
+    }
+  }, true);
 
-      // Get the query.
-      var query = {form: util.idToBson(submission.form)};
-      query['data.' + key] = submission.data[key];
+  async.eachSeries(uniques, function(key, done) {
+    var component = this.unique[key];
 
-      // Only search for non-deleted items.
-      if (!query.hasOwnProperty('deleted')) {
-        query['deleted'] = {$eq: null};
-      }
+    debug.validator('Key: ' + key);
+    // Skip validation of this field, because data wasn't included.
+    var data = _.get(submission.data, _.get(paths, key));
+    if (!data) {
+      debug.validator('Skipping Key: ' + key);
+      debug.validator(data);
+      return done();
+    }
+    if (_.isEmpty(data)) {
+      debug.validator('Skipping Key: ' + key + ', typeof: ' + typeof data);
+      debug.validator(data);
+      return done();
+    }
 
-      // Try to find an existing value within the form.
-      debug.validator(query);
-      this.model.findOne(query, function(err, result) {
-        if (err) {
-          debug.validator(err);
-          return done(err);
-        }
-        if (result && submission._id && (result._id.toString() === submission._id)) {
-          return done();
-        }
-        if (result) {
-          return done(new Error(component.label + ' must be unique.'));
-        }
+    // Get the query.
+    var query = {form: util.idToBson(submission.form)};
+    query['data.' + _.get(paths, key)] = data;
 
-        done();
-      });
-    }.bind(this), function(err) {
+    // Only search for non-deleted items.
+    if (!query.hasOwnProperty('deleted')) {
+      query['deleted'] = {$eq: null};
+    }
+
+    // Try to find an existing value within the form.
+    debug.validator(query);
+    this.model.findOne(query, function(err, result) {
       if (err) {
-        return next(err.message);
+        debug.validator(err);
+        return done(err);
+      }
+      if (result && submission._id && (result._id.toString() === submission._id)) {
+        return done();
+      }
+      if (result) {
+        return done(new Error(component.label + ' must be unique.'));
       }
 
-      joiValidate();
+      done();
     });
-  }
-  else {
+  }.bind(this), function(err) {
+    if (err) {
+      return next(err.message);
+    }
+
     joiValidate();
-  }
+  });
 };
 
 module.exports = Validator;
