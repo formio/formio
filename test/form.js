@@ -1720,6 +1720,342 @@ module.exports = function(app, template, hook) {
         });
       });
 
+      // FOR-128
+      describe('Duplicate form component keys', function() {
+        var form = _.cloneDeep(tempForm);
+        form.title = 'componenttest';
+        form.name = 'componenttest';
+        form.path = 'componenttest';
+        form.components = [
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'foo',
+            key: 'foo',
+            label: 'foo',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          },
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'foo',
+            key: 'foo',
+            label: 'foo',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          },
+          {
+            type: 'button',
+            theme: 'primary',
+            disableOnInvalid: false,
+            action: 'submit',
+            block: false,
+            rightIcon: '',
+            leftIcon: '',
+            size: 'md',
+            key: 'submit',
+            tableView: false,
+            label: 'Submit',
+            input: true,
+            tags: [],
+            conditional: {
+              show: '',
+              when: null,
+              eq: ''
+            }
+          }
+        ];
+
+        it('A form cannot be created with duplicate component api keys', function(done) {
+          // Create the test form
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)
+            .expect('Content-Type', /json/)
+            .expect(400)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              var msg = _.get(response, 'errors.components.message');
+              assert.equal(msg, 'Component keys must be unique: foo');
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('A form can be created with unique component api keys', function(done) {
+          form.components = [
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'foo',
+              key: 'foo',
+              label: 'foo',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            },
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'bar',
+              key: 'bar',
+              label: 'bar',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            },
+            {
+              type: 'button',
+              theme: 'primary',
+              disableOnInvalid: false,
+              action: 'submit',
+              block: false,
+              rightIcon: '',
+              leftIcon: '',
+              size: 'md',
+              key: 'submit',
+              tableView: false,
+              label: 'Submit',
+              input: true,
+              tags: [],
+              conditional: {
+                show: '',
+                when: null,
+                eq: ''
+              }
+            }
+          ];
+
+          // Create the test form
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+              assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+              assert(response.hasOwnProperty('access'), 'The response should contain an the `access`.');
+              assert.equal(response.title, form.title);
+              assert.equal(response.name, form.name);
+              assert.equal(response.path, form.path);
+              assert.equal(response.type, 'form');
+              assert.deepEqual(response.submissionAccess, []);
+              assert.deepEqual(response.components, form.components);
+
+              form = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('A form cannot be updated with duplicate component api keys', function(done) {
+          var components = [
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'foo',
+              key: 'foo',
+              label: 'foo',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            },
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'foo',
+              key: 'foo',
+              label: 'foo',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            },
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'bar',
+              key: 'bar',
+              label: 'bar',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            },
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'bar',
+              key: 'bar',
+              label: 'bar',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            },
+            {
+              type: 'button',
+              theme: 'primary',
+              disableOnInvalid: false,
+              action: 'submit',
+              block: false,
+              rightIcon: '',
+              leftIcon: '',
+              size: 'md',
+              key: 'submit',
+              tableView: false,
+              label: 'Submit',
+              input: true,
+              tags: [],
+              conditional: {
+                show: '',
+                when: null,
+                eq: ''
+              }
+            }
+          ];
+
+          // Create the test form
+          request(app)
+            .put(hook.alter('url', '/form', template) + '/' + form._id)
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              components: components
+            })
+            .expect('Content-Type', /json/)
+            .expect(500)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              var msg = _.get(response, 'errors.components.message');
+              assert.equal(msg, 'Component keys must be unique: foo, bar');
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('Form cleanup', function(done) {
+          request(app)
+            .delete(hook.alter('url', '/form/' + form._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response, {});
+              done();
+            });
+        });
+      });
+
       if (!docker && !customer)
       describe('Invalid Form paths', function() {
         var form;
