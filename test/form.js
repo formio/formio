@@ -8,8 +8,11 @@ var chance = new (require('chance'))();
 var formioUtils = require('formio-utils');
 var async = require('async');
 var docker = process.env.DOCKER;
+var customer = process.env.CUSTOMER;
 
 module.exports = function(app, template, hook) {
+  var formio = hook.alter('formio', app.formio);
+
   describe('Forms', function() {
     // Store the temp form for this test suite.
     var tempForm = {
@@ -1714,6 +1717,106 @@ module.exports = function(app, template, hook) {
               assert.deepEqual(response, {});
               done();
             });
+        });
+      });
+
+      if (!docker && !customer)
+      describe('Invalid Form paths', function() {
+        var form;
+        it('Bootstrap', function(done) {
+          form = _.cloneDeep(tempForm);
+          form.title = chance.word();
+          form.name = chance.word();
+          form.path = chance.word();
+
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              form = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        // FOR-155
+        it('None of the reserved form names should be allowed as form paths for new forms', function(done) {
+          async.each(formio.config.reservedForms, function(path, callback) {
+            var form = _.cloneDeep(tempForm);
+            form.path = path;
+
+            // Create the test form
+            request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)
+              .expect('Content-Type', /text/)
+              .expect(400)
+              .end(function(err, res) {
+                if (err) {
+                  return callback(err);
+                }
+
+                var response = res.text;
+                assert.equal(response, 'Form path cannot contain one of the following names: ' + formio.config.reservedForms.join(', '));
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                callback();
+              });
+          }, function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            return done();
+          });
+        });
+
+        // FOR-156
+        it('None of the reserved form names should be allowed as form paths for existing forms', function(done) {
+          async.each(formio.config.reservedForms, function(path, callback) {
+            // update the test form
+            request(app)
+              .put(hook.alter('url', '/form', template) + '/' + form._id)
+              .set('x-jwt-token', template.users.admin.token)
+              .send({
+                path: path
+              })
+              .expect('Content-Type', /text/)
+              .expect(400)
+              .end(function(err, res) {
+                if (err) {
+                  return callback(err);
+                }
+
+                var response = res.text;
+                assert.equal(response, 'Form path cannot contain one of the following names: ' + formio.config.reservedForms.join(', '));
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                callback();
+              });
+          }, function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            return done();
+          });
         });
       });
 
