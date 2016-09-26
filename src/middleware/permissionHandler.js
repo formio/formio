@@ -331,22 +331,21 @@ module.exports = function(router) {
           // Load the default role.
           access[name] = hook.alter(name, null, access);
           if (access[name]) {
+            return done(null, access);
+          }
+
+          // Load the default role.
+          router.formio.resources.role.model.findOne(hook.alter('roleQuery', query, req), function(err, role) {
+            if (err) {
+              return done(err);
+            }
+
+            if (role) {
+              access[name] = role._id.toString();
+            }
+
             done(null, access);
-          }
-          else {
-            // Load the default role.
-            router.formio.resources.role.model.findOne(hook.alter('roleQuery', query, req), function(err, role) {
-              if (err) {
-                return done(err);
-              }
-
-              if (role) {
-                access[name] = role._id.toString();
-              }
-
-              done(null, access);
-            });
-          }
+          });
         };
 
         // Load all of the applicable roles.
