@@ -4,6 +4,7 @@ var _ = require('lodash');
 var async = require('async');
 var util = require('../util/util');
 var Validator = require('../resources/Validator');
+var Q = require('q');
 
 module.exports = function(router, resourceName, resourceId) {
   var hook = require('../util/hook')(router.formio);
@@ -37,22 +38,48 @@ module.exports = function(router, resourceName, resourceId) {
      * Execute the field handler.
      *
      * @param component
+     *   The form component.
+     * @param path
+     *   The path to the data in the request body.
+     * @param validation
+     *   Whether or not validation is required before executing.
      * @param handlerName
      * @param req
      * @param res
      * @param done
      */
-    var executeFieldHandler = function(component, handlerName, req, res, done) {
-      if (
-        fieldActions.hasOwnProperty(component.type) &&
-        fieldActions[component.type].hasOwnProperty(handlerName)
-      ) {
-        // Execute the field handler.
-        fieldActions[component.type][handlerName](component, req, res, done);
-      }
-      else {
-        done();
-      }
+    var executeFieldHandler = function(component, path, validation, handlerName, req, res, done) {
+      Q()
+        .then(function() {
+          // Call the unique field action if applicable.
+          if (
+            fieldActions.hasOwnProperty('unique')
+            && fieldActions.unique.hasOwnProperty(handlerName)
+            && _.get(component, 'unique') === true
+          ) {
+            return Q.ninvoke(fieldActions.unique, handlerName, component, path, validation, req, res);
+          }
+
+          return Q();
+        })
+        .then(function() {
+          // Check for the field action if available.
+          if (
+            fieldActions.hasOwnProperty(component.type) &&
+            fieldActions[component.type].hasOwnProperty(handlerName)
+          ) {
+            // Execute the field handler.
+            return Q.ninvoke(fieldActions[component.type], handlerName, component, path, validation, req, res);
+          }
+
+          return Q();
+        })
+        .then(function() {
+          return done();
+        })
+        .catch(function() {
+          return done();
+        });
     };
 
     /**
@@ -177,32 +204,6 @@ module.exports = function(router, resourceName, resourceId) {
     };
 
     /**
-     * Execute the application handlers.
-     * @param req
-     * @param done
-     */
-    var executeFieldActionHandlers = function(req, res, done) {
-      // If they wish to disable actions, then just skip.
-      if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
-        return done();
-      }
-
-      // Iterate through each component and allow them to alter the query.
-      async.eachOfSeries(req.flattenedComponents, function(component, path, then) {
-        if (
-          req.body &&
-          component.hasOwnProperty('persistent') &&
-          !component.persistent
-        ) {
-          util.deleteProp('data.' + path)(req.body);
-        }
-
-        // Execute the field handler.
-        executeFieldHandler(component, (req.handlerName + 'Action'), req, res, then);
-      }, done);
-    };
-
-    /**
      * Execute the actions.
      *
      * @param req
@@ -231,18 +232,28 @@ module.exports = function(router, resourceName, resourceId) {
     /**
      * Execute the field handlers.
      *
+     * @param {boolean} validation
+     *   Whether or not validation is require before running the field actions.
      * @param req
      * @param res
      * @param done
      */
-    var executeFieldHandlers = function(req, res, done) {
+    var executeFieldHandlers = function(validation, req, res, done) {
       // If they wish to disable actions, then just skip.
       if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
         return done();
       }
 
-      async.eachSeries(req.flattenedComponents, function(component, done) {
-        executeFieldHandler(component, req.handlerName, req, res, done);
+      async.eachOfSeries(req.flattenedComponents, function(component, path, cb) {
+        if (
+          req.body &&
+          component.hasOwnProperty('persistent') &&
+          !component.persistent
+        ) {
+          util.deleteProp('data.' + path)(req.body);
+        }
+
+        executeFieldHandler(component, path, validation, req.handlerName, req, res, cb);
       }, done);
     };
 
@@ -268,10 +279,10 @@ module.exports = function(router, resourceName, resourceId) {
         async.apply(loadCurrentForm, req),
         async.apply(initializeSubmission, req),
         async.apply(initializeActions, req, res),
+        async.apply(executeFieldHandlers, false, req, res),
         async.apply(validateSubmission, req, res),
-        async.apply(executeFieldActionHandlers, req, res),
-        async.apply(executeActions('before'), req, res),
-        async.apply(executeFieldHandlers, req, res)
+        async.apply(executeFieldHandlers, true, req, res),
+        async.apply(executeActions('before'), req, res)
       ], next);
     };
 
@@ -281,7 +292,7 @@ module.exports = function(router, resourceName, resourceId) {
       req.handlerName = after;
       async.series([
         async.apply(executeActions('after'), req, res),
-        async.apply(executeFieldHandlers, req, res),
+        async.apply(executeFieldHandlers, true, req, res),
         async.apply(ensureResponse, req, res)
       ], next);
     };
