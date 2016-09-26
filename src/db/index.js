@@ -116,7 +116,7 @@ module.exports = function(formio) {
     debug.db('Opening new connection to ' + dbUrl);
 
     // Establish a connection and continue with execution.
-    MongoClient.connect(dbUrl, function(err, connection) {
+    MongoClient.connect(dbUrl, {connectTimeoutMS: 300000, socketTimeoutMS: 300000}, function(err, connection) {
       if (err) {
         debug.db('Connection Error: ' + err);
         unlock(function() {
