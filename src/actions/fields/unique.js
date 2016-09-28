@@ -16,6 +16,10 @@ module.exports = function(formio) {
    * @returns {*}
    */
   var pathToLower = function(component, path, validation, req, res, next) {
+    // Only perform before validation.
+    if (validation) {
+      return next();
+    }
     if (!_.has(req.body, 'data.' + path)) {
       return next();
     }

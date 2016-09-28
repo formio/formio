@@ -391,6 +391,68 @@ module.exports = function(app, template, hook) {
         });
     });
 
+    it('A user should be able to reset their password', function(done) {
+      request(app)
+        .put(hook.alter('url', '/form/' + template.resources.user._id + '/submission/' + template.users.user2._id, template))
+        .set('x-jwt-token', template.users.user2.token)
+        .send({
+          data: {
+            'email': template.users.user2.data.email,
+            'password': 'temppass'
+          }
+        })
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          template.users.user2.token = res.headers['x-jwt-token'];
+          done();
+        });
+    });
+
+    it('A user should be able to login with new password', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
+        .send({
+          data: {
+            'email': template.users.user2.data.email,
+            'password': 'temppass'
+          }
+        })
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          template.users.user2.token = res.headers['x-jwt-token'];
+          done();
+        });
+    });
+
+    it('A user should be able to set their password back to normal', function(done) {
+      request(app)
+        .put(hook.alter('url', '/form/' + template.resources.user._id + '/submission/' + template.users.user2._id, template))
+        .set('x-jwt-token', template.users.user2.token)
+        .send({
+          data: {
+            'email': template.users.user2.data.email,
+            'password': template.users.user2.data.password
+          }
+        })
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          template.users.user2.token = res.headers['x-jwt-token'];
+          done();
+        });
+    });
+
     it('An Anonymous user should not be able to access the /current endpoint', function(done) {
       request(app)
         .get(hook.alter('url', '/current', template))

@@ -10,7 +10,7 @@ module.exports = function(formio) {
     },
 
     encryptField: function(req, component, path, next) {
-      formio.encrypt(_.get(req, 'body.data.' + path), function encryptResults(err, hash) {
+      formio.encrypt(_.get(req.body, 'data.' + path), function encryptResults(err, hash) {
         if (err) {
           return next(err);
         }
@@ -21,6 +21,11 @@ module.exports = function(formio) {
     },
 
     beforePut: function(component, path, validation, req, res, next) {
+      // Only perform password encryption after validation has occurred.
+      if (!validation) {
+        return next();
+      }
+
       // If there is not payload data.
       if (!req.body.data) {
         return next();
@@ -29,20 +34,21 @@ module.exports = function(formio) {
       if (_.get(req.body, 'data.' + path)) {
         this.encryptField(req, component, path, next);
       }
+      else {
+        // If there is no password provided.
+        // Load the current submission.
+        formio.cache.loadCurrentSubmission(req, function cacheResults(err, submission) {
+          if (err) {
+            return next(err);
+          }
+          if (!submission) {
+            return next(new Error('No submission found.'));
+          }
 
-      // If there is no password provided.
-      // Load the current submission.
-      formio.cache.loadCurrentSubmission(req, function cacheResults(err, submission) {
-        if (err) {
-          return next(err);
-        }
-        if (!submission) {
-          return next(new Error('No submission found.'));
-        }
-
-        _.set(req.body, 'data.' + path, _.get(submission.data, path));
-        next();
-      });
+          _.set(req.body, 'data.' + path, _.get(submission.data, path));
+          next();
+        });
+      }
     },
 
     beforePost: function(component, path, validation, req, res, next) {
