@@ -93,11 +93,11 @@ module.exports = function(formio) {
         message: message
       };
     },
-    submissionLink: function(form) {
+    submissionLink: function (form, submissionID) {
       var basePath = 'https://form.io/view/#/';
       var projectID = form.machineName.replace(/:/g, '/');
-      var submissionID = '/submission/' + form._id;
-      return basePath + projectID + submissionID;
+      var submissionUrl = '/submission/' + submissionID;
+      return basePath + projectID + submissionUrl;
     },
     getParams: function(res, form, submission) {
       var params = _.cloneDeep(submission);
@@ -128,8 +128,10 @@ module.exports = function(formio) {
       // Get the parameters for the email.
       params.form = form;
 
-      //Get the submission link
-      params.submissionLink = this.submissionLink(form);
+      //Get the submission link if submission id is present.
+      if (res.resource) {
+        params.submissionLink = this.submissionLink(form, res.resource.item._id);
+      }
 
       return params;
     },
