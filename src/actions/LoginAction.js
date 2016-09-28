@@ -1,4 +1,7 @@
 'use strict';
+
+var _ = require('lodash');
+
 module.exports = function(router) {
   var Action = router.formio.Action;
   var hook = require('../util/hook')(router.formio);
@@ -117,12 +120,12 @@ module.exports = function(router) {
     }
 
     // They must provide a username.
-    if (!req.submission.data.hasOwnProperty(this.settings.username)) {
+    if (!_.has(req.submission.data, this.settings.username)) {
       return next('Username not provided.');
     }
 
     // They must provide a password.
-    if (!req.submission.data.hasOwnProperty(this.settings.password)) {
+    if (!_.has(req.submission.data, this.settings.password)) {
       return next('Password not provided.');
     }
 
@@ -131,8 +134,8 @@ module.exports = function(router) {
       this.settings.resources,
       this.settings.username,
       this.settings.password,
-      req.submission.data[this.settings.username],
-      req.submission.data[this.settings.password],
+      _.get(req.submission.data, this.settings.username),
+      _.get(req.submission.data, this.settings.password),
       function(err, response) {
         if (err) {
           return res.status(401).send(err.message);

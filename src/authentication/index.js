@@ -95,13 +95,14 @@ module.exports = function(router) {
       if (!user) {
         return next(new Error('Invalid user'));
       }
-      if (!user.data[passField]) {
+
+      user = user.toObject();
+      if (!_.get(user.data, passField)) {
         return next(new Error('Your account does not have a password. You must reset your password to login.'));
       }
 
       // Compare the provided password.
-      user = user.toObject();
-      bcrypt.compare(password, user.data[passField], function(err, value) {
+      bcrypt.compare(password, _.get(user.data, passField), function(err, value) {
         if (err) {
           return next(err);
         }

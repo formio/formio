@@ -144,13 +144,23 @@ module.exports = function(formio) {
   };
 
   // Validate component keys are unique
-  model.schema.path('components').validate(function(components) {
+  model.schema.path('components').validate(function(components, valid) {
     var keys = _(components).map(getKeys).flatten().filter(function(key) {
       return !_.isUndefined(key);
     }).value();
 
-    return _.isEqual(keys, _.unique(keys));
-  }, 'Component keys must be unique');
+    var msg = 'Component keys must be unique: ';
+    var uniq = _.unique(keys);
+    var diff = _.filter(keys, function(value, index, collection) {
+      return _.includes(collection, value, index + 1);
+    });
+
+    if (_.isEqual(keys, uniq)) {
+      return valid(true);
+    }
+
+    return valid(false, (msg + (diff).join(', ')));
+  });
 
   // Validate component keys have valid characters
   model.schema.path('components').validate(function(components) {

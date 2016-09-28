@@ -1,31 +1,41 @@
 'use strict';
 
+var _ = require('lodash');
+
 module.exports = function(formio) {
   return {
-    beforeGetAction: function(component, req, res, next) {
-      req.modelQuery.select('-data.' + component.key);
+    beforeGet: function(component, path, validation, req, res, next) {
+      req.modelQuery.select('-data.' + path);
       next();
     },
 
-    encryptField: function(req, component, next) {
-      formio.encrypt(req.body.data[component.key], function encryptResults(err, hash) {
+    encryptField: function(req, component, path, next) {
+      formio.encrypt(_.get(req.body, 'data.' + path), function encryptResults(err, hash) {
         if (err) {
           return next(err);
         }
 
-        req.body.data[component.key] = hash;
+        _.set(req.body, 'data.' + path, hash);
         next();
       });
     },
 
-    beforePut: function(component, req, res, next) {
+    beforePut: function(component, path, validation, req, res, next) {
+      // Only perform password encryption after validation has occurred.
+      if (!validation) {
+        return next();
+      }
+
       // If there is not payload data.
       if (!req.body.data) {
         return next();
       }
 
-      // If there is no password provided.
-      if (!req.body.data[component.key]) {
+      if (_.get(req.body, 'data.' + path)) {
+        this.encryptField(req, component, path, next);
+      }
+      else {
+        // If there is no password provided.
         // Load the current submission.
         formio.cache.loadCurrentSubmission(req, function cacheResults(err, submission) {
           if (err) {
@@ -35,21 +45,22 @@ module.exports = function(formio) {
             return next(new Error('No submission found.'));
           }
 
-          req.body.data[component.key] = submission.data[component.key];
+          _.set(req.body, 'data.' + path, _.get(submission.data, path));
           next();
         });
       }
-      else {
-        this.encryptField(req, component, next);
-      }
     },
 
-    beforePost: function(component, req, res, next) {
-      if (!req.body || !req.body.data || !req.body.data[component.key]) {
+    beforePost: function(component, path, validation, req, res, next) {
+      // Only perform password encryption after validation has occurred.
+      if (!validation) {
+        return next();
+      }
+      if (!_.has(req.body, 'data.' + path)) {
         return next();
       }
 
-      this.encryptField(req, component, next);
+      this.encryptField(req, component, path, next);
     }
   };
 };
