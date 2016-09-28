@@ -365,7 +365,11 @@ module.exports = function(formio) {
       else if (!document || document.length === 0) {
         // Create a new lock, because one was not present.
         debug.db('Creating a lock, because one was not found.');
-        schema.insertOne({key: 'formio', isLocked: (new Date()).getTime(), version: config.schema}, function(err, document) {
+        schema.insertOne({
+          key: 'formio',
+          isLocked: (new Date()).getTime(),
+          version: config.schema
+        }, function(err, document) {
           if (err) {
             return next(err);
           }
