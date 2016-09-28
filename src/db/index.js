@@ -365,7 +365,11 @@ module.exports = function(formio) {
       else if (!document || document.length === 0) {
         // Create a new lock, because one was not present.
         debug.db('Creating a lock, because one was not found.');
-        schema.insertOne({key: 'formio', isLocked: (new Date()).getTime(), version: '0.0.0'}, function(err, document) {
+        schema.insertOne({
+          key: 'formio',
+          isLocked: (new Date()).getTime(),
+          version: config.schema
+        }, function(err, document) {
           if (err) {
             return next(err);
           }
@@ -498,7 +502,7 @@ module.exports = function(formio) {
         // No private update was found, check the public location.
         debug.db('_update:');
         debug.db(_update);
-        if (_update === null) {
+        if (typeof _update !== 'function') {
           try {
             _update = require(__dirname + '/updates/' + pending);
           }
@@ -510,7 +514,7 @@ module.exports = function(formio) {
 
         // Attempt to resolve the update.
         try {
-          if (!_update) {
+          if (typeof _update !== 'function') {
             return callback('Could not resolve the path for update: ' + pending);
           }
 
