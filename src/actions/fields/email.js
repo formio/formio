@@ -4,8 +4,8 @@ module.exports = function(formio) {
   var hook = require('../../util/hook')(formio);
   return {
     beforePut: function(component, path, validation, req, res, next) {
-      // Only perform after validation has occurred.
-      if (!validation) {
+      // Only perform before validation has occurred.
+      if (validation) {
         return next();
       }
       if (!hook.invoke('validateEmail', component, path, req, res, next)) {
@@ -14,8 +14,8 @@ module.exports = function(formio) {
     },
 
     beforePost: function(component, path, validation, req, res, next) {
-      // Only perform after validation has occurred.
-      if (!validation) {
+      // Only perform before validation has occurred.
+      if (validation) {
         return next();
       }
       if (!hook.invoke('validateEmail', component, path, req, res, next)) {
