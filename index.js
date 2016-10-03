@@ -164,10 +164,10 @@ module.exports = function(config) {
         // Load the plugins.
         router.formio.plugins = require('./src/plugins/plugins');
 
-        router.formio.schemas = {
+        router.formio.schemas = router.formio.hook.alter('schemas', {
           PermissionSchema: require('./src/models/PermissionSchema')(router.formio),
           AccessSchema: require('./src/models/AccessSchema')(router.formio)
-        };
+        });
 
         // Get the models for our project.
         var models = require('./src/models/models')(router);
