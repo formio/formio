@@ -7,7 +7,7 @@ var debug = require('debug')('formio:models:form');
 module.exports = function(formio) {
   var hook = require('../util/hook')(formio);
   var model = require('./BaseModel')({
-    schema: new mongoose.Schema({
+    schema: new mongoose.Schema(hook.alter('formSchema', {
       title: {
         type: String,
         description: 'The title for the form.',
@@ -63,7 +63,7 @@ module.exports = function(formio) {
         type: mongoose.Schema.Types.Mixed,
         description: 'Custom form settings object.'
       }
-    })
+    }))
   });
 
   // Validate the name.
