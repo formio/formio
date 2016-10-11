@@ -426,14 +426,15 @@ module.exports = function(router) {
         req.ownerAssign = true;
       }
 
-      debug.permissions('req.submissionResourceAccessAdmin: ' + req.submissionResourceAccessAdmin);
-      debug.permissions('Checking access for method: ' + method);
-      debug.permissions('Checking access for user: ' + user);
-
       // There should be an entity at this point.
       if (!entity) {
         return false;
       }
+
+      debug.permissions('req.submissionResourceAccessAdmin: ' + req.submissionResourceAccessAdmin);
+      debug.permissions('Checking access for method: ' + method);
+      debug.permissions('Checking access for user: ' + user);
+      debug.permissions('Checking access for entity: ' + entity.type);
 
       // The return value of user access.
       var _hasAccess = false;
