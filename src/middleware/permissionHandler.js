@@ -380,6 +380,7 @@ module.exports = function(router) {
      */
     /* eslint-disable max-statements */
     hasAccess: function(req, access, entity, res) {
+      var explain = {message: 'Access Denied', extra: []};
       var method = req.method.toUpperCase();
 
       // Determine the roles and user based on the available token.
@@ -413,7 +414,7 @@ module.exports = function(router) {
       var hasAdminRole = access.adminRole ? (_.indexOf(roles, access.adminRole) !== -1) : false;
       if (hasAdminRole || hook.alter('isAdmin', req.isAdmin, req)) {
         req.isAdmin = true;
-        debug.permissions('Admin: true');
+        explain.message = 'The request was made by a user with the administrative role.';
         return true;
       }
 
@@ -422,12 +423,13 @@ module.exports = function(router) {
         access.submission.hasOwnProperty('create_all') &&
         (_.intersection(access.submission.create_all, roles).length > 0)
       ) {
-        debug.permissions('Assign Owner: true');
+        explain.extra.push('The request owner has permissions to assign the owner.');
         req.ownerAssign = true;
       }
 
       // There should be an entity at this point.
       if (!entity) {
+        explain.message = 'The request did not have a valid permissions entity. Access Denied.';
         return false;
       }
 
@@ -454,7 +456,7 @@ module.exports = function(router) {
         && access[entity.type].hasOwnProperty('owner')
         && req.token.user._id === access[entity.type].owner
       ) {
-        debug.permissions('This request is being made by the owner, Access Granted.');
+        explain.message = 'The request owner is also the owner of the ' + entity.type + '. Access Granted.';
         _hasAccess = true;
       }
 
@@ -462,22 +464,20 @@ module.exports = function(router) {
       // defined by the entity to have access. If this roleId is found within the defined roles, grant access.
       var search = methods[method];
       if (!search || typeof search === 'undefined') {
-        router.formio.util.error({
-          method: req.method,
-          _method: method
-        });
-      }
+        explain.extra.push('The request entity contains an unknown permission, skipping: ' + search);
 
-      // Unsupported request method.
-      if (search === undefined) {
-        if (res) {
-          res.sendStatus(404);
+        // Unsupported request method.
+        if (search === undefined) {
+          if (res) {
+            res.sendStatus(404);
+          }
+
+          return false;
         }
-        return false;
       }
 
       search.forEach(function(type) {
-        // Check if the given roles are contained within the allowed roles for our
+        // Check if the given roles are contained within the allowed roles for our request
         roles.forEach(function(role) {
           // Grant access if the role was found in the access for this resource.
           if (
@@ -488,25 +488,36 @@ module.exports = function(router) {
           ) {
             // Allow anonymous users to create a submission for themselves if defined.
             if (type === 'create_own') {
+              explain.message = 'The request owner contains a role (' + role.toString()
+                + ') with the create_own permission. Access Granted.';
               _hasAccess = true;
             }
             else if (type.toString().indexOf('_own') !== -1) {
+              var _owner = (access[entity.type].hasOwnProperty('owner') && user && access[entity.type].owner === user);
+              var _selfAccess = (
+                req.selfAccess && user && access[entity.type].hasOwnProperty('_id') && user.toString()
+                === access[entity.type]._id.toString()
+              );
+
               // Entity has an owner, Request is from a User, and the User is the Owner.
-              // OR, selfAccess was flagged, and the user is the entity.
-              /* eslint-disable max-len */
-              if (
-                (access[entity.type].hasOwnProperty('owner') && user && access[entity.type].owner === user)
-                || (req.selfAccess && user && access[entity.type].hasOwnProperty('_id') && user.toString() === access[entity.type]._id.toString())
-              ) {
+              if (_owner) {
+                explain.message = 'The request owner is the owner of the ' + entity.type + '. Access Granted.';
                 _hasAccess = true;
               }
-              // Exception for Index endpoint, the
+              // selfAccess was flagged, and the user is the entity.
+              else if (_selfAccess) {
+                explain.message = 'The request owner is defined to have access to the ' + entity.type
+                  + ' via self access. Access Granted.';
+                _hasAccess = true;
+              }
+              // Exception for Index endpoint
               else if (type === 'read_own' && entity.hasOwnProperty('id') && entity.id === '') {
                 // The user has access to this endpoint, however the results will need to be filtered by the
                 // ownerFilter middleware.
+                explain.message = 'The request owner is defined to have read_own access to the ' + entity.type
+                  + '. Access Granted.';
                 _hasAccess = true;
               }
-              /* eslint-enable max-len */
             }
             else {
               // If current role in question is the current users _id.
@@ -523,16 +534,27 @@ module.exports = function(router) {
               ) {
                 // Only allow the the bootstrapEntityOwner middleware to assign an owner if defined in the payload.
                 if (_.has(req, 'body.owner')) {
+                  explain.extra.push(
+                    'The request owner has the ' + type + ' permission, and the ability to assign ' + entity.type
+                    + ' ownership.'
+                  );
                   req.assignOwner = true;
                 }
 
                 // Only allow the the bootstrapSubmissionAccess middleware to assign access if defined in the payload.
                 if (entity.type === 'submission' && _.has(req, 'body.access')) {
+                  explain.extra.push(
+                    'The request owner has the ' + type + ' permission, and the ability to assign ' + entity.type
+                    + ' access.'
+                  );
                   req.assignSubmissionAccess = true;
                 }
               }
 
               // No ownership requirements here.
+              explain.message = 'The request owner has the ' + type + ' permission through one of its roles (' + role
+              + '). Access Granted.';
+              explain.extra.push('The owner filter will be ignored for all ' + entity.type + ' results.');
               req.skipOwnerFilter = true;
               _hasAccess = true;
             }
@@ -551,6 +573,11 @@ module.exports = function(router) {
       debug.permissions('assignSubmissionAccess: ' + req.assignSubmissionAccess);
       debug.permissions('req.submissionResourceAccessFilter: ' + req.submissionResourceAccessFilter);
       debug.permissions('hasAccess: ' + _hasAccess);
+
+      // Debug initial explain stuff.
+      debug.permissions('explain:');
+      debug.permissions(explain.message);
+      debug.permissions(explain.extra);
       return _hasAccess;
     }
     /* eslint-enable max-statements */
