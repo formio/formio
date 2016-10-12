@@ -2156,10 +2156,10 @@ module.exports = function(app, template, hook) {
         });
       });
 
-      // FOR-132
+      // FOR-132 && FOR-182
       describe('Unique fields are case insensitive', function() {
         var testEmailForm;
-        var email = chance.email();
+        var email = chance.email().toLowerCase();
 
         before(function() {
           testEmailForm = {
@@ -2237,10 +2237,11 @@ module.exports = function(app, template, hook) {
             });
         });
 
+        var sub;
         it('A unique submission can be made', function(done) {
           var submission = {
             data: {
-              email: email.toString().toLowerCase()
+              email: email
             }
           };
 
@@ -2255,6 +2256,7 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
+              sub = response;
               assert.deepEqual(response.data, submission.data);
               done();
             });
@@ -2282,6 +2284,72 @@ module.exports = function(app, template, hook) {
             });
         });
 
+        // FOR-182
+        it('Unique field data is stored in its original submission state', function(done) {
+          request(app)
+            .get(hook.alter('url', '/form/' + testEmailForm._id + '/submission', template) + '/' + sub._id)
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.equal(response.data.email, email);
+              done();
+            });
+        });
+
+        // FOR-182
+        it('Unique field data regex is not triggered by similar submissions (before)', function(done) {
+          var submission = {
+            data: {
+              email: email + '1'
+            }
+          };
+
+          request(app)
+            .post(hook.alter('url', '/form/' + testEmailForm._id + '/submission', template))
+            .send(submission)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.data, submission.data);
+              done();
+            });
+        });
+
+        // FOR-182
+        it('Unique field data regex is not triggered by similar submissions (after)', function(done) {
+          var submission = {
+            data: {
+              email: '1' + email
+            }
+          };
+
+          request(app)
+            .post(hook.alter('url', '/form/' + testEmailForm._id + '/submission', template))
+            .send(submission)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.data, submission.data);
+              done();
+            });
+        });
+
         it('Form cleanup', function(done) {
           request(app)
             .delete(hook.alter('url', '/form/' + testEmailForm._id, template))
@@ -2300,10 +2368,10 @@ module.exports = function(app, template, hook) {
         });
       });
 
-      // FOR-136
+      // FOR-136 && FOR-182
       describe('Unique fields work inside layout components', function() {
         var testUniqueField;
-        var data = chance.word();
+        var data = chance.word().toUpperCase();
 
         before(function() {
           testUniqueField = {
@@ -2405,6 +2473,7 @@ module.exports = function(app, template, hook) {
             });
         });
 
+        var sub;
         it('A unique submission can be made', function(done) {
           var submission = {
             data: {
@@ -2425,6 +2494,7 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
+              sub = response;
               assert.deepEqual(response.data, submission.data);
               done();
             });
@@ -2434,7 +2504,7 @@ module.exports = function(app, template, hook) {
           var submission = {
             data: {
               container1: {
-                unique: data
+                unique: data.toLowerCase()
               }
             }
           };
@@ -2450,6 +2520,76 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
+              done();
+            });
+        });
+
+        // FOR-182
+        it('Unique field data is stored in its original submission state', function(done) {
+          request(app)
+            .get(hook.alter('url', '/form/' + testUniqueField._id + '/submission', template) + '/' + sub._id)
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.equal(response.data.container1.unique, data);
+              done();
+            });
+        });
+
+        // FOR-182
+        it('Unique field data regex is not triggered by similar submissions (before)', function(done) {
+          var submission = {
+            data: {
+              container1: {
+                unique: data + '1'
+              }
+            }
+          };
+
+          request(app)
+            .post(hook.alter('url', '/form/' + testUniqueField._id + '/submission', template))
+            .send(submission)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.data, submission.data);
+              done();
+            });
+        });
+
+        // FOR-182
+        it('Unique field data regex is not triggered by similar submissions (after)', function(done) {
+          var submission = {
+            data: {
+              container1: {
+                unique: '1' + data
+              }
+            }
+          };
+
+          request(app)
+            .post(hook.alter('url', '/form/' + testUniqueField._id + '/submission', template))
+            .send(submission)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.data, submission.data);
               done();
             });
         });
