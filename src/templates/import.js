@@ -27,6 +27,9 @@ module.exports = function(formio) {
 
   // Assign the role ids.
   var assignRoles = function(template, perms) {
+    if (!template.hasOwnProperty('roles')) {
+      return;
+    }
     _.each(perms, function(access) {
       _.each(access.roles, function(role, i) {
         if (template.roles.hasOwnProperty(role)) {
@@ -41,6 +44,9 @@ module.exports = function(formio) {
     if (!entity) {
       return false;
     }
+    if (!template.hasOwnProperty('roles')) {
+      return false;
+    }
     if (entity.hasOwnProperty('role') && template.roles.hasOwnProperty(entity.role)) {
       entity.role = template.roles[entity.role]._id.toString();
       return true;
@@ -51,11 +57,11 @@ module.exports = function(formio) {
   // Assign form.
   var assignForm = function(template, entity) {
     if (entity.hasOwnProperty('form')) {
-      if (template.forms.hasOwnProperty(entity.form)) {
+      if (template.hasOwnProperty('forms') && template.forms.hasOwnProperty(entity.form)) {
         entity.form = template.forms[entity.form]._id.toString();
         return true;
       }
-      if (template.resources.hasOwnProperty(entity.form)) {
+      if (template.hasOwnProperty('resources') && template.resources.hasOwnProperty(entity.form)) {
         entity.form = template.resources[entity.form]._id.toString();
         return true;
       }
@@ -65,7 +71,7 @@ module.exports = function(formio) {
 
   // Assign resources.
   var assignResources = function(template, entity) {
-    if (!entity || !entity.resources) {
+    if (!entity || !entity.resources || !template.hasOwnProperty('resources')) {
       return false;
     }
     _.each(entity.resources, function(resource, index) {
@@ -77,7 +83,7 @@ module.exports = function(formio) {
 
   // Assign resource.
   var assignResource = function(template, entity) {
-    if (!entity || !entity.resource) {
+    if (!entity || !entity.resource || !template.hasOwnProperty('resources')) {
       return false;
     }
     if (template.resources.hasOwnProperty(entity.resource)) {
@@ -396,6 +402,10 @@ module.exports = function(formio) {
         alter = null;
       }
       alter = alter || {};
+      if (!template) {
+        return done('No template provided.');
+      }
+
       async.series([
         async.apply(translateSchema, template),
         async.apply(this.roles, template, template.roles, alter.role),
