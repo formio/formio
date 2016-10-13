@@ -391,6 +391,26 @@ module.exports = function(app, template, hook) {
         });
     });
 
+    it('A user should be able to login using a case insensitive email', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
+        .send({
+          data: {
+            'email': template.users.user2.data.email.toUpperCase(),
+            'password': template.users.user2.data.password
+          }
+        })
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          template.users.user2.token = res.headers['x-jwt-token'];
+          done();
+        });
+    });
+
     it('A user should be able to reset their password', function(done) {
       request(app)
         .put(hook.alter('url', '/form/' + template.resources.user._id + '/submission/' + template.users.user2._id, template))
