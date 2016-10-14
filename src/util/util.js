@@ -67,7 +67,9 @@ module.exports = {
    * @returns {*}
    */
   escapeRegExp: function(str) {
+    /* eslint-disable */
     return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    /* eslint-enable */
   },
 
   /**
