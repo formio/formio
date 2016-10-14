@@ -607,7 +607,7 @@ Validator.prototype.validate = function(submission, next) {
 
     // Get the query.
     var query = {form: util.idToBson(submission.form)};
-    query['data.' + _.get(paths, key)] = {$regex: new RegExp('^' + data + '$'), $options: 'i'};
+    query['data.' + _.get(paths, key)] = {$regex: new RegExp('^' + util.escapeRegExp(data) + '$'), $options: 'i'};
 
     // Only search for non-deleted items.
     if (!query.hasOwnProperty('deleted')) {

@@ -61,6 +61,16 @@ module.exports = {
   },
 
   /**
+   * Escape a string for use in regex.
+   *
+   * @param str
+   * @returns {*}
+   */
+  escapeRegExp: function(str) {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  },
+
+  /**
    * Create a sub-request object from the original request.
    *
    * @param req

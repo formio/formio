@@ -85,7 +85,7 @@ module.exports = function(router) {
     }
 
     // Look for the user.
-    query['data.' + userField] = {$regex: new RegExp('^' + username + '$'), $options: 'i'};
+    query['data.' + userField] = {$regex: new RegExp('^' + util.escapeRegExp(username) + '$'), $options: 'i'};
 
     // Find the user object.
     router.formio.resources.submission.model.findOne(query, function(err, user) {
