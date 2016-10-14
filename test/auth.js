@@ -331,6 +331,25 @@ module.exports = function(app, template, hook) {
         });
     });
 
+    it('Should be able to register a user with special characters in their email address.', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template))
+        .send({
+          data: {
+            'email': 'test+user@example.com',
+            'password': template.users.user2.data.password
+          }
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          done();
+        });
+    });
+
     it('A Form.io User should be able to login as an authenticated user', function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))

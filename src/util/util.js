@@ -61,6 +61,18 @@ module.exports = {
   },
 
   /**
+   * Escape a string for use in regex.
+   *
+   * @param str
+   * @returns {*}
+   */
+  escapeRegExp: function(str) {
+    /* eslint-disable */
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    /* eslint-enable */
+  },
+
+  /**
    * Create a sub-request object from the original request.
    *
    * @param req
