@@ -5,6 +5,8 @@ var request = require('supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var chance = new (require('chance'))();
+var http = require('http');
+var url = require('url');
 var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
@@ -348,6 +350,268 @@ module.exports = function(app, template, hook) {
           .expect('Content-Type', /text\/plain/)
           .expect(401)
           .end(done);
+      });
+    });
+
+    describe('Webhook Functionality tests', function() {
+      if (docker) {
+        return;
+      }
+
+      // The temp form with the add RoleAction for existing submissions.
+      var webhookForm = {
+        title: 'Webhook Form',
+        name: 'webhookform',
+        path: 'webhookform',
+        type: 'form',
+        access: [],
+        submissionAccess: [],
+        components: [
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'foo',
+            key: 'firstName',
+            label: 'First Name',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          },
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'foo',
+            key: 'lastName',
+            label: 'Last Name',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          },
+          {
+            type: 'email',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: 'Enter your email address',
+            key: 'email',
+            label: 'Email',
+            inputType: 'email',
+            tableView: true,
+            input: true
+          },
+          {
+            type: 'password',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: 'Enter your password',
+            key: 'password',
+            label: 'Password',
+            inputType: 'password',
+            tableView: true,
+            input: true
+          }
+        ]
+      };
+
+      var port = 4002;
+      var webhookSubmission = null;
+      var webhookHandler = function(body) {};
+
+      // Create a new server.
+      var newServer = function(ready) {
+        var server = http.createServer(function(request) {
+          var body = [];
+          request.on('data', function(chunk) {
+            body.push(chunk);
+          }).on('end', function() {
+            body = Buffer.concat(body).toString();
+            webhookHandler(body ? JSON.parse(body) : body, url.parse(request.url, true));
+          });
+        });
+        server.port = port++;
+        server.url = 'http://localhost:'+ server.port;
+        server.listen(server.port, function(err) {
+          ready(err, server);
+        });
+      };
+
+      it('Should create the form and action for the webhook tests', function(done) {
+        newServer(function(err, server) {
+          if (err) {
+            return done(err);
+          }
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(webhookForm)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              webhookForm = res.body;
+              template.users.admin.token = res.headers['x-jwt-token'];
+              request(app)
+                .post(hook.alter('url', '/form/' + webhookForm._id + '/action', template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send({
+                  title: 'Webhook',
+                  name: 'webhook',
+                  form: webhookForm._id.toString(),
+                  handler: ['after'],
+                  method: ['create', 'update', 'delete'],
+                  priority: 1,
+                  settings: {
+                    url: server.url,
+                    username: '',
+                    password: ''
+                  }
+                })
+                .expect('Content-Type', /json/)
+                .expect(201)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+                  template.users.admin.token = res.headers['x-jwt-token'];
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Should send a webhook with create data.', function(done) {
+        webhookHandler = function(body) {
+          assert.equal(body.params.formId, webhookForm._id.toString());
+          assert.equal(body.request.owner, template.users.admin._id.toString());
+          assert.equal(body.request.data.email, 'test@example.com');
+          assert.equal(body.request.data.firstName, 'Test');
+          assert.equal(body.request.data.lastName, 'Person');
+          assert(body.request.data.password !== '123testing', 'Passwords must not be visible via webhooks.');
+          delete body.submission.__v;
+          delete body.submission.deleted;
+          assert.deepEqual(body.submission, webhookSubmission);
+          done();
+        };
+        request(app)
+          .post(hook.alter('url', '/form/' + webhookForm._id + '/submission', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              firstName: 'Test',
+              lastName: 'Person',
+              email: 'test@example.com',
+              password: '123testing'
+            }
+          })
+          .expect(201)
+          .expect('Content-Type', /json/)
+          .end(function (err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            webhookSubmission = res.body;
+          });
+      });
+
+      it('Should be able to get the data from the webhook action.', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + webhookForm._id + '/submission/' + webhookSubmission._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .end(function (err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            webhookSubmission = res.body;
+            assert.equal(res.body.data.email, 'test@example.com');
+            assert.equal(res.body.data.firstName, 'Test');
+            assert.equal(res.body.data.lastName, 'Person');
+            done();
+          });
+      });
+
+      it('Should send a webhook with update data.', function(done) {
+        webhookHandler = function(body) {
+          assert.equal(body.params.formId, webhookForm._id.toString());
+          assert.equal(body.request.data.email, 'test@example.com');
+          assert.equal(body.request.data.firstName, 'Test2');
+          assert.equal(body.request.data.lastName, 'Person3');
+          delete body.submission.__v;
+          delete body.submission.deleted;
+          assert.deepEqual(body.submission, webhookSubmission);
+          done();
+        };
+        request(app)
+          .put(hook.alter('url', '/form/' + webhookForm._id + '/submission/' + webhookSubmission._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              firstName: 'Test2',
+              lastName: 'Person3',
+              email: 'test@example.com'
+            }
+          })
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .end(function (err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            webhookSubmission = res.body;
+          });
+      });
+
+      it('Should send a webhook with deleted data.', function(done) {
+        webhookHandler = function(body, url) {
+          assert.equal(body, '');
+          assert.equal(url.query.formId, webhookForm._id);
+          assert.equal(url.query.submissionId, webhookSubmission._id);
+          done();
+        };
+        request(app)
+          .delete(hook.alter('url', '/form/' + webhookForm._id + '/submission/' + webhookSubmission._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .end(function (err, res) {
+            if (err) {
+              return done(err);
+            }
+          });
       });
     });
 
