@@ -387,7 +387,7 @@ module.exports = function(router) {
       var roles = [access.defaultRole];
       var user = null;
       if (req.user) {
-        user = req.user._id;
+        user = util.idToString(req.user._id);
 
         // Get the roles for the permission checks.
         req.user.roles = req.user.roles || [];
