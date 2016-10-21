@@ -11,7 +11,7 @@ var debug = {
   getAccess: {
     getFormAccess: _debug('formio:permissions:getAccess#getFormAccess'),
     getSubmissionAccess: _debug('formio:permissions:getAccess#getSubmissionAccess'),
-    flagRequest: _debug('formio:permissions:getAccess#getSubmissionAccess')
+    flagRequest: _debug('formio:permissions:getAccess#flagRequest')
   }
 };
 
@@ -524,9 +524,13 @@ module.exports = function(router) {
 
               // Only allow certain users to edit the owner and submission access property.
               // (~A | B) logic for submission access, to not affect old permissions.
+              debug.permissions("(type === 'create_all' || type === 'update_all'): " + (type === 'create_all' || type === 'update_all'))
+              debug.permissions("submissionResourceAccess: " + submissionResourceAccess)
+              debug.permissions("submissionResourceAdmin: " + submissionResourceAdmin)
               if (
                 (type === 'create_all' || type === 'update_all')
-                && (!submissionResourceAccess || submissionResourceAdmin)
+                && (submissionResourceAdmin)
+                //&& (!submissionResourceAccess || submissionResourceAdmin)
               ) {
                 // Only allow the the bootstrapEntityOwner middleware to assign an owner if defined in the payload.
                 if (_.has(req, 'body.owner')) {

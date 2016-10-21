@@ -22,7 +22,7 @@ module.exports = function(router) {
 
     // Should never get here with a submission id present..
     if (req.subId) {
-      debug('No req.subId given.');
+      debug('req.subId given, skipping.');
       return res.sendStatus(500);
     }
 
