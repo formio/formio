@@ -72,6 +72,10 @@ module.exports = function(router) {
         _.forEach(permission.resources, function(id) {
           access.submission.read_all.push(id);
           access.submission.update_all.push(id);
+
+          // Flag this request as not having admin access through submission resource access.
+          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
         });
       }
       else if (permission.type === 'admin') {
@@ -80,9 +84,6 @@ module.exports = function(router) {
           access.submission.update_all.push(id);
           access.submission.delete_all.push(id);
         });
-
-        // Flag this request as having admin access through submission resource access.
-        req.submissionResourceAccessAdmin = true;
       }
       else {
         debug.getSubmissionResourceAccess('Unknown permission type...');
@@ -434,7 +435,7 @@ module.exports = function(router) {
         req.ownerAssign = true;
       }
 
-      debug.permissions('req.submissionResourceAccessAdmin: ' + req.submissionResourceAccessAdmin);
+      debug.permissions('req.submissionResourceAccessAdminBlock: ' + req.submissionResourceAccessAdminBlock);
       debug.permissions('Checking access for method: ' + method);
       debug.permissions('Checking access for user: ' + user);
 
@@ -520,17 +521,13 @@ module.exports = function(router) {
               var submissionResourceAccess = (user && (role.toString() === user.toString()));
 
               // If the current request has been flagged for submission resource access (admin permissions).
-              var submissionResourceAdmin = _.get(req, 'submissionResourceAccessAdmin');
+              var submissionResourceAdmin = (_.get(req, 'submissionResourceAccessAdminBlock') || []);
 
               // Only allow certain users to edit the owner and submission access property.
               // (~A | B) logic for submission access, to not affect old permissions.
-              debug.permissions("(type === 'create_all' || type === 'update_all'): " + (type === 'create_all' || type === 'update_all'))
-              debug.permissions("submissionResourceAccess: " + submissionResourceAccess)
-              debug.permissions("submissionResourceAdmin: " + submissionResourceAdmin)
               if (
                 (type === 'create_all' || type === 'update_all')
-                && (submissionResourceAdmin)
-                //&& (!submissionResourceAccess || submissionResourceAdmin)
+                && submissionResourceAdmin.indexOf(util.idToString(role)) === -1
               ) {
                 // Only allow the the bootstrapEntityOwner middleware to assign an owner if defined in the payload.
                 if (_.has(req, 'body.owner')) {
