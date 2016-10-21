@@ -295,29 +295,36 @@ module.exports = function(router) {
           }
 
           var user = req.user._id;
-          var query = {
-            form: util.idToBson(req.formId),
-            deleted: {$eq: null},
-            'access.type': {$in: ['read', 'write', 'admin']},
-            'access.resources': {$in: [util.idToString(user), util.idToBson(user)]}
-          };
+          var search = [util.idToBson(user)];
+          hook.alter('resourceAccessFilter', search, req, function(err, search) {
+            var query = {
+              form: util.idToBson(req.formId),
+              deleted: {$eq: null},
+              $or: [
+                {
+                  'access.type': {$in: ['read', 'write', 'admin']},
+                  'access.resources': {$in: search}
+                }
+              ]
+            };
 
-          router.formio.resources.submission.model.count(query, function(err, count) {
-            if (err) {
-              debug.getAccess.flagRequest(err);
-              return callback();
-            }
+            router.formio.resources.submission.model.count(query, function(err, count) {
+              if (err) {
+                debug.getAccess.flagRequest(err);
+                return callback();
+              }
 
-            debug.getAccess.flagRequest('count: ' + count);
-            if (count > 0) {
-              req.submissionResourceAccessFilter = true;
+              debug.getAccess.flagRequest('count: ' + count);
+              if (count > 0) {
+                req.submissionResourceAccessFilter = true;
 
-              // Since the access is now determined by the submission resource access, we
-              // can skip the owner filter.
-              req.skipOwnerFilter = true;
-            }
+                // Since the access is now determined by the submission resource access, we
+                // can skip the owner filter.
+                req.skipOwnerFilter = true;
+              }
 
-            callback();
+              callback();
+            });
           });
         }
       ], req, res, access), function(err) {
