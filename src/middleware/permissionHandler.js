@@ -517,9 +517,6 @@ module.exports = function(router) {
               /* eslint-enable max-len */
             }
             else {
-              // If current role in question is the current users _id.
-              var submissionResourceAccess = (user && (role.toString() === user.toString()));
-
               // If the current request has been flagged for submission resource access (admin permissions).
               var submissionResourceAdmin = (_.get(req, 'submissionResourceAccessAdminBlock') || []);
 
