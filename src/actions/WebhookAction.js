@@ -101,9 +101,11 @@ module.exports = function(router) {
       return next();
     }
 
+    var submission = _.get(res, 'resource.item');
     var payload = {
       request: _.get(req, 'body'),
       response: _.get(req, 'response'),
+      submission: (submission && submission.toObject) ? submission.toObject() : {},
       params: _.get(req, 'params')
     };
 
