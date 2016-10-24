@@ -35,6 +35,11 @@ module.exports = function(router) {
     var user = req.user._id;
     var search = [util.idToString(user), util.idToBson(user)];
     hook.alter('resourceAccessFilter', search, req, function(err, search) {
+      // Try to recover if the hook fails.
+      if (err) {
+        debug(err);
+      }
+
       var query = {
         form: util.idToBson(req.formId),
         deleted: {$eq: null},
