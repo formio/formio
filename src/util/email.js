@@ -12,6 +12,7 @@ var debug = {
 var rest = require('restler');
 var util = require('./util');
 var _ = require('lodash');
+var EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
 
 /**
  * The email sender for emails.
@@ -163,13 +164,15 @@ module.exports = function(formio) {
         }
 
         // Override the "to" email if provided on a test server.
-        if (process.env.EMAIL_OVERRIDE) {
+        if (EMAIL_OVERRIDE) {
           // Skip multi send for testing.
           if (sendEach) {
             sendEach = false;
+            debug.email('Converting multi-send to single.');
           }
 
-          mail.to = process.env.EMAIL_OVERRIDE;
+          debug.email('Sending all email to: ' + EMAIL_OVERRIDE);
+          mail.to = EMAIL_OVERRIDE;
         }
 
         if (mail.html && (typeof mail.html === 'string')) {
