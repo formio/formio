@@ -511,6 +511,8 @@ module.exports = function(app, template, hook) {
 
       it('Should send a webhook with create data.', function(done) {
         webhookHandler = function(body) {
+          body = hook.alter('webhookBody', body);
+
           assert.equal(body.params.formId, webhookForm._id.toString());
           assert.equal(body.request.owner, template.users.admin._id.toString());
           assert.equal(body.request.data.email, 'test@example.com');
@@ -563,6 +565,8 @@ module.exports = function(app, template, hook) {
 
       it('Should send a webhook with update data.', function(done) {
         webhookHandler = function(body) {
+          body = hook.alter('webhookBody', body);
+
           assert.equal(body.params.formId, webhookForm._id.toString());
           assert.equal(body.request.data.email, 'test@example.com');
           assert.equal(body.request.data.firstName, 'Test2');
@@ -593,6 +597,8 @@ module.exports = function(app, template, hook) {
 
       it('Should send a webhook with deleted data.', function(done) {
         webhookHandler = function(body, url) {
+          body = hook.alter('webhookBody', body);
+
           assert.equal(body, '');
           assert.equal(url.query.formId, webhookForm._id);
           assert.equal(url.query.submissionId, webhookSubmission._id);

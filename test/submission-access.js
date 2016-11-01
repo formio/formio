@@ -3288,12 +3288,12 @@ module.exports = function(app, template, hook) {
                 }
 
                 var response = res.body;
-                // Remove the modified timestamp for comparison.
-                response = _.omit(response, 'modified');
                 // Update the temp owner for comparison.
                 temp.owner = submission.owner;
 
-                assert.deepEqual(response, _.omit(temp, 'modified'));
+                assert.deepEqual(_.omit(response, 'modified'), _.omit(temp, 'modified'));
+
+                temp = response;
 
                 // Store the JWT for future API calls.
                 template.users.admin.token = res.headers['x-jwt-token'];

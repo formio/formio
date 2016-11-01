@@ -694,9 +694,9 @@ module.exports = function(app, template, hook) {
           }
 
           var response = res.body;
-          var oldAccess = {
+          oldAccess = {
             access: response.access,
-            submissionAccess: response.submissionAccess,
+            submissionAccess: response.submissionAccess
           };
 
           // Store the JWT for future API calls.

@@ -6,6 +6,7 @@ var debug = require('debug')('formio:middleware:submissionResourceAccessFilter')
 module.exports = function(router) {
   return function submissionResourceAccessFilter(req, res, next) {
     var util = router.formio.util;
+    var hook = router.formio.hook;
 
     // Skip this filter, if not flagged in the permission handler.
     if (!_.has(req, 'submissionResourceAccessFilter') || !req.submissionResourceAccessFilter) {
@@ -21,7 +22,7 @@ module.exports = function(router) {
 
     // Should never get here with a submission id present..
     if (req.subId) {
-      debug('No req.subId given.');
+      debug('req.subId given, skipping.');
       return res.sendStatus(500);
     }
 
@@ -32,27 +33,35 @@ module.exports = function(router) {
     }
 
     var user = req.user._id;
-    var query = {
-      form: util.idToBson(req.formId),
-      deleted: {$eq: null},
-      $or: [
-        {
-          'access.type': {$in: ['read', 'write', 'admin']},
-          'access.resources': {$in: [util.idToString(user), util.idToBson(user)]}
-        },
-        {
-          owner: req.token.user._id
-        }
-      ]
-    };
+    var search = [util.idToString(user), util.idToBson(user)];
+    hook.alter('resourceAccessFilter', search, req, function(err, search) {
+      // Try to recover if the hook fails.
+      if (err) {
+        debug(err);
+      }
 
-    debug(query);
-    req.modelQuery = req.modelQuery || this.model;
-    req.modelQuery = req.modelQuery.find(query);
+      var query = {
+        form: util.idToBson(req.formId),
+        deleted: {$eq: null},
+        $or: [
+          {
+            'access.type': {$in: ['read', 'write', 'admin']},
+            'access.resources': {$in: search}
+          },
+          {
+            owner: req.token.user._id
+          }
+        ]
+      };
 
-    req.countQuery = req.countQuery || this.model;
-    req.countQuery = req.countQuery.find(query);
+      debug(query);
+      req.modelQuery = req.modelQuery || this.model;
+      req.modelQuery = req.modelQuery.find(query);
 
-    next();
+      req.countQuery = req.countQuery || this.model;
+      req.countQuery = req.countQuery.find(query);
+
+      next();
+    }.bind(this));
   };
 };
