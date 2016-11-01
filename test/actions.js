@@ -517,9 +517,7 @@ module.exports = function(app, template, hook) {
           assert.equal(body.request.data.firstName, 'Test');
           assert.equal(body.request.data.lastName, 'Person');
           assert(body.request.data.password !== '123testing', 'Passwords must not be visible via webhooks.');
-          delete body.submission.__v;
-          delete body.submission.deleted;
-          assert.deepEqual(body.submission, webhookSubmission);
+          assert.deepEqual(_.pick(body.submission, _.keys(webhookSubmission)), webhookSubmission);
           done();
         };
         request(app)
@@ -569,9 +567,7 @@ module.exports = function(app, template, hook) {
           assert.equal(body.request.data.email, 'test@example.com');
           assert.equal(body.request.data.firstName, 'Test2');
           assert.equal(body.request.data.lastName, 'Person3');
-          delete body.submission.__v;
-          delete body.submission.deleted;
-          assert.deepEqual(body.submission, webhookSubmission);
+          assert.deepEqual(_.pick(body.submission, _.keys(webhookSubmission)), webhookSubmission);
           done();
         };
         request(app)
