@@ -6,6 +6,8 @@ var debug = require('debug')('formio:action:webhook');
 
 module.exports = function(router) {
   var Action = router.formio.Action;
+  var hook = router.formio.hook;
+
   /**
    * WebhookAction class.
    *   This class is used to create webhook interface.
@@ -22,7 +24,7 @@ module.exports = function(router) {
   WebhookAction.info = function(req, res, next) {
     next(null, {
       name: 'webhook',
-      title: 'Webhook',
+      title: hook.alter('actionTitle', 'Webhook'),
       description: 'Allows you to trigger an external interface.',
       priority: 0,
       defaults: {
@@ -84,6 +86,10 @@ module.exports = function(router) {
    *   The callback function to execute upon completion.
    */
   WebhookAction.prototype.resolve = function(handler, method, req, res, next) {
+    if (!hook.alter('resolve', true, this, handler, method, req, res)) {
+      return next();
+    }
+
     var options = {};
     debug(_.get(this, 'settings'));
 
