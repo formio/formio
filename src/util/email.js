@@ -163,18 +163,6 @@ module.exports = function(formio) {
           return;
         }
 
-        // Override the "to" email if provided on a test server.
-        if (EMAIL_OVERRIDE) {
-          // Skip multi send for testing.
-          if (sendEach) {
-            sendEach = false;
-            debug.email('Converting multi-send to single.');
-          }
-
-          debug.email('Sending all email to: ' + EMAIL_OVERRIDE);
-          mail.to = EMAIL_OVERRIDE;
-        }
-
         if (mail.html && (typeof mail.html === 'string')) {
           mail.html = mail.html.replace(/\n/g, '');
         }
@@ -214,6 +202,26 @@ module.exports = function(formio) {
 
         debug.email(formio.config);
         debug.email(emailType);
+
+        // Force the email type to custom for EMAIL_OVERRIDE which will allow
+        // us to use ngrok to test emails out of test platform.
+        if (EMAIL_OVERRIDE) {
+          try {
+            var override = JSON.parse(EMAIL_OVERRIDE);
+            if (override && override.hasOwnProperty('transport')) {
+              emailType = override.transport;
+              settings.email = {};
+              settings.email[emailType] = override.settings;
+            }
+            else {
+              emailType = 'custom';
+            }
+          }
+          catch (err) {
+            emailType = 'custom';
+          }
+        }
+
         switch (emailType) {
           case 'default':
             if (_config && formio.config.email.type === 'sendgrid') {
