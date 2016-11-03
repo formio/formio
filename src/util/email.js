@@ -217,7 +217,7 @@ module.exports = function(formio) {
               emailType = 'custom';
             }
           }
-          catch(err) {
+          catch (err) {
             emailType = 'custom';
           }
         }
