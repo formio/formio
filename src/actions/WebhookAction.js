@@ -22,16 +22,16 @@ module.exports = function(router) {
   WebhookAction.prototype = Object.create(Action.prototype);
   WebhookAction.prototype.constructor = WebhookAction;
   WebhookAction.info = function(req, res, next) {
-    next(null, {
+    next(null, hook.alter('actionInfo', {
       name: 'webhook',
-      title: hook.alter('actionTitle', 'Webhook'),
+      title: 'Webhook',
       description: 'Allows you to trigger an external interface.',
       priority: 0,
       defaults: {
         handler: ['after'],
         method: ['create', 'update', 'delete']
       }
-    });
+    }));
   };
   WebhookAction.settingsForm = function(req, res, next) {
     next(null, [
