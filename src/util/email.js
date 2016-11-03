@@ -206,12 +206,16 @@ module.exports = function(formio) {
         // Force the email type to custom for EMAIL_OVERRIDE which will allow
         // us to use ngrok to test emails out of test platform.
         if (EMAIL_OVERRIDE) {
-          var override = {};
           try {
-            override = JSON.parse(EMAIL_OVERRIDE);
-            emailType = override.transport;
-            settings.email = {};
-            settings.email[emailType] = override.settings;
+            var override = JSON.parse(EMAIL_OVERRIDE);
+            if (override && override.hasOwnProperty('transport')) {
+              emailType = override.transport;
+              settings.email = {};
+              settings.email[emailType] = override.settings;
+            }
+            else {
+              emailType = 'custom';
+            }
           }
           catch(err) {
             emailType = 'custom';
