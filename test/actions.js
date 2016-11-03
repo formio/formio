@@ -458,7 +458,9 @@ module.exports = function(app, template, hook) {
         server.port = port++;
         server.url = 'http://localhost:'+ server.port;
         server.listen(server.port, function(err) {
-          ready(err, server);
+          hook.alter('webhookServer', server, app, template, function(server) {
+            ready(err, server);
+          });
         });
       };
 
