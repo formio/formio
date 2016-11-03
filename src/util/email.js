@@ -210,7 +210,8 @@ module.exports = function(formio) {
           try {
             override = JSON.parse(EMAIL_OVERRIDE);
             emailType = override.transport;
-            formio.config.email[emailType] = override.settings;
+            settings.email = {};
+            settings.email[emailType] = override.settings;
           }
           catch(err) {
             emailType = 'custom';
