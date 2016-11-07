@@ -323,6 +323,7 @@ module.exports = function(router) {
       tree: true,
       components: [
         {
+          key: 'columns',
           type: 'columns',
           input: false,
           columns: [
@@ -380,10 +381,12 @@ module.exports = function(router) {
             {
               components: [
                 {
+                  key: 'well2',
                   type: 'well',
                   input: false,
                   components: [
                     {
+                      key: 'html',
                       type: 'htmlelement',
                       tag: 'h4',
                       input: false,
@@ -436,6 +439,7 @@ module.exports = function(router) {
           components: mainSettings.components
         },
         {
+          key: 'fieldset',
           type: 'fieldset',
           input: false,
           tree: false,
@@ -443,6 +447,7 @@ module.exports = function(router) {
           components: conditionalSettings.components
         },
         {
+          key: 'html2',
           type: 'htmlelement',
           tag: 'hr',
           input: false,

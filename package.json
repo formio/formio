@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "1.11.7",
+  "version": "1.12.1",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
@@ -28,7 +28,7 @@
     "csv": "^0.4.5",
     "debug": "^2.2.0",
     "delete-property": "0.0.4",
-    "eslint-config-formio": "^1.1.0",
+    "eslint-config-formio": "^1.1.2",
     "event-chain": "^0.0.1",
     "express": "^4.10.6",
     "formio-utils": "^0.1.9",
