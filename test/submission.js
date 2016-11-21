@@ -94,6 +94,7 @@ module.exports = function(app, template, hook) {
       it('Nests single value components in a fieldset', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "fieldset1",
           "input": false,
           "tableView": true,
           "legend": "Fieldset",
@@ -123,6 +124,7 @@ module.exports = function(app, template, hook) {
       it('Nests multiple value components in a fieldset', function(done) {
         var test = require('./forms/multicomponents.js');
         var components = [{
+          "key": "fieldset1",
           "input": false,
           "tableView": true,
           "legend": "Fieldset",
@@ -155,13 +157,14 @@ module.exports = function(app, template, hook) {
         var test1 = require('./forms/singlecomponents1.js');
         var test2 = require('./forms/singlecomponents2.js');
         var components = [{
+          "key": "columns1",
           "input": false,
           "columns": [
             {
-              "components": test1.components,
+              "components": test1.components
             },
             {
-              "components": test2.components,
+              "components": test2.components
             }
           ],
           "type": "columns",
@@ -191,13 +194,14 @@ module.exports = function(app, template, hook) {
         var test1 = require('./forms/singlecomponents1.js');
         var test2 = require('./forms/multicomponents.js');
         var components = [{
+          "key": "columns1",
           "input": false,
           "columns": [
             {
-              "components": test1.components,
+              "components": test1.components
             },
             {
-              "components": test2.components,
+              "components": test2.components
             }
           ],
           "type": "columns",
@@ -228,6 +232,7 @@ module.exports = function(app, template, hook) {
       it('Nests single value components in a panel', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "panel1",
           "input": false,
           "title": "Panel",
           "theme": "default",
@@ -257,6 +262,7 @@ module.exports = function(app, template, hook) {
       it('Nests multiple value components in a panel', function(done) {
         var test = require('./forms/multicomponents.js');
         var components = [{
+          "key": "panel1",
           "input": false,
           "title": "Panel",
           "theme": "default",
@@ -288,6 +294,7 @@ module.exports = function(app, template, hook) {
       it('Nests single value components in a well', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "well1",
           "input": false,
           "components": test.components,
           "type": "well",
@@ -315,6 +322,7 @@ module.exports = function(app, template, hook) {
       it('Nests multiple value components in a well', function(done) {
         var test = require('./forms/multicomponents.js');
         var components = [{
+          "key": "well1",
           "input": false,
           "components": test.components,
           "type": "well",
@@ -346,6 +354,7 @@ module.exports = function(app, template, hook) {
         var test2 = require('./forms/singlecomponents2.js');
         var test3 = require('./forms/multicomponents.js');
         var components = [{
+          "key": "table1",
           "conditional": {
             "eq": "",
             "when": null,
@@ -434,6 +443,7 @@ module.exports = function(app, template, hook) {
       it('Nests single value components in a custom component', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "custom1",
           "input": false,
           "tableView": true,
           "legend": "Custom",
