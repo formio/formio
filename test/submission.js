@@ -2297,5 +2297,39 @@ module.exports = function(app, template, hook) {
           });
       });
     });
+
+    describe('Address Fields', function() {
+      var test = require('./forms/for213.js');
+
+      it('A single unique address will submit without issues', function(done) {
+        helper
+          .form('for213', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, test.submission);
+            done();
+          });
+      });
+
+      it('A duplicate unique address will throw validation issues', function(done) {
+        helper
+          .form('for213', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(submission, 'address must be unique.');
+            done();
+          });
+      });
+    });
   });
 };
