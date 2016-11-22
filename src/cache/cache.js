@@ -91,9 +91,9 @@ module.exports = function(router) {
 
         var componentMap = {};
         result = result.toObject();
-        _.each(result.components, function(component) {
+        util.eachComponent(result.components, function(component) {
           componentMap[component.key] = component;
-        });
+        }, true);
         result.componentMap = componentMap;
         this.updateCache(req, cache, result);
         debug.loadForm('Caching result');
