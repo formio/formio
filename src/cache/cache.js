@@ -1,6 +1,5 @@
 'use strict';
 
-var _ = require('lodash');
 var debug = {
   form: require('debug')('formio:cache:form'),
   loadForm: require('debug')('formio:cache:loadForm'),
