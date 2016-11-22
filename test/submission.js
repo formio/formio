@@ -2312,5 +2312,59 @@ module.exports = function(app, template, hook) {
           });
       });
     });
+
+    describe('Conditionally hidden required fields do not trigger validation', function() {
+      var test = require('./forms/conditional');
+      var pass = {show: 'no'};
+      var fail = {show: 'yes'};
+      var full = {show: 'yes', req: 'foo'};
+
+      it('A submission without a hidden field should ignore validation', function(done) {
+        helper
+          .form('cond', test.components)
+          .submission(pass)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, pass);
+            done();
+          });
+      });
+
+      it('A submission with a hidden field should not ignore validation', function(done) {
+        helper
+          .form('cond', test.components)
+          .submission(fail)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.name, 'ValidationError');
+            var error = submission.details.pop();
+            assert.equal(error.message, '"req" is required');
+            done();
+          });
+      });
+
+      it('A submission with a hidden field should work with all the required data', function(done) {
+        helper
+          .form('cond', test.components)
+          .submission(full)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, full);
+            done();
+          });
+      });
+    });
   });
 };
