@@ -2318,6 +2318,7 @@ module.exports = function(app, template, hook) {
       var pass = {show: 'no'};
       var fail = {show: 'yes'};
       var full = {show: 'yes', req: 'foo'};
+      var pruned = {show: 'no', req: 'foo'};
 
       it('A submission without a hidden field should ignore validation', function(done) {
         helper
@@ -2362,6 +2363,21 @@ module.exports = function(app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(submission.data, full);
+            done();
+          });
+      });
+
+      it('A submission with a hidden field should prune hidden field data', function(done) {
+        helper
+          .form('cond', test.components)
+          .submission(pruned)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, pass);
             done();
           });
       });
