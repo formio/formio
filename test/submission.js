@@ -94,6 +94,7 @@ module.exports = function(app, template, hook) {
       it('Nests single value components in a fieldset', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "fieldset1",
           "input": false,
           "tableView": true,
           "legend": "Fieldset",
@@ -123,6 +124,7 @@ module.exports = function(app, template, hook) {
       it('Nests multiple value components in a fieldset', function(done) {
         var test = require('./forms/multicomponents.js');
         var components = [{
+          "key": "fieldset1",
           "input": false,
           "tableView": true,
           "legend": "Fieldset",
@@ -155,13 +157,14 @@ module.exports = function(app, template, hook) {
         var test1 = require('./forms/singlecomponents1.js');
         var test2 = require('./forms/singlecomponents2.js');
         var components = [{
+          "key": "columns1",
           "input": false,
           "columns": [
             {
-              "components": test1.components,
+              "components": test1.components
             },
             {
-              "components": test2.components,
+              "components": test2.components
             }
           ],
           "type": "columns",
@@ -191,13 +194,14 @@ module.exports = function(app, template, hook) {
         var test1 = require('./forms/singlecomponents1.js');
         var test2 = require('./forms/multicomponents.js');
         var components = [{
+          "key": "columns1",
           "input": false,
           "columns": [
             {
-              "components": test1.components,
+              "components": test1.components
             },
             {
-              "components": test2.components,
+              "components": test2.components
             }
           ],
           "type": "columns",
@@ -228,6 +232,7 @@ module.exports = function(app, template, hook) {
       it('Nests single value components in a panel', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "panel1",
           "input": false,
           "title": "Panel",
           "theme": "default",
@@ -257,6 +262,7 @@ module.exports = function(app, template, hook) {
       it('Nests multiple value components in a panel', function(done) {
         var test = require('./forms/multicomponents.js');
         var components = [{
+          "key": "panel1",
           "input": false,
           "title": "Panel",
           "theme": "default",
@@ -288,6 +294,7 @@ module.exports = function(app, template, hook) {
       it('Nests single value components in a well', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "well1",
           "input": false,
           "components": test.components,
           "type": "well",
@@ -315,6 +322,7 @@ module.exports = function(app, template, hook) {
       it('Nests multiple value components in a well', function(done) {
         var test = require('./forms/multicomponents.js');
         var components = [{
+          "key": "well1",
           "input": false,
           "components": test.components,
           "type": "well",
@@ -346,6 +354,7 @@ module.exports = function(app, template, hook) {
         var test2 = require('./forms/singlecomponents2.js');
         var test3 = require('./forms/multicomponents.js');
         var components = [{
+          "key": "table1",
           "conditional": {
             "eq": "",
             "when": null,
@@ -434,6 +443,7 @@ module.exports = function(app, template, hook) {
       it('Nests single value components in a custom component', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "custom1",
           "input": false,
           "tableView": true,
           "legend": "Custom",
@@ -849,27 +859,32 @@ module.exports = function(app, template, hook) {
       it('Nests deeply in layout components', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "fieldset1",
           "input": false,
           "tableView": true,
           "type": "fieldset",
           "legend": "Fieldset",
           "components": [
             {
+              "key": "columns1",
               "input": false,
               "type": "columns",
               "columns": [
                 {
                   "components": [
                     {
+                      "key": "panel1",
                       "input": false,
                       "title": "Panel",
                       "type": "panel",
                       "theme": "default",
                       "components": [
                         {
+                          "key": "well1",
                           "input": false,
                           "components": [
                             {
+                              "key": "well2",
                               "input": false,
                               "type": "well",
                               "components": test.components,
@@ -894,10 +909,10 @@ module.exports = function(app, template, hook) {
                         "eq": ""
                       }
                     }
-                  ],
+                  ]
                 },
                 {
-                  "components": [],
+                  "components": []
                 }
               ],
               "conditional": {
@@ -931,28 +946,33 @@ module.exports = function(app, template, hook) {
       it('Nests a datagrid deeply in layout components', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "fieldset1",
           "input": false,
           "tableView": true,
           "type": "fieldset",
           "legend": "Fieldset",
           "components": [
             {
+              "key": "columns1",
               "input": false,
               "type": "columns",
               "columns": [
                 {
                   "components": [
                     {
+                      "key": "panel1",
                       "input": false,
                       "title": "Panel",
                       "type": "panel",
                       "theme": "default",
                       "components": [
                         {
+                          "key": "well1",
                           "input": false,
                           "type": "well",
                           "components": [
                             {
+                              "key": "well2",
                               "input": false,
                               "type": "well",
                               "components": [
@@ -993,10 +1013,10 @@ module.exports = function(app, template, hook) {
                         "eq": ""
                       }
                     }
-                  ],
+                  ]
                 },
                 {
-                  "components": [],
+                  "components": []
                 }
               ],
               "conditional": {
@@ -1034,27 +1054,32 @@ module.exports = function(app, template, hook) {
       it('Nests a container deeply in layout components', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "fieldset1",
           "input": false,
           "tableView": true,
           "type": "fieldset",
           "legend": "Fieldset",
           "components": [
             {
+              "key": "columns1",
               "input": false,
               "type": "columns",
               "columns": [
                 {
                   "components": [
                     {
+                      "key": "panel1",
                       "input": false,
                       "title": "Panel",
                       "type": "panel",
                       "theme": "default",
                       "components": [
                         {
+                          "key": "well1",
                           "input": false,
                           "components": [
                             {
+                              "key": "well2",
                               "input": false,
                               "type": "well",
                               "components": [
@@ -1096,10 +1121,10 @@ module.exports = function(app, template, hook) {
                         "eq": ""
                       }
                     }
-                  ],
+                  ]
                 },
                 {
-                  "components": [],
+                  "components": []
                 }
               ],
               "conditional": {
@@ -1346,7 +1371,7 @@ module.exports = function(app, template, hook) {
               "eq": "two"
             },
             "type": "textfield"
-          },
+          }
         ];
 
         var values = {
@@ -1442,7 +1467,7 @@ module.exports = function(app, template, hook) {
               "eq": "two"
             },
             "type": "textfield"
-          },
+          }
         ];
 
         var values = {
@@ -1527,7 +1552,7 @@ module.exports = function(app, template, hook) {
               "eq": "two"
             },
             "type": "textfield"
-          },
+          }
         ];
 
         var values = {
@@ -1613,7 +1638,7 @@ module.exports = function(app, template, hook) {
               "eq": "two"
             },
             "type": "textfield"
-          },
+          }
         ];
 
         var values = {
@@ -1703,7 +1728,7 @@ module.exports = function(app, template, hook) {
                   "eq": ""
                 },
                 "type": "textfield"
-              },
+              }
             ],
             "type": "panel",
             "key": "panel",
@@ -1712,7 +1737,7 @@ module.exports = function(app, template, hook) {
               "when": "selector",
               "eq": "two"
             }
-          },
+          }
         ];
 
         var values = {
@@ -1813,7 +1838,7 @@ module.exports = function(app, template, hook) {
                   "eq": ""
                 },
                 "type": "textfield"
-              },
+              }
             ],
             "type": "panel",
             "key": "panel",
@@ -1822,7 +1847,7 @@ module.exports = function(app, template, hook) {
               "when": "selector",
               "eq": "two"
             }
-          },
+          }
         ];
 
         var values = {
@@ -1912,7 +1937,7 @@ module.exports = function(app, template, hook) {
                   "eq": ""
                 },
                 "type": "textfield"
-              },
+              }
             ],
             "type": "panel",
             "key": "panel",
@@ -1921,7 +1946,7 @@ module.exports = function(app, template, hook) {
               "when": "selector",
               "eq": "two"
             }
-          },
+          }
         ];
 
         var values = {
@@ -2012,7 +2037,7 @@ module.exports = function(app, template, hook) {
                   "eq": ""
                 },
                 "type": "textfield"
-              },
+              }
             ],
             "type": "panel",
             "key": "panel",
@@ -2021,7 +2046,7 @@ module.exports = function(app, template, hook) {
               "when": "selector",
               "eq": "two"
             }
-          },
+          }
         ];
 
         var values = {
@@ -2046,7 +2071,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Non Persistent fields dont persist', function() {
-      it('Doesn\t save non-persistent single fields', function(done) {
+      it('Doesn\'t save non-persistent single fields', function(done) {
         var test = require('./forms/singlecomponents1.js');
         test.components.forEach(function(component) {
           component.persistent = false;
@@ -2066,7 +2091,7 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('Doesn\t save non-persistent multi fields', function(done) {
+      it('Doesn\'t save non-persistent multi fields', function(done) {
         var test = require('./forms/multicomponents.js');
         test.components.forEach(function(component) {
           component.persistent = false;
@@ -2119,10 +2144,10 @@ module.exports = function(app, template, hook) {
               "eq": ""
             },
             "type": "textfield"
-          },
+          }
         ];
         var values = {
-          textField: 'My Value',
+          textField: 'My Value'
         };
 
         helper
@@ -2181,7 +2206,7 @@ module.exports = function(app, template, hook) {
               "eq": ""
             },
             "type": "textfield"
-          },
+          }
         ];
         var values = {
           textField: ['Never', 'gonna', 'give', 'you', 'up']
@@ -2249,7 +2274,7 @@ module.exports = function(app, template, hook) {
           }
         ];
         var values = {
-          textField: 'My Value',
+          textField: 'My Value'
         };
 
         helper
@@ -2283,6 +2308,76 @@ module.exports = function(app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
+            done();
+          });
+      });
+    });
+
+    describe('Conditionally hidden required fields do not trigger validation', function() {
+      var test = require('./forms/conditional');
+      var pass = {show: 'no'};
+      var fail = {show: 'yes'};
+      var full = {show: 'yes', req: 'foo'};
+      var pruned = {show: 'no', req: 'foo'};
+
+      it('A submission without a hidden field should ignore validation', function(done) {
+        helper
+          .form('cond', test.components)
+          .submission(pass)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, pass);
+            done();
+          });
+      });
+
+      it('A submission with a hidden field should not ignore validation', function(done) {
+        helper
+          .form('cond', test.components)
+          .submission(fail)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.name, 'ValidationError');
+            var error = submission.details.pop();
+            assert.equal(error.message, '"req" is required');
+            done();
+          });
+      });
+
+      it('A submission with a hidden field should work with all the required data', function(done) {
+        helper
+          .form('cond', test.components)
+          .submission(full)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, full);
+            done();
+          });
+      });
+
+      it('A submission with a hidden field should prune hidden field data', function(done) {
+        helper
+          .form('cond', test.components)
+          .submission(pruned)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, pass);
             done();
           });
       });

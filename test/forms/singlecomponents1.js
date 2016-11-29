@@ -606,4 +606,4 @@ module.exports = {
       two: "bet"
     }
   }
-}
+};

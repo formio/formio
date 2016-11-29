@@ -23,6 +23,10 @@ module.exports = function(app) {
     };
   };
 
+  Helper.prototype.getTemplate = function() {
+    return this.template;
+  };
+
   // Return the last submission made.
   Helper.prototype.getLastSubmission = function() {
     return this.lastSubmission;
@@ -50,6 +54,14 @@ module.exports = function(app) {
         this.owner.token = res.headers['x-jwt-token'];
         done(null, this.template.forms);
       }.bind(this));
+  };
+
+  Helper.prototype.getForm = function(name) {
+    if (this.template.forms.hasOwnProperty(name)) {
+      return this.template.forms[name];
+    }
+
+    return null;
   };
 
   Helper.prototype.getRoles = function(done) {
