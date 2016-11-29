@@ -585,20 +585,26 @@ Validator.prototype.validate = function(submission, next) {
     debug.validator('Key: ' + key);
     // Skip validation of this field, because data wasn't included.
     var data = _.get(submission.data, _.get(paths, key));
+    debug.validator(data);
     if (!data) {
       debug.validator('Skipping Key: ' + key);
-      debug.validator(data);
       return done();
     }
     if (_.isEmpty(data)) {
       debug.validator('Skipping Key: ' + key + ', typeof: ' + typeof data);
-      debug.validator(data);
       return done();
     }
 
     // Get the query.
     var query = {form: util.idToBson(submission.form)};
-    query['data.' + _.get(paths, key)] = {$regex: new RegExp('^' + util.escapeRegExp(data) + '$'), $options: 'i'};
+    if (typeof data === 'string') {
+      query['data.' + _.get(paths, key)] = {$regex: new RegExp('^' + util.escapeRegExp(data) + '$'), $options: 'i'};
+    }
+    // FOR-213 - Pluck the unique location id
+    else if (typeof data !== 'string' && data.hasOwnProperty('address_components') && data.hasOwnProperty('place_id')) {
+      var _path = 'data.' + _.get(paths, key) + '.place_id';
+      query[_path] = {$regex: new RegExp('^' + util.escapeRegExp(data.place_id) + '$'), $options: 'i'};
+    }
 
     // Only search for non-deleted items.
     if (!query.hasOwnProperty('deleted')) {
