@@ -31,7 +31,7 @@ var Validator = function(form, model) {
  */
 Validator.prototype.addValidator = function(schema, component) {
   var fieldValidator = null;
-  if (!component) {
+  if (!component || !component.key || this.ignore.hasOwnProperty(component.key)) {
     return;
   }
 
@@ -462,15 +462,6 @@ Validator.prototype.buildSchema = function() {
 
   // Iterate through each component.
   _.each(this.form.components, function(component) {
-    if (!component) {
-      return;
-    }
-
-    // See if we should ignore validation for this component.
-    if (this.ignore.hasOwnProperty(component.key)) {
-      return;
-    }
-
     // Get the validator.
     this.addValidator(keys, component);
   }.bind(this));
