@@ -27,6 +27,7 @@ module.exports = function(router) {
     submissionHandler: require('./submissionHandler')(router),
     submissionResourceAccessFilter: require('./submissionResourceAccessFilter')(router),
     tokenHandler: require('./tokenHandler')(router),
-    restrictRequestTypes: require('./restrictRequestTypes')(router)
+    restrictRequestTypes: require('./restrictRequestTypes')(router),
+    mergeFormHandler: require('./mergeFormHandler')(router)
   };
 };
