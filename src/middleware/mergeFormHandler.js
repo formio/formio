@@ -11,10 +11,12 @@ var _ = require('lodash');
  *
  * @param router
  * @returns {Function}
+ *
+ * @TODO: Uniquify all key:type pairs in the update form, to prohibit invalid merges.
  */
 module.exports = function(router) {
   return function(req, res, next) {
-    if (req.method !== 'PUT' || !req.formId) {
+    if (req.method !== 'PUT' || !req.formId || !_.has(req, 'body.modified') || !_.has(req, 'body.components')) {
       debug('Skipping');
       return next();
     }

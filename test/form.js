@@ -12,6 +12,8 @@ var customer = process.env.CUSTOMER;
 
 module.exports = function(app, template, hook) {
   var formio = hook.alter('formio', app.formio);
+  var Helper = require('./helper')(app);
+  var helper = null;
 
   describe('Forms', function() {
     // Store the temp form for this test suite.
@@ -2669,6 +2671,291 @@ module.exports = function(app, template, hook) {
 
             done();
           });
+      });
+    });
+
+    describe('Form Merging', function() {
+      var form = _.cloneDeep(tempForm);
+      form.title = 'form-merge-a';
+      form.name = 'form-merge-a';
+      form.path = 'form-merge-a';
+
+      describe('Bootstrap', function() {
+        it('Create the form merging test form', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.components, form.components);
+
+              form = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+      });
+
+      describe('Flat form with components', function() {
+        var componentsA = [
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'foo',
+            key: 'foo',
+            label: 'foo',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          }
+        ];
+        var componentsB = [
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'foo',
+            key: 'foo',
+            label: 'foo',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          },
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'bar',
+            key: 'bar',
+            label: 'bar',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          }
+        ];
+        var componentsC = [
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'foo',
+            key: 'foo',
+            label: 'foo',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          },
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'baz',
+            key: 'baz',
+            label: 'baz',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          }
+        ];
+        var componentsD = [
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'foo',
+            key: 'foo',
+            label: 'foo',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          },
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'bar',
+            key: 'bar',
+            label: 'bar',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          },
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'baz',
+            key: 'baz',
+            label: 'baz',
+            inputMask: '',
+            inputType: 'text',
+            input: true
+          }
+        ];
+
+        var initialForm;
+        it('Update test form', function(done) {
+          // Set the initial form components.
+          form.components = componentsA;
+
+          request(app)
+            .put(hook.alter('url', '/form/' + form._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.components, form.components);
+
+              form = response;
+              initialForm = _.cloneDeep(response);
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('Create the first form component modifications', function(done) {
+          form.components = componentsB;
+
+          request(app)
+            .put(hook.alter('url', '/form/' + form._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.components, form.components);
+
+              form = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('Form components added to a stale form, will merge with the current stable version of the form', function(done) {
+          initialForm.components = componentsC;
+
+          request(app)
+            .put(hook.alter('url', '/form/' + form._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(initialForm)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.components, componentsD);
+
+              form = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
       });
     });
   });
