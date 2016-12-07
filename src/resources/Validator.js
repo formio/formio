@@ -605,6 +605,10 @@ Validator.prototype.validate = function(submission, next) {
       var _path = 'data.' + _.get(paths, key) + '.place_id';
       query[_path] = {$regex: new RegExp('^' + util.escapeRegExp(data.place_id) + '$'), $options: 'i'};
     }
+    // Compare the contents of arrays vs the order.
+    else if (data instanceof Array) {
+      query['data.' + _.get(paths, key)] = {$all: data};
+    }
 
     // Only search for non-deleted items.
     if (!query.hasOwnProperty('deleted')) {
