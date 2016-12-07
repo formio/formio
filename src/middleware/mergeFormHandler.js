@@ -51,8 +51,19 @@ module.exports = function(router) {
 
       // Build the new component list using the oldest components first.
       var final = _.cloneDeep(_components.stable);
+      var ignoreTypes = ['panel'];
+      var ignoredComponents = [];
       ['stable', 'local'].forEach(function(type) {
         util.eachComponent(_components[type], function(component, path) {
+          // If this component has components, and is in the ignore types, flag all its children, so it isnt merged 2x.
+          if (ignoreTypes.indexOf(component.type) !== -1) {
+            var container = _.intersection(['components', 'rows', 'columns'], Object.keys(component));
+            util.eachComponent(component[container], function(subcomponent) {
+              ignoredComponents.push(subcomponent.key);
+            }, true);
+          }
+
+          debug('path (' + component.key + '): ' + path);
           // Update the map and path references for this type on a per component basis.
           _map[type][component.key] = component;
           _path[type][component.key] = path;
@@ -74,7 +85,8 @@ module.exports = function(router) {
 
         // Determine this components parent component path.
         var path = _path.local[key];
-        if (path === key) {
+        debug(path);
+        if (path === key && ignoredComponents.indexOf(key) === -1) {
           parents[''] = parents[''] || [];
           parents[''].push(key);
         }
@@ -89,6 +101,8 @@ module.exports = function(router) {
           parents[last].push(key);
         }
       });
+      debug('parents:');
+      debug(parents);
 
       var newComponents = _.filter(_map.local, function(item) {
         return difference.indexOf(item.key) !== -1
@@ -125,7 +139,13 @@ module.exports = function(router) {
         }
       }, true);
 
-      // @TODO: Add totally new components in the correct place.
+      // Add totally new components to the form, without clobbering other form modifications.
+      // @TODO: Make insertion in the correct place.
+      if (parents.hasOwnProperty('') && parents[''].length > 0) {
+        parents[''].forEach(function(key) {
+          final.push(_map.local[key]);
+        });
+      }
 
       // Update the final components payload to include all changes.
       debug('final');
