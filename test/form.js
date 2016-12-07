@@ -2957,6 +2957,525 @@ module.exports = function(app, template, hook) {
             });
         });
       });
+
+      describe('Single level nested components', function() {
+        describe('Form with Panels', function() {
+          var componentsA = [
+            {
+              key: 'foo',
+              title: 'foo',
+              input: false,
+              type: 'panel',
+              components: [
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'apple',
+                  key: 'apple',
+                  label: 'apple',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                }
+              ]
+            }
+          ];
+          var componentsB = [
+            {
+              key: 'foo',
+              title: 'foo',
+              input: false,
+              type: 'panel',
+              components: [
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'apple',
+                  key: 'apple',
+                  label: 'apple',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                },
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'orange',
+                  key: 'orange',
+                  label: 'orange',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                }
+              ]
+            },
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'bar',
+              key: 'bar',
+              label: 'bar',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            },
+            {
+              key: 'test',
+              title: 'test',
+              input: false,
+              type: 'panel',
+              components: [
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'coffee',
+                  key: 'coffee',
+                  label: 'coffee',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                },
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'tea',
+                  key: 'tea',
+                  label: 'tea',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                }
+              ]
+            }
+          ];
+          var componentsC = [
+            {
+              key: 'foo',
+              title: 'foo',
+              input: false,
+              type: 'panel',
+              components: [
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'apple',
+                  key: 'apple',
+                  label: 'apple',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                },
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'grape',
+                  key: 'grape',
+                  label: 'grape',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                }
+              ]
+            },
+            {
+              key: 'baz',
+              title: 'baz',
+              input: false,
+              type: 'panel',
+              components: [
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'cat',
+                  key: 'cat',
+                  label: 'cat',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                },
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'dog',
+                  key: 'dog',
+                  label: 'dog',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                }
+              ]
+            }
+          ];
+          var componentsD = [
+            {
+              key: 'foo',
+              title: 'foo',
+              input: false,
+              type: 'panel',
+              components: [
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'apple',
+                  key: 'apple',
+                  label: 'apple',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                },
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'orange',
+                  key: 'orange',
+                  label: 'orange',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                },
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'grape',
+                  key: 'grape',
+                  label: 'grape',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                }
+              ]
+            },
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'bar',
+              key: 'bar',
+              label: 'bar',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            },
+            {
+              key: 'test',
+              title: 'test',
+              input: false,
+              type: 'panel',
+              components: [
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'coffee',
+                  key: 'coffee',
+                  label: 'coffee',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                },
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'tea',
+                  key: 'tea',
+                  label: 'tea',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                }
+              ]
+            },
+            {
+              key: 'baz',
+              title: 'baz',
+              input: false,
+              type: 'panel',
+              components: [
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'cat',
+                  key: 'cat',
+                  label: 'cat',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                },
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'dog',
+                  key: 'dog',
+                  label: 'dog',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                }
+              ]
+            }
+          ];
+
+          var initialForm;
+          it('Update test form', function(done) {
+            // Set the initial form components.
+            form.components = componentsA;
+
+            request(app)
+              .put(hook.alter('url', '/form/' + form._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                console.log(response);
+                assert.deepEqual(response.components, form.components);
+
+                form = response;
+                initialForm = _.cloneDeep(response);
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
+          it('Create the first form component modifications', function(done) {
+            form.components = componentsB;
+
+            request(app)
+              .put(hook.alter('url', '/form/' + form._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.deepEqual(response.components, form.components);
+
+                form = response;
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
+          it('Panel Form components will merge properly', function(done) {
+            initialForm.components = componentsC;
+
+            request(app)
+              .put(hook.alter('url', '/form/' + form._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(initialForm)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.deepEqual(response.components, componentsD);
+
+                form = response;
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+        });
+      });
     });
   });
 };
