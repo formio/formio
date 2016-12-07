@@ -6,6 +6,7 @@ var debug = require('debug')('formio:models:form');
 
 module.exports = function(formio) {
   var hook = require('../util/hook')(formio);
+  var util = formio.util;
   var model = require('./BaseModel')({
     schema: new mongoose.Schema({
       title: {
@@ -132,22 +133,12 @@ module.exports = function(formio) {
     });
   }, 'The Path must be unique per Project.');
 
-  // Recursively get keys of components
-  var getKeys = function getKeys(component) {
-    var components = component.components || component.columns;
-    if (components) {
-      return _.flattenDeep(_.map(components, getKeys).concat(component.key));
-    }
-    else if (component.input) {
-      return component.key;
-    }
-  };
-
   // Validate component keys are unique
   model.schema.path('components').validate(function(components, valid) {
-    var keys = _(components).map(getKeys).flatten().filter(function(key) {
-      return !_.isUndefined(key);
-    }).value();
+    var keys = [];
+    util.eachComponent(components, function(component) {
+      keys.push(component.key);
+    }, true);
 
     var msg = 'Component keys must be unique: ';
     var uniq = _.unique(keys);
@@ -165,7 +156,12 @@ module.exports = function(formio) {
   // Validate component keys have valid characters
   model.schema.path('components').validate(function(components) {
     var validRegex = /^[A-Za-z]+[A-Za-z0-9\-.]*$/g;
-    return _(components).map(getKeys).flatten().filter(function(key) {
+    var keys = [];
+    util.eachComponent(components, function(component) {
+      keys.push(component.key);
+    }, true);
+
+    return _(keys).filter(function(key) {
       return !_.isUndefined(key);
     }).all(function(key) {
       return key.match(validRegex);
