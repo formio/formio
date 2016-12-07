@@ -33,16 +33,9 @@ module.exports = function(router) {
       // If both times are the same, continue as usual, because no outside modifications have been made since.
       var current = new Date();
       var stable = new Date(_.get(form, 'modified', current.getTime())).getTime();
-      var local = new Date(_.get(req, 'body.modified'), current.getTime()).getTime();
+      var local = new Date(_.get(req, 'body.modified', current.getTime())).getTime();
       if (stable === local) {
-        return next();
-      }
-
-      // Other modifications have been made since this session started, merge all changes.
-      // If no components are present in the update, just merge form property changes.
-      if (!_.has(req, 'body.components')) {
-        // Update any form properties, using the latest update last.
-        req.body = _.assign(form, req.body);
+        debug('skipping - up to date');
         return next();
       }
 
