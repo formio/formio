@@ -3231,316 +3231,9 @@ module.exports = function(app, template, hook) {
             input: true
           }
         ];
-        var componentsB = [
-          {
-            type: 'textfield',
-            validate: {
-              custom: '',
-              pattern: '',
-              maxLength: '',
-              minLength: '',
-              required: false
-            },
-            defaultValue: '',
-            multiple: false,
-            suffix: '',
-            prefix: '',
-            placeholder: 'foo',
-            key: 'foo',
-            label: 'foo',
-            inputMask: '',
-            inputType: 'text',
-            input: true
-          },
-          {
-            type: 'textfield',
-            validate: {
-              custom: '',
-              pattern: '',
-              maxLength: '',
-              minLength: '',
-              required: false
-            },
-            defaultValue: '',
-            multiple: false,
-            suffix: '',
-            prefix: '',
-            placeholder: 'bar',
-            key: 'bar',
-            label: 'bar',
-            inputMask: '',
-            inputType: 'text',
-            input: true
-          }
-        ];
-        var componentsC = [
-          {
-            type: 'textfield',
-            validate: {
-              custom: '',
-              pattern: '',
-              maxLength: '',
-              minLength: '',
-              required: false
-            },
-            defaultValue: '',
-            multiple: false,
-            suffix: '',
-            prefix: '',
-            placeholder: 'foo',
-            key: 'foo',
-            label: 'foo',
-            inputMask: '',
-            inputType: 'text',
-            input: true
-          },
-          {
-            type: 'textfield',
-            validate: {
-              custom: '',
-              pattern: '',
-              maxLength: '',
-              minLength: '',
-              required: false
-            },
-            defaultValue: '',
-            multiple: false,
-            suffix: '',
-            prefix: '',
-            placeholder: 'baz',
-            key: 'baz',
-            label: 'baz',
-            inputMask: '',
-            inputType: 'text',
-            input: true
-          }
-        ];
-        var componentsD = [
-          {
-            type: 'textfield',
-            validate: {
-              custom: '',
-              pattern: '',
-              maxLength: '',
-              minLength: '',
-              required: false
-            },
-            defaultValue: '',
-            multiple: false,
-            suffix: '',
-            prefix: '',
-            placeholder: 'foo',
-            key: 'foo',
-            label: 'foo',
-            inputMask: '',
-            inputType: 'text',
-            input: true
-          },
-          {
-            type: 'textfield',
-            validate: {
-              custom: '',
-              pattern: '',
-              maxLength: '',
-              minLength: '',
-              required: false
-            },
-            defaultValue: '',
-            multiple: false,
-            suffix: '',
-            prefix: '',
-            placeholder: 'bar',
-            key: 'bar',
-            label: 'bar',
-            inputMask: '',
-            inputType: 'text',
-            input: true
-          },
-          {
-            type: 'textfield',
-            validate: {
-              custom: '',
-              pattern: '',
-              maxLength: '',
-              minLength: '',
-              required: false
-            },
-            defaultValue: '',
-            multiple: false,
-            suffix: '',
-            prefix: '',
-            placeholder: 'baz',
-            key: 'baz',
-            label: 'baz',
-            inputMask: '',
-            inputType: 'text',
-            input: true
-          }
-        ];
 
-        var initialForm;
-        it('Update test form', function(done) {
-          // Set the initial form components.
-          form.components = componentsA;
-
-          request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(form)
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              assert.deepEqual(response.components, form.components);
-
-              form = response;
-              initialForm = _.cloneDeep(response);
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-        });
-
-        it('Create the first form component modifications', function(done) {
-          form.components = componentsB;
-
-          request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(form)
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              assert.deepEqual(response.components, form.components);
-
-              form = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-        });
-
-        it('Form components added to a stale form, will merge with the current stable version of the form', function(done) {
-          initialForm.components = componentsC;
-
-          request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(initialForm)
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              assert.deepEqual(response.components, componentsD);
-
-              form = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-        });
-      });
-
-      describe('Single level nested components', function() {
-        describe('Form with Panels', function() {
-          var componentsA = [
-            {
-              key: 'foo',
-              title: 'foo',
-              input: false,
-              type: 'panel',
-              components: [
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'apple',
-                  key: 'apple',
-                  label: 'apple',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                }
-              ]
-            }
-          ];
+        describe('Inserting new components at the beginning', function() {
           var componentsB = [
-            {
-              key: 'foo',
-              title: 'foo',
-              input: false,
-              type: 'panel',
-              components: [
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'apple',
-                  key: 'apple',
-                  label: 'apple',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                },
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'orange',
-                  key: 'orange',
-                  label: 'orange',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                }
-              ]
-            },
             {
               type: 'textfield',
               validate: {
@@ -3562,221 +3255,69 @@ module.exports = function(app, template, hook) {
               input: true
             },
             {
-              key: 'test',
-              title: 'test',
-              input: false,
-              type: 'panel',
-              components: [
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'coffee',
-                  key: 'coffee',
-                  label: 'coffee',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                },
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'tea',
-                  key: 'tea',
-                  label: 'tea',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                }
-              ]
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'foo',
+              key: 'foo',
+              label: 'foo',
+              inputMask: '',
+              inputType: 'text',
+              input: true
             }
           ];
           var componentsC = [
             {
-              key: 'foo',
-              title: 'foo',
-              input: false,
-              type: 'panel',
-              components: [
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'apple',
-                  key: 'apple',
-                  label: 'apple',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                },
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'grape',
-                  key: 'grape',
-                  label: 'grape',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                }
-              ]
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'baz',
+              key: 'baz',
+              label: 'baz',
+              inputMask: '',
+              inputType: 'text',
+              input: true
             },
             {
-              key: 'baz',
-              title: 'baz',
-              input: false,
-              type: 'panel',
-              components: [
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'cat',
-                  key: 'cat',
-                  label: 'cat',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                },
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'dog',
-                  key: 'dog',
-                  label: 'dog',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                }
-              ]
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'foo',
+              key: 'foo',
+              label: 'foo',
+              inputMask: '',
+              inputType: 'text',
+              input: true
             }
           ];
           var componentsD = [
-            {
-              key: 'foo',
-              title: 'foo',
-              input: false,
-              type: 'panel',
-              components: [
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'apple',
-                  key: 'apple',
-                  label: 'apple',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                },
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'orange',
-                  key: 'orange',
-                  label: 'orange',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                },
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'grape',
-                  key: 'grape',
-                  label: 'grape',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                }
-              ]
-            },
             {
               type: 'textfield',
               validate: {
@@ -3798,100 +3339,44 @@ module.exports = function(app, template, hook) {
               input: true
             },
             {
-              key: 'test',
-              title: 'test',
-              input: false,
-              type: 'panel',
-              components: [
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'coffee',
-                  key: 'coffee',
-                  label: 'coffee',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                },
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'tea',
-                  key: 'tea',
-                  label: 'tea',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                }
-              ]
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'baz',
+              key: 'baz',
+              label: 'baz',
+              inputMask: '',
+              inputType: 'text',
+              input: true
             },
             {
-              key: 'baz',
-              title: 'baz',
-              input: false,
-              type: 'panel',
-              components: [
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'cat',
-                  key: 'cat',
-                  label: 'cat',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                },
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'dog',
-                  key: 'dog',
-                  label: 'dog',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                }
-              ]
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'foo',
+              key: 'foo',
+              label: 'foo',
+              inputMask: '',
+              inputType: 'text',
+              input: true
             }
           ];
 
@@ -3950,7 +3435,7 @@ module.exports = function(app, template, hook) {
               });
           });
 
-          it('Panel Form components will merge properly', function(done) {
+          it('Form components added to a stale form, will merge with the current stable version of the form', function(done) {
             initialForm.components = componentsC;
 
             request(app)
@@ -3974,6 +3459,779 @@ module.exports = function(app, template, hook) {
 
                 done();
               });
+          });
+        });
+
+        describe('Inserting new components at the end', function() {
+          var componentsB = [
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'foo',
+              key: 'foo',
+              label: 'foo',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            },
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'bar',
+              key: 'bar',
+              label: 'bar',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            }
+          ];
+          var componentsC = [
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'foo',
+              key: 'foo',
+              label: 'foo',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            },
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'baz',
+              key: 'baz',
+              label: 'baz',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            }
+          ];
+          var componentsD = [
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'foo',
+              key: 'foo',
+              label: 'foo',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            },
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'bar',
+              key: 'bar',
+              label: 'bar',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            },
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'baz',
+              key: 'baz',
+              label: 'baz',
+              inputMask: '',
+              inputType: 'text',
+              input: true
+            }
+          ];
+
+          var initialForm;
+          it('Update test form', function(done) {
+            // Set the initial form components.
+            form.components = componentsA;
+
+            request(app)
+              .put(hook.alter('url', '/form/' + form._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.deepEqual(response.components, form.components);
+
+                form = response;
+                initialForm = _.cloneDeep(response);
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
+          it('Create the first form component modifications', function(done) {
+            form.components = componentsB;
+
+            request(app)
+              .put(hook.alter('url', '/form/' + form._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.deepEqual(response.components, form.components);
+
+                form = response;
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
+          it('Form components added to a stale form, will merge with the current stable version of the form', function(done) {
+            initialForm.components = componentsC;
+
+            request(app)
+              .put(hook.alter('url', '/form/' + form._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(initialForm)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.deepEqual(response.components, componentsD);
+
+                form = response;
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+        });
+      });
+
+      describe('Single level nested components', function() {
+        describe('Form with Panels', function() {
+          var componentsA = [
+            {
+              key: 'foo',
+              title: 'foo',
+              input: false,
+              type: 'panel',
+              components: [
+                {
+                  type: 'textfield',
+                  validate: {
+                    custom: '',
+                    pattern: '',
+                    maxLength: '',
+                    minLength: '',
+                    required: false
+                  },
+                  defaultValue: '',
+                  multiple: false,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'apple',
+                  key: 'apple',
+                  label: 'apple',
+                  inputMask: '',
+                  inputType: 'text',
+                  input: true
+                }
+              ]
+            }
+          ];
+
+          describe('Inserting new components at the beginning', function() {
+            var componentsB = [
+              {
+                key: 'foo',
+                title: 'foo',
+                input: false,
+                type: 'panel',
+                components: [
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'orange',
+                    key: 'orange',
+                    label: 'orange',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'apple',
+                    key: 'apple',
+                    label: 'apple',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  }
+                ]
+              }
+            ];
+            var componentsC = [
+              {
+                key: 'foo',
+                title: 'foo',
+                input: false,
+                type: 'panel',
+                components: [
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'grape',
+                    key: 'grape',
+                    label: 'grape',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'apple',
+                    key: 'apple',
+                    label: 'apple',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  }
+                ]
+              }
+            ];
+            var componentsD = [
+              {
+                key: 'foo',
+                title: 'foo',
+                input: false,
+                type: 'panel',
+                components: [
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'orange',
+                    key: 'orange',
+                    label: 'orange',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'grape',
+                    key: 'grape',
+                    label: 'grape',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'apple',
+                    key: 'apple',
+                    label: 'apple',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  }
+                ]
+              }
+            ];
+
+            var initialForm;
+            it('Update test form', function(done) {
+              // Set the initial form components.
+              form.components = componentsA;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+                  initialForm = _.cloneDeep(response);
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Create the first form component modifications', function(done) {
+              form.components = componentsB;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Panel Form components will merge properly', function(done) {
+              initialForm.components = componentsC;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(initialForm)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, componentsD);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+          });
+
+          describe('Inserting new components at the end', function() {
+            var componentsB = [
+              {
+                key: 'foo',
+                title: 'foo',
+                input: false,
+                type: 'panel',
+                components: [
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'apple',
+                    key: 'apple',
+                    label: 'apple',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'orange',
+                    key: 'orange',
+                    label: 'orange',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  }
+                ]
+              }
+            ];
+            var componentsC = [
+              {
+                key: 'foo',
+                title: 'foo',
+                input: false,
+                type: 'panel',
+                components: [
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'apple',
+                    key: 'apple',
+                    label: 'apple',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'grape',
+                    key: 'grape',
+                    label: 'grape',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  }
+                ]
+              }
+            ];
+            var componentsD = [
+              {
+                key: 'foo',
+                title: 'foo',
+                input: false,
+                type: 'panel',
+                components: [
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'apple',
+                    key: 'apple',
+                    label: 'apple',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'orange',
+                    key: 'orange',
+                    label: 'orange',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'grape',
+                    key: 'grape',
+                    label: 'grape',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  }
+                ]
+              }
+            ];
+
+            var initialForm;
+            it('Update test form', function(done) {
+              // Set the initial form components.
+              form.components = componentsA;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+                  initialForm = _.cloneDeep(response);
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Create the first form component modifications', function(done) {
+              form.components = componentsB;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Panel Form components will merge properly', function(done) {
+              initialForm.components = componentsC;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(initialForm)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, componentsD);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
           });
         });
 
@@ -4015,359 +4273,721 @@ module.exports = function(app, template, hook) {
               ]
             }
           ];
-          var componentsB = [
-            {
-              input: false,
-              key: 'columns1',
-              tags: [],
-              type: 'columns',
-              columns: [
-                {
-                  components: [
-                    {
-                      type: 'textfield',
-                      validate: {
-                        custom: '',
-                        pattern: '',
-                        maxLength: '',
-                        minLength: '',
-                        required: false
-                      },
-                      defaultValue: '',
-                      multiple: false,
-                      suffix: '',
-                      prefix: '',
-                      placeholder: 'foo',
-                      key: 'foo',
-                      label: 'foo',
-                      inputMask: '',
-                      inputType: 'text',
-                      input: true
-                    },
-                    {
-                      type: 'textfield',
-                      validate: {
-                        custom: '',
-                        pattern: '',
-                        maxLength: '',
-                        minLength: '',
-                        required: false
-                      },
-                      defaultValue: '',
-                      multiple: false,
-                      suffix: '',
-                      prefix: '',
-                      placeholder: 'bar',
-                      key: 'bar',
-                      label: 'bar',
-                      inputMask: '',
-                      inputType: 'text',
-                      input: true
-                    }
-                  ]
-                },
-                {
-                  components: []
-                }
-              ]
-            },
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'baz',
-              key: 'baz',
-              label: 'baz',
-              inputMask: '',
-              inputType: 'text',
-              input: true
-            }
-          ];
-          var componentsC = [
-            {
-              input: false,
-              key: 'columns1',
-              tags: [],
-              type: 'columns',
-              columns: [
-                {
-                  components: [
-                    {
-                      type: 'textfield',
-                      validate: {
-                        custom: '',
-                        pattern: '',
-                        maxLength: '',
-                        minLength: '',
-                        required: false
-                      },
-                      defaultValue: '',
-                      multiple: false,
-                      suffix: '',
-                      prefix: '',
-                      placeholder: 'foo',
-                      key: 'foo',
-                      label: 'foo',
-                      inputMask: '',
-                      inputType: 'text',
-                      input: true
-                    }
-                  ]
-                },
-                {
-                  components: [
-                    {
-                      type: 'textfield',
-                      validate: {
-                        custom: '',
-                        pattern: '',
-                        maxLength: '',
-                        minLength: '',
-                        required: false
-                      },
-                      defaultValue: '',
-                      multiple: false,
-                      suffix: '',
-                      prefix: '',
-                      placeholder: 'testA',
-                      key: 'testA',
-                      label: 'testA',
-                      inputMask: '',
-                      inputType: 'text',
-                      input: true
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'testB',
-              key: 'testB',
-              label: 'testB',
-              inputMask: '',
-              inputType: 'text',
-              input: true
-            }
-          ];
-          var componentsD = [
-            {
-              input: false,
-              key: 'columns1',
-              tags: [],
-              type: 'columns',
-              columns: [
-                {
-                  components: [
-                    {
-                      type: 'textfield',
-                      validate: {
-                        custom: '',
-                        pattern: '',
-                        maxLength: '',
-                        minLength: '',
-                        required: false
-                      },
-                      defaultValue: '',
-                      multiple: false,
-                      suffix: '',
-                      prefix: '',
-                      placeholder: 'foo',
-                      key: 'foo',
-                      label: 'foo',
-                      inputMask: '',
-                      inputType: 'text',
-                      input: true
-                    },
-                    {
-                      type: 'textfield',
-                      validate: {
-                        custom: '',
-                        pattern: '',
-                        maxLength: '',
-                        minLength: '',
-                        required: false
-                      },
-                      defaultValue: '',
-                      multiple: false,
-                      suffix: '',
-                      prefix: '',
-                      placeholder: 'bar',
-                      key: 'bar',
-                      label: 'bar',
-                      inputMask: '',
-                      inputType: 'text',
-                      input: true
-                    }
-                  ]
-                },
-                {
-                  components: [
-                    {
-                      type: 'textfield',
-                      validate: {
-                        custom: '',
-                        pattern: '',
-                        maxLength: '',
-                        minLength: '',
-                        required: false
-                      },
-                      defaultValue: '',
-                      multiple: false,
-                      suffix: '',
-                      prefix: '',
-                      placeholder: 'testA',
-                      key: 'testA',
-                      label: 'testA',
-                      inputMask: '',
-                      inputType: 'text',
-                      input: true
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'baz',
-              key: 'baz',
-              label: 'baz',
-              inputMask: '',
-              inputType: 'text',
-              input: true
-            },
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'testB',
-              key: 'testB',
-              label: 'testB',
-              inputMask: '',
-              inputType: 'text',
-              input: true
-            }
-          ];
 
-          var initialForm;
-          it('Update test form', function(done) {
-            // Set the initial form components.
-            form.components = componentsA;
+          describe('Inserting new components at the beginning', function() {
+            var componentsB = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'barA',
+                        key: 'barA',
+                        label: 'barA',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      },
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'foo',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  },
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'barB',
+                        key: 'barB',
+                        label: 'barB',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ];
+            var componentsC = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'bazA',
+                        key: 'bazA',
+                        label: 'bazA',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      },
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'foo',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  },
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'bazB',
+                        key: 'bazB',
+                        label: 'bazB',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ];
+            var componentsD = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'barA',
+                        key: 'barA',
+                        label: 'barA',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      },
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'bazA',
+                        key: 'bazA',
+                        label: 'bazA',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      },
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'foo',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  },
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'barB',
+                        key: 'barB',
+                        label: 'barB',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      },
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'bazB',
+                        key: 'bazB',
+                        label: 'bazB',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ];
 
-            request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send(form)
-              .expect('Content-Type', /json/)
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
+            var initialForm;
+            it('Update test form', function(done) {
+              // Set the initial form components.
+              form.components = componentsA;
 
-                var response = res.body;
-                assert.deepEqual(response.components, form.components);
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
 
-                form = response;
-                initialForm = _.cloneDeep(response);
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
 
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
+                  form = response;
+                  initialForm = _.cloneDeep(response);
 
-                done();
-              });
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Create the first form component modifications', function(done) {
+              form.components = componentsB;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Column Form components will merge properly', function(done) {
+              initialForm.components = componentsC;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(initialForm)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, componentsD);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
           });
 
-          it('Create the first form component modifications', function(done) {
-            form.components = componentsB;
+          describe('Inserting new components at the end', function() {
+            var componentsB = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'foo',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      },
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'barA',
+                        key: 'barA',
+                        label: 'barA',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  },
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'barB',
+                        key: 'barB',
+                        label: 'barB',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ];
+            var componentsC = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'foo',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      },
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'bazA',
+                        key: 'bazA',
+                        label: 'bazA',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  },
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'bazB',
+                        key: 'bazB',
+                        label: 'bazB',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ];
+            var componentsD = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'foo',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      },
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'barA',
+                        key: 'barA',
+                        label: 'barA',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      },
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'bazA',
+                        key: 'bazA',
+                        label: 'bazA',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  },
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'barB',
+                        key: 'barB',
+                        label: 'barB',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      },
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'bazB',
+                        key: 'bazB',
+                        label: 'bazB',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ];
 
-            request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send(form)
-              .expect('Content-Type', /json/)
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
+            var initialForm;
+            it('Update test form', function(done) {
+              // Set the initial form components.
+              form.components = componentsA;
 
-                var response = res.body;
-                assert.deepEqual(response.components, form.components);
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
 
-                form = response;
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
 
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
+                  form = response;
+                  initialForm = _.cloneDeep(response);
 
-                done();
-              });
-          });
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
 
-          it('Column Form components will merge properly', function(done) {
-            initialForm.components = componentsC;
+                  done();
+                });
+            });
 
-            request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send(initialForm)
-              .expect('Content-Type', /json/)
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
+            it('Create the first form component modifications', function(done) {
+              form.components = componentsB;
 
-                var response = res.body;
-                assert.deepEqual(response.components, componentsD);
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
 
-                form = response;
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
 
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
+                  form = response;
 
-                done();
-              });
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Column Form components will merge properly', function(done) {
+              initialForm.components = componentsC;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(initialForm)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, componentsD);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
           });
         });
 
@@ -4402,336 +5022,513 @@ module.exports = function(app, template, hook) {
               ]
             }
           ];
-          var componentsB = [
-            {
-              input: false,
-              key: 'fieldset',
-              tags: [],
-              type: 'fieldset',
-              components: [
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'bar',
-                  key: 'bar',
-                  label: 'bar',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                },
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'foo',
-                  key: 'foo',
-                  label: 'foo',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                }
-              ]
-            },
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'baz',
-              key: 'baz',
-              label: 'baz',
-              inputMask: '',
-              inputType: 'text',
-              input: true
-            }
-          ];
-          var componentsC = [
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'testA',
-              key: 'testA',
-              label: 'testA',
-              inputMask: '',
-              inputType: 'text',
-              input: true
-            },
-            {
-              input: false,
-              key: 'fieldset',
-              tags: [],
-              type: 'fieldset',
-              components: [
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'foo',
-                  key: 'foo',
-                  label: 'foo',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                },
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'testB',
-                  key: 'testB',
-                  label: 'testB',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                }
-              ]
-            }
-          ];
-          var componentsD = [
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'testA',
-              key: 'testA',
-              label: 'testA',
-              inputMask: '',
-              inputType: 'text',
-              input: true
-            },
-            {
-              input: false,
-              key: 'fieldset',
-              tags: [],
-              type: 'fieldset',
-              components: [
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'bar',
-                  key: 'bar',
-                  label: 'bar',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                },
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'foo',
-                  key: 'foo',
-                  label: 'foo',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                },
-                {
-                  type: 'textfield',
-                  validate: {
-                    custom: '',
-                    pattern: '',
-                    maxLength: '',
-                    minLength: '',
-                    required: false
-                  },
-                  defaultValue: '',
-                  multiple: false,
-                  suffix: '',
-                  prefix: '',
-                  placeholder: 'testB',
-                  key: 'testB',
-                  label: 'testB',
-                  inputMask: '',
-                  inputType: 'text',
-                  input: true
-                }
-              ]
-            },
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'baz',
-              key: 'baz',
-              label: 'baz',
-              inputMask: '',
-              inputType: 'text',
-              input: true
-            }
-          ];
 
-          var initialForm;
-          it('Update test form', function(done) {
-            // Set the initial form components.
-            form.components = componentsA;
+          describe('Inserting new components at the beginning', function() {
+            var componentsB = [
+              {
+                input: false,
+                key: 'fieldset',
+                tags: [],
+                type: 'fieldset',
+                components: [
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'bar',
+                    key: 'bar',
+                    label: 'bar',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'foo',
+                    key: 'foo',
+                    label: 'foo',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  }
+                ]
+              }
+            ];
+            var componentsC = [
+              {
+                input: false,
+                key: 'fieldset',
+                tags: [],
+                type: 'fieldset',
+                components: [
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'baz',
+                    key: 'baz',
+                    label: 'baz',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'foo',
+                    key: 'foo',
+                    label: 'foo',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  }
+                ]
+              }
+            ];
+            var componentsD = [
+              {
+                input: false,
+                key: 'fieldset',
+                tags: [],
+                type: 'fieldset',
+                components: [
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'bar',
+                    key: 'bar',
+                    label: 'bar',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'baz',
+                    key: 'baz',
+                    label: 'baz',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'foo',
+                    key: 'foo',
+                    label: 'foo',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  }
+                ]
+              }
+            ];
 
-            request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send(form)
-              .expect('Content-Type', /json/)
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
+            var initialForm;
+            it('Update test form', function(done) {
+              // Set the initial form components.
+              form.components = componentsA;
 
-                var response = res.body;
-                assert.deepEqual(response.components, form.components);
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
 
-                form = response;
-                initialForm = _.cloneDeep(response);
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
 
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
+                  form = response;
+                  initialForm = _.cloneDeep(response);
 
-                done();
-              });
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Create the first form component modifications', function(done) {
+              form.components = componentsB;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Field Set Form components will merge properly', function(done) {
+              initialForm.components = componentsC;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(initialForm)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, componentsD);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
           });
 
-          it('Create the first form component modifications', function(done) {
-            form.components = componentsB;
+          describe('Inserting new components at the end', function() {
+            var componentsB = [
+              {
+                input: false,
+                key: 'fieldset',
+                tags: [],
+                type: 'fieldset',
+                components: [
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'foo',
+                    key: 'foo',
+                    label: 'foo',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'bar',
+                    key: 'bar',
+                    label: 'bar',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  }
+                ]
+              }
+            ];
+            var componentsC = [
+              {
+                input: false,
+                key: 'fieldset',
+                tags: [],
+                type: 'fieldset',
+                components: [
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'foo',
+                    key: 'foo',
+                    label: 'foo',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'baz',
+                    key: 'baz',
+                    label: 'baz',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  }
+                ]
+              }
+            ];
+            var componentsD = [
+              {
+                input: false,
+                key: 'fieldset',
+                tags: [],
+                type: 'fieldset',
+                components: [
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'foo',
+                    key: 'foo',
+                    label: 'foo',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'bar',
+                    key: 'bar',
+                    label: 'bar',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  },
+                  {
+                    type: 'textfield',
+                    validate: {
+                      custom: '',
+                      pattern: '',
+                      maxLength: '',
+                      minLength: '',
+                      required: false
+                    },
+                    defaultValue: '',
+                    multiple: false,
+                    suffix: '',
+                    prefix: '',
+                    placeholder: 'baz',
+                    key: 'baz',
+                    label: 'baz',
+                    inputMask: '',
+                    inputType: 'text',
+                    input: true
+                  }
+                ]
+              }
+            ];
 
-            request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send(form)
-              .expect('Content-Type', /json/)
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
+            var initialForm;
+            it('Update test form', function(done) {
+              // Set the initial form components.
+              form.components = componentsA;
 
-                var response = res.body;
-                assert.deepEqual(response.components, form.components);
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
 
-                form = response;
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
 
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
+                  form = response;
+                  initialForm = _.cloneDeep(response);
 
-                done();
-              });
-          });
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
 
-          it('Field Set Form components will merge properly', function(done) {
-            initialForm.components = componentsC;
+                  done();
+                });
+            });
 
-            request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send(initialForm)
-              .expect('Content-Type', /json/)
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
+            it('Create the first form component modifications', function(done) {
+              form.components = componentsB;
 
-                var response = res.body;
-                assert.deepEqual(response.components, componentsD);
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
 
-                form = response;
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
 
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
+                  form = response;
 
-                done();
-              });
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Field Set Form components will merge properly', function(done) {
+              initialForm.components = componentsC;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(initialForm)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, componentsD);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
           });
         });
 
@@ -4784,402 +5581,977 @@ module.exports = function(app, template, hook) {
               ]
             }
           ];
-          var componentsB = [
-            {
-              input: false,
-              key: 'table',
-              tags: [],
-              type: 'table',
-              rows: [
-                [
-                  {
-                    components: [
-                      {
-                        type: 'textfield',
-                        validate: {
-                          custom: '',
-                          pattern: '',
-                          maxLength: '',
-                          minLength: '',
-                          required: false
+
+          describe('Inserting new components at the beginning', function() {
+            var componentsB = [
+              {
+                input: false,
+                key: 'table',
+                tags: [],
+                type: 'table',
+                rows: [
+                  [
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'barA',
+                          key: 'barA',
+                          label: 'barA',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    },
+                    {components: []},
+                    {components: []}
+                  ],
+                  [
+                    {components: []},
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'barB',
+                          key: 'barB',
+                          label: 'barB',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
                         },
-                        defaultValue: '',
-                        multiple: false,
-                        suffix: '',
-                        prefix: '',
-                        placeholder: 'bar',
-                        key: 'bar',
-                        label: 'bar',
-                        inputMask: '',
-                        inputType: 'text',
-                        input: true
-                      }
-                    ]
-                  },
-                  {components: []},
-                  {components: []}
-                ],
-                [
-                  {components: []},
-                  {
-                    components: [
-                      {
-                        type: 'textfield',
-                        validate: {
-                          custom: '',
-                          pattern: '',
-                          maxLength: '',
-                          minLength: '',
-                          required: false
-                        },
-                        defaultValue: '',
-                        multiple: false,
-                        suffix: '',
-                        prefix: '',
-                        placeholder: 'foo',
-                        key: 'foo',
-                        label: 'foo',
-                        inputMask: '',
-                        inputType: 'text',
-                        input: true
-                      }
-                    ]
-                  },
-                  {components: []}
-                ],
-                [
-                  {components: []},
-                  {components: []},
-                  {components: []}
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'foo',
+                          key: 'foo',
+                          label: 'foo',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    },
+                    {components: []}
+                  ],
+                  [
+                    {components: []},
+                    {components: []},
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'barC',
+                          key: 'barC',
+                          label: 'barC',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    }
+                  ]
                 ]
-              ]
-            },
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'baz',
-              key: 'baz',
-              label: 'baz',
-              inputMask: '',
-              inputType: 'text',
-              input: true
-            }
-          ];
-          var componentsC = [
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'testA',
-              key: 'testA',
-              label: 'testA',
-              inputMask: '',
-              inputType: 'text',
-              input: true
-            },
-            {
-              input: false,
-              key: 'table',
-              tags: [],
-              type: 'table',
-              rows: [
-                [
-                  {components: []},
-                  {components: []},
-                  {components: []}
-                ],
-                [
-                  {components: []},
-                  {
-                    components: [
-                      {
-                        type: 'textfield',
-                        validate: {
-                          custom: '',
-                          pattern: '',
-                          maxLength: '',
-                          minLength: '',
-                          required: false
+              }
+            ];
+            var componentsC = [
+              {
+                input: false,
+                key: 'table',
+                tags: [],
+                type: 'table',
+                rows: [
+                  [
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'bazA',
+                          key: 'bazA',
+                          label: 'bazA',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    },
+                    {components: []},
+                    {components: []}
+                  ],
+                  [
+                    {components: []},
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'bazB',
+                          key: 'bazB',
+                          label: 'bazB',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
                         },
-                        defaultValue: '',
-                        multiple: false,
-                        suffix: '',
-                        prefix: '',
-                        placeholder: 'foo',
-                        key: 'foo',
-                        label: 'foo',
-                        inputMask: '',
-                        inputType: 'text',
-                        input: true
-                      }
-                    ]
-                  },
-                  {components: []}
-                ],
-                [
-                  {components: []},
-                  {components: []},
-                  {
-                    components: [
-                      {
-                        type: 'textfield',
-                        validate: {
-                          custom: '',
-                          pattern: '',
-                          maxLength: '',
-                          minLength: '',
-                          required: false
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'foo',
+                          key: 'foo',
+                          label: 'foo',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    },
+                    {components: []}
+                  ],
+                  [
+                    {components: []},
+                    {components: []},
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'bazC',
+                          key: 'bazC',
+                          label: 'bazC',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ];
+            var componentsD = [
+              {
+                input: false,
+                key: 'table',
+                tags: [],
+                type: 'table',
+                rows: [
+                  [
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'barA',
+                          key: 'barA',
+                          label: 'barA',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
                         },
-                        defaultValue: '',
-                        multiple: false,
-                        suffix: '',
-                        prefix: '',
-                        placeholder: 'testB',
-                        key: 'testB',
-                        label: 'testB',
-                        inputMask: '',
-                        inputType: 'text',
-                        input: true
-                      }
-                    ]
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'bazA',
+                          key: 'bazA',
+                          label: 'bazA',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    },
+                    {components: []},
+                    {components: []}
+                  ],
+                  [
+                    {components: []},
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'barB',
+                          key: 'barB',
+                          label: 'barB',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        },
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'bazB',
+                          key: 'bazB',
+                          label: 'bazB',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        },
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'foo',
+                          key: 'foo',
+                          label: 'foo',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    },
+                    {components: []}
+                  ],
+                  [
+                    {components: []},
+                    {components: []},
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'barC',
+                          key: 'barC',
+                          label: 'barC',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        },
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'bazC',
+                          key: 'bazC',
+                          label: 'bazC',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ];
+
+            var initialForm;
+            it('Update test form', function(done) {
+              // Set the initial form components.
+              form.components = componentsA;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
                   }
-                ]
-              ]
-            }
-          ];
-          var componentsD = [
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'testA',
-              key: 'testA',
-              label: 'testA',
-              inputMask: '',
-              inputType: 'text',
-              input: true
-            },
-            {
-              input: false,
-              key: 'table',
-              tags: [],
-              type: 'table',
-              rows: [
-                [
-                  {
-                    components: [
-                      {
-                        type: 'textfield',
-                        validate: {
-                          custom: '',
-                          pattern: '',
-                          maxLength: '',
-                          minLength: '',
-                          required: false
-                        },
-                        defaultValue: '',
-                        multiple: false,
-                        suffix: '',
-                        prefix: '',
-                        placeholder: 'bar',
-                        key: 'bar',
-                        label: 'bar',
-                        inputMask: '',
-                        inputType: 'text',
-                        input: true
-                      }
-                    ]
-                  },
-                  {components: []},
-                  {components: []}
-                ],
-                [
-                  {components: []},
-                  {
-                    components: [
-                      {
-                        type: 'textfield',
-                        validate: {
-                          custom: '',
-                          pattern: '',
-                          maxLength: '',
-                          minLength: '',
-                          required: false
-                        },
-                        defaultValue: '',
-                        multiple: false,
-                        suffix: '',
-                        prefix: '',
-                        placeholder: 'foo',
-                        key: 'foo',
-                        label: 'foo',
-                        inputMask: '',
-                        inputType: 'text',
-                        input: true
-                      }
-                    ]
-                  },
-                  {components: []}
-                ],
-                [
-                  {components: []},
-                  {components: []},
-                  {
-                    components: [
-                      {
-                        type: 'textfield',
-                        validate: {
-                          custom: '',
-                          pattern: '',
-                          maxLength: '',
-                          minLength: '',
-                          required: false
-                        },
-                        defaultValue: '',
-                        multiple: false,
-                        suffix: '',
-                        prefix: '',
-                        placeholder: 'testB',
-                        key: 'testB',
-                        label: 'testB',
-                        inputMask: '',
-                        inputType: 'text',
-                        input: true
-                      }
-                    ]
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+                  initialForm = _.cloneDeep(response);
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Create the first form component modifications', function(done) {
+              form.components = componentsB;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
                   }
-                ]
-              ]
-            },
-            {
-              type: 'textfield',
-              validate: {
-                custom: '',
-                pattern: '',
-                maxLength: '',
-                minLength: '',
-                required: false
-              },
-              defaultValue: '',
-              multiple: false,
-              suffix: '',
-              prefix: '',
-              placeholder: 'baz',
-              key: 'baz',
-              label: 'baz',
-              inputMask: '',
-              inputType: 'text',
-              input: true
-            }
-          ];
 
-          var initialForm;
-          it('Update test form', function(done) {
-            // Set the initial form components.
-            form.components = componentsA;
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
 
-            request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send(form)
-              .expect('Content-Type', /json/)
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
+                  form = response;
 
-                var response = res.body;
-                assert.deepEqual(response.components, form.components);
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
 
-                form = response;
-                initialForm = _.cloneDeep(response);
+                  done();
+                });
+            });
 
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
+            it('Table Form components will merge properly', function(done) {
+              initialForm.components = componentsC;
 
-                done();
-              });
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(initialForm)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, componentsD);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
           });
 
-          it('Create the first form component modifications', function(done) {
-            form.components = componentsB;
+          describe('Inserting new components at the end', function() {
+            var componentsB = [
+              {
+                input: false,
+                key: 'table',
+                tags: [],
+                type: 'table',
+                rows: [
+                  [
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'barA',
+                          key: 'barA',
+                          label: 'barA',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    },
+                    {components: []},
+                    {components: []}
+                  ],
+                  [
+                    {components: []},
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'foo',
+                          key: 'foo',
+                          label: 'foo',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        },
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'barB',
+                          key: 'barB',
+                          label: 'barB',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    },
+                    {components: []}
+                  ],
+                  [
+                    {components: []},
+                    {components: []},
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'barC',
+                          key: 'barC',
+                          label: 'barC',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ];
+            var componentsC = [
+              {
+                input: false,
+                key: 'table',
+                tags: [],
+                type: 'table',
+                rows: [
+                  [
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'bazA',
+                          key: 'bazA',
+                          label: 'bazA',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    },
+                    {components: []},
+                    {components: []}
+                  ],
+                  [
+                    {components: []},
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'foo',
+                          key: 'foo',
+                          label: 'foo',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        },
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'bazB',
+                          key: 'bazB',
+                          label: 'bazB',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    },
+                    {components: []}
+                  ],
+                  [
+                    {components: []},
+                    {components: []},
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'bazC',
+                          key: 'bazC',
+                          label: 'bazC',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ];
+            var componentsD = [
+              {
+                input: false,
+                key: 'table',
+                tags: [],
+                type: 'table',
+                rows: [
+                  [
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'barA',
+                          key: 'barA',
+                          label: 'barA',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        },
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'bazA',
+                          key: 'bazA',
+                          label: 'bazA',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    },
+                    {components: []},
+                    {components: []}
+                  ],
+                  [
+                    {components: []},
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'foo',
+                          key: 'foo',
+                          label: 'foo',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        },
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'barB',
+                          key: 'barB',
+                          label: 'barB',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        },
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'bazB',
+                          key: 'bazB',
+                          label: 'bazB',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    },
+                    {components: []}
+                  ],
+                  [
+                    {components: []},
+                    {components: []},
+                    {
+                      components: [
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'barC',
+                          key: 'barC',
+                          label: 'barC',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        },
+                        {
+                          type: 'textfield',
+                          validate: {
+                            custom: '',
+                            pattern: '',
+                            maxLength: '',
+                            minLength: '',
+                            required: false
+                          },
+                          defaultValue: '',
+                          multiple: false,
+                          suffix: '',
+                          prefix: '',
+                          placeholder: 'bazC',
+                          key: 'bazC',
+                          label: 'bazC',
+                          inputMask: '',
+                          inputType: 'text',
+                          input: true
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ];
 
-            request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send(form)
-              .expect('Content-Type', /json/)
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
+            var initialForm;
+            it('Update test form', function(done) {
+              // Set the initial form components.
+              form.components = componentsA;
 
-                var response = res.body;
-                assert.deepEqual(response.components, form.components);
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
 
-                form = response;
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
 
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
+                  form = response;
+                  initialForm = _.cloneDeep(response);
 
-                done();
-              });
-          });
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
 
-          it('Table Form components will merge properly', function(done) {
-            initialForm.components = componentsC;
+                  done();
+                });
+            });
 
-            request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send(initialForm)
-              .expect('Content-Type', /json/)
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
+            it('Create the first form component modifications', function(done) {
+              form.components = componentsB;
 
-                var response = res.body;
-                assert.deepEqual(response.components, componentsD);
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
 
-                form = response;
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
 
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
+                  form = response;
 
-                done();
-              });
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Table Form components will merge properly', function(done) {
+              initialForm.components = componentsC;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(initialForm)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, componentsD);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
           });
         });
       });
