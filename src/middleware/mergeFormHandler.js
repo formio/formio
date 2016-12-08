@@ -46,7 +46,7 @@ module.exports = function(router) {
 
       // Build the new component list using the oldest components first.
       var final = _.cloneDeep(_components.stable);
-      var ignoreTypes = ['panel', 'columns', 'fieldset'];
+      var ignoreTypes = ['panel', 'columns', 'fieldset', 'table'];
       var ignoredComponents = [];
       ['stable', 'local'].forEach(function(type) {
         util.eachComponent(_components[type], function(component, path) {
