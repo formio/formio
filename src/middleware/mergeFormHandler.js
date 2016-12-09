@@ -39,7 +39,7 @@ module.exports = function(router) {
       var key = current.key;
 
       // Make the key unique by iterating it.
-      while (!_.has(exhausted, key) || (_.has(exhausted, key) && exhausted[key].type === current.type)) {
+      while (_.has(exhausted, key) && exhausted[key] !== current.type) {
         if (!key.match(suffixRegex)) {
           return key + '2';
         }
@@ -53,15 +53,74 @@ module.exports = function(router) {
     };
 
     /**
+     * Get the name of the child components object.
      *
-     * @param formA
-     * @param componentMapA
-     * @param formB
-     * @param componentMapB
-     * @param list
-     * @param listKeys
+     * @param {Object} component
+     *   A form component object with components..
+     *
+     * @returns {*}
+     */
+    var getComponentsName = function(component) {
+      var container = _.intersection(['components', 'rows', 'columns'], Object.keys(component));
+      return _.first(container);
+    };
+
+    /**
+     * Traverse all the children of the given component, and add their keys to the list.
+     *
+     * @param {Object} component
+     *   A form component object with components.
+     * @param {Array} list
+     *   A list of child component keys
+     * @param [String] container
+     *   The container name, if known
+     */
+    var addChildKeysToList = function(component, list, children) {
+      var container = children || getComponentsName(component);
+      util.eachComponent(_.get(component, container), function(child) {
+        list.push(child.key);
+      });
+    };
+
+    /**
+     * Add the given unique component to the final list.
+     *
+     * @param {Object} component
+     *   The unique form component to add.
+     * @param {Array} list
+     *   The final list of components, in which to add this component.
+     * @param {Array} listKeys
+     *   The final list of component keys, used for quick unique searches.
+     */
+    var addUniqueComponent = function(component, list, listKeys) {
+      list.push(component);
+      listKeys.push(component.key);
+
+      // Update the listKeys with all this components children.
+      var children = getComponentsName(component);
+      if (children) {
+        addChildKeysToList(component, listKeys, children);
+      }
+    };
+
+    /**
+     * Merge the components of two forms together.
+     *
+     * @param {Array} formA
+     *   The most up-to-date list of components.
+     * @param {Object} componentMapA
+     *   A map of all the components in formA, component.key:component
+     * @param [Array] formB
+     *   The most recent copy of components, may be missing or contain new components when compared to formA.
+     * @param {Object} componentMapB
+     *   A map of all the components in formA, component.key:component
+     * @param [Array] list
+     *   The final list of components.
+     * @param [Array] listKeys
+     *   The final list of component keys inside the final list.
      *
      * @returns {*|Array}
+     *   The merged components of formA and formB.
      *
      * Note:
      *   A stale update to an existing component can wipe out component settings, if they were not set at the time the
@@ -79,34 +138,30 @@ module.exports = function(router) {
       var skipB = false;
       util.eachComponent(formA, function(a) {
         // Skip components which have been inserted already.
-        if (list.indexOf(a.key) !== -1) {
+        if (listKeys.indexOf(a.key) !== -1) {
           return;
         }
 
         // If a isnt even in form b, add a without traversing b.
         if (!componentMapB.hasOwnProperty(a.key)) {
-          list.push(a);
-          listKeys.push(a.key);
-          return;
+          return addUniqueComponent(a, list, listKeys);
         }
 
         // Traverse all the components in form b for merging.
         util.eachComponent(formB, function(b) {
-          if (skipB || list.indexOf(b.key) !== -1) {
+          if (skipB || listKeys.indexOf(b.key) !== -1) {
             return;
           }
 
           // If b traverses over an element not found in a, add it to the main list.
           if (!componentMapA.hasOwnProperty(b.key)) {
-            list.push(b);
-            listKeys.push(b.key);
-            return;
+            return addUniqueComponent(b, list, listKeys);
           }
 
           // If component a and b are the same, merge the component settings, then any components they may have.
           if (a.key === b.key) {
             // Build a copy of each component without child components.
-            var container = _.intersection(['components', 'rows', 'columns'], Object.keys(a));
+            var container = getComponentsName(a);
             var tempA = _.omit(a, container);
             var tempB = _.omit(b, container);
 
@@ -138,7 +193,6 @@ module.exports = function(router) {
             skipB = true;
             return;
 
-
             //merge(componentsA, componentMapA, componentsB, componentMapB, childComponents, listKeys, function(finalComponents) {
             //  // Update the child components using the merged result.
             //  _.set(tempA, container, finalComponents);
@@ -151,6 +205,15 @@ module.exports = function(router) {
             //});
           }
         }, true);
+      }, true);
+
+      // Sweep formB one last time for any remaining components.
+      util.eachComponent(formB, function(b) {
+        if (listKeys.indexOf(b.key) !== -1) {
+          return;
+        }
+
+        return addUniqueComponent(b, list, listKeys);
       }, true);
 
       return list;
@@ -187,12 +250,10 @@ module.exports = function(router) {
         var components = (type === 'stable') ? stable : local;
         util.eachComponent(components, function(component) {
           // Force each component to be unique, with stable taking precedence.
-          if (type === 'stable') {
-            keyMap[component.key] = component.type;
-          }
-          else {
+          if (type === 'local') {
             component.key = uniquifyKey(keyMap, component);
           }
+          keyMap[component.key] = component.type;
 
           // Build the componentMaps for merge(); componentMapA and componentMapB.
           componentMap[type][component.key] = component;
