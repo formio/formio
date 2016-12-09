@@ -2757,7 +2757,7 @@ module.exports = function(app, template, hook) {
             validate: {
               custom: '',
               pattern: '',
-              maxLength: '',
+              //maxLength: '', // TODO: Look for alternative ways to ignore empty settings when they werent set before.
               minLength: '0',
               required: false
             },
