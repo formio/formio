@@ -93,6 +93,7 @@ module.exports = function(router) {
      *   The final list of component keys, used for quick unique searches.
      */
     var addUniqueComponent = function(component, list, listKeys) {
+      debug('add: ', component.key);
       list.push(component);
       listKeys.push(component.key);
 
@@ -135,7 +136,6 @@ module.exports = function(router) {
       listKeys = listKeys || [];
 
       // Traverse all the components in form a for merging.
-      var skipB = false;
       util.eachComponent(formA, function(a) {
         // Skip components which have been inserted already.
         if (listKeys.indexOf(a.key) !== -1) {
@@ -148,14 +148,17 @@ module.exports = function(router) {
         }
 
         // Traverse all the components in form b for merging.
+        var skip = false;
         util.eachComponent(formB, function(b) {
-          if (skipB || listKeys.indexOf(b.key) !== -1) {
+          if (skip || listKeys.indexOf(b.key) !== -1) {
             return;
           }
 
           // If b traverses over an element not found in a, add it to the main list.
           if (!componentMapA.hasOwnProperty(b.key)) {
-            return addUniqueComponent(b, list, listKeys);
+            addUniqueComponent(b, list, listKeys);
+            skip = true;
+            return;
           }
 
           // If component a and b are the same, merge the component settings, then any components they may have.
@@ -172,10 +175,10 @@ module.exports = function(router) {
             debug(tempA);
             tempA = _.assign(tempA, tempB);
 
-            // If neither component a or be has child components, return to merging.
+            // If neither component a or b has child components, return to merging.
             if (!a.hasOwnProperty(container) && !b.hasOwnProperty(container)) {
-              list.push(tempA);
-              listKeys.push(tempA.key);
+              addUniqueComponent(tempA, list, listKeys);
+              skip = true;
               return;
             }
 
@@ -189,20 +192,9 @@ module.exports = function(router) {
             list.push(tempA);
             listKeys.push(tempA.key);
 
-            // Make following iterations of formB skip until the next component in formA, to perserve insert order.
-            skipB = true;
+            // Make following iterations of formB skip until the next component in formA, to preserve insert order.
+            skip = true;
             return;
-
-            //merge(componentsA, componentMapA, componentsB, componentMapB, childComponents, listKeys, function(finalComponents) {
-            //  // Update the child components using the merged result.
-            //  _.set(tempA, container, finalComponents);
-            //  list.push(tempA);
-            //  listKeys.push(tempA.key);
-            //
-            //  // Make following iterations of formB skip until the next component in formA, to perserve insert order.
-            //  skipB = true;
-            //  return;
-            //});
           }
         }, true);
       }, true);
