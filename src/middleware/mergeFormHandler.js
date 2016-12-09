@@ -78,8 +78,10 @@ module.exports = function(router) {
     var addChildKeysToList = function(component, list, children) {
       var container = children || getComponentsName(component);
       util.eachComponent(_.get(component, container), function(child) {
-        list.push(child.key);
-      });
+        if (list.indexOf(child) === -1) {
+          list.push(child.key);
+        }
+      }, true);
     };
 
     /**
@@ -134,9 +136,12 @@ module.exports = function(router) {
     var merge = function(formA, componentMapA, formB, componentMapB, list, listKeys) {
       list = list || [];
       listKeys = listKeys || [];
+      debug('new merge()');
 
       // Traverse all the components in form a for merging.
-      util.eachComponent(formA, function(a) {
+      util.eachComponent(formA, function(a, pathA) {
+        debug('pathA: ', pathA);
+
         // Skip components which have been inserted already.
         if (listKeys.indexOf(a.key) !== -1) {
           return;
@@ -149,7 +154,9 @@ module.exports = function(router) {
 
         // Traverse all the components in form b for merging.
         var skip = false;
-        util.eachComponent(formB, function(b) {
+        util.eachComponent(formB, function(b, pathB) {
+          debug('pathB: ', pathB);
+
           if (skip || listKeys.indexOf(b.key) !== -1) {
             return;
           }
@@ -169,14 +176,40 @@ module.exports = function(router) {
             var tempB = _.omit(b, container);
 
             // Update tempA with the settings of tempB.
-            debug('assign');
-            debug(tempA);
-            debug(tempB);
-            debug(tempA);
             tempA = _.assign(tempA, tempB);
+
+            // Merge each column if present in the component.
+            if (a.hasOwnProperty('columns') || b.hasOwnProperty('columns')) {
+              debug('Merge columns');
+              var colsA = a.columns || [];
+              var colsB = b.columns || [];
+              var max = Math.max(colsA.length, colsB.length, 0);
+              var finalColumns = [];
+              for (var iter = 0; iter < max; iter++) {
+                // Merge each column from a and b together.
+                finalColumns.push({
+                  components: merge(
+                    _.get(colsA[iter], 'components', []),
+                    componentMapA,
+                    _.get(colsB[iter], 'components', []),
+                    componentMapB,
+                    [],
+                    listKeys
+                  )
+                });
+              }
+
+              tempA.columns = finalColumns;
+              addUniqueComponent(tempA, list, listKeys);
+
+              // Make following iterations of formB skip until the next component in formA, to preserve insert order.
+              skip = true;
+              return;
+            }
 
             // If neither component a or b has child components, return to merging.
             if (!a.hasOwnProperty(container) && !b.hasOwnProperty(container)) {
+              debug('No child components in a or b, skipping recursive call');
               addUniqueComponent(tempA, list, listKeys);
               skip = true;
               return;
@@ -196,8 +229,8 @@ module.exports = function(router) {
             skip = true;
             return;
           }
-        }, true);
-      }, true);
+        }, true, 'rootB');
+      }, true, 'rootA');
 
       // Sweep formB one last time for any remaining components.
       util.eachComponent(formB, function(b) {
@@ -249,13 +282,13 @@ module.exports = function(router) {
 
           // Build the componentMaps for merge(); componentMapA and componentMapB.
           componentMap[type][component.key] = component;
-        });
+        }, true);
       });
 
       // Merge the stable and local form.
       req.body.components = merge(stable, componentMap.stable, local, componentMap.local);
       debug('final');
-      debug(req.body.components);
+      debug(JSON.stringify(req.body.components));
       return next();
 
       //// If the update contains components, deep merge all the components.
