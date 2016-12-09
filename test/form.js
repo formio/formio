@@ -2735,7 +2735,7 @@ module.exports = function(app, template, hook) {
             validate: {
               custom: '',
               pattern: '',
-              maxLength: '100',
+              maxLength: '',
               minLength: '',
               required: false
             },
@@ -2757,8 +2757,8 @@ module.exports = function(app, template, hook) {
             validate: {
               custom: '',
               pattern: '',
-              //maxLength: '', // TODO: Look for alternative ways to ignore empty settings when they werent set before.
-              minLength: '0',
+              maxLength: '',
+              minLength: '',
               required: false
             },
             defaultValue: '',
@@ -2779,8 +2779,8 @@ module.exports = function(app, template, hook) {
             validate: {
               custom: '',
               pattern: '',
-              maxLength: '100',
-              minLength: '0',
+              maxLength: '',
+              minLength: '',
               required: false
             },
             defaultValue: '',
