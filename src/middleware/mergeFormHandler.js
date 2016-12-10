@@ -207,6 +207,39 @@ module.exports = function(router) {
               return;
             }
 
+            // Merge each row if present in the component.
+            if (a.hasOwnProperty('rows') || b.hasOwnProperty('rows')) {
+              var rowsA = a.rows || [];
+              var rowsB = b.rows || [];
+              var finalRows = [];
+              var maxR = Math.max(rowsA.length, rowsB.length, 0);
+              for (var r = 0; r < maxR; r++) {
+                var finalCols = [];
+                var maxC = Math.max(rowsA[r].length, rowsB[r].length, 0);
+                for (var c = 0; c < maxC; c++) {
+                  // Merge each column from a and b together.
+                  finalCols.push({
+                    components: merge(
+                      _.get(rowsA[r][c], 'components', []),
+                      componentMapA,
+                      _.get(rowsB[r][c], 'components', []),
+                      componentMapB,
+                      [],
+                      listKeys
+                    )
+                  });
+                }
+                finalRows.push(finalCols);
+              }
+
+              tempA.rows = finalRows;
+              addUniqueComponent(tempA, list, listKeys);
+
+              // Make following iterations of formB skip until the next component in formA, to preserve insert order.
+              skip = true;
+              return;
+            }
+
             // If neither component a or b has child components, return to merging.
             if (!a.hasOwnProperty(container) && !b.hasOwnProperty(container)) {
               debug('No child components in a or b, skipping recursive call');
