@@ -1,5 +1,5 @@
 [![Join the chat at https://gitter.im/formio/formio](https://badges.gitter.im/formio/formio.svg)](https://gitter.im/formio/formio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Codewake](https://www.codewake.com/badges/codewake2.svg)](https://www.codewake.com/p/formio)
+[![StackOverflow](https://www.codewake.com/badges/codewake2.svg)](http://stackoverflow.com/questions/tagged/formio)
 
 A combined form and API platform for Serverless applications
 ===============================
