@@ -5242,6 +5242,820 @@ module.exports = function(app, template, hook) {
                 });
             });
           });
+
+          describe('Updating a column component, which has been moved in front of the component', function() {
+            var componentsB = [
+              {
+                type: 'textfield',
+                validate: {
+                  custom: '',
+                  pattern: '',
+                  maxLength: '',
+                  minLength: '',
+                  required: false
+                },
+                defaultValue: '',
+                multiple: false,
+                suffix: '',
+                prefix: '',
+                placeholder: 'foo',
+                key: 'foo',
+                label: 'foo',
+                inputMask: '',
+                inputType: 'text',
+                input: true
+              },
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: []
+                  },
+                  {
+                    components: []
+                  }
+                ]
+              }
+            ];
+            var componentsC = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'update',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  },
+                  {
+                    components: []
+                  }
+                ]
+              }
+            ];
+            var componentsD = [
+              {
+                type: 'textfield',
+                validate: {
+                  custom: '',
+                  pattern: '',
+                  maxLength: '',
+                  minLength: '',
+                  required: false
+                },
+                defaultValue: '',
+                multiple: false,
+                suffix: '',
+                prefix: '',
+                placeholder: 'update',
+                key: 'foo',
+                label: 'foo',
+                inputMask: '',
+                inputType: 'text',
+                input: true
+              },
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: []
+                  },
+                  {
+                    components: []
+                  }
+                ]
+              }
+            ];
+
+            var initialForm;
+            it('Update test form', function(done) {
+              // Set the initial form components.
+              form.components = componentsA;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+                  initialForm = _.cloneDeep(response);
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Create the first form component modifications', function(done) {
+              form.components = componentsB;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Column Form components will merge properly', function(done) {
+              initialForm.components = componentsC;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(initialForm)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, componentsD);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+          });
+
+          describe('Updating a column component, which has been moved behind of the component', function() {
+            var componentsB = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: []
+                  },
+                  {
+                    components: []
+                  }
+                ]
+              },
+              {
+                type: 'textfield',
+                validate: {
+                  custom: '',
+                  pattern: '',
+                  maxLength: '',
+                  minLength: '',
+                  required: false
+                },
+                defaultValue: '',
+                multiple: false,
+                suffix: '',
+                prefix: '',
+                placeholder: 'foo',
+                key: 'foo',
+                label: 'foo',
+                inputMask: '',
+                inputType: 'text',
+                input: true
+              }
+            ];
+            var componentsC = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'update',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  },
+                  {
+                    components: []
+                  }
+                ]
+              }
+            ];
+            var componentsD = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'update',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  },
+                  {
+                    components: []
+                  }
+                ]
+              }
+            ];
+
+            var initialForm;
+            it('Update test form', function(done) {
+              // Set the initial form components.
+              form.components = componentsA;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+                  initialForm = _.cloneDeep(response);
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Create the first form component modifications', function(done) {
+              form.components = componentsB;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Rearranged Column components will appear in the same position as the local form (the most recent update)', function(done) {
+              initialForm.components = componentsC;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(initialForm)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, componentsD);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+          });
+
+          describe('Updating a component which has been moved from col1 to col2', function() {
+            var componentsB = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: []
+                  },
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'foo',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ];
+            var componentsC = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'update',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  },
+                  {
+                    components: []
+                  }
+                ]
+              }
+            ];
+            var componentsD = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'update',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  },
+                  {
+                    components: []
+                  }
+                ]
+              }
+            ];
+
+            var initialForm;
+            it('Update test form', function(done) {
+              // Set the initial form components.
+              form.components = componentsA;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+                  initialForm = _.cloneDeep(response);
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Create the first form component modifications', function(done) {
+              form.components = componentsB;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Modified column components will appear in the last stable place, with the newest local settings', function(done) {
+              initialForm.components = componentsC;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(initialForm)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, componentsD);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+          });
+
+          describe('Updating a component which has been moved from col2 to col1', function() {
+            var componentsA2 = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: []
+                  },
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'foo',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ];
+            var componentsB = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'foo',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  },
+                  {
+                    components: []
+                  }
+                ]
+              }
+            ];
+            var componentsC = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: []
+                  },
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'update',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ];
+            var componentsD = [
+              {
+                input: false,
+                key: 'columns1',
+                tags: [],
+                type: 'columns',
+                columns: [
+                  {
+                    components: []
+                  },
+                  {
+                    components: [
+                      {
+                        type: 'textfield',
+                        validate: {
+                          custom: '',
+                          pattern: '',
+                          maxLength: '',
+                          minLength: '',
+                          required: false
+                        },
+                        defaultValue: '',
+                        multiple: false,
+                        suffix: '',
+                        prefix: '',
+                        placeholder: 'update',
+                        key: 'foo',
+                        label: 'foo',
+                        inputMask: '',
+                        inputType: 'text',
+                        input: true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ];
+
+            var initialForm;
+            it('Update test form', function(done) {
+              // Set the initial form components.
+              form.components = componentsA2;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+                  initialForm = _.cloneDeep(response);
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Create the first form component modifications', function(done) {
+              form.components = componentsB;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, form.components);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+
+            it('Modified column components will appear in the last stable place, with the newest local settings', function(done) {
+              initialForm.components = componentsC;
+
+              request(app)
+                .put(hook.alter('url', '/form/' + form._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(initialForm)
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  var response = res.body;
+                  assert.deepEqual(response.components, componentsD);
+
+                  form = response;
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  done();
+                });
+            });
+          });
         });
 
         describe('Form with Field Set', function() {
