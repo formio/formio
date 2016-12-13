@@ -86,28 +86,6 @@ module.exports = function(router) {
     };
 
     /**
-     * Add the given unique component to the final list.
-     *
-     * @param {Object} component
-     *   The unique form component to add.
-     * @param {Array} list
-     *   The final list of components, in which to add this component.
-     * @param {Array} listKeys
-     *   The final list of component keys, used for quick unique searches.
-     */
-    var addUniqueComponent = function(component, list, listKeys) {
-      debug('add: ', component.key);
-      list.push(component);
-      listKeys.push(component.key);
-
-      // Update the listKeys with all this components children.
-      var children = getComponentsName(component);
-      if (children) {
-        addChildKeysToList(component, listKeys, children);
-      }
-    };
-
-    /**
      * Merge the components of two forms together.
      *
      * @param {Array} formA
@@ -135,9 +113,135 @@ module.exports = function(router) {
      *   update payload.
      */
     var merge = function(formA, componentMapA, formB, componentMapB, list, listKeys) {
+      formA = formA || [];
+      formB = formB || [];
       list = list || [];
       listKeys = listKeys || [];
       debug('new merge()');
+
+      /**
+       * Add the given unique component to the final list.
+       *
+       * @param {Object} component
+       *   The unique form component to add.
+       * @param {Array} list
+       *   The final list of components, in which to add this component.
+       * @param {Array} listKeys
+       *   The final list of component keys, used for quick unique searches.
+       */
+      var addUniqueComponent = function(component) {
+        debug('add: ', component.key);
+        list.push(component);
+        listKeys.push(component.key);
+
+        // Update the listKeys with all this components children.
+        var children = getComponentsName(component);
+        if (children) {
+          addChildKeysToList(component, listKeys, children);
+        }
+      };
+
+      /**
+       * Combine the same component from two sources into one.
+       *
+       * @param a
+       *   The stable component.
+       * @param b
+       *   The local component to copy changes from.
+       *
+       * @returns {boolean}
+       *   If an item was combined.
+       */
+      var combine = function(a, b) {
+        // Build a copy of each component without child components.
+        var container = getComponentsName(a);
+        var tempA = _.omit(a, container);
+        var tempB = _.omit(b, container);
+
+        // Update tempA with the settings of tempB.
+        tempA = _.assign(tempA, tempB);
+
+        // If neither component a or b has child components, return to merging.
+        if (!a.hasOwnProperty(container) && !b.hasOwnProperty(container)) {
+          debug('No child components in a or b, skipping recursive call');
+          addUniqueComponent(tempA);
+          return true;
+        }
+
+        // Merge each column if present in the component.
+        if (a.hasOwnProperty('columns') || b.hasOwnProperty('columns')) {
+          debug('Merge columns');
+          var colsA = a.columns || [];
+          var colsB = b.columns || [];
+          var max = Math.max(colsA.length, colsB.length, 0);
+          var finalColumns = [];
+          for (var iter = 0; iter < max; iter++) {
+            // Merge each column from a and b together.
+            finalColumns.push({
+              components: merge(
+                _.get(colsA[iter], 'components', []),
+                componentMapA,
+                _.get(colsB[iter], 'components', []),
+                componentMapB,
+                [],
+                listKeys
+              )
+            });
+          }
+
+          tempA.columns = finalColumns;
+          addUniqueComponent(tempA);
+
+          // Make following iterations of formB skip until the next component in formA, to preserve insert order.
+          return true;
+        }
+
+        // Merge each row if present in the component.
+        if (a.hasOwnProperty('rows') || b.hasOwnProperty('rows')) {
+          var rowsA = a.rows || [];
+          var rowsB = b.rows || [];
+          var finalRows = [];
+          var maxR = Math.max(rowsA.length, rowsB.length, 0);
+          for (var r = 0; r < maxR; r++) {
+            var finalCols = [];
+            var maxC = Math.max(rowsA[r].length, rowsB[r].length, 0);
+            for (var c = 0; c < maxC; c++) {
+              // Merge each column from a and b together.
+              finalCols.push({
+                components: merge(
+                  _.get(rowsA[r][c], 'components', []),
+                  componentMapA,
+                  _.get(rowsB[r][c], 'components', []),
+                  componentMapB,
+                  [],
+                  listKeys
+                )
+              });
+            }
+            finalRows.push(finalCols);
+          }
+
+          tempA.rows = finalRows;
+          addUniqueComponent(tempA);
+
+          // Make following iterations of formB skip until the next component in formA, to preserve insert order.
+          return true;
+        }
+
+        // Merge each component array if present in the component.
+        if (a.hasOwnProperty('components') || b.hasOwnProperty('component')) {
+          var componentsA = a.components || [];
+          var componentsB = b.components || [];
+
+          tempA.components = merge(componentsA, componentMapA, componentsB, componentMapB, [], listKeys);
+          addUniqueComponent(tempA);
+
+          // Make following iterations of formB skip until the next component in formA, to preserve insert order.
+          return true;
+        }
+
+        return false;
+      };
 
       // Traverse all the components in form a for merging.
       util.eachComponent(formA, function(a, pathA) {
@@ -150,7 +254,13 @@ module.exports = function(router) {
 
         // If a isnt even in form b, add a without traversing b.
         if (!componentMapB.hasOwnProperty(a.key)) {
-          return addUniqueComponent(a, list, listKeys);
+          return addUniqueComponent(a);
+        }
+
+        // If list b is empty, but the element exist somewhere, apply the settings.
+        if (formB.length === 0 && componentMapB.hasOwnProperty(a.key)) {
+          combine(a, componentMapB[a.key]);
+          return;
         }
 
         // Traverse all the components in form b for merging.
@@ -164,103 +274,15 @@ module.exports = function(router) {
 
           // If b traverses over an element not found in a, add it to the main list.
           if (!componentMapA.hasOwnProperty(b.key)) {
-            addUniqueComponent(b, list, listKeys);
+            addUniqueComponent(b);
             skip = true;
             return;
           }
 
           // If component a and b are the same, merge the component settings, then any components they may have.
           if (a.key === b.key) {
-            // Build a copy of each component without child components.
-            var container = getComponentsName(a);
-            var tempA = _.omit(a, container);
-            var tempB = _.omit(b, container);
-
-            // Update tempA with the settings of tempB.
-            tempA = _.assign(tempA, tempB);
-
-            // If neither component a or b has child components, return to merging.
-            if (!a.hasOwnProperty(container) && !b.hasOwnProperty(container)) {
-              debug('No child components in a or b, skipping recursive call');
-              addUniqueComponent(tempA, list, listKeys);
-              skip = true;
-              return;
-            }
-
-            // Merge each column if present in the component.
-            if (a.hasOwnProperty('columns') || b.hasOwnProperty('columns')) {
-              debug('Merge columns');
-              var colsA = a.columns || [];
-              var colsB = b.columns || [];
-              var max = Math.max(colsA.length, colsB.length, 0);
-              var finalColumns = [];
-              for (var iter = 0; iter < max; iter++) {
-                // Merge each column from a and b together.
-                finalColumns.push({
-                  components: merge(
-                    _.get(colsA[iter], 'components', []),
-                    componentMapA,
-                    _.get(colsB[iter], 'components', []),
-                    componentMapB,
-                    [],
-                    listKeys
-                  )
-                });
-              }
-
-              tempA.columns = finalColumns;
-              addUniqueComponent(tempA, list, listKeys);
-
-              // Make following iterations of formB skip until the next component in formA, to preserve insert order.
-              skip = true;
-              return;
-            }
-
-            // Merge each row if present in the component.
-            if (a.hasOwnProperty('rows') || b.hasOwnProperty('rows')) {
-              var rowsA = a.rows || [];
-              var rowsB = b.rows || [];
-              var finalRows = [];
-              var maxR = Math.max(rowsA.length, rowsB.length, 0);
-              for (var r = 0; r < maxR; r++) {
-                var finalCols = [];
-                var maxC = Math.max(rowsA[r].length, rowsB[r].length, 0);
-                for (var c = 0; c < maxC; c++) {
-                  // Merge each column from a and b together.
-                  finalCols.push({
-                    components: merge(
-                      _.get(rowsA[r][c], 'components', []),
-                      componentMapA,
-                      _.get(rowsB[r][c], 'components', []),
-                      componentMapB,
-                      [],
-                      listKeys
-                    )
-                  });
-                }
-                finalRows.push(finalCols);
-              }
-
-              tempA.rows = finalRows;
-              addUniqueComponent(tempA, list, listKeys);
-
-              // Make following iterations of formB skip until the next component in formA, to preserve insert order.
-              skip = true;
-              return;
-            }
-
-            // Merge each component array if present in the component.
-            if (a.hasOwnProperty('components') || b.hasOwnProperty('component')) {
-              var componentsA = a.components || [];
-              var componentsB = b.components || [];
-
-              tempA.components = merge(componentsA, componentMapA, componentsB, componentMapB, [], listKeys);
-              addUniqueComponent(tempA, list, listKeys);
-
-              // Make following iterations of formB skip until the next component in formA, to preserve insert order.
-              skip = true;
-              return;
-            }
+            skip = combine(a, b);
+            return;
           }
         }, true);
       }, true);
@@ -271,7 +293,7 @@ module.exports = function(router) {
           return;
         }
 
-        return addUniqueComponent(b, list, listKeys);
+        return addUniqueComponent(b);
       }, true);
 
       return list;
