@@ -5945,9 +5945,6 @@ module.exports = function(app, template, hook) {
                 type: 'columns',
                 columns: [
                   {
-                    components: []
-                  },
-                  {
                     components: [
                       {
                         type: 'textfield',
@@ -5970,6 +5967,9 @@ module.exports = function(app, template, hook) {
                         input: true
                       }
                     ]
+                  },
+                  {
+                    components: []
                   }
                 ]
               }
