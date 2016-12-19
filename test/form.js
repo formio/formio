@@ -2611,6 +2611,106 @@ module.exports = function(app, template, hook) {
             });
         });
       });
+
+      // FOR-255
+      describe('Custom validation', function() {
+        var templates = require('./forms/customValidation');
+        var form = _.cloneDeep(tempForm);
+        form.title = 'customvalidation';
+        form.name = 'customvalidation';
+        form.path = 'customvalidation';
+        form.components = [];
+        
+        var updatePrimary = function(done) {
+          request(app)
+            .put(hook.alter('url', '/form/' + form._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({components: form.components})
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              form = response;
+              done();
+            });
+        };
+        var attemptSubmission = function(submission, done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                var error = res.text;
+
+                try {
+                  error = JSON.parse(error);
+                }
+                catch (e) {
+                  error = res.text;
+                }
+
+                return done(error);
+              }
+
+              var response = res.body;
+              done(null, response);
+            });
+        };
+
+        describe('Bootstrap custom validation form', function() {
+          it('Create the primary form', function(done) {
+            request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)
+              .expect('Content-Type', /json/)
+              .expect(201)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                form = response;
+                done();
+              });
+          });
+        });
+
+        describe('Text component validation', function() {
+          form.components = templates.text.old.components;
+          
+          before(function(done) {
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.text.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'textfield.custom');
+
+              return done();
+            });
+          });
+          
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.text.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.text.old.pass.data);
+              return done();
+            });
+          });
+        });
+      });
     });
 
     describe('Access Information', function() {

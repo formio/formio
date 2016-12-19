@@ -525,6 +525,7 @@ Validator.prototype.validate = function(submission, next) {
         component.validate.custom = component.validate.custom.replace(/({{\s+(.*)\s+}})/, function(match, $1, $2) {
           return submission.data[$2];
         });
+        debug.validator(component.validate.custom);
 
         // Create the sandbox.
         var sandbox = vm.createContext({
