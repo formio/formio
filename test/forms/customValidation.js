@@ -331,5 +331,143 @@ module.exports = {
         foo: 2
       }
     }
+  },
+  password: {
+    old: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "validate": {
+            "custom": "valid = {{ trigger }}.toString() === 'true'"
+          },
+          "input": true,
+          "tableView": false,
+          "inputType": "password",
+          "label": "foo",
+          "key": "foo",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "protected": true,
+          "persistent": true,
+          "type": "password",
+          "tags": [],
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          }
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: 'secure'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: 'secure'
+        }
+      }
+    },
+    new: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "validate": {
+            "custom": "valid = data.trigger === 'true'"
+          },
+          "input": true,
+          "tableView": false,
+          "inputType": "password",
+          "label": "foo",
+          "key": "foo",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "protected": true,
+          "persistent": true,
+          "type": "password",
+          "tags": [],
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          }
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: 'secure'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: 'secure'
+        }
+      }
+    }
   }
 };

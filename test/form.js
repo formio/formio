@@ -2735,6 +2735,36 @@ module.exports = function(app, template, hook) {
             });
           });
         });
+
+        describe('Password component validation', function() {
+          before(function(done) {
+            form.components = templates.password.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.password.old.fail, function(err, s) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'password.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.password.old.pass, function(err, result) {
+              console.log(err);
+              console.log(result);
+
+              // Special comparison, because passwords are not returned.
+              assert.deepEqual(result.data, {trigger: 'true'});
+              return done();
+            });
+          });
+        });
       });
     });
 
