@@ -2717,7 +2717,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('Test invalid submission', function(done) {
-            attemptSubmission(templates.number.old.fail, function(err, s) {
+            attemptSubmission(templates.number.old.fail, function(err) {
               assert.equal(err.name, 'ValidationError');
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
@@ -2743,7 +2743,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('Test invalid submission', function(done) {
-            attemptSubmission(templates.password.old.fail, function(err, s) {
+            attemptSubmission(templates.password.old.fail, function(err) {
               assert.equal(err.name, 'ValidationError');
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
@@ -2756,11 +2756,34 @@ module.exports = function(app, template, hook) {
 
           it('Test valid submission', function(done) {
             attemptSubmission(templates.password.old.pass, function(err, result) {
-              console.log(err);
-              console.log(result);
-
               // Special comparison, because passwords are not returned.
               assert.deepEqual(result.data, {trigger: 'true'});
+              return done();
+            });
+          });
+        });
+
+        describe('Text Area component validation', function() {
+          before(function(done) {
+            form.components = templates.textarea.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.textarea.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'textarea.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.textarea.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.textarea.old.pass.data);
               return done();
             });
           });

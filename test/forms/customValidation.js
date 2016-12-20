@@ -469,5 +469,83 @@ module.exports = {
         }
       }
     }
+  },
+  textarea: {
+    old: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "lockKey": true,
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "textarea",
+          "validate": {
+            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "wysiwyg": false,
+          "persistent": true,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "rows": 3,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "foo",
+          "label": "foo",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: 'anything'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: 'anything'
+        }
+      }
+    }
   }
 };
