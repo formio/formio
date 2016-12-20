@@ -869,5 +869,151 @@ module.exports = {
         }
       }
     }
+  },
+  radio: {
+    old: {
+      components: [
+        {
+          "input": true,
+          "tableView": true,
+          "inputType": "text",
+          "inputMask": "",
+          "label": "trigger",
+          "key": "trigger",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "multiple": false,
+          "defaultValue": "",
+          "protected": false,
+          "unique": false,
+          "persistent": true,
+          "validate": {
+            "required": false,
+            "minLength": "",
+            "maxLength": "",
+            "pattern": "",
+            "custom": "",
+            "customPrivate": false
+          },
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          },
+          "type": "textfield",
+          "tags": []
+        }, {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "radio",
+          "validate": {
+            "customPrivate": false,
+            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "required": false
+          },
+          "persistent": true,
+          "protected": false,
+          "defaultValue": "",
+          "values": [{
+            "label": "foo",
+            "value": "foo"
+          }],
+          "key": "foo",
+          "label": "foo",
+          "inputType": "radio",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: 'foo'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: 'foo'
+        }
+      }
+    },
+    new: {
+      components: [
+        {
+          "input": true,
+          "tableView": true,
+          "inputType": "text",
+          "inputMask": "",
+          "label": "trigger",
+          "key": "trigger",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "multiple": false,
+          "defaultValue": "",
+          "protected": false,
+          "unique": false,
+          "persistent": true,
+          "validate": {
+            "required": false,
+            "minLength": "",
+            "maxLength": "",
+            "pattern": "",
+            "custom": "",
+            "customPrivate": false
+          },
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          },
+          "type": "textfield",
+          "tags": []
+        }, {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "radio",
+          "validate": {
+            "customPrivate": false,
+            "custom": "valid = data.trigger == 'true'",
+            "required": false
+          },
+          "persistent": true,
+          "protected": false,
+          "defaultValue": "",
+          "values": [{
+            "label": "foo",
+            "value": "foo"
+          }],
+          "key": "foo",
+          "label": "foo",
+          "inputType": "radio",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: 'foo'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: 'foo'
+        }
+      }
+    }
   }
 };

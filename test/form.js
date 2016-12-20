@@ -2840,6 +2840,32 @@ module.exports = function(app, template, hook) {
             });
           });
         });
+
+        describe('Radio component validation', function() {
+          before(function(done) {
+            form.components = templates.radio.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.radio.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'radio.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.radio.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.radio.old.pass.data);
+              return done();
+            });
+          });
+        });
       });
     });
 
