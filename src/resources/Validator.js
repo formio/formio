@@ -18,7 +18,7 @@ var debug = {
  * @constructor
  */
 var Validator = function(form, model) {
-  this.customValidations = {};
+  this.customValidations = [];
   this.schema = null;
   this.model = model;
   this.ignore = {};
@@ -28,8 +28,15 @@ var Validator = function(form, model) {
 
 /**
  * Returns a validator per component.
+ *
+ * @param {Object} schema
+ *   The validation schema to modify.
+ * @param {Object} component
+ *   The form component.
+ * @param {Object}
+ *   The submission data corresponding to this component.
  */
-Validator.prototype.addValidator = function(schema, component) {
+Validator.prototype.addValidator = function(schema, component, componentData) {
   var fieldValidator = null;
   if (!component || !component.key || this.ignore.hasOwnProperty(component.key)) {
     return;
@@ -45,7 +52,7 @@ Validator.prototype.addValidator = function(schema, component) {
 
   // Add the custom validations.
   if (component.validate && component.validate.custom && isPersistent) {
-    this.customValidations[component.key] = component;
+    this.customValidations.push({component: component, row: componentData});
   }
 
   /* eslint-disable max-depth, valid-typeof */
@@ -53,13 +60,13 @@ Validator.prototype.addValidator = function(schema, component) {
   switch (component.type) {
     case 'datagrid':
       component.components.forEach(function(itemComponent) {
-        this.addValidator(objectSchema, itemComponent);
+        this.addValidator(objectSchema, itemComponent, _.get(componentData, component.key, componentData));
       }.bind(this));
       fieldValidator = Joi.array().items(Joi.object(objectSchema));
       break;
     case 'container':
       component.components.forEach(function(itemComponent) {
-        this.addValidator(objectSchema, itemComponent);
+        this.addValidator(objectSchema, itemComponent, _.get(componentData, component.key, componentData));
       }.bind(this));
       fieldValidator = Joi.object(objectSchema);
       break;
@@ -67,14 +74,14 @@ Validator.prototype.addValidator = function(schema, component) {
     case 'panel':
     case 'well':
       component.components.forEach(function(itemComponent) {
-        this.addValidator(schema, itemComponent);
+        this.addValidator(schema, itemComponent, _.get(componentData, component.key, componentData));
       }.bind(this));
       break;
     case 'table':
       component.rows.forEach(function(row) {
         row.forEach(function(column) {
           column.components.forEach(function(itemComponent) {
-            this.addValidator(schema, itemComponent);
+            this.addValidator(schema, itemComponent, _.get(componentData, component.key, componentData));
           }.bind(this));
         }.bind(this));
       }.bind(this));
@@ -82,7 +89,7 @@ Validator.prototype.addValidator = function(schema, component) {
     case 'columns':
       component.columns.forEach(function(column) {
         column.components.forEach(function(itemComponent) {
-          this.addValidator(schema, itemComponent);
+          this.addValidator(schema, itemComponent, _.get(componentData, component.key, componentData));
         }.bind(this));
       }.bind(this));
       break;
@@ -135,7 +142,7 @@ Validator.prototype.addValidator = function(schema, component) {
       // Allow custom components to have subcomponents as well (like layout components).
       if (component.components && Array.isArray(component.components)) {
         component.components.forEach(function(itemComponent) {
-          this.addValidator(schema, itemComponent);
+          this.addValidator(schema, itemComponent, _.get(componentData, component.key, componentData));
         }.bind(this));
       }
       fieldValidator = Joi.any();
@@ -452,18 +459,20 @@ Validator.prototype.buildIgnoreList = function(submission) {
 
 /**
  * Using the form, ignore list and unique list, build the joi schema for validation.
+ *
+ * @param {Object} submission
+ *   The data submission object.
  */
-Validator.prototype.buildSchema = function() {
+Validator.prototype.buildSchema = function(submission) {
   // Build the Joi validation schema.
   var keys = {
     // Start off with the _id key.
     _id: Joi.string().meta({primaryKey: true})
   };
 
-  // Iterate through each component.
+  // Add a validator for each component in the form, with its componentData.
   _.each(this.form.components, function(component) {
-    // Get the validator.
-    this.addValidator(keys, component);
+    this.addValidator(keys, component, _.get(submission.data, component.key, submission.data));
   }.bind(this));
 
   // Create the validator schema.
@@ -479,7 +488,7 @@ Validator.prototype.buildSchema = function() {
  */
 Validator.prototype.validate = function(submission, next) {
   var valid = true;
-  var error = null;
+  var error = [];
   debug.validator('Starting validation');
 
   // Skip validation if no data is provided.
@@ -493,7 +502,7 @@ Validator.prototype.validate = function(submission, next) {
   this.buildIgnoreList(submission);
 
   // Build the validator schema.
-  this.buildSchema();
+  this.buildSchema(submission);
 
   /**
    * Invoke the Joi validator with our data.
@@ -514,57 +523,58 @@ Validator.prototype.validate = function(submission, next) {
   }.bind(this);
 
   // Check for custom validations.
-  for (var key in this.customValidations) {
-    // If there is a value for this submission....
-    if (this.customValidations.hasOwnProperty(key) && (submission.data[key] !== undefined)) {
-      var component = this.customValidations[key];
+  this.customValidations.forEach(function(validation) {
+    var component = validation.component;
+    var row = validation.row;
 
-      // Try a new sandboxed validation.
-      try {
-        // Replace with variable substitutions.
-        var replace = /({{\s{0,}(.*[^\s]){1}\s{0,}}})/g;
-        component.validate.custom = component.validate.custom.replace(replace, function(match, $1, $2) {
-          return 'data.' + $2;
-        });
-        debug.validator(component.validate.custom);
+    // Try a new sandboxed validation.
+    try {
+      // Replace with variable substitutions.
+      var replace = /({{\s{0,}(.*[^\s]){1}\s{0,}}})/g;
+      component.validate.custom = component.validate.custom.replace(replace, function(match, $1, $2) {
+        return 'data.' + $2;
+      });
+      debug.validator(component.validate.custom);
 
-        // Create the sandbox.
-        var sandbox = vm.createContext({
-          input: submission.data[key],
-          data: submission.data,
-          scope: {data: submission.data},
-          component: component,
-          valid: valid
-        });
+      // Create the sandbox.
+      var sandbox = vm.createContext({
+        input: util.getValue(submission, component.key),
+        data: submission.data,
+        row: row,
+        scope: {data: submission.data},
+        component: component,
+        valid: valid
+      });
 
-        // Execute the script.
-        var script = new vm.Script(component.validate.custom);
-        script.runInContext(sandbox, {
-          timeout: 100
-        });
-        valid = sandbox.valid;
-      }
-      catch (err) {
-        debug.error(err);
-        // Say this isn't valid based on bad code executed...
-        valid = err.toString();
-      }
-
-      // If there is an error, then set the error object and break from iterations.
-      if (valid !== true) {
-        error = {
-          message: valid,
-          path: key,
-          type: component.type + '.custom'
-        };
-        break;
-      }
+      // Execute the script.
+      var script = new vm.Script(component.validate.custom);
+      script.runInContext(sandbox, {
+        timeout: 100
+      });
+      valid = sandbox.valid;
+      debug.validator(valid);
     }
-  }
+    catch (err) {
+      debug.error(err);
+      // Say this isn't valid based on bad code executed...
+      valid = err.toString();
+    }
+
+    // If there is an error, then set the error object and break from iterations.
+    if (valid !== true) {
+      debug.validator('Error: ' + valid);
+      error.push({
+        message: valid,
+        path: key,
+        type: component.type + '.custom'
+      });
+    }
+  });
 
   // If an error has occurred in custom validation, fail immediately.
-  if (error) {
-    var temp = {name: 'ValidationError', details: [error]};
+  debug.validator(error);
+  if (error.length > 0) {
+    var temp = {name: 'ValidationError', details: error};
     debug.validator(error);
     return next(temp);
   }
