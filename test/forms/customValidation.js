@@ -547,5 +547,153 @@ module.exports = {
         }
       }
     }
+  },
+  selectboxes: {
+    old: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "type": "selectboxes",
+          "validate": {
+            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "required": false
+          },
+          "persistent": true,
+          "protected": false,
+          "inline": false,
+          "values": [{
+            "label": "foo",
+            "value": "foo"
+          }],
+          "key": "foo",
+          "label": "foo",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: {
+            foo: true
+          }
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: {
+            foo: true
+          }
+        }
+      }
+    },
+    new: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "type": "selectboxes",
+          "validate": {
+            "custom": "valid = data.trigger == 'true'",
+            "required": false
+          },
+          "persistent": true,
+          "protected": false,
+          "inline": false,
+          "values": [{
+            "label": "foo",
+            "value": "foo"
+          }],
+          "key": "foo",
+          "label": "foo",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: {
+            foo: true
+          }
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: {
+            foo: true
+          }
+        }
+      }
+    }
   }
 };
