@@ -522,14 +522,17 @@ Validator.prototype.validate = function(submission, next) {
       // Try a new sandboxed validation.
       try {
         // Replace with variable substitutions.
-        component.validate.custom = component.validate.custom.replace(/({{\s+(.*)\s+}})/, function(match, $1, $2) {
-          return submission.data[$2];
+        var replace = /({{\s{0,}(.*[^\s]){1}\s{0,}}})/g;
+        component.validate.custom = component.validate.custom.replace(replace, function(match, $1, $2) {
+          return 'data.' + $2;
         });
         debug.validator(component.validate.custom);
 
         // Create the sandbox.
         var sandbox = vm.createContext({
           input: submission.data[key],
+          data: submission.data,
+          scope: {data: submission.data},
           component: component,
           valid: valid
         });

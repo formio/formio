@@ -2684,7 +2684,7 @@ module.exports = function(app, template, hook) {
           });
         });
 
-        describe('Text component validation', function() {
+        describe('Text component validation (old)', function() {
           before(function(done) {
             form.components = templates.text.old.components;
             updatePrimary(done);
@@ -2701,7 +2701,7 @@ module.exports = function(app, template, hook) {
               return done();
             });
           });
-          
+
           it('Test valid submission', function(done) {
             attemptSubmission(templates.text.old.pass, function(err, result) {
               assert.deepEqual(result.data, templates.text.old.pass.data);
@@ -2710,7 +2710,33 @@ module.exports = function(app, template, hook) {
           });
         });
 
-        describe('Number component validation', function() {
+        describe('Text component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.text.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.text.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'textfield.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.text.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.text.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Number component validation (old)', function() {
           before(function(done) {
             form.components = templates.number.old.components;
             updatePrimary(done);
@@ -2736,7 +2762,33 @@ module.exports = function(app, template, hook) {
           });
         });
 
-        describe('Password component validation', function() {
+        describe('Number component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.number.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.number.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'number.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.number.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.number.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Password component validation (old)', function() {
           before(function(done) {
             form.components = templates.password.old.components;
             updatePrimary(done);
@@ -2763,7 +2815,34 @@ module.exports = function(app, template, hook) {
           });
         });
 
-        describe('Text Area component validation', function() {
+        describe('Password component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.password.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.password.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'password.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.password.new.pass, function(err, result) {
+              // Special comparison, because passwords are not returned.
+              assert.deepEqual(result.data, {trigger: 'true'});
+              return done();
+            });
+          });
+        });
+
+        describe('Text Area component validation (old)', function() {
           before(function(done) {
             form.components = templates.textarea.old.components;
             updatePrimary(done);
@@ -2789,7 +2868,33 @@ module.exports = function(app, template, hook) {
           });
         });
 
-        describe('Select Boxes component validation', function() {
+        describe('Text Area component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.textarea.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.textarea.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'textarea.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.textarea.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.textarea.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Select Boxes component validation (old)', function() {
           before(function(done) {
             form.components = templates.selectboxes.old.components;
             updatePrimary(done);
@@ -2815,7 +2920,33 @@ module.exports = function(app, template, hook) {
           });
         });
 
-        describe('Select component validation', function() {
+        describe('Select Boxes component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.selectboxes.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.selectboxes.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'selectboxes.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.selectboxes.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.selectboxes.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Select component validation (old)', function() {
           before(function(done) {
             form.components = templates.select.old.components;
             updatePrimary(done);
@@ -2841,7 +2972,33 @@ module.exports = function(app, template, hook) {
           });
         });
 
-        describe('Radio component validation', function() {
+        describe('Select component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.select.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.select.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'select.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.select.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.select.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Radio component validation (old)', function() {
           before(function(done) {
             form.components = templates.radio.old.components;
             updatePrimary(done);
@@ -2867,7 +3024,33 @@ module.exports = function(app, template, hook) {
           });
         });
 
-        describe('Email component validation', function() {
+        describe('Radio component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.radio.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.radio.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'radio.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.radio.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.radio.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Email component validation (old)', function() {
           before(function(done) {
             form.components = templates.email.old.components;
             updatePrimary(done);
@@ -2893,7 +3076,33 @@ module.exports = function(app, template, hook) {
           });
         });
 
-        describe('Date Time component validation', function() {
+        describe('Email component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.email.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.email.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'email.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.email.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.email.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Date Time component validation (old)', function() {
           before(function(done) {
             form.components = templates.datetime.old.components;
             updatePrimary(done);
@@ -2919,7 +3128,33 @@ module.exports = function(app, template, hook) {
           });
         });
 
-        describe('Day component validation', function() {
+        describe('Date Time component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.datetime.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.datetime.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'datetime.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.datetime.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.datetime.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Day component validation (old)', function() {
           before(function(done) {
             form.components = templates.day.old.components;
             updatePrimary(done);
@@ -2945,7 +3180,33 @@ module.exports = function(app, template, hook) {
           });
         });
 
-        describe('Currency component validation', function() {
+        describe('Day component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.day.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.day.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'day.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.day.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.day.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Currency component validation (old)', function() {
           before(function(done) {
             form.components = templates.currency.old.components;
             updatePrimary(done);
@@ -2971,7 +3232,33 @@ module.exports = function(app, template, hook) {
           });
         });
 
-        describe('Survey component validation', function() {
+        describe('Currency component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.currency.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.currency.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'currency.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.currency.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.currency.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Survey component validation (old)', function() {
           before(function(done) {
             form.components = templates.survey.old.components;
             updatePrimary(done);
@@ -2992,6 +3279,32 @@ module.exports = function(app, template, hook) {
           it('Test valid submission', function(done) {
             attemptSubmission(templates.survey.old.pass, function(err, result) {
               assert.deepEqual(result.data, templates.survey.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Survey component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.survey.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.survey.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'survey.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.survey.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.survey.new.pass.data);
               return done();
             });
           });
