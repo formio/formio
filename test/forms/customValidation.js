@@ -1165,5 +1165,189 @@ module.exports = {
         }
       }
     }
+  },
+  datetime: {
+    old: {
+      components: [
+        {
+          "input": true,
+          "tableView": true,
+          "inputType": "text",
+          "inputMask": "",
+          "label": "trigger",
+          "key": "trigger",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "multiple": false,
+          "defaultValue": "",
+          "protected": false,
+          "unique": false,
+          "persistent": true,
+          "validate": {
+            "required": false,
+            "minLength": "",
+            "maxLength": "",
+            "pattern": "",
+            "custom": "",
+            "customPrivate": false
+          },
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          },
+          "type": "textfield",
+          "tags": []
+        }, {
+          "lockKey": true,
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "datetime",
+          "validate": {
+            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "required": false
+          },
+          "persistent": true,
+          "protected": false,
+          "timePicker": {
+            "arrowkeys": true,
+            "mousewheel": true,
+            "readonlyInput": false,
+            "showMeridian": true,
+            "minuteStep": 1,
+            "hourStep": 1
+          },
+          "datePicker": {
+            "datepickerMode": "day",
+            "yearRange": "20",
+            "maxMode": "year",
+            "minMode": "day",
+            "initDate": "",
+            "startingDay": 0,
+            "showWeeks": true
+          },
+          "datepickerMode": "day",
+          "maxDate": null,
+          "minDate": null,
+          "defaultDate": "",
+          "enableTime": true,
+          "enableDate": true,
+          "format": "yyyy-MM-dd hh:mm",
+          "placeholder": "",
+          "key": "foo",
+          "label": "foo",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: '2016-01-01T00:00:00.00Z'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: '2016-01-01T00:00:00.00Z'
+        }
+      }
+    },
+    new: {
+      components: [
+        {
+          "input": true,
+          "tableView": true,
+          "inputType": "text",
+          "inputMask": "",
+          "label": "trigger",
+          "key": "trigger",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "multiple": false,
+          "defaultValue": "",
+          "protected": false,
+          "unique": false,
+          "persistent": true,
+          "validate": {
+            "required": false,
+            "minLength": "",
+            "maxLength": "",
+            "pattern": "",
+            "custom": "",
+            "customPrivate": false
+          },
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          },
+          "type": "textfield",
+          "tags": []
+        }, {
+          "lockKey": true,
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "datetime",
+          "validate": {
+            "custom": "valid = data.trigger == 'true'",
+            "required": false
+          },
+          "persistent": true,
+          "protected": false,
+          "timePicker": {
+            "arrowkeys": true,
+            "mousewheel": true,
+            "readonlyInput": false,
+            "showMeridian": true,
+            "minuteStep": 1,
+            "hourStep": 1
+          },
+          "datePicker": {
+            "datepickerMode": "day",
+            "yearRange": "20",
+            "maxMode": "year",
+            "minMode": "day",
+            "initDate": "",
+            "startingDay": 0,
+            "showWeeks": true
+          },
+          "datepickerMode": "day",
+          "maxDate": null,
+          "minDate": null,
+          "defaultDate": "",
+          "enableTime": true,
+          "enableDate": true,
+          "format": "yyyy-MM-dd hh:mm",
+          "placeholder": "",
+          "key": "foo",
+          "label": "foo",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: '2016-01-01T00:00:00.00Z'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: '2016-01-01T00:00:00.00Z'
+        }
+      }
+    }
   }
 };
