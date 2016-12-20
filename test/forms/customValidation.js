@@ -1349,5 +1349,173 @@ module.exports = {
         }
       }
     }
+  },
+  day: {
+    old: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "lockKey": true,
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "day",
+          "validate": {
+            "custom": "valid = {{ trigger }}.toString() == 'true'"
+          },
+          "persistent": true,
+          "protected": false,
+          "dayFirst": false,
+          "fields": {
+            "year": {
+              "required": false,
+              "placeholder": "",
+              "type": "text"
+            },
+            "month": {
+              "required": false,
+              "placeholder": "",
+              "type": "select"
+            },
+            "day": {
+              "required": false,
+              "placeholder": "",
+              "type": "text"
+            }
+          },
+          "key": "foo",
+          "label": "foo",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: '01/01/1990'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: '01/01/1990'
+        }
+      }
+    },
+    new: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "lockKey": true,
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "day",
+          "validate": {
+            "custom": "valid = data.trigger == 'true'"
+          },
+          "persistent": true,
+          "protected": false,
+          "dayFirst": false,
+          "fields": {
+            "year": {
+              "required": false,
+              "placeholder": "",
+              "type": "text"
+            },
+            "month": {
+              "required": false,
+              "placeholder": "",
+              "type": "select"
+            },
+            "day": {
+              "required": false,
+              "placeholder": "",
+              "type": "text"
+            }
+          },
+          "key": "foo",
+          "label": "foo",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: '01/01/1990'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: '01/01/1990'
+        }
+      }
+    }
   }
 };

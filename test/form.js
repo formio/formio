@@ -2918,6 +2918,32 @@ module.exports = function(app, template, hook) {
             });
           });
         });
+
+        describe('Day component validation', function() {
+          before(function(done) {
+            form.components = templates.day.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.day.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'day.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.day.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.day.old.pass.data);
+              return done();
+            });
+          });
+        });
       });
     });
 
