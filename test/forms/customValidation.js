@@ -1015,5 +1015,155 @@ module.exports = {
         }
       }
     }
+  },
+  email: {
+    old: {
+      components: [
+        {
+          "input": true,
+          "tableView": true,
+          "inputType": "text",
+          "inputMask": "",
+          "label": "trigger",
+          "key": "trigger",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "multiple": false,
+          "defaultValue": "",
+          "protected": false,
+          "unique": false,
+          "persistent": true,
+          "validate": {
+            "required": false,
+            "minLength": "",
+            "maxLength": "",
+            "pattern": "",
+            "custom": "",
+            "customPrivate": false
+          },
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          },
+          "type": "textfield",
+          "tags": []
+        }, {
+          "lockKey": true,
+          "validate": {
+            "custom": "valid = {{ trigger }}.toString() == 'true'"
+          },
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "email",
+          "kickbox": {
+            "enabled": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "foo",
+          "label": "foo",
+          "inputType": "email",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: 'test@test.test'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: 'test@test.test'
+        }
+      }
+    },
+    new: {
+      components: [
+        {
+          "input": true,
+          "tableView": true,
+          "inputType": "text",
+          "inputMask": "",
+          "label": "trigger",
+          "key": "trigger",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "multiple": false,
+          "defaultValue": "",
+          "protected": false,
+          "unique": false,
+          "persistent": true,
+          "validate": {
+            "required": false,
+            "minLength": "",
+            "maxLength": "",
+            "pattern": "",
+            "custom": "",
+            "customPrivate": false
+          },
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          },
+          "type": "textfield",
+          "tags": []
+        }, {
+          "lockKey": true,
+          "validate": {
+            "custom": "valid = data.trigger == 'true'"
+          },
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "email",
+          "kickbox": {
+            "enabled": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "foo",
+          "label": "foo",
+          "inputType": "email",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: 'test@test.test'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: 'test@test.test'
+        }
+      }
+    }
   }
 };
