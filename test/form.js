@@ -2814,6 +2814,32 @@ module.exports = function(app, template, hook) {
             });
           });
         });
+
+        describe('Select component validation', function() {
+          before(function(done) {
+            form.components = templates.select.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.select.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'select.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.select.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.select.old.pass.data);
+              return done();
+            });
+          });
+        });
       });
     });
 

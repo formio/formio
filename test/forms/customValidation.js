@@ -695,5 +695,179 @@ module.exports = {
         }
       }
     }
+  },
+  select: {
+    old: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "input": true,
+          "tableView": true,
+          "label": "foo",
+          "key": "foo",
+          "placeholder": "",
+          "data": {
+            "values": [{
+              "value": "test",
+              "label": "test"
+            }],
+            "json": "",
+            "url": "",
+            "resource": "",
+            "custom": ""
+          },
+          "dataSrc": "values",
+          "valueProperty": "",
+          "defaultValue": "",
+          "refreshOn": "",
+          "filter": "",
+          "authenticate": false,
+          "template": "<span>{{ item.label }}</span>",
+          "multiple": false,
+          "protected": false,
+          "unique": false,
+          "persistent": true,
+          "validate": {
+            "required": false,
+            "custom": "valid = {{ trigger }}.toString() == 'true'"
+          },
+          "type": "select",
+          "tags": [],
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          },
+          "lockKey": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: 'test'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: 'test'
+        }
+      }
+    },
+    new: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "input": true,
+          "tableView": true,
+          "label": "foo",
+          "key": "foo",
+          "placeholder": "",
+          "data": {
+            "values": [{
+              "value": "test",
+              "label": "test"
+            }],
+            "json": "",
+            "url": "",
+            "resource": "",
+            "custom": ""
+          },
+          "dataSrc": "values",
+          "valueProperty": "",
+          "defaultValue": "",
+          "refreshOn": "",
+          "filter": "",
+          "authenticate": false,
+          "template": "<span>{{ item.label }}</span>",
+          "multiple": false,
+          "protected": false,
+          "unique": false,
+          "persistent": true,
+          "validate": {
+            "required": false,
+            "custom": "valid = data.trigger == 'true'"
+          },
+          "type": "select",
+          "tags": [],
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          },
+          "lockKey": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: 'test'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: 'test'
+        }
+      }
+    }
   }
 };
