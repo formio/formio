@@ -2685,9 +2685,8 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Text component validation', function() {
-          form.components = templates.text.old.components;
-          
           before(function(done) {
+            form.components = templates.text.old.components;
             updatePrimary(done);
           });
 
@@ -2706,6 +2705,32 @@ module.exports = function(app, template, hook) {
           it('Test valid submission', function(done) {
             attemptSubmission(templates.text.old.pass, function(err, result) {
               assert.deepEqual(result.data, templates.text.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Number component validation', function() {
+          before(function(done) {
+            form.components = templates.number.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.number.old.fail, function(err, s) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'number.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.number.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.number.old.pass.data);
               return done();
             });
           });

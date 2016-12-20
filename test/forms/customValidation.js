@@ -183,5 +183,153 @@ module.exports = {
         }
       }
     }
+  },
+  number: {
+    old: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "number",
+          "validate": {
+            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "multiple": "",
+            "integer": "",
+            "step": "any",
+            "max": "",
+            "min": "",
+            "required": false
+          },
+          "persistent": true,
+          "protected": false,
+          "defaultValue": "",
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "foo",
+          "label": "foo",
+          "inputType": "number",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: '1'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: '2'
+        }
+      }
+    },
+    new: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "number",
+          "validate": {
+            "custom": "valid = data.trigger === 'true'",
+            "multiple": "",
+            "integer": "",
+            "step": "any",
+            "max": "",
+            "min": "",
+            "required": false
+          },
+          "persistent": true,
+          "protected": false,
+          "defaultValue": "",
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "foo",
+          "label": "foo",
+          "inputType": "number",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        trigger: 'false',
+        foo: 1
+      },
+      pass: {
+        trigger: 'true',
+        foo: 2
+      }
+    }
   }
 };
