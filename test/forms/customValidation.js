@@ -1665,5 +1665,165 @@ module.exports = {
         }
       }
     }
+  },
+  survey: {
+    old: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "survey",
+          "validate": {
+            "customPrivate": false,
+            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "required": false
+          },
+          "persistent": true,
+          "protected": false,
+          "defaultValue": "",
+          "values": [{
+            "label": "foo",
+            "value": "foo"
+          }],
+          "questions": [{
+            "label": "foo",
+            "value": "foo"
+          }],
+          "key": "foo",
+          "label": "foo",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: {
+            foo: 'foo'
+          }
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: {
+            foo: 'foo'
+          }
+        }
+      }
+    },
+    new: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "survey",
+          "validate": {
+            "customPrivate": false,
+            "custom": "valid = data.trigger == 'true'",
+            "required": false
+          },
+          "persistent": true,
+          "protected": false,
+          "defaultValue": "",
+          "values": [{
+            "label": "foo",
+            "value": "foo"
+          }],
+          "questions": [{
+            "label": "foo",
+            "value": "foo"
+          }],
+          "key": "foo",
+          "label": "foo",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: {
+            foo: 'foo'
+          }
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: {
+            foo: 'foo'
+          }
+        }
+      }
+    }
   }
 };
