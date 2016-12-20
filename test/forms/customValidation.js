@@ -1517,5 +1517,153 @@ module.exports = {
         }
       }
     }
+  },
+  currency: {
+    old: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "input": true,
+          "tableView": true,
+          "inputType": "text",
+          "inputMask": "",
+          "label": "foo",
+          "key": "foo",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "defaultValue": "",
+          "protected": false,
+          "persistent": true,
+          "validate": {
+            "required": false,
+            "multiple": "",
+            "custom": "valid = {{ trigger }}.toString() == 'true'"
+          },
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          },
+          "type": "currency",
+          "tags": [],
+          "lockKey": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: '1234'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: '1234'
+        }
+      }
+    },
+    new: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": false,
+            "custom": "",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "trigger",
+          "label": "trigger",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }, {
+          "input": true,
+          "tableView": true,
+          "inputType": "text",
+          "inputMask": "",
+          "label": "foo",
+          "key": "foo",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "defaultValue": "",
+          "protected": false,
+          "persistent": true,
+          "validate": {
+            "required": false,
+            "multiple": "",
+            "custom": "valid = data.trigger == 'true'"
+          },
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          },
+          "type": "currency",
+          "tags": [],
+          "lockKey": true
+        }
+      ],
+      fail: {
+        data: {
+          trigger: 'false',
+          foo: '1234'
+        }
+      },
+      pass: {
+        data: {
+          trigger: 'true',
+          foo: '1234'
+        }
+      }
+    }
   }
 };
