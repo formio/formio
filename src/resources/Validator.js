@@ -508,49 +508,59 @@ Validator.prototype.validate = function(submission, next) {
   for (var a = 0; a < this.customValidations.length; a++) {
     var component = this.customValidations[a].component;
     var row = this.customValidations[a].row;
-    debug.validator('Data (' + component.key + '):');
-    debug.validator(row);
 
-    // Try a new sandboxed validation.
-    try {
-      // Replace with variable substitutions.
-      var replace = /({{\s{0,}(.*[^\s]){1}\s{0,}}})/g;
-      component.validate.custom = component.validate.custom.replace(replace, function(match, $1, $2) {
-        return 'data.' + $2;
-      });
-      debug.validator(component.validate.custom);
-
-      // Create the sandbox.
-      var sandbox = vm.createContext({
-        input: util.getValue(submission, component.key),
-        data: submission.data,
-        row: row,
-        scope: {data: submission.data},
-        component: component,
-        valid: valid
-      });
-
-      // Execute the script.
-      var script = new vm.Script(component.validate.custom);
-      script.runInContext(sandbox, {
-        timeout: 100
-      });
-      valid = sandbox.valid;
-      debug.validator(valid);
-    }
-    catch (err) {
-      debug.error(err);
-      // Say this isn't valid based on bad code executed...
-      valid = err.toString();
+    if (!(row instanceof Array)) {
+      row = [row];
     }
 
-    // If there is an error, then set the error object and break from iterations.
-    if (valid !== true) {
-      error.push({
-        message: valid,
-        path: component.key,
-        type: component.type + '.custom'
-      });
+    // If a component has multiple rows of data, e.g. Datagrids, validate each row of data on the backend.
+    for (var b = 0; b < row.length; b++) {
+      var _row = row[b];
+
+      debug.validator('Data (' + component.key + '):');
+      debug.validator(_row);
+
+      // Try a new sandboxed validation.
+      try {
+        // Replace with variable substitutions.
+        var replace = /({{\s{0,}(.*[^\s]){1}\s{0,}}})/g;
+        component.validate.custom = component.validate.custom.replace(replace, function(match, $1, $2) {
+          return 'data.' + $2;
+        });
+        debug.validator(component.validate.custom);
+
+        // Create the sandbox.
+        var sandbox = vm.createContext({
+          input: util.getValue(submission, component.key),
+          data: submission.data,
+          row: _row,
+          scope: {data: submission.data},
+          component: component,
+          valid: valid
+        });
+
+        // Execute the script.
+        var script = new vm.Script(component.validate.custom);
+        script.runInContext(sandbox, {
+          timeout: 100
+        });
+        valid = sandbox.valid;
+        debug.validator(valid);
+      }
+      catch (err) {
+        debug.error(err);
+        // Say this isn't valid based on bad code executed...
+        valid = err.toString();
+      }
+
+      // If there is an error, then set the error object and break from iterations.
+      if (valid !== true) {
+        error.push({
+          message: valid,
+          path: component.key,
+          type: component.type + '.custom'
+        });
+      }
     }
   }
 
