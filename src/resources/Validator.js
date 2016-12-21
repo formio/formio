@@ -504,28 +504,10 @@ Validator.prototype.validate = function(submission, next) {
   // Build the validator schema.
   this.buildSchema(submission);
 
-  /**
-   * Invoke the Joi validator with our data.
-   *
-   * @type {function(this:Validator)}
-   */
-  var joiValidate = function() {
-    Joi.validate(submission.data, this.schema, {stripUnknown: true}, function(validateErr, value) {
-      if (validateErr) {
-        debug.validator(validateErr);
-        return next(validateErr);
-      }
-
-      debug.validator('Valid:');
-      debug.validator(value);
-      next(null, value);
-    });
-  }.bind(this);
-
   // Check for custom validations.
-  this.customValidations.forEach(function(validation) {
-    var component = validation.component;
-    var row = validation.row;
+  for (var a = 0; a < this.customValidations.length; a++) {
+    var component = this.customValidations[a].component;
+    var row = this.customValidations[a].row;
 
     // Try a new sandboxed validation.
     try {
@@ -562,28 +544,24 @@ Validator.prototype.validate = function(submission, next) {
 
     // If there is an error, then set the error object and break from iterations.
     if (valid !== true) {
-      debug.validator('Error: ' + valid);
       error.push({
         message: valid,
-        path: key,
+        path: component.key,
         type: component.type + '.custom'
       });
     }
-  });
+  }
 
   // If an error has occurred in custom validation, fail immediately.
   debug.validator(error);
   if (error.length > 0) {
     var temp = {name: 'ValidationError', details: error};
-    debug.validator(error);
+    debug.validator('Errors were found.');
     return next(temp);
   }
 
   // Iterate through each of the unique keys.
   var uniques = _.keys(this.unique);
-  if (uniques.length === 0) {
-    return joiValidate();
-  }
 
   // Iterate the list of components one time to build the path map.
   var paths = {};
@@ -650,8 +628,15 @@ Validator.prototype.validate = function(submission, next) {
       return next(err.message);
     }
 
-    joiValidate();
-  });
+    Joi.validate(submission.data, this.schema, {stripUnknown: true}, function(validateErr, value) {
+      if (validateErr) {
+        debug.validator(validateErr);
+        return next(validateErr);
+      }
+
+      next(null, value);
+    });
+  }.bind(this));
 };
 
 module.exports = Validator;
