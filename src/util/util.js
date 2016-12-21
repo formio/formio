@@ -279,10 +279,12 @@ module.exports = {
         compValue.value = '<table border="1" style="width:100%">';
         _.each(value, function(subValue, subKey) {
           var subCompValue = this.renderComponentValue(value, subKey, components);
-          compValue.value += '<tr>';
-          compValue.value += '<th style="text-align:right;padding: 5px 10px;">' + subCompValue.label + '</th>';
-          compValue.value += '<td style="width:100%;padding:5px 10px;">' + subCompValue.value + '</td>';
-          compValue.value += '</tr>';
+          if (typeof subCompValue.value === 'string') {
+            compValue.value += '<tr>';
+            compValue.value += '<th style="text-align:right;padding: 5px 10px;">' + subCompValue.label + '</th>';
+            compValue.value += '<td style="width:100%;padding:5px 10px;">' + subCompValue.value + '</td>';
+            compValue.value += '</tr>';
+          }
         }.bind(this));
         compValue.value += '</table>';
         break;
@@ -305,9 +307,12 @@ module.exports = {
         _.each(value, function(subValue) {
           compValue.value += '<tr>';
           _.each(columns, function(column) {
-            compValue.value += '<td style="padding:5px 10px;">';
-            compValue.value += this.renderComponentValue(subValue, column.key, components).value;
-            compValue.value += '</td>';
+            var subCompValue = this.renderComponentValue(subValue, column.key, components);
+            if (typeof subCompValue.value === 'string') {
+              compValue.value += '<td style="padding:5px 10px;">';
+              compValue.value += subCompValue.value;
+              compValue.value += '</td>';
+            }
           }.bind(this));
           compValue.value += '</tr>';
         }.bind(this));
@@ -344,6 +349,9 @@ module.exports = {
         }
         break;
       default:
+        if (!component.input) {
+          return {value: false};
+        }
         break;
     }
 

@@ -2286,12 +2286,77 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
             var submission = helper.getLastSubmission();
             assert.equal('Text Field must be unique.', submission);
             done();
           });
+      });
+    });
 
+    describe('Unique Fields with multiple', function() {
+      var components = [
+        {
+          "input": true,
+          "tableView": true,
+          "inputType": "text",
+          "inputMask": "",
+          "label": "Text Field",
+          "key": "textField",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "multiple": true,
+          "defaultValue": "",
+          "protected": false,
+          "unique": true,
+          "persistent": true,
+          "validate": {
+            "required": false,
+            "minLength": "",
+            "maxLength": "",
+            "pattern": "",
+            "custom": "",
+            "customPrivate": false
+          },
+          "conditional": {
+            "show": null,
+            "when": null,
+            "eq": ""
+          },
+          "type": "textfield"
+        }
+      ];
+
+      it('Unique Arrays should allow unique submissions', function(done) {
+        helper
+          .form('test', components)
+          .submission({textField: ['Foo', 'Bar']})
+          .submission({textField: ['Bar', 'Baz']})
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert(submission.hasOwnProperty('data'));
+            assert.deepEqual(submission.data, {textField: ['Bar', 'Baz']});
+            done();
+          });
+      });
+
+      it('Unique Arrays check contents not order', function(done) {
+        helper
+          .form('test', components)
+          .submission({textField: ['Bar', 'Foo']})
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(submission, 'Text Field must be unique.');
+            done();
+          });
       });
     });
 
