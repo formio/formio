@@ -33,7 +33,7 @@ var Validator = function(form, model) {
  *   The validation schema to modify.
  * @param {Object} component
  *   The form component.
- * @param {Object}
+ * @param {Object} componentData
  *   The submission data corresponding to this component.
  */
 Validator.prototype.addValidator = function(schema, component, componentData) {
@@ -482,10 +482,12 @@ Validator.prototype.buildSchema = function(submission) {
 /**
  * Validate a submission for a form.
  *
- * @param submission
+ * @param {Object} submission
+ *   The data submission object.
  * @param next
- * @returns {*}
+ *   The callback function to pass the results.
  */
+/* eslint-disable max-statements */
 Validator.prototype.validate = function(submission, next) {
   var valid = true;
   var error = [];
@@ -650,5 +652,6 @@ Validator.prototype.validate = function(submission, next) {
     });
   }.bind(this));
 };
+/* eslint-enable max-statements */
 
 module.exports = Validator;

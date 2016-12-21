@@ -5,7 +5,6 @@ var async = require('async');
 var util = require('../util/util');
 var Validator = require('../resources/Validator');
 var Q = require('q');
-var debug = require('debug')('formio:submissionHandler');
 
 module.exports = function(router, resourceName, resourceId) {
   var hook = require('../util/hook')(router.formio);
