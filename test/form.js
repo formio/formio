@@ -3309,6 +3309,33 @@ module.exports = function(app, template, hook) {
             });
           });
         });
+
+        describe('Multiple errors will return at the same time', function() {
+          before(function(done) {
+            form.components = templates.multipleErrors.text.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.multipleErrors.text.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 2);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'textfield.custom');
+              assert.equal(err.details[1].path, 'bar');
+              assert.equal(err.details[1].type, 'textfield.custom');
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.multipleErrors.text.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.multipleErrors.text.new.pass.data);
+              return done();
+            });
+          });
+        });
       });
     });
 
