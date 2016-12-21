@@ -508,6 +508,8 @@ Validator.prototype.validate = function(submission, next) {
   for (var a = 0; a < this.customValidations.length; a++) {
     var component = this.customValidations[a].component;
     var row = this.customValidations[a].row;
+    debug.validator('Data (' + component.key + '):');
+    debug.validator(row);
 
     // Try a new sandboxed validation.
     try {

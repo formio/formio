@@ -3336,6 +3336,31 @@ module.exports = function(app, template, hook) {
             });
           });
         });
+
+        describe('Datagrids will correctly namespace row data for validation', function() {
+          before(function(done) {
+            form.components = templates.rowData.datagrid.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.rowData.datagrid.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'textfield.custom');
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.rowData.datagrid.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.rowData.datagrid.new.pass.data);
+              return done();
+            });
+          });
+        });
       });
     });
 

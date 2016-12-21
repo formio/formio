@@ -2031,5 +2031,110 @@ module.exports = {
         }
       }
     }
+  },
+  rowData: {
+    datagrid: {
+      new: {
+        components: [
+          {
+            "conditional": {
+              "eq": "",
+              "when": null,
+              "show": ""
+            },
+            "tags": [],
+            "type": "datagrid",
+            "persistent": true,
+            "protected": false,
+            "key": "mydg",
+            "label": "mydg",
+            "tableView": true,
+            "components": [{
+              "hideLabel": true,
+              "isNew": false,
+              "tags": [],
+              "type": "textfield",
+              "conditional": {
+                "eq": "",
+                "when": null,
+                "show": ""
+              },
+              "validate": {
+                "customPrivate": false,
+                "custom": "",
+                "pattern": "",
+                "maxLength": "",
+                "minLength": "",
+                "required": false
+              },
+              "persistent": true,
+              "unique": false,
+              "protected": false,
+              "defaultValue": "",
+              "multiple": false,
+              "suffix": "",
+              "prefix": "",
+              "placeholder": "",
+              "key": "trigger",
+              "label": "trigger",
+              "inputMask": "",
+              "inputType": "text",
+              "tableView": true,
+              "input": true
+            }, {
+              "hideLabel": true,
+              "input": true,
+              "tableView": true,
+              "inputType": "text",
+              "inputMask": "",
+              "label": "foo",
+              "key": "foo",
+              "placeholder": "",
+              "prefix": "",
+              "suffix": "",
+              "multiple": false,
+              "defaultValue": "",
+              "protected": false,
+              "unique": false,
+              "persistent": true,
+              "validate": {
+                "required": false,
+                "minLength": "",
+                "maxLength": "",
+                "pattern": "",
+                "custom": "valid = row.trigger === 'true'",
+                "customPrivate": false
+              },
+              "conditional": {
+                "show": "",
+                "when": null,
+                "eq": ""
+              },
+              "type": "textfield",
+              "tags": [],
+              "lockKey": true
+            }],
+            "tree": true,
+            "input": true
+          }
+        ],
+        fail: {
+          data: {
+            mydg: [
+              {trigger: 'false', foo: 'anything1'},
+              {trigger: 'true', foo: 'anything2'}
+            ]
+          }
+        },
+        pass: {
+          data: {
+            mydg: [
+              {trigger: 'true', foo: 'anything1'},
+              {trigger: 'true', foo: 'anything2'}
+            ]
+          }
+        }
+      }
+    }
   }
 };
