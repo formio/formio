@@ -2611,6 +2611,90 @@ module.exports = function(app, template, hook) {
             });
         });
       });
+      
+      // FOR-272
+      describe('Old layout components without API keys, still submit data for all child components', function() {
+        var form = _.cloneDeep(tempForm);
+        form.title = chance.word();
+        form.name = chance.word();
+        form.path = chance.word();
+        form.components = require('./forms/for272');
+
+        it('Bootstrap', function(done) {
+          // Create the test form
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+              assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+              assert(response.hasOwnProperty('access'), 'The response should contain an the `access`.');
+              assert.equal(response.title, form.title);
+              assert.equal(response.name, form.name);
+              assert.equal(response.path, form.path);
+              assert.equal(response.type, 'form');
+              assert.deepEqual(response.submissionAccess, []);
+              assert.deepEqual(response.components, form.components);
+
+              form = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('Child components will be validated and contain data', function(done) {
+          var submission = {
+            data: {
+              foo: '1',
+              bar: '2'
+            }
+          };
+
+          request(app)
+            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.data, submission.data);
+              done();
+            });
+        });
+
+        it('Form cleanup', function(done) {
+          request(app)
+            .delete(hook.alter('url', '/form/' + form._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response, {});
+              done();
+            });
+        });
+      });
     });
 
     describe('Access Information', function() {
