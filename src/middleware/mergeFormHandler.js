@@ -136,7 +136,7 @@ module.exports = function(router) {
 
         // Update the listKeys with all this components children.
         var children = getComponentsName(component);
-        if (children) {
+        if (!component.input && children) {
           addChildKeysToList(component, listKeys, children);
         }
       };
@@ -314,6 +314,10 @@ module.exports = function(router) {
         debug('skipping - up to date');
         return next();
       }
+
+      // Add our custom form merge header, to display in the ui
+      res.header('Access-Control-Expose-Headers', 'x-jwt-token, x-form-merge');
+      res.header('x-form-merge', JSON.stringify({stable: timeStable, local: timeLocal}));
 
       /**
        * Sweep the components of the stable and local form once on initial processing.
