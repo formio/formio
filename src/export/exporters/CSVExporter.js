@@ -26,8 +26,10 @@ var CSVExporter = function(form, req, res) {
     {label: 'Created'},
     {label: 'Modified'}
   ];
+
+  var ignore = ['password'];
   util.eachComponent(form.components, function(component) {
-    if (component.input) {
+    if (component.input && ignore.indexOf(component.type) === -1) {
       this.fields.push(component);
     }
   }.bind(this));
