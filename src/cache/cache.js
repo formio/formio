@@ -1,6 +1,5 @@
 'use strict';
 
-var _ = require('lodash');
 var debug = {
   form: require('debug')('formio:cache:form'),
   loadForm: require('debug')('formio:cache:loadForm'),
@@ -91,9 +90,9 @@ module.exports = function(router) {
 
         var componentMap = {};
         result = result.toObject();
-        _.each(result.components, function(component) {
+        util.eachComponent(result.components, function(component) {
           componentMap[component.key] = component;
-        });
+        }, true);
         result.componentMap = componentMap;
         this.updateCache(req, cache, result);
         debug.loadForm('Caching result');

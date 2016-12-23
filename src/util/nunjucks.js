@@ -13,7 +13,8 @@ var util = require('./util');
 
 // Configure nunjucks to not watch any files
 var environment = nunjucks.configure([], {
-  watch: false
+  watch: false,
+  autoescape: false
 });
 
 environment.addFilter('is_string', function(obj) {

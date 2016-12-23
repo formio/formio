@@ -31,7 +31,7 @@ var Validator = function(form, model) {
  */
 Validator.prototype.addValidator = function(schema, component) {
   var fieldValidator = null;
-  if (!component) {
+  if (!component || !component.key || this.ignore.hasOwnProperty(component.key)) {
     return;
   }
 
@@ -462,15 +462,6 @@ Validator.prototype.buildSchema = function() {
 
   // Iterate through each component.
   _.each(this.form.components, function(component) {
-    if (!component) {
-      return;
-    }
-
-    // See if we should ignore validation for this component.
-    if (this.ignore.hasOwnProperty(component.key)) {
-      return;
-    }
-
     // Get the validator.
     this.addValidator(keys, component);
   }.bind(this));
@@ -594,20 +585,30 @@ Validator.prototype.validate = function(submission, next) {
     debug.validator('Key: ' + key);
     // Skip validation of this field, because data wasn't included.
     var data = _.get(submission.data, _.get(paths, key));
+    debug.validator(data);
     if (!data) {
       debug.validator('Skipping Key: ' + key);
-      debug.validator(data);
       return done();
     }
     if (_.isEmpty(data)) {
       debug.validator('Skipping Key: ' + key + ', typeof: ' + typeof data);
-      debug.validator(data);
       return done();
     }
 
     // Get the query.
     var query = {form: util.idToBson(submission.form)};
-    query['data.' + _.get(paths, key)] = {$regex: new RegExp('^' + util.escapeRegExp(data) + '$'), $options: 'i'};
+    if (typeof data === 'string') {
+      query['data.' + _.get(paths, key)] = {$regex: new RegExp('^' + util.escapeRegExp(data) + '$'), $options: 'i'};
+    }
+    // FOR-213 - Pluck the unique location id
+    else if (typeof data !== 'string' && data.hasOwnProperty('address_components') && data.hasOwnProperty('place_id')) {
+      var _path = 'data.' + _.get(paths, key) + '.place_id';
+      query[_path] = {$regex: new RegExp('^' + util.escapeRegExp(data.place_id) + '$'), $options: 'i'};
+    }
+    // Compare the contents of arrays vs the order.
+    else if (data instanceof Array) {
+      query['data.' + _.get(paths, key)] = {$all: data};
+    }
 
     // Only search for non-deleted items.
     if (!query.hasOwnProperty('deleted')) {
