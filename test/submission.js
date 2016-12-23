@@ -1482,12 +1482,10 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
             var submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
-
       });
 
       it('Allows a conditionally required field', function(done) {

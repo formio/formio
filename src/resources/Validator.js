@@ -38,7 +38,7 @@ var Validator = function(form, model) {
  */
 Validator.prototype.addValidator = function(schema, component, componentData) {
   var fieldValidator = null;
-  if (!component || !component.key || this.ignore.hasOwnProperty(component.key)) {
+  if (!component || (component.hasOwnProperty('key') && this.ignore.hasOwnProperty(component.key))) {
     return;
   }
 
