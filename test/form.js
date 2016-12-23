@@ -2611,6 +2611,757 @@ module.exports = function(app, template, hook) {
             });
         });
       });
+
+      // FOR-255
+      describe('Custom validation', function() {
+        var templates = require('./forms/customValidation');
+        var form = _.cloneDeep(tempForm);
+        form.title = 'customvalidation';
+        form.name = 'customvalidation';
+        form.path = 'customvalidation';
+        form.components = [];
+        
+        var updatePrimary = function(done) {
+          request(app)
+            .put(hook.alter('url', '/form/' + form._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({components: form.components})
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              form = response;
+              done();
+            });
+        };
+        var attemptSubmission = function(submission, done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                var error = res.text;
+
+                try {
+                  error = JSON.parse(error);
+                }
+                catch (e) {
+                  error = res.text;
+                }
+
+                return done(error);
+              }
+
+              var response = res.body;
+              done(null, response);
+            });
+        };
+
+        describe('Bootstrap custom validation form', function() {
+          it('Create the primary form', function(done) {
+            request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)
+              .expect('Content-Type', /json/)
+              .expect(201)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                form = response;
+                done();
+              });
+          });
+        });
+
+        describe('Text component validation (old)', function() {
+          before(function(done) {
+            form.components = templates.text.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.text.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'textfield.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.text.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.text.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Text component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.text.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.text.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'textfield.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.text.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.text.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Number component validation (old)', function() {
+          before(function(done) {
+            form.components = templates.number.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.number.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'number.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.number.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.number.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Number component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.number.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.number.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'number.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.number.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.number.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Password component validation (old)', function() {
+          before(function(done) {
+            form.components = templates.password.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.password.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'password.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.password.old.pass, function(err, result) {
+              // Special comparison, because passwords are not returned.
+              assert.deepEqual(result.data, {trigger: 'true'});
+              return done();
+            });
+          });
+        });
+
+        describe('Password component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.password.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.password.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'password.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.password.new.pass, function(err, result) {
+              // Special comparison, because passwords are not returned.
+              assert.deepEqual(result.data, {trigger: 'true'});
+              return done();
+            });
+          });
+        });
+
+        describe('Text Area component validation (old)', function() {
+          before(function(done) {
+            form.components = templates.textarea.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.textarea.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'textarea.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.textarea.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.textarea.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Text Area component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.textarea.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.textarea.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'textarea.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.textarea.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.textarea.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Select Boxes component validation (old)', function() {
+          before(function(done) {
+            form.components = templates.selectboxes.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.selectboxes.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'selectboxes.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.selectboxes.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.selectboxes.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Select Boxes component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.selectboxes.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.selectboxes.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'selectboxes.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.selectboxes.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.selectboxes.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Select component validation (old)', function() {
+          before(function(done) {
+            form.components = templates.select.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.select.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'select.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.select.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.select.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Select component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.select.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.select.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'select.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.select.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.select.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Radio component validation (old)', function() {
+          before(function(done) {
+            form.components = templates.radio.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.radio.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'radio.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.radio.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.radio.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Radio component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.radio.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.radio.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'radio.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.radio.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.radio.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Email component validation (old)', function() {
+          before(function(done) {
+            form.components = templates.email.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.email.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'email.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.email.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.email.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Email component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.email.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.email.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'email.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.email.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.email.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Date Time component validation (old)', function() {
+          before(function(done) {
+            form.components = templates.datetime.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.datetime.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'datetime.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.datetime.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.datetime.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Date Time component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.datetime.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.datetime.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'datetime.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.datetime.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.datetime.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Day component validation (old)', function() {
+          before(function(done) {
+            form.components = templates.day.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.day.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'day.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.day.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.day.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Day component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.day.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.day.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'day.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.day.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.day.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Currency component validation (old)', function() {
+          before(function(done) {
+            form.components = templates.currency.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.currency.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'currency.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.currency.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.currency.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Currency component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.currency.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.currency.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'currency.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.currency.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.currency.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Survey component validation (old)', function() {
+          before(function(done) {
+            form.components = templates.survey.old.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.survey.old.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'survey.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.survey.old.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.survey.old.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Survey component validation (new)', function() {
+          before(function(done) {
+            form.components = templates.survey.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.survey.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'survey.custom');
+
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.survey.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.survey.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Multiple errors will return at the same time', function() {
+          before(function(done) {
+            form.components = templates.multipleErrors.text.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.multipleErrors.text.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 2);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'textfield.custom');
+              assert.equal(err.details[1].path, 'bar');
+              assert.equal(err.details[1].type, 'textfield.custom');
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.multipleErrors.text.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.multipleErrors.text.new.pass.data);
+              return done();
+            });
+          });
+        });
+
+        describe('Datagrids will correctly namespace row data for validation', function() {
+          before(function(done) {
+            form.components = templates.rowData.datagrid.new.components;
+            updatePrimary(done);
+          });
+
+          it('Test invalid submission', function(done) {
+            attemptSubmission(templates.rowData.datagrid.new.fail, function(err) {
+              assert.equal(err.name, 'ValidationError');
+              assert(err.details instanceof Array);
+              assert.equal(err.details.length, 1);
+              assert.equal(err.details[0].path, 'foo');
+              assert.equal(err.details[0].type, 'textfield.custom');
+              return done();
+            });
+          });
+
+          it('Test valid submission', function(done) {
+            attemptSubmission(templates.rowData.datagrid.new.pass, function(err, result) {
+              assert.deepEqual(result.data, templates.rowData.datagrid.new.pass.data);
+              return done();
+            });
+          });
+        });
+      });
     });
 
     describe('Access Information', function() {
