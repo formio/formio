@@ -132,7 +132,7 @@ Validator.prototype.addValidator = function(schema, component, componentData) {
         }
 
         _.each(['min', 'max', 'greater', 'less'], function(check) {
-          if (component.validate[check] && (typeof component.validate[check] === 'number')) {
+          if (component.validate.hasOwnProperty(check) && (typeof component.validate[check] === 'number')) {
             fieldValidator = fieldValidator[check](component.validate[check]);
           }
         });
