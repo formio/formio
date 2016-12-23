@@ -527,7 +527,7 @@ Validator.prototype.validate = function(submission, next) {
         // Replace with variable substitutions.
         var replace = /({{\s{0,}(.*[^\s]){1}\s{0,}}})/g;
         component.validate.custom = component.validate.custom.replace(replace, function(match, $1, $2) {
-          return 'data.' + $2;
+          return _.get(submission.data, $2);
         });
         debug.validator(component.validate.custom);
 
