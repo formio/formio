@@ -45,8 +45,11 @@ var CSVExporter = function(form, req, res) {
       }
       else if (component.type === 'selectboxes') {
         _.each(component.values, function(option) {
-          items.push({path: option.label});
+          items.push({path: option.label, type: 'boolean'});
         });
+      }
+      else if (component.type === 'checkbox') {
+        items.push({type: 'boolean'});
       }
       else {
         // Default to the current component item.
@@ -60,6 +63,10 @@ var CSVExporter = function(form, req, res) {
 
         if (item.hasOwnProperty('rename')) {
           finalItem.rename = (_.filter([path, item.rename])).join('.')
+        }
+
+        if (item.hasOwnProperty('type')) {
+          finalItem.type = item.type;
         }
 
         this.fields.push(finalItem);
@@ -120,6 +127,9 @@ CSVExporter.prototype.stream = function(stream) {
       var temp = _.get(row.data, item.path, '');
       if (temp instanceof Array && temp.length === 0) {
         temp = '';
+      }
+      else if (item.type === 'boolean') {
+        temp = Boolean(temp).toString();
       }
 
       data.push(temp);
