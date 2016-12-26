@@ -117,7 +117,12 @@ CSVExporter.prototype.stream = function(stream) {
     ];
 
     self.fields.forEach(function(item) {
-      data.push(_.get(row.data, item.path));
+      var temp = _.get(row.data, item.path, '');
+      if (temp instanceof Array && temp.length === 0) {
+        temp = '';
+      }
+
+      data.push(temp);
     });
 
     this.queue(data);
