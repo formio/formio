@@ -43,6 +43,11 @@ var CSVExporter = function(form, req, res) {
           rename: 'lng'
         });
       }
+      else if (component.type === 'selectboxes') {
+        _.each(component.values, function(option) {
+          items.push({path: option.label});
+        });
+      }
       else {
         // Default to the current component item.
         items.push({});
