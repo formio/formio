@@ -23,7 +23,7 @@ var CSVExporter = function(form, req, res) {
   });
   this.fields = [];
 
-  var ignore = ['password', 'button'];
+  var ignore = ['password', 'button', 'container'];
   util.eachComponent(form.components, function(component, path) {
     if (component.input && component.key && ignore.indexOf(component.type) === -1) {
       var items = [];
@@ -50,6 +50,11 @@ var CSVExporter = function(form, req, res) {
       }
       else if (component.type === 'checkbox') {
         items.push({type: 'boolean'});
+      }
+      else if (component.type === 'survey') {
+        _.each(component.questions, function(question) {
+          items.push({path: question.value});
+        });
       }
       else {
         // Default to the current component item.
