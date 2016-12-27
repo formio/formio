@@ -101,7 +101,11 @@ module.exports = function(formio) {
         changed = true;
       }
 
-      if ((component.type === 'select') && (component.dataSrc === 'resource') && assignResource(template, component.data)) {
+      if (
+        (component.type === 'select') &&
+        (component.dataSrc === 'resource') &&
+        assignResource(template, component.data)
+      ) {
         hook.alter('importComponent', template, components, component.data);
         changed = true;
       }
