@@ -182,10 +182,12 @@ module.exports = function(router, resourceName, resourceId) {
 
       // Assign submission data to the request body.
       req.submission = req.submission || {data: {}};
-      req.body.data = _.assign(req.body.data, req.submission.data);
+      if (!_.isEmpty(req.submission.data)) {
+        req.body.data = _.assign(req.body.data, req.submission.data);
+      }
 
       // Clone the submission to the real value of the request body.
-      req.submission = _.clone(req.body, true);
+      req.submission = _.cloneDeep(req.body);
 
       // Next we need to validate the input.
       var validator = new Validator(req.currentForm, router.formio.resources.submission.model);

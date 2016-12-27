@@ -51,7 +51,7 @@ describe('Bootstrap Test modules', function() {
   });
 
   it('Should be able to bootstrap the default template', function(done) {
-    comparison = _.clone(template, true);
+    comparison = _.cloneDeep(template);
 
     var importer = require('../src/templates/import')(app.formio);
     importer.template(template, function(err) {

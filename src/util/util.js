@@ -91,7 +91,7 @@ module.exports = {
     delete req.formioCache;
 
     // Clone the request.
-    var childReq = _.clone(req, true);
+    var childReq = _.cloneDeep(req);
 
     // Add the parameters back.
     childReq.formioCache = cache;
@@ -456,7 +456,7 @@ module.exports = {
     debug.getUrlParams(parsed);
 
     // Remove element originating from first slash.
-    parts = _.rest(parts);
+    parts = _.tail(parts);
 
     // Url is not symmetric, add an empty value for the last key.
     if ((parts.length % 2) !== 0) {

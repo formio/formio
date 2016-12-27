@@ -24,7 +24,7 @@ module.exports = function(router) {
     var condensed = {};
 
     // Create permissions map for permissions with a type and resources.
-    _.forEach(req.body.access, function(permission) {
+    _.each(req.body.access, function(permission) {
       if (
         _.has(permission, 'type')
         && _.includes(['read', 'write', 'admin'], permission.type)
@@ -35,14 +35,14 @@ module.exports = function(router) {
         condensed[permission.type] = condensed[permission.type] || [];
 
         // Add the roles to the specific type.
-        _.forEach(permission.resources, function(id) {
+        _.each(permission.resources, function(id) {
           condensed[permission.type].push(router.formio.util.idToString(id));
         });
       }
     });
 
     // Translate permissions map to permissions object.
-    _.forEach(Object.keys(condensed), function(key) {
+    _.each(Object.keys(condensed), function(key) {
       final.push({
         type: key,
         resources: _(condensed[key])
