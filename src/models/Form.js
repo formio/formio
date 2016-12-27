@@ -133,37 +133,36 @@ module.exports = function(formio) {
     });
   }, 'The Path must be unique per Project.');
 
-  // Validate component keys are unique
-  model.schema.path('components').validate(function(components, valid) {
+  var componentKeys = function(components) {
     var keys = [];
     util.eachComponent(components, function(component) {
-      keys.push(component.key);
+      if (!_.isUndefined(component.key)) {
+        keys.push(component.key);
+      }
     }, true);
+    return _(keys);
+  };
 
+  // Validate component keys are unique
+  model.schema.path('components').validate(function(components, valid) {
+    var keys = componentKeys(components);
     var msg = 'Component keys must be unique: ';
-    var uniq = _.unique(keys);
-    var diff = _.filter(keys, function(value, index, collection) {
+    var uniq = keys.uniq();
+    var diff = keys.filter(function(value, index, collection) {
       return _.includes(collection, value, index + 1);
     });
 
-    if (_.isEqual(keys, uniq)) {
+    if (_.isEqual(keys.value(), uniq.value())) {
       return valid(true);
     }
 
-    return valid(false, (msg + (diff).join(', ')));
+    return valid(false, (msg + diff.value().join(', ')));
   });
 
   // Validate component keys have valid characters
   model.schema.path('components').validate(function(components) {
     var validRegex = /^[A-Za-z]+[A-Za-z0-9\-.]*$/g;
-    var keys = [];
-    util.eachComponent(components, function(component) {
-      keys.push(component.key);
-    }, true);
-
-    return _(keys).filter(function(key) {
-      return !_.isUndefined(key);
-    }).all(function(key) {
+    return componentKeys(components).every(function(key) {
       return key.match(validRegex);
     });
   }, 'A component on this form has an invalid or missing API key. Keys must only contain alphanumeric characters or '

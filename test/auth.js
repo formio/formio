@@ -1245,7 +1245,7 @@ module.exports = function(app, template, hook) {
           }
 
           var response = res.body;
-          var types = _.pluck(response.submissionAccess, 'type');
+          var types = _.map(response.submissionAccess, 'type');
           assert.equal(response.submissionAccess.length, 2);
           assert(types.indexOf('read_own') !== -1);
           assert(types.indexOf('self') !== -1);
@@ -1341,7 +1341,7 @@ module.exports = function(app, template, hook) {
           }
 
           var response = res.body;
-          var types = _.pluck(response.submissionAccess, 'type');
+          var types = _.map(response.submissionAccess, 'type');
           assert.equal(response.submissionAccess.length, 2);
           assert(types.indexOf('update_own') !== -1);
           assert(types.indexOf('self') !== -1);
@@ -1423,7 +1423,7 @@ module.exports = function(app, template, hook) {
           }
 
           var response = res.body;
-          var types = _.pluck(response.submissionAccess, 'type');
+          var types = _.map(response.submissionAccess, 'type');
           assert.equal(response.submissionAccess.length, 2);
           assert(types.indexOf('delete_own') !== -1);
           assert(types.indexOf('self') !== -1);

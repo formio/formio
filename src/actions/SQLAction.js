@@ -161,7 +161,7 @@ module.exports = function(router) {
         // Create the query based on callbacks.
         var query = this.settings.query.replace(/{{\s+([^}]+)\s+}}/g, function() {
           var value = '';
-          var data = _.clone(submission);
+          var data = _.cloneDeep(submission);
 
           // Replace {{ id }} with the external ID.
           if (arguments[1] === 'id') {

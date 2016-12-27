@@ -81,7 +81,7 @@ module.exports = function(router) {
           // Create the query stream.
           var stream = router.formio.resources.submission.model.find(query)
             .snapshot()
-            .stream()
+            .cursor({batchSize: 1000})
             .pipe(through(function(doc) {
               var row = doc.toObject({getters: true, virtuals: false});
 

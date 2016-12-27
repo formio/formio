@@ -139,6 +139,17 @@ module.exports = function(formio) {
               component.resource = _map.forms[component.resource];
             }
 
+            if (
+              (component.type === 'select') &&
+              (component.dataSrc === 'resource') &&
+              (component.data) &&
+              (component.data.resource) &&
+              (_map.forms && _map.forms.hasOwnProperty(component.data.resource))
+            ) {
+              component.data.project = 'project';
+              component.data.resource = _map.forms[component.data.resource];
+            }
+
             // Allow hooks to alter fields.
             hook.alter('exportComponent', _export, _map, options, component);
           });

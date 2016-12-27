@@ -5,6 +5,7 @@ var express = require('express');
 var cors = require('cors');
 var router = express.Router();
 var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
 var _ = require('lodash');
