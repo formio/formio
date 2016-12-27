@@ -67,7 +67,7 @@ var CSVExporter = function(form, req, res) {
         };
 
         if (item.hasOwnProperty('rename')) {
-          finalItem.rename = (_.filter([path, item.rename])).join('.')
+          finalItem.rename = (_.filter([path, item.rename])).join('.');
         }
 
         if (item.hasOwnProperty('type')) {
@@ -75,7 +75,7 @@ var CSVExporter = function(form, req, res) {
         }
 
         this.fields.push(finalItem);
-      }.bind(this))
+      }.bind(this));
     }
   }.bind(this));
 };
