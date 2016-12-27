@@ -311,7 +311,7 @@ module.exports = function(router) {
 
       // update the list of formIds
       formIds = _(ids)
-        .pluck('_id')
+        .map('_id')
         .map(util.idToString)
         .value();
 

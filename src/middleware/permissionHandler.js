@@ -64,12 +64,12 @@ module.exports = function(router) {
 
       // Convert the simplex read/write/admin rules into *_all permissions.
       if (permission.type === 'read') {
-        _.forEach(permission.resources, function(id) {
+        _.each(permission.resources, function(id) {
           access.submission.read_all.push(id);
         });
       }
       else if (permission.type === 'write') {
-        _.forEach(permission.resources, function(id) {
+        _.each(permission.resources, function(id) {
           access.submission.read_all.push(id);
           access.submission.update_all.push(id);
 
@@ -79,7 +79,7 @@ module.exports = function(router) {
         });
       }
       else if (permission.type === 'admin') {
-        _.forEach(permission.resources, function(id) {
+        _.each(permission.resources, function(id) {
           access.submission.read_all.push(id);
           access.submission.update_all.push(id);
           access.submission.delete_all.push(id);
@@ -582,7 +582,7 @@ module.exports = function(router) {
     // Check for whitelisted paths.
     if (req.method === 'GET') {
       var whitelist = ['/health', '/current', '/logout', '/access'];
-      var skip = _.any(whitelist, function(path) {
+      var skip = _.some(whitelist, function(path) {
         if ((req.url === path) || (req.url === hook.alter('path', path, req))) {
           return true;
         }

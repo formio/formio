@@ -53,7 +53,7 @@ CSVExporter.prototype.start = function(deferred) {
     /* eslint-enable no-cond-assign */
     deferred.resolve();
   }.bind(this));
-  this.stringifier.write(_.pluck(this.fields, 'label'));
+  this.stringifier.write(_.map(this.fields, 'label'));
 };
 
 /**
