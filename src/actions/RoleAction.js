@@ -161,7 +161,7 @@ module.exports = function(router) {
         'form component named `role`'
       );
     }
-    if (this.settings.association === 'existing' && !req.submission.data.submission) {
+    if (this.settings.association === 'existing' && !(req.submission.data.submission || res.resource.item)) {
       return next(
         'Missing submission for RoleAction association of `existing`. Form must have a resource field named ' +
         '`submission`.'
@@ -195,7 +195,7 @@ module.exports = function(router) {
     var resource = {};
     var role = {};
     if (this.settings.association === 'existing') {
-      resource = req.submission.data.submission;
+      resource = req.submission.data.submission || res.resource.item;
       role = this.settings.role
         ? this.settings.role
         : req.submission.data.role;
