@@ -1921,7 +1921,14 @@ module.exports = function(app, template, hook) {
             .expect('Content-Type', /json/)
             .expect(400)
             .end(function(err, res) {
-              assert(err);
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.equal(_.get(response, 'name'), 'ValidationError');
+              assert.equal(response.details.length, 1);
+              assert.equal(_.get(response, 'details[0].message'), '"number" must be larger than or equal to 0');
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
@@ -1938,10 +1945,12 @@ module.exports = function(app, template, hook) {
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function(err, res) {
-              assert(!err);
+              if (err) {
+                return done(err);
+              }
 
               var response = res.body;
-              assert.deepEqual(response.data, for278.pass);
+              assert.deepEqual(response.data, for278.pass.data);
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
