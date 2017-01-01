@@ -21,14 +21,61 @@ var CSVExporter = function(form, req, res) {
     delimiter: ',',
     quoted: true
   });
-  this.fields = [
-    {label: 'ID'},
-    {label: 'Created'},
-    {label: 'Modified'}
-  ];
-  util.eachComponent(form.components, function(component) {
-    if (component.input) {
-      this.fields.push(component);
+  this.fields = [];
+
+  var ignore = ['password', 'button', 'container'];
+  util.eachComponent(form.components, function(component, path) {
+    if (component.input && component.key && ignore.indexOf(component.type) === -1) {
+      var items = [];
+
+      // If a component has multiple parts, pick what we want.
+      if (component.type === 'address') {
+        items.push({
+          path: 'formatted_address',
+          rename: 'formatted'
+        });
+        items.push({
+          path: 'geometry.location.lat',
+          rename: 'lat'
+        });
+        items.push({
+          path: 'geometry.location.lng',
+          rename: 'lng'
+        });
+      }
+      else if (component.type === 'selectboxes') {
+        _.each(component.values, function(option) {
+          items.push({path: option.label, type: 'boolean'});
+        });
+      }
+      else if (component.type === 'checkbox') {
+        items.push({type: 'boolean'});
+      }
+      else if (component.type === 'survey') {
+        _.each(component.questions, function(question) {
+          items.push({path: question.value});
+        });
+      }
+      else {
+        // Default to the current component item.
+        items.push({});
+      }
+
+      items.forEach(function(item) {
+        var finalItem = {
+          path: (_.filter([path, item.path])).join('.')
+        };
+
+        if (item.hasOwnProperty('rename')) {
+          finalItem.rename = (_.filter([path, item.rename])).join('.');
+        }
+
+        if (item.hasOwnProperty('type')) {
+          finalItem.type = item.type;
+        }
+
+        this.fields.push(finalItem);
+      }.bind(this));
     }
   }.bind(this));
 };
@@ -43,17 +90,27 @@ CSVExporter.prototype.constructor = CSVExporter;
  */
 CSVExporter.prototype.start = function(deferred) {
   var row = null;
-
   this.stringifier.on('readable', function() {
     /* eslint-disable no-cond-assign */
     while (row = this.stringifier.read()) {
       this.res.write(row.toString());
     }
-
     /* eslint-enable no-cond-assign */
+
     deferred.resolve();
   }.bind(this));
-  this.stringifier.write(_.map(this.fields, 'label'));
+
+  var labels = ['ID', 'Created', 'Modified'];
+  this.fields.forEach(function(item) {
+    if (item.hasOwnProperty('rename')) {
+      labels.push(item.rename);
+      return;
+    }
+
+    labels.push(item.path);
+  });
+
+  this.stringifier.write(labels);
 };
 
 /**
@@ -65,22 +122,22 @@ CSVExporter.prototype.start = function(deferred) {
 CSVExporter.prototype.stream = function(stream) {
   var self = this;
   var write = function(row) {
-    var data = [];
-    data.push(row._id.toString());
-    data.push(row.created.toISOString());
-    data.push(row.modified.toISOString());
-    _.each(self.fields, function(field) {
-      if (!field.key) {
-        return;
+    var data = [
+      row._id.toString(),
+      row.created.toISOString(),
+      row.modified.toISOString()
+    ];
+
+    self.fields.forEach(function(item) {
+      var temp = _.get(row.data, item.path, '');
+      if (temp instanceof Array && temp.length === 0) {
+        temp = '';
+      }
+      else if (item.type === 'boolean') {
+        temp = Boolean(temp).toString();
       }
 
-      // Nested fields are in the data property of their parent
-      var value = _.property(util.getSubmissionKey(field.key))(row.data);
-      if (value && value.url) {
-        // Use the resource URL instead of the whole object
-        value = value.url;
-      }
-      data.push(value);
+      data.push(temp);
     });
 
     this.queue(data);
