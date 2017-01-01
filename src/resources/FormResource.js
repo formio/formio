@@ -68,6 +68,17 @@ module.exports = function(router) {
       router.formio.middleware.bootstrapFormAccess,
       router.formio.middleware.formActionHandler('after'),
       router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'machineName'])
-    ]
+    ],
+    hooks: {
+      put: {
+        before: function(req, res, item, next) {
+          if (item.components) {
+            item.markModified('components');
+          }
+
+          return next();
+        }
+      }
+    }
   }));
 };

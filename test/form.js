@@ -1831,6 +1831,135 @@ module.exports = function(app, template, hook) {
         });
       });
 
+      // FOR-278
+      describe('Adding a min value to an existing component will persist the changes', function() {
+        var for278 = require('./forms/for278');
+        var form = _.cloneDeep(tempForm);
+        form.title = chance.word();
+        form.name = chance.word();
+        form.path = chance.word();
+        form.components = for278.initial;
+
+        it('Bootstrap', function(done) {
+          // Create the test form
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              form = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('Changing a number components min value', function(done) {
+          form.components = for278.update;
+
+          request(app)
+            .put(hook.alter('url', '/form/' + form._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.components, form.components);
+              form = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('Min value changes will persist for 0', function(done) {
+          form.components = for278.update;
+
+          request(app)
+            .get(hook.alter('url', '/form/' + form._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.equal(response.components.length, 1);
+              assert(response.components[0].validate.min === for278.update[0].validate.min);
+              form = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('Test invalid submission', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(for278.fail)
+            .expect('Content-Type', /json/)
+            .expect(400)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.equal(_.get(response, 'name'), 'ValidationError');
+              assert.equal(response.details.length, 1);
+              assert.equal(_.get(response, 'details[0].message'), '"number" must be larger than or equal to 0');
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('Test valid submission', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(for278.pass)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.data, for278.pass.data);
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+      });
+
       // FOR-128
       describe('Duplicate form component keys', function() {
         var form = _.cloneDeep(tempForm);
