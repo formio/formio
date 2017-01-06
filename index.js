@@ -13,7 +13,7 @@ var events = require('events');
 var Q = require('q');
 var nunjucks = require('nunjucks');
 var util = require('./src/util/util');
-var highAvailability = process.env.HIG_AVAILABILITY;
+var mongoHighAvailability = process.env.MONGO_HIGH_AVAILABILITY;
 // Keep track of the formio interface.
 router.formio = {};
 
@@ -140,7 +140,7 @@ module.exports = function(config) {
       router.formio.mongoose = mongoose;
 
       // See if our mongo configuration is a string.
-      if (highAvailability) {
+      if (mongoHighAvailability) {
         // Connect to multiple mongo instance replica sets with High availability.
         mongoose.connect(config.mongo, {mongos: true});
       }
