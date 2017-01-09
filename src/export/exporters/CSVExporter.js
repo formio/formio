@@ -45,7 +45,7 @@ var CSVExporter = function(form, req, res) {
       }
       else if (component.type === 'selectboxes') {
         _.each(component.values, function(option) {
-          items.push({path: option.label, type: 'boolean'});
+          items.push({path: option.value, type: 'boolean'});
         });
       }
       else if (component.type === 'checkbox') {
