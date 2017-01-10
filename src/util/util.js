@@ -350,8 +350,8 @@ module.exports = {
       case 'selectboxes':
         var values = component.values;
         var selectedValues = [];
-        for (var i in values) {
-          var subCompValue = values[i];
+        for (var j in values) {
+          var subCompValue = values[j];
           if (value[subCompValue.value]) {
             selectedValues.push(subCompValue.label);
           }
