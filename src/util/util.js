@@ -332,7 +332,6 @@ module.exports = {
         break;
       case 'radio':
       case 'select':
-      case 'selectboxes':
         var values = [];
         if (component.hasOwnProperty('values')) {
           values = component.values;
@@ -347,6 +346,17 @@ module.exports = {
             break;
           }
         }
+        break;
+      case 'selectboxes':
+        var values = component.values;
+        var selectedValues = [];
+        for (var i in values) {
+          var subCompValue = values[i];
+          if (value[subCompValue.value]) {
+            selectedValues.push(subCompValue.label);
+          }
+        }
+        compValue.value = selectedValues.join(',');
         break;
       default:
         if (!component.input) {
