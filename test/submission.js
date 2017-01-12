@@ -1304,10 +1304,6 @@ module.exports = function(app, template, hook) {
       });
     });
 
-    describe('Test various field validations like min, max, regex, etc', function() {
-
-    });
-
     describe('Conditional Fields', function() {
       it('Requires a conditionally visible field', function(done) {
         var components = [
