@@ -138,6 +138,9 @@ Validator.prototype.addValidator = function(schema, component, componentData) {
         });
       }
       break;
+    case 'signature':
+      fieldValidator = Joi.string().empty('');
+      break;
     default:
       // Allow custom components to have subcomponents as well (like layout components).
       if (component.components && Array.isArray(component.components)) {
