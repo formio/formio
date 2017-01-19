@@ -1831,6 +1831,106 @@ module.exports = function(app, template, hook) {
         });
       });
 
+      // FOR-290
+      describe('Number Component - Decimal values will not be truncated when step=any', function() {
+        var form = _.cloneDeep(tempForm);
+        form.title = chance.word();
+        form.name = chance.word();
+        form.path = chance.word();
+        form.components = [
+          {
+            "input": true,
+            "tableView": true,
+            "inputType": "number",
+            "label": "test",
+            "key": "test",
+            "placeholder": "",
+            "prefix": "",
+            "suffix": "",
+            "defaultValue": "",
+            "protected": false,
+            "persistent": true,
+            "validate": {
+              "required": false,
+              "min": "",
+              "max": "",
+              "step": "any",
+              "integer": "",
+              "multiple": "",
+              "custom": ""
+            },
+            "type": "number",
+            "tags": [],
+            "conditional": {
+              "show": "",
+              "when": null,
+              "eq": ""
+            }
+          }
+        ];
+
+        it('Bootstrap', function(done) {
+          // Create the test form
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              form = response;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+
+        it('Decimal values will correctly persist without validation issues with the default step', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                test: 1.23
+              }
+            })
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response.data, {test: 1.23});
+              done();
+            });
+        });
+
+        it('Form cleanup', function(done) {
+          request(app)
+            .delete(hook.alter('url', '/form/' + form._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response, {});
+              done();
+            });
+        });
+      });
+
       // FOR-278
       describe('Adding a min value to an existing component will persist the changes', function() {
         var for278 = require('./forms/for278');

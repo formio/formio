@@ -121,7 +121,7 @@ Validator.prototype.addValidator = function(schema, component, componentData) {
       fieldValidator = Joi.number().empty(null);
       if (component.validate) {
         // If the step is provided... we can infer float vs. integer.
-        if (component.validate.step && (typeof component.validate.step !== 'any')) {
+        if (component.validate.step && (component.validate.step !== 'any')) {
           var parts = component.validate.step.split('.');
           if (parts.length === 1) {
             fieldValidator = fieldValidator.integer();
