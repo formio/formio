@@ -47,6 +47,43 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('Saves values with required signature', function(done) {
+        var test = require('./forms/singlecomponents3.js');
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(test.submission, submission.data);
+            done();
+          });
+      });
+
+      it('Gives an error with an empty signature.', function(done) {
+        var test = require('./forms/singlecomponents3.js');
+        test.submission.signature2 = '';
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(submission.name, 'ValidationError');
+            assert.equal(submission.details.length, 1);
+            assert.equal(submission.details[0].message, '"signature2" is not allowed to be empty');
+            assert.equal(submission.details[0].path, 'signature2');
+            assert.equal(submission.details[0].type, 'any.empty');
+            done();
+          });
+      });
+
       it('Throws away extra values', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var values = Object.assign({}, test.submission, {

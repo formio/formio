@@ -124,7 +124,6 @@ module.exports = {
    * @param {Boolean} includeAll
    *   Whether or not to include layout components.
    * @param {String} path
-   *   @TODO
    */
   eachComponent: formioUtils.eachComponent,
 
@@ -332,7 +331,6 @@ module.exports = {
         break;
       case 'radio':
       case 'select':
-      case 'selectboxes':
         var values = [];
         if (component.hasOwnProperty('values')) {
           values = component.values;
@@ -347,6 +345,16 @@ module.exports = {
             break;
           }
         }
+        break;
+      case 'selectboxes':
+        var selectedValues = [];
+        for (var j in component.values) {
+          var selectBoxValue = component.values[j];
+          if (value[selectBoxValue.value]) {
+            selectedValues.push(selectBoxValue.label);
+          }
+        }
+        compValue.value = selectedValues.join(',');
         break;
       default:
         if (!component.input) {
