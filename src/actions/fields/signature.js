@@ -27,10 +27,10 @@ module.exports = function(formio) {
       }
       else if (value.toLowerCase() === 'no') {
         _.set(req.body, 'data.' + path, '');
-        next();
+        return next();
       }
       else {
-        next();
+        return next();
       }
     }
   };
