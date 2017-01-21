@@ -14,7 +14,7 @@ module.exports = function(formio) {
       var value = _.get(req.body, 'data.' + path);
       if (
         (typeof value !== 'string') ||
-        ((value !== '') && (value.indexOf('data:') === -1))
+        ((value !== '') && (value.substr(0, 5) !== 'data:'))
       ) {
         formio.cache.loadCurrentSubmission(req, function cacheResults(err, submission) {
           if (err) {
