@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 var request = require('supertest');
 var assert = require('assert');
+var _ = require('lodash');
 var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
@@ -48,7 +49,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Saves values with required signature', function(done) {
-        var test = require('./forms/singlecomponents3.js');
+        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -59,12 +60,32 @@ module.exports = function(app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
-            done();
+
+            // Try updating the signature with YES.
+            var updateSub = _.cloneDeep(submission);
+            updateSub.data.signature2 = 'YES';
+            helper.updateSubmission(updateSub, function(err, updated) {
+              // Ensure that it does not erase the signature.
+              assert.deepEqual(test.submission, updated.data);
+
+              // Try updating the signature with NO.
+              updateSub = _.cloneDeep(updated);
+              updateSub.data.signature2 = 'NO';
+              helper.updateSubmission(updateSub, function(err, updated) {
+                // It should fail validation.
+                assert.equal(updated.name, 'ValidationError');
+                assert.equal(updated.details.length, 1);
+                assert.equal(updated.details[0].message, '"signature2" is not allowed to be empty');
+                assert.equal(updated.details[0].path, 'signature2');
+                assert.equal(updated.details[0].type, 'any.empty');
+                done();
+              });
+            });
           });
       });
 
       it('Gives an error with an empty signature.', function(done) {
-        var test = require('./forms/singlecomponents3.js');
+        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
         test.submission.signature2 = '';
         helper
           .form('test', test.components)
@@ -80,6 +101,27 @@ module.exports = function(app, template, hook) {
             assert.equal(submission.details[0].message, '"signature2" is not allowed to be empty');
             assert.equal(submission.details[0].path, 'signature2');
             assert.equal(submission.details[0].type, 'any.empty');
+            done();
+          });
+      });
+
+      it('Gives an error with a signature not present.', function(done) {
+        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        delete test.submission.signature2;
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(submission.name, 'ValidationError');
+            assert.equal(submission.details.length, 1);
+            assert.equal(submission.details[0].message, '"signature2" is required');
+            assert.equal(submission.details[0].path, 'signature2');
+            assert.equal(submission.details[0].type, 'any.required');
             done();
           });
       });

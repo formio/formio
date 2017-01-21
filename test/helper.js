@@ -317,6 +317,33 @@ module.exports = function(app) {
     return this;
   };
 
+  Helper.prototype.updateSubmission = function(submission, done) {
+    var url = '';
+    if (this.template.project && this.template.project._id) {
+      url += '/project/' + this.template.project._id;
+    }
+    url += '/form/' + submission.form + '/submission/' + submission._id;
+    request(app)
+      .put(url)
+      .send(submission)
+      .set('x-jwt-token', this.owner.token)
+      .expect('Content-Type', /json/)
+      .end(function(err, res) {
+        if (err) {
+          return done(err);
+        }
+
+        this.owner.token = res.headers['x-jwt-token'];
+        this.lastSubmission = res.body;
+        _.each(this.template.submissions, function(sub, form) {
+          if (sub._id === submission._id) {
+            this.template.submissions[form] = res.body;
+          }
+        }.bind(this));
+        done(null, res.body);
+      }.bind(this));
+  };
+
   Helper.prototype.createSubmission = function(form, data, done) {
     if (typeof form === 'object') {
       data = form;
