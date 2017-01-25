@@ -7,7 +7,10 @@ var pjson = require('../../package.json');
 var semver = require('semver');
 var debug = {
   template: require('debug')('formio:template:template'),
+  items: require('debug')('formio:template:items'),
   _install: require('debug')('formio:template:_install'),
+  translateSchema: require('debug')('formio:template:translateSchema'),
+  final: require('debug')('formio:template:final'),
   postResourceInstall: require('debug')('formio:template:postResourceInstall')
 };
 
@@ -186,6 +189,8 @@ module.exports = function(formio) {
         done = alter;
         alter = null;
       }
+
+      debug.items(items);
       alter = alter || _alter;
       async.forEachOfSeries(items, function(item, name, itemDone) {
         var document = _parse ? _parse(template, item) : item;
@@ -229,12 +234,11 @@ module.exports = function(formio) {
         if (err) {
           return done(err);
         }
-        else if (_postInstall) {
-          _postInstall(model, template, items, done);
+        if (_postInstall) {
+          return _postInstall(model, template, items, done);
         }
-        else {
-          done();
-        }
+
+        done();
       });
     };
   };
@@ -246,7 +250,11 @@ module.exports = function(formio) {
    */
   var translateSchema = function(template, done) {
     // Skip if the template has a correct version.
+    debug.translateSchema('template.version: ', template.version);
+    debug.translateSchema('pjson.templateVersion: ', pjson.templateVersion);
     if (template.version && !semver.gt(pjson.templateVersion, template.version)) {
+      debug.translateSchema('Skipping');
+      debug.translateSchema(template);
       return done();
     }
 
@@ -292,63 +300,65 @@ module.exports = function(formio) {
     _.each(_.pick(template.actions, name('auth')), function(authAction, key) {
       delete template.actions[key];
       var userparts = authAction.settings.username.split('.');
-      if (userparts.length > 1) {
-        var resource = userparts[0];
-        var username = userparts[1];
-        var password = authAction.settings.password.split('.')[1];
+      if (userparts.length <= 1) {
+        return;
+      }
 
-        // Add the Resource action for new associations.
-        if (authAction.settings.association === 'new') {
-          // Ensure that the underlying resource has a role assignment action.
-          var roleAction = _.find(template.actions, {name: 'role', form: resource});
-          if (!roleAction) {
-            template.actions[resource + 'Role'] = {
-              title: 'Role Assignment',
-              name: 'role',
-              'priority': 1,
-              'handler': ['after'],
-              'method': ['create'],
-              'form': resource,
-              'settings': {
-                'association': 'new',
-                'type': 'add',
-                'role': authAction.settings.role
-              }
-            };
-          }
+      var resource = userparts[0];
+      var username = userparts[1];
+      var password = authAction.settings.password.split('.')[1];
 
-          var fields = {};
-          fields[username] = username;
-          fields[password] = password;
-          template.actions[key + 'SaveResource'] = {
-            title: 'Save Submission',
-            name: 'save',
-            form: authAction.form,
-            handler: ['before'],
-            method: ['create', 'update'],
-            priority: 11,
-            settings: {
-              resource: resource,
-              fields: fields
+      // Add the Resource action for new associations.
+      if (authAction.settings.association === 'new') {
+        // Ensure that the underlying resource has a role assignment action.
+        var roleAction = _.find(template.actions, {name: 'role', form: resource});
+        if (!roleAction) {
+          template.actions[resource + 'Role'] = {
+            title: 'Role Assignment',
+            name: 'role',
+            'priority': 1,
+            'handler': ['after'],
+            'method': ['create'],
+            'form': resource,
+            'settings': {
+              'association': 'new',
+              'type': 'add',
+              'role': authAction.settings.role
             }
           };
         }
 
-        // Add the login action.
-        template.actions[key + 'Login'] = {
-          title: 'Login',
-          name: 'login',
+        var fields = {};
+        fields[username] = username;
+        fields[password] = password;
+        template.actions[key + 'SaveResource'] = {
+          title: 'Save Submission',
+          name: 'save',
           form: authAction.form,
           handler: ['before'],
-          method: ['create'],
-          priority: 2,
+          method: ['create', 'update'],
+          priority: 11,
           settings: {
-            resources: [resource],
-            username: username,
-            password: password
+            resource: resource,
+            fields: fields
           }
         };
       }
+
+      // Add the login action.
+      template.actions[key + 'Login'] = {
+        title: 'Login',
+        name: 'login',
+        form: authAction.form,
+        handler: ['before'],
+        method: ['create'],
+        priority: 2,
+        settings: {
+          resources: [resource],
+          username: username,
+          password: password
+        }
+      };
     });
 
     // Remove all nosubmit actions.
@@ -415,6 +425,7 @@ module.exports = function(formio) {
         return done('No template provided.');
       }
 
+      debug.items(JSON.stringify(template));
       async.series([
         async.apply(translateSchema, template),
         async.apply(this.roles, template, template.roles, alter.role),
@@ -428,6 +439,7 @@ module.exports = function(formio) {
           return done(err);
         }
 
+        debug.final(template);
         done(null, template);
       });
     }
