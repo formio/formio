@@ -162,7 +162,7 @@ module.exports = function(formio) {
       debug.postResourceInstall('Need to update resource component _ids for', name);
 
       model.findOneAndUpdate(
-        {_id: item._id},
+        {_id: item._id, deleted: {$eq: null}},
         {components: item.components},
         {new: true},
         function(err, doc) {
@@ -201,7 +201,7 @@ module.exports = function(formio) {
           }
 
           debug._install(document);
-          model.findOne({machineName: document.machineName}, function(err, doc) {
+          model.findOne({machineName: document.machineName, deleted: {$eq: null}}, function(err, doc) {
             if (err) {
               debug._install(err);
               return itemDone(err);
