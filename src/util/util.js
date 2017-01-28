@@ -272,7 +272,8 @@ module.exports = {
         compValue.value = compValue.value ? compValue.value.formatted_address : '';
         break;
       case 'signature':
-        compValue.value = '<img src="' + value + '" />';
+        // For now, we will just email YES or NO until we can make signatures work for all email clients.
+        compValue.value = ((typeof value === 'string') && (value.indexOf('data:') === 0)) ? 'YES' : 'NO';
         break;
       case 'container':
         compValue.value = '<table border="1" style="width:100%">';
