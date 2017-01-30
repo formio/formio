@@ -42,10 +42,42 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            signatureSubmission1 = helper.getLastSubmission();
+            assert.deepEqual(test.submission, signatureSubmission1.data);
             done();
           });
+      });
+
+      var signatureSubmission1 = null;
+      it('Saves submission with a null signature.', function(done) {
+        var test = _.cloneDeep(require('./forms/singlecomponents2.js'));
+        test.submission.signature2 = null;
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            signatureSubmission1 = helper.getLastSubmission();
+            // Should coerse the value to an empty string.
+            test.submission.signature2 = "";
+            assert.deepEqual(test.submission, signatureSubmission1.data);
+            done();
+          });
+      });
+
+      it('Updates the submission with a null signature', function(done) {
+        var test = _.cloneDeep(require('./forms/singlecomponents2.js'));
+        var updateSub = _.cloneDeep(signatureSubmission1);
+        updateSub.data.signature2 = null;
+        helper.updateSubmission(updateSub, function(err, updated) {
+          // Should coerse the value to an empty string.
+          test.submission.signature2 = "";
+          assert.deepEqual(test.submission, updated.data);
+          done();
+        });
       });
 
       var signatureSubmission = null;
@@ -145,9 +177,9 @@ module.exports = function(app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.equal(submission.name, 'ValidationError');
             assert.equal(submission.details.length, 1);
-            assert.equal(submission.details[0].message, '"signature2" is required');
+            assert.equal(submission.details[0].message, '"signature2" is not allowed to be empty');
             assert.equal(submission.details[0].path, 'signature2');
-            assert.equal(submission.details[0].type, 'any.required');
+            assert.equal(submission.details[0].type, 'any.empty');
             done();
           });
       });
