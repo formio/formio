@@ -9,7 +9,7 @@ var docker = process.env.DOCKER;
 
 module.exports = function(app) {
   // The Helper class.
-  var Helper = function(owner) {
+  var Helper = function(owner, hook) {
     this.contextName = '';
     this.lastSubmission = null;
     this.owner = owner;
@@ -21,6 +21,7 @@ module.exports = function(app) {
       submissions: {},
       roles: {}
     };
+    this.hook = hook;
   };
 
   Helper.prototype.getTemplate = function() {
@@ -250,6 +251,21 @@ module.exports = function(app) {
       name = chance.word();
     }
     this.series.push(async.apply(this.upsertForm.bind(this), name, 'form', components, access));
+    return this;
+  };
+
+  Helper.prototype._deleteForm = function(_id, done) {
+    request(app)
+      .delete(this.hook.alter('url', '/form/' + _id, this.template))
+      .set('x-jwt-token', this.owner.token)
+      .expect(200)
+      .end(done);
+  };
+
+  Helper.prototype.deleteForm = function(form) {
+    var _id = form._id || form;
+
+    this.series.push(async.apply(this._deleteForm.bind(this), _id));
     return this;
   };
 
