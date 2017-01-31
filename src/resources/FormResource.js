@@ -67,7 +67,7 @@ module.exports = function(router) {
       sanitizeValidations,
       router.formio.middleware.bootstrapFormAccess,
       router.formio.middleware.formActionHandler('after'),
-      router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'machineName'])
+      router.formio.middleware.filterResourcejsResponse(['deleted', '__v'])
     ],
     hooks: {
       put: {
