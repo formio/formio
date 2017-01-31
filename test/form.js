@@ -1287,7 +1287,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            new Helper(template.users.admin, hook)
+            new Helper(template.users.admin, template, hook)
               .deleteForm(res.body)
               .execute(done);
           });
@@ -1312,7 +1312,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            new Helper(template.users.admin, hook)
+            new Helper(template.users.admin, template, hook)
               .deleteForm(res.body)
               .execute(done);
           });
@@ -1355,7 +1355,7 @@ module.exports = function(app, template, hook) {
 
             var response = res.body;
             assert.equal(response.type, 'form');
-            new Helper(template.users.admin, hook)
+            new Helper(template.users.admin, template, hook)
               .deleteForm(res.body)
               .execute(done);
           });

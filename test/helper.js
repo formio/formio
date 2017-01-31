@@ -9,12 +9,12 @@ var docker = process.env.DOCKER;
 
 module.exports = function(app) {
   // The Helper class.
-  var Helper = function(owner, hook) {
+  var Helper = function(owner, template, hook) {
     this.contextName = '';
     this.lastSubmission = null;
     this.owner = owner;
     this.series = [];
-    this.template = {
+    this.template = template || {
       project: null,
       forms: {},
       actions: {},
