@@ -236,7 +236,7 @@ module.exports = function(app) {
       .expect(status)
       .end(function(err, res) {
         if (err) {
-          return done(err);
+          return done(err, res);
         }
         this.owner.token = res.headers['x-jwt-token'];
         this.template.forms[name] = res.body;

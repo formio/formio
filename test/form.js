@@ -12,6 +12,7 @@ var customer = process.env.CUSTOMER;
 
 module.exports = function(app, template, hook) {
   var formio = hook.alter('formio', app.formio);
+  var Helper = require('./helper')(app)
 
   describe('Forms', function() {
     // Store the temp form for this test suite.
@@ -3869,6 +3870,28 @@ module.exports = function(app, template, hook) {
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
 
+            done();
+          });
+      });
+    });
+
+    describe('Form MachineNames', function() {
+      var helper;
+      before(function() {
+        helper = new Helper(template.users.admin)
+      });
+
+      it('Forms expose their machineNames through the api', function(done) {
+        var name = chance.word();
+        helper
+          .form(name, [])
+          .execute(function(err, results) {
+            if (err) {
+              return done(err);
+            }
+
+            var form = results.getForm(name);
+            assert(form.hasOwnProperty('machineName'));
             done();
           });
       });
