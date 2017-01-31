@@ -3884,7 +3884,22 @@ module.exports = function(app, template, hook) {
       it('Forms expose their machineNames through the api', function(done) {
         var name = chance.word();
         helper
-          .form(name, [])
+          .form({name: name})
+          .execute(function(err, results) {
+            if (err) {
+              return done(err);
+            }
+
+            var form = results.getForm(name);
+            assert(form.hasOwnProperty('machineName'));
+            done();
+          });
+      });
+
+      it('A user can modify their form machineNames', function(done) {
+        var name = chance.word();
+        helper
+          .form({name: name})
           .execute(function(err, results) {
             if (err) {
               return done(err);

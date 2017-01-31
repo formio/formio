@@ -178,28 +178,23 @@ module.exports = function(app) {
     return this;
   };
 
-  Helper.prototype.upsertForm = function(name, type, components, access, done) {
-    if (typeof access === 'function') {
-      done = access;
-      access = null;
-    }
-
-    this.contextName = name;
+  Helper.prototype.upsertForm = function(form, done) {
+    this.contextName = form.name;
 
     // If no access is provided, then use the default.
-    if (!access) {
-      access = {
-        submissionAccess: [],
-        access: []
-      };
+    if (!form.hasOwnProperty('access')) {
+      form.access = [];
+    }
+    if (!form.hasOwnProperty('submissionAccess')) {
+      form.submissionAccess = [];
     }
 
     // Convert the role names to role ids.
     ['access', 'submissionAccess'].forEach(function(accessName) {
-      _.each(access[accessName], function(perm, i) {
+      _.each(form[accessName], function(perm, i) {
         _.each(perm.roles, function(permRole, j) {
           if (this.template.roles.hasOwnProperty(permRole)) {
-            access[accessName][i].roles[j] = this.template.roles[permRole]._id;
+            form[accessName][i].roles[j] = this.template.roles[permRole]._id;
           }
         }.bind(this));
       }.bind(this));
@@ -213,20 +208,20 @@ module.exports = function(app) {
     }
     url += '/form';
     var data = {
-      title: name,
-      name: name,
-      path: name,
-      type: type,
-      access: access.access,
-      submissionAccess: access.submissionAccess,
-      components: components
+      title: form.name,
+      name: form.name,
+      path: form.name,
+      type: form.type,
+      access: form.access,
+      submissionAccess: form.submissionAccess,
+      components: form.components
     };
-    if (this.template.forms.hasOwnProperty(name)) {
+    if (this.template.forms.hasOwnProperty(form.name)) {
       method = 'put';
       status = 200;
-      url += '/' + this.template.forms[name]._id;
+      url += '/' + this.template.forms[form.name]._id;
       data = {
-        components: components
+        components: form.components
       }
     }
     request(app)[method](url)
@@ -239,26 +234,69 @@ module.exports = function(app) {
           return done(err, res);
         }
         this.owner.token = res.headers['x-jwt-token'];
-        this.template.forms[name] = res.body;
+        this.template.forms[form.name] = res.body;
         done(null, res.body);
       }.bind(this));
   };
 
   Helper.prototype.form = function(name, components, access) {
-    if (typeof name === 'object') {
-      components = name;
-      name = chance.word();
+    var form;
+    if (typeof name !== 'string') {
+      if (name.hasOwnProperty('components')) {
+        form = name;
+        components = name.components;
+      }
+      else if (components instanceof Array) {
+        form = form || {};
+        form.components = components;
+      }
+
+      // parse out the name or make one.
+      form = form || {};
+      name = form.name || chance.word();
     }
-    this.series.push(async.apply(this.upsertForm.bind(this), name, 'form', components, access));
+
+    form = form || {};
+    form.name = typeof name === 'string'
+      ? name
+      : chance.word();
+    form.type = form.type || 'form';
+    form.components = components || components instanceof Array
+      ? components
+      : [];
+    form.access = access && access.hasOwnProperty('access') && access.access instanceof Array
+      ? access.access
+      : [];
+    form.submissionAccess = access && access.hasOwnProperty('submissionAccess') && access.submissionAccess instanceof Array
+      ? access.submissionAccess
+      : [];
+
+    this.series.push(async.apply(this.upsertForm.bind(this), form));
     return this;
   };
 
   Helper.prototype.resource = function(name, components, access) {
-    if (typeof name === 'object') {
-      components = name;
-      name = chance.word();
+    var resource = {
+      type: 'resource'
+    };
+
+    if (typeof name === 'string') {
+      resource.name = name;
     }
-    this.series.push(async.apply(this.upsertForm.bind(this), name, 'resource', components, access));
+
+    if (typeof name === 'string') {
+      // Set the components to the obj payload.
+      components = name;
+
+      // parse out the name or make one.
+      name = name.name || chance.word();
+
+      // parse out the form type or default.
+      type = components.type || 'form';
+    }
+
+
+    this.series.push(async.apply(this.upsertForm.bind(this), resource, components, access));
     return this;
   };
 
