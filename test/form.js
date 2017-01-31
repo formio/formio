@@ -12,6 +12,7 @@ var customer = process.env.CUSTOMER;
 
 module.exports = function(app, template, hook) {
   var formio = hook.alter('formio', app.formio);
+  var Helper = require('./helper')(app);
 
   describe('Forms', function() {
     // Store the temp form for this test suite.
@@ -1281,7 +1282,15 @@ module.exports = function(app, template, hook) {
             components: []
           })
           .expect(201)
-          .end(done);
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            new Helper(template.users.admin, hook)
+              .deleteForm(res.body)
+              .execute(done);
+          });
       });
 
       it('Should be able to create a form with the type=resource', function(done) {
@@ -1298,7 +1307,15 @@ module.exports = function(app, template, hook) {
             components: []
           })
           .expect(201)
-          .end(done);
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            new Helper(template.users.admin, hook)
+              .deleteForm(res.body)
+              .execute(done);
+          });
       });
 
       it('Should not be able to create a form with the type=resource', function(done) {
@@ -1338,7 +1355,9 @@ module.exports = function(app, template, hook) {
 
             var response = res.body;
             assert.equal(response.type, 'form');
-            return done();
+            new Helper(template.users.admin, hook)
+              .deleteForm(res.body)
+              .execute(done);
           });
       });
     });
