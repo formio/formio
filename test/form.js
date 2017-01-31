@@ -1266,6 +1266,83 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('Form Settings', function() {
+      it('Should be able to create a form with the type=form', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: chance.word(),
+            name: chance.word(),
+            path: chance.word(),
+            type: 'form',
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(201)
+          .end(done);
+      });
+
+      it('Should be able to create a form with the type=resource', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: chance.word(),
+            name: chance.word(),
+            path: chance.word(),
+            type: 'resource',
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(201)
+          .end(done);
+      });
+
+      it('Should not be able to create a form with the type=resource', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: chance.word(),
+            name: chance.word(),
+            path: chance.word(),
+            type: '',
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(400)
+          .end(done);
+      });
+
+      it('Should default to type=form when not supplied', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: chance.word(),
+            name: chance.word(),
+            path: chance.word(),
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.type, 'form');
+            return done();
+          });
+      });
+    });
+
     describe('Form Components Endpoint', function() {
       it('Bootstrap', function(done) {
         var testComponentForm = {
