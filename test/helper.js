@@ -133,6 +133,17 @@ module.exports = function(app) {
       }.bind(this));
   };
 
+  /**
+   * Get a role by its title.
+   *
+   * @param title
+   * @returns {*|undefined}
+   */
+  Helper.prototype.getRole = function(title) {
+    this.template.roles = this.template.roles || {};
+    return this.template.roles[title] || undefined;
+  };
+
   Helper.prototype.getRolesAndForms = function(done) {
     async.series([
       async.apply(this.getForms.bind(this)),
@@ -337,6 +348,22 @@ module.exports = function(app) {
     return this.form.call(this, resource, components, access);
   };
 
+  /**
+   * Chainable method to create an adhoc role.
+   *
+   * @param role
+   * @returns {Helper}
+   */
+  Helper.prototype.role = function(role, update) {
+    if (update) {
+      this.series.push(async.apply(this.upsertRole.bind(this), role, update));
+      return this;
+    }
+
+    this.series.push(async.apply(this.upsertRole.bind(this), role));
+    return this;
+  };
+
   Helper.prototype.updateAction = function(form, action, done) {
     if (!this.template.actions.hasOwnProperty(form)) {
       return done('No actions exist for the given form.');
@@ -510,6 +537,105 @@ module.exports = function(app) {
         this.lastSubmission = res.body;
         this.template.submissions[form].push(res.body);
         done(null, res.body);
+      }.bind(this));
+  };
+
+  /**
+   * Internal helper to create or edit a role
+   *
+   * @param role
+   * @param done
+   */
+  Helper.prototype.upsertRole = function(role, update, done) {
+    if (typeof update === 'function') {
+      done = update;
+      update = undefined;
+    }
+
+    var url = '';
+    if (this.template.project && this.template.project._id) {
+      url += '/project/' + this.template.project._id;
+    }
+    url += '/role';
+
+    if (update) {
+      var _role;
+      if (!role._id) {
+        _role = this.getRole(role.title || role);
+      }
+
+      url += '/' + _role._id;
+      request(app)
+        .put(url)
+        .send(update)
+        .set('x-jwt-token', this.owner.token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err, res);
+          }
+
+          var response = res.body;
+          this.owner.token = res.headers['x-jwt-token'];
+          this.template.roles = this.template.roles || {};
+          this.template.roles[response.title] = response;
+          done(null, response);
+        }.bind(this));
+    }
+    else {
+      request(app)
+        .post(url)
+        .send(role)
+        .set('x-jwt-token', this.owner.token)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          var response = res.body;
+          this.owner.token = res.headers['x-jwt-token'];
+          this.template.roles = this.template.roles || {};
+          this.template.roles[response.title] = response;
+          done(null, response);
+        }.bind(this));
+    }
+  };
+
+  /**
+   * Delete a role.
+   *
+   * @param role
+   * @param done
+   */
+  Helper.prototype.deleteRole = function(role, done) {
+    var _role;
+    if (!role._id) {
+      _role = this.getRole(role.title || role);
+    }
+
+    var url = '';
+    if (this.template.project && this.template.project._id) {
+      url += '/project/' + this.template.project._id;
+    }
+    url += '/role/' + _role._id;
+
+    request(app)
+      .delete(url)
+      .set('x-jwt-token', this.owner.token)
+      .expect(200)
+      .end(function(err, res) {
+        if (err) {
+          return done(err);
+        }
+
+        var response = res.body;
+        this.owner.token = res.headers['x-jwt-token'];
+        this.template.roles = this.template.roles || {};
+        delete this.template.roles[response.title];
+        done(null, response);
       }.bind(this));
   };
 
