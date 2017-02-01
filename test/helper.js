@@ -63,6 +63,38 @@ module.exports = function(app) {
 
     return null;
   };
+  
+  Helper.prototype.getAction = function(form, action) {
+    if (!action && form) {
+      if (typeof form ==='string') {
+        form = {
+          title: form
+        };
+      }
+
+      action = form;
+      form = this.contextName;
+    }
+    if (!action._id && !action.title) {
+      return undefined;
+    }
+
+    var _action;
+    this.template.actions[form] = this.template.actions[form] || [];
+    this.template.actions[form].forEach(function(a) {
+      if (_action) {
+        return;
+      }
+
+      // NOTE: Titles are not unique for actions, use only when positive one exists.
+      if (a.title === action.title || a._id === action._id) {
+        _action = a;
+        return;
+      }
+    });
+    
+    return _action;
+  };
 
   Helper.prototype.getRoles = function(done) {
     var url = '';
@@ -305,6 +337,54 @@ module.exports = function(app) {
     return this.form.call(this, resource, components, access);
   };
 
+  Helper.prototype.updateAction = function(form, action, done) {
+    if (!this.template.actions.hasOwnProperty(form)) {
+      return done('No actions exist for the given form.');
+    }
+
+    var _action = this.getAction.call(this, form, action);
+    if (!_action) {
+      return done('No action could be found.');
+    }
+    if (!_action.hasOwnProperty('_id')) {
+      return done('Could not determine which action to modify.');
+    }
+
+    var url = '';
+    if (this.template.project && this.template.project._id) {
+      url += '/project/' + this.template.project._id;
+    }
+    url += '/form/' + this.template.forms[form]._id + '/action/' + _action._id;
+
+    request(app)
+      .put(url)
+      .send(action)
+      .set('x-jwt-token', this.owner.token)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end(function(err, res) {
+        if (err) {
+          return done(err, res);
+        }
+        if (!res.body) {
+          return done('No response', res)
+        }
+
+        this.owner.token = res.headers['x-jwt-token'];
+        for (var a = 0; a < this.template.actions[form].length; a++) {
+          if (
+            this.template.actions[form][a]._id === _action._id
+            || this.template.actions[form][a].name === _action.name
+          ) {
+            this.template.actions[form][a] = res.body;
+            break;
+          }
+        }
+
+        done(null, res.body);
+      }.bind(this));
+  };
+
   Helper.prototype.createAction = function(form, action, done) {
     if (typeof form === 'object') {
       action = form;
@@ -315,18 +395,25 @@ module.exports = function(app) {
       return done('Form not found');
     }
 
-    if (action.settings.resources) {
-      var resources = [];
-      _.each(action.settings.resources, function(resource) {
-        if (this.template.forms.hasOwnProperty(resource)) {
-          resources.push(this.template.forms[resource]._id);
-        }
-      }.bind(this));
-      action.settings.resources = resources;
+    var _action = this.getAction(form, {_id: action._id});
+    if (_action) {
+      return this.updateAction(form, action, done);
     }
 
-    if (action.settings.role && this.template.roles.hasOwnProperty(action.settings.role)) {
-      action.settings.role = this.template.roles[action.settings.role]._id;
+    if (action.settings) {
+      if (action.settings.resources) {
+        var resources = [];
+        _.each(action.settings.resources, function(resource) {
+          if (this.template.forms.hasOwnProperty(resource)) {
+            resources.push(this.template.forms[resource]._id);
+          }
+        }.bind(this));
+        action.settings.resources = resources;
+      }
+
+      if (action.settings.role && this.template.roles.hasOwnProperty(action.settings.role)) {
+        action.settings.role = this.template.roles[action.settings.role]._id;
+      }
     }
 
     var url = '';
