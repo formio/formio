@@ -222,6 +222,11 @@ module.exports = function(app) {
       url += '/' + this.template.forms[form.name]._id;
       data = {
         components: form.components
+      };
+
+      // Allow upsert to modify machineNames
+      if (form.hasOwnProperty('machineName')) {
+        data.machineName = form.machineName;
       }
     }
     request(app)[method](url)

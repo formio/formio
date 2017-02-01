@@ -3898,6 +3898,8 @@ module.exports = function(app, template, hook) {
 
       it('A user can modify their form machineNames', function(done) {
         var name = chance.word();
+        var newMachineName = chance.word();
+
         helper
           .form({name: name})
           .execute(function(err, results) {
@@ -3906,8 +3908,20 @@ module.exports = function(app, template, hook) {
             }
 
             var form = results.getForm(name);
-            assert(form.hasOwnProperty('machineName'));
-            done();
+            form.machineName = newMachineName;
+
+            helper
+              .form(form)
+              .execute(function(err, results) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = results.getForm(name);
+                assert(response.hasOwnProperty('machineName'));
+                assert.equal(response.machineName, newMachineName);
+                done();
+              });
           });
       });
     });
