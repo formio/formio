@@ -242,34 +242,44 @@ module.exports = function(app) {
   Helper.prototype.form = function(name, components, access) {
     var form;
     if (typeof name !== 'string') {
-      if (name.hasOwnProperty('components')) {
-        form = name;
-        components = name.components;
-      }
-      else if (components instanceof Array) {
+      // If the first param is an array, its components.
+      if (name instanceof Array) {
         form = form || {};
-        form.components = components;
+        form.components = name;
+      }
+      else {
+        form = name;
       }
 
       // parse out the name or make one.
       form = form || {};
       name = form.name || chance.word();
     }
+    else {
+      form = form || {};
+      form.name = name;
+    }
+
+    if (components instanceof Array) {
+      form = form || {};
+      form.components = components;
+    }
+    if (access) {
+      form = form || {};
+      if (access.hasOwnProperty('access') && access.access instanceof Array) {
+        form.access = access.access;
+      }
+      if (access.hasOwnProperty('submissionAccess') && access.submissionAccess instanceof Array) {
+        form.submissionAccess = access.submissionAccess;
+      }
+    }
 
     form = form || {};
-    form.name = typeof name === 'string'
-      ? name
-      : chance.word();
+    form.name = form.name || chance.word();
     form.type = form.type || 'form';
-    form.components = components || components instanceof Array
-      ? components
-      : [];
-    form.access = access && access.hasOwnProperty('access') && access.access instanceof Array
-      ? access.access
-      : [];
-    form.submissionAccess = access && access.hasOwnProperty('submissionAccess') && access.submissionAccess instanceof Array
-      ? access.submissionAccess
-      : [];
+    form.components = form.components || [];
+    form.access = form.access || [];
+    form.submissionAccess = form.submissionAccess || [];
 
     this.series.push(async.apply(this.upsertForm.bind(this), form));
     return this;
@@ -283,21 +293,11 @@ module.exports = function(app) {
     if (typeof name === 'string') {
       resource.name = name;
     }
-
-    if (typeof name === 'string') {
-      // Set the components to the obj payload.
-      components = name;
-
-      // parse out the name or make one.
-      name = name.name || chance.word();
-
-      // parse out the form type or default.
-      type = components.type || 'form';
+    if (name instanceof Array) {
+      resource.components = name;
     }
 
-
-    this.series.push(async.apply(this.upsertForm.bind(this), resource, components, access));
-    return this;
+    return this.form.call(this, resource, components, access);
   };
 
   Helper.prototype.createAction = function(form, action, done) {
