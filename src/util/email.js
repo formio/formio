@@ -150,6 +150,17 @@ module.exports = function(formio) {
 
         // Compile the email with nunjucks.
         if (!noCompile) {
+          // If they have content, render this first.
+          if (params.content) {
+            try {
+              params.content = nunjucks.render(params.content, params);
+            }
+            catch (e) {
+              debug.error(e);
+              params.content = e.message;
+            }
+          }
+
           try {
             mail = nunjucks.renderObj(mail, params);
           }
