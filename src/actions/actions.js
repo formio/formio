@@ -195,9 +195,8 @@ module.exports = function(router) {
             // See if a condition is not established within the action.
             if (
               action.condition &&
-              action.condition.field &&
-              (action.condition.eq === 'equals') ===
-              (req.body.data[action.condition.field] !== action.condition.value)
+              action.condition.field && typeof action.condition.field === 'string' &&
+              (action.condition.eq === 'equals') === (_.get(req, 'body.data. ' + action.condition.field) !== action.condition.value)
             ) {
               execute = false;
             }
