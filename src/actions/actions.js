@@ -198,7 +198,7 @@ module.exports = function(router) {
               action.condition.field &&
               typeof action.condition.field === 'string' &&
               (action.condition.eq === 'equals') ===
-              (_.get(req, 'body.data. ' + action.condition.field) !== action.condition.value)
+              (_.get(req, 'body.data.' + action.condition.field) !== action.condition.value)
             ) {
               execute = false;
             }
