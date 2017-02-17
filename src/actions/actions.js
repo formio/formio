@@ -177,10 +177,7 @@ module.exports = function(router) {
 
           try {
             // See if there is a custom condition.
-            if (
-              action.condition &&
-              action.condition.custom
-            ) {
+            if (_.get(action, 'condition.custom')) {
               var script = new vm.Script(action.condition.custom);
               var sandbox = {
                 data: req.body.data,
@@ -193,12 +190,15 @@ module.exports = function(router) {
             }
 
             // See if a condition is not established within the action.
+            var field = _.get(action, 'condition.field');
+            var eq = _.get(action, 'condition.eq');
+            var value = _.get(req, 'body.data.' + field);
+            var compare = _.get(action, 'condition.value');
             if (
-              action.condition &&
-              action.condition.field &&
-              typeof action.condition.field === 'string' &&
-              (action.condition.eq === 'equals') ===
-              (_.get(req, 'body.data.' + action.condition.field) !== action.condition.value)
+              field &&
+              typeof field === 'string' &&
+              eq &&
+              (eq === 'equals') === (value !== compare)
             ) {
               execute = false;
             }
@@ -232,7 +232,6 @@ module.exports = function(router) {
    */
   var getSettingsForm = function(action, req, cb) {
     var basePath = hook.alter('path', '/form', req);
-    var dataSrc = basePath + '/' + req.params.formId + '/components';
     var mainSettings = {
       components: []
     };
@@ -349,11 +348,10 @@ module.exports = function(router) {
                     key: 'field',
                     placeholder: 'Select the conditional field',
                     template: '<span>{{ item.label || item.key }}</span>',
-                    dataSrc: 'values',
-                    data: {values: components},
-                    valueProperty: '',
-                    multiple: false,
-                    validate: {}
+                    dataSrc: 'json',
+                    data: {json: JSON.stringify(components)},
+                    valueProperty: 'key',
+                    multiple: false
                   },
                   {
                     type : 'select',
