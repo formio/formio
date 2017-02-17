@@ -5,7 +5,10 @@ var async = require('async');
 var mongoose = require('mongoose');
 var vm = require('vm');
 var _ = require('lodash');
-var debug = require('debug')('formio:error');
+var debug = {
+  error: require('debug')('formio:error'),
+  action: require('debug')('formio:action')
+};
 
 /**
  * The ActionIndex export.
@@ -194,20 +197,29 @@ module.exports = function(router) {
             var eq = _.get(action, 'condition.eq');
             var value = _.get(req, 'body.data.' + field);
             var compare = _.get(action, 'condition.value');
+            debug.action(
+              '\nfield', field,
+              '\neq', eq,
+              '\nvalue', value,
+              '\ncompare', compare
+            );
+
+            // Cancel the action if the field and eq aren't set, in addition to the value not being the same as compare.
             if (
-              field &&
+              Boolean(field) &&
               typeof field === 'string' &&
-              eq &&
+              Boolean(eq) &&
               (eq === 'equals') === (value !== compare)
             ) {
               execute = false;
             }
           }
           catch (e) {
-            debug(e);
+            debug.error(e);
             execute = false;
           }
 
+          debug.action('execute (' + execute + '):', action);
           if (!execute) {
             return cb();
           }
@@ -363,6 +375,10 @@ module.exports = function(router) {
                     dataSrc : 'values',
                     data : {
                       values : [
+                        {
+                          value : '',
+                          label : ''
+                        },
                         {
                           value : 'equals',
                           label : 'Equals'
@@ -574,7 +590,7 @@ module.exports = function(router) {
         });
       }
       catch (e) {
-        debug(e);
+        debug.error(e);
         return res.sendStatus(500);
       }
     });
