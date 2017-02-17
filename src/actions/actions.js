@@ -230,7 +230,7 @@ module.exports = function(router) {
    *
    * @param action
    */
-  var getSettingsForm = function(action, req) {
+  var getSettingsForm = function(action, req, cb) {
     var basePath = hook.alter('path', '/form', req);
     var dataSrc = basePath + '/' + req.params.formId + '/components';
     var mainSettings = {
@@ -315,167 +315,180 @@ module.exports = function(router) {
       });
     }
 
-    var customPlaceHolder = "// Example: Only execute if submitted roles has 'authenticated'.\n";
-    customPlaceHolder +=    "execute = (data.roles.indexOf('authenticated') !== -1);";
-    conditionalSettings.components.push({
-      type: 'container',
-      key: 'condition',
-      input: false,
-      tree: true,
-      components: [
-        {
-          key: 'columns',
-          type: 'columns',
-          input: false,
-          columns: [
-            {
-              components: [
-                {
-                  type: 'select',
-                  input: true,
-                  label: 'Trigger this action only if field',
-                  key: 'field',
-                  placeholder: 'Select the conditional field',
-                  template: '<span>{{ item.label || item.key }}</span>',
-                  dataSrc: 'url',
-                  data: {url: dataSrc},
-                  valueProperty: 'key',
-                  multiple: false,
-                  validate: {}
-                },
-                {
-                  type : 'select',
-                  input : true,
-                  label : '',
-                  key : 'eq',
-                  placeholder : 'Select comparison',
-                  template : '<span>{{ item.label }}</span>',
-                  dataSrc : 'values',
-                  data : {
-                    values : [
+    router.formio.cache.loadForm(req, undefined, req.params.formId, function(err, form) {
+      if (err || !form || !form.components) {
+        return cb('Could not load form components for conditional actions.');
+      }
+
+      var filteredComponents = _(router.formio.util.flattenComponents(form.components))
+      .filter(function(component) {
+        return component.key && component.input === true;
+      })
+      .value();
+
+      var components = [{key: ''}].concat(filteredComponents);
+      var customPlaceHolder = "// Example: Only execute if submitted roles has 'authenticated'.\n";
+      customPlaceHolder +=    "execute = (data.roles.indexOf('authenticated') !== -1);";
+      conditionalSettings.components.push({
+        type: 'container',
+        key: 'condition',
+        input: false,
+        tree: true,
+        components: [
+          {
+            key: 'columns',
+            type: 'columns',
+            input: false,
+            columns: [
+              {
+                components: [
+                  {
+                    type: 'select',
+                    input: true,
+                    label: 'Trigger this action only if field',
+                    key: 'field',
+                    placeholder: 'Select the conditional field',
+                    template: '<span>{{ item.label || item.key }}</span>',
+                    dataSrc: 'values',
+                    data: {values: components},
+                    valueProperty: '',
+                    multiple: false,
+                    validate: {}
+                  },
+                  {
+                    type : 'select',
+                    input : true,
+                    label : '',
+                    key : 'eq',
+                    placeholder : 'Select comparison',
+                    template : '<span>{{ item.label }}</span>',
+                    dataSrc : 'values',
+                    data : {
+                      values : [
+                        {
+                          value : 'equals',
+                          label : 'Equals'
+                        },
+                        {
+                          value : 'notEqual',
+                          label : 'Does Not Equal'
+                        }
+                      ],
+                      json : '',
+                      url : '',
+                      resource : ''
+                    },
+                    valueProperty : 'value',
+                    multiple : false
+                  },
+                  {
+                    input: true,
+                    type: 'textfield',
+                    inputType: 'text',
+                    key: 'value',
+                    placeholder: 'Enter value',
+                    multiple: false
+                  }
+                ]
+              },
+              {
+                components: [
+                  {
+                    key: 'well2',
+                    type: 'well',
+                    input: false,
+                    components: [
                       {
-                        value : 'equals',
-                        label : 'Equals'
+                        key: 'html',
+                        type: 'htmlelement',
+                        tag: 'h4',
+                        input: false,
+                        content: 'Or you can provide your own custom JavaScript condition logic here',
+                        className: ''
                       },
                       {
-                        value : 'notEqual',
-                        label : 'Does Not Equal'
+                        label: '',
+                        type: 'textarea',
+                        input: true,
+                        key: 'custom',
+                        placeholder: customPlaceHolder
                       }
-                    ],
-                    json : '',
-                    url : '',
-                    resource : ''
-                  },
-                  valueProperty : 'value',
-                  multiple : false
-                },
-                {
-                  input: true,
-                  type: 'textfield',
-                  inputType: 'text',
-                  key: 'value',
-                  placeholder: 'Enter value',
-                  multiple: false
-                }
-              ]
-            },
-            {
-              components: [
-                {
-                  key: 'well2',
-                  type: 'well',
-                  input: false,
-                  components: [
-                    {
-                      key: 'html',
-                      type: 'htmlelement',
-                      tag: 'h4',
-                      input: false,
-                      content: 'Or you can provide your own custom JavaScript condition logic here',
-                      className: ''
-                    },
-                    {
-                      label: '',
-                      type: 'textarea',
-                      input: true,
-                      key: 'custom',
-                      placeholder: customPlaceHolder
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+
+      // Create the settings form.
+      var actionSettings = {
+        type: 'fieldset',
+        input: false,
+        tree: true,
+        legend: 'Action Settings',
+        components: []
+      };
+
+      // The default settings form.
+      var settingsForm = {
+        components: [
+          {type: 'hidden', input: true, key: 'priority'},
+          {type: 'hidden', input: true, key: 'name'},
+          {
+            type: 'textfield',
+            input: true,
+            label: 'Title',
+            key: 'title'
+          },
+          actionSettings,
+          {
+            type: 'fieldset',
+            input: false,
+            tree: false,
+            key: 'conditions',
+            legend: 'Action Execution',
+            components: mainSettings.components
+          },
+          {
+            key: 'fieldset',
+            type: 'fieldset',
+            input: false,
+            tree: false,
+            legend: 'Action Conditions (optional)',
+            components: conditionalSettings.components
+          },
+          {
+            key: 'html2',
+            type: 'htmlelement',
+            tag: 'hr',
+            input: false,
+            content: '',
+            className: ''
+          },
+          {
+            type: 'button',
+            input: true,
+            label: 'Save Action',
+            key: 'submit',
+            size: 'md',
+            leftIcon: '',
+            rightIcon: '',
+            block: false,
+            action: 'submit',
+            disableOnInvalid: true,
+            theme: 'primary'
+          }
+        ]
+      };
+
+      // Return the settings form.
+      return cb(null, {
+        actionSettings: actionSettings,
+        settingsForm: settingsForm
+      });
     });
-
-    // Create the settings form.
-    var actionSettings = {
-      type: 'fieldset',
-      input: false,
-      tree: true,
-      legend: 'Action Settings',
-      components: []
-    };
-
-    // The default settings form.
-    var settingsForm = {
-      components: [
-        {type: 'hidden', input: true, key: 'priority'},
-        {type: 'hidden', input: true, key: 'name'},
-        {
-          type: 'textfield',
-          input: true,
-          label: 'Title',
-          key: 'title'
-        },
-        actionSettings,
-        {
-          type: 'fieldset',
-          input: false,
-          tree: false,
-          key: 'conditions',
-          legend: 'Action Execution',
-          components: mainSettings.components
-        },
-        {
-          key: 'fieldset',
-          type: 'fieldset',
-          input: false,
-          tree: false,
-          legend: 'Action Conditions (optional)',
-          components: conditionalSettings.components
-        },
-        {
-          key: 'html2',
-          type: 'htmlelement',
-          tag: 'hr',
-          input: false,
-          content: '',
-          className: ''
-        },
-        {
-          type: 'button',
-          input: true,
-          label: 'Save Action',
-          key: 'submit',
-          size: 'md',
-          leftIcon: '',
-          rightIcon: '',
-          block: false,
-          action: 'submit',
-          disableOnInvalid: true,
-          theme: 'primary'
-        }
-      ]
-    };
-
-    // Return the settings form.
-    return {
-      actionSettings: actionSettings,
-      settingsForm: settingsForm
-    };
   };
 
   // Return a list of available actions.
@@ -519,22 +532,29 @@ module.exports = function(router) {
 
   // Return a list of available actions.
   router.get('/form/:formId/actions/:name', function(req, res, next) {
-    if (ActionIndex.actions[req.params.name]) {
-      var action = ActionIndex.actions[req.params.name];
-      action.info(req, res, function(err, info) {
-        if (err) {
-          return next(err);
-        }
+    var action = ActionIndex.actions[req.params.name];
+    if (!action) {
+      return next('Action not found');
+    }
 
-        info.defaults = info.defaults || {};
-        info.defaults = _.assign(info.defaults, {
-          priority: info.priority || 0,
-          name: info.name,
-          title: info.title
-        });
+    action.info(req, res, function(err, info) {
+      if (err) {
+        return next(err);
+      }
 
-        var settings = getSettingsForm(action, req);
-        try {
+      info.defaults = info.defaults || {};
+      info.defaults = _.assign(info.defaults, {
+        priority: info.priority || 0,
+        name: info.name,
+        title: info.title
+      });
+
+      try {
+        getSettingsForm(action, req, function(err, settings) {
+          if (err) {
+            return res.status(400).send(err);
+          }
+
           action.settingsForm(req, res, function(err, settingsForm) {
             if (err) {
               return next(err);
@@ -553,16 +573,13 @@ module.exports = function(router) {
             hook.alter('actionInfo', info, req);
             res.json(info);
           });
-        }
-        catch (e) {
-          debug(e);
-          return res.sendStatus(500);
-        }
-      });
-    }
-    else {
-      return next('Action not found');
-    }
+        });
+      }
+      catch (e) {
+        debug(e);
+        return res.sendStatus(500);
+      }
+    });
   });
 
   // Before all middleware for actions.
