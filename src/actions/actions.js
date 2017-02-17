@@ -243,7 +243,6 @@ module.exports = function(router) {
    * @param action
    */
   var getSettingsForm = function(action, req, cb) {
-    var basePath = hook.alter('path', '/form', req);
     var mainSettings = {
       components: []
     };

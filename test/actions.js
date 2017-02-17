@@ -2503,7 +2503,7 @@ module.exports = function(app, template, hook) {
             method: ['create'],
             condition: {
               field: 'email',
-              equal: 'notEqual',
+              eq: 'notEqual',
               value: 'none@example.com'
             },
             settings: {
