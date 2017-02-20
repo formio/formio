@@ -63,11 +63,12 @@ var CSVExporter = function(form, req, res) {
 
       items.forEach(function(item) {
         var finalItem = {
-          path: (_.filter([path, item.path])).join('.')
+          component: path,
+          path: item.path
         };
 
         if (item.hasOwnProperty('rename')) {
-          finalItem.rename = (_.filter([path, item.rename])).join('.');
+          finalItem.rename = item.rename;
         }
 
         if (item.hasOwnProperty('type')) {
@@ -129,12 +130,21 @@ CSVExporter.prototype.stream = function(stream) {
     ];
 
     self.fields.forEach(function(item) {
-      var temp = _.get(row.data, item.path, '');
-      if (temp instanceof Array && temp.length === 0) {
-        temp = '';
+      var temp = '';
+      var submissionPath = _.get(row.data, item.component);
+      if (!(submissionPath instanceof Array)) {
+        submissionPath = [submissionPath];
       }
-      else if (item.type === 'boolean') {
-        temp = Boolean(temp).toString();
+
+      if (submissionPath.length > 0) {
+        submissionPath.map(function(row) {
+          if (item.type === 'boolean') {
+            return Boolean(_.get(row, item.path)).toString();
+          }
+
+          return _.get(row, item.path, '');
+        });
+        temp = submissionPath.join(',');
       }
 
       data.push(temp);
