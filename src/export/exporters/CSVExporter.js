@@ -23,7 +23,7 @@ var CSVExporter = function(form, req, res) {
   });
   this.fields = [];
 
-  var ignore = ['password', 'button', 'container'];
+  var ignore = ['password', 'button', 'container', 'datagrid'];
   util.eachComponent(form.components, function(component, path) {
     if (!component.input || !component.key || ignore.indexOf(component.type) !== -1) {
       return;
@@ -162,7 +162,22 @@ CSVExporter.prototype.stream = function(stream) {
     };
 
     self.fields.forEach(function(column) {
-      var componentData = _.get(submission.data, column.component, '');
+      var componentData = _.get(submission.data, column.component);
+
+      // If the path had no results and the component specifies a path, check for a datagrid component
+      if (componentData === undefined && column.component.indexOf('.') !== -1) {
+        var parts = column.component.split('.');
+        var container = parts.shift();
+        if (_.get(submission.data, container) instanceof Array) {
+
+          // Update the column component path, since we removed part of it.
+          column.component = parts.join('.');
+
+          data.push(coerceToString(_.get(submission.data, container), column));
+          return;
+        }
+      }
+
       data.push(coerceToString(componentData, column))
     });
 
