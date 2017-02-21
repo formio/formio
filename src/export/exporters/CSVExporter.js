@@ -48,7 +48,7 @@ var CSVExporter = function(form, req, res) {
     }
     else if (component.type === 'selectboxes') {
       _.each(component.values, function(option) {
-        items.push({path: option.value, type: 'boolean'});
+        items.push({label: [path, option.value].join('.'), path: option.value, type: 'boolean'});
       });
     }
     else if (component.type === 'checkbox') {
@@ -56,7 +56,7 @@ var CSVExporter = function(form, req, res) {
     }
     else if (component.type === 'survey') {
       _.each(component.questions, function(question) {
-        items.push({path: question.value});
+        items.push({label: [path, question.value].join('.'), path: question.value});
       });
     }
     else {
@@ -67,7 +67,8 @@ var CSVExporter = function(form, req, res) {
     items.forEach(function(item) {
       var finalItem = {
         component: path,
-        path: item.path || component.key
+        path: item.path || component.key,
+        label: item.label || path
       };
 
       if (item.hasOwnProperty('rename')) {
@@ -110,7 +111,7 @@ CSVExporter.prototype.start = function(deferred) {
       return;
     }
 
-    labels.push(item.path);
+    labels.push(item.label);
   });
 
   this.stringifier.write(labels);
