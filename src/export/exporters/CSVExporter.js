@@ -122,32 +122,42 @@ CSVExporter.prototype.start = function(deferred) {
  */
 CSVExporter.prototype.stream = function(stream) {
   var self = this;
-  var write = function(row) {
+  var write = function(submission) {
     var data = [
-      row._id.toString(),
-      row.created.toISOString(),
-      row.modified.toISOString()
+      submission._id.toString(),
+      submission.created.toISOString(),
+      submission.modified.toISOString()
     ];
 
-    self.fields.forEach(function(item) {
-      var temp = '';
-      var submissionPath = _.get(row.data, item.component);
-      if (!(submissionPath instanceof Array)) {
-        submissionPath = [submissionPath];
+    /**
+     * Util function to unwrap an unknown data payload into a string.
+     *
+     * @param data
+     * @returns {string}
+     */
+    var coerceToString = function(data, column) {
+      if (data instanceof Array && data.length > 0) {
+        return data.map(function(item) {
+          return '"' + coerceToString(_.get(item, column.path, ''), column) + '"';
+        }).join(',');
+      }
+      if (typeof data === 'string') {
+        if (column.type === 'boolean') {
+          return Boolean(data).toString();
+        }
+
+        return data.toString();
+      }
+      if (typeof data === 'number') {
+        return data.toString()
       }
 
-      if (submissionPath.length > 0) {
-        submissionPath.map(function(row) {
-          if (item.type === 'boolean') {
-            return Boolean(_.get(row, item.path)).toString();
-          }
+      return JSON.stringify(data);
+    };
 
-          return _.get(row, item.path, '');
-        });
-        temp = submissionPath.join(',');
-      }
-
-      data.push(temp);
+    self.fields.forEach(function(column) {
+      var componentData = _.get(submission.data, column.component, '');
+      data.push(coerceToString(componentData, column))
     });
 
     this.queue(data);
