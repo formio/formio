@@ -25,59 +25,61 @@ var CSVExporter = function(form, req, res) {
 
   var ignore = ['password', 'button', 'container'];
   util.eachComponent(form.components, function(component, path) {
-    if (component.input && component.key && ignore.indexOf(component.type) === -1) {
-      var items = [];
-
-      // If a component has multiple parts, pick what we want.
-      if (component.type === 'address') {
-        items.push({
-          path: 'formatted_address',
-          rename: 'formatted'
-        });
-        items.push({
-          path: 'geometry.location.lat',
-          rename: 'lat'
-        });
-        items.push({
-          path: 'geometry.location.lng',
-          rename: 'lng'
-        });
-      }
-      else if (component.type === 'selectboxes') {
-        _.each(component.values, function(option) {
-          items.push({path: option.value, type: 'boolean'});
-        });
-      }
-      else if (component.type === 'checkbox') {
-        items.push({type: 'boolean'});
-      }
-      else if (component.type === 'survey') {
-        _.each(component.questions, function(question) {
-          items.push({path: question.value});
-        });
-      }
-      else {
-        // Default to the current component item.
-        items.push({});
-      }
-
-      items.forEach(function(item) {
-        var finalItem = {
-          component: path,
-          path: item.path
-        };
-
-        if (item.hasOwnProperty('rename')) {
-          finalItem.rename = item.rename;
-        }
-
-        if (item.hasOwnProperty('type')) {
-          finalItem.type = item.type;
-        }
-
-        this.fields.push(finalItem);
-      }.bind(this));
+    if (!component.input || !component.key || ignore.indexOf(component.type) !== -1) {
+      return;
     }
+
+    var items = [];
+
+    // If a component has multiple parts, pick what we want.
+    if (component.type === 'address') {
+      items.push({
+        path: 'formatted_address',
+        rename: 'formatted'
+      });
+      items.push({
+        path: 'geometry.location.lat',
+        rename: 'lat'
+      });
+      items.push({
+        path: 'geometry.location.lng',
+        rename: 'lng'
+      });
+    }
+    else if (component.type === 'selectboxes') {
+      _.each(component.values, function(option) {
+        items.push({path: option.value, type: 'boolean'});
+      });
+    }
+    else if (component.type === 'checkbox') {
+      items.push({type: 'boolean'});
+    }
+    else if (component.type === 'survey') {
+      _.each(component.questions, function(question) {
+        items.push({path: question.value});
+      });
+    }
+    else {
+      // Default to the current component item.
+      items.push({});
+    }
+
+    items.forEach(function(item) {
+      var finalItem = {
+        component: path,
+        path: item.path || component.key
+      };
+
+      if (item.hasOwnProperty('rename')) {
+        finalItem.rename = item.rename;
+      }
+
+      if (item.hasOwnProperty('type')) {
+        finalItem.type = item.type;
+      }
+
+      this.fields.push(finalItem);
+    }.bind(this));
   }.bind(this));
 };
 
@@ -138,7 +140,7 @@ CSVExporter.prototype.stream = function(stream) {
     var coerceToString = function(data, column) {
       if (data instanceof Array && data.length > 0) {
         return data.map(function(item) {
-          return '"' + coerceToString(_.get(item, column.path, ''), column) + '"';
+          return '"' + coerceToString(_.get(item, column.path, item), column) + '"';
         }).join(',');
       }
       if (typeof data === 'string') {
@@ -150,6 +152,9 @@ CSVExporter.prototype.stream = function(stream) {
       }
       if (typeof data === 'number') {
         return data.toString()
+      }
+      if (typeof data === 'object' && !!data) {
+        return coerceToString(_.get(data, column.path, ''), column);
       }
 
       return JSON.stringify(data);
