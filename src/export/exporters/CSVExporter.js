@@ -152,7 +152,7 @@ CSVExporter.prototype.stream = function(stream) {
         return data.toString();
       }
       if (typeof data === 'number') {
-        return data.toString()
+        return data.toString();
       }
       if (typeof data === 'object' && !!data) {
         return coerceToString(_.get(data, column.path, ''), column);
@@ -168,8 +168,8 @@ CSVExporter.prototype.stream = function(stream) {
       if (componentData === undefined && column.component.indexOf('.') !== -1) {
         var parts = column.component.split('.');
         var container = parts.shift();
+        // If the subdata is an array, coerce it to a displayable string.
         if (_.get(submission.data, container) instanceof Array) {
-
           // Update the column component path, since we removed part of it.
           column.component = parts.join('.');
 
@@ -178,7 +178,7 @@ CSVExporter.prototype.stream = function(stream) {
         }
       }
 
-      data.push(coerceToString(componentData, column))
+      data.push(coerceToString(componentData, column));
     });
 
     this.queue(data);
