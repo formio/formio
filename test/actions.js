@@ -353,6 +353,63 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('Action MachineNames', function() {
+      var _action;
+      var name = chance.word();
+      var helper;
+      
+      before(function() {
+        helper = new Helper(template.users.admin);
+      });
+
+      it('Actions expose their machineNames through the api', function(done) {
+        helper
+          .form({name: name})
+          .action({
+            title: 'Webhook',
+            name: 'webhook',
+            handler: ['after'],
+            method: ['create', 'update', 'delete'],
+            priority: 1,
+            settings: {
+              url: 'example.com',
+              username: '',
+              password: ''
+            }
+          })
+          .execute(function(err, result) {
+            if (err) {
+              return done(err);
+            }
+
+            var action = result.getAction('Webhook');
+            assert(action.hasOwnProperty('machineName'));
+            _action = action;
+            done();
+          });
+      });
+
+      it('A user can modify their action machineNames', function(done) {
+        var newMachineName = chance.word();
+
+        helper
+          .action(name, {
+            _id: _action._id,
+            machineName: newMachineName
+          })
+          .execute(function(err, result) {
+            if (err) {
+              return done(err);
+            }
+
+            var action = result.getAction('Webhook');
+            assert(action.hasOwnProperty('machineName'));
+            assert.equal(action.machineName, newMachineName);
+            done();
+          });
+      });
+    });
+
     describe('Webhook Functionality tests', function() {
       if (docker) {
         return;
@@ -2503,7 +2560,7 @@ module.exports = function(app, template, hook) {
             method: ['create'],
             condition: {
               field: 'email',
-              equal: 'notEqual',
+              eq: 'notEqual',
               value: 'none@example.com'
             },
             settings: {
@@ -2513,8 +2570,7 @@ module.exports = function(app, template, hook) {
             }
           })
           .submission({
-            email: 'test@example.com',
-            roles: ['test']
+            email: 'test@example.com'
           })
           .execute(function(err) {
             if (err) {
@@ -2529,10 +2585,96 @@ module.exports = function(app, template, hook) {
       });
 
       it('Does not execute a does not equal action when equal', function(done) {
+        helper
+          .submission({
+            email: 'none@example.com'
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
+            assert(submission.roles.indexOf(helper.template.roles.authenticated._id) === -1);
+            done();
+          });
+      });
+
+      it('Executes a equal action when equal', function(done) {
         var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
-        helper.submission({
-            email: 'none@example.com',
-            roles: ['test']
+        helper = new Helper(owner);
+        helper
+          .project()
+          .resource([
+            {
+              type: 'email',
+              persistent: true,
+              unique: false,
+              protected: false,
+              defaultValue: '',
+              suffix: '',
+              prefix: '',
+              placeholder: 'Enter your email address',
+              key: 'email',
+              label: 'Email',
+              inputType: 'email',
+              tableView: true,
+              input: true
+            },
+            {
+              type: 'selectboxes',
+              label: 'Roles',
+              key: 'roles',
+              input: true,
+              values: [
+                {
+                  label: 'Administrator',
+                  value: 'administrator'
+                },
+                {
+                  label: 'Authenticated',
+                  value: 'authenticated'
+                }
+              ]
+            }
+          ])
+          .action({
+            title: 'Role Assignment',
+            name: 'role',
+            priority: 1,
+            handler: ['after'],
+            method: ['create'],
+            condition: {
+              field: 'email',
+              eq: 'equals',
+              value: 'test@example.com'
+            },
+            settings: {
+              association: 'new',
+              type: 'add',
+              role: 'authenticated'
+            }
+          })
+          .submission({
+            email: 'test@example.com'
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
+            assert(submission.roles.indexOf(helper.template.roles.authenticated._id) !== -1);
+            done();
+          });
+      });
+
+      it('Does not execute a equal action when not equal', function(done) {
+        helper
+          .submission({
+            email: 'none@example.com'
           })
           .execute(function(err) {
             if (err) {

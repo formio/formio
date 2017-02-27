@@ -12,6 +12,7 @@ var customer = process.env.CUSTOMER;
 
 module.exports = function(app, template, hook) {
   var formio = hook.alter('formio', app.formio);
+  var Helper = require('./helper')(app);
 
   describe('Forms', function() {
     // Store the temp form for this test suite.
@@ -1262,6 +1263,101 @@ module.exports = function(app, template, hook) {
             template.users.admin.token = res.headers['x-jwt-token'];
 
             done();
+          });
+      });
+    });
+
+    describe('Form Settings', function() {
+      it('Should be able to create a form with the type=form', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: chance.word(),
+            name: chance.word(),
+            path: chance.word(),
+            type: 'form',
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            new Helper(template.users.admin, template, hook)
+              .deleteForm(res.body)
+              .execute(done);
+          });
+      });
+
+      it('Should be able to create a form with the type=resource', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: chance.word(),
+            name: chance.word(),
+            path: chance.word(),
+            type: 'resource',
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            new Helper(template.users.admin, template, hook)
+              .deleteForm(res.body)
+              .execute(done);
+          });
+      });
+
+      it('Should not be able to create a form with the type=resource', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: chance.word(),
+            name: chance.word(),
+            path: chance.word(),
+            type: '',
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(400)
+          .end(done);
+      });
+
+      it('Should default to type=form when not supplied', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: chance.word(),
+            name: chance.word(),
+            path: chance.word(),
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.type, 'form');
+            new Helper(template.users.admin, template, hook)
+              .deleteForm(res.body)
+              .execute(done);
           });
       });
     });
@@ -3870,6 +3966,57 @@ module.exports = function(app, template, hook) {
             template.users.admin.token = res.headers['x-jwt-token'];
 
             done();
+          });
+      });
+    });
+
+    describe('Form MachineNames', function() {
+      var helper;
+      before(function() {
+        helper = new Helper(template.users.admin)
+      });
+
+      it('Forms expose their machineNames through the api', function(done) {
+        var name = chance.word();
+        helper
+          .form({name: name})
+          .execute(function(err, results) {
+            if (err) {
+              return done(err);
+            }
+
+            var form = results.getForm(name);
+            assert(form.hasOwnProperty('machineName'));
+            done();
+          });
+      });
+
+      it('A user can modify their form machineNames', function(done) {
+        var name = chance.word();
+        var newMachineName = chance.word();
+
+        helper
+          .form({name: name})
+          .execute(function(err, results) {
+            if (err) {
+              return done(err);
+            }
+
+            var form = results.getForm(name);
+            form.machineName = newMachineName;
+
+            helper
+              .form(form)
+              .execute(function(err, results) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = results.getForm(name);
+                assert(response.hasOwnProperty('machineName'));
+                assert.equal(response.machineName, newMachineName);
+                done();
+              });
           });
       });
     });
