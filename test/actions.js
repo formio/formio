@@ -353,6 +353,63 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('Action MachineNames', function() {
+      var _action;
+      var name = chance.word();
+      var helper;
+      
+      before(function() {
+        helper = new Helper(template.users.admin);
+      });
+
+      it('Actions expose their machineNames through the api', function(done) {
+        helper
+          .form({name: name})
+          .action({
+            title: 'Webhook',
+            name: 'webhook',
+            handler: ['after'],
+            method: ['create', 'update', 'delete'],
+            priority: 1,
+            settings: {
+              url: 'example.com',
+              username: '',
+              password: ''
+            }
+          })
+          .execute(function(err, result) {
+            if (err) {
+              return done(err);
+            }
+
+            var action = result.getAction('Webhook');
+            assert(action.hasOwnProperty('machineName'));
+            _action = action;
+            done();
+          });
+      });
+
+      it('A user can modify their action machineNames', function(done) {
+        var newMachineName = chance.word();
+
+        helper
+          .action(name, {
+            _id: _action._id,
+            machineName: newMachineName
+          })
+          .execute(function(err, result) {
+            if (err) {
+              return done(err);
+            }
+
+            var action = result.getAction('Webhook');
+            assert(action.hasOwnProperty('machineName'));
+            assert.equal(action.machineName, newMachineName);
+            done();
+          });
+      });
+    });
+
     describe('Webhook Functionality tests', function() {
       if (docker) {
         return;

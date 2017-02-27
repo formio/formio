@@ -3970,6 +3970,57 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('Form MachineNames', function() {
+      var helper;
+      before(function() {
+        helper = new Helper(template.users.admin)
+      });
+
+      it('Forms expose their machineNames through the api', function(done) {
+        var name = chance.word();
+        helper
+          .form({name: name})
+          .execute(function(err, results) {
+            if (err) {
+              return done(err);
+            }
+
+            var form = results.getForm(name);
+            assert(form.hasOwnProperty('machineName'));
+            done();
+          });
+      });
+
+      it('A user can modify their form machineNames', function(done) {
+        var name = chance.word();
+        var newMachineName = chance.word();
+
+        helper
+          .form({name: name})
+          .execute(function(err, results) {
+            if (err) {
+              return done(err);
+            }
+
+            var form = results.getForm(name);
+            form.machineName = newMachineName;
+
+            helper
+              .form(form)
+              .execute(function(err, results) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = results.getForm(name);
+                assert(response.hasOwnProperty('machineName'));
+                assert.equal(response.machineName, newMachineName);
+                done();
+              });
+          });
+      });
+    });
+
     describe('Form Merging', function() {
       var form = _.cloneDeep(tempForm);
       form.title = 'form-merge-a';
