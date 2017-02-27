@@ -29,6 +29,9 @@ module.exports = function(formio) {
       },
       type: {
         type: String,
+        enum: ['form', 'resource'],
+        required: true,
+        default: 'form',
         description: 'The form type.',
         index: true
       },
