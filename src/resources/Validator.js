@@ -162,8 +162,13 @@ Validator.prototype.addValidator = function(schema, component, componentData) {
 
     // Add regex validator
     if (component.validate.pattern) {
-      var regex = new RegExp(component.validate.pattern);
-      fieldValidator = fieldValidator.regex(regex);
+      try {
+        var regex = new RegExp(component.validate.pattern);
+        fieldValidator = fieldValidator.regex(regex);
+      }
+      catch (err) {
+        debug.error(err);
+      }
     }
   }
 
