@@ -139,7 +139,7 @@ module.exports = function(formio) {
   var componentKeys = function(components) {
     var keys = [];
     util.eachComponent(components, function(component) {
-      if (!_.isUndefined(component.key)) {
+      if (!_.isUndefined(component.key) && !_.isNull(component.key)) {
         keys.push(component.key);
       }
     }, true);

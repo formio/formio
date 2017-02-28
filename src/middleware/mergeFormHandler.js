@@ -39,6 +39,11 @@ module.exports = function(router) {
     var uniquifyKey = function(exhausted, current) {
       var key = current.key;
 
+      // FOR-392 - Default unknown keys.
+      if (_.isNull(key) || _.isUndefined(key)) {
+        key = 'component';
+      }
+
       // Make the key unique by iterating it.
       while (_.has(exhausted, key) && exhausted[key] !== current.type) {
         if (!key.match(suffixRegex)) {
