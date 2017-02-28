@@ -359,7 +359,7 @@ module.exports = function(app, template, hook) {
       var helper;
       
       before(function() {
-        helper = new Helper(template.users.admin);
+        helper = new Helper(template.users.admin, template);
       });
 
       it('Actions expose their machineNames through the api', function(done) {
