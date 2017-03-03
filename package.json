@@ -11,7 +11,7 @@
   },
   "author": "support@form.io",
   "engines": {
-    "node": ">=4.2.0"
+    "node": ">=6.0.0"
   },
   "schema": "3.0.7",
   "templateVersion": "2.0.0",
