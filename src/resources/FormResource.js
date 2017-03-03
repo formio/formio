@@ -60,13 +60,25 @@ module.exports = function(router) {
       router.formio.middleware.formHandler,
       router.formio.middleware.formActionHandler('before'),
       router.formio.middleware.condensePermissionTypes,
-      router.formio.middleware.deleteFormHandler
+      router.formio.middleware.deleteFormHandler,
+      router.formio.middleware.mergeFormHandler
     ],
     after: [
       sanitizeValidations,
       router.formio.middleware.bootstrapFormAccess,
       router.formio.middleware.formActionHandler('after'),
-      router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'machineName'])
-    ]
+      router.formio.middleware.filterResourcejsResponse(['deleted', '__v'])
+    ],
+    hooks: {
+      put: {
+        before: function(req, res, item, next) {
+          if (item.components) {
+            item.markModified('components');
+          }
+
+          return next();
+        }
+      }
+    }
   }));
 };

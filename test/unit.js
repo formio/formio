@@ -109,7 +109,7 @@ module.exports = function(app, template, hook) {
     var formio = hook.alter('formio', app.formio);
     var email = require('../src/util/email')(formio);
     var macros = require('../src/actions/macros/macros');
-    var sendMessage = function(to, from, message, cb) {
+    var sendMessage = function(to, from, message, content, cb) {
       var dirName = 'fixtures/email/' + message + '/';
       var submission = require('./' + dirName + 'submission.json');
       var form = require('./' + dirName + 'form.json');
@@ -146,6 +146,7 @@ module.exports = function(app, template, hook) {
         message: messageText
       };
       var params = email.getParams(res, form, submission);
+      params.content = content;
       email.send(req, res, message, params, cb);
     };
 
@@ -180,7 +181,17 @@ module.exports = function(app, template, hook) {
         assert.equal(getValue('house', email.html), '<table border="1" style="width:100%"><tr><th style="text-align:right;padding: 5px 10px;">Area</th><td style="width:100%;padding:5px 10px;">2500</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Single Family</th><td style="width:100%;padding:5px 10px;">true</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Rooms</th><td style="width:100%;padding:5px 10px;">Master, Bedroom, Full Bath, Half Bath, Kitchen, Dining, Living, Garage</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Address</th><td style="width:100%;padding:5px 10px;">1234 Main, Hampton, AR 71744, USA</td></tr></table>');
         done();
       });
-      sendMessage(['test@example.com'], 'me@example.com', 'test1');
+      sendMessage(['test@example.com'], 'me@example.com', 'test1', '');
+    });
+
+    it('Should render an email with content within the email.', function(done) {
+      template.hooks.onEmails(1, function(emails) {
+        var email = emails[0];
+        assert.equal(email.subject, 'New submission for Test Form.');
+        assert(email.html.indexOf('<div><p>Hello Joe Smith</p></div>') !== -1, 'Email content rendering failed.');
+        done();
+      });
+      sendMessage(['test@example.com'], 'me@example.com', 'test2', '<p>Hello {{ data.firstName }} {{ data.lastName }}</p>');
     });
   });
 };

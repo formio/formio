@@ -12,6 +12,7 @@ var debug = {
 var rest = require('restler');
 var util = require('./util');
 var _ = require('lodash');
+var EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
 
 /**
  * The email sender for emails.
@@ -149,6 +150,17 @@ module.exports = function(formio) {
 
         // Compile the email with nunjucks.
         if (!noCompile) {
+          // If they have content, render this first.
+          if (params.content) {
+            try {
+              params.content = nunjucks.render(params.content, params);
+            }
+            catch (e) {
+              debug.error(e);
+              params.content = e.message;
+            }
+          }
+
           try {
             mail = nunjucks.renderObj(mail, params);
           }
@@ -184,11 +196,6 @@ module.exports = function(formio) {
               return;
             }
 
-            // Override the "to" email if provided on a test server.
-            if (process.env.EMAIL_OVERRIDE) {
-              mail.to = process.env.EMAIL_OVERRIDE;
-            }
-
             // Send the email.
             transporter.sendMail(mail);
           });
@@ -206,6 +213,26 @@ module.exports = function(formio) {
 
         debug.email(formio.config);
         debug.email(emailType);
+
+        // Force the email type to custom for EMAIL_OVERRIDE which will allow
+        // us to use ngrok to test emails out of test platform.
+        if (EMAIL_OVERRIDE) {
+          try {
+            var override = JSON.parse(EMAIL_OVERRIDE);
+            if (override && override.hasOwnProperty('transport')) {
+              emailType = override.transport;
+              settings.email = {};
+              settings.email[emailType] = override.settings;
+            }
+            else {
+              emailType = 'custom';
+            }
+          }
+          catch (err) {
+            emailType = 'custom';
+          }
+        }
+
         switch (emailType) {
           case 'default':
             if (_config && formio.config.email.type === 'sendgrid') {

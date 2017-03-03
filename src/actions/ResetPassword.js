@@ -201,7 +201,7 @@ module.exports = function(router) {
       deleted: {$eq: null}
     };
     query[usernamekey] = token.username;
-    query.form = {$in: [_.map(token.resources, mongoose.Types.ObjectId)]};
+    query.form = {$in: _.map(token.resources, mongoose.Types.ObjectId)};
 
     // Perform a mongo query to find the submission.
     router.formio.resources.submission.model.findOne(query, function(err, submission) {

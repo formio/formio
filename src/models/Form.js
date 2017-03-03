@@ -6,6 +6,7 @@ var debug = require('debug')('formio:models:form');
 
 module.exports = function(formio) {
   var hook = require('../util/hook')(formio);
+  var util = formio.util;
   var model = require('./BaseModel')({
     schema: new mongoose.Schema({
       title: {
@@ -28,6 +29,9 @@ module.exports = function(formio) {
       },
       type: {
         type: String,
+        enum: ['form', 'resource'],
+        required: true,
+        default: 'form',
         description: 'The form type.',
         index: true
       },
@@ -132,42 +136,36 @@ module.exports = function(formio) {
     });
   }, 'The Path must be unique per Project.');
 
-  // Recursively get keys of components
-  var getKeys = function getKeys(component) {
-    var components = component.components || component.columns;
-    if (components) {
-      return _.flattenDeep(_.map(components, getKeys).concat(component.key));
-    }
-    else if (component.input) {
-      return component.key;
-    }
+  var componentKeys = function(components) {
+    var keys = [];
+    util.eachComponent(components, function(component) {
+      if (!_.isUndefined(component.key) && !_.isNull(component.key)) {
+        keys.push(component.key);
+      }
+    }, true);
+    return _(keys);
   };
 
   // Validate component keys are unique
   model.schema.path('components').validate(function(components, valid) {
-    var keys = _(components).map(getKeys).flatten().filter(function(key) {
-      return !_.isUndefined(key);
-    }).value();
-
+    var keys = componentKeys(components);
     var msg = 'Component keys must be unique: ';
-    var uniq = _.unique(keys);
-    var diff = _.filter(keys, function(value, index, collection) {
+    var uniq = keys.uniq();
+    var diff = keys.filter(function(value, index, collection) {
       return _.includes(collection, value, index + 1);
     });
 
-    if (_.isEqual(keys, uniq)) {
+    if (_.isEqual(keys.value(), uniq.value())) {
       return valid(true);
     }
 
-    return valid(false, (msg + (diff).join(', ')));
+    return valid(false, (msg + diff.value().join(', ')));
   });
 
   // Validate component keys have valid characters
   model.schema.path('components').validate(function(components) {
     var validRegex = /^[A-Za-z]+[A-Za-z0-9\-.]*$/g;
-    return _(components).map(getKeys).flatten().filter(function(key) {
-      return !_.isUndefined(key);
-    }).all(function(key) {
+    return componentKeys(components).every(function(key) {
       return key.match(validRegex);
     });
   }, 'A component on this form has an invalid or missing API key. Keys must only contain alphanumeric characters or '

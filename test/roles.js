@@ -6,8 +6,11 @@ var assert = require('assert');
 var _ = require('lodash');
 var async = require('async');
 var docker = process.env.DOCKER;
+var chance = new (require('chance'))();
 
 module.exports = function(app, template, hook) {
+  var Helper = require('./helper')(app);
+  
   describe('Roles', function() {
     // Store the temp role for this test suite.
     var tempRole = {
@@ -604,6 +607,57 @@ module.exports = function(app, template, hook) {
             done();
           });
         });
+      });
+    });
+
+    describe('Role MachineNames', function() {
+      var _role;
+      var name = chance.word();
+      var helper;
+
+      before(function() {
+        helper = new Helper(template.users.admin, template);
+      });
+
+      after(function(done) {
+        helper.deleteRole(name, done);
+      });
+
+      it('Roles expose their machineNames through the api', function(done) {
+        helper
+          .role({
+            title: name
+          })
+          .execute(function(err, result) {
+            if (err) {
+              return done(err);
+            }
+
+            var role = result.getRole(name);
+            assert(role.hasOwnProperty('machineName'));
+            _role = role;
+            done();
+          });
+      });
+
+      it('A user can modify their role machineNames', function(done) {
+        var newMachineName = chance.word();
+
+        helper
+          .role(name, {
+            _id: _role._id,
+            machineName: newMachineName
+          })
+          .execute(function(err, result) {
+            if (err) {
+              return done(err);
+            }
+
+            var role = result.getRole(name);
+            assert(role.hasOwnProperty('machineName'));
+            assert.equal(role.machineName, newMachineName);
+            done();
+          });
       });
     });
   });

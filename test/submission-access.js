@@ -1226,7 +1226,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('A Registered user should be able to Update a submission with explicit Own permissions', function(done) {
-            var updatedSubmission = _.clone(tempSubmissionUser1);
+            var updatedSubmission = _.cloneDeep(tempSubmissionUser1);
             updatedSubmission.data.value = 'bar';
 
             request(app)
@@ -1299,7 +1299,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('A Registered user should be able to Update a submission with explicit Own permissions using the Form alias', function(done) {
-            var updatedSubmission = _.clone(tempSubmissionUser1);
+            var updatedSubmission = _.cloneDeep(tempSubmissionUser1);
             updatedSubmission.data.value = 'bar2';
 
             request(app)
@@ -1652,7 +1652,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('The Project owner should be able to Update a submission without explicit Own permissions', function(done) {
-            var updatedSubmission = _.clone(tempSubmissionUser2);
+            var updatedSubmission = _.cloneDeep(tempSubmissionUser2);
             updatedSubmission.data.value = 'bar2';
 
             request(app)
@@ -1779,7 +1779,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('The Project owner should be able to Update a submission without explicit Own permissions with the Form alias', function(done) {
-            var updatedSubmission = _.clone(tempSubmissionOwner1);
+            var updatedSubmission = _.cloneDeep(tempSubmissionOwner1);
             updatedSubmission.data.value = 'bar2';
 
             request(app)
@@ -2155,7 +2155,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('A Registered user should be able to Update a submission with explicit permissions', function(done) {
-            var updatedSubmission = _.clone(tempSubmissionUser1);
+            var updatedSubmission = _.cloneDeep(tempSubmissionUser1);
             updatedSubmission.data.value = 'bar';
 
             request(app)
@@ -2228,7 +2228,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('A Registered user should be able to Update a submission with explicit permissions using the Form alias', function(done) {
-            var updatedSubmission = _.clone(tempSubmissionUser1);
+            var updatedSubmission = _.cloneDeep(tempSubmissionUser1);
             updatedSubmission.data.value = 'bar2';
 
             request(app)
@@ -2400,7 +2400,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('The Project owner should be able to Update a submission without explicit permissions', function(done) {
-            var updatedSubmission = _.clone(tempSubmissionUser1);
+            var updatedSubmission = _.cloneDeep(tempSubmissionUser1);
             updatedSubmission.data.value = 'bar2';
 
             request(app)
@@ -2528,7 +2528,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('The Project owner should be able to Update a submission without explicit permissions with the Form alias', function(done) {
-            var updatedSubmission = _.clone(tempSubmissionOwner1);
+            var updatedSubmission = _.cloneDeep(tempSubmissionOwner1);
             updatedSubmission.data.value = 'bar2';
 
             request(app)
@@ -2821,7 +2821,7 @@ module.exports = function(app, template, hook) {
 
         describe('Project Owner', function() {
           it('The Project Owner should create a submission in their name, when the owner is not specified, without permissions', function(done) {
-            var submission = _.clone(tempSubmission);
+            var submission = _.cloneDeep(tempSubmission);
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
               .set('x-jwt-token', template.users.admin.token)
@@ -2860,7 +2860,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('The Project Owner should be able to create a submission in someones name, without explicit permissions', function(done) {
-            var submission = _.clone(tempSubmission);
+            var submission = _.cloneDeep(tempSubmission);
             submission.owner = template.users.user2._id;
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
@@ -2934,7 +2934,7 @@ module.exports = function(app, template, hook) {
 
         describe('Authenticated User', function() {
           it('An Authenticated User should be able create a submission in their name, with _own permissions', function(done) {
-            var submission = _.clone(tempSubmission);
+            var submission = _.cloneDeep(tempSubmission);
 
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
@@ -2975,7 +2975,7 @@ module.exports = function(app, template, hook) {
 
           // The submission will be made, but in there name rather than the one supplied.
           it('An Authenticated User should not be able to create a submission in someones name, with _own permissions', function(done) {
-            var submission = _.clone(tempSubmission);
+            var submission = _.cloneDeep(tempSubmission);
             submission.owner = template.users.admin._id;
 
             request(app)
@@ -3023,7 +3023,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('An Anonymous User should not be able to create a submission in someones name, without permissions', function(done) {
-            var submission = _.clone(tempSubmission);
+            var submission = _.cloneDeep(tempSubmission);
             submission.owner = template.users.user1._id;
             var req = request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
@@ -3189,7 +3189,7 @@ module.exports = function(app, template, hook) {
 
         describe('Project Owner', function() {
           it('The Project Owner should create a submission in their name, when the owner is not specified, without permissions', function(done) {
-            var submission = _.clone(tempSubmission);
+            var submission = _.cloneDeep(tempSubmission);
 
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
@@ -3229,7 +3229,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('The Project Owner should be able to create a submission in someones name, without permissions', function(done) {
-            var submission = _.clone(tempSubmission);
+            var submission = _.cloneDeep(tempSubmission);
             submission.owner = template.users.user2._id;
 
             request(app)
@@ -3273,7 +3273,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('The Project Owner should be able to update the owner of a submission, without permissions', function(done) {
-            var submission = _.clone(tempSubmission);
+            var submission = _.cloneDeep(tempSubmission);
             submission.owner = template.users.user1._id;
 
             request(app)
@@ -3288,12 +3288,12 @@ module.exports = function(app, template, hook) {
                 }
 
                 var response = res.body;
-                // Remove the modified timestamp for comparison.
-                response = _.omit(response, 'modified');
                 // Update the temp owner for comparison.
                 temp.owner = submission.owner;
 
-                assert.deepEqual(response, _.omit(temp, 'modified'));
+                assert.deepEqual(_.omit(response, 'modified'), _.omit(temp, 'modified'));
+
+                temp = response;
 
                 // Store the JWT for future API calls.
                 template.users.admin.token = res.headers['x-jwt-token'];
@@ -3305,7 +3305,7 @@ module.exports = function(app, template, hook) {
 
         describe('Authenticated User', function() {
           it('An Authenticated User should be able create a submission in their name, with _all permissions', function(done) {
-            var submission = _.clone(tempSubmission);
+            var submission = _.cloneDeep(tempSubmission);
 
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
@@ -3345,7 +3345,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('An Authenticated User should be able to create a submission in someones name, with _all permissions', function(done) {
-            var submission = _.clone(tempSubmission);
+            var submission = _.cloneDeep(tempSubmission);
             submission.owner = template.users.admin._id;
 
             request(app)
@@ -3425,7 +3425,7 @@ module.exports = function(app, template, hook) {
           });
 
           it('An Anonymous User should not be able to create a submission in someones name, without permissions', function(done) {
-            var submission = _.clone(tempSubmission);
+            var submission = _.cloneDeep(tempSubmission);
             submission.owner = template.users.user1._id;
             var req = request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
@@ -6490,7 +6490,7 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
+              var expected = _.cloneDeep(tempSubmission);
               expected.access = update.access;
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));

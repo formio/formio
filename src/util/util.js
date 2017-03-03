@@ -61,6 +61,18 @@ module.exports = {
   },
 
   /**
+   * Escape a string for use in regex.
+   *
+   * @param str
+   * @returns {*}
+   */
+  escapeRegExp: function(str) {
+    /* eslint-disable */
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    /* eslint-enable */
+  },
+
+  /**
    * Create a sub-request object from the original request.
    *
    * @param req
@@ -79,7 +91,7 @@ module.exports = {
     delete req.formioCache;
 
     // Clone the request.
-    var childReq = _.clone(req, true);
+    var childReq = _.cloneDeep(req);
 
     // Add the parameters back.
     childReq.formioCache = cache;
@@ -112,7 +124,6 @@ module.exports = {
    * @param {Boolean} includeAll
    *   Whether or not to include layout components.
    * @param {String} path
-   *   @TODO
    */
   eachComponent: formioUtils.eachComponent,
 
@@ -261,16 +272,19 @@ module.exports = {
         compValue.value = compValue.value ? compValue.value.formatted_address : '';
         break;
       case 'signature':
-        compValue.value = '<img src="' + value + '" />';
+        // For now, we will just email YES or NO until we can make signatures work for all email clients.
+        compValue.value = ((typeof value === 'string') && (value.indexOf('data:') === 0)) ? 'YES' : 'NO';
         break;
       case 'container':
         compValue.value = '<table border="1" style="width:100%">';
         _.each(value, function(subValue, subKey) {
           var subCompValue = this.renderComponentValue(value, subKey, components);
-          compValue.value += '<tr>';
-          compValue.value += '<th style="text-align:right;padding: 5px 10px;">' + subCompValue.label + '</th>';
-          compValue.value += '<td style="width:100%;padding:5px 10px;">' + subCompValue.value + '</td>';
-          compValue.value += '</tr>';
+          if (typeof subCompValue.value === 'string') {
+            compValue.value += '<tr>';
+            compValue.value += '<th style="text-align:right;padding: 5px 10px;">' + subCompValue.label + '</th>';
+            compValue.value += '<td style="width:100%;padding:5px 10px;">' + subCompValue.value + '</td>';
+            compValue.value += '</tr>';
+          }
         }.bind(this));
         compValue.value += '</table>';
         break;
@@ -293,9 +307,12 @@ module.exports = {
         _.each(value, function(subValue) {
           compValue.value += '<tr>';
           _.each(columns, function(column) {
-            compValue.value += '<td style="padding:5px 10px;">';
-            compValue.value += this.renderComponentValue(subValue, column.key, components).value;
-            compValue.value += '</td>';
+            var subCompValue = this.renderComponentValue(subValue, column.key, components);
+            if (typeof subCompValue.value === 'string') {
+              compValue.value += '<td style="padding:5px 10px;">';
+              compValue.value += subCompValue.value;
+              compValue.value += '</td>';
+            }
           }.bind(this));
           compValue.value += '</tr>';
         }.bind(this));
@@ -315,7 +332,6 @@ module.exports = {
         break;
       case 'radio':
       case 'select':
-      case 'selectboxes':
         var values = [];
         if (component.hasOwnProperty('values')) {
           values = component.values;
@@ -331,7 +347,20 @@ module.exports = {
           }
         }
         break;
+      case 'selectboxes':
+        var selectedValues = [];
+        for (var j in component.values) {
+          var selectBoxValue = component.values[j];
+          if (value[selectBoxValue.value]) {
+            selectedValues.push(selectBoxValue.label);
+          }
+        }
+        compValue.value = selectedValues.join(',');
+        break;
       default:
+        if (!component.input) {
+          return {value: false};
+        }
         break;
     }
 
@@ -436,7 +465,7 @@ module.exports = {
     debug.getUrlParams(parsed);
 
     // Remove element originating from first slash.
-    parts = _.rest(parts);
+    parts = _.tail(parts);
 
     // Url is not symmetric, add an empty value for the last key.
     if ((parts.length % 2) !== 0) {

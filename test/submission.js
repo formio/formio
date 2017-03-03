@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 var request = require('supertest');
 var assert = require('assert');
+var _ = require('lodash');
 var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
@@ -41,8 +42,144 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
+            signatureSubmission1 = helper.getLastSubmission();
+            assert.deepEqual(test.submission, signatureSubmission1.data);
+            done();
+          });
+      });
+
+      var signatureSubmission1 = null;
+      it('Saves submission with a null signature.', function(done) {
+        var test = _.cloneDeep(require('./forms/singlecomponents2.js'));
+        test.submission.signature2 = null;
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            signatureSubmission1 = helper.getLastSubmission();
+            // Should coerse the value to an empty string.
+            test.submission.signature2 = "";
+            assert.deepEqual(test.submission, signatureSubmission1.data);
+            done();
+          });
+      });
+
+      it('Updates the submission with a null signature', function(done) {
+        var test = _.cloneDeep(require('./forms/singlecomponents2.js'));
+        var updateSub = _.cloneDeep(signatureSubmission1);
+        updateSub.data.signature2 = null;
+        helper.updateSubmission(updateSub, function(err, updated) {
+          // Should coerse the value to an empty string.
+          test.submission.signature2 = "";
+          assert.deepEqual(test.submission, updated.data);
+          done();
+        });
+      });
+
+      var signatureSubmission = null;
+      it('Saves values with required signature', function(done) {
+        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            signatureSubmission = helper.getLastSubmission();
+            assert.deepEqual(test.submission, signatureSubmission.data);
+            done();
+          });
+      });
+
+      it('Updating signatures does not wipe out the signature.', function(done) {
+        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        var updateSub = _.cloneDeep(signatureSubmission);
+        helper.updateSubmission(updateSub, function(err, updated) {
+          assert.deepEqual(test.submission, updated.data);
+          done();
+        });
+      });
+
+      it('Saving signatures with Bad string does not wipe out the signature.', function(done) {
+        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        var updateSub = _.cloneDeep(signatureSubmission);
+        updateSub.data.signature2 = 'YES';
+        helper.updateSubmission(updateSub, function(err, updated) {
+          // Ensure that it does not erase the signature.
+          assert.deepEqual(test.submission, updated.data);
+          done();
+        });
+      });
+
+      it('Saving signatures with Any other string does not wipe out the signature.', function(done) {
+        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        var updateSub = _.cloneDeep(signatureSubmission);
+        updateSub.data.signature2 = 'sdfsfsdfsdf';
+        helper.updateSubmission(updateSub, function(err, updated) {
+          // Ensure that it does not erase the signature.
+          assert.deepEqual(test.submission, updated.data);
+          done();
+        });
+      });
+
+      it('Updating signatures with empty string invalidates.', function(done) {
+        var updateSub = _.cloneDeep(signatureSubmission);
+        updateSub.data.signature2 = '';
+        helper.updateSubmission(updateSub, function(err, updated) {
+          // It should fail validation.
+          assert.equal(updated.name, 'ValidationError');
+          assert.equal(updated.details.length, 1);
+          assert.equal(updated.details[0].message, '"signature2" is not allowed to be empty');
+          assert.equal(updated.details[0].path, 'signature2');
+          assert.equal(updated.details[0].type, 'any.empty');
+          done();
+        });
+      });
+
+      it('Gives an error with an empty signature.', function(done) {
+        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        test.submission.signature2 = '';
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
             var submission = helper.getLastSubmission();
-            assert.deepEqual(test.submission, submission.data);
+            assert.equal(submission.name, 'ValidationError');
+            assert.equal(submission.details.length, 1);
+            assert.equal(submission.details[0].message, '"signature2" is not allowed to be empty');
+            assert.equal(submission.details[0].path, 'signature2');
+            assert.equal(submission.details[0].type, 'any.empty');
+            done();
+          });
+      });
+
+      it('Gives an error with a signature not present.', function(done) {
+        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        delete test.submission.signature2;
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(submission.name, 'ValidationError');
+            assert.equal(submission.details.length, 1);
+            assert.equal(submission.details[0].message, '"signature2" is not allowed to be empty');
+            assert.equal(submission.details[0].path, 'signature2');
+            assert.equal(submission.details[0].type, 'any.empty');
             done();
           });
       });
@@ -94,6 +231,7 @@ module.exports = function(app, template, hook) {
       it('Nests single value components in a fieldset', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "fieldset1",
           "input": false,
           "tableView": true,
           "legend": "Fieldset",
@@ -123,6 +261,7 @@ module.exports = function(app, template, hook) {
       it('Nests multiple value components in a fieldset', function(done) {
         var test = require('./forms/multicomponents.js');
         var components = [{
+          "key": "fieldset1",
           "input": false,
           "tableView": true,
           "legend": "Fieldset",
@@ -155,13 +294,14 @@ module.exports = function(app, template, hook) {
         var test1 = require('./forms/singlecomponents1.js');
         var test2 = require('./forms/singlecomponents2.js');
         var components = [{
+          "key": "columns1",
           "input": false,
           "columns": [
             {
-              "components": test1.components,
+              "components": test1.components
             },
             {
-              "components": test2.components,
+              "components": test2.components
             }
           ],
           "type": "columns",
@@ -191,13 +331,14 @@ module.exports = function(app, template, hook) {
         var test1 = require('./forms/singlecomponents1.js');
         var test2 = require('./forms/multicomponents.js');
         var components = [{
+          "key": "columns1",
           "input": false,
           "columns": [
             {
-              "components": test1.components,
+              "components": test1.components
             },
             {
-              "components": test2.components,
+              "components": test2.components
             }
           ],
           "type": "columns",
@@ -228,6 +369,7 @@ module.exports = function(app, template, hook) {
       it('Nests single value components in a panel', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "panel1",
           "input": false,
           "title": "Panel",
           "theme": "default",
@@ -257,6 +399,7 @@ module.exports = function(app, template, hook) {
       it('Nests multiple value components in a panel', function(done) {
         var test = require('./forms/multicomponents.js');
         var components = [{
+          "key": "panel1",
           "input": false,
           "title": "Panel",
           "theme": "default",
@@ -288,6 +431,7 @@ module.exports = function(app, template, hook) {
       it('Nests single value components in a well', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "well1",
           "input": false,
           "components": test.components,
           "type": "well",
@@ -315,6 +459,7 @@ module.exports = function(app, template, hook) {
       it('Nests multiple value components in a well', function(done) {
         var test = require('./forms/multicomponents.js');
         var components = [{
+          "key": "well1",
           "input": false,
           "components": test.components,
           "type": "well",
@@ -346,6 +491,7 @@ module.exports = function(app, template, hook) {
         var test2 = require('./forms/singlecomponents2.js');
         var test3 = require('./forms/multicomponents.js');
         var components = [{
+          "key": "table1",
           "conditional": {
             "eq": "",
             "when": null,
@@ -434,6 +580,7 @@ module.exports = function(app, template, hook) {
       it('Nests single value components in a custom component', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "custom1",
           "input": false,
           "tableView": true,
           "legend": "Custom",
@@ -849,27 +996,32 @@ module.exports = function(app, template, hook) {
       it('Nests deeply in layout components', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "fieldset1",
           "input": false,
           "tableView": true,
           "type": "fieldset",
           "legend": "Fieldset",
           "components": [
             {
+              "key": "columns1",
               "input": false,
               "type": "columns",
               "columns": [
                 {
                   "components": [
                     {
+                      "key": "panel1",
                       "input": false,
                       "title": "Panel",
                       "type": "panel",
                       "theme": "default",
                       "components": [
                         {
+                          "key": "well1",
                           "input": false,
                           "components": [
                             {
+                              "key": "well2",
                               "input": false,
                               "type": "well",
                               "components": test.components,
@@ -894,10 +1046,10 @@ module.exports = function(app, template, hook) {
                         "eq": ""
                       }
                     }
-                  ],
+                  ]
                 },
                 {
-                  "components": [],
+                  "components": []
                 }
               ],
               "conditional": {
@@ -931,28 +1083,33 @@ module.exports = function(app, template, hook) {
       it('Nests a datagrid deeply in layout components', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "fieldset1",
           "input": false,
           "tableView": true,
           "type": "fieldset",
           "legend": "Fieldset",
           "components": [
             {
+              "key": "columns1",
               "input": false,
               "type": "columns",
               "columns": [
                 {
                   "components": [
                     {
+                      "key": "panel1",
                       "input": false,
                       "title": "Panel",
                       "type": "panel",
                       "theme": "default",
                       "components": [
                         {
+                          "key": "well1",
                           "input": false,
                           "type": "well",
                           "components": [
                             {
+                              "key": "well2",
                               "input": false,
                               "type": "well",
                               "components": [
@@ -993,10 +1150,10 @@ module.exports = function(app, template, hook) {
                         "eq": ""
                       }
                     }
-                  ],
+                  ]
                 },
                 {
-                  "components": [],
+                  "components": []
                 }
               ],
               "conditional": {
@@ -1034,27 +1191,32 @@ module.exports = function(app, template, hook) {
       it('Nests a container deeply in layout components', function(done) {
         var test = require('./forms/singlecomponents1.js');
         var components = [{
+          "key": "fieldset1",
           "input": false,
           "tableView": true,
           "type": "fieldset",
           "legend": "Fieldset",
           "components": [
             {
+              "key": "columns1",
               "input": false,
               "type": "columns",
               "columns": [
                 {
                   "components": [
                     {
+                      "key": "panel1",
                       "input": false,
                       "title": "Panel",
                       "type": "panel",
                       "theme": "default",
                       "components": [
                         {
+                          "key": "well1",
                           "input": false,
                           "components": [
                             {
+                              "key": "well2",
                               "input": false,
                               "type": "well",
                               "components": [
@@ -1096,10 +1258,10 @@ module.exports = function(app, template, hook) {
                         "eq": ""
                       }
                     }
-                  ],
+                  ]
                 },
                 {
-                  "components": [],
+                  "components": []
                 }
               ],
               "conditional": {
@@ -1279,10 +1441,6 @@ module.exports = function(app, template, hook) {
       });
     });
 
-    describe('Test various field validations like min, max, regex, etc', function() {
-
-    });
-
     describe('Conditional Fields', function() {
       it('Requires a conditionally visible field', function(done) {
         var components = [
@@ -1346,7 +1504,7 @@ module.exports = function(app, template, hook) {
               "eq": "two"
             },
             "type": "textfield"
-          },
+          }
         ];
 
         var values = {
@@ -1442,7 +1600,7 @@ module.exports = function(app, template, hook) {
               "eq": "two"
             },
             "type": "textfield"
-          },
+          }
         ];
 
         var values = {
@@ -1457,12 +1615,10 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
             var submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
-
       });
 
       it('Allows a conditionally required field', function(done) {
@@ -1527,7 +1683,7 @@ module.exports = function(app, template, hook) {
               "eq": "two"
             },
             "type": "textfield"
-          },
+          }
         ];
 
         var values = {
@@ -1613,7 +1769,7 @@ module.exports = function(app, template, hook) {
               "eq": "two"
             },
             "type": "textfield"
-          },
+          }
         ];
 
         var values = {
@@ -1703,7 +1859,7 @@ module.exports = function(app, template, hook) {
                   "eq": ""
                 },
                 "type": "textfield"
-              },
+              }
             ],
             "type": "panel",
             "key": "panel",
@@ -1712,7 +1868,7 @@ module.exports = function(app, template, hook) {
               "when": "selector",
               "eq": "two"
             }
-          },
+          }
         ];
 
         var values = {
@@ -1813,7 +1969,7 @@ module.exports = function(app, template, hook) {
                   "eq": ""
                 },
                 "type": "textfield"
-              },
+              }
             ],
             "type": "panel",
             "key": "panel",
@@ -1822,7 +1978,7 @@ module.exports = function(app, template, hook) {
               "when": "selector",
               "eq": "two"
             }
-          },
+          }
         ];
 
         var values = {
@@ -1912,7 +2068,7 @@ module.exports = function(app, template, hook) {
                   "eq": ""
                 },
                 "type": "textfield"
-              },
+              }
             ],
             "type": "panel",
             "key": "panel",
@@ -1921,7 +2077,7 @@ module.exports = function(app, template, hook) {
               "when": "selector",
               "eq": "two"
             }
-          },
+          }
         ];
 
         var values = {
@@ -2012,7 +2168,7 @@ module.exports = function(app, template, hook) {
                   "eq": ""
                 },
                 "type": "textfield"
-              },
+              }
             ],
             "type": "panel",
             "key": "panel",
@@ -2021,7 +2177,7 @@ module.exports = function(app, template, hook) {
               "when": "selector",
               "eq": "two"
             }
-          },
+          }
         ];
 
         var values = {
@@ -2046,7 +2202,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Non Persistent fields dont persist', function() {
-      it('Doesn\t save non-persistent single fields', function(done) {
+      it('Doesn\'t save non-persistent single fields', function(done) {
         var test = require('./forms/singlecomponents1.js');
         test.components.forEach(function(component) {
           component.persistent = false;
@@ -2066,7 +2222,7 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('Doesn\t save non-persistent multi fields', function(done) {
+      it('Doesn\'t save non-persistent multi fields', function(done) {
         var test = require('./forms/multicomponents.js');
         test.components.forEach(function(component) {
           component.persistent = false;
@@ -2119,10 +2275,10 @@ module.exports = function(app, template, hook) {
               "eq": ""
             },
             "type": "textfield"
-          },
+          }
         ];
         var values = {
-          textField: 'My Value',
+          textField: 'My Value'
         };
 
         helper
@@ -2181,7 +2337,7 @@ module.exports = function(app, template, hook) {
               "eq": ""
             },
             "type": "textfield"
-          },
+          }
         ];
         var values = {
           textField: ['Never', 'gonna', 'give', 'you', 'up']
@@ -2249,7 +2405,7 @@ module.exports = function(app, template, hook) {
           }
         ];
         var values = {
-          textField: 'My Value',
+          textField: 'My Value'
         };
 
         helper
@@ -2261,12 +2417,77 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
             var submission = helper.getLastSubmission();
             assert.equal('Text Field must be unique.', submission);
             done();
           });
+      });
+    });
 
+    describe('Unique Fields with multiple', function() {
+      var components = [
+        {
+          "input": true,
+          "tableView": true,
+          "inputType": "text",
+          "inputMask": "",
+          "label": "Text Field",
+          "key": "textField",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "multiple": true,
+          "defaultValue": "",
+          "protected": false,
+          "unique": true,
+          "persistent": true,
+          "validate": {
+            "required": false,
+            "minLength": "",
+            "maxLength": "",
+            "pattern": "",
+            "custom": "",
+            "customPrivate": false
+          },
+          "conditional": {
+            "show": null,
+            "when": null,
+            "eq": ""
+          },
+          "type": "textfield"
+        }
+      ];
+
+      it('Unique Arrays should allow unique submissions', function(done) {
+        helper
+          .form('test', components)
+          .submission({textField: ['Foo', 'Bar']})
+          .submission({textField: ['Bar', 'Baz']})
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert(submission.hasOwnProperty('data'));
+            assert.deepEqual(submission.data, {textField: ['Bar', 'Baz']});
+            done();
+          });
+      });
+
+      it('Unique Arrays check contents not order', function(done) {
+        helper
+          .form('test', components)
+          .submission({textField: ['Bar', 'Foo']})
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(submission, 'Text Field must be unique.');
+            done();
+          });
       });
     });
 
@@ -2283,6 +2504,110 @@ module.exports = function(app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
+            done();
+          });
+      });
+    });
+
+    describe('Conditionally hidden required fields do not trigger validation', function() {
+      var test = require('./forms/conditional');
+      var pass = {show: 'no'};
+      var fail = {show: 'yes'};
+      var full = {show: 'yes', req: 'foo'};
+      var pruned = {show: 'no', req: 'foo'};
+
+      it('A submission without a hidden field should ignore validation', function(done) {
+        helper
+          .form('cond', test.components)
+          .submission(pass)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, pass);
+            done();
+          });
+      });
+
+      it('A submission with a hidden field should not ignore validation', function(done) {
+        helper
+          .form('cond', test.components)
+          .submission(fail)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.name, 'ValidationError');
+            var error = submission.details.pop();
+            assert.equal(error.message, '"req" is required');
+            done();
+          });
+      });
+
+      it('A submission with a hidden field should work with all the required data', function(done) {
+        helper
+          .form('cond', test.components)
+          .submission(full)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, full);
+            done();
+          });
+      });
+
+      it('A submission with a hidden field should prune hidden field data', function(done) {
+        helper
+          .form('cond', test.components)
+          .submission(pruned)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, pass);
+            done();
+          });
+      });
+    });
+
+    describe('Address Fields', function() {
+      var test = require('./forms/for213.js');
+
+      it('A single unique address will submit without issues', function(done) {
+        helper
+          .form('for213', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, test.submission);
+            done();
+          });
+      });
+
+      it('A duplicate unique address will throw validation issues', function(done) {
+        helper
+          .form('for213', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(submission, 'address must be unique.');
             done();
           });
       });

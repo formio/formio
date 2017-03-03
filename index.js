@@ -5,6 +5,7 @@ var express = require('express');
 var cors = require('cors');
 var router = express.Router();
 var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
 var _ = require('lodash');
@@ -12,7 +13,6 @@ var events = require('events');
 var Q = require('q');
 var nunjucks = require('nunjucks');
 var util = require('./src/util/util');
-
 // Keep track of the formio interface.
 router.formio = {};
 
@@ -138,12 +138,15 @@ module.exports = function(config) {
       // Allow libraries to use a single instance of mongoose.
       router.formio.mongoose = mongoose;
 
-      // See if our mongo configuration is a string.
-      if (typeof config.mongo === 'string') {
-        // Connect to a single mongo instance.
+      // See if we have high availability environment variable.
+      if (process.env.MONGO_HIGH_AVAILABILITY) {
+        mongoose.connect(config.mongo, {mongos: true});
+      }
+      else if (typeof config.mongo === 'string') {
         mongoose.connect(config.mongo);
       }
       else {
+        // NOTE: THIS IS LEGACY CONFIG. USE MONGO_HIGH_AVAILABILITY ENVIRONMENT CONFIGURATION INSTEAD
         // Connect to multiple mongo instance replica sets with High availability.
         mongoose.connect(config.mongo.join(','), {mongos: true});
       }

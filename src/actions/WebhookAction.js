@@ -6,6 +6,8 @@ var debug = require('debug')('formio:action:webhook');
 
 module.exports = function(router) {
   var Action = router.formio.Action;
+  var hook = router.formio.hook;
+
   /**
    * WebhookAction class.
    *   This class is used to create webhook interface.
@@ -20,7 +22,7 @@ module.exports = function(router) {
   WebhookAction.prototype = Object.create(Action.prototype);
   WebhookAction.prototype.constructor = WebhookAction;
   WebhookAction.info = function(req, res, next) {
-    next(null, {
+    next(null, hook.alter('actionInfo', {
       name: 'webhook',
       title: 'Webhook',
       description: 'Allows you to trigger an external interface.',
@@ -29,7 +31,7 @@ module.exports = function(router) {
         handler: ['after'],
         method: ['create', 'update', 'delete']
       }
-    });
+    }));
   };
   WebhookAction.settingsForm = function(req, res, next) {
     next(null, [
@@ -84,6 +86,10 @@ module.exports = function(router) {
    *   The callback function to execute upon completion.
    */
   WebhookAction.prototype.resolve = function(handler, method, req, res, next) {
+    if (!hook.alter('resolve', true, this, handler, method, req, res)) {
+      return next();
+    }
+
     var options = {};
     debug(_.get(this, 'settings'));
 
@@ -101,9 +107,11 @@ module.exports = function(router) {
       return next();
     }
 
+    var submission = _.get(res, 'resource.item');
     var payload = {
       request: _.get(req, 'body'),
       response: _.get(req, 'response'),
+      submission: (submission && submission.toObject) ? submission.toObject() : {},
       params: _.get(req, 'params')
     };
 
