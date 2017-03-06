@@ -2,7 +2,7 @@
 
 module.exports = function() {
   // The default project template.
-  var template = require('../src/templates/default.json');
+  var template = require('../../src/templates/default.json');
 
   // Create a registration form for admins for testing purposes.
   template.forms.adminRegister = {

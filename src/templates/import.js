@@ -17,10 +17,11 @@ var debug = {
 /**
  * Perform an installation of a specified template.
  *
- * @param formio
- *   The formio object.
+ * @param {Object} router
+ *   The express router object.
  */
-module.exports = function(formio) {
+module.exports = function(router) {
+  let formio = router.formio;
   var hook = require('../util/hook')(formio);
 
   // Provide a default alter method.
@@ -405,43 +406,38 @@ module.exports = function(formio) {
   };
 
   /**
-   * Return an easy way for someone to install a template.
+   * Import the formio template.
+   *
+   * Note: This is all of the core entities, not submission data.
    */
-  return {
-    createInstall: _install,
-    parse: parse,
-    roles: _install(formio.resources.role.model, parse.role),
-    resources: _install(formio.resources.form.model, parse.resource, postResourceInstall),
-    forms: _install(formio.resources.form.model, parse.form),
-    actions: _install(formio.actions.model, parse.action),
-    submissions: _install(formio.resources.submission.model, parse.submission),
-    template: function(template, alter, done) {
-      if (!done) {
-        done = alter;
-        alter = null;
-      }
-      alter = alter || {};
-      if (!template) {
-        return done('No template provided.');
-      }
-
-      debug.items(JSON.stringify(template));
-      async.series([
-        async.apply(translateSchema, template),
-        async.apply(this.roles, template, template.roles, alter.role),
-        async.apply(this.resources, template, template.resources, alter.form),
-        async.apply(this.forms, template, template.forms, alter.form),
-        async.apply(this.actions, template, template.actions, alter.action),
-        async.apply(this.submissions, template, template.submissions, alter.submission)
-      ], function(err) {
-        if (err) {
-          debug.template(err);
-          return done(err);
-        }
-
-        debug.final(template);
-        done(null, template);
-      });
+  let importTemplate = function(template, alter, done) {
+    if (!done) {
+      done = alter;
+      alter = null;
     }
+    alter = alter || {};
+    if (!template) {
+      return done('No template provided.');
+    }
+
+    debug.items(JSON.stringify(template));
+    async.series([
+      async.apply(translateSchema, template),
+      async.apply(_install(formio.resources.role.model, parse.role), template, template.roles, alter.role),
+      async.apply(_install(formio.resources.form.model, parse.resource, postResourceInstall), template, template.resources, alter.form),
+      async.apply(_install(formio.resources.form.model, parse.form), template, template.forms, alter.form),
+      async.apply(_install(formio.actions.model, parse.action), template, template.actions, alter.action),
+      async.apply(_install(formio.resources.submission.model, parse.submission), template, template.submissions, alter.submission)
+    ], function(err) {
+      if (err) {
+        debug.template(err);
+        return done(err);
+      }
+
+      debug.final(template);
+      done(null, template);
+    });
   };
+  
+  return importTemplate;
 };

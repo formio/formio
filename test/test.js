@@ -1,16 +1,16 @@
 /* eslint-env mocha */
 'use strict';
 
-var _ = require('lodash');
 var async = require('async');
 var assert = require('assert');
-var formioUtils = require('formio-utils');
+let _ = require('lodash');
+let formioUtils = require('formio-utils');
 
 // Bootstrap the test environment.
 var app = null;
-var comparison = null;
+var template = require('./fixtures/template')();
 var hook = null;
-var template = require('./template')();
+var comparison = null;
 
 describe('Bootstrap Test modules', function() {
   before(function(done) {
@@ -53,8 +53,7 @@ describe('Bootstrap Test modules', function() {
   it('Should be able to bootstrap the default template', function(done) {
     comparison = _.cloneDeep(template);
 
-    var importer = require('../src/templates/import')(app.formio);
-    importer.template(template, function(err) {
+    app.formio.template.import(template, function(err) {
       if (err) {
         return done(err);
       }
@@ -71,8 +70,7 @@ describe('Bootstrap Test modules', function() {
   });
 
   it('Should be able to export what was imported', function(done) {
-    var exporter = require('../src/templates/export')(app.formio);
-    exporter.export({
+    app.formio.template.export({
       title: template.title,
       description: template.description,
       name: template.name
@@ -95,6 +93,7 @@ describe('Bootstrap Test modules', function() {
   after(function() {
     require('./unit')(app, template, hook);
     require('./auth')(app, template, hook);
+    require('./templates')(app, template, hook);
     require('./roles')(app, template, hook);
     require('./form')(app, template, hook);
     require('./resource')(app, template, hook);

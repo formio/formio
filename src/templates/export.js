@@ -184,12 +184,12 @@ module.exports = (router) => {
   };
 
   /**
-   * Export the formio project.
+   * Export the formio template.
    *
    * Note: This is all of the core entities, not submission data.
    */
-  let exportProject = (options, next) => {
-    let project = {
+  let exportTemplate = (options, next) => {
+    let template = {
       title: options.title ? options.title : 'Export',
       version: '2.0.0',
       description: options.description ? options.description : '',
@@ -209,16 +209,16 @@ module.exports = (router) => {
 
     // Export the roles forms and actions.
     async.series([
-      async.apply(exportRoles, project, map, options),
-      async.apply(exportForms, project, map, options),
-      async.apply(exportActions, project, map, options)
+      async.apply(exportRoles, template, map, options),
+      async.apply(exportForms, template, map, options),
+      async.apply(exportActions, template, map, options)
     ], (err) => {
       if (err) {
         return next(err);
       }
 
       // Send the export.
-      return next(null, project);
+      return next(null, template);
     });
   };
 
@@ -227,7 +227,7 @@ module.exports = (router) => {
    */
   router.get('/export', (req, res, next) => {
     let options = router.formio.hook.alter('exportOptions', {}, req, res);
-    exportProject(options, (err, data) => {
+    exportTemplate(options, (err, data) => {
       if (err) {
         return next(err.message || err);
       }
@@ -236,4 +236,6 @@ module.exports = (router) => {
       res.end(JSON.stringify(data));
     });
   });
+  
+  return exportTemplate;
 };

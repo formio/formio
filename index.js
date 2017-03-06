@@ -187,8 +187,14 @@ module.exports = function(config) {
         // Add submission data export capabilities.
         require('./src/export/export')(router);
 
-        // Add template exporting capabilities.
-        require('./src/templates/export')(router);
+        // Add the available templates.
+        router.formio.templates = {
+          default: _.cloneDeep(require('./src/templates/default.json')),
+          empty: _.cloneDeep(require('./src/templates/empty.json'))
+        };
+
+        // Add the template functions.
+        router.formio.template = require('./src/templates/index')(router);
 
         // Return the form components.
         router.get('/form/:formId/components', function(req, res, next) {
@@ -243,12 +249,6 @@ module.exports = function(config) {
             res.json(spec);
           });
         });
-
-        // Add the templates.
-        router.formio.templates = require('./src/templates/index');
-
-        // Add the importer.
-        router.formio.import = require('./src/templates/import')(router.formio);
 
         // Say we are done.
         deferred.resolve(router.formio);
