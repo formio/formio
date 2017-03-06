@@ -1,17 +1,18 @@
 'use strict';
 
-var async = require('async');
-var _ = require('lodash');
-var util = require('../util/util');
+let async = require('async');
+let _ = require('lodash');
+let util = require('../util/util');
 
 /**
  * Perform an export of a specified template.
  *
- * @param formio
- *   The formio object.
+ * @param {Object} router
+ *   The express router object.
  */
-module.exports = function(formio) {
-  var hook = require('../util/hook')(formio);
+module.exports = (router) => {
+  let formio = router.formio;
+  let hook = require('../util/hook')(formio);
 
   // Assign the role ids.
   var assignRoles = function(_map, perms) {
@@ -183,41 +184,56 @@ module.exports = function(formio) {
   };
 
   /**
-   * Return an easy way for someone to install a template.
+   * Export the formio project.
+   *
+   * Note: This is all of the core entities, not submission data.
    */
-  return {
-    export: function(options, next) {
-      var _export = {
-        title: options.title ? options.title : 'Export',
-        version: '2.0.0',
-        description: options.description ? options.description : '',
-        name: options.name ? options.name : 'export',
-        plan: options.plan ? options.plan : 'community',
-        roles: {},
-        forms: {},
-        actions: {},
-        resources: {}
-      };
+  let exportProject = (options, next) => {
+    let project = {
+      title: options.title ? options.title : 'Export',
+      version: '2.0.0',
+      description: options.description ? options.description : '',
+      name: options.name ? options.name : 'export',
+      plan: options.plan ? options.plan : 'community',
+      roles: {},
+      forms: {},
+      actions: {},
+      resources: {}
+    };
 
-      // Keep track of a resource mapping.
-      var _map = {
-        roles: {},
-        forms: {}
-      };
+    // Memoize resource mapping.
+    let map = {
+      roles: {},
+      forms: {}
+    };
 
-      // Export the roles forms and actions.
-      async.series([
-        async.apply(exportRoles, _export, _map, options),
-        async.apply(exportForms, _export, _map, options),
-        async.apply(exportActions, _export, _map, options)
-      ], function(err) {
-        if (err) {
-          return next(err);
-        }
+    // Export the roles forms and actions.
+    async.series([
+      async.apply(exportRoles, project, map, options),
+      async.apply(exportForms, project, map, options),
+      async.apply(exportActions, project, map, options)
+    ], (err) => {
+      if (err) {
+        return next(err);
+      }
 
-        // Send the export.
-        return next(null, _export);
-      });
-    }
+      // Send the export.
+      return next(null, project);
+    });
   };
+
+  /**
+   * Mount the export functionality.
+   */
+  router.get('/export', (req, res, next) => {
+    let options = router.formio.hook.alter('exportOptions', {}, req, res);
+    exportProject(options, (err, data) => {
+      if (err) {
+        return next(err.message || err);
+      }
+
+      res.attachment(`${options.name}.json`);
+      res.end(JSON.stringify(data));
+    });
+  });
 };
