@@ -221,21 +221,6 @@ module.exports = (router) => {
       return next(null, template);
     });
   };
-
-  /**
-   * Mount the export functionality.
-   */
-  router.get('/export', (req, res, next) => {
-    let options = router.formio.hook.alter('exportOptions', {}, req, res);
-    exportTemplate(options, (err, data) => {
-      if (err) {
-        return next(err.message || err);
-      }
-
-      res.attachment(`${options.name}.json`);
-      res.end(JSON.stringify(data));
-    });
-  });
   
   return exportTemplate;
 };
