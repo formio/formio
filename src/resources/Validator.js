@@ -143,12 +143,14 @@ Validator.prototype.addValidator = function(schema, component, componentData) {
       break;
     default:
       // Allow custom components to have subcomponents as well (like layout components).
+      // If the property `tree` is set on a custom component, submission data will be nested,
+      // just like a `container`, which means validation rules should be different.
       if (component.components && Array.isArray(component.components)) {
         component.components.forEach(function(itemComponent) {
-          this.addValidator(schema, itemComponent, _.get(componentData, component.key, componentData));
+          this.addValidator(component.tree ? objectSchema : schema, itemComponent, _.get(componentData, component.key, componentData));
         }.bind(this));
       }
-      fieldValidator = Joi.any();
+      fieldValidator = component.tree ? Joi.object(objectSchema) : Joi.any();
       break;
   }
   /* eslint-enable max-depth, valid-typeof */
