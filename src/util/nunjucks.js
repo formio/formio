@@ -10,6 +10,7 @@ var debug = {
   error: require('debug')('formio:error')
 };
 var util = require('./util');
+let Worker = require('../worker/index');
 
 // Configure nunjucks to not watch any files
 var environment = nunjucks.configure([], {
@@ -51,70 +52,80 @@ environment.addFilter('componentLabel', function(key, components) {
 });
 
 // Script to render a single string.
-var script = new vm.Script(
-  'environment.params = clone(context);' +
-  'if (context._private) { delete context._private; }' +
-  'output = environment.renderString(input, context);'
-);
+let script = `
+  environment.params = clone(context);
+  if (context._private) {
+    delete context._private;
+  }
+  output = environment.renderString(input, context);
+`;
 
 // Script to render an object of properties.
-var objScript = new vm.Script(
-  'environment.params = clone(context);' +
-  'if (context._private) {' +
-    'delete context._private;' +
-  '}' +
-  'context._rendered = {};' +
-  'for (var prop in input) {' +
-    'if (input.hasOwnProperty(prop)) {' +
-      'context._rendered[prop] = output[prop] = environment.renderString(input[prop], context);' +
-    '}' +
-  '}'
-);
+var objScript = `
+  environment.params = clone(context);
+  if (context._private) {
+    delete context._private;
+  }
+  context._rendered = {};
+  for (var prop in input) {
+    if (input.hasOwnProperty(prop)) {
+      context._rendered[prop] = output[prop] = environment.renderString(input[prop], context);
+    }
+  }
+`;
 
 module.exports = {
   environment: environment,
   render: function(string, context) {
-    var rendered = '';
-    try {
-      var sandbox = {
-        output: '',
-        input: string,
-        clone: clone,
-        environment: environment,
-        context: context
-      };
-      script.runInContext(vm.createContext(sandbox), {
-        timeout: 500
-      });
-      rendered = sandbox.output;
-    }
-    catch (e) {
-      debug.nunjucks(e);
-      debug.error(e);
-      rendered = null;
-    }
-    return rendered;
+    return Promise((resolve, reject) => {
+      try {
+        let sandbox = {
+          output: '',
+          input: string,
+          clone: clone,
+          environment: environment,
+          context: context
+        };
+
+        let worker = new Worker(script, sandbox, 10000, (err, ctx) => {
+          if (err) {
+            return reject(err);
+          }
+
+          return resolve(ctx.output);
+        });
+      }
+      catch (e) {
+        debug.nunjucks(e);
+        debug.error(e);
+        return reject(e.name + ': ' + e.message);
+      }
+    });
   },
   renderObj: function(obj, context) {
-    var rendered = '';
-    try {
-      var sandbox = {
-        output: {},
-        input: obj,
-        clone: clone,
-        environment: environment,
-        context: context
-      };
-      objScript.runInContext(vm.createContext(sandbox), {
-        timeout: 500
-      });
-      rendered = sandbox.output;
-    }
-    catch (e) {
-      debug.nunjucks(e);
-      debug.error(e);
-      rendered = e.name + ': ' + e.message;
-    }
-    return rendered;
+    return Promise((resolve, reject) => {
+      try {
+        let sandbox = {
+          output: {},
+          input: obj,
+          clone: clone,
+          environment: environment,
+          context: context
+        };
+
+        let worker = new Worker(objScript, sandbox, 10000, (err, ctx) => {
+          if (err) {
+            return reject(err);
+          }
+
+          return resolve(ctx.output);
+        });
+      }
+      catch (e) {
+        debug.nunjucks(e);
+        debug.error(e);
+        return reject(e.name + ': ' + e.message);
+      }
+    });
   }
 };
