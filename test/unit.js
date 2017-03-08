@@ -22,14 +22,17 @@ module.exports = function(app, template, hook) {
     });
 
     it('Should render a string with tokens', function(done) {
-      var test = nunjucks.render('{{ data.firstName }} {{ data.lastName }}', {
+      nunjucks.render('{{ data.firstName }} {{ data.lastName }}', {
         data: {
           firstName: 'Travis',
           lastName: 'Tidwell'
         }
-      });
-      assert.equal(test, 'Travis Tidwell');
-      done();
+      })
+      .then(test => {
+        assert.equal(test, 'Travis Tidwell');
+        done();
+      })
+      .catch(done);
     });
 
     it('Should timeout if someone puts bad code in the template', function(done) {
@@ -145,9 +148,10 @@ module.exports = function(app, template, hook) {
         template: '',
         message: messageText
       };
-      var params = email.getParams(res, form, submission);
-      params.content = content;
-      email.send(req, res, message, params, cb);
+      email.getParams(res, form, submission).then(params => {
+        params.content = content;
+        email.send(req, res, message, params, cb);
+      });
     };
 
     var getProp = function(type, name, message) {

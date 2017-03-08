@@ -5,6 +5,7 @@ module.exports = function(router) {
   var Action = router.formio.Action;
   var emailer = require('../util/email')(router.formio);
   var macros = require('./macros/macros');
+  var debug = require('debug')('formio:action:email');
 
   /**
    * EmailAction class.
@@ -143,13 +144,13 @@ module.exports = function(router) {
    * @param cb
    *   The callback function to execute upon completion.
    */
-  EmailAction.prototype.resolve = function(handler, method, req, res, next) {
+  EmailAction.prototype.resolve = (handler, method, req, res, next) => {
     if (!this.settings.emails || this.settings.emails.length === 0) {
       return next();
     }
 
     // Load the form for this request.
-    router.formio.cache.loadCurrentForm(req, function(err, form) {
+    router.formio.cache.loadCurrentForm(req, (err, form) => {
       if (err) {
         return next(err);
       }
@@ -158,45 +159,45 @@ module.exports = function(router) {
       }
 
       // Get the email parameters.
-      var params = emailer.getParams(res, form, req.body);
+      emailer.getParams(res, form, req.body).then(params => {
+        let query = {
+          _id: params.owner,
+          deleted: {$eq: null}
+        };
 
-      var query = {
-        _id: params.owner,
-        deleted: {$eq: null}
-      };
-      router.formio.resources.submission.model.findOne(query).exec(function(err, owner) {
-        if (err) {
-          // Don't worry about an error.
-        }
-        if (owner) {
-          params.owner = owner.toObject();
-        }
+        router.formio.resources.submission.model.findOne(query)
+        .then(owner => {
+          if (owner) {
+            params.owner = owner.toObject();
+          }
 
-        var sendEmail = function(message) {
-          // Prepend the macros to the message so that they can use them.
-          this.settings.message = message;
+          var sendEmail = (message) => {
+            // Prepend the macros to the message so that they can use them.
+            this.settings.message = message;
 
-          // Send the email.
-          emailer.send(req, res, this.settings, params, next);
-        }.bind(this);
+            // Send the email.
+            emailer.send(req, res, this.settings, params, next);
+          };
 
-        if (this.settings.template) {
-          request(this.settings.template, function(error, response, body) {
+          if (!this.settings.template) {
+            return sendEmail(macros + this.settings.message);
+          }
+
+          return request(this.settings.template, (error, response, body) => {
             if (!error && response.statusCode === 200) {
               // Save the content before overwriting the message.
               params.content = this.settings.message;
-              sendEmail(macros + body);
+              return sendEmail(macros + body);
             }
-            else {
-              sendEmail(macros + this.settings.message);
-            }
-          }.bind(this));
-        }
-        else {
-          sendEmail(macros + this.settings.message);
-        }
-      }.bind(this));
-    }.bind(this));
+
+            return sendEmail(macros + this.settings.message);
+          });
+        })
+        .catch(err => {
+          debug(err);
+        });
+      });
+    });
   };
 
   // Return the EmailAction.

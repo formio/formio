@@ -123,7 +123,7 @@ module.exports = (formio) => {
    * @returns {Promise}
    *   The available substitution values.
    */
-  let getParams = (res, form, submission) => {
+  let getParams = (res, form, submission) => new Promise((resolve, reject) => {
     let params = _.cloneDeep(submission);
     if (res && res.resource && res.resource.item) {
       if (typeof res.resource.item.toObject === 'function') {
@@ -151,8 +151,8 @@ module.exports = (formio) => {
 
     // Get the parameters for the email.
     params.form = form;
-    return params;
-  };
+    return resolve(params);
+  });
 
   let send = (req, res, message, params, next) => {
     // The transporter object.
@@ -174,7 +174,7 @@ module.exports = (formio) => {
     let emailType = message.transport ? message.transport : 'default';
 
     // To send the mail.
-    let sendMail = (mail, sendEach, noCompile) => {
+    let sendMail = (mail, sendEach, noCompile) => new Promise((resolve, reject) => {
       // Allow the nunjucks templates to be reflective.
       params.mail = mail;
 
@@ -201,7 +201,7 @@ module.exports = (formio) => {
       }
 
       if (!mail || !mail.to) {
-        return;
+        return resolve();
       }
 
       if (mail.html && (typeof mail.html === 'string')) {
@@ -223,14 +223,14 @@ module.exports = (formio) => {
         // Allow others to alter the email before it is sent.
         hook.alter('email', mail, req, res, params, (err, mail) => {
           if (err) {
-            return;
+            return reject(err);
           }
 
           // Send the email.
           transporter.sendMail(mail);
         });
       }
-    };
+    });
 
     // Get the settings.
     hook.settings(req, (err, settings) => { // eslint-disable-line max-statements

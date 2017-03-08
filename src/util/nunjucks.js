@@ -1,7 +1,6 @@
 'use strict';
 
 var clone = require('clone');
-var vm = require('vm');
 var nunjucks = require('nunjucks');
 var dateFilter = require('nunjucks-date-filter');
 var _ = require('lodash');
@@ -75,57 +74,53 @@ var objScript = `
 `;
 
 module.exports = {
-  environment: environment,
-  render: function(string, context) {
-    return Promise((resolve, reject) => {
-      try {
-        let sandbox = {
-          output: '',
-          input: string,
-          clone: clone,
-          environment: environment,
-          context: context
-        };
+  environment,
+  render: (string, context) => new Promise((resolve, reject) => {
+    try {
+      let sandbox = {
+        output: '',
+        input: string,
+        clone: clone,
+        environment: environment,
+        context: context
+      };
 
-        let worker = new Worker(script, sandbox, 10000, (err, ctx) => {
-          if (err) {
-            return reject(err);
-          }
+      let worker = new Worker(script, sandbox, 10000, (err, ctx) => {
+        if (err) {
+          return reject(err);
+        }
 
-          return resolve(ctx.output);
-        });
-      }
-      catch (e) {
-        debug.nunjucks(e);
-        debug.error(e);
-        return reject(e.name + ': ' + e.message);
-      }
-    });
-  },
-  renderObj: function(obj, context) {
-    return Promise((resolve, reject) => {
-      try {
-        let sandbox = {
-          output: {},
-          input: obj,
-          clone: clone,
-          environment: environment,
-          context: context
-        };
+        return resolve(ctx.output);
+      });
+    }
+    catch (e) {
+      debug.nunjucks(e);
+      debug.error(e);
+      return reject(e.name + ': ' + e.message);
+    }
+  }),
+  renderObj: (obj, context) => new Promise((resolve, reject) => {
+    try {
+      let sandbox = {
+        output: {},
+        input: obj,
+        clone: clone,
+        environment: environment,
+        context: context
+      };
 
-        let worker = new Worker(objScript, sandbox, 10000, (err, ctx) => {
-          if (err) {
-            return reject(err);
-          }
+      let worker = new Worker(objScript, sandbox, 10000, (err, ctx) => {
+        if (err) {
+          return reject(err);
+        }
 
-          return resolve(ctx.output);
-        });
-      }
-      catch (e) {
-        debug.nunjucks(e);
-        debug.error(e);
-        return reject(e.name + ': ' + e.message);
-      }
-    });
-  }
+        return resolve(ctx.output);
+      });
+    }
+    catch (e) {
+      debug.nunjucks(e);
+      debug.error(e);
+      return reject(e.name + ': ' + e.message);
+    }
+  })
 };

@@ -3,25 +3,26 @@
 let vm = require('vm');
 let WebWorker = require('webworker-threads').Worker;
 
-let Worker = (task, context, timeout, callback) => {
-  let worker = new WebWorker(() => {
-    try {
-      let vmCode = vm.script(task);
-      let vmContext = vm.createContext(context);
-      vmCode.runInContext(vmContext, {
-        timeout: timeout
-      });
+class Worker extends WebWorker {
+  constructor(task, context, timeout, callback) {
+    super(() => {
+      try {
+        let vmCode = vm.script(task);
+        let vmContext = vm.createContext(context);
+        vmCode.runInContext(vmContext, { timeout });
 
-      callback(null, context);
-      return close();
-    }
-    catch (e) {
-      throw e;
-    }
-  });
-  worker.onerror(callback);
+        callback(null, context);
+        return close();
+      }
+      catch (e) {
+        console.log(e.message);
+        console.log(e.stack);
+        throw e;
+      }
 
-  return worker;
+      this.onerror(callback);
+    });
+  }
 };
 
 module.exports = Worker;
