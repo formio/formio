@@ -4,7 +4,6 @@ let nodemailer = require('nodemailer');
 let sgTransport = require('nodemailer-sendgrid-transport');
 let mandrillTransport = require('nodemailer-mandrill-transport');
 let mailgunTransport = require('nodemailer-mailgun-transport');
-let nunjucks = require('./nunjucks');
 let debug = {
   email: require('debug')('formio:settings:email'),
   error: require('debug')('formio:error')
@@ -13,6 +12,7 @@ let rest = require('restler');
 let util = require('./util');
 let _ = require('lodash');
 let EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
+let Thread = require('../worker/Thread');
 
 /**
  * The email sender for emails.
@@ -124,6 +124,7 @@ module.exports = (formio) => {
    *   The available substitution values.
    */
   let getParams = (res, form, submission) => new Promise((resolve, reject) => {
+    let thread = new Thread(Thread.Tasks.nunjucks);
     let params = _.cloneDeep(submission);
     if (res && res.resource && res.resource.item) {
       if (typeof res.resource.item.toObject === 'function') {
@@ -137,7 +138,7 @@ module.exports = (formio) => {
 
     // The form components.
     params.components = {};
-
+    
     // Flatten the resource data.
     util.eachComponent(form.components, (component) => {
       params.components[component.key] = component;
@@ -154,7 +155,22 @@ module.exports = (formio) => {
     return resolve(params);
   });
 
+  /**
+   * Send an email using the current context data.
+   *
+   * @param req
+   * @param res
+   * @param message
+   * @param params
+   * @param next
+   * @returns {*}
+   */
   let send = (req, res, message, params, next) => {
+    // Move onto the next action immediately.
+    if (next) {
+      next();
+    }
+
     // The transporter object.
     let transporter = {sendMail: null};
 
@@ -171,7 +187,10 @@ module.exports = (formio) => {
       token: res.token
     };
 
-    let emailType = message.transport ? message.transport : 'default';
+    // Get the transport for this context.
+    let emailType = message.transport
+      ? message.transport
+      : 'default';
 
     // To send the mail.
     let sendMail = (mail, sendEach, noCompile) => new Promise((resolve, reject) => {
@@ -182,13 +201,23 @@ module.exports = (formio) => {
       if (!noCompile) {
         // If they have content, render this first.
         if (params.content) {
-          try {
-            params.content = nunjucks.render(params.content, params);
-          }
-          catch (e) {
-            debug.error(e);
-            params.content = e.message;
-          }
+          nunjucks.render(params.content, params)
+          .then(response => {
+            params.content = response
+          })
+          .catch(err => {
+            debug.error(err);
+            params.content = err.message || err;
+          });
+          
+          
+          //try {
+          //  params.content = nunjucks.render(params.content, params);
+          //}
+          //catch (e) {
+          //  debug.error(e);
+          //  params.content = e.message;
+          //}
         }
 
         try {
@@ -210,14 +239,39 @@ module.exports = (formio) => {
 
       if (sendEach) {
         var emails = _.uniq(_.map(mail.to.split(','), _.trim));
-        (sendNext => {
-          sendMail(_.assign({}, mail, {
-            to: emails.shift()
-          }), false, true);
-          if (emails.length > 0) {
-            process.nextTick(sendNext);
-          }
-        })();
+        var completed = [];
+
+        emails.forEach(address => {
+          completed.push(
+            sendMail(_.assign({}, mail, {to: address}), false, true)
+          );
+        });
+
+        Promise.all(completed)
+        .then(results => {
+          debug.email(results);
+        })
+        .catch(err => {
+          debug.error(err);
+        })
+        .then(() => {
+          return resolve();
+        });
+
+        //(sendNext => {
+        //  sendMail(_.assign({}, mail, {to: emails.shift()}), false, true)
+        //    .then(result => {
+        //      debug.email(result)
+        //    })
+        //    .catch(err => {
+        //      debug.error(err);
+        //    })
+        //    .then(() => {
+        //      if (emails.length > 0) {
+        //        process.nextTick(sendNext);
+        //      }
+        //    });
+        //})();
       }
       else if (transporter && (typeof transporter.sendMail === 'function')) {
         // Allow others to alter the email before it is sent.
@@ -227,7 +281,16 @@ module.exports = (formio) => {
           }
 
           // Send the email.
-          transporter.sendMail(mail);
+          transporter.sendMail(mail)
+          .then(results => {
+            debug.email(results);
+          })
+          .catch(err => {
+            debug.error(err);
+          })
+          .then(() => {
+            return resolve();
+          });
         });
       }
     });
@@ -384,14 +447,12 @@ module.exports = (formio) => {
           to: (typeof message.emails === 'string') ? message.emails : message.emails.join(', '),
           subject: message.subject,
           html: message.message
-        }, message.sendEach);
+        }, message.sendEach)
+        .catch(err => {
+          debug.error(err);
+        });
       }
     });
-
-    // Move onto the next action immediately.
-    if (next) {
-      return next();
-    }
   };
 
   return {
