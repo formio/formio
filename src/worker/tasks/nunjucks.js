@@ -1,6 +1,7 @@
 'use strict';
 
 module.exports = (worker, done) => {
+  let vm = require('vm');
   let clone = require('clone');
   let nunjucks = require('nunjucks');
   let dateFilter = require('nunjucks-date-filter');
@@ -52,7 +53,14 @@ module.exports = (worker, done) => {
 
   let filters = worker.filters || {};
   Object.keys(filters).forEach(filter => {
-    environment.addFilter(filter, filters[filter]);
+    try {
+      // Essentially eval, but it only gets executed in a vm within a child process.
+      environment.addFilter(filter, new Function(`return ${filters[filter].toString()}`)());
+    }
+    catch (e) {
+      // TODO: Add user logs to fix issues with email templates.
+      console.log(e)
+    }
   });
 
   let getScript = (data) => {
@@ -82,19 +90,25 @@ module.exports = (worker, done) => {
     `;
   };
 
-  let input = worker.input;
+  let render = worker.render;
   let context = worker.context || {};
+
+  // Build the sandbox context with our dependencies
   let sandbox = {
     clone,
     environment,
-    input,
+    input: render,
     context
   };
 
-  let vm = require('vm');
-  let vmCode = new vm.Script(getScript(input));
-  let vmContext = new vm.createContext(sandbox);
-  vmCode.runInContext(vmContext, { timeout: 15000 });
+  let script = new vm.Script(getScript(render));
+  let results = null;
+  try {
+    results = script.runInContext(vm.createContext(sandbox), { timeout: 15000 });
+  }
+  catch (e) {
+    return done({reject: new Error(e)});
+  }
 
-  return done(context);
+  return done({resolve: results});
 };
