@@ -1,31 +1,34 @@
 /* eslint-env mocha */
 'use strict';
 
-var assert = require('assert');
-var fs = require('fs');
-var docker = process.env.DOCKER;
+let assert = require('assert');
+let fs = require('fs');
+let docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
+  let Thread = require('../src/worker/Thread');
 
   /**
    * Unit tests for various parts of the platform.
    */
   describe('Nunjucks Rendering', function() {
-    var nunjucks = require('../src/util/nunjucks');
-
-    nunjucks.environment.addFilter('test', function(string, param) {
-      var retVal = this.env.params.form + ' : ' + string;
-      if (param) {
-        retVal += ' : ' + param;
-      }
-      return retVal;
-    });
-
     it('Should render a string with tokens', function(done) {
-      nunjucks.render('{{ data.firstName }} {{ data.lastName }}', {
-        data: {
-          firstName: 'Travis',
-          lastName: 'Tidwell'
+      new Thread(Thread.Tasks.nunjucks).start({
+        render: '{{ data.firstName }} {{ data.lastName }}',
+        context: {
+          data: {
+            firstName: 'Travis',
+            lastName: 'Tidwell'
+          }
+        },
+        filters: {
+          test: function(string, param) {
+            var retVal = this.env.params.form + ' : ' + string;
+            if (param) {
+              retVal += ' : ' + param;
+            }
+            return retVal;
+          }
         }
       })
       .then(test => {
@@ -35,72 +38,101 @@ module.exports = function(app, template, hook) {
       .catch(done);
     });
 
-    it('Should timeout if someone puts bad code in the template', function(done) {
-      var test = nunjucks.render('{{ callme() }}', {
-        callme: function() {
-          // Loop forever!!!!
-          while (true) {};
-        }
-      })
-
-      // FA-857 - No email will be sent if bad code if given.
-      assert.equal(test, null);
-      done();
-    });
+    //it('Should timeout if someone puts bad code in the template', function(done) {
+    //  new Thread(Thread.Tasks.nunjucks).start({
+    //    render: '{{ callme() }}',
+    //    context: {
+    //      callme: function() {
+    //        // Loop forever!!!!
+    //        while (true) {}
+    //      }
+    //    }
+    //  })
+    //  .then(test => {
+    //    // FA-857 - No email will be sent if bad code if given.
+    //    assert.equal(test, null);
+    //    done();
+    //  })
+    //  .catch(done);
+    //});
 
     it('Should not allow them to modify parameters in the template', function(done) {
-      var params = {
-        form: '123',
-        data: {
-          firstName: 'Travis',
-          lastName: 'Tidwell'
+      new Thread(Thread.Tasks.nunjucks).start({
+        render: '{% set form = "246" %}{{ form | test1 }} {{ data.firstName }} {{ data.lastName }}',
+        context: {
+          form: '123',
+          data: {
+            firstName: 'Travis',
+            lastName: 'Tidwell'
+          }
+        },
+        filters: {
+          test1: function(string) {
+            return this.env.params.form + ' : ' + string;
+          }.toString()
         }
-      };
-
-      nunjucks.environment.addFilter('test1', function(string) {
-        return this.env.params.form + ' : ' + string;
-      });
-
-      var test = nunjucks.render('{% set form = "246" %}{{ form | test1 }} {{ data.firstName }} {{ data.lastName }}', params);
-      assert.equal(test, '123 : 246 Travis Tidwell');
-      done();
+      })
+      .then(test => {
+        assert.equal(test, '123 : 246 Travis Tidwell');
+        done();
+      })
+      .catch(done);
     });
 
     it('Should not expose private context variables.', function(done) {
-      var params = {
-        _private: {
-          secret: '5678'
+      new Thread(Thread.Tasks.nunjucks).start({
+        render: '{{ _private.secret }}',
+        context: {
+          _private: {
+            secret: '5678'
+          },
+          form: '123',
+          data: {
+            firstName: 'Travis',
+            lastName: 'Tidwell'
+          }
         },
-        form: '123',
-        data: {
-          firstName: 'Travis',
-          lastName: 'Tidwell'
+        filters: {
+          test: function(string, param) {
+            var retVal = this.env.params.form + ' : ' + string;
+            if (param) {
+              retVal += ' : ' + param;
+            }
+            return retVal;
+          }
         }
-      };
-      var test = nunjucks.render('{{ _private.secret }}', params);
-      assert.equal(test, '');
-      done();
+      })
+      .then(test => {
+        assert.equal(test, '');
+        done();
+      })
+      .catch(done);
     });
 
     it('Should allow filters to have access to secret variables.', function(done) {
-      var params = {
-        _private: {
-          secret: '5678'
+      new Thread(Thread.Tasks.nunjucks).start({
+        render: '{{ "test" | secret }}',
+        context: {
+          _private: {
+            secret: '5678'
+          },
+          form: '123',
+          data: {
+            firstName: 'Travis',
+            lastName: 'Tidwell'
+          }
         },
-        form: '123',
-        data: {
-          firstName: 'Travis',
-          lastName: 'Tidwell'
+        filters: {
+          secret: function(string, param) {
+            return this.env.params._private.secret;
+          }.toString()
         }
-      };
-
-      nunjucks.environment.addFilter('secret', function(string, param) {
-        return this.env.params._private.secret;
-      });
-
-      var test = nunjucks.render('{{ "test" | secret }}', params);
-      assert.equal(test, '5678');
-      done();
+      })
+      .then(test => {
+        assert.equal(test, '5678');
+        done();
+      })
+      .catch(done);
     });
   });
 
@@ -148,10 +180,10 @@ module.exports = function(app, template, hook) {
         template: '',
         message: messageText
       };
-      email.getParams(res, form, submission).then(params => {
+      return email.getParams(res, form, submission).then(params => {
         params.content = content;
-        email.send(req, res, message, params, cb);
-      });
+        return email.send(req, res, message, params, cb);
+      })
     };
 
     var getProp = function(type, name, message) {
@@ -185,7 +217,10 @@ module.exports = function(app, template, hook) {
         assert.equal(getValue('house', email.html), '<table border="1" style="width:100%"><tr><th style="text-align:right;padding: 5px 10px;">Area</th><td style="width:100%;padding:5px 10px;">2500</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Single Family</th><td style="width:100%;padding:5px 10px;">true</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Rooms</th><td style="width:100%;padding:5px 10px;">Master, Bedroom, Full Bath, Half Bath, Kitchen, Dining, Living, Garage</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Address</th><td style="width:100%;padding:5px 10px;">1234 Main, Hampton, AR 71744, USA</td></tr></table>');
         done();
       });
-      sendMessage(['test@example.com'], 'me@example.com', 'test1', '');
+      sendMessage(['test@example.com'], 'me@example.com', 'test1', '', function(err, response) {
+        console.log(err)
+        console.log(response)
+      });
     });
 
     it('Should render an email with content within the email.', function(done) {
