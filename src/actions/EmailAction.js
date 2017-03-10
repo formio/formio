@@ -158,44 +158,52 @@ module.exports = function(router) {
         return next(new Error('Form not found.'));
       }
 
+      // Dont block on sending emails.
+      next();
+
       // Get the email parameters.
-      emailer.getParams(res, form, req.body).then(params => {
+      emailer.getParams(res, form, req.body)
+      .then(params => {
         let query = {
           _id: params.owner,
           deleted: {$eq: null}
         };
 
-        router.formio.resources.submission.model.findOne(query)
-        .then(owner => {
-          if (owner) {
-            params.owner = owner.toObject();
-          }
+        return router.formio.resources.submission.model.findOne(query)
+      })
+      .then(owner => {
+        if (owner) {
+          params.owner = owner.toObject();
+        }
 
-          var sendEmail = (message) => {
-            // Prepend the macros to the message so that they can use them.
-            this.settings.message = message;
-
-            // Send the email.
-            emailer.send(req, res, this.settings, params, next);
-          };
-
+        return new Promise((resolve, reject) => {
           if (!this.settings.template) {
-            return sendEmail(macros + this.settings.message);
+            return resolve(this.settings.message);
           }
 
           return request(this.settings.template, (error, response, body) => {
             if (!error && response.statusCode === 200) {
               // Save the content before overwriting the message.
               params.content = this.settings.message;
-              return sendEmail(macros + body);
+              return resolve(body);
             }
 
-            return sendEmail(macros + this.settings.message);
+            return resolve(this.settings.message);
           });
         })
-        .catch(err => {
-          debug(err);
+      })
+      .then(template => {
+        // Prepend the macros to the message so that they can use them.
+        this.settings.message = template;
+
+        // Send the email.
+        emailer.send(req, res, this.settings, params, (err, response) => {
+          debug(`[error]: ${err}`);
+          debug(`[response]: ${response}`);
         });
+      })
+      .catch(err => {
+        debug(err);
       });
     });
   };
