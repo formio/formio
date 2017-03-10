@@ -2,41 +2,36 @@
 
 let path = require('path');
 let Threads = require('threads');
-let config  = Threads.config;
-let Spawn   = Threads.spawn;
+let config = Threads.config;
+let Spawn = Threads.spawn;
 
 config.set({
   basepath: {
-    node: path.join(__dirname, './tasks')
+    node: path.join(__dirname, 'tasks')
   }
 });
 
-class Thread extends Spawn {
+class Thread {
   constructor(task) {
-    if (!Thread.Tasks.hasOwnProperty(task)) {
-      throw new Error(`Unknown task given to Thread Worker: ${task}`);
-    }
-
-    // Create a new thread with our task.
-    super(Thread.Tasks[task]);
+    this._thread = new Spawn(task);
   }
 
   start(data) {
     return new Promise((resolve, reject) => {
-      this.send(data)
-        .on('message', message => {
-          this.stop();
-          return resolve(message);
-        })
-        .on('error', error => {
-          this.stop();
-          return reject(error);
-        });
+      this._thread.send(data)
+      .on('message', message => {
+        this._thread.kill();
+        return resolve(message);
+      })
+      .on('error', error => {
+        this._thread.kill();
+        return reject(error);
+      });
     });
   }
 }
 
-Thread.prototype.Tasks = {
+Thread.Tasks = {
   nunjucks: 'nunjucks.js'
 };
 
