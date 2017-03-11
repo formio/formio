@@ -98,7 +98,8 @@ module.exports = (worker, done) => {
     clone,
     environment,
     input: render,
-    context
+    context,
+    output: (typeof render === 'string' ? '' : {})
   };
 
   let script = new vm.Script(getScript(render));
@@ -107,7 +108,9 @@ module.exports = (worker, done) => {
     results = script.runInContext(vm.createContext(sandbox), { timeout: 15000 });
   }
   catch (e) {
-    return done({reject: new Error(e)});
+    console.log(e.message);
+    console.log(e.stack);
+    return done({reject: e});
   }
 
   return done({resolve: results});
