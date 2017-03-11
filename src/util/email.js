@@ -124,7 +124,6 @@ module.exports = (formio) => {
    *   The available substitution values.
    */
   let getParams = (res, form, submission) => new Promise((resolve, reject) => {
-    let thread = new Thread(Thread.Tasks.nunjucks);
     let params = _.cloneDeep(submission);
     if (res && res.resource && res.resource.item) {
       if (typeof res.resource.item.toObject === 'function') {
@@ -138,21 +137,94 @@ module.exports = (formio) => {
 
     // The form components.
     params.components = {};
-    
+
+    let replacements = [];
+
     // Flatten the resource data.
     util.eachComponent(form.components, (component) => {
       params.components[component.key] = component;
       if (component.type === 'resource' && params.data[component.key]) {
         params.data[component.key + 'Obj'] = params.data[component.key];
-        params.data[component.key] = nunjucks.render(component.template, {
-          item: params.data[component.key]
-        });
+
+        let thread = new Thread(Thread.Tasks.nunjucks).start({
+          template: component.template,
+          context: {
+            item: params.data[component.key]
+          }
+        })
+        .then(response => {
+          params.data[component.key] = response.output;
+        })
+        .catch(console.log)
+        replacements.push(thread);
       }
     });
 
-    // Get the parameters for the email.
-    params.form = form;
-    return resolve(params);
+    Promise.all(replacements).then(results => {
+      // Get the parameters for the email.
+      params.form = form;
+      return resolve(params);
+    })
+    .catch(reject);
+  });
+
+  /**
+   * Util function to run the email through nunjucks.
+   *
+   * @param mail
+   * @param options
+   * @param transporter
+   *
+   * @return {Promise}
+   */
+  let nunjucksInjector = (mail, options, transporter) => new Promise((resolve, reject) => {
+    if (!mail || !mail.to) {
+      return reject(`No mail was given to send.`);
+    }
+
+    let sendEach = options.sendEach;
+    let noCompile = options.noCompile;
+    let params = options.params;
+
+    // Allow the nunjucks templates to be reflective.
+    params.mail = mail;
+
+    // Compile the email with nunjucks.
+    if (!noCompile) {
+      return new Thread(Thread.Tasks.nunjucks).start({
+        render: params.content || mail,
+        context: params
+      });
+    }
+
+    if (mail.html && (typeof mail.html === 'string')) {
+      mail.html = mail.html.replace(/\n/g, '');
+    }
+
+    if (sendEach) {
+      var emails = _.uniq(_.map(mail.to.split(','), _.trim));
+      var completed = [];
+
+      emails.forEach(address => {
+        completed.push(
+          sendMail(_.assign({}, mail, {to: address}), false, true)
+        );
+      });
+
+      return Promise.all(completed)
+      .then(resolve)
+      .catch(reject);
+    }
+
+    // Allow others to alter the email before it is sent.
+    hook.alter('email', mail, req, res, params, (err, mail) => {
+      if (err) {
+        return reject(err);
+      }
+
+      // Send the email.
+      return transporter.sendMail(mail);
+    });
   });
 
   /**
@@ -166,11 +238,6 @@ module.exports = (formio) => {
    * @returns {*}
    */
   let send = (req, res, message, params, next) => {
-    // Move onto the next action immediately.
-    if (next) {
-      next();
-    }
-
     // The transporter object.
     let transporter = {sendMail: null};
 
@@ -192,118 +259,14 @@ module.exports = (formio) => {
       ? message.transport
       : 'default';
 
-    // To send the mail.
-    let sendMail = (mail, sendEach, noCompile) => new Promise((resolve, reject) => {
-      // Allow the nunjucks templates to be reflective.
-      params.mail = mail;
-
-      // Compile the email with nunjucks.
-      if (!noCompile) {
-        // If they have content, render this first.
-        if (params.content) {
-          nunjucks.render(params.content, params)
-          .then(response => {
-            params.content = response
-          })
-          .catch(err => {
-            debug.error(err);
-            params.content = err.message || err;
-          });
-          
-          
-          //try {
-          //  params.content = nunjucks.render(params.content, params);
-          //}
-          //catch (e) {
-          //  debug.error(e);
-          //  params.content = e.message;
-          //}
-        }
-
-        try {
-          mail = nunjucks.renderObj(mail, params);
-        }
-        catch (e) {
-          debug.error(e);
-          mail = null;
-        }
-      }
-
-      if (!mail || !mail.to) {
-        return resolve();
-      }
-
-      if (mail.html && (typeof mail.html === 'string')) {
-        mail.html = mail.html.replace(/\n/g, '');
-      }
-
-      if (sendEach) {
-        var emails = _.uniq(_.map(mail.to.split(','), _.trim));
-        var completed = [];
-
-        emails.forEach(address => {
-          completed.push(
-            sendMail(_.assign({}, mail, {to: address}), false, true)
-          );
-        });
-
-        Promise.all(completed)
-        .then(results => {
-          debug.email(results);
-        })
-        .catch(err => {
-          debug.error(err);
-        })
-        .then(() => {
-          return resolve();
-        });
-
-        //(sendNext => {
-        //  sendMail(_.assign({}, mail, {to: emails.shift()}), false, true)
-        //    .then(result => {
-        //      debug.email(result)
-        //    })
-        //    .catch(err => {
-        //      debug.error(err);
-        //    })
-        //    .then(() => {
-        //      if (emails.length > 0) {
-        //        process.nextTick(sendNext);
-        //      }
-        //    });
-        //})();
-      }
-      else if (transporter && (typeof transporter.sendMail === 'function')) {
-        // Allow others to alter the email before it is sent.
-        hook.alter('email', mail, req, res, params, (err, mail) => {
-          if (err) {
-            return reject(err);
-          }
-
-          // Send the email.
-          transporter.sendMail(mail)
-          .then(results => {
-            debug.email(results);
-          })
-          .catch(err => {
-            debug.error(err);
-          })
-          .then(() => {
-            return resolve();
-          });
-        });
-      }
-    });
-
     // Get the settings.
     hook.settings(req, (err, settings) => { // eslint-disable-line max-statements
       if (err) {
         debug.email(err);
-        return;
+        return next(err);
       }
 
       let _config = (formio && formio.config && formio.config.email && formio.config.email.type);
-
       debug.email(formio.config);
       debug.email(emailType);
 
@@ -440,18 +403,30 @@ module.exports = (formio) => {
           break;
       }
 
-      // Ensure we have a valid transporter to send the email.
-      if (transporter && (typeof transporter.sendMail === 'function')) {
-        sendMail({
-          from: message.from ? message.from : 'no-reply@form.io',
-          to: (typeof message.emails === 'string') ? message.emails : message.emails.join(', '),
-          subject: message.subject,
-          html: message.message
-        }, message.sendEach)
-        .catch(err => {
-          debug.error(err);
-        });
+      // If we don't have a valid transport, don't waste time with nunjucks.
+      if (!transporter || typeof transporter.sendMail !== 'function') {
+        return next(`Could not determine which email transport to use for ${emailType}`);
       }
+
+      let email = {
+        from: message.from ? message.from : 'no-reply@form.io',
+        to: (typeof message.emails === 'string') ? message.emails : message.emails.join(', '),
+        subject: message.subject,
+        html: message.message
+      };
+      let options = {
+        params,
+        sendEach: message.sendEach,
+        noCompile: false
+      };
+
+      nunjucksInjector(email, options, transporter)
+      .then(info => {
+        return next(null, info);
+      })
+      .catch(err => {
+        return next(err);
+      });
     });
   };
 
