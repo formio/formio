@@ -145,6 +145,7 @@ module.exports = function(app, template, hook) {
     var email = require('../src/util/email')(formio);
     var macros = require('../src/actions/macros/macros');
     var sendMessage = function(to, from, message, content, cb) {
+      console.log('sendMessage')
       var dirName = 'fixtures/email/' + message + '/';
       var submission = require('./' + dirName + 'submission.json');
       var form = require('./' + dirName + 'form.json');
@@ -180,10 +181,20 @@ module.exports = function(app, template, hook) {
         template: '',
         message: messageText
       };
-      return email.getParams(res, form, submission).then(params => {
+
+      email.getParams(res, form, submission)
+      .then(params => {
         params.content = content;
-        return email.send(req, res, message, params, cb);
+        email.send(req, res, message, params, (err, response) => {
+          console.log('send cb')
+          if (err) {
+            return cb(err);
+          }
+
+          return cb(null, response);
+        });
       })
+      .catch(cb)
     };
 
     var getProp = function(type, name, message) {
@@ -205,6 +216,8 @@ module.exports = function(app, template, hook) {
 
     it('Should render an email with all the form and submission variables.', function(done) {
       template.hooks.onEmails(1, function(emails) {
+        console.log('onEmail cb')
+        
         var email = emails[0];
         assert.equal(email.subject, 'New submission for Test Form.');
         assert.equal(getLabel('firstName', email.html), 'First Name');
@@ -217,9 +230,10 @@ module.exports = function(app, template, hook) {
         assert.equal(getValue('house', email.html), '<table border="1" style="width:100%"><tr><th style="text-align:right;padding: 5px 10px;">Area</th><td style="width:100%;padding:5px 10px;">2500</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Single Family</th><td style="width:100%;padding:5px 10px;">true</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Rooms</th><td style="width:100%;padding:5px 10px;">Master, Bedroom, Full Bath, Half Bath, Kitchen, Dining, Living, Garage</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Address</th><td style="width:100%;padding:5px 10px;">1234 Main, Hampton, AR 71744, USA</td></tr></table>');
         done();
       });
-      sendMessage(['test@example.com'], 'me@example.com', 'test1', '', function(err, response) {
-        console.log(err)
-        console.log(response)
+      sendMessage(['test@example.com'], 'me@example.com', 'test1', '', function(err, info) {
+        console.log('final');
+        //console.log(err);
+        //console.log(info);
       });
     });
 

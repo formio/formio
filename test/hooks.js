@@ -14,6 +14,7 @@ var Emailer = {
     Emailer.reset();
     emailExpects = expects;
     emailCallback = cb;
+    console.log('onEmails')
   },
   getLastEmail: function() {
     var email = _.cloneDeep(emails.pop()) || {};
@@ -26,16 +27,19 @@ var Emailer = {
     return _emails;
   },
   on: {
-    email: function(transport, mail) {
+    email: function(mail, req, res, params, cb) {
+      console.log('on email')
       // Only cache 10 emails.
       if (emails.length > 9) {
         emails.shift();
       }
       emails.push(mail);
 
-      if (emailCallback && (emails.length >= emailExpects)) {
-        emailCallback(Emailer.getEmails());
-      }
+      return cb(null, Emailer.getEmails());
+
+      //if (emailCallback && (emails.length >= emailExpects)) {
+      //  emailCallback(Emailer.getEmails());
+      //}
     }
   }
 };
