@@ -103,9 +103,8 @@ module.exports = (worker, done) => {
   };
 
   let script = new vm.Script(getScript(render));
-  let results = null;
   try {
-    results = script.runInContext(vm.createContext(sandbox), { timeout: 15000 });
+    script.runInContext(vm.createContext(sandbox), { timeout: 15000 });
   }
   catch (e) {
     console.log(e.message);
@@ -113,5 +112,5 @@ module.exports = (worker, done) => {
     return done({reject: e});
   }
 
-  return done({resolve: results});
+  return done({resolve: sandbox.output});
 };

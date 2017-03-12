@@ -199,18 +199,15 @@ module.exports = (formio) => {
         render: params.content || mail,
         context: params
       })
-      .then(response => {
-        // Update the mail content with the template
-        mail.html = response;
-
+      .then(injectedEmail => {
         // Allow others to alter the email before it is sent.
-        hook.alter('email', mail, req, res, params, (err, mail) => {
+        hook.alter('email', injectedEmail, req, res, params, (err, email) => {
           console.log('email hook cb');
           if (err) {
             return reject(err);
           }
 
-          return resolve(mail);
+          return resolve(email);
         });
       });
     }
@@ -451,6 +448,10 @@ module.exports = (formio) => {
 
         // Send each mail using the transporter.
         emails.forEach(email => {
+          if (email.html && (typeof email.html === 'string')) {
+            email.html = email.html.replace(/\n/g, '');
+          }
+
           let pending = new Promise((resolve, reject) => {
             hook.alter('emailSend', true, email, (err, send) => {
               if (err) {
