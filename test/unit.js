@@ -186,7 +186,6 @@ module.exports = function(app, template, hook) {
       .then(params => {
         params.content = content;
         email.send(req, res, message, params, (err, response) => {
-          console.log('send cb')
           if (err) {
             return cb(err);
           }
@@ -215,9 +214,12 @@ module.exports = function(app, template, hook) {
     };
 
     it('Should render an email with all the form and submission variables.', function(done) {
-      template.hooks.onEmails(1, function(emails) {
-        console.log('onEmail cb')
-        
+      template.hooks.reset();
+      sendMessage(['test@example.com'], 'me@example.com', 'test1', '', function(err, emails) {
+        if (err) {
+          return done(err);
+        }
+
         var email = emails[0];
         assert.equal(email.subject, 'New submission for Test Form.');
         assert.equal(getLabel('firstName', email.html), 'First Name');
@@ -229,11 +231,6 @@ module.exports = function(app, template, hook) {
         assert.equal(getValue('vehicles', email.html), '<table border="1" style="width:100%"><tr><th style="padding: 5px 10px;">Make</th><th style="padding: 5px 10px;">Model</th><th style="padding: 5px 10px;">Year</th></tr><tr><td style="padding:5px 10px;">Chevy</td><td style="padding:5px 10px;">Suburban</td><td style="padding:5px 10px;">2014</td></tr><tr><td style="padding:5px 10px;">Chevy</td><td style="padding:5px 10px;">Tahoe</td><td style="padding:5px 10px;">2014</td></tr><tr><td style="padding:5px 10px;">Ford</td><td style="padding:5px 10px;">F150</td><td style="padding:5px 10px;">2011</td></tr></table>');
         assert.equal(getValue('house', email.html), '<table border="1" style="width:100%"><tr><th style="text-align:right;padding: 5px 10px;">Area</th><td style="width:100%;padding:5px 10px;">2500</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Single Family</th><td style="width:100%;padding:5px 10px;">true</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Rooms</th><td style="width:100%;padding:5px 10px;">Master, Bedroom, Full Bath, Half Bath, Kitchen, Dining, Living, Garage</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Address</th><td style="width:100%;padding:5px 10px;">1234 Main, Hampton, AR 71744, USA</td></tr></table>');
         done();
-      });
-      sendMessage(['test@example.com'], 'me@example.com', 'test1', '', function(err, info) {
-        console.log('final');
-        //console.log(err);
-        //console.log(info);
       });
     });
 

@@ -154,8 +154,9 @@ module.exports = (formio) => {
         })
         .then(response => {
           params.data[component.key] = response.output;
-        })
-        .catch(console.log)
+          return response;
+        });
+
         replacements.push(thread);
       }
     });
@@ -241,9 +242,7 @@ module.exports = (formio) => {
       );
     });
 
-    return Promise.all(completed)
-      .then(resolve)
-      .catch(reject);
+    return Promise.all(completed);
   });
 
   /**
@@ -257,8 +256,6 @@ module.exports = (formio) => {
    * @returns {*}
    */
   let send = (req, res, message, params, next) => {
-    console.log('send')
-
     // The transporter object.
     let transporter = {sendMail: null};
 
@@ -445,26 +442,41 @@ module.exports = (formio) => {
 
       nunjucksInjector(mail, options)
       .then(emails => {
-        let results = [];
+        let queue = [];
+
+        // Coerce the emails into an array for iteration.
+        if (!(emails instanceof Array)) {
+          emails = [emails];
+        }
 
         // Send each mail using the transporter.
         emails.forEach(email => {
           let pending = new Promise((resolve, reject) => {
-            transporter.sendMail(email, (err, info) => {
+            hook.alter('emailSend', true, email, (err, send) => {
               if (err) {
                 return reject(err);
               }
+              if (!send) {
+                return resolve(email);
+              }
 
-              return resolve(info);
+              transporter.sendMail(email, (err, info) => {
+                if (err) {
+                  return reject(err);
+                }
+
+                return resolve(info);
+              });
             });
           });
 
-          results.push(pending);
+          queue.push(pending);
         });
+
+        return Promise.all(queue);
       })
-      .then(results => {
-        console.log('injector then')
-        return next(null, results);
+      .then(response => {
+        return next(null, response);
       })
       .catch(next);
     });
