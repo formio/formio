@@ -37,9 +37,13 @@ var Emailer = {
 
       return cb(null, Emailer.getEmails());
 
-      //if (emailCallback && (emails.length >= emailExpects)) {
-      //  emailCallback(Emailer.getEmails());
-      //}
+      if (emailCallback) {
+        if(emails.length < emailExpects) {
+          return emailCallback(`Expected ${emailExpects} emails, got ${emails.length}`);
+        }
+
+        return emailCallback(null, Emailer.getEmails());
+      }
     }
   }
 };
