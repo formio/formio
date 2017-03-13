@@ -219,7 +219,7 @@ module.exports = (formio) => {
       addresses = _.uniq(_.map(mail.to.split(','), _.trim));
     }
     else {
-      addresses.push(mail.to)
+      addresses.push(mail.to);
     }
 
     let completed = [];

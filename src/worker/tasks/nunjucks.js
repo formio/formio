@@ -6,10 +6,6 @@ module.exports = (worker, done) => {
   let nunjucks = require('nunjucks');
   let dateFilter = require('nunjucks-date-filter');
   let _ = require('lodash');
-  let debug = {
-    nunjucks: require('debug')('formio:util:nunjucks'),
-    error: require('debug')('formio:error')
-  };
   let util = require('../../util/util');
 
   // Configure nunjucks to not watch any files
@@ -59,7 +55,9 @@ module.exports = (worker, done) => {
     }
     catch (e) {
       // TODO: Add user logs to fix issues with email templates.
-      console.log(e)
+      /* eslint-disable no-console */
+      console.log(e);
+      /* eslint-enable no-console */
     }
   });
 
@@ -107,11 +105,13 @@ module.exports = (worker, done) => {
 
   let script = new vm.Script(getScript(render));
   try {
-    script.runInContext(vm.createContext(sandbox), { timeout: 15000 });
+    script.runInContext(vm.createContext(sandbox), {timeout: 15000});
   }
   catch (e) {
+    /* eslint-disable no-console */
     console.log(e.message);
     console.log(e.stack);
+    /* eslint-enable no-console */
     return done({reject: e});
   }
 

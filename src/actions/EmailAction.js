@@ -4,7 +4,6 @@ var request = require('request');
 module.exports = function(router) {
   var Action = router.formio.Action;
   var emailer = require('../util/email')(router.formio);
-  var macros = require('./macros/macros');
   var debug = require('debug')('formio:action:email');
 
   /**
@@ -159,7 +158,7 @@ module.exports = function(router) {
       }
 
       // Dont block on sending emails.
-      next();
+      next(); // eslint-disable-line callback-return
 
       // Get the email parameters.
       emailer.getParams(res, form, req.body)
@@ -189,7 +188,7 @@ module.exports = function(router) {
 
               return resolve(this.settings.message);
             });
-          })
+          });
         })
         .then(template => {
           // Prepend the macros to the message so that they can use them.
