@@ -392,14 +392,21 @@ module.exports = (formio) => {
           break;
         case 'custom':
           if (_.has(settings, 'email.custom')) {
-            transporter.sendMail = (mail) => {
+            transporter.sendMail = (mail, cb) => {
               let options = {};
               if (settings.email.custom.username) {
                 options.username = settings.email.custom.username;
                 options.password = settings.email.custom.password;
               }
 
-              rest.postJson(settings.email.custom.url, mail, options);
+              rest.postJson(settings.email.custom.url, mail, options)
+              .on('complete', (result, response) => {
+                if (result instanceof Error) {
+                  return cb(result);
+                }
+
+                return cb(null, result);
+              });
             };
           }
           break;
@@ -411,12 +418,10 @@ module.exports = (formio) => {
           }
           break;
         case 'test':
-          transporter.sendMail = (mail) => {
-            hook.invoke('email', emailType, mail);
-          };
-          break;
         default:
-          transporter = hook.invoke('email', emailType, message, settings, req, res, params);
+          transporter.sendMail = (mail, cb) => {
+            return cb(null, mail);
+          };
           break;
       }
 
