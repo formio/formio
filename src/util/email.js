@@ -483,9 +483,7 @@ module.exports = (formio) => {
 
         return Promise.all(queue);
       })
-      .then(response => {
-        return next(null, response);
-      })
+      .then(response => next(null, response))
       .catch(next);
     });
   };

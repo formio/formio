@@ -288,7 +288,7 @@ module.exports = function(app, template, hook) {
 
         let events = template.hooks.getEmitter();
         if (events) {
-          events.on('newMail', (email) => {
+          events.once('newMail', (email) => {
             return resolve(email);
           });
         }
