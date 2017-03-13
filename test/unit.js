@@ -38,23 +38,23 @@ module.exports = function(app, template, hook) {
       .catch(done);
     });
 
-    //it('Should timeout if someone puts bad code in the template', function(done) {
-    //  new Thread(Thread.Tasks.nunjucks).start({
-    //    render: '{{ callme() }}',
-    //    context: {
-    //      callme: function() {
-    //        // Loop forever!!!!
-    //        while (true) {}
-    //      }
-    //    }
-    //  })
-    //  .then(test => {
-    //    // FA-857 - No email will be sent if bad code if given.
-    //    assert.equal(test, null);
-    //    done();
-    //  })
-    //  .catch(done);
-    //});
+    it('Should timeout if someone puts bad code in the template', function(done) {
+      new Thread(Thread.Tasks.nunjucks).start({
+        render: '{{ callme() }}',
+        context: {
+          callme: function() {
+            // Loop forever!!!!
+            while (true) {}
+          }
+        }
+      })
+      .then(test => {
+        // FA-857 - No email will be sent if bad code if given.
+        assert.equal(test, null);
+        done();
+      })
+      .catch(done);
+    });
 
     it('Should not allow them to modify parameters in the template', function(done) {
       new Thread(Thread.Tasks.nunjucks).start({
