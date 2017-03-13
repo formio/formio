@@ -5,6 +5,7 @@ module.exports = function(router) {
   var Action = router.formio.Action;
   var emailer = require('../util/email')(router.formio);
   var debug = require('debug')('formio:action:email');
+  var macros = require('./macros/macros');
 
   /**
    * EmailAction class.
@@ -192,7 +193,7 @@ module.exports = function(router) {
         })
         .then(template => {
           // Prepend the macros to the message so that they can use them.
-          this.settings.message = template;
+          this.settings.message = macros + template;
 
           // Send the email.
           emailer.send(req, res, this.settings, params, (err, response) => {

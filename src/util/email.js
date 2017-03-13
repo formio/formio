@@ -199,6 +199,10 @@ module.exports = (formio) => {
         context: params
       })
       .then(injectedEmail => {
+        if (!injectedEmail) {
+          return reject(`An error occurred while processing the Email.`);
+        }
+
         // Allow others to alter the email before it is sent.
         hook.alter('email', injectedEmail, req, res, params, (err, email) => {
           if (err) {
