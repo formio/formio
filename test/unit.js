@@ -4,6 +4,7 @@
 let assert = require('assert');
 let fs = require('fs');
 let docker = process.env.DOCKER;
+var request = require('supertest');
 
 module.exports = function(app, template, hook) {
   let Thread = require('../src/worker/Thread');
@@ -95,7 +96,91 @@ module.exports = function(app, template, hook) {
 
       Promise.all([request1, request2])
       .then(() => {
-        return done()
+        return done();
+      })
+      .catch(done);
+    });
+
+    it('email template threads wont block other api requests', function(done) {
+      let started = [];
+      let finished = [];
+      let request1 = new Promise((resolve, reject) => {
+        started.push('request1');
+        new Thread(Thread.Tasks.nunjucks).start({
+          render: '{{ callme() }}',
+          context: {
+            callme: function() {
+              // Loop forever!!!!
+              while (true) {}
+            }
+          }
+        })
+        .then(test => {
+          finished.push('request1');
+          // FA-857 - No email will be sent if bad code is given.
+          assert.equal(test, null);
+          resolve();
+        })
+        .catch(reject);
+      });
+      let request2 = new Promise((resolve, reject) => {
+        setTimeout(() => {
+          started.push('request2');
+          request(app)
+            .post(hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template))
+            .send({
+              data: {
+                'email': template.users.admin.data.email,
+                'password': template.users.admin.data.password
+              }
+            })
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return reject(err);
+              }
+              finished.push('request2');
+
+              let response = res.body;
+              assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+              assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+              assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+              assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+              assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
+              assert.equal(response.data.email, template.users.admin.data.email);
+              assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
+              assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
+              assert.equal(response.form, template.resources.admin._id);
+              assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+              assert(response.hasOwnProperty('owner'), 'The response should contain the resource `owner`.');
+              assert.notEqual(response.owner, null);
+              assert.equal(response.owner, response._id);
+              assert.equal(response.roles.length, 1);
+              assert.equal(response.roles[0].toString(), template.roles.administrator._id.toString());
+
+              // Update our testProject.owners data.
+              let tempPassword = template.users.admin.data.password;
+              template.users.admin = response;
+              template.users.admin.data.password = tempPassword;
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              resolve();
+            });
+        }, 5000);
+      });
+
+      Promise.all([request1, request2])
+      .then(() => {
+        assert.equal(started.length, 2);
+        assert.equal(started[0], 'request1');
+        assert.equal(started[1], 'request2');
+        assert.equal(finished.length, 2);
+        assert.equal(finished[0], 'request2');
+        assert.equal(finished[1], 'request1');
+        return done();
       })
       .catch(done);
     });
