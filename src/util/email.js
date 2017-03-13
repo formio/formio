@@ -178,7 +178,6 @@ module.exports = (formio) => {
    * @return {Promise}
    */
   let nunjucksInjector = (mail, options) => new Promise((resolve, reject) => {
-    console.log('nunjucksInjector')
     if (!mail || !mail.to) {
       return reject(`No mail was given to send.`);
     }
@@ -202,7 +201,6 @@ module.exports = (formio) => {
       .then(injectedEmail => {
         // Allow others to alter the email before it is sent.
         hook.alter('email', injectedEmail, req, res, params, (err, email) => {
-          console.log('email hook cb');
           if (err) {
             return reject(err);
           }

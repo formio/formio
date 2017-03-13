@@ -145,7 +145,6 @@ module.exports = function(app, template, hook) {
     var email = require('../src/util/email')(formio);
     var macros = require('../src/actions/macros/macros');
     var sendMessage = function(to, from, message, content, cb) {
-      console.log('sendMessage')
       var dirName = 'fixtures/email/' + message + '/';
       var submission = require('./' + dirName + 'submission.json');
       var form = require('./' + dirName + 'form.json');
