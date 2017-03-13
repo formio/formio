@@ -94,6 +94,12 @@ module.exports = (worker, done) => {
   let render = worker.render;
   let context = worker.context || {};
 
+  // Convert all toString functions back to functions.
+  let functions = worker._functions || [];
+  functions.forEach(key => {
+    context[key] = new Function(`return ${context[key].toString()}`)();
+  });
+
   // Build the sandbox context with our dependencies
   let sandbox = {
     clone,
@@ -112,7 +118,7 @@ module.exports = (worker, done) => {
     console.log(e.message);
     console.log(e.stack);
     /* eslint-enable no-console */
-    return done({reject: e});
+    return done({resolve: null});
   }
 
   return done({resolve: sandbox.output});
