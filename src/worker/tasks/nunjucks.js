@@ -84,7 +84,10 @@ module.exports = (worker, done) => {
       context._rendered = {};
       for (var prop in input) {
         if (input.hasOwnProperty(prop)) {
-          context._rendered[prop] = output[prop] = environment.renderString(input[prop], context);
+          context._rendered[prop] = output[prop] = environment.renderString(
+            environment.renderString(input[prop], context),
+            context
+          );
         }
       }
     `;

@@ -196,7 +196,7 @@ module.exports = (formio) => {
     if (!noCompile) {
       return new Thread(Thread.Tasks.nunjucks)
       .start({
-        render: params.content || mail,
+        render: mail,
         context: params
       })
       .then(injectedEmail => {
@@ -448,6 +448,13 @@ module.exports = (formio) => {
 
         // Send each mail using the transporter.
         emails.forEach(email => {
+          // If email is a string, replace the contents of the original email object with the rendered response.
+          if (typeof email === 'string') {
+            mail.html = email;
+            email = mail;
+          }
+
+          // Replace all newline chars with empty strings, to fix newline support in html emails.
           if (email.html && (typeof email.html === 'string')) {
             email.html = email.html.replace(/\n/g, '');
           }

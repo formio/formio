@@ -215,12 +215,12 @@ module.exports = function(app, template, hook) {
 
     it('Should render an email with all the form and submission variables.', function(done) {
       template.hooks.reset();
-      sendMessage(['test@example.com'], 'me@example.com', 'test1', '', function(err, emails) {
+      sendMessage(['test@example.com'], 'me@example.com', 'test1', '', (err, emails) => {
         if (err) {
           return done(err);
         }
 
-        var email = emails[0];
+        let email = emails[0];
         assert.equal(email.subject, 'New submission for Test Form.');
         assert.equal(getLabel('firstName', email.html), 'First Name');
         assert.equal(getValue('firstName', email.html), 'Joe');
@@ -235,13 +235,17 @@ module.exports = function(app, template, hook) {
     });
 
     it('Should render an email with content within the email.', function(done) {
-      template.hooks.onEmails(1, function(emails) {
-        var email = emails[0];
+      template.hooks.reset();
+      sendMessage(['test@example.com'], 'me@example.com', 'test2', '<p>Hello {{ data.firstName }} {{ data.lastName }}</p>', (err, emails) => {
+        if (err) {
+          return done(err);
+        }
+
+        let email = emails[0];
         assert.equal(email.subject, 'New submission for Test Form.');
         assert(email.html.indexOf('<div><p>Hello Joe Smith</p></div>') !== -1, 'Email content rendering failed.');
         done();
       });
-      sendMessage(['test@example.com'], 'me@example.com', 'test2', '<p>Hello {{ data.firstName }} {{ data.lastName }}</p>');
     });
   });
 };
