@@ -49,9 +49,53 @@ module.exports = function(app, template, hook) {
         }
       })
       .then(test => {
-        // FA-857 - No email will be sent if bad code if given.
+        // FA-857 - No email will be sent if bad code is given.
         assert.equal(test, null);
         done();
+      })
+      .catch(done);
+    });
+
+    it('email template threads wont block eachother', function(done) {
+      let request1 = new Promise((resolve, reject) => {
+        new Thread(Thread.Tasks.nunjucks).start({
+          render: '{{ callme() }}',
+          context: {
+            callme: function() {
+              // Loop forever!!!!
+              while (true) {}
+            }
+          }
+        })
+        .then(test => {
+          // FA-857 - No email will be sent if bad code is given.
+          assert.equal(test, null);
+          resolve();
+        })
+        .catch(reject);
+      });
+      let request2 = new Promise((resolve, reject) => {
+        setTimeout(() => {
+          new Thread(Thread.Tasks.nunjucks).start({
+            render: '{{ callme2() }}',
+            context: {
+              callme2: function() {
+                return `hello world`;
+              }
+            }
+          })
+          .then(test => {
+            // FA-857 - No email will be sent if bad code is given.
+            assert.equal(test, `hello world`);
+            resolve();
+          })
+          .catch(reject);
+        }, 5000);
+      });
+
+      Promise.all([request1, request2])
+      .then(() => {
+        return done()
       })
       .catch(done);
     });
