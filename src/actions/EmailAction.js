@@ -144,7 +144,7 @@ module.exports = function(router) {
    * @param cb
    *   The callback function to execute upon completion.
    */
-  EmailAction.prototype.resolve = (handler, method, req, res, next) => {
+  EmailAction.prototype.resolve = function(handler, method, req, res, next) {
     if (!this.settings.emails || this.settings.emails.length === 0) {
       return next();
     }
