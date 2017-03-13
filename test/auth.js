@@ -146,7 +146,7 @@ module.exports = function(app, template, hook) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.adminLogin._id + '/submission', template))
         .send({})
-        .expect(500)
+        .expect(401)
         .end(function(err, res) {
           if (err) {
             return done(err);
@@ -166,7 +166,7 @@ module.exports = function(app, template, hook) {
             password: ''
           }
         })
-        .expect(500)
+        .expect(401)
         .end(function(err, res) {
           if (err) {
             return done(err);
@@ -221,7 +221,7 @@ module.exports = function(app, template, hook) {
       request(app)
         .post(hook.alter('url', '/' + template.forms.adminLogin.path, template))
         .send({})
-        .expect(500)
+        .expect(401)
         .end(function(err, res) {
           if (err) {
             return done(err);
