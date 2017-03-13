@@ -170,36 +170,36 @@ module.exports = function(router) {
         };
 
         return router.formio.resources.submission.model.findOne(query)
-      })
-      .then(owner => {
-        if (owner) {
-          params.owner = owner.toObject();
-        }
-
-        return new Promise((resolve, reject) => {
-          if (!this.settings.template) {
-            return resolve(this.settings.message);
+        .then(owner => {
+          if (owner) {
+            params.owner = owner.toObject();
           }
 
-          return request(this.settings.template, (error, response, body) => {
-            if (!error && response.statusCode === 200) {
-              // Save the content before overwriting the message.
-              params.content = this.settings.message;
-              return resolve(body);
+          return new Promise((resolve, reject) => {
+            if (!this.settings.template) {
+              return resolve(this.settings.message);
             }
 
-            return resolve(this.settings.message);
-          });
-        })
-      })
-      .then(template => {
-        // Prepend the macros to the message so that they can use them.
-        this.settings.message = template;
+            return request(this.settings.template, (error, response, body) => {
+              if (!error && response.statusCode === 200) {
+                // Save the content before overwriting the message.
+                params.content = this.settings.message;
+                return resolve(body);
+              }
 
-        // Send the email.
-        emailer.send(req, res, this.settings, params, (err, response) => {
-          debug(`[error]: ${err}`);
-          debug(`[response]: ${response}`);
+              return resolve(this.settings.message);
+            });
+          })
+        })
+        .then(template => {
+          // Prepend the macros to the message so that they can use them.
+          this.settings.message = template;
+
+          // Send the email.
+          emailer.send(req, res, this.settings, params, (err, response) => {
+            debug(`[error]: ${err}`);
+            debug(`[response]: ${response}`);
+          });
         });
       })
       .catch(err => {

@@ -2,7 +2,12 @@
 
 let _ = require('lodash');
 let emails = [];
+let events = null;
 let Emailer = {
+  addEmitter: (eventEmitter) => {
+    this.events = eventEmitter;
+  },
+  getEmitter: () => this.events,
   reset: () => {
     emails = [];
   },
@@ -24,6 +29,11 @@ let Emailer = {
         emails.shift();
       }
       emails.push(mail);
+
+      // If events are enabled
+      if (this.events) {
+        this.events.emit('newMail', mail);
+      }
 
       return cb(null, false);
     }
