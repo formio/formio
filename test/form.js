@@ -273,16 +273,18 @@ module.exports = function(app, template, hook) {
         request(app)
           .get(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect('Content-Type', /json/)
-          .expect(200)
+          .expect('Content-Type', template.project ? /text\/plain/ : /json/)
+          .expect(template.project ? 401 : 200)
           .end(function(err, res) {
               if (err) {
                   return done(err);
               }
 
-              var response = res.body;
-              assert.equal(response.length, 9);
-              template.users.user1.token = res.headers['x-jwt-token'];
+              if (!template.project) {
+                var response = res.body;
+                assert.equal(response.length, 9);
+                template.users.user1.token = res.headers['x-jwt-token'];
+              }
               done();
           });
       });
@@ -423,7 +425,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .get(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect(200)
+          .expect(template.project ? 401 : 200)
           .end(done);
       });
 
@@ -679,14 +681,14 @@ module.exports = function(app, template, hook) {
       it('An Anonymous user should be able to Read the Index of Forms for a User-Created Project', function(done) {
         request(app)
           .get(hook.alter('url', '/form', template))
-          .expect(206)
+          .expect(template.project ? 401 : 206)
           .end(done);
       });
 
       it('An Anonymous user should be able to Read the Index of Forms for a User-Created Project with the Form filter', function(done) {
         request(app)
           .get(hook.alter('url', '/form?type=form', template))
-          .expect(206)
+          .expect(template.project ? 401 : 206)
           .end(done);
       });
 

@@ -243,8 +243,8 @@ module.exports = function(app, template, hook) {
         request(app)
           .get(hook.alter('url', '/form?type=resource', template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect('Content-Type', /json/)
-          .expect(200)
+          .expect('Content-Type', template.project ? /text\/plain/ : /json/)
+          .expect(template.project ? 401 : 200)
           .end(done);
       });
 
@@ -321,8 +321,8 @@ module.exports = function(app, template, hook) {
       it('An Anonymous user should be able to Read the Index of Resource for a User-Created Project', function(done) {
         request(app)
           .get(hook.alter('url', '/form?type=resource', template))
-          .expect('Content-Type', /json/)
-          .expect(200)
+          .expect('Content-Type', template.project ? /text\/plain/ : /json/)
+          .expect(template.project ? 401 : 200)
           .end(done);
       });
 
