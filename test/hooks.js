@@ -34,6 +34,9 @@ let Emailer = {
       if (this.events) {
         this.events.emit('newMail', mail);
       }
+      else {
+        console.error(`No event emitter is available`);
+      }
 
       return cb(null, false);
     }

@@ -6,7 +6,9 @@ let mandrillTransport = require('nodemailer-mandrill-transport');
 let mailgunTransport = require('nodemailer-mailgun-transport');
 let debug = {
   email: require('debug')('formio:settings:email'),
-  error: require('debug')('formio:error')
+  send: require('debug')('formio:settings:send'),
+  error: require('debug')('formio:error'),
+  nunjucksInjector: require('debug')('formio:email:nunjucksInjector')
 };
 let rest = require('restler');
 let util = require('./util');
@@ -182,66 +184,31 @@ module.exports = (formio) => {
       return reject(`No mail was given to send.`);
     }
 
-    let sendEach = options.sendEach || false;
-    let noCompile = options.noCompile || false;
     let params = options.params;
-    let req = options.req;
-    let res = options.res;
+
+    // Replace all newline chars with empty strings, to fix newline support in html emails.
+    if (mail.html && (typeof mail.html === 'string')) {
+      mail.html = mail.html.replace(/\n/g, '');
+    }
+    debug.nunjucksInjector(mail);
 
     // Allow the nunjucks templates to be reflective.
     params.mail = mail;
 
     // Compile the email with nunjucks in a separate thread.
-    if (!noCompile) {
-      return new Thread(Thread.Tasks.nunjucks)
-      .start({
-        render: mail,
-        context: params
-      })
-      .then(injectedEmail => {
-        if (!injectedEmail) {
-          return reject(`An error occurred while processing the Email.`);
-        }
+    return new Thread(Thread.Tasks.nunjucks)
+    .start({
+      render: mail,
+      context: params
+    })
+    .then(injectedEmail => {
+      debug.nunjucksInjector(injectedEmail);
+      if (!injectedEmail) {
+        return reject(`An error occurred while processing the Email.`);
+      }
 
-        // Allow others to alter the email before it is sent.
-        hook.alter('email', injectedEmail, req, res, params, (err, email) => {
-          if (err) {
-            return reject(err);
-          }
-
-          return resolve(email);
-        });
-      });
-    }
-
-    if (mail.html && (typeof mail.html === 'string')) {
-      mail.html = mail.html.replace(/\n/g, '');
-    }
-
-    let addresses = [];
-    if (sendEach) {
-      addresses = _.uniq(_.map(mail.to.split(','), _.trim));
-    }
-    else {
-      addresses.push(mail.to);
-    }
-
-    let completed = [];
-    addresses.forEach(address => {
-      let opts = {
-        sendEach: false,
-        noCompile: false,
-        params,
-        req,
-        res
-      };
-
-      completed.push(
-        nunjucksInjector(_.assign({}, mail, {to: address}), opts)
-      );
+      return resolve(injectedEmail);
     });
-
-    return resolve(Promise.all(completed));
   });
 
   /**
@@ -276,16 +243,16 @@ module.exports = (formio) => {
       ? message.transport
       : 'default';
 
+    let _config = (formio && formio.config && formio.config.email && formio.config.email.type);
+    debug.send(message);
+    debug.send(emailType);
+
     // Get the settings.
     hook.settings(req, (err, settings) => { // eslint-disable-line max-statements
       if (err) {
-        debug.email(err);
+        debug.send(err);
         return next(err);
       }
-
-      let _config = (formio && formio.config && formio.config.email && formio.config.email.type);
-      debug.email(formio.config);
-      debug.email(emailType);
 
       // Force the email type to custom for EMAIL_OVERRIDE which will allow
       // us to use ngrok to test emails out of test platform.
@@ -420,6 +387,8 @@ module.exports = (formio) => {
         case 'test':
         default:
           transporter.sendMail = (mail, cb) => {
+            console.log('test transport')
+            console.log(mail)
             return cb(null, mail);
           };
           break;
@@ -437,22 +406,38 @@ module.exports = (formio) => {
         html: message.message
       };
       let options = {
-        params,
-        sendEach: message.sendEach,
-        noCompile: true,
-        req,
-        res
+        params
       };
 
       nunjucksInjector(mail, options)
-      .then(emails => {
-        let queue = [];
+      .then(injectedEmail => {
+        return hook.alter('email', injectedEmail, req, res, params, (err, email) => {
+          if (err) {
+            throw err;
+          }
 
-        // Coerce the emails into an array for iteration.
-        if (!(emails instanceof Array)) {
-          emails = [emails];
+          return email;
+        });
+      })
+      .then(email => {
+        let queue = [];
+        let emails = [];
+
+        debug.send(`message.sendEach: ${message.sendEach}`)
+        debug.send(`email: ${JSON.stringify(email)}`)
+        if (message.sendEach === true) {
+          let addresses = _.uniq(_.map(mail.to.split(','), _.trim));
+          debug.send(`ADDRESSES: ${JSON.stringify(addresses)}`)
+          addresses.forEach(address => {
+            // Make a copy of the email for each recipient.
+            emails.push(_.assign({}, email, {to: address}))
+          });
+        }
+        else {
+          emails.push(email);
         }
 
+        debug.send(`emails: ${JSON.stringify(emails)}`)
         // Send each mail using the transporter.
         emails.forEach(email => {
           // If email is a string, replace the contents of the original email object with the rendered response.
@@ -467,7 +452,7 @@ module.exports = (formio) => {
           }
 
           let pending = new Promise((resolve, reject) => {
-            hook.alter('emailSend', true, email, (err, send) => {
+            return hook.alter('emailSend', true, email, (err, send) => {
               if (err) {
                 return reject(err);
               }
@@ -475,7 +460,7 @@ module.exports = (formio) => {
                 return resolve(email);
               }
 
-              transporter.sendMail(email, (err, info) => {
+              return transporter.sendMail(email, (err, info) => {
                 if (err) {
                   return reject(err);
                 }
@@ -491,7 +476,10 @@ module.exports = (formio) => {
         return Promise.all(queue);
       })
       .then(response => next(null, response))
-      .catch(next);
+      .catch(err => {
+        debug.error(err);
+        return next(err);
+      });
     });
   };
 
