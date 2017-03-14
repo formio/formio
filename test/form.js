@@ -269,6 +269,24 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('A user should be able to read the index of forms', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.user1.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+              if (err) {
+                  return done(err);
+              }
+
+              var response = res.body;
+              assert.equal(response.length, 9);
+              template.users.user1.token = res.headers['x-jwt-token'];
+              done();
+          });
+      });
+
       it('An administrator should be able to Update their Form', function(done) {
         var updatedForm = _.cloneDeep(template.forms.tempForm);
         updatedForm.title = 'Updated';
@@ -401,11 +419,11 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('A user should NOT be able to Read all forms and resources', function(done) {
+      it('A user should be able to Read all forms and resources', function(done) {
         request(app)
           .get(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect(401)
+          .expect(200)
           .end(done);
       });
 
@@ -658,17 +676,17 @@ module.exports = function(app, template, hook) {
           .end(done);
       });
 
-      it('An Anonymous user should not be able to Read the Index of Forms for a User-Created Project', function(done) {
+      it('An Anonymous user should be able to Read the Index of Forms for a User-Created Project', function(done) {
         request(app)
           .get(hook.alter('url', '/form', template))
-          .expect(401)
+          .expect(206)
           .end(done);
       });
 
-      it('An Anonymous user should not be able to Read the Index of Forms for a User-Created Project with the Form filter', function(done) {
+      it('An Anonymous user should be able to Read the Index of Forms for a User-Created Project with the Form filter', function(done) {
         request(app)
           .get(hook.alter('url', '/form?type=form', template))
-          .expect(401)
+          .expect(206)
           .end(done);
       });
 
@@ -3047,7 +3065,7 @@ module.exports = function(app, template, hook) {
             });
         });
       });
-      
+
       // FOR-272
       describe('Old layout components without API keys, still submit data for all child components', function() {
         var form = _.cloneDeep(tempForm);
@@ -3140,7 +3158,7 @@ module.exports = function(app, template, hook) {
         form.name = 'customvalidation';
         form.path = 'customvalidation';
         form.components = [];
-        
+
         var updatePrimary = function(done) {
           request(app)
             .put(hook.alter('url', '/form/' + form._id, template))
