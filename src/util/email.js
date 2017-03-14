@@ -394,7 +394,8 @@ module.exports = (formio) => {
 
       // If we don't have a valid transport, don't waste time with nunjucks.
       if (!transporter || typeof transporter.sendMail !== 'function') {
-        return next(`Could not determine which email transport to use for ${emailType}`);
+        console.error(`Could not determine which email transport to use for ${emailType}`);
+        return next();
       }
 
       let mail = {
