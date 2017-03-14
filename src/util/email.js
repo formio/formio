@@ -410,24 +410,15 @@ module.exports = (formio) => {
       };
 
       nunjucksInjector(mail, options)
-      .then(injectedEmail => {
-        return hook.alter('email', injectedEmail, req, res, params, (err, email) => {
-          if (err) {
-            throw err;
-          }
-
-          return email;
-        });
-      })
       .then(email => {
         let queue = [];
         let emails = [];
 
-        debug.send(`message.sendEach: ${message.sendEach}`)
-        debug.send(`email: ${JSON.stringify(email)}`)
+        debug.send(`message.sendEach: ${message.sendEach}`);
+        debug.send(`email: ${JSON.stringify(email)}`);
         if (message.sendEach === true) {
-          let addresses = _.uniq(_.map(mail.to.split(','), _.trim));
-          debug.send(`ADDRESSES: ${JSON.stringify(addresses)}`)
+          let addresses = _.uniq(_.map(email.to.split(','), _.trim));
+          debug.send(`addresses: ${JSON.stringify(addresses)}`);
           addresses.forEach(address => {
             // Make a copy of the email for each recipient.
             emails.push(_.assign({}, email, {to: address}))
@@ -437,35 +428,37 @@ module.exports = (formio) => {
           emails.push(email);
         }
 
-        debug.send(`emails: ${JSON.stringify(emails)}`)
+        debug.send(`emails: ${JSON.stringify(emails)}`);
         // Send each mail using the transporter.
         emails.forEach(email => {
-          // If email is a string, replace the contents of the original email object with the rendered response.
-          if (typeof email === 'string') {
-            mail.html = email;
-            email = mail;
-          }
-
           // Replace all newline chars with empty strings, to fix newline support in html emails.
           if (email.html && (typeof email.html === 'string')) {
             email.html = email.html.replace(/\n/g, '');
           }
 
           let pending = new Promise((resolve, reject) => {
-            return hook.alter('emailSend', true, email, (err, send) => {
+            // Allow anyone to hook the final email before sending.
+            return hook.alter('email', email, req, res, params, (err, email) => {
               if (err) {
                 return reject(err);
               }
-              if (!send) {
-                return resolve(email);
-              }
 
-              return transporter.sendMail(email, (err, info) => {
+              // Allow anyone to hook the final destination settings before sending.
+              hook.alter('emailSend', true, email, (err, send) => {
                 if (err) {
                   return reject(err);
                 }
+                if (!send) {
+                  return resolve(email);
+                }
 
-                return resolve(info);
+                return transporter.sendMail(email, (err, info) => {
+                  if (err) {
+                    return reject(err);
+                  }
+
+                  return resolve(info);
+                });
               });
             });
           });
