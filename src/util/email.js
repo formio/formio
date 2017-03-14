@@ -387,8 +387,6 @@ module.exports = (formio) => {
         case 'test':
         default:
           transporter.sendMail = (mail, cb) => {
-            console.log('test transport')
-            console.log(mail)
             return cb(null, mail);
           };
           break;
@@ -421,7 +419,7 @@ module.exports = (formio) => {
           debug.send(`addresses: ${JSON.stringify(addresses)}`);
           addresses.forEach(address => {
             // Make a copy of the email for each recipient.
-            emails.push(_.assign({}, email, {to: address}))
+            emails.push(_.assign({}, email, {to: address}));
           });
         }
         else {
