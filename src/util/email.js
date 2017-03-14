@@ -182,8 +182,8 @@ module.exports = (formio) => {
       return reject(`No mail was given to send.`);
     }
 
-    let sendEach = options.sendEach;
-    let noCompile = options.noCompile;
+    let sendEach = options.sendEach || false;
+    let noCompile = options.noCompile || false;
     let params = options.params;
     let req = options.req;
     let res = options.res;
@@ -230,7 +230,7 @@ module.exports = (formio) => {
     addresses.forEach(address => {
       let opts = {
         sendEach: false,
-        noCompile: true,
+        noCompile: false,
         params,
         req,
         res
@@ -241,7 +241,7 @@ module.exports = (formio) => {
       );
     });
 
-    return Promise.all(completed);
+    return resolve(Promise.all(completed));
   });
 
   /**
@@ -439,7 +439,7 @@ module.exports = (formio) => {
       let options = {
         params,
         sendEach: message.sendEach,
-        noCompile: false,
+        noCompile: true,
         req,
         res
       };

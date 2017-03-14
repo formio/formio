@@ -197,8 +197,8 @@ module.exports = function(router) {
 
           // Send the email.
           emailer.send(req, res, this.settings, params, (err, response) => {
-            debug(`[error]: ${err}`);
-            debug(`[response]: ${response}`);
+            debug(`[error]: ${JSON.stringify(err)}`);
+            debug(`[response]: ${JSON.stringify(response)}`);
           });
         });
       })
