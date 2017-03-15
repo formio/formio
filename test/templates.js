@@ -292,7 +292,7 @@ module.exports = (app, template, hook) => {
           assert.deepEqual(responseActions, expectedActions);
           return done();
         })
-          .catch(done);
+        .catch(done);
       });
     });
   });
