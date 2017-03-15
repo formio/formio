@@ -6,8 +6,11 @@ var assert = require('assert');
 var _ = require('lodash');
 var chance = new (require('chance'))();
 var docker = process.env.DOCKER;
+let EventEmitter = require('events');
 
 module.exports = function(app, template, hook) {
+  template.hooks.addEmitter(new EventEmitter());
+  
   describe('Authentication', function() {
     it('Should be able to register an administrator', function(done) {
       request(app)
@@ -143,7 +146,7 @@ module.exports = function(app, template, hook) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.adminLogin._id + '/submission', template))
         .send({})
-        .expect(500)
+        .expect(401)
         .end(function(err, res) {
           if (err) {
             return done(err);
@@ -163,7 +166,7 @@ module.exports = function(app, template, hook) {
             password: ''
           }
         })
-        .expect(500)
+        .expect(401)
         .end(function(err, res) {
           if (err) {
             return done(err);
@@ -218,7 +221,7 @@ module.exports = function(app, template, hook) {
       request(app)
         .post(hook.alter('url', '/' + template.forms.adminLogin.path, template))
         .send({})
-        .expect(500)
+        .expect(401)
         .end(function(err, res) {
           if (err) {
             return done(err);
@@ -230,6 +233,7 @@ module.exports = function(app, template, hook) {
     });
 
     it('Should be able to register an authenticated user', function(done) {
+      template.hooks.reset();
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template))
         .send({
@@ -277,11 +281,26 @@ module.exports = function(app, template, hook) {
     if (!docker)
     it('Should have sent an email to the user with an auth token', function(done) {
       var email = template.hooks.getLastEmail();
-      assert.equal(email.from, 'no-reply@form.io');
-      assert.equal(email.to, template.users.user1.data.email);
-      assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
-      assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
-      done();
+      new Promise((resolve, reject) => {
+        if (email && Object.keys(email) > 0) {
+          return resolve(email);
+        }
+
+        let events = template.hooks.getEmitter();
+        if (events) {
+          events.once('newMail', (email) => {
+            return resolve(email);
+          });
+        }
+      })
+      .then(email => {
+        assert.equal(email.from, 'no-reply@form.io');
+        assert.equal(email.to, template.users.user1.data.email);
+        assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
+        assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
+        done();
+      })
+      .catch(done)
     });
 
     it('Should be able to validate a request with the validate param.', function(done) {

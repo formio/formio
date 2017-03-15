@@ -116,17 +116,17 @@ module.exports = function(router) {
     }
 
     if (!req.submission || !req.submission.hasOwnProperty('data')) {
-      return next('Submission data is required to Authenticate.');
+      return res.status(401).send('Username or password was incorrect.');
     }
 
     // They must provide a username.
     if (!_.has(req.submission.data, this.settings.username)) {
-      return next('Username not provided.');
+      return res.status(401).send('Username or password was incorrect.');
     }
 
     // They must provide a password.
     if (!_.has(req.submission.data, this.settings.password)) {
-      return next('Password not provided.');
+      return res.status(401).send('Username or password was incorrect.');
     }
 
     // Perform an authentication.
