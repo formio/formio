@@ -104,12 +104,22 @@ module.exports = (app, template, hook) => {
         );
       });
 
+      let projectRoles = {};
       it('An export should contain the project roles', function(done) {
         app.formio.resources.role.model.find({deleted: {$eq: null}}).then(roles => {
-          let expectedRoles = Object.keys(exportTemplate.roles).map(key => exportTemplate.roles[key]);
-          let responseRoles = roles.map(role => _.omit(role.toObject(), ['_id', '__v', 'created', 'deleted', 'modified']));
+          let expectedRoles = exportTemplate.roles;
+          let responseRoles = {};
 
-          assert.equal(responseRoles.length, expectedRoles.length);
+          roles.forEach(role => {
+            projectRoles[role._id] = role;
+
+            let tempRole = _.omit(role.toObject(), ['_id', '__v', 'created', 'deleted', 'modified']);
+            let machineName = tempRole.machineName;
+            delete tempRole.machineName;
+
+            responseRoles[machineName] = tempRole;
+          });
+
           assert.deepEqual(responseRoles, expectedRoles);
           return done();
         })
@@ -118,30 +128,99 @@ module.exports = (app, template, hook) => {
 
       it('An export should contain the project forms', function(done) {
         app.formio.resources.form.model.find({type: 'form', deleted: {$eq: null}}).then(forms => {
-          let expectedForms = Object.keys(exportTemplate.forms).map(key => exportTemplate.forms[key]);
-          let responseForms = forms.map(form => _.omit(form.toObject(), ['_id', '__v', 'created', 'deleted', 'modified']));
+          let expectedForms = exportTemplate.forms;
+          let responseForms = {};
+          forms.map(form => {
+            let machineName = form.toObject().machineName;
+            let tempForm = _.omit(form.toObject(), ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner']);
 
-          assert.equal(responseForms.length, expectedForms.length);
+            tempForm.access = tempForm.access.map(access => {
+              access.roles = access.roles.map(role => {
+                return projectRoles[role.toString()].machineName;
+              });
+
+              return access;
+            });
+
+            tempForm.submissionAccess = tempForm.submissionAccess.map(access => {
+              access.roles = access.roles.map(role => {
+                return projectRoles[role.toString()].machineName;
+              });
+
+              return access;
+            });
+
+            formioUtils.eachComponent(tempForm.components, (component) => {
+              if (component.hasOwnProperty('resource')) {
+
+              }
+            }, true);
+
+            responseForms[machineName] = tempForm;
+          });
+
           assert.deepEqual(responseForms, expectedForms);
           return done();
         })
         .catch(done);
       });
 
-      it('An export should contain the project actions', function(done) {
-
-      });
-
       it('An export should contain the project resources', function(done) {
         app.formio.resources.form.model.find({type: 'resource', deleted: {$eq: null}}).then(resources => {
-          let expectedResources = Object.keys(exportTemplate.resources).map(key => exportTemplate.forms[key]);
-          let responseResources = resources.map(resource => _.omit(resource.toObject(), ['_id', '__v', 'created', 'deleted', 'modified']));
+          let expectedResources = exportTemplate.resources;
+          let responseResources = {};
+          resources.map(resource => {
+            let machineName = resource.toObject().machineName;
+            let tempResource = _.omit(resource.toObject(), ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner']);
 
-          assert.equal(responseResources.length, expectedResources.length);
+            tempResource.submissionAccess = tempResource.submissionAccess.map(access => {
+              access.roles = access.roles.map(role => {
+                return projectRoles[role.toString()].machineName;
+              });
+
+              return access;
+            });
+
+            responseResources[machineName] = tempResource;
+          });
+
           assert.deepEqual(responseResources, expectedResources);
           return done();
         })
         .catch(done);
+      });
+
+      it('An export should contain the project actions', function(done) {
+        app.formio.resources.action.model.find({deleted: {$eq: null}}).then(forms => {
+          let expectedForms = exportTemplate.forms;
+          let responseForms = {};
+          forms.map(form => {
+            let machineName = form.toObject().machineName;
+            let tempForm = _.omit(form.toObject(), ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner']);
+
+            tempForm.access = tempForm.access.map(access => {
+              access.roles = access.roles.map(role => {
+                return projectRoles[role.toString()].machineName;
+              });
+
+              return access;
+            });
+
+            tempForm.submissionAccess = tempForm.submissionAccess.map(access => {
+              access.roles = access.roles.map(role => {
+                return projectRoles[role.toString()].machineName;
+              });
+
+              return access;
+            });
+
+            responseForms[machineName] = tempForm;
+          });
+
+          assert.deepEqual(responseForms, expectedForms);
+          return done();
+        })
+          .catch(done);
       });
     });
   });
