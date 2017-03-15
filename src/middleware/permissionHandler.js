@@ -170,6 +170,7 @@ module.exports = function(router) {
           // Skip form access if no formId was given.
           if (!req.formId) {
             debug.getAccess.getFormAccess('Skipping, no req.formId');
+            access.form['read_own'] = !req.projectId;
             return callback(null);
           }
 
@@ -496,8 +497,11 @@ module.exports = function(router) {
           if (
             access.hasOwnProperty(entity.type)
             && access[entity.type].hasOwnProperty(type)
-            && access[entity.type][type] instanceof Array
-            && access[entity.type][type].indexOf(role) !== -1
+            &&
+            (
+              (access[entity.type][type] === true) ||
+              (access[entity.type][type] instanceof Array && access[entity.type][type].indexOf(role) !== -1)
+            )
           ) {
             // Allow anonymous users to create a submission for themselves if defined.
             if (type === 'create_own') {
