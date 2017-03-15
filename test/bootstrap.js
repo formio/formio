@@ -1,6 +1,5 @@
 'use strict';
 
-var async = require('async');
 let assert = require('assert');
 let formioUtils = require('formio-utils');
 let _ = require('lodash');
@@ -9,24 +8,7 @@ var comparison = null;
 module.exports = (app, template, hook) => {
   describe('Bootstrap test data', function() {
     it('Should remove old test data', function(done) {
-      /**
-       * Remove all documents using a mongoose model.
-       *
-       * @param model
-       *   The mongoose model to delete.
-       * @param next
-       *   The callback to execute.
-       */
-      var dropDocuments = function(model, next) {
-        model.remove({}, next);
-      };
-
-      async.series([
-        async.apply(dropDocuments, app.formio.resources.form.model),
-        async.apply(dropDocuments, app.formio.resources.submission.model),
-        async.apply(dropDocuments, app.formio.actions.model),
-        async.apply(dropDocuments, app.formio.resources.role.model)
-      ], done);
+      template.clearData(done);
     });
     
     it('Should be able to bootstrap the default template', function(done) {

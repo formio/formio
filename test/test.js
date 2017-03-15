@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 'use strict';
 
-var assert = require('assert');
+var async = require('async');
 
 // Bootstrap the test environment.
 var app = null;
@@ -21,11 +21,40 @@ describe('Initialization', function() {
       // Establish the helper library.
       template.Helper = require('./helper')(app);
       template.hooks = app.formio.hooks || {};
+
+      /**
+       * Remove all the mongo data.
+       *
+       * @param cb
+       *   The callback to execute.
+       */
+      template.clearData = (cb) => {
+        /**
+         * Remove all documents using a mongoose model.
+         *
+         * @param model
+         *   The mongoose model to delete.
+         * @param next
+         *   The callback to execute.
+         */
+        var dropDocuments = function(model, next) {
+          model.remove({}, next);
+        };
+
+        async.series([
+          async.apply(dropDocuments, app.formio.resources.form.model),
+          async.apply(dropDocuments, app.formio.resources.submission.model),
+          async.apply(dropDocuments, app.formio.actions.model),
+          async.apply(dropDocuments, app.formio.resources.role.model)
+        ], cb);
+      };
+
       done();
     });
   });
 
   after(function() {
+    require('./template-import')(app, template, hook);
     require('./bootstrap')(app, template, hook);
     require('./unit')(app, template, hook);
     require('./auth')(app, template, hook);
