@@ -2,12 +2,14 @@
   "root": true,
   "extends": "eslint-config-formio",
   "env": {
-    "node": true
+    "node": true,
+    "es6": true
   },
   "rules": {
     "curly": [2, "all"],
     "no-unused-vars": [1, {"args": "none"}],
     "strict": [2, "global"],
-    "max-statements": [2, 35]
+    "max-statements": [2, 35],
+    "quotes": [0]
   }
 }
