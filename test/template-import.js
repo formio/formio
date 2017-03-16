@@ -1,6 +1,7 @@
 'use strict';
 
 let assert = require('assert');
+let _ = require('lodash');
 
 module.exports = (app, template, hook) => {
   describe('Template Imports', function() {
@@ -17,21 +18,35 @@ module.exports = (app, template, hook) => {
       app.formio.resources.role.model.find({deleted: {$eq: null}}).then(roles => {
         assert.equal(roles.length, Object.keys(input).length);
 
+        // If the input is empty, skip remaining checks.
         if (Object.keys(input).length === 0) {
           return done();
         }
+
+        // Check that the template data doesnt contain any _id's or machineNames
+        Object.keys(input).forEach(machineName => {
+          let role = input[machineName];
+
+          assert.equal(role.hasOwnProperty('_id'), false);
+          assert.equal(role.hasOwnProperty('machineName'), false);
+        });
 
         // Memoize the roles.
         project.roles = {};
         roles.forEach(role => {
           role = role.toObject();
+
+          // Check that each role in mongo has an _id and a machineName.
+          assert.equal(role.hasOwnProperty('_id'), true);
+          assert.equal(role.hasOwnProperty('machineName'), true);
+
           project.roles[role.machineName] = role;
         });
 
-        let given = Object.keys(roles).map(key => {
-          return roles[key].title;
+        let given = roles.map(role => role.toObject().title);
+        let expected = Object.keys(input).map(machineName => {
+          return input[machineName].title;
         });
-        let expected = roles.map(role => role.toObject().title);
 
         assert.deepEqual(given, expected);
         done();
@@ -57,6 +72,32 @@ module.exports = (app, template, hook) => {
           return done()
         }
 
+        // Check that the template data doesnt contain any _id's or machineNames
+        Object.keys(input).forEach(machineName => {
+          let form = input[machineName];
+
+          assert.equal(form.hasOwnProperty('_id'), false);
+          assert.equal(form.hasOwnProperty('machineName'), false);
+        });
+
+        // Memoize the forms.
+        project[`${type}s`] = {};
+        forms.forEach(form => {
+          form = form.toObject();
+
+          // Check that each form in mongo has an _id and machineName.
+          assert.equal(form.hasOwnProperty('_id'), true);
+          assert.equal(form.hasOwnProperty('machineName'), true);
+
+          project[`${type}s`][form.machineName] = form;
+        });
+
+        let given = forms.map(form => form.toObject().name);
+        let expected = Object.keys(input).map(machineName => {
+          return input[machineName].name;
+        });
+
+        assert.deepEqual(given, expected);
         done();
       })
       .catch(done);
@@ -79,6 +120,32 @@ module.exports = (app, template, hook) => {
           return done()
         }
 
+        // Check that the template data doesnt contain any _id's or machineNames
+        Object.keys(input).forEach(machineName => {
+          let action = input[machineName];
+
+          assert.equal(action.hasOwnProperty('_id'), false);
+          assert.equal(action.hasOwnProperty('machineName'), false);
+        });
+
+        // Memoize the forms.
+        project.actions = {};
+        actions.forEach(action => {
+          action = action.toObject();
+
+          // Check that each action in mongo has an _id and machineName.
+          assert.equal(action.hasOwnProperty('_id'), true);
+          assert.equal(action.hasOwnProperty('machineName'), true);
+
+          project.actions[action.machineName] = action;
+        });
+
+        let given = actions.map(action => action.toObject().name);
+        let expected = Object.keys(input).map(machineName => {
+          return input[machineName].name;
+        });
+
+        assert.deepEqual(given, expected);
         done();
       })
       .catch(done);
@@ -87,9 +154,10 @@ module.exports = (app, template, hook) => {
     describe('Empty Template', function() {
       let project = {};
       let emptyTemplate = require('../src/templates/empty.json');
+      let _template = _.cloneDeep(emptyTemplate);
 
       it('Should be able to bootstrap the empty template', function(done) {
-        app.formio.template.import(emptyTemplate, function(err) {
+        app.formio.template.import(_template, (err) => {
           if (err) {
             return done(err);
           }
@@ -126,9 +194,10 @@ module.exports = (app, template, hook) => {
     describe('Default Template', function() {
       let project = {};
       let defaultTemplate = require('../src/templates/default.json');
+      let _template = _.cloneDeep(defaultTemplate);
 
       it('Should be able to bootstrap the default template', function(done) {
-        app.formio.template.import(defaultTemplate, function(err) {
+        app.formio.template.import(_template, (err) => {
           if (err) {
             return done(err);
           }
