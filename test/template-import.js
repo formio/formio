@@ -145,18 +145,19 @@ module.exports = (app, template, hook) => {
           return input[machineName].name;
         });
 
-        assert.deepEqual(given, expected);
+        assert.deepEqual(given.sort(), expected.sort());
         done();
       })
       .catch(done);
     };
 
     describe('Empty Template', function() {
-      let project = {};
       let emptyTemplate = require('../src/templates/empty.json');
       let _template = _.cloneDeep(emptyTemplate);
 
       describe('Import', function() {
+        let project = {};
+
         it('Should be able to bootstrap the empty template', function(done) {
           app.formio.template.import(_template, (err) => {
             if (err) {
@@ -185,7 +186,74 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
+        let project = {};
+        let exportData = {};
+        
+        it('Should be able to export project data', function(done) {
+          app.formio.template.export({}, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+            
+            exportData = data;
+            return done();
+          });
+        });
 
+        it('An export should contain the export title', function() {
+          assert.equal(
+            hook.alter('exportTitle', 'Export', exportData),
+            'Export'
+          );
+        });
+
+        it('An export should contain the current export version', function() {
+          assert.equal(
+            exportData.version,
+            '2.0.0'
+          );
+        });
+
+        it('An export should contain the description', function() {
+          assert.equal(
+            hook.alter('exportDescription', '', exportData),
+            ''
+          );
+        });
+
+        it('An export should contain the export name', function() {
+          assert.equal(
+            hook.alter('exportName', 'export', exportData),
+            'export'
+          );
+        });
+
+        it('An export should contain the export plan', function() {
+          assert.equal(
+            hook.alter('exportPlan', 'community', exportData),
+            'community'
+          );
+        });
+
+        it('The empty template should export all its roles', function(done) {
+          checkTemplateRoles(project, exportData.roles, done);
+        });
+
+        it('The empty template should not export any forms', function(done) {
+          checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
+        });
+
+        it('The empty template should not export any resources', function(done) {
+          checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
+        });
+
+        it('The empty template should not export any actions', function(done) {
+          checkTemplateActions(project, exportData.actions, done);
+        });
+
+        //it('An export should match an import', function() {
+        //  assert.deepEqual(exportData, emptyTemplate);
+        //});
       });
 
       before(function(done) {
@@ -198,11 +266,12 @@ module.exports = (app, template, hook) => {
     });
 
     describe('Default Template', function() {
-      let project = {};
       let defaultTemplate = require('../src/templates/default.json');
       let _template = _.cloneDeep(defaultTemplate);
 
       describe('Import', function() {
+        let project = {};
+
         it('Should be able to bootstrap the default template', function(done) {
           app.formio.template.import(_template, (err) => {
             if (err) {
@@ -231,7 +300,74 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
+        let project = {};
+        let exportData = {};
 
+        it('Should be able to export project data', function(done) {
+          app.formio.template.export({}, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+
+            exportData = data;
+            return done();
+          });
+        });
+
+        it('An export should contain the export title', function() {
+          assert.equal(
+            hook.alter('exportTitle', 'Export', exportData),
+            'Export'
+          );
+        });
+
+        it('An export should contain the current export version', function() {
+          assert.equal(
+            exportData.version,
+            '2.0.0'
+          );
+        });
+
+        it('An export should contain the description', function() {
+          assert.equal(
+            hook.alter('exportDescription', '', exportData),
+            ''
+          );
+        });
+
+        it('An export should contain the export name', function() {
+          assert.equal(
+            hook.alter('exportName', 'export', exportData),
+            'export'
+          );
+        });
+
+        it('An export should contain the export plan', function() {
+          assert.equal(
+            hook.alter('exportPlan', 'community', exportData),
+            'community'
+          );
+        });
+
+        it('The Default template should export all its roles', function(done) {
+          checkTemplateRoles(project, exportData.roles, done);
+        });
+
+        it('The Default template should not export any forms', function(done) {
+          checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
+        });
+
+        it('The Default template should not export any resources', function(done) {
+          checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
+        });
+
+        it('The Default template should not export any actions', function(done) {
+          checkTemplateActions(project, exportData.actions, done);
+        });
+
+        //it('An export should match an import', function() {
+        //  assert.deepEqual(exportData, emptyTemplate);
+        //});
       });
 
       before(function(done) {
