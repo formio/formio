@@ -437,7 +437,7 @@ module.exports = function(app, template, hook) {
     it('A Form.io User should get locked out if they keep trying a bad password', function(done) {
       var count = 0;
       async.whilst(
-        function() { return count < 5; },
+        function() { return count < 4; },
         function(next) {
           count++;
           lastAttempt = (new Date()).getTime();
@@ -455,7 +455,7 @@ module.exports = function(app, template, hook) {
                 return next(err);
               }
 
-              assert.equal(res.text, count < 5 ? 'User or password was incorrect' : 'Maximum Login attempts. Please wait 2 seconds before trying again.');
+              assert.equal(res.text, count < 4 ? 'User or password was incorrect' : 'Maximum Login attempts. Please wait 2 seconds before trying again.');
               assert.equal(!res.headers['x-jwt-token'], true);
               next();
             });
@@ -496,10 +496,10 @@ module.exports = function(app, template, hook) {
       }, 1500);
     });
 
-    it('Attempt 5 bad logins to attempt good login after window.', function(done) {
+    it('Attempt 4 bad logins to attempt good login after window.', function(done) {
       var count = 0;
       async.whilst(
-        function() { return count < 5; },
+        function() { return count < 4; },
         function(next) {
           count++;
           lastAttempt = (new Date()).getTime();
@@ -726,7 +726,7 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    it('Attempt 6th bad login request, but after the accepted window.', function(done) {
+    it('Attempt 5th bad login request, but after the accepted window.', function(done) {
       setTimeout(function() {
         request(app)
           .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))

@@ -202,7 +202,7 @@ module.exports = function(router) {
         attempts++;
 
         // If they exceeded the login attempts.
-        if (attempts > allowedAttempts) {
+        if (attempts >= allowedAttempts) {
           var lockWait = parseInt(this.settings.lockWait, 10) || 1800;
           error = 'Maximum Login attempts. Please wait ' + this.waitText(lockWait) + ' before trying again.';
           user.metadata.login.locked = true;
