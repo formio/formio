@@ -4,6 +4,12 @@ module.exports = function() {
   // The default project template.
   var template = require('../src/templates/default.json');
 
+  // Change the login timeouts for testing
+  template.actions.adminLogin.settings.lockWait = 2;
+  template.actions.adminLogin.settings.attemptWindow = 2;
+  template.actions.userLogin.settings.lockWait = 2;
+  template.actions.userLogin.settings.attemptWindow = 2;
+
   // Create a registration form for admins for testing purposes.
   template.forms.adminRegister = {
     title: 'Admin Register',
@@ -112,7 +118,10 @@ module.exports = function() {
     settings: {
       resources: ['admin'],
       username: 'email',
-      password: 'password'
+      password: 'password',
+      allowedAttempts: 5,
+      attemptWindow: 10,
+      lockWait: 10
     }
   };
 
