@@ -156,30 +156,36 @@ module.exports = (app, template, hook) => {
       let emptyTemplate = require('../src/templates/empty.json');
       let _template = _.cloneDeep(emptyTemplate);
 
-      it('Should be able to bootstrap the empty template', function(done) {
-        app.formio.template.import(_template, (err) => {
-          if (err) {
-            return done(err);
-          }
+      describe('Import', function() {
+        it('Should be able to bootstrap the empty template', function(done) {
+          app.formio.template.import(_template, (err) => {
+            if (err) {
+              return done(err);
+            }
 
-          done();
+            done();
+          });
+        });
+
+        it('All the roles should be imported', function(done) {
+          checkTemplateRoles(project, emptyTemplate.roles, done);
+        });
+
+        it('No forms should exist', function(done) {
+          checkTemplateFormsAndResources(project, 'form', emptyTemplate.forms, done);
+        });
+
+        it('No resources should exist', function(done) {
+          checkTemplateFormsAndResources(project, 'resource', emptyTemplate.resources, done);
+        });
+
+        it('No actions should exist', function(done) {
+          checkTemplateActions(project, emptyTemplate.actions, done);
         });
       });
 
-      it('All the roles should be imported', function(done) {
-        checkTemplateRoles(project, emptyTemplate.roles, done);
-      });
+      describe('Export', function() {
 
-      it('No forms should exist', function(done) {
-        checkTemplateFormsAndResources(project, 'form', emptyTemplate.forms, done);
-      });
-
-      it('No resources should exist', function(done) {
-        checkTemplateFormsAndResources(project, 'resource', emptyTemplate.resources, done);
-      });
-
-      it('No actions should exist', function(done) {
-        checkTemplateActions(project, emptyTemplate.actions, done);
       });
 
       before(function(done) {
@@ -196,30 +202,36 @@ module.exports = (app, template, hook) => {
       let defaultTemplate = require('../src/templates/default.json');
       let _template = _.cloneDeep(defaultTemplate);
 
-      it('Should be able to bootstrap the default template', function(done) {
-        app.formio.template.import(_template, (err) => {
-          if (err) {
-            return done(err);
-          }
+      describe('Import', function() {
+        it('Should be able to bootstrap the default template', function(done) {
+          app.formio.template.import(_template, (err) => {
+            if (err) {
+              return done(err);
+            }
 
-          done();
+            done();
+          });
+        });
+
+        it('All the roles should be imported', function(done) {
+          checkTemplateRoles(project, defaultTemplate.roles, done);
+        });
+
+        it('All the forms should be imported', function(done) {
+          checkTemplateFormsAndResources(project, 'form', defaultTemplate.forms, done);
+        });
+
+        it('All the resources should be imported', function(done) {
+          checkTemplateFormsAndResources(project, 'resource', defaultTemplate.resources, done);
+        });
+
+        it('All the actions should be imported', function(done) {
+          checkTemplateActions(project, defaultTemplate.actions, done);
         });
       });
 
-      it('All the roles should be imported', function(done) {
-        checkTemplateRoles(project, defaultTemplate.roles, done);
-      });
+      describe('Export', function() {
 
-      it('All the forms should be imported', function(done) {
-        checkTemplateFormsAndResources(project, 'form', defaultTemplate.forms, done);
-      });
-
-      it('All the resources should be imported', function(done) {
-        checkTemplateFormsAndResources(project, 'resource', defaultTemplate.resources, done);
-      });
-
-      it('All the actions should be imported', function(done) {
-        checkTemplateActions(project, defaultTemplate.actions, done);
       });
 
       before(function(done) {
