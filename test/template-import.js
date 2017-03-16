@@ -5,6 +5,17 @@ let _ = require('lodash');
 
 module.exports = (app, template, hook) => {
   describe('Template Imports', function() {
+    let removeFalseyRoleIdentifiers = (role) => {
+      if (_.has(role, 'admin') && _.get(role, 'admin') === false) {
+        delete role.admin;
+      }
+      if (_.has(role, 'default') && _.get(role, 'default') === false) {
+        delete role.default;
+      }
+
+      return role;
+    }
+
     /**
      * Util function to compare the input template with the current resources in mongo.
      *
@@ -31,6 +42,8 @@ module.exports = (app, template, hook) => {
           assert.equal(role.hasOwnProperty('machineName'), false);
         });
 
+        let given = {};
+
         // Memoize the roles.
         project.roles = {};
         roles.forEach(role => {
@@ -40,15 +53,20 @@ module.exports = (app, template, hook) => {
           assert.equal(role.hasOwnProperty('_id'), true);
           assert.equal(role.hasOwnProperty('machineName'), true);
 
-          project.roles[role.machineName] = role;
+          // Prepare the stored roles for comparison.
+          let machineName = role.machineName;
+          let temp = _.omit(role, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName']);
+          given[machineName] = removeFalseyRoleIdentifiers(temp);
+
+          project.roles[machineName] = role;
         });
 
-        let given = roles.map(role => role.toObject().title);
-        let expected = Object.keys(input).map(machineName => {
-          return input[machineName].title;
+        // Remove falsey role identifiers for comparisons.
+        Object.keys(input).forEach(role => {
+          input[role] = removeFalseyRoleIdentifiers(input[role]);
         });
 
-        assert.deepEqual(given, expected);
+        assert.deepEqual(given, input);
         done();
       })
       .catch(done);
