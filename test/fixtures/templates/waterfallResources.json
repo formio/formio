@@ -1,8 +1,8 @@
 {
-	"title": "cyclicalResources",
-	"name": "cyclicalResources",
+	"title": "waterfallResources",
+	"name": "waterfallResources",
 	"version": "2.0.0",
-	"description": "cyclicalResources tests",
+	"description": "waterfallResources tests",
 	"roles": {},
 	"resources": {
 		"a": {
@@ -13,33 +13,7 @@
 			"tags": [],
 			"submissionAccess": [],
 			"access": [],
-			"components": [{
-				"conditional": {
-					"eq": "",
-					"when": null,
-					"show": ""
-				},
-				"tags": [],
-				"type": "resource",
-				"defaultPermission": "",
-				"validate": {
-					"required": false
-				},
-				"clearOnHide": true,
-				"persistent": true,
-				"protected": false,
-				"multiple": false,
-				"searchFields": "",
-				"selectFields": "",
-				"template": "<span>{{ item.data }}</span>",
-				"defaultValue": "",
-				"resource": "b",
-				"placeholder": "",
-				"key": "res",
-				"label": "res",
-				"tableView": true,
-				"input": true
-			}]
+			"components": []
 		},
 		"b": {
 			"title": "b",
@@ -71,8 +45,44 @@
 				"defaultValue": "",
 				"resource": "a",
 				"placeholder": "",
-				"key": "res",
-				"label": "res",
+				"key": "a",
+				"label": "a",
+				"tableView": true,
+				"input": true
+			}]
+		},
+		"c": {
+			"title": "c",
+			"type": "resource",
+			"name": "c",
+			"path": "c",
+			"tags": [],
+			"submissionAccess": [],
+			"access": [],
+			"components": [{
+				"conditional": {
+					"eq": "",
+					"when": null,
+					"show": ""
+				},
+				"tags": [],
+				"type": "resource",
+				"defaultPermission": "",
+				"validate": {
+					"required": false
+				},
+				"clearOnHide": true,
+				"persistent": true,
+				"protected": false,
+				"multiple": false,
+				"searchFields": "",
+				"selectFields": "",
+				"template": "<span>{{ item.data }}</span>",
+				"defaultValue": "",
+				"resource": "b",
+				"placeholder": "",
+				"key": "b",
+				"label": "b",
 				"tableView": true,
 				"input": true
 			}]
