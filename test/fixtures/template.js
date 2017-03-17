@@ -1,8 +1,10 @@
 'use strict';
 
-module.exports = function() {
+let _ = require('lodash');
+
+module.exports = () => {
   // The default project template.
-  var template = require('../../src/templates/default.json');
+  let template = _.cloneDeep(require('../../src/templates/default.json'));
 
   // Create a registration form for admins for testing purposes.
   template.forms.adminRegister = {
