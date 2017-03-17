@@ -1,7 +1,7 @@
 {
   "title": "Default",
   "name": "default",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Provides a simple User authentication system.",
   "roles": {
     "administrator": {
@@ -431,8 +431,7 @@
       "form": "user",
       "handler": ["before"],
       "method": ["create", "update"],
-      "priority": 10,
-      "settings": {}
+      "priority": 10
     },
     "userLogin": {
       "name": "login",
@@ -494,8 +493,7 @@
       "form": "admin",
       "handler": ["before"],
       "method": ["create", "update"],
-      "priority": 10,
-      "settings": {}
+      "priority": 10
     },
     "adminLogin": {
       "name": "login",

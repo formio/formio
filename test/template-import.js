@@ -191,7 +191,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
         
         it('Should be able to export project data', function(done) {
-          app.formio.template.export({}, (err, data) => {
+          app.formio.template.export(emptyTemplate, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -252,9 +252,10 @@ module.exports = (app, template, hook) => {
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        //it('An export should match an import', function() {
-        //  assert.deepEqual(exportData, emptyTemplate);
-        //});
+        it('An export should match an import', function() {
+          assert.equal(exportData.version, '2.0.0');
+          assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(emptyTemplate, ['plan', 'version']));
+        });
       });
 
       before(function(done) {
@@ -305,7 +306,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          app.formio.template.export({}, (err, data) => {
+          app.formio.template.export(defaultTemplate, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -366,9 +367,10 @@ module.exports = (app, template, hook) => {
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        //it('An export should match an import', function() {
-        //  assert.deepEqual(exportData, emptyTemplate);
-        //});
+        it('An export should match an import', function() {
+          assert.equal(exportData.version, '2.0.0');
+          assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(defaultTemplate, ['plan', 'version']));
+        });
       });
 
       before(function(done) {
