@@ -2,9 +2,36 @@
 
 let assert = require('assert');
 let _ = require('lodash');
+let formioUtils = require('formio-utils');
 
 module.exports = (app, template, hook) => {
   describe('Template Imports', function() {
+    /**
+     * Util function to get the resource name, given an id.
+     *
+     * @param project
+     * @param id
+     * @returns {*}
+     */
+    let getResourceFromId = (project, id) => {
+      project = project || {};
+      project.forms = project.forms || {};
+      project.resources = project.resources || {};
+
+      let resourceName;
+      if (project.forms[id]) {
+        resourceName = project.forms[id].machineName;
+      }
+      else if (project.resources[id]) {
+        resourceName = project.resources[id].machineName;
+      }
+      else if (project.roles[id]) {
+        resourceName = project.roles[id].machineName
+      }
+
+      return resourceName;
+    };
+
     /**
      * Util function to compare the input template with the current resources in mongo.
      *
@@ -46,7 +73,7 @@ module.exports = (app, template, hook) => {
           let machineName = role.machineName;
           given[machineName] = _.omit(role, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName']);
 
-          project.roles[machineName] = role;
+          project.roles[machineName] = project.roles[role._id] = role;
         });
 
         assert.deepEqual(given, input);
@@ -90,7 +117,7 @@ module.exports = (app, template, hook) => {
           assert.equal(form.hasOwnProperty('_id'), true);
           assert.equal(form.hasOwnProperty('machineName'), true);
 
-          project[`${type}s`][form.machineName] = form;
+          project[`${type}s`][form.machineName] = project[`${type}s`][form._id] = form;
         });
 
         let given = forms.map(form => form.toObject().name);
@@ -129,6 +156,8 @@ module.exports = (app, template, hook) => {
           assert.equal(action.hasOwnProperty('machineName'), false);
         });
 
+        let given = {};
+
         // Memoize the forms.
         project.actions = {};
         actions.forEach(action => {
@@ -138,15 +167,27 @@ module.exports = (app, template, hook) => {
           assert.equal(action.hasOwnProperty('_id'), true);
           assert.equal(action.hasOwnProperty('machineName'), true);
 
-          project.actions[action.machineName] = action;
+          // Prepare the stored actions for comparison.
+          let machineName = action.machineName;
+          let tempAction = _.omit(action, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName']);
+          tempAction.form = getResourceFromId(project, tempAction.form);
+          if (_.has(tempAction, 'settings.resource')) {
+            tempAction.settings.resource = getResourceFromId(project, tempAction.settings.resource);
+          }
+          if (_.has(tempAction, 'settings.resources')) {
+            tempAction.settings.resources = tempAction.settings.resources.map(resource => {
+              return getResourceFromId(project, resource);
+            });
+          }
+          if (_.has(tempAction, 'settings.role')) {
+            tempAction.settings.role = project.roles[tempAction.settings.role].machineName;
+          }
+          given[machineName] = tempAction;
+
+          project.actions[machineName] = project.actions[action._id] = action;
         });
 
-        let given = actions.map(action => action.toObject().name);
-        let expected = Object.keys(input).map(machineName => {
-          return input[machineName].name;
-        });
-
-        assert.deepEqual(given.sort(), expected.sort());
+        assert.deepEqual(given, input);
         done();
       })
       .catch(done);
