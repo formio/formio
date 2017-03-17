@@ -137,7 +137,14 @@ module.exports = (app, template, hook) => {
 
             return access;
           });
+          given[machineName] = tempForm;
 
+          project[`${type}s`][form.machineName] = project[`${type}s`][form._id] = form;
+        });
+
+        // Reassign the resources after the forms have been memoized.
+        Object.keys(given).forEach(machineName => {
+          let tempForm = given[machineName];
           // Convert all resources to point to the resource name;
           formioUtils.eachComponent(tempForm.components, (component) => {
             if (component.hasOwnProperty('resource')) {
@@ -145,8 +152,6 @@ module.exports = (app, template, hook) => {
             }
           }, true);
           given[machineName] = tempForm;
-
-          project[`${type}s`][form.machineName] = project[`${type}s`][form._id] = form;
         });
 
         assert.deepEqual(given, input);

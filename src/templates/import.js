@@ -434,7 +434,7 @@ module.exports = function(router) {
         return done(err);
       }
 
-      debug.final(template);
+      debug.final(JSON.stringify(template));
       done(null, template);
     });
   };

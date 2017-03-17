@@ -1,7 +1,7 @@
 {
   "title": "Empty",
   "name": "empty",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Provides an empty project with no forms or resources.",
   "roles": {
     "administrator": {
