@@ -1,0 +1,83 @@
+{
+	"title": "cyclicalResources",
+	"name": "cyclicalResources",
+	"version": "1.0.0",
+	"description": "Provides a simple User authentication system.",
+	"roles": {},
+	"resources": {
+		"a": {
+			"title": "a",
+			"type": "resource",
+			"name": "a",
+			"path": "a",
+			"tags": [],
+			"submissionAccess": [],
+			"access": [],
+			"components": [{
+				"conditional": {
+					"eq": "",
+					"when": null,
+					"show": ""
+				},
+				"tags": [],
+				"type": "resource",
+				"defaultPermission": "",
+				"validate": {
+					"required": false
+				},
+				"clearOnHide": true,
+				"persistent": true,
+				"protected": false,
+				"multiple": false,
+				"searchFields": "",
+				"selectFields": "",
+				"template": "<span>{{ item.data }}</span>",
+				"defaultValue": "",
+				"resource": "b",
+				"placeholder": "",
+				"key": "res",
+				"label": "res",
+				"tableView": true,
+				"input": true
+			}]
+		},
+		"b": {
+			"title": "b",
+			"type": "resource",
+			"name": "b",
+			"path": "b",
+			"tags": [],
+			"submissionAccess": [],
+			"access": [],
+			"components": [{
+				"conditional": {
+					"eq": "",
+					"when": null,
+					"show": ""
+				},
+				"tags": [],
+				"type": "resource",
+				"defaultPermission": "",
+				"validate": {
+					"required": false
+				},
+				"clearOnHide": true,
+				"persistent": true,
+				"protected": false,
+				"multiple": false,
+				"searchFields": "",
+				"selectFields": "",
+				"template": "<span>{{ item.data }}</span>",
+				"defaultValue": "",
+				"resource": "a",
+				"placeholder": "",
+				"key": "res",
+				"label": "res",
+				"tableView": true,
+				"input": true
+			}]
+		}
+	},
+	"forms": {},
+	"actions": {}
+}
