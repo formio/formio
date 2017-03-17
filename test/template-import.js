@@ -108,6 +108,8 @@ module.exports = (app, template, hook) => {
           assert.equal(form.hasOwnProperty('machineName'), false);
         });
 
+        let given = {};
+
         // Memoize the forms.
         project[`${type}s`] = {};
         forms.forEach(form => {
@@ -117,15 +119,37 @@ module.exports = (app, template, hook) => {
           assert.equal(form.hasOwnProperty('_id'), true);
           assert.equal(form.hasOwnProperty('machineName'), true);
 
+          let machineName = form.machineName;
+          let tempForm = _.omit(form, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner']);
+
+          tempForm.access = tempForm.access.map(access => {
+            access.roles = access.roles.map(role => {
+              return project.roles[role.toString()].machineName;
+            });
+
+            return access;
+          });
+
+          tempForm.submissionAccess = tempForm.submissionAccess.map(access => {
+            access.roles = access.roles.map(role => {
+              return project.roles[role.toString()].machineName;
+            });
+
+            return access;
+          });
+
+          // Convert all resources to point to the resource name;
+          formioUtils.eachComponent(tempForm.components, (component) => {
+            if (component.hasOwnProperty('resource')) {
+              component.resource = project[`${type}s`][component.resource].name;
+            }
+          }, true);
+          given[machineName] = tempForm;
+
           project[`${type}s`][form.machineName] = project[`${type}s`][form._id] = form;
         });
 
-        let given = forms.map(form => form.toObject().name);
-        let expected = Object.keys(input).map(machineName => {
-          return input[machineName].name;
-        });
-
-        assert.deepEqual(given, expected);
+        assert.deepEqual(given, input);
         done();
       })
       .catch(done);
