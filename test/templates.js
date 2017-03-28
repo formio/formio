@@ -147,7 +147,7 @@ module.exports = (app, template, hook) => {
           let tempForm = given[machineName];
           // Convert all resources to point to the resource name;
           formioUtils.eachComponent(tempForm.components, (component) => {
-            if (component.hasOwnProperty('resource')) {
+            if (component.hasOwnProperty('resource') && project.resources.hasOwnProperty(component.resource)) {
               component.resource = project.resources[component.resource].name;
             }
           }, true);
