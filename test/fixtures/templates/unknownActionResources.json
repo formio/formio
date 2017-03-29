@@ -14,10 +14,7 @@
       "handler": ["before"],
       "method": ["create", "update"],
       "priority": 11,
-      "settings": {
-        "resource": "c",
-        "fields": {}
-      }
+      "settings": {}
     }
   }
 }

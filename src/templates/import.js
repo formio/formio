@@ -24,41 +24,61 @@ module.exports = function(router) {
   let formio = router.formio;
   var hook = require('../util/hook')(formio);
 
-  // Provide a default alter method.
+  /**
+   * Provide a default alter method.
+   *
+   * @param item
+   * @param done
+   * @private
+   */
   var _alter = function(item, done) {
     done(null, item);
   };
 
-  // Assign the role ids.
-  var assignRoles = function(template, perms) {
-    if (!template.hasOwnProperty('roles')) {
-      return;
+  /**
+   * Converts an entities role id (machineName) to bson id.
+   *
+   * @param {Object} template
+   *   The project memoization of imported entities.
+   * @param  entity
+   *   The role object to convert.
+   *
+   * @returns {boolean}
+   *   Whether or not the conversion was successful.
+   */
+  var roleMachineNameToId = function(template, entity) {
+    if (!entity || !template.hasOwnProperty('roles')) {
+      return false;
     }
-    _.each(perms, function(access) {
+
+    if (!(entity instanceof Array)) {
+      if (entity.hasOwnProperty('role') && template.roles.hasOwnProperty(entity.role)) {
+        entity.role = template.roles[entity.role]._id.toString();
+        return true;
+      }
+
+      return false;
+    }
+
+    // Used for permissions arrays.
+    _.each(entity, function(access) {
       _.each(access.roles, function(role, i) {
         if (template.roles.hasOwnProperty(role)) {
           access.roles[i] = template.roles[role]._id.toString();
         }
       });
     });
+
+    return true;
   };
 
-  // Assign the role to an entity.
-  var assignRole = function(template, entity) {
-    if (!entity) {
-      return false;
-    }
-    if (!template.hasOwnProperty('roles')) {
-      return false;
-    }
-    if (entity.hasOwnProperty('role') && template.roles.hasOwnProperty(entity.role)) {
-      entity.role = template.roles[entity.role]._id.toString();
-      return true;
-    }
-    return false;
-  };
-
-  // Assign form.
+  /**
+   * Assign form.
+   *
+   * @param template
+   * @param entity
+   * @returns {boolean}
+   */
   var assignForm = function(template, entity) {
     if (entity.hasOwnProperty('form')) {
       if (template.hasOwnProperty('forms') && template.forms.hasOwnProperty(entity.form)) {
@@ -73,7 +93,14 @@ module.exports = function(router) {
     return false;
   };
 
-  // Assign resources.
+  /**
+   * Assign resources.
+   *
+   * @param template
+   * @param entity
+   *
+   * @returns {boolean}
+   */
   var assignResources = function(template, entity) {
     if (!entity || !entity.resources || !template.hasOwnProperty('resources')) {
       return false;
@@ -85,7 +112,14 @@ module.exports = function(router) {
     });
   };
 
-  // Assign resource.
+  /**
+   * Assign resource.
+   *
+   * @param template
+   * @param entity
+   *
+   * @returns {boolean}
+   */
   var assignResource = function(template, entity) {
     if (!entity || !entity.resource || !template.hasOwnProperty('resources')) {
       return false;
@@ -97,7 +131,14 @@ module.exports = function(router) {
     return false;
   };
 
-  // Assign resources within a form.
+  /**
+   * Assign resources within a form.
+   *
+   * @param template
+   * @param components
+   *
+   * @returns {boolean}
+   */
   var assignComponent = function(template, components) {
     var changed = false;
     util.eachComponent(components, function(component) {
@@ -124,20 +165,21 @@ module.exports = function(router) {
 
   /**
    * Methods to fill in all necessary ID's.
-   * @type {{role}}
+   *
+   * @type {*}
    */
   var parse = {
     role: function(template, role) {
       return role;
     },
     resource: function(template, form) {
-      assignRoles(template, form.submissionAccess);
-      assignRoles(template, form.access);
+      roleMachineNameToId(template, form.submissionAccess);
+      roleMachineNameToId(template, form.access);
       return form;
     },
     form: function(template, form) {
-      assignRoles(template, form.submissionAccess);
-      assignRoles(template, form.access);
+      roleMachineNameToId(template, form.submissionAccess);
+      roleMachineNameToId(template, form.access);
       assignComponent(template, form.components);
       return form;
     },
@@ -145,7 +187,7 @@ module.exports = function(router) {
       assignForm(template, action);
       assignResource(template, action.settings);
       assignResources(template, action.settings);
-      assignRole(template, action.settings);
+      roleMachineNameToId(template, action.settings);
       return action;
     },
     submission: function(template, submission) {
@@ -154,6 +196,13 @@ module.exports = function(router) {
     }
   };
 
+  /**
+   *
+   * @param model
+   * @param template
+   * @param items
+   * @param done
+   */
   var postResourceInstall = function(model, template, items, done) {
     async.forEachOf(items, function(item, name, itemDone) {
       if (!assignComponent(template, item.components)) {
@@ -178,7 +227,15 @@ module.exports = function(router) {
     }, done);
   };
 
-  // Install a model with a parse method.
+  /**
+   * Install a model with a parse method.
+   *
+   * @param model
+   * @param _parse
+   * @param _postInstall
+   * @returns {Function}
+   * @private
+   */
   var _install = function(model, _parse, _postInstall) {
     return function(template, items, alter, done) {
       if (!items || _.isEmpty(items)) {
@@ -245,9 +302,12 @@ module.exports = function(router) {
   };
 
   /**
-   * Translate a schema from older versions to newer versions.
-   * @param template
-   * @param done
+   * Update a template to the latest version, using the transforms.
+   *
+   * @param {Object} template
+   * @param {Function} done
+   *
+   * @returns {*}
    */
   var translateSchema = function(template, done) {
     // Skip if the template has a correct version.
@@ -409,6 +469,15 @@ module.exports = function(router) {
    * Import the formio template.
    *
    * Note: This is all of the core entities, not submission data.
+   *
+   * @param {Object} template
+   *   The parsed JSON template to import.
+   * @param {Object} alter
+   *   A map of alter functions.
+   * @param {Function} done
+   *   The callback function to invoke after the import is complete.
+   *
+   * @returns {*}
    */
   let importTemplate = function(template, alter, done) {
     if (!done) {
