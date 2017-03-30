@@ -100,41 +100,47 @@ module.exports = function(router) {
   };
 
   /**
-   * Assign resources.
+   * Converts an entities resource id (machineName) to a bson id.
    *
-   * @param template
-   * @param entity
+   * @param {Object} template
+   *   The project memoization of imported entities.
+   * @param {Object} entity
+   *   The entity object to convert.
    *
    * @returns {boolean}
+   *   Whether or not the conversion was successful.
    */
-  var assignResources = function(template, entity) {
-    if (!entity || !entity.resources || !template.hasOwnProperty('resources')) {
+  let resourceMachineNameToId = (template, entity) => {
+    // Check the template and entity for resource and resources definitions.
+    if (
+      !entity ||
+      (
+        (!entity.resouces || !template.hasOwnProperty(`resources`)) &&
+        (!entity.resouce || !template.hasOwnProperty(`resource`))
+      )
+    ) {
       return false;
     }
-    _.each(entity.resources, function(resource, index) {
-      if (template.resources.hasOwnProperty(resource)) {
-        entity.resources[index] = template.resources[resource]._id.toString();
-      }
-    });
-  };
 
-  /**
-   * Assign resource.
-   *
-   * @param template
-   * @param entity
-   *
-   * @returns {boolean}
-   */
-  var assignResource = function(template, entity) {
-    if (!entity || !entity.resource || !template.hasOwnProperty('resources')) {
-      return false;
+    let changes = false;
+
+    // Attempt to update resources if present.
+    if (entity.resources && template.hasOwnProperty(`resources`)) {
+      _.each(entity.resources, function(resource, index) {
+        if (template.resources.hasOwnProperty(resource)) {
+          entity.resources[index] = template.resources[resource]._id.toString();
+          changes = true;
+        }
+      });
     }
-    if (template.resources.hasOwnProperty(entity.resource)) {
+
+    // Attempt to update a single resource if present.
+    if (entity.resource && template.hasOwnProperty(`resource`)) {
       entity.resource = template.resources[entity.resource]._id.toString();
-      return true;
+      changes = true;
     }
-    return false;
+
+    return changes;
   };
 
   /**
@@ -148,14 +154,14 @@ module.exports = function(router) {
   var assignComponent = function(template, components) {
     var changed = false;
     util.eachComponent(components, function(component) {
-      if ((component.type === 'resource') && assignResource(template, component)) {
+      if ((component.type === 'resource') && resourceMachineNameToId(template, component)) {
         changed = true;
       }
 
       if (
         (component.type === 'select') &&
         (component.dataSrc === 'resource') &&
-        assignResource(template, component.data)
+        resourceMachineNameToId(template, component.data)
       ) {
         hook.alter('importComponent', template, components, component.data);
         changed = true;
@@ -191,8 +197,8 @@ module.exports = function(router) {
     },
     action: function(template, action) {
       formMachineNameToId(template, action);
-      assignResource(template, action.settings);
-      assignResources(template, action.settings);
+      resourceMachineNameToId(template, action.settings);
+      resourceMachineNameToId(template, action.settings);
       roleMachineNameToId(template, action.settings);
       return action;
     },
