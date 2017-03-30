@@ -1,17 +1,17 @@
-'use strict';
+`use strict`;
 
-var async = require('async');
-var _ = require('lodash');
-var util = require('../util/util');
-var pjson = require('../../package.json');
-var semver = require('semver');
-var debug = {
-  template: require('debug')('formio:template:template'),
-  items: require('debug')('formio:template:items'),
-  install: require('debug')('formio:template:install'),
-  updateSchema: require('debug')('formio:template:updateSchema'),
-  final: require('debug')('formio:template:final'),
-  cleanUp: require('debug')('formio:template:cleanUp')
+let async = require(`async`);
+let _ = require(`lodash`);
+let util = require(`../util/util`);
+let pjson = require(`../../package.json`);
+let semver = require(`semver`);
+let debug = {
+  template: require(`debug`)(`formio:template:template`),
+  items: require(`debug`)(`formio:template:items`),
+  install: require(`debug`)(`formio:template:install`),
+  updateSchema: require(`debug`)(`formio:template:updateSchema`),
+  final: require(`debug`)(`formio:template:final`),
+  cleanUp: require(`debug`)(`formio:template:cleanUp`)
 };
 
 /**
@@ -20,12 +20,12 @@ var debug = {
  * @param {Object} router
  *   The express router object.
  */
-module.exports = function(router) {
+module.exports = (router) => {
   let formio = router.formio;
-  var hook = require('../util/hook')(formio);
+  let hook = require(`../util/hook`)(formio);
 
   /**
-   * A base alter used during import, if one wasn't supplied for the entity.
+   * A base alter used during import, if one wasn`t supplied for the entity.
    *
    * @param {Object} item
    *   The entity being altered.
@@ -46,13 +46,13 @@ module.exports = function(router) {
    * @returns {boolean}
    *   Whether or not the conversion was successful.
    */
-  var roleMachineNameToId = function(template, entity) {
-    if (!entity || !template.hasOwnProperty('roles')) {
+  let roleMachineNameToId = (template, entity) => {
+    if (!entity || !template.hasOwnProperty(`roles`)) {
       return false;
     }
 
     if (!(entity instanceof Array)) {
-      if (entity.hasOwnProperty('role') && template.roles.hasOwnProperty(entity.role)) {
+      if (entity.hasOwnProperty(`role`) && template.roles.hasOwnProperty(entity.role)) {
         entity.role = template.roles[entity.role]._id.toString();
         return true;
       }
@@ -61,8 +61,8 @@ module.exports = function(router) {
     }
 
     // Used for permissions arrays.
-    _.each(entity, function(access) {
-      _.each(access.roles, function(role, i) {
+    _.each(entity, (access) => {
+      _.each(access.roles, (role, i) => {
         if (template.roles.hasOwnProperty(role)) {
           access.roles[i] = template.roles[role]._id.toString();
         }
@@ -83,15 +83,15 @@ module.exports = function(router) {
    * @returns {boolean}
    *   Whether or not the conversion was successful.
    */
-  var formMachineNameToId = function(template, entity) {
-    if (!entity.hasOwnProperty('form')) {
+  let formMachineNameToId = (template, entity) => {
+    if (!entity.hasOwnProperty(`form`)) {
       return false;
     }
-    if (template.hasOwnProperty('forms') && template.forms.hasOwnProperty(entity.form)) {
+    if (template.hasOwnProperty(`forms`) && template.forms.hasOwnProperty(entity.form)) {
       entity.form = template.forms[entity.form]._id.toString();
       return true;
     }
-    if (template.hasOwnProperty('resources') && template.resources.hasOwnProperty(entity.form)) {
+    if (template.hasOwnProperty(`resources`) && template.resources.hasOwnProperty(entity.form)) {
       entity.form = template.resources[entity.form]._id.toString();
       return true;
     }
@@ -126,7 +126,7 @@ module.exports = function(router) {
 
     // Attempt to update resources if present.
     if (entity.resources && template.hasOwnProperty(`resources`)) {
-      _.each(entity.resources, function(resource, index) {
+      _.each(entity.resources, (resource, index) => {
         if (template.resources.hasOwnProperty(resource)) {
           entity.resources[index] = template.resources[resource]._id.toString();
           changes = true;
@@ -154,26 +154,26 @@ module.exports = function(router) {
    * @returns {boolean}
    *   Whether or not the any changes were made.
    */
-  var componentMachineNameToId = function(template, components) {
-    var changed = false;
-    util.eachComponent(components, function(component) {
+  let componentMachineNameToId = (template, components) => {
+    let changed = false;
+    util.eachComponent(components, (component) => {
       // Update resource machineNames for resource components.
-      if ((component.type === 'resource') && resourceMachineNameToId(template, component)) {
+      if ((component.type === `resource`) && resourceMachineNameToId(template, component)) {
         changed = true;
       }
 
       // Update resource machineNames for select components with the resource data type.
       if (
-        (component.type === 'select') &&
-        (component.dataSrc === 'resource') &&
+        (component.type === `select`) &&
+        (component.dataSrc === `resource`) &&
         resourceMachineNameToId(template, component.data)
       ) {
-        hook.alter('importComponent', template, components, component.data);
+        hook.alter(`importComponent`, template, components, component.data);
         changed = true;
       }
 
       // Allow importing of components.
-      if (hook.alter('importComponent', template, components, component)) {
+      if (hook.alter(`importComponent`, template, components, component)) {
         changed = true;
       }
     });
@@ -208,7 +208,7 @@ module.exports = function(router) {
             return next();
           }
 
-          debug.cleanUp('Need to update resource component _ids for', machineName);
+          debug.cleanUp(`Need to update resource component _ids for`, machineName);
           model.findOneAndUpdate(
             {_id: resource._id, deleted: {$eq: null}},
             {components: resource.components},
@@ -219,7 +219,7 @@ module.exports = function(router) {
               }
 
               resources[machineName] = doc.toObject();
-              debug.cleanUp('Updated resource component _ids for', machineName);
+              debug.cleanUp(`Updated resource component _ids for`, machineName);
               next();
             }
           );
@@ -283,7 +283,7 @@ module.exports = function(router) {
       alter = alter || baseAlter;
       debug.items(items);
       async.forEachOfSeries(items, (item, machineName, next) => {
-        var document = transform
+        let document = transform
           ? transform(template, item)
           : item;
 
@@ -345,95 +345,95 @@ module.exports = function(router) {
    *
    * @returns {*}
    */
-  var updateSchema = function(template, done) {
+  let updateSchema = (template, done) => {
     // Skip if the template has a correct version.
-    debug.updateSchema('template.version: ', template.version);
-    debug.updateSchema('pjson.templateVersion: ', pjson.templateVersion);
+    debug.updateSchema(`template.version: `, template.version);
+    debug.updateSchema(`pjson.templateVersion: `, pjson.templateVersion);
     if (template.version && !semver.gt(pjson.templateVersion, template.version)) {
-      debug.updateSchema('Skipping');
+      debug.updateSchema(`Skipping`);
       debug.updateSchema(template);
       return done();
     }
 
     // Create a pick method.
-    var name = function(name) {
-      return function(value) {
+    let name = (name) => {
+      return (value) => {
         return value.name === name;
       };
     };
 
     // Fix all schemas.
-    _.each(['forms', 'resources'], function(type) {
-      _.each(template[type], function(form, formKey) {
+    _.each([`forms`, `resources`], (type) => {
+      _.each(template[type], (form, formKey) => {
         // If no auth action exists, then add a save submission action.
-        var authAction = _.find(template.actions, {name: 'auth', form: formKey});
-        var noSubmit = _.find(template.actions, {name: 'nosubmit', form: formKey});
+        let authAction = _.find(template.actions, {name: `auth`, form: formKey});
+        let noSubmit = _.find(template.actions, {name: `nosubmit`, form: formKey});
         if (!authAction && !noSubmit) {
-          template.actions[formKey + 'Save'] = {
-            title: 'Save Submission',
-            name: 'save',
+          template.actions[`${formKey}Save`] = {
+            title: `Save Submission`,
+            name: `save`,
             form: formKey,
-            handler: ['before'],
-            method: ['create', 'update'],
+            handler: [`before`],
+            method: [`create`, `update`],
             priority: 10,
             settings: {}
           };
         }
 
-        util.eachComponent(form.components, function(component) {
+        util.eachComponent(form.components, (component) => {
           if (component.validate && component.validate.custom) {
-            _.each(template.resources, function(resource) {
-              component.validate.custom = component.validate.custom.replace(resource.name + '.password', 'password');
+            _.each(template.resources, (resource) => {
+              component.validate.custom = component.validate.custom.replace(`${resource.name}.password`, `password`);
             });
           }
-          if (component.key && component.key.indexOf('.') !== -1) {
-            component.key = component.key.split('.')[1];
+          if (component.key && component.key.indexOf(`.`) !== -1) {
+            component.key = component.key.split(`.`)[1];
           }
         });
       });
     });
 
-    // Turn all "auth" actions into the new authentication system.
-    _.each(_.pick(template.actions, name('auth')), function(authAction, key) {
+    // Turn all `auth` actions into the new authentication system.
+    _.each(_.pick(template.actions, name(`auth`)), (authAction, key) => {
       delete template.actions[key];
-      var userparts = authAction.settings.username.split('.');
+      let userparts = authAction.settings.username.split(`.`);
       if (userparts.length <= 1) {
         return;
       }
 
-      var resource = userparts[0];
-      var username = userparts[1];
-      var password = authAction.settings.password.split('.')[1];
+      let resource = userparts[0];
+      let username = userparts[1];
+      let password = authAction.settings.password.split(`.`)[1];
 
       // Add the Resource action for new associations.
-      if (authAction.settings.association === 'new') {
+      if (authAction.settings.association === `new`) {
         // Ensure that the underlying resource has a role assignment action.
-        var roleAction = _.find(template.actions, {name: 'role', form: resource});
+        let roleAction = _.find(template.actions, {name: `role`, form: resource});
         if (!roleAction) {
-          template.actions[resource + 'Role'] = {
-            title: 'Role Assignment',
-            name: 'role',
-            'priority': 1,
-            'handler': ['after'],
-            'method': ['create'],
-            'form': resource,
-            'settings': {
-              'association': 'new',
-              'type': 'add',
-              'role': authAction.settings.role
+          template.actions[`${resource}Role`] = {
+            title: `Role Assignment`,
+            name: `role`,
+            priority: 1,
+            handler: [`after`],
+            method: [`create`],
+            form: resource,
+            settings: {
+              association: `new`,
+              type: `add`,
+              role: authAction.settings.role
             }
           };
         }
 
-        var fields = {};
+        let fields = {};
         fields[username] = username;
         fields[password] = password;
-        template.actions[key + 'SaveResource'] = {
-          title: 'Save Submission',
-          name: 'save',
+        template.actions[`${key}SaveResource`] = {
+          title: `Save Submission`,
+          name: `save`,
           form: authAction.form,
-          handler: ['before'],
-          method: ['create', 'update'],
+          handler: [`before`],
+          method: [`create`, `update`],
           priority: 11,
           settings: {
             resource: resource,
@@ -443,12 +443,12 @@ module.exports = function(router) {
       }
 
       // Add the login action.
-      template.actions[key + 'Login'] = {
-        title: 'Login',
-        name: 'login',
+      template.actions[`${key}Login`] = {
+        title: `Login`,
+        name: `login`,
         form: authAction.form,
-        handler: ['before'],
-        method: ['create'],
+        handler: [`before`],
+        method: [`create`],
         priority: 2,
         settings: {
           resources: [resource],
@@ -459,37 +459,37 @@ module.exports = function(router) {
     });
 
     // Remove all nosubmit actions.
-    _.each(_.pick(template.actions, name('nosubmit')), function(action, key) {
+    _.each(_.pick(template.actions, name(`nosubmit`)), (action, key) => {
       delete template.actions[key];
     });
 
     // Convert resource actions into Save Submission actions with resource association.
-    _.each(_.pick(template.actions, name('resource')), function(resourceAction, key) {
+    _.each(_.pick(template.actions, name(`resource`)), (resourceAction, key) => {
       delete template.actions[key];
 
-      var roleAction = _.find(template.actions, {name: 'role', form: resourceAction.settings.resource});
+      let roleAction = _.find(template.actions, {name: `role`, form: resourceAction.settings.resource});
       if (!roleAction) {
-        template.actions[resourceAction.settings.resource + 'Role'] = {
-          title: 'Role Assignment',
-          name: 'role',
-          'priority': 1,
-          'handler': ['after'],
-          'method': ['create'],
-          'form': resourceAction.settings.resource,
-          'settings': {
-            'association': 'new',
-            'type': 'add',
-            'role': resourceAction.settings.role
+        template.actions[`${resourceAction.settings.resource}Role`] = {
+          title: `Role Assignment`,
+          name: `role`,
+          priority: 1,
+          handler: [`after`],
+          method: [`create`],
+          form: resourceAction.settings.resource,
+          settings: {
+            association: `new`,
+            type: `add`,
+            role: resourceAction.settings.role
           }
         };
       }
 
-      template.actions[key + 'SaveResource'] = {
-        title: 'Save Submission',
-        name: 'save',
+      template.actions[`${key}SaveResource`] = {
+        title: `Save Submission`,
+        name: `save`,
         form: resourceAction.form,
-        handler: ['before'],
-        method: ['create', 'update'],
+        handler: [`before`],
+        method: [`create`, `update`],
         priority: 11,
         settings: {
           resource: resourceAction.settings.resource,
@@ -515,14 +515,14 @@ module.exports = function(router) {
    *
    * @returns {*}
    */
-  let importTemplate = function(template, alter, done) {
+  let importTemplate = (template, alter, done) => {
     if (!done) {
       done = alter;
       alter = null;
     }
     alter = alter || {};
     if (!template) {
-      return done('No template provided.');
+      return done(`No template provided.`);
     }
 
     debug.items(JSON.stringify(template));
@@ -533,7 +533,7 @@ module.exports = function(router) {
       async.apply(install(entities.form), template, template.forms, alter.form),
       async.apply(install(entities.action), template, template.actions, alter.action),
       async.apply(install(entities.submission), template, template.submissions, alter.submission)
-    ], function(err) {
+    ], (err) => {
       if (err) {
         debug.template(err);
         return done(err);
