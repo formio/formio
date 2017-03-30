@@ -4,10 +4,14 @@
 var request = require('supertest');
 var assert = require('assert');
 var _ = require('lodash');
+var async = require('async');
 var chance = new (require('chance'))();
 var docker = process.env.DOCKER;
+let EventEmitter = require('events');
 
 module.exports = function(app, template, hook) {
+  template.hooks.addEmitter(new EventEmitter());
+  
   describe('Authentication', function() {
     it('Should be able to register an administrator', function(done) {
       request(app)
@@ -143,7 +147,7 @@ module.exports = function(app, template, hook) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.adminLogin._id + '/submission', template))
         .send({})
-        .expect(500)
+        .expect(401)
         .end(function(err, res) {
           if (err) {
             return done(err);
@@ -163,7 +167,7 @@ module.exports = function(app, template, hook) {
             password: ''
           }
         })
-        .expect(500)
+        .expect(401)
         .end(function(err, res) {
           if (err) {
             return done(err);
@@ -218,7 +222,7 @@ module.exports = function(app, template, hook) {
       request(app)
         .post(hook.alter('url', '/' + template.forms.adminLogin.path, template))
         .send({})
-        .expect(500)
+        .expect(401)
         .end(function(err, res) {
           if (err) {
             return done(err);
@@ -230,6 +234,7 @@ module.exports = function(app, template, hook) {
     });
 
     it('Should be able to register an authenticated user', function(done) {
+      template.hooks.reset();
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/submission', template))
         .send({
@@ -277,11 +282,26 @@ module.exports = function(app, template, hook) {
     if (!docker)
     it('Should have sent an email to the user with an auth token', function(done) {
       var email = template.hooks.getLastEmail();
-      assert.equal(email.from, 'no-reply@form.io');
-      assert.equal(email.to, template.users.user1.data.email);
-      assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
-      assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
-      done();
+      new Promise((resolve, reject) => {
+        if (email && Object.keys(email) > 0) {
+          return resolve(email);
+        }
+
+        let events = template.hooks.getEmitter();
+        if (events) {
+          events.once('newMail', (email) => {
+            return resolve(email);
+          });
+        }
+      })
+      .then(email => {
+        assert.equal(email.from, 'no-reply@form.io');
+        assert.equal(email.to, template.users.user1.data.email);
+        assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
+        assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
+        done();
+      })
+      .catch(done)
     });
 
     it('Should be able to validate a request with the validate param.', function(done) {
@@ -350,7 +370,8 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    it('A Form.io User should be able to login as an authenticated user', function(done) {
+    // Perform a login.
+    var login = function(done) {
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
         .send({
@@ -388,6 +409,126 @@ module.exports = function(app, template, hook) {
           template.users.user1.token = res.headers['x-jwt-token'];
           done();
         });
+    };
+
+    it('A Form.io User should be able to login as an authenticated user', login);
+
+    it('A Form.io User should not be able to login with bad password', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
+        .send({
+          data: {
+            'email': template.users.user1.data.email,
+            'password': 'badpassword!!!'
+          }
+        })
+        .expect(401)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(!res.headers['x-jwt-token'], true);
+          done();
+        });
+    });
+
+    var lastAttempt = 0;
+    it('A Form.io User should get locked out if they keep trying a bad password', function(done) {
+      var count = 0;
+      async.whilst(
+        function() { return count < 4; },
+        function(next) {
+          count++;
+          lastAttempt = (new Date()).getTime();
+          request(app)
+            .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
+            .send({
+              data: {
+                'email': template.users.user1.data.email,
+                'password': 'badpassword' + count + '!'
+              }
+            })
+            .expect(401)
+            .end(function(err, res) {
+              if (err) {
+                return next(err);
+              }
+
+              assert.equal(res.text, count < 4 ? 'User or password was incorrect' : 'Maximum Login attempts. Please wait 2 seconds before trying again.');
+              assert.equal(!res.headers['x-jwt-token'], true);
+              next();
+            });
+        },
+        function(err) {
+          if (err) {
+            return done(err);
+          }
+          done();
+        }
+      );
+    });
+
+    it('Verify that the Form.io user is locked out for 1 seconds even with right password.', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
+        .send({
+          data: {
+            'email': template.users.user1.data.email,
+            'password': template.users.user1.data.password
+          }
+        })
+        .expect(401)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(res.text.indexOf('You must wait'), 0);
+          assert.equal(!res.headers['x-jwt-token'], true);
+          done();
+        });
+    });
+
+    it('Verify that we can login again after waiting.', function(done) {
+      setTimeout(function() {
+        login(done);
+      }, 1500);
+    });
+
+    it('Attempt 4 bad logins to attempt good login after window.', function(done) {
+      var count = 0;
+      async.whilst(
+        function() { return count < 4; },
+        function(next) {
+          count++;
+          lastAttempt = (new Date()).getTime();
+          request(app)
+            .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
+            .send({
+              data: {
+                'email': template.users.user1.data.email,
+                'password': 'badpassword' + count + '!'
+              }
+            })
+            .expect(401)
+            .end(function(err, res) {
+              if (err) {
+                return next(err);
+              }
+
+              assert.equal(res.text, 'User or password was incorrect');
+              assert.equal(!res.headers['x-jwt-token'], true);
+              next();
+            });
+        },
+        function(err) {
+          if (err) {
+            return done(err);
+          }
+          done();
+        }
+      );
     });
 
     it('A user should be able to login as an authenticated user', function(done) {
@@ -583,6 +724,29 @@ module.exports = function(app, template, hook) {
           assert.equal(res.headers['x-jwt-token'], '');
           done();
         });
+    });
+
+    it('Attempt 5th bad login request, but after the accepted window.', function(done) {
+      setTimeout(function() {
+        request(app)
+          .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
+          .send({
+            data: {
+              'email': template.users.user1.data.email,
+              'password': 'badpassword!'
+            }
+          })
+          .expect(401)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            assert.equal(res.text, 'User or password was incorrect');
+            assert.equal(!res.headers['x-jwt-token'], true);
+            done();
+          });
+      }, 1000);
     });
 
     var oldToken = null;
