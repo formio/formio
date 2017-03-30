@@ -144,20 +144,25 @@ module.exports = function(router) {
   };
 
   /**
-   * Assign resources within a form.
+   * Converts any resource id (machineName) references in the form components.
    *
-   * @param template
-   * @param components
+   * @param {Object} template
+   *   The project memoization of imported entities.
+   * @param {Array} components
+   *   The form components to scan.
    *
    * @returns {boolean}
+   *   Whether or not the any changes were made.
    */
-  var assignComponent = function(template, components) {
+  var componentMachineNameToId = function(template, components) {
     var changed = false;
     util.eachComponent(components, function(component) {
+      // Update resource machineNames for resource components.
       if ((component.type === 'resource') && resourceMachineNameToId(template, component)) {
         changed = true;
       }
 
+      // Update resource machineNames for select components with the resource data type.
       if (
         (component.type === 'select') &&
         (component.dataSrc === 'resource') &&
@@ -167,11 +172,12 @@ module.exports = function(router) {
         changed = true;
       }
 
-      // Allow importing of compoennts.
+      // Allow importing of components.
       if (hook.alter('importComponent', template, components, component)) {
         changed = true;
       }
     });
+
     return changed;
   };
 
@@ -192,7 +198,7 @@ module.exports = function(router) {
     form: function(template, form) {
       roleMachineNameToId(template, form.submissionAccess);
       roleMachineNameToId(template, form.access);
-      assignComponent(template, form.components);
+      componentMachineNameToId(template, form.components);
       return form;
     },
     action: function(template, action) {
@@ -217,7 +223,7 @@ module.exports = function(router) {
    */
   var postResourceInstall = function(model, template, items, done) {
     async.forEachOf(items, function(item, name, itemDone) {
-      if (!assignComponent(template, item.components)) {
+      if (!componentMachineNameToId(template, item.components)) {
         return itemDone();
       }
 
