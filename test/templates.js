@@ -421,19 +421,19 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The Default template should export all its roles', function(done) {
+        it('The template should export all its roles', function(done) {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The Default template should not export any forms', function(done) {
+        it('The template should not export any forms', function(done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The Default template should not export any resources', function(done) {
+        it('The template should not export any resources', function(done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The Default template should not export any actions', function(done) {
+        it('The template should not export any actions', function(done) {
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -536,19 +536,19 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The Default template should export all its roles', function(done) {
+        it('The template should export all its roles', function(done) {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The Default template should not export any forms', function(done) {
+        it('The template should not export any forms', function(done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The Default template should not export any resources', function(done) {
+        it('The template should not export any resources', function(done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The Default template should not export any actions', function(done) {
+        it('The template should not export any actions', function(done) {
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -651,19 +651,19 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The Default template should export all its roles', function(done) {
+        it('The template should export all its roles', function(done) {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The Default template should not export any forms', function(done) {
+        it('The template should not export any forms', function(done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The Default template should not export any resources', function(done) {
+        it('The template should not export any resources', function(done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The Default template should not export any actions', function(done) {
+        it('The template should not export any actions', function(done) {
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -766,19 +766,19 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The Default template should export all its roles', function(done) {
+        it('The template should export all its roles', function(done) {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The Default template should not export any forms', function(done) {
+        it('The template should not export any forms', function(done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The Default template should not export any resources', function(done) {
+        it('The template should not export any resources', function(done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The Default template should not export any actions', function(done) {
+        it('The template should not export any actions', function(done) {
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -881,19 +881,19 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The Default template should export all its roles', function(done) {
+        it('The template should export all its roles', function(done) {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The Default template should not export any forms', function(done) {
+        it('The template should not export any forms', function(done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The Default template should not export any resources', function(done) {
+        it('The template should not export any resources', function(done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The Default template should not export any actions', function(done) {
+        it('The template should not export any actions', function(done) {
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -996,19 +996,19 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The Default template should export all its roles', function(done) {
+        it('The template should export all its roles', function(done) {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The Default template should not export any forms', function(done) {
+        it('The template should not export any forms', function(done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The Default template should not export any resources', function(done) {
+        it('The template should not export any resources', function(done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The Default template should not export any actions', function(done) {
+        it('The template should not export any actions', function(done) {
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1111,19 +1111,19 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The Default template should export all its roles', function(done) {
+        it('The template should export all its roles', function(done) {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The Default template should not export any forms', function(done) {
+        it('The template should not export any forms', function(done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The Default template should not export any resources', function(done) {
+        it('The template should not export any resources', function(done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The Default template should not export any actions', function(done) {
+        it('The template should not export any actions', function(done) {
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1226,19 +1226,19 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The Default template should export all its roles', function(done) {
+        it('The template should export all its roles', function(done) {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The Default template should not export any forms', function(done) {
+        it('The template should not export any forms', function(done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The Default template should not export any resources', function(done) {
+        it('The template should not export any resources', function(done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The Default template should not export any actions', function(done) {
+        it('The template should not export any actions', function(done) {
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1341,19 +1341,19 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The Default template should export all its roles', function(done) {
+        it('The template should export all its roles', function(done) {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The Default template should not export any forms', function(done) {
+        it('The template should not export any forms', function(done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The Default template should not export any resources', function(done) {
+        it('The template should not export any resources', function(done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The Default template should not export any actions', function(done) {
+        it('The template should not export any actions', function(done) {
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1456,19 +1456,19 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The Default template should export all its roles', function(done) {
+        it('The template should export all its roles', function(done) {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The Default template should not export any forms', function(done) {
+        it('The template should not export any forms', function(done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The Default template should not export any resources', function(done) {
+        it('The template should not export any resources', function(done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The Default template should not export any actions', function(done) {
+        it('The template should not export any actions', function(done) {
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1516,8 +1516,8 @@ module.exports = (app, template, hook) => {
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
-          checkTemplateActions(project, testTemplate.actions, done);
+        it('Actions with invalid forms and resources should not be imported', function(done) {
+          checkTemplateActions(project, {}, done);
         });
       });
 
@@ -1571,24 +1571,28 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The Default template should export all its roles', function(done) {
+        it('The template should export all its roles', function(done) {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The Default template should not export any forms', function(done) {
+        it('The template should not export any forms', function(done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The Default template should not export any resources', function(done) {
+        it('The template should not export any resources', function(done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The Default template should not export any actions', function(done) {
-          checkTemplateActions(project, exportData.actions, done);
+        it('The template should not export any malformed actions', function(done) {
+          checkTemplateActions(project, {}, done);
         });
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
+
+          // Update the test template to not contain any of the malformed actions.
+          testTemplate.actions = {};
+
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
