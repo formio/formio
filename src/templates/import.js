@@ -8,10 +8,10 @@ var semver = require('semver');
 var debug = {
   template: require('debug')('formio:template:template'),
   items: require('debug')('formio:template:items'),
-  _install: require('debug')('formio:template:_install'),
+  install: require('debug')('formio:template:install'),
   updateSchema: require('debug')('formio:template:updateSchema'),
   final: require('debug')('formio:template:final'),
-  postResourceInstall: require('debug')('formio:template:postResourceInstall')
+  cleanUp: require('debug')('formio:template:cleanUp')
 };
 
 /**
@@ -25,15 +25,15 @@ module.exports = function(router) {
   var hook = require('../util/hook')(formio);
 
   /**
-   * Provide a default alter method.
+   * A base alter used during import, if one wasn't supplied for the entity.
    *
-   * @param item
-   * @param done
-   * @private
+   * @param {Object} item
+   *   The entity being altered.
+   *
+   * @param {Function} done
+   *   The callback function to invoke, with the entity.
    */
-  var _alter = function(item, done) {
-    done(null, item);
-  };
+  let baseAlter = (item, done) => done(null, item);
 
   /**
    * Converts an entities role id (machineName) to bson id.
@@ -182,136 +182,154 @@ module.exports = function(router) {
   };
 
   /**
-   * Methods to fill in all necessary ID's.
+   * The list of installable entities. Each entity must have a model and a transform.
+   *
+   * Note: Entities may define a cleanUp function which is executed after the transform is complete.
    *
    * @type {*}
    */
-  var parse = {
-    role: function(template, role) {
-      return role;
+  let entities = {
+    role: {
+      model: formio.resources.role.model,
+      transform: (template, role) => role
     },
-    resource: function(template, form) {
-      roleMachineNameToId(template, form.submissionAccess);
-      roleMachineNameToId(template, form.access);
-      return form;
+    resource: {
+      model: formio.resources.form.model,
+      transform: (template, resource) => {
+        roleMachineNameToId(template, resource.submissionAccess);
+        roleMachineNameToId(template, resource.access);
+        return resource;
+      },
+      cleanUp: (template, resources, done) => {
+        let model = formio.resources.form.model;
+
+        async.forEachOf(resources, (resource, machineName, next) => {
+          if (!componentMachineNameToId(template, resource.components)) {
+            return next();
+          }
+
+          debug.cleanUp('Need to update resource component _ids for', machineName);
+          model.findOneAndUpdate(
+            {_id: resource._id, deleted: {$eq: null}},
+            {components: resource.components},
+            {new: true},
+            (err, doc) => {
+              if (err) {
+                return next(err);
+              }
+
+              resources[machineName] = doc.toObject();
+              debug.cleanUp('Updated resource component _ids for', machineName);
+              next();
+            }
+          );
+        }, done);
+      }
     },
-    form: function(template, form) {
-      roleMachineNameToId(template, form.submissionAccess);
-      roleMachineNameToId(template, form.access);
-      componentMachineNameToId(template, form.components);
-      return form;
+    form: {
+      model: formio.resources.form.model,
+      transform: (template, form) => {
+        roleMachineNameToId(template, form.submissionAccess);
+        roleMachineNameToId(template, form.access);
+        componentMachineNameToId(template, form.components);
+        return form;
+      }
     },
-    action: function(template, action) {
-      formMachineNameToId(template, action);
-      resourceMachineNameToId(template, action.settings);
-      resourceMachineNameToId(template, action.settings);
-      roleMachineNameToId(template, action.settings);
-      return action;
+    action: {
+      model: formio.actions.model,
+      transform: (template, action) => {
+        formMachineNameToId(template, action);
+        resourceMachineNameToId(template, action.settings);
+        resourceMachineNameToId(template, action.settings);
+        roleMachineNameToId(template, action.settings);
+        return action;
+      }
     },
-    submission: function(template, submission) {
-      formMachineNameToId(template, submission);
-      return submission;
+    submission: {
+      model: formio.resources.submission.model,
+      transform: (template, submission) => {
+        formMachineNameToId(template, submission);
+        return submission;
+      }
     }
   };
 
   /**
+   * Installs the given entity.
    *
-   * @param model
-   * @param template
-   * @param items
-   * @param done
-   */
-  var postResourceInstall = function(model, template, items, done) {
-    async.forEachOf(items, function(item, name, itemDone) {
-      if (!componentMachineNameToId(template, item.components)) {
-        return itemDone();
-      }
-
-      debug.postResourceInstall('Need to update resource component _ids for', name);
-
-      model.findOneAndUpdate(
-        {_id: item._id, deleted: {$eq: null}},
-        {components: item.components},
-        {new: true},
-        function(err, doc) {
-          if (err) {
-            return itemDone(err);
-          }
-          items[name] = doc.toObject();
-          debug.postResourceInstall('Updated resource component _ids for', name);
-          itemDone();
-        }
-      );
-    }, done);
-  };
-
-  /**
-   * Install a model with a parse method.
+   * @param {Object} entity
+   *   An entity defined in the models object.
    *
-   * @param model
-   * @param _parse
-   * @param _postInstall
-   * @returns {Function}
-   * @private
+   * @returns {function()}
+   *   An invokable function to install the entity with callbacks.
    */
-  var _install = function(model, _parse, _postInstall) {
-    return function(template, items, alter, done) {
-      if (!items || _.isEmpty(items)) {
-        return done();
-      }
+  let install = (entity) => {
+    let model = entity.model;
+    let transform = entity.transform;
+    let cleanUp = entity.cleanUp;
 
+    return (template, items, alter, done) => {
       // Normalize arguments.
       if (!done) {
         done = alter;
         alter = null;
       }
 
+      // If no items were given for the install, skip this model.
+      if (!items || _.isEmpty(items)) {
+        return done();
+      }
+
+      alter = alter || baseAlter;
       debug.items(items);
-      alter = alter || _alter;
-      async.forEachOfSeries(items, function(item, name, itemDone) {
-        var document = _parse ? _parse(template, item) : item;
-        document.machineName = name;
-        alter(document, function(err, document) {
+      async.forEachOfSeries(items, (item, machineName, next) => {
+        var document = transform
+          ? transform(template, item)
+          : item;
+
+        // Set the document machineName using the import value.
+        document.machineName = machineName;
+        alter(document, (err, document) => {
           if (err) {
-            return itemDone(err);
+            return next(err);
           }
 
-          debug._install(document);
-          model.findOne({machineName: document.machineName, deleted: {$eq: null}}, function(err, doc) {
+          debug.install(document);
+          model.findOne({machineName: document.machineName, deleted: {$eq: null}}, (err, doc) => {
             if (err) {
-              debug._install(err);
-              return itemDone(err);
+              debug.install(err);
+              return next(err);
             }
             if (!doc) {
-              debug._install('Existing not found (', document.machineName, ')');
+              debug.install(`Existing not found (${document.machineName})`);
               /* eslint-disable new-cap */
               doc = new model(document);
               /* eslint-enable new-cap */
             }
             else {
-              debug._install('Existing found');
+              debug.install(`Existing found`);
               doc = _.assign(doc, document);
-              debug._install(doc);
+              debug.install(doc);
             }
 
-            doc.save(function(err, result) {
+            doc.save((err, result) => {
               if (err) {
-                debug._install(err);
-                return itemDone(err);
+                debug.install(err);
+                return next(err);
               }
 
-              debug._install(result);
-              items[name] = result.toObject();
-              itemDone();
+              debug.install(result);
+              items[machineName] = result.toObject();
+              next();
             });
           });
         });
-      }, function(err) {
+      }, (err) => {
         if (err) {
           return done(err);
         }
-        if (_postInstall) {
-          return _postInstall(model, template, items, done);
+        if (cleanUp) {
+          return cleanUp(template, items, done);
         }
 
         done();
@@ -510,11 +528,11 @@ module.exports = function(router) {
     debug.items(JSON.stringify(template));
     async.series([
       async.apply(updateSchema, template),
-      async.apply(_install(formio.resources.role.model, parse.role), template, template.roles, alter.role),
-      async.apply(_install(formio.resources.form.model, parse.resource, postResourceInstall), template, template.resources, alter.form),
-      async.apply(_install(formio.resources.form.model, parse.form), template, template.forms, alter.form),
-      async.apply(_install(formio.actions.model, parse.action), template, template.actions, alter.action),
-      async.apply(_install(formio.resources.submission.model, parse.submission), template, template.submissions, alter.submission)
+      async.apply(install(entities.role), template, template.roles, alter.role),
+      async.apply(install(entities.resource), template, template.resources, alter.form),
+      async.apply(install(entities.form), template, template.forms, alter.form),
+      async.apply(install(entities.action), template, template.actions, alter.action),
+      async.apply(install(entities.submission), template, template.submissions, alter.submission)
     ], function(err) {
       if (err) {
         debug.template(err);
