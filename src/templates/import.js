@@ -238,10 +238,15 @@ module.exports = (router) => {
     action: {
       model: formio.actions.model,
       transform: (template, action) => {
-        formMachineNameToId(template, action);
         resourceMachineNameToId(template, action.settings);
         resourceMachineNameToId(template, action.settings);
         roleMachineNameToId(template, action.settings);
+
+        // If no changes were made, the form was invalid and we can't insert the action.
+        if (formMachineNameToId(template, action) === false) {
+          return undefined;
+        }
+
         return action;
       }
     },
@@ -287,11 +292,20 @@ module.exports = (router) => {
           ? transform(template, item)
           : item;
 
+        // If no document was provided before the alter, skip the insertion.
+        if (!document) {
+          return next();
+        }
+
         // Set the document machineName using the import value.
         document.machineName = machineName;
         alter(document, (err, document) => {
           if (err) {
             return next(err);
+          }
+          // If no document was provided after the alter, skip the insertion.
+          if (!document) {
+            return next();
           }
 
           debug.install(document);
