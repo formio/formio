@@ -112,13 +112,7 @@ module.exports = (router) => {
    */
   let resourceMachineNameToId = (template, entity) => {
     // Check the template and entity for resource and resources definitions.
-    if (
-      !entity ||
-      (
-        (!entity.resouces || !template.hasOwnProperty(`resources`)) &&
-        (!entity.resouce || !template.hasOwnProperty(`resource`))
-      )
-    ) {
+    if (!entity || (!(entity.resource || entity.resources) || !template.hasOwnProperty('resources'))) {
       return false;
     }
 
@@ -135,7 +129,7 @@ module.exports = (router) => {
     }
 
     // Attempt to update a single resource if present.
-    if (entity.resource && template.hasOwnProperty(`resource`)) {
+    if (entity.resource && template.hasOwnProperty(`resources`) && template.resources[entity.resource]) {
       entity.resource = template.resources[entity.resource]._id.toString();
       changes = true;
     }
@@ -238,7 +232,6 @@ module.exports = (router) => {
     action: {
       model: formio.actions.model,
       transform: (template, action) => {
-        resourceMachineNameToId(template, action.settings);
         resourceMachineNameToId(template, action.settings);
         roleMachineNameToId(template, action.settings);
 

@@ -23,9 +23,8 @@ module.exports = (app, template, hook) => {
         var resourceB = template.resources.b;
         var resourceComponentA = formioUtils.getComponent(resourceB.components, 'a');
         var resourceComponentB = formioUtils.getComponent(resourceA.components, 'b');
-
-        assert.equal(resourceA._id, resourceComponentA.resource, 'Resource B\'s resource component for A should have the correct resource id');
-        assert.equal(resourceB._id, resourceComponentB.resource, 'Resource A\'s resource component for B should have the correct resource id');
+        assert.equal(resourceA._id, resourceComponentA.resource, `Resource B's resource component for A should have the correct resource id. (Got ${resourceComponentA.resource}, expected ${resourceA._id})`);
+        assert.equal(resourceB._id, resourceComponentB.resource, `Resource A's resource component for B should have the correct resource id. (Got ${resourceComponentB.resource}, expected ${resourceB._id})`);
         done();
       });
     });
