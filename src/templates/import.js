@@ -40,7 +40,7 @@ module.exports = function(router) {
    *
    * @param {Object} template
    *   The project memoization of imported entities.
-   * @param  entity
+   * @param {Object} entity
    *   The role object to convert.
    *
    * @returns {boolean}
@@ -73,23 +73,29 @@ module.exports = function(router) {
   };
 
   /**
-   * Assign form.
+   * Converts an entities form id (machineName) to a bson id.
    *
-   * @param template
-   * @param entity
+   * @param {Object} template
+   *   The project memoization of imported entities.
+   * @param {Object} entity
+   *   The entity object to convert.
+   *
    * @returns {boolean}
+   *   Whether or not the conversion was successful.
    */
-  var assignForm = function(template, entity) {
-    if (entity.hasOwnProperty('form')) {
-      if (template.hasOwnProperty('forms') && template.forms.hasOwnProperty(entity.form)) {
-        entity.form = template.forms[entity.form]._id.toString();
-        return true;
-      }
-      if (template.hasOwnProperty('resources') && template.resources.hasOwnProperty(entity.form)) {
-        entity.form = template.resources[entity.form]._id.toString();
-        return true;
-      }
+  var formMachineNameToId = function(template, entity) {
+    if (!entity.hasOwnProperty('form')) {
+      return false;
     }
+    if (template.hasOwnProperty('forms') && template.forms.hasOwnProperty(entity.form)) {
+      entity.form = template.forms[entity.form]._id.toString();
+      return true;
+    }
+    if (template.hasOwnProperty('resources') && template.resources.hasOwnProperty(entity.form)) {
+      entity.form = template.resources[entity.form]._id.toString();
+      return true;
+    }
+
     return false;
   };
 
@@ -184,14 +190,14 @@ module.exports = function(router) {
       return form;
     },
     action: function(template, action) {
-      assignForm(template, action);
+      formMachineNameToId(template, action);
       assignResource(template, action.settings);
       assignResources(template, action.settings);
       roleMachineNameToId(template, action.settings);
       return action;
     },
     submission: function(template, submission) {
-      assignForm(template, submission);
+      formMachineNameToId(template, submission);
       return submission;
     }
   };
