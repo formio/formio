@@ -181,18 +181,6 @@ module.exports = function(config) {
         // Load the request cache
         router.formio.cache = require('./src/cache/cache')(router);
 
-        // Add submission data export capabilities.
-        require('./src/export/export')(router);
-
-        // Add the available templates.
-        router.formio.templates = {
-          default: _.cloneDeep(require('./src/templates/default.json')),
-          empty: _.cloneDeep(require('./src/templates/empty.json'))
-        };
-
-        // Add the template functions.
-        router.formio.template = require('./src/templates/index')(router);
-
         // Add the export function
         if (router.formio.hook.alter('canExport', true)) {
           router.get('/export', (req, res, next) => {
@@ -246,6 +234,18 @@ module.exports = function(config) {
         // Import the form actions.
         router.formio.Action = require('./src/models/Action')(router.formio);
         router.formio.actions = require('./src/actions/actions')(router);
+
+        // Add submission data export capabilities.
+        require('./src/export/export')(router);
+
+        // Add the available templates.
+        router.formio.templates = {
+          default: _.cloneDeep(require('./src/templates/default.json')),
+          empty: _.cloneDeep(require('./src/templates/empty.json'))
+        };
+
+        // Add the template functions.
+        router.formio.template = require('./src/templates/index')(router);
 
         var swagger = require('./src/util/swagger');
         // Show the swagger for the whole site.
