@@ -1605,5 +1605,124 @@ module.exports = (app, template, hook) => {
         template.clearData(done);
       });
     });
+
+    describe('emptyActionResources Template', function() {
+      let testTemplate = require('./fixtures/templates/emptyActionResources.json');
+      let _template = _.cloneDeep(testTemplate);
+
+      describe('Import', function() {
+        let project = {};
+
+        it('Should be able to bootstrap the default template', function(done) {
+          app.formio.template.import(_template, (err) => {
+            if (err) {
+              return done(err);
+            }
+
+            done();
+          });
+        });
+
+        it('All the roles should be imported', function(done) {
+          checkTemplateRoles(project, testTemplate.roles, done);
+        });
+
+        it('All the forms should be imported', function(done) {
+          checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
+        });
+
+        it('All the resources should be imported', function(done) {
+          checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
+        });
+
+        it('Actions with invalid forms and resources should not be imported', function(done) {
+          checkTemplateActions(project, {}, done);
+        });
+      });
+
+      describe('Export', function() {
+        let project = {};
+        let exportData = {};
+
+        it('Should be able to export project data', function(done) {
+          app.formio.template.export(testTemplate, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+
+            exportData = data;
+            return done();
+          });
+        });
+
+        it('An export should contain the export title', function() {
+          assert.equal(
+            hook.alter('exportTitle', 'Export', exportData),
+            'Export'
+          );
+        });
+
+        it('An export should contain the current export version', function() {
+          assert.equal(
+            exportData.version,
+            '2.0.0'
+          );
+        });
+
+        it('An export should contain the description', function() {
+          assert.equal(
+            hook.alter('exportDescription', '', exportData),
+            ''
+          );
+        });
+
+        it('An export should contain the export name', function() {
+          assert.equal(
+            hook.alter('exportName', 'export', exportData),
+            'export'
+          );
+        });
+
+        it('An export should contain the export plan', function() {
+          assert.equal(
+            hook.alter('exportPlan', 'community', exportData),
+            'community'
+          );
+        });
+
+        it('The template should export all its roles', function(done) {
+          checkTemplateRoles(project, exportData.roles, done);
+        });
+
+        it('The template should not export any forms', function(done) {
+          checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
+        });
+
+        it('The template should not export any resources', function(done) {
+          checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
+        });
+
+        it('The template should not export any malformed actions', function(done) {
+          checkTemplateActions(project, {}, done);
+        });
+
+        it('An export should match an import', function() {
+          assert.equal(exportData.version, '2.0.0');
+
+          // Update the test template to not contain any of the malformed actions.
+          testTemplate.actions = {};
+
+          assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
+        });
+      });
+
+      before(function(done) {
+        template.clearData(done);
+      });
+
+      after(function(done) {
+        template.clearData(done);
+      });
+    });
   });
 };
