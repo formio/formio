@@ -9,7 +9,7 @@ var debug = {
   template: require('debug')('formio:template:template'),
   items: require('debug')('formio:template:items'),
   _install: require('debug')('formio:template:_install'),
-  translateSchema: require('debug')('formio:template:translateSchema'),
+  updateSchema: require('debug')('formio:template:updateSchema'),
   final: require('debug')('formio:template:final'),
   postResourceInstall: require('debug')('formio:template:postResourceInstall')
 };
@@ -327,13 +327,13 @@ module.exports = function(router) {
    *
    * @returns {*}
    */
-  var translateSchema = function(template, done) {
+  var updateSchema = function(template, done) {
     // Skip if the template has a correct version.
-    debug.translateSchema('template.version: ', template.version);
-    debug.translateSchema('pjson.templateVersion: ', pjson.templateVersion);
+    debug.updateSchema('template.version: ', template.version);
+    debug.updateSchema('pjson.templateVersion: ', pjson.templateVersion);
     if (template.version && !semver.gt(pjson.templateVersion, template.version)) {
-      debug.translateSchema('Skipping');
-      debug.translateSchema(template);
+      debug.updateSchema('Skipping');
+      debug.updateSchema(template);
       return done();
     }
 
@@ -509,7 +509,7 @@ module.exports = function(router) {
 
     debug.items(JSON.stringify(template));
     async.series([
-      async.apply(translateSchema, template),
+      async.apply(updateSchema, template),
       async.apply(_install(formio.resources.role.model, parse.role), template, template.roles, alter.role),
       async.apply(_install(formio.resources.form.model, parse.resource, postResourceInstall), template, template.resources, alter.form),
       async.apply(_install(formio.resources.form.model, parse.form), template, template.forms, alter.form),
