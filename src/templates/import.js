@@ -60,16 +60,26 @@ module.exports = (router) => {
       return false;
     }
 
+    let changes = false;
+
     // Used for permissions arrays.
     _.each(entity, (access) => {
       _.each(access.roles, (role, i) => {
         if (template.roles.hasOwnProperty(role)) {
           access.roles[i] = template.roles[role]._id.toString();
+          changes = true;
+        }
+        else {
+          // Remove any unknown roles, they should always be known at this point of the import.
+          delete access.roles[i];
         }
       });
+
+      // Filter any unknown roles from the pruning process.
+      access.roles = _.filter(access.roles);
     });
 
-    return true;
+    return changes;
   };
 
   /**
