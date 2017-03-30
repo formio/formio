@@ -425,7 +425,8 @@ module.exports = (app, template, hook) => {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should export all of its forms', function(done) {
+          assert.notDeepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
@@ -536,19 +537,23 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should not export any roles', function(done) {
+          assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
         it('The template should not export any forms', function(done) {
+          assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should export all of its resources', function(done) {
+          assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
         it('The template should not export any actions', function(done) {
+          assert.deepEqual(exportData.actions, {});
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -651,19 +656,23 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should not export any roles', function(done) {
+          assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
         it('The template should not export any forms', function(done) {
+          assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should export all of its resources', function(done) {
+          assert.notDeepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
         it('The template should not export any actions', function(done) {
+          assert.deepEqual(exportData.actions, {});
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -766,19 +775,23 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should not export any roles', function(done) {
+          assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
         it('The template should not export any forms', function(done) {
+          assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should export all of its resources', function(done) {
+          assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
         it('The template should not export any actions', function(done) {
+          assert.deepEqual(exportData.actions, {});
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -881,19 +894,23 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should not export any roles', function(done) {
+          assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
         it('The template should not export any forms', function(done) {
+          assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should export all of its resources', function(done) {
+          assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
         it('The template should not export any actions', function(done) {
+          assert.deepEqual(exportData.actions, {});
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -996,19 +1013,23 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should not export any roles', function(done) {
+          assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should export all of its forms', function(done) {
+          assert.notDeepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
         it('The template should not export any resources', function(done) {
+          assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
         it('The template should not export any actions', function(done) {
+          assert.deepEqual(exportData.actions, {});
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1111,19 +1132,23 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should not export any roles', function(done) {
+          assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
         it('The template should not export any forms', function(done) {
+          assert.notDeepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
         it('The template should not export any resources', function(done) {
+          assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
         it('The template should not export any actions', function(done) {
+          assert.deepEqual(exportData.actions, {});
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1226,19 +1251,23 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should not export any roles', function(done) {
+          assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should export all of its forms', function(done) {
+          assert.notDeepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should export all of its resources', function(done) {
+          assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
         it('The template should not export any actions', function(done) {
+          assert.deepEqual(exportData.actions, {});
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1341,19 +1370,23 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should not export any roles', function(done) {
+          assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should export all of its forms', function(done) {
+          assert.notDeepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
         it('The template should not export any resources', function(done) {
+          assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
         it('The template should not export any actions', function(done) {
+          assert.deepEqual(exportData.actions, {});
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1456,19 +1489,23 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should not export any roles', function(done) {
+          assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
         it('The template should not export any forms', function(done) {
+          assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should export all of its resources', function(done) {
+          assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
         it('The template should not export any actions', function(done) {
+          assert.deepEqual(exportData.actions, {});
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1571,20 +1608,24 @@ module.exports = (app, template, hook) => {
           );
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should not export any roles', function(done) {
+          assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
         it('The template should not export any forms', function(done) {
+          assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
         it('The template should not export any resources', function(done) {
+          assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
         it('The template should not export any malformed actions', function(done) {
-          checkTemplateActions(project, {}, done);
+          assert.deepEqual(exportData.actions, {});
+          checkTemplateActions(project, exportData.actions, done);
         });
 
         it('An export should match an import', function() {
@@ -1691,19 +1732,23 @@ module.exports = (app, template, hook) => {
         });
 
         it('The template should export all its roles', function(done) {
+          assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
         it('The template should not export any forms', function(done) {
+          assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
         it('The template should not export any resources', function(done) {
+          assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
         it('The template should not export any malformed actions', function(done) {
-          checkTemplateActions(project, {}, done);
+          assert.deepEqual(exportData.actions, {});
+          checkTemplateActions(project, exportData.actions, done);
         });
 
         it('An export should match an import', function() {
@@ -1746,7 +1791,10 @@ module.exports = (app, template, hook) => {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported with the defined roles only', function(done) {
+          testTemplate.forms.foo.access[0].roles = [];
+          testTemplate.forms.foo.submissionAccess[0].roles = [];
+
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
@@ -1810,18 +1858,21 @@ module.exports = (app, template, hook) => {
         });
 
         it('The template should export all its roles', function(done) {
+          assert.notDeepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should export its forms without bad roles', function(done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
         it('The template should not export any resources', function(done) {
+          assert(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
         it('The template should not export any actions', function(done) {
+          assert(exportData.actions, {});
           checkTemplateActions(project, exportData.actions, done);
         });
 
