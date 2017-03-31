@@ -2993,7 +2993,8 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the roles should be imported', function(done) {
-          checkTemplateRoles(project, testTemplate.roles, done);
+          assert.notDeepEqual(testTemplate.roles, {});
+          checkTemplateRoles(project, {}, done);
         });
 
         it('All the forms should be imported', function(done) {
@@ -3081,7 +3082,7 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
+          assert.deepEqual(_.omit(exportData, ['plan', 'version', 'roles']), _.omit(testTemplate, ['plan', 'version', 'roles']));
         });
       });
 

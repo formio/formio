@@ -195,6 +195,13 @@ module.exports = (router) => {
   let entities = {
     role: {
       model: formio.resources.role.model,
+      valid: (roles) => {
+        if (typeof roles === 'object' && !(roles instanceof Array)) {
+          return true;
+        }
+
+        return false;
+      },
       transform: (template, role) => role
     },
     resource: {
@@ -273,6 +280,7 @@ module.exports = (router) => {
    */
   let install = (entity) => {
     let model = entity.model;
+    let valid = entity.valid;
     let transform = entity.transform;
     let cleanUp = entity.cleanUp;
 
@@ -290,6 +298,12 @@ module.exports = (router) => {
 
       alter = alter || baseAlter;
       debug.items(items);
+
+      // If the given items don't have a valid structure for this entity, skip the import.
+      if (valid && !valid(items)) {
+        return done();
+      }
+
       async.forEachOfSeries(items, (item, machineName, next) => {
         let document = transform
           ? transform(template, item)
