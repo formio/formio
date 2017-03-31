@@ -667,7 +667,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('The template should export all of its resources', function(done) {
-          assert.notDeepEqual(exportData.forms, {});
+          assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
