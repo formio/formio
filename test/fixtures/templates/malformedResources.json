@@ -1,0 +1,21 @@
+{
+  "title": "malformedResources",
+  "name": "malformedResources",
+  "version": "2.0.0",
+  "description": "",
+  "roles": {},
+  "resources": [
+    {
+      "title": "a",
+      "type": "resource",
+      "name": "a",
+      "path": "a",
+      "tags": [],
+      "submissionAccess": [],
+      "access": [],
+      "components": []
+    }
+  ],
+  "forms": {},
+  "actions": {}
+}
