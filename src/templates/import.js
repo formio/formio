@@ -246,6 +246,13 @@ module.exports = (router) => {
     },
     form: {
       model: formio.resources.form.model,
+      valid: (forms) => {
+        if (typeof forms === 'object' && !(forms instanceof Array)) {
+          return true;
+        }
+
+        return false;
+      },
       transform: (template, form) => {
         roleMachineNameToId(template, form.submissionAccess);
         roleMachineNameToId(template, form.access);
