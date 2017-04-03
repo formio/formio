@@ -230,7 +230,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the empty template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -345,7 +345,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -461,7 +461,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -580,7 +580,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -699,7 +699,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -818,7 +818,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -937,7 +937,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -1056,7 +1056,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -1175,7 +1175,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -1294,7 +1294,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -1413,7 +1413,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -1532,7 +1532,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -1655,7 +1655,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -1778,7 +1778,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -1899,7 +1899,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -2020,7 +2020,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -2141,7 +2141,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -2262,7 +2262,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -2383,7 +2383,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -2503,7 +2503,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -2622,7 +2622,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -2741,7 +2741,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -2860,7 +2860,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -2983,7 +2983,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -3103,7 +3103,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -3223,7 +3223,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }
@@ -3343,7 +3343,7 @@ module.exports = (app, template, hook) => {
         let project = {};
 
         it('Should be able to bootstrap the template', function(done) {
-          app.formio.template.import(_template, (err) => {
+          app.formio.template.import.template(_template, (err) => {
             if (err) {
               return done(err);
             }

@@ -14,7 +14,7 @@ module.exports = (app, template, hook) => {
     it('Should be able to bootstrap the default template', function(done) {
       comparison = _.cloneDeep(template);
 
-      app.formio.template.import(template, function(err) {
+      app.formio.template.import.template(template, function(err) {
         if (err) {
           return done(err);
         }

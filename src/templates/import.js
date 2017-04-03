@@ -596,5 +596,8 @@ module.exports = (router) => {
     });
   };
   
-  return importTemplate;
+  return {
+    install,
+    template: importTemplate
+  };
 };
