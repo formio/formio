@@ -1,0 +1,31 @@
+{
+  "title": "malformedActions",
+  "name": "malformedActions",
+  "version": "2.0.0",
+  "description": "",
+  "roles": {},
+  "resources": {},
+  "forms": {
+    "a": {
+      "title": "a",
+      "type": "form",
+      "name": "a",
+      "path": "a",
+      "tags": [],
+      "submissionAccess": [],
+      "access": [],
+      "components": []
+    }
+  },
+  "actions": [
+    {
+      "title": "Save Submission",
+      "name": "save",
+      "form": "a",
+      "handler": ["before"],
+      "method": ["create", "update"],
+      "priority": 11,
+      "settings": {}
+    }
+  ]
+}

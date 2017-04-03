@@ -262,6 +262,13 @@ module.exports = (router) => {
     },
     action: {
       model: formio.actions.model,
+      valid: (actions) => {
+        if (typeof actions === 'object' && !(actions instanceof Array)) {
+          return true;
+        }
+
+        return false;
+      },
       transform: (template, action) => {
         resourceMachineNameToId(template, action.settings);
         roleMachineNameToId(template, action.settings);
