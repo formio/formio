@@ -669,7 +669,7 @@ module.exports = function(router) {
    *
    * @TODO: Add `action` validation on POST/PUT with the keys inside `available`.
    */
-  Resource(router, '/form/:formId', 'action', ActionIndex.model).rest(handlers);
+  Resource(router, '/form/:formId', 'action', ActionIndex.model).rest(hook.alter('actionRoutes', handlers));
 
   // Return the action index.
   return ActionIndex;
