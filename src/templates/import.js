@@ -65,7 +65,7 @@ module.exports = (router) => {
     // Used for permissions arrays.
     _.each(entity, (access) => {
       _.each(access.roles, (role, i) => {
-        if (template.roles.hasOwnProperty(role)) {
+        if (template.roles.hasOwnProperty(role) && template.roles[role]._id) {
           access.roles[i] = template.roles[role]._id.toString();
           changes = true;
         }
@@ -366,7 +366,7 @@ module.exports = (router) => {
 
             doc.save((err, result) => {
               if (err) {
-                debug.install(err);
+                debug.install(err.errors || err);
                 return next(err);
               }
 
@@ -579,13 +579,14 @@ module.exports = (router) => {
 
     debug.items(JSON.stringify(template));
     async.series([
-      async.apply(updateSchema, template),
+      async.apply(updateSchema, template)
+    ].concat(hook.alter(`templateSteps`, [
       async.apply(install(entities.role), template, template.roles, alter.role),
       async.apply(install(entities.resource), template, template.resources, alter.form),
       async.apply(install(entities.form), template, template.forms, alter.form),
       async.apply(install(entities.action), template, template.actions, alter.action),
       async.apply(install(entities.submission), template, template.submissions, alter.submission)
-    ], (err) => {
+    ], install, template)), (err) => {
       if (err) {
         debug.template(err);
         return done(err);
