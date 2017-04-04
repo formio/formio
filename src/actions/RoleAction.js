@@ -324,6 +324,13 @@ module.exports = function(router) {
     };
 
     /**
+     * Prepare to load existing resource
+     */
+    if (typeof resource === 'object' && resource.hasOwnProperty('_id')) {
+      resource = resource._id;
+    }
+
+    /**
      * Resolve the action.
      */
     if (typeof resource === 'string') {
