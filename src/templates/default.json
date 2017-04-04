@@ -444,7 +444,10 @@
       "settings": {
         "resources": ["user"],
         "username": "email",
-        "password": "password"
+        "password": "password",
+        "allowedAttempts": 5,
+        "attemptWindow": 30,
+        "lockWait": 1800
       }
     },
     "userRegisterSave": {
@@ -507,7 +510,10 @@
       "settings": {
         "resources": ["admin"],
         "username": "email",
-        "password": "password"
+        "password": "password",
+        "allowedAttempts": 5,
+        "attemptWindow": 30,
+        "lockWait": 1800
       }
     }
   }

@@ -1973,7 +1973,10 @@ module.exports = function(app, template, hook) {
             settings: {
               resources: [dummyResource._id.toString()],
               username: 'username',
-              password: 'password'
+              password: 'password',
+              allowedAttempts: 5,
+              attemptWindow: 10,
+              lockWait: 10
             }
           }
 
@@ -2163,7 +2166,10 @@ module.exports = function(app, template, hook) {
           settings: {
             resources: [template.resources.user._id.toString()],
             username: 'username',
-            password: 'password'
+            password: 'password',
+            allowedAttempts: 5,
+            attemptWindow: 10,
+            lockWait: 10
           }
         };
 
@@ -2215,7 +2221,10 @@ module.exports = function(app, template, hook) {
           settings: {
             resources: [template.resources.user._id.toString()],
             username: 'username',
-            password: 'password'
+            password: 'password',
+            allowedAttempts: 5,
+            attemptWindow: 10,
+            lockWait: 10
           }
         };
 
