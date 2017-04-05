@@ -33,7 +33,7 @@ module.exports = (router) => {
    * @param {Function} done
    *   The callback function to invoke, with the entity.
    */
-  let baseAlter = (item, done) => done(null, item);
+  let baseAlter = (item, template, done) => done(null, item);
 
   /**
    * Converts an entities role id (machineName) to bson id.
@@ -337,7 +337,7 @@ module.exports = (router) => {
 
         // Set the document machineName using the import value.
         document.machineName = machineName;
-        alter(document, (err, document) => {
+        alter(document, template, (err, document) => {
           if (err) {
             return next(err);
           }

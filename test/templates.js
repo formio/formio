@@ -5,6 +5,9 @@ let _ = require('lodash');
 let formioUtils = require('formio-utils');
 
 module.exports = (app, template, hook) => {
+  let formio = hook.alter('formio', app.formio);
+  let importer = formio.template;
+
   describe('Template Imports', function() {
     /**
      * Util function to get the resource name, given an id.
@@ -42,7 +45,7 @@ module.exports = (app, template, hook) => {
     let checkTemplateRoles = (project, input, done) => {
       input = input || {};
 
-      app.formio.resources.role.model.find({deleted: {$eq: null}}).then(roles => {
+      formio.resources.role.model.find({deleted: {$eq: null}}).then(roles => {
         assert.equal(roles.length, Object.keys(input).length);
 
         // If the input is empty, skip remaining checks.
@@ -76,7 +79,7 @@ module.exports = (app, template, hook) => {
           project.roles[machineName] = project.roles[role._id] = role;
         });
 
-        assert.deepEqual(given, input);
+        assert.deepEqual(hook.alter('templateRoles', given), input);
         done();
       })
       .catch(done);
@@ -93,7 +96,7 @@ module.exports = (app, template, hook) => {
     let checkTemplateFormsAndResources = (project, type, input, done) => {
       input = input || {};
 
-      app.formio.resources.form.model.find({type, deleted: {$eq: null}}).then(forms => {
+      formio.resources.form.model.find({type, deleted: {$eq: null}}).then(forms => {
         assert.equal(forms.length, Object.keys(input).length);
 
         if (Object.keys(input).length === 0) {
@@ -170,7 +173,7 @@ module.exports = (app, template, hook) => {
     let checkTemplateActions = (project, input, done) => {
       input = input || {};
 
-      app.formio.actions.model.find({deleted: {$eq: null}}).then(actions => {
+      formio.actions.model.find({deleted: {$eq: null}}).then(actions => {
         assert.equal(actions.length, Object.keys(input).length);
 
         if (Object.keys(input).length === 0) {
@@ -221,10 +224,8 @@ module.exports = (app, template, hook) => {
       })
       .catch(done);
     };
-    
-    let formio = hook.alter('formio', app.formio);
-    let importer = formio.template;
-    let alters = hook.alter(`templateAlters`, {}, template);
+
+    let alters = hook.alter(`templateAlters`, {});
     
     describe('Empty Template', function() {
       let testTemplate = require('../src/templates/empty.json');
@@ -265,7 +266,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
         
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -380,7 +381,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -496,7 +497,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -615,7 +616,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -734,7 +735,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -853,7 +854,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -972,7 +973,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -1091,7 +1092,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -1210,7 +1211,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -1329,7 +1330,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -1448,7 +1449,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -1567,7 +1568,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -1690,7 +1691,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -1816,7 +1817,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -1935,7 +1936,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -2056,7 +2057,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -2177,7 +2178,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -2298,7 +2299,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -2418,7 +2419,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -2538,7 +2539,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -2657,7 +2658,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -2776,7 +2777,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -2895,7 +2896,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -3019,7 +3020,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -3139,7 +3140,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -3259,7 +3260,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
@@ -3379,7 +3380,7 @@ module.exports = (app, template, hook) => {
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
-          importer.export(testTemplate, (err, data) => {
+          importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
