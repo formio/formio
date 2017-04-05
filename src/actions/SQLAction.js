@@ -142,12 +142,12 @@ module.exports = function(router) {
         return !settings[prop];
       });
       if (missingSetting) {
-        return next('Database settings is missing `' + missingSetting + '`');
+        return res.status(400).send('Database settings is missing `' + missingSetting + '`');
       }
 
       // Make sure they cannot connect to localhost.
       if (settings.host.search(/localhost|127\.0\.0\.1/) !== -1) {
-        return next('Invalid SQL Host');
+        return res.status(400).send('Invalid SQL Host');
       }
 
       var method = req.method.toLowerCase();
@@ -190,7 +190,7 @@ module.exports = function(router) {
 
         // Make sure our query is still valid.
         if (!query) {
-          return next('Invalid Query');
+          return res.status(400).send('Invalid Query');
         }
 
         // Perform a post execution.

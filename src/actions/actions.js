@@ -547,7 +547,7 @@ module.exports = function(router) {
   router.get('/form/:formId/actions/:name', function(req, res, next) {
     var action = ActionIndex.actions[req.params.name];
     if (!action) {
-      return next('Action not found');
+      return res.status(400).send('Action not found');
     }
 
     action.info(req, res, function(err, info) {
