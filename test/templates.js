@@ -157,7 +157,7 @@ module.exports = (app, template, hook) => {
           given[machineName] = tempForm;
         });
 
-        assert.deepEqual(given, input);
+        assert.deepEqual(hook.alter('templateFormsAndResources', given), input);
         done();
       })
       .catch(done);
@@ -218,8 +218,8 @@ module.exports = (app, template, hook) => {
 
           project.actions[machineName] = project.actions[action._id] = action;
         });
-
-        assert.deepEqual(given, input);
+        
+        assert.deepEqual(hook.alter('templateActions', given), input);
         done();
       })
       .catch(done);
