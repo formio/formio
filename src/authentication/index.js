@@ -65,10 +65,10 @@ module.exports = function(router) {
   var authenticate = function(forms, userField, passField, username, password, next) {
     // Make sure they have provided a username and password.
     if (!username) {
-      return next(new Error('Missing username'));
+      return next('Missing username');
     }
     if (!password) {
-      return next(new Error('Missing password'));
+      return next('Missing password');
     }
 
     var query = {deleted: {$eq: null}};
@@ -93,12 +93,12 @@ module.exports = function(router) {
         return next(err);
       }
       if (!user) {
-        return next(new Error('Invalid user'));
+        return next('User or password was incorrect');
       }
 
       user = user.toObject();
       if (!_.get(user.data, passField)) {
-        return next(new Error('Your account does not have a password. You must reset your password to login.'));
+        return next('Your account does not have a password. You must reset your password to login.');
       }
 
       // Compare the provided password.
@@ -107,7 +107,7 @@ module.exports = function(router) {
           return next(err);
         }
         if (!value) {
-          return next(new Error('Incorrect password'));
+          return next('User or password was incorrect', {user: user});
         }
 
         // Load the form associated with this user record.
@@ -119,7 +119,7 @@ module.exports = function(router) {
             return next(err);
           }
           if (!form) {
-            return next(new Error('User form not found.'));
+            return next('User form not found.');
           }
 
           form = form.toObject();
