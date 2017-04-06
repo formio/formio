@@ -182,7 +182,7 @@ module.exports = function(router) {
     var url = '/form/:formId/submission/:submissionId';
     var childReq = util.createSubRequest(req);
     if (!childReq) {
-      return next('Too many recursive requests.');
+      return res.status(400).send('Too many recursive requests.');
     }
     childReq.method = 'GET';
     childReq.skipResource = false;
