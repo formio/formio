@@ -332,6 +332,7 @@ module.exports = (router) => {
 
         // If no document was provided before the alter, skip the insertion.
         if (!document) {
+          debug.items(`Skipping item ${item}`);
           return next();
         }
 
@@ -343,6 +344,7 @@ module.exports = (router) => {
           }
           // If no document was provided after the alter, skip the insertion.
           if (!document) {
+            debug.install(`No document was given to install after the alter ${item} (${machineName})`);
             return next();
           }
 

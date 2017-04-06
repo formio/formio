@@ -200,7 +200,7 @@ module.exports = (app, template, hook) => {
           assert.equal(action.hasOwnProperty('machineName'), true);
 
           // Prepare the stored actions for comparison.
-          let machineName = action.machineName;
+          let machineName = action.machineName = hook.alter('templateActionMachineName', action.machineName, project);
           let tempAction = _.omit(action, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName']);
           tempAction.form = getResourceFromId(project, tempAction.form);
           if (_.has(tempAction, 'settings.resource')) {
@@ -218,7 +218,7 @@ module.exports = (app, template, hook) => {
 
           project.actions[machineName] = project.actions[action._id] = action;
         });
-        
+
         assert.deepEqual(hook.alter('templateActions', given), input);
         done();
       })
@@ -435,11 +435,11 @@ module.exports = (app, template, hook) => {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should export all of its resources', function(done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should export all of its actions', function(done) {
           checkTemplateActions(project, exportData.actions, done);
         });
 
