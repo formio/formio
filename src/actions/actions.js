@@ -547,7 +547,7 @@ module.exports = function(router) {
   router.get('/form/:formId/actions/:name', function(req, res, next) {
     var action = ActionIndex.actions[req.params.name];
     if (!action) {
-      return next('Action not found');
+      return res.status(400).send('Action not found');
     }
 
     action.info(req, res, function(err, info) {
@@ -669,7 +669,7 @@ module.exports = function(router) {
    *
    * @TODO: Add `action` validation on POST/PUT with the keys inside `available`.
    */
-  Resource(router, '/form/:formId', 'action', ActionIndex.model).rest(handlers);
+  Resource(router, '/form/:formId', 'action', ActionIndex.model).rest(hook.alter('actionRoutes', handlers));
 
   // Return the action index.
   return ActionIndex;
