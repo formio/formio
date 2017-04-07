@@ -250,10 +250,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('No forms should exist', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('No resources should exist', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -325,7 +327,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('The empty template should not export any actions', function(done) {
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -366,10 +368,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -442,7 +446,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('The template should export all of its actions', function(done) {
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -483,10 +487,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -562,7 +568,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -603,10 +609,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -682,7 +690,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -723,10 +731,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -802,7 +812,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -843,10 +853,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -922,7 +934,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -963,10 +975,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -1042,7 +1056,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1083,10 +1097,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -1162,7 +1178,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1203,10 +1219,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -1282,7 +1300,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1323,10 +1341,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -1402,7 +1422,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1443,10 +1463,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -1522,7 +1544,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1563,10 +1585,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -1642,7 +1666,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any malformed actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1687,10 +1711,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -1766,7 +1792,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any malformed actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1814,10 +1840,12 @@ module.exports = (app, template, hook) => {
           testTemplate.forms.foo.access[0].roles = [];
           testTemplate.forms.foo.submissionAccess[0].roles = [];
 
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -1892,7 +1920,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1934,10 +1962,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -2013,7 +2043,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2055,6 +2085,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
@@ -2135,7 +2166,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2182,6 +2213,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -2257,7 +2289,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2299,10 +2331,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -2379,7 +2413,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2421,10 +2455,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -2500,7 +2536,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2542,10 +2578,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -2621,7 +2659,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2662,10 +2700,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -2741,7 +2781,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2782,10 +2822,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -2861,7 +2903,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2902,10 +2944,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -2981,7 +3025,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -3027,10 +3071,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -3106,7 +3152,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -3147,6 +3193,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
@@ -3227,7 +3274,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -3273,6 +3320,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -3348,7 +3396,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -3389,10 +3437,12 @@ module.exports = (app, template, hook) => {
         });
 
         it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
         it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
@@ -3468,7 +3518,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
-          exportData.actions = hook.alter('templateActionExport', exportData.actions);
+          hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 

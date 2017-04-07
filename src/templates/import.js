@@ -579,6 +579,13 @@ module.exports = (router) => {
       return done(`No template provided.`);
     }
 
+    if (!template.title) {
+      template.title = 'Export';
+    }
+    if (!template.name) {
+      template.name = 'Export';
+    }
+
     debug.items(JSON.stringify(template));
     async.series([
       async.apply(updateSchema, template)
