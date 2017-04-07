@@ -150,6 +150,7 @@ module.exports = (app, template, hook) => {
           let tempForm = given[machineName];
           // Convert all resources to point to the resource name;
           formioUtils.eachComponent(tempForm.components, (component) => {
+            hook.alter('exportComponent', component);
             if (component.hasOwnProperty('resource') && project.resources && project.resources.hasOwnProperty(component.resource)) {
               component.resource = project.resources[component.resource].name;
             }
@@ -200,7 +201,7 @@ module.exports = (app, template, hook) => {
           assert.equal(action.hasOwnProperty('machineName'), true);
 
           // Prepare the stored actions for comparison.
-          let machineName = action.machineName = hook.alter('templateActionMachineName', action.machineName, project);
+          let machineName = action.machineName;
           let tempAction = _.omit(action, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName']);
           tempAction.form = getResourceFromId(project, tempAction.form);
           if (_.has(tempAction, 'settings.resource')) {

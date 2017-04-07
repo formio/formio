@@ -86,7 +86,7 @@ module.exports = (router) => {
           assignRole(_map, action.settings);
           assignResource(_map, action.settings);
           assignResources(_map, action.settings);
-          var machineName = action.machineName = hook.alter('machineNameExport', action.machineName);
+          var machineName = action.machineName;
           _export.actions[machineName] = _.pick(action,
             'title',
             'name',
@@ -152,7 +152,7 @@ module.exports = (router) => {
             }
 
             // Allow hooks to alter fields.
-            hook.alter('exportComponent', _export, _map, options, component);
+            hook.alter('exportComponent', component);
           });
         });
         next();

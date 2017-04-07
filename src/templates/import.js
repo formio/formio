@@ -172,12 +172,12 @@ module.exports = (router) => {
         (component.dataSrc === `resource`) &&
         resourceMachineNameToId(template, component.data)
       ) {
-        hook.alter(`importComponent`, template, components, component.data);
+        hook.alter(`importComponent`, template, component.data);
         changed = true;
       }
 
       // Allow importing of components.
-      if (hook.alter(`importComponent`, template, components, component)) {
+      if (hook.alter(`importComponent`, template, component)) {
         changed = true;
       }
     });
