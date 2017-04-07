@@ -13,7 +13,7 @@ module.exports = () => {
   template.actions['user:login'].settings.attemptWindow = 2;
 
   // Create a registration form for admins for testing purposes.
-  template.forms['admin:register'] = {
+  template.forms.adminRegister = {
     title: 'Admin Register',
     name: 'adminRegister',
     path: 'admin/register',
