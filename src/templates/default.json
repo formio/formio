@@ -412,7 +412,7 @@
     }
   },
   "actions": {
-    "userRole": {
+    "user:role": {
       "title": "Role Assignment",
       "name": "role",
       "priority": 1,
@@ -425,7 +425,7 @@
         "role": "authenticated"
       }
     },
-    "userSave": {
+    "user:save": {
       "title": "Save Submission",
       "name": "save",
       "form": "user",
@@ -433,7 +433,7 @@
       "method": ["create", "update"],
       "priority": 10
     },
-    "userLogin": {
+    "user:login": {
       "name": "login",
       "title": "Login",
       "form": "userLogin",
@@ -449,7 +449,7 @@
         "lockWait": 1800
       }
     },
-    "userRegisterSave": {
+    "userRegister:save": {
       "title": "Save Submission",
       "name": "save",
       "form": "userRegister",
@@ -464,7 +464,7 @@
         }
       }
     },
-    "userRegisterLogin": {
+    "userRegister:login": {
       "name": "login",
       "title": "Login",
       "form": "userRegister",
@@ -477,7 +477,7 @@
         "password": "password"
       }
     },
-    "adminRole": {
+    "admin:role": {
       "title": "Role Assignment",
       "name": "role",
       "priority": 1,
@@ -490,7 +490,7 @@
         "role": "administrator"
       }
     },
-    "adminSave": {
+    "admin:save": {
       "title": "Save Submission",
       "name": "save",
       "form": "admin",
@@ -498,7 +498,7 @@
       "method": ["create", "update"],
       "priority": 10
     },
-    "adminLogin": {
+    "admin:login": {
       "name": "login",
       "title": "Login",
       "form": "adminLogin",

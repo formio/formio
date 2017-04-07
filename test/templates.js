@@ -324,6 +324,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('The empty template should not export any actions', function(done) {
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -440,6 +441,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('The template should export all of its actions', function(done) {
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -559,6 +561,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -678,6 +681,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -797,6 +801,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -916,6 +921,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1035,6 +1041,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1154,6 +1161,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1273,6 +1281,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1392,6 +1401,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1511,6 +1521,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1630,6 +1641,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any malformed actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1753,6 +1765,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any malformed actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1878,6 +1891,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -1998,6 +2012,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2119,6 +2134,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2240,6 +2256,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2361,6 +2378,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2481,6 +2499,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2601,6 +2620,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2720,6 +2740,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2839,6 +2860,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -2958,6 +2980,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -3082,6 +3105,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -3202,6 +3226,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -3322,6 +3347,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
@@ -3441,6 +3467,7 @@ module.exports = (app, template, hook) => {
 
         it('The template should not export any actions', function(done) {
           assert.deepEqual(exportData.actions, {});
+          exportData.actions = hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 

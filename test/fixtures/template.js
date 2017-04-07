@@ -7,13 +7,13 @@ module.exports = () => {
   let template = _.cloneDeep(require('../../src/templates/default.json'));
 
   // Change the login timeouts for testing
-  template.actions.adminLogin.settings.lockWait = 2;
-  template.actions.adminLogin.settings.attemptWindow = 2;
-  template.actions.userLogin.settings.lockWait = 2;
-  template.actions.userLogin.settings.attemptWindow = 2;
+  template.actions['admin:login'].settings.lockWait = 2;
+  template.actions['admin:login'].settings.attemptWindow = 2;
+  template.actions['user:login'].settings.lockWait = 2;
+  template.actions['user:login'].settings.attemptWindow = 2;
 
   // Create a registration form for admins for testing purposes.
-  template.forms.adminRegister = {
+  template.forms['admin:register'] = {
     title: 'Admin Register',
     name: 'adminRegister',
     path: 'admin/register',
@@ -77,7 +77,7 @@ module.exports = () => {
   };
 
   // Create an email template.
-  template.actions.newUserEmail = {
+  template.actions['user:email'] = {
     name: 'email',
     title: 'Email',
     form: 'user',
@@ -94,7 +94,7 @@ module.exports = () => {
   };
 
   // Create a register action for this form.
-  template.actions.adminRegisterSave = {
+  template.actions['adminRegister:save'] = {
     name: 'save',
     title: 'Save Submission',
     form: 'adminRegister',
@@ -110,7 +110,7 @@ module.exports = () => {
     }
   };
 
-  template.actions.adminRegisterLogin = {
+  template.actions['adminRegister:login'] = {
     name: 'login',
     title: 'Login',
     form: 'adminRegister',
