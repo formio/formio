@@ -11,7 +11,7 @@ let EventEmitter = require('events');
 
 module.exports = function(app, template, hook) {
   template.hooks.addEmitter(new EventEmitter());
-  
+
   describe('Authentication', function() {
     it('Should be able to register an administrator', function(done) {
       request(app)
@@ -1015,7 +1015,7 @@ module.exports = function(app, template, hook) {
       request(app)
         .get(hook.alter('url', '/token', template))
         .set('x-jwt-token', allowedToken)
-        .expect(400)
+        .expect(401)
         .end(done);
     });
 

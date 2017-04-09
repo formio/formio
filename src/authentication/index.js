@@ -60,10 +60,19 @@ module.exports = function(router) {
     var isAllowed = false;
     var allowed = decoded.allow.split(',');
     _.each(allowed, function(allow) {
-      var test = req.method.toUpperCase() + ':' + req.url;
+      var parts = allow.split(':');
+      if (parts.length < 2) {
+        return;
+      }
+
+      // Make sure the methods match.
+      if (req.method.toUpperCase() !== parts[0].toUpperCase()) {
+        return;
+      }
+
       try {
-        var regex = new RegExp(allow);
-        if (regex.test(test)) {
+        var regex = new RegExp(parts[1]);
+        if (regex.test(req.url)) {
           isAllowed = true;
           return false;
         }
@@ -83,7 +92,7 @@ module.exports = function(router) {
    * @param expire
    * @param cb
    */
-  var getTempToken = function(req, token, allow, expire, cb) {
+  var getTempToken = function(req, res, token, allow, expire, cb) {
     // Decode/refresh the token and store for later middleware.
     jwt.verify(token, router.formio.config.jwt.secret, function(err, decoded) {
       if (err || !decoded) {
@@ -100,7 +109,7 @@ module.exports = function(router) {
 
       // Check to see if this path is allowed.
       if (!isTokenAllowed(req, decoded)) {
-        return cb('Token path not allowed.');
+        return res.status(401).send('Token path not allowed.');
       }
 
       // Do not allow regeneration of temp tokens from other temp tokens.
@@ -127,6 +136,29 @@ module.exports = function(router) {
       jwt.sign(decoded, router.formio.config.jwt.secret, {
         expiresIn: expire
       }, (token) => cb(null, token));
+    });
+  };
+
+  var tempToken = function(req, res, next) {
+    if (!req.headers) {
+      return res.status(400).send('No headers provided.');
+    }
+
+    var token = req.headers['x-jwt-token'];
+    var allow = req.headers['x-allow'];
+    var expire = req.headers['x-expire'];
+    if (!token) {
+      return res.status(400).send('You must provide an existing token in the x-jwt-token header.');
+    }
+
+    // get a temporary token.
+    getTempToken(req, res, token, allow, expire, function(err, tempToken) {
+      if (err) {
+        return res.status(400).send(err);
+      }
+
+      // Send the temp token as a response.
+      return res.send(tempToken);
     });
   };
 
@@ -295,6 +327,7 @@ module.exports = function(router) {
     getTempToken: getTempToken,
     authenticate: authenticate,
     currentUser: currentUser,
+    tempToken: tempToken,
     logout: function(req, res) {
       res.setHeader('x-jwt-token', '');
       res.sendStatus(200);

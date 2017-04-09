@@ -109,28 +109,7 @@ module.exports = function(config) {
 
       // The get token handler
       if (!router.formio.hook.invoke('init', 'getTempToken', router.formio)) {
-        router.get('/token', function(req, res, next) {
-          if (!req.headers) {
-            return res.status(400).send('No headers provided.');
-          }
-
-          var token = req.headers['x-jwt-token'];
-          var allow = req.headers['x-allow'];
-          var expire = req.headers['x-expire'];
-          if (!token) {
-            return res.status(400).send('You must provide an existing token in the x-jwt-token header.');
-          }
-
-          // get a temporary token.
-          router.formio.auth.getTempToken(req, token, allow, expire, function(err, tempToken) {
-            if (err) {
-              return res.status(400).send(err);
-            }
-
-            // Send the temp token as a response.
-            return res.send(tempToken);
-          });
-        });
+        router.get('/token', router.formio.auth.tempToken);
       }
 
       // Perform token mutation before all requests.
