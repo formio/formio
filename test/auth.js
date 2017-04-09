@@ -280,7 +280,6 @@ module.exports = function(app, template, hook) {
     });
 
     if (!docker) {
-      /*
       it('Should have sent an email to the user with an auth token', function (done) {
         var email = template.hooks.getLastEmail();
         new Promise((resolve, reject) => {
@@ -304,7 +303,6 @@ module.exports = function(app, template, hook) {
           })
           .catch(done)
       });
-      */
     }
 
     it('Should be able to validate a request with the validate param.', function(done) {
