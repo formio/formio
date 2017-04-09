@@ -279,30 +279,33 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    if (!docker)
-    it('Should have sent an email to the user with an auth token', function(done) {
-      var email = template.hooks.getLastEmail();
-      new Promise((resolve, reject) => {
-        if (email && Object.keys(email) > 0) {
-          return resolve(email);
-        }
-
-        let events = template.hooks.getEmitter();
-        if (events) {
-          events.once('newMail', (email) => {
+    if (!docker) {
+      /*
+      it('Should have sent an email to the user with an auth token', function (done) {
+        var email = template.hooks.getLastEmail();
+        new Promise((resolve, reject) => {
+          if (email && Object.keys(email) > 0) {
             return resolve(email);
-          });
-        }
-      })
-      .then(email => {
-        assert.equal(email.from, 'no-reply@form.io');
-        assert.equal(email.to, template.users.user1.data.email);
-        assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
-        assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
-        done();
-      })
-      .catch(done)
-    });
+          }
+
+          let events = template.hooks.getEmitter();
+          if (events) {
+            events.once('newMail', (email) => {
+              return resolve(email);
+            });
+          }
+        })
+          .then(email => {
+            assert.equal(email.from, 'no-reply@form.io');
+            assert.equal(email.to, template.users.user1.data.email);
+            assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
+            assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
+            done();
+          })
+          .catch(done)
+      });
+      */
+    }
 
     it('Should be able to validate a request with the validate param.', function(done) {
       request(app)
@@ -832,6 +835,230 @@ module.exports = function(app, template, hook) {
         });
     });
   });
+
+  describe('Get Temporary Tokens', function() {
+    it('A User should not be able to get a temporary token without providing their current one.', function(done) {
+      request(app)
+        .get(hook.alter('url', '/token', template))
+        .expect(400)
+        .expect('You must provide an existing token in the x-jwt-token header.')
+        .end(done);
+    });
+
+    it('A User should not be able to get a temporary token by providing a bad existing token.', function(done) {
+      request(app)
+        .get(hook.alter('url', '/token', template))
+        .set('x-jwt-token', 'badtoken' + template.users.user1.token.substr(8))
+        .expect(400)
+        .expect('Bad Token')
+        .end(done);
+    });
+
+    it('A User should not be able to get a temporary token with an expire time set to beyond main token.', function(done) {
+      request(app)
+        .get(hook.alter('url', '/token', template))
+        .set('x-jwt-token', template.users.user1.token)
+        .set('x-expire', '1000000000000000000000')
+        .expect(400)
+        .expect('Cannot generate extended expiring temp token.')
+        .end(done);
+    });
+
+    var tempToken = null;
+    it('Should allow them to create a default temp token with default expiration.', function(done) {
+      request(app)
+        .get(hook.alter('url', '/token', template))
+        .set('x-jwt-token', template.users.user1.token)
+        .expect(200)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          tempToken = res.text;
+          assert(tempToken.length > 10, 'Temporary token was not created');
+          done();
+        });
+    });
+
+    it('Should allow you to authenticate with the temporary token.', function(done) {
+      request(app)
+        .get(hook.alter('url', '/current', template))
+        .set('x-jwt-token', tempToken)
+        .expect(200)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(res.body.data.email, template.users.user1.data.email);
+          assert.equal(res.body._id, template.users.user1._id);
+          done();
+        });
+    });
+
+    it('Should not allow you to get a new temp token using the old temp token.', function(done) {
+      request(app)
+        .get(hook.alter('url', '/token', template))
+        .set('x-jwt-token', tempToken)
+        .expect(400)
+        .expect('Cannot issue a temporary token using another temporary token.')
+        .end(done);
+    });
+
+    it('Should allow you to get a token with a different expire time.', function(done) {
+      request(app)
+        .get(hook.alter('url', '/token', template))
+        .set('x-jwt-token', template.users.user1.token)
+        .set('x-expire', 2)
+        .expect(200)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          tempToken = res.text;
+          assert(tempToken.length > 10, 'Temporary token was not created');
+          done();
+        });
+    });
+
+    it('Should allow you to use that token within the expiration', function(done) {
+      request(app)
+        .get(hook.alter('url', '/current', template))
+        .set('x-jwt-token', tempToken)
+        .expect(200)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(res.body.data.email, template.users.user1.data.email);
+          assert.equal(res.body._id, template.users.user1._id);
+          done();
+        });
+    });
+
+    it('Should not allow you to use the token beyond the expiration', function(done) {
+      setTimeout(function() {
+        request(app)
+          .get(hook.alter('url', '/current', template))
+          .set('x-jwt-token', tempToken)
+          .expect(440)
+          .expect('Login Timeout')
+          .end(done);
+      }, 2000);
+    });
+
+    var allowedToken = '';
+    it('Should allow you to get a token for a specific path', function(done) {
+      request(app)
+        .get(hook.alter('url', '/token', template))
+        .set('x-jwt-token', template.users.user1.token)
+        .set('x-allow', 'GET:/form/[0-9a-z]+')
+        .expect(200)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          allowedToken = res.text;
+          assert(!!allowedToken, 'No allowed token generated');
+          return done();
+        });
+    });
+
+    it('Should not allow you to navigate to certain paths', function(done) {
+      request(app)
+        .get(hook.alter('url', '/current', template))
+        .set('x-jwt-token', allowedToken)
+        .expect(401)
+        .end(done);
+    });
+
+    it('Should not allow you to perform methods on accepted paths', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.resources.user._id, template))
+        .set('x-jwt-token', allowedToken)
+        .expect(401)
+        .end(done);
+    });
+
+    it('Should allow you to see the path and method specified in the token', function(done) {
+      request(app)
+        .get(hook.alter('url', '/form/' + template.resources.user._id, template))
+        .set('x-jwt-token', allowedToken)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          assert.equal(res.body._id, template.resources.user._id);
+          done();
+        });
+    });
+
+    it('Should allow generation of tokens with more than one allowed paths.', function(done) {
+      request(app)
+        .get(hook.alter('url', '/token', template))
+        .set('x-jwt-token', template.users.user1.token)
+        .set('x-allow', 'GET:/form/[0-9a-z]+,GET:/current')
+        .expect(200)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          allowedToken = res.text;
+          assert(!!allowedToken, 'No allowed token generated');
+          return done();
+        });
+    });
+
+    it('Should not allow you get a different token', function(done) {
+      request(app)
+        .get(hook.alter('url', '/token', template))
+        .set('x-jwt-token', allowedToken)
+        .expect(400)
+        .end(done);
+    });
+
+    it('Should not allow you to perform methods on accepted paths', function(done) {
+      request(app)
+        .post(hook.alter('url', '/form/' + template.resources.user._id, template))
+        .set('x-jwt-token', allowedToken)
+        .expect(401)
+        .end(done);
+    });
+
+    it('Should allow you to see the path and method specified in the token', function(done) {
+      request(app)
+        .get(hook.alter('url', '/form/' + template.resources.user._id, template))
+        .set('x-jwt-token', allowedToken)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          assert.equal(res.body._id, template.resources.user._id);
+          done();
+        });
+    });
+
+    it('Should allow you to see the path and method specified in the token', function(done) {
+      request(app)
+        .get(hook.alter('url', '/current', template))
+        .set('x-jwt-token', allowedToken)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          assert.equal(res.body._id, template.users.user1._id);
+          done();
+        });
+    });
+  });
+
+
 
   /**
    * partially authentication tests

@@ -47,6 +47,90 @@ module.exports = function(router) {
   };
 
   /**
+   * Checks to see if a decoded token is allowed to access this path.
+   * @param req
+   * @param decoded
+   * @return {boolean}
+   */
+  var isTokenAllowed = function(req, decoded) {
+    if (!decoded.allow) {
+      return true;
+    }
+
+    var isAllowed = false;
+    var allowed = decoded.allow.split(',');
+    _.each(allowed, function(allow) {
+      var test = req.method.toUpperCase() + ':' + req.url;
+      try {
+        var regex = new RegExp(allow);
+        if (regex.test(test)) {
+          isAllowed = true;
+          return false;
+        }
+      }
+      catch (err) {
+        console.warn('Bad token allow string.');
+      }
+    });
+    return isAllowed;
+  };
+
+  /**
+   * Generate a temporary token for a specific path and expiration.
+   *
+   * @param token
+   * @param allow
+   * @param expire
+   * @param cb
+   */
+  var getTempToken = function(req, token, allow, expire, cb) {
+    // Decode/refresh the token and store for later middleware.
+    jwt.verify(token, router.formio.config.jwt.secret, function(err, decoded) {
+      if (err || !decoded) {
+        if (err && (err.name === 'JsonWebTokenError')) {
+          return cb('Bad Token');
+        }
+        else if (err && (err.name === 'TokenExpiredError')) {
+          return cb('Login Timeout');
+        }
+        else {
+          return cb('Unauthorized');
+        }
+      }
+
+      // Check to see if this path is allowed.
+      if (!isTokenAllowed(req, decoded)) {
+        return cb('Token path not allowed.');
+      }
+
+      // Do not allow regeneration of temp tokens from other temp tokens.
+      if (decoded.tempToken) {
+        return cb('Cannot issue a temporary token using another temporary token.');
+      }
+
+      var now = Math.round((new Date()).getTime() / 1000);
+      expire = expire || 3600;
+      expire = parseInt(expire, 10);
+      var timeLeft = (parseInt(decoded.exp, 10) - now);
+
+      // Ensure they are not trying to create an extended expiration.
+      if ((expire > 3600) && (timeLeft < expire)) {
+        return cb('Cannot generate extended expiring temp token.')
+      }
+
+      // Add the allowed to the token.
+      if (allow) {
+        decoded.allow = allow;
+      }
+
+      decoded.tempToken = true;
+      jwt.sign(decoded, router.formio.config.jwt.secret, {
+        expiresIn: expire
+      }, (token) => cb(null, token));
+    });
+  };
+
+  /**
    * Authenticate a user.
    *
    * @param forms {Mixed}
@@ -207,6 +291,8 @@ module.exports = function(router) {
    */
   return {
     getToken: getToken,
+    isTokenAllowed: isTokenAllowed,
+    getTempToken: getTempToken,
     authenticate: authenticate,
     currentUser: currentUser,
     logout: function(req, res) {

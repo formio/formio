@@ -2,6 +2,7 @@
 
 var jwt = require('jsonwebtoken');
 var util = require('../util/util');
+var _ = require('lodash');
 var debug = {
   error: require('debug')('formio:error'),
   handler: require('debug')('formio:middleware:tokenHandler')
@@ -52,6 +53,11 @@ module.exports = function(router) {
         else {
           return res.sendStatus(401);
         }
+      }
+
+      // Check to see if this token is allowed to access this path.
+      if (!router.formio.auth.isTokenAllowed(req, decoded)) {
+        return res.sendStatus(401);
       }
 
       // If this is a temporary token, then decode it and set it in the request.
