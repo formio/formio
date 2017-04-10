@@ -3,7 +3,6 @@
 let async = require(`async`);
 let _ = require(`lodash`);
 let util = require(`../util/util`);
-let pjson = require(`../../package.json`);
 let semver = require(`semver`);
 let debug = {
   template: require(`debug`)(`formio:template:template`),
@@ -280,13 +279,6 @@ module.exports = (router) => {
 
         return action;
       }
-    },
-    submission: {
-      model: formio.resources.submission.model,
-      transform: (template, submission) => {
-        formMachineNameToId(template, submission);
-        return submission;
-      }
     }
   };
 
@@ -314,6 +306,7 @@ module.exports = (router) => {
 
       // If no items were given for the install, skip this model.
       if (!items || _.isEmpty(items)) {
+        debug.items(`No items given to install`);
         return done();
       }
 
@@ -322,6 +315,7 @@ module.exports = (router) => {
 
       // If the given items don't have a valid structure for this entity, skip the import.
       if (valid && !valid(items)) {
+        debug.install(`The given items were not valid: ${JSON.stringify(items)}`);
         return done();
       }
 
@@ -380,6 +374,7 @@ module.exports = (router) => {
         });
       }, (err) => {
         if (err) {
+          debug.install(err);
           return done(err);
         }
         if (cleanUp) {
@@ -427,8 +422,7 @@ module.exports = (router) => {
       async.apply(install(entities.role), template, template.roles, alter.role),
       async.apply(install(entities.resource), template, template.resources, alter.form),
       async.apply(install(entities.form), template, template.forms, alter.form),
-      async.apply(install(entities.action), template, template.actions, alter.action),
-      async.apply(install(entities.submission), template, template.submissions, alter.submission)
+      async.apply(install(entities.action), template, template.actions, alter.action)
     ], install, template), (err) => {
       if (err) {
         debug.template(err);
