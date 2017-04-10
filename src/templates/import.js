@@ -392,170 +392,6 @@ module.exports = (router) => {
   };
 
   /**
-   * Update a template to the latest version, using the transforms.
-   *
-   * @param {Object} template
-   * @param {Function} done
-   *
-   * @returns {*}
-   */
-  let updateSchema = (template, done) => {
-    // Skip if the template has a correct version.
-    debug.updateSchema(`template.version: `, template.version);
-    debug.updateSchema(`pjson.templateVersion: `, pjson.templateVersion);
-    if (template.version && !semver.gt(pjson.templateVersion, template.version)) {
-      debug.updateSchema(`Skipping`);
-      debug.updateSchema(template);
-      return done();
-    }
-
-    // Create a pick method.
-    let name = (name) => {
-      return (value) => {
-        return value.name === name;
-      };
-    };
-
-    // Fix all schemas.
-    _.each([`forms`, `resources`], (type) => {
-      _.each(template[type], (form, formKey) => {
-        // If no auth action exists, then add a save submission action.
-        let authAction = _.find(template.actions, {name: `auth`, form: formKey});
-        let noSubmit = _.find(template.actions, {name: `nosubmit`, form: formKey});
-        if (!authAction && !noSubmit) {
-          template.actions[`${formKey}Save`] = {
-            title: `Save Submission`,
-            name: `save`,
-            form: formKey,
-            handler: [`before`],
-            method: [`create`, `update`],
-            priority: 10,
-            settings: {}
-          };
-        }
-
-        util.eachComponent(form.components, (component) => {
-          if (component.validate && component.validate.custom) {
-            _.each(template.resources, (resource) => {
-              component.validate.custom = component.validate.custom.replace(`${resource.name}.password`, `password`);
-            });
-          }
-          if (component.key && component.key.indexOf(`.`) !== -1) {
-            component.key = component.key.split(`.`)[1];
-          }
-        });
-      });
-    });
-
-    // Turn all `auth` actions into the new authentication system.
-    _.each(_.pick(template.actions, name(`auth`)), (authAction, key) => {
-      delete template.actions[key];
-      let userparts = authAction.settings.username.split(`.`);
-      if (userparts.length <= 1) {
-        return;
-      }
-
-      let resource = userparts[0];
-      let username = userparts[1];
-      let password = authAction.settings.password.split(`.`)[1];
-
-      // Add the Resource action for new associations.
-      if (authAction.settings.association === `new`) {
-        // Ensure that the underlying resource has a role assignment action.
-        let roleAction = _.find(template.actions, {name: `role`, form: resource});
-        if (!roleAction) {
-          template.actions[`${resource}Role`] = {
-            title: `Role Assignment`,
-            name: `role`,
-            priority: 1,
-            handler: [`after`],
-            method: [`create`],
-            form: resource,
-            settings: {
-              association: `new`,
-              type: `add`,
-              role: authAction.settings.role
-            }
-          };
-        }
-
-        let fields = {};
-        fields[username] = username;
-        fields[password] = password;
-        template.actions[`${key}SaveResource`] = {
-          title: `Save Submission`,
-          name: `save`,
-          form: authAction.form,
-          handler: [`before`],
-          method: [`create`, `update`],
-          priority: 11,
-          settings: {
-            resource: resource,
-            fields: fields
-          }
-        };
-      }
-
-      // Add the login action.
-      template.actions[`${key}Login`] = {
-        title: `Login`,
-        name: `login`,
-        form: authAction.form,
-        handler: [`before`],
-        method: [`create`],
-        priority: 2,
-        settings: {
-          resources: [resource],
-          username: username,
-          password: password
-        }
-      };
-    });
-
-    // Remove all nosubmit actions.
-    _.each(_.pick(template.actions, name(`nosubmit`)), (action, key) => {
-      delete template.actions[key];
-    });
-
-    // Convert resource actions into Save Submission actions with resource association.
-    _.each(_.pick(template.actions, name(`resource`)), (resourceAction, key) => {
-      delete template.actions[key];
-
-      let roleAction = _.find(template.actions, {name: `role`, form: resourceAction.settings.resource});
-      if (!roleAction) {
-        template.actions[`${resourceAction.settings.resource}Role`] = {
-          title: `Role Assignment`,
-          name: `role`,
-          priority: 1,
-          handler: [`after`],
-          method: [`create`],
-          form: resourceAction.settings.resource,
-          settings: {
-            association: `new`,
-            type: `add`,
-            role: resourceAction.settings.role
-          }
-        };
-      }
-
-      template.actions[`${key}SaveResource`] = {
-        title: `Save Submission`,
-        name: `save`,
-        form: resourceAction.form,
-        handler: [`before`],
-        method: [`create`, `update`],
-        priority: 11,
-        settings: {
-          resource: resourceAction.settings.resource,
-          fields: resourceAction.settings.fields
-        }
-      };
-    });
-
-    done();
-  };
-
-  /**
    * Import the formio template.
    *
    * Note: This is all of the core entities, not submission data.
@@ -587,15 +423,13 @@ module.exports = (router) => {
     }
 
     debug.items(JSON.stringify(template));
-    async.series([
-      async.apply(updateSchema, template)
-    ].concat(hook.alter(`templateSteps`, [
+    async.series(hook.alter(`templateSteps`, [
       async.apply(install(entities.role), template, template.roles, alter.role),
       async.apply(install(entities.resource), template, template.resources, alter.form),
       async.apply(install(entities.form), template, template.forms, alter.form),
       async.apply(install(entities.action), template, template.actions, alter.action),
       async.apply(install(entities.submission), template, template.submissions, alter.submission)
-    ], install, template)), (err) => {
+    ], install, template), (err) => {
       if (err) {
         debug.template(err);
         return done(err);
