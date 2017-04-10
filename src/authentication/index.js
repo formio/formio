@@ -72,7 +72,7 @@ module.exports = function(router) {
 
       try {
         var regex = new RegExp(parts[1]);
-        if (regex.test(req.url)) {
+        if (regex.test(req.baseUrl + req.url)) {
           isAllowed = true;
           return false;
         }
@@ -105,6 +105,11 @@ module.exports = function(router) {
         else {
           return cb('Unauthorized');
         }
+      }
+
+      if (!res.headersSent) {
+        res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
+        res.setHeader('x-jwt-token', token);
       }
 
       // Check to see if this path is allowed.
