@@ -17,20 +17,11 @@ module.exports = function(router) {
     ) {
       // Make sure we do not expose private validations.
       var checkPrivateValidation = function(form) {
-        var hasAccess = false;
-        if (req.user) {
-          _.each(form.access, function(access) {
-            if (access && access.hasOwnProperty('id') && (access.id.toString() === req.user._id.toString())) {
-              hasAccess = true;
-              return;
-            }
-          });
-        }
-        if (hasAccess) {
+        if (req.isAdmin) {
           return;
         }
 
-        _.each(form.components, function(component, index) {
+        _.each(form.components, function(component) {
           if (component.validate && component.validate.customPrivate) {
             delete component.validate.custom;
           }

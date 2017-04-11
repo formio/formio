@@ -3203,6 +3203,27 @@ module.exports = function(app, template, hook) {
               done(null, response);
             });
         };
+        var getForm = (token, done) => {
+          if (typeof token === 'function') {
+            done = token;
+            token = undefined;
+          }
+
+          if (!token) {
+            return request(app)
+              .get(hook.alter('url', `/form/${form._id}`, template))
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(done);
+          }
+
+          request(app)
+            .get(hook.alter('url', `/form/${form._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(done);
+        };
 
         describe('Bootstrap custom validation form', function() {
           it('Create the primary form', function(done) {
@@ -3925,6 +3946,87 @@ module.exports = function(app, template, hook) {
             attemptSubmission(templates.valueReplace.text.old.pass, function(err, result) {
               assert.deepEqual(result.data, templates.valueReplace.text.old.pass.data);
               return done();
+            });
+          });
+        });
+        
+        // FOR-470
+        describe('Custom private validations are hidden from users', function() {
+          describe('root level components', function() {
+            before(function(done) {
+              form.components = templates.customPrivate.root.components;
+              updatePrimary(done);
+            });
+
+            it('Admins should see the custom private validations for a component', function(done) {
+              getForm(true, (err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                let response = res.body;
+                assert(response.hasOwnProperty('components'));
+                assert.equal(response.components.length, 1);
+                let component = response.components[0];
+                assert.deepEqual(component.validate, templates.customPrivate.root.admin.pass);
+                return done();
+              });
+            });
+
+            it('Users should not see the custom private validations for a component', function(done) {
+              getForm((err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                let response = res.body;
+                assert(response.hasOwnProperty('components'));
+                assert.equal(response.components.length, 1);
+                let component = response.components[0];
+                assert.deepEqual(component.validate, templates.customPrivate.root.user.pass);
+                return done();
+              });
+            });
+          });
+
+          describe('nested components', function() {
+            before(function(done) {
+              form.components = templates.customPrivate.nested.components;
+              updatePrimary(done);
+            });
+
+            it('Admins should see the custom private validations for a component', function(done) {
+              getForm(true, (err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                let response = res.body;
+                assert(response.hasOwnProperty('components'));
+                assert.equal(response.components.length, 1);
+                assert(response.components[0].hasOwnProperty('components'));
+                assert.equal(response.components[0].components.length, 1);
+                let component = response.components[0].components[0];
+                assert.deepEqual(component.validate, templates.customPrivate.nested.admin.pass);
+                return done();
+              });
+            });
+
+            it('Users should not see the custom private validations for a component', function(done) {
+              getForm((err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                let response = res.body;
+                assert(response.hasOwnProperty('components'));
+                assert.equal(response.components.length, 1);
+                assert(response.components[0].hasOwnProperty('components'));
+                assert.equal(response.components[0].components.length, 1);
+                let component = response.components[0].components[0];
+                assert.deepEqual(component.validate, templates.customPrivate.nested.user.pass);
+                return done();
+              });
             });
           });
         });
