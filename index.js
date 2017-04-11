@@ -107,6 +107,11 @@ module.exports = function(config) {
       // Import our authentication models.
       router.formio.auth = require('./src/authentication/index')(router);
 
+      // The get token handler
+      if (!router.formio.hook.invoke('init', 'getTempToken', router.formio)) {
+        router.get('/token', router.formio.auth.tempToken);
+      }
+
       // Perform token mutation before all requests.
       if (!router.formio.hook.invoke('init', 'token', router.formio)) {
         router.use(router.formio.middleware.tokenHandler);
