@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## 1.16.5
 ### Added
  - Template import / export tests
+ - git pre commit hooks for linting
 
 ### Fixed
  - Template action imports could fail based on resources not existing at creation time.
