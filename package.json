@@ -63,6 +63,7 @@
     "chance": "^0.8.0",
     "eslint": "^2.11.1",
     "mocha": "^2.5.3",
+    "pre-commit": "^1.2.2",
     "supertest": "^3.0.0"
   },
   "directories": {
@@ -79,5 +80,8 @@
   "bugs": {
     "url": "https://github.com/formio/formio/issues"
   },
-  "homepage": "https://github.com/formio/formio#readme"
+  "homepage": "https://github.com/formio/formio#readme",
+  "pre-commit": [
+    "lint"
+  ]
 }
