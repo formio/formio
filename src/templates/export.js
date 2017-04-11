@@ -221,6 +221,6 @@ module.exports = (router) => {
       return next(null, template);
     });
   };
-  
+
   return exportTemplate;
 };

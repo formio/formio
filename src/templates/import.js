@@ -1,9 +1,8 @@
-`use strict`;
+'use strict';
 
 let async = require(`async`);
 let _ = require(`lodash`);
 let util = require(`../util/util`);
-let semver = require(`semver`);
 let debug = {
   template: require(`debug`)(`formio:template:template`),
   items: require(`debug`)(`formio:template:items`),
@@ -433,7 +432,7 @@ module.exports = (router) => {
       done(null, template);
     });
   };
-  
+
   return {
     install,
     template: importTemplate
