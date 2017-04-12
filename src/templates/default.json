@@ -1,7 +1,7 @@
 {
   "title": "Default",
   "name": "default",
-  "version": "2.0.0",
+  "version": "0.0.0",
   "description": "Provides a simple User authentication system.",
   "roles": {
     "administrator": {

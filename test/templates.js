@@ -289,7 +289,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -332,7 +332,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -407,7 +407,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -451,7 +451,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -526,7 +526,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -573,7 +573,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -648,7 +648,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -695,7 +695,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -770,7 +770,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -817,7 +817,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -892,7 +892,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -939,7 +939,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -1014,7 +1014,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -1061,7 +1061,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -1136,7 +1136,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -1183,7 +1183,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -1258,7 +1258,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -1305,7 +1305,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -1380,7 +1380,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -1427,7 +1427,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -1502,7 +1502,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -1549,7 +1549,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -1624,7 +1624,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -1671,7 +1671,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
 
           // Update the test template to not contain any of the malformed actions.
           testTemplate.actions = {};
@@ -1750,7 +1750,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -1797,7 +1797,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
 
           // Update the test template to not contain any of the malformed actions.
           testTemplate.actions = {};
@@ -1879,7 +1879,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -1925,7 +1925,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -2001,7 +2001,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -2049,7 +2049,7 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.deepEqual(exportData.roles, {});
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version', 'roles']), _.omit(testTemplate, ['plan', 'version', 'roles']));
         });
       });
@@ -2124,7 +2124,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -2172,7 +2172,7 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.deepEqual(exportData.resources, {});
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version', 'resources']), _.omit(testTemplate, ['plan', 'version', 'resources']));
         });
       });
@@ -2247,7 +2247,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -2295,7 +2295,7 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.deepEqual(exportData.forms, {});
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version', 'forms']), _.omit(testTemplate, ['plan', 'version', 'forms']));
         });
       });
@@ -2371,7 +2371,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -2419,7 +2419,7 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.deepEqual(exportData.actions, {});
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version', 'actions']), _.omit(testTemplate, ['plan', 'version', 'actions']));
         });
       });
@@ -2494,7 +2494,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -2542,7 +2542,7 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.deepEqual(exportData.title, 'Export');
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version', 'title']), _.omit(testTemplate, ['plan', 'version', 'title']));
         });
       });
@@ -2617,7 +2617,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -2664,7 +2664,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version', 'name']), _.omit(testTemplate, ['plan', 'version', 'name']));
         });
       });
@@ -2739,7 +2739,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -2786,7 +2786,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version', 'description']), _.omit(testTemplate, ['plan', 'version', 'description']));
         });
       });
@@ -2861,7 +2861,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -2908,7 +2908,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version']), _.omit(testTemplate, ['plan', 'version']));
         });
       });
@@ -2983,7 +2983,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -3034,7 +3034,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version', 'foo']), _.omit(testTemplate, ['plan', 'version', 'foo']));
         });
       });
@@ -3110,7 +3110,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -3157,7 +3157,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version', 'roles']), _.omit(testTemplate, ['plan', 'version', 'roles']));
         });
       });
@@ -3232,7 +3232,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -3279,7 +3279,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version', 'resources']), _.omit(testTemplate, ['plan', 'version', 'resources']));
         });
       });
@@ -3354,7 +3354,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -3401,7 +3401,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version', 'forms']), _.omit(testTemplate, ['plan', 'version', 'forms']));
         });
       });
@@ -3477,7 +3477,7 @@ module.exports = (app, template, hook) => {
         it('An export should contain the current export version', function() {
           assert.equal(
             exportData.version,
-            '2.0.0'
+            '0.0.0'
           );
         });
 
@@ -3523,7 +3523,7 @@ module.exports = (app, template, hook) => {
         });
 
         it('An export should match an import', function() {
-          assert.equal(exportData.version, '2.0.0');
+          assert.equal(exportData.version, '0.0.0');
           assert.deepEqual(_.omit(exportData, ['plan', 'version', 'actions']), _.omit(testTemplate, ['plan', 'version', 'actions']));
         });
       });
