@@ -1,0 +1,47 @@
+{
+  "title": "unknownResources",
+  "name": "unknownResources",
+  "version": "2.0.0",
+  "description": "unknownResources tests",
+  "roles": {},
+  "resources": {
+    "a": {
+      "title": "a",
+      "type": "resource",
+      "name": "a",
+      "path": "a",
+      "tags": [],
+      "submissionAccess": [],
+      "access": [],
+      "components": [{
+        "conditional": {
+          "eq": "",
+          "when": null,
+          "show": ""
+        },
+        "tags": [],
+        "type": "resource",
+        "defaultPermission": "",
+        "validate": {
+          "required": false
+        },
+        "clearOnHide": true,
+        "persistent": true,
+        "protected": false,
+        "multiple": false,
+        "searchFields": "",
+        "selectFields": "",
+        "template": "<span>{{ item.data }}</span>",
+        "defaultValue": "",
+        "resource": "unknown",
+        "placeholder": "",
+        "key": "unknown",
+        "label": "unknown",
+        "tableView": true,
+        "input": true
+      }]
+    }
+  },
+  "forms": {},
+  "actions": {}
+}

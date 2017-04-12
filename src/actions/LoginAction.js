@@ -138,6 +138,7 @@ module.exports = function(router) {
    * @param next
    * @returns {*}
    */
+  /* eslint-disable max-statements */
   LoginAction.prototype.checkAttempts = function(error, user, next) {
     if (!user || !user._id) {
       return next.call(this, error);
@@ -165,9 +166,8 @@ module.exports = function(router) {
 
     // See if the login is locked.
     if (user.metadata.login.locked) {
-
       // Get how long they must wait to be locked out.
-      var lockWait = parseInt(this.settings.lockWait, 10) || 1800;
+      let lockWait = parseInt(this.settings.lockWait, 10) || 1800;
 
       // Normalize to milliseconds.
       lockWait *= 1000;
@@ -203,7 +203,7 @@ module.exports = function(router) {
 
         // If they exceeded the login attempts.
         if (attempts >= allowedAttempts) {
-          var lockWait = parseInt(this.settings.lockWait, 10) || 1800;
+          let lockWait = parseInt(this.settings.lockWait, 10) || 1800;
           error = 'Maximum Login attempts. Please wait ' + this.waitText(lockWait) + ' before trying again.';
           user.metadata.login.locked = true;
         }
@@ -230,6 +230,7 @@ module.exports = function(router) {
       }.bind(this)
     );
   };
+  /* eslint-enable max-statements */
 
   /**
    * Authenticate with Form.io using the JWT Authentication Scheme.
@@ -252,17 +253,17 @@ module.exports = function(router) {
     }
 
     if (!req.submission || !req.submission.hasOwnProperty('data')) {
-      return res.status(401).send('User or password was incorrect.')
+      return res.status(401).send('User or password was incorrect.');
     }
 
     // They must provide a username.
     if (!_.has(req.submission.data, this.settings.username)) {
-      return res.status(401).send('User or password was incorrect.')
+      return res.status(401).send('User or password was incorrect.');
     }
 
     // They must provide a password.
     if (!_.has(req.submission.data, this.settings.password)) {
-      return res.status(401).send('User or password was incorrect.')
+      return res.status(401).send('User or password was incorrect.');
     }
 
     // Perform an authentication.
