@@ -191,10 +191,9 @@ module.exports = (router) => {
   let exportTemplate = (options, next) => {
     let template = {
       title: options.title ? options.title : 'Export',
-      version: '2.0.0',
+      version: '0.0.0',
       description: options.description ? options.description : '',
       name: options.name ? options.name : 'export',
-      plan: options.plan ? options.plan : 'community',
       roles: {},
       forms: {},
       actions: {},

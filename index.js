@@ -194,7 +194,7 @@ module.exports = function(config) {
               return next(err.message || err);
             }
 
-            res.attachment(`${options.name}.json`);
+            res.attachment(`${options.name}-${options.version}.json`);
             res.end(JSON.stringify(data));
           });
         });
