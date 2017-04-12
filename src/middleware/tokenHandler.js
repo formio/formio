@@ -100,8 +100,8 @@ module.exports = function(router) {
       // Load the formio hooks.
       var hook = require('../util/hook')(router.formio);
 
-      if (!hook.alter('external', decoded, req, res)) {
-        generateToken(token, decoded, res);
+      if (!hook.alter('external', decoded, req)) {
+        generateToken(token, decoded);
         return next();
       }
       
