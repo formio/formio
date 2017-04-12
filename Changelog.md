@@ -5,11 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## 1.16.5
 ### Added
  - Template import / export tests
  - git pre commit hooks for linting
-
-### Changed
 
 ### Fixed
  - Template action imports could fail based on resources not existing at creation time.
