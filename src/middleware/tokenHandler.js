@@ -100,7 +100,7 @@ module.exports = function(router) {
       var hook = require('../util/hook')(router.formio);
 
       if (!hook.alter('external', decoded, req)) {
-        generateToken(token, decoded);
+        generateToken(token, decoded, res);
         return next();
       }
       
