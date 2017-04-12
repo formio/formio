@@ -1,8 +1,8 @@
 'use strict';
 
-var _ = require('lodash');
-
-module.exports = {
-  default: _.cloneDeep(require('./default.json')),
-  empty: _.cloneDeep(require('./empty.json'))
+module.exports = (router) => {
+  return {
+    import: require('./import')(router),
+    export: require('./export')(router)
+  };
 };

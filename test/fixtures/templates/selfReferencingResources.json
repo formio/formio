@@ -1,0 +1,47 @@
+{
+  "title": "selfReferencingResources",
+  "name": "selfReferencingResources",
+  "version": "2.0.0",
+  "description": "selfReferencingResources tests",
+  "roles": {},
+  "resources": {
+    "a": {
+      "title": "a",
+      "type": "resource",
+      "name": "a",
+      "path": "a",
+      "tags": [],
+      "submissionAccess": [],
+      "access": [],
+      "components": [{
+        "conditional": {
+          "eq": "",
+          "when": null,
+          "show": ""
+        },
+        "tags": [],
+        "type": "resource",
+        "defaultPermission": "",
+        "validate": {
+          "required": false
+        },
+        "clearOnHide": true,
+        "persistent": true,
+        "protected": false,
+        "multiple": false,
+        "searchFields": "",
+        "selectFields": "",
+        "template": "<span>{{ item.data }}</span>",
+        "resource": "a",
+        "defaultValue": "",
+        "placeholder": "",
+        "key": "a",
+        "label": "a",
+        "tableView": true,
+        "input": true
+      }]
+    }
+  },
+  "forms": {},
+  "actions": {}
+}

@@ -2049,7 +2049,7 @@ module.exports = function(app, template, hook) {
 
       // FOR-278
       describe('Adding a min value to an existing component will persist the changes', function() {
-        var for278 = require('./forms/for278');
+        var for278 = require('./fixtures/forms/for278');
         var form = _.cloneDeep(tempForm);
         form.title = chance.word();
         form.name = chance.word();
@@ -3074,7 +3074,7 @@ module.exports = function(app, template, hook) {
         form.title = chance.word();
         form.name = chance.word();
         form.path = chance.word();
-        form.components = require('./forms/for272');
+        form.components = require('./fixtures/forms/for272');
 
         it('Bootstrap', function(done) {
           // Create the test form
@@ -3154,7 +3154,7 @@ module.exports = function(app, template, hook) {
 
       // FOR-255
       describe('Custom validation', function() {
-        var templates = require('./forms/customValidation');
+        var templates = require('./fixtures/forms/customValidation');
         var form = _.cloneDeep(tempForm);
         form.title = 'customvalidation';
         form.name = 'customvalidation';

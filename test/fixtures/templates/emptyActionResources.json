@@ -1,0 +1,19 @@
+{
+  "title": "emptyActionResources",
+  "name": "emptyActionResources",
+  "version": "2.0.0",
+  "description": "emptyActionResources tests",
+  "roles": {},
+  "resources": {},
+  "forms": {},
+  "actions": {
+    "a": {
+      "title": "Save Submission",
+      "name": "save",
+      "handler": ["before"],
+      "method": ["create", "update"],
+      "priority": 11,
+      "settings": {}
+    }
+  }
+}
