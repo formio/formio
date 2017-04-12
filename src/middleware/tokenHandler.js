@@ -103,7 +103,7 @@ module.exports = function(router) {
         generateToken(token, decoded, res);
         return next();
       }
-      
+
       // Load the user submission.
       var cache = router.formio.cache || require('../cache/cache')(router);
       cache.loadSubmission(req, decoded.form._id, decoded.user._id, function(err, user) {

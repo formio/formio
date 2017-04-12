@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
  - Template import / export tests
  - git pre commit hooks for linting
+ - External token hooks
 
 ### Fixed
  - Template action imports could fail based on resources not existing at creation time.
