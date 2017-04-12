@@ -546,6 +546,7 @@ module.exports = function(app) {
         }
 
         this.owner.token = res.headers['x-jwt-token'];
+        this.template.submissions = this.template.submissions || {};
         if (!this.template.submissions[form]) {
           this.template.submissions[form] = [];
         }
