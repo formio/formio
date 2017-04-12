@@ -7,6 +7,7 @@ var _ = require('lodash');
 module.exports = function(router) {
   // Include the hook system.
   var hook = require('../util/hook')(router.formio);
+  let util = router.formio.util;
 
   // @TODO: Fix permission check to use the new roles and permissions system.
   var sanitizeValidations = function(req, res, next) {
@@ -17,20 +18,11 @@ module.exports = function(router) {
     ) {
       // Make sure we do not expose private validations.
       var checkPrivateValidation = function(form) {
-        var hasAccess = false;
-        if (req.user) {
-          _.each(form.access, function(access) {
-            if (access && access.hasOwnProperty('id') && (access.id.toString() === req.user._id.toString())) {
-              hasAccess = true;
-              return;
-            }
-          });
-        }
-        if (hasAccess) {
+        if (req.isAdmin) {
           return;
         }
 
-        _.each(form.components, function(component, index) {
+        util.eachComponent(form.components, function(component) {
           if (component.validate && component.validate.customPrivate) {
             delete component.validate.custom;
           }
