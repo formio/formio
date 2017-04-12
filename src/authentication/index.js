@@ -78,7 +78,7 @@ module.exports = function(router) {
         }
       }
       catch (err) {
-        console.warn('Bad token allow string.');
+        debug.authenticate('Bad token allow string.');
       }
     });
     return isAllowed;
@@ -129,7 +129,7 @@ module.exports = function(router) {
 
       // Ensure they are not trying to create an extended expiration.
       if ((expire > 3600) && (timeLeft < expire)) {
-        return cb('Cannot generate extended expiring temp token.')
+        return cb('Cannot generate extended expiring temp token.');
       }
 
       // Add the allowed to the token.

@@ -2,7 +2,6 @@
 
 var jwt = require('jsonwebtoken');
 var util = require('../util/util');
-var _ = require('lodash');
 var debug = {
   error: require('debug')('formio:error'),
   handler: require('debug')('formio:middleware:tokenHandler')
