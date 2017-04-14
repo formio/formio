@@ -7,6 +7,7 @@ let debug = {
   template: require(`debug`)(`formio:template:template`),
   items: require(`debug`)(`formio:template:items`),
   install: require(`debug`)(`formio:template:install`),
+  save: require(`debug`)(`formio:template:save`),
   updateSchema: require(`debug`)(`formio:template:updateSchema`),
   final: require(`debug`)(`formio:template:final`),
   cleanUp: require(`debug`)(`formio:template:cleanUp`)
@@ -200,7 +201,11 @@ module.exports = (router) => {
 
         return false;
       },
-      transform: (template, role) => role
+      transform: (template, role) => role,
+      query: function(document, template) {
+        let query = {machineName: document.machineName, deleted: {$eq: null}};
+        return hook.alter(`importRoleQuery`, query, document, template);
+      }
     },
     resource: {
       model: formio.resources.form.model,
@@ -233,6 +238,9 @@ module.exports = (router) => {
               if (err) {
                 return next(err);
               }
+              if (!doc) {
+                return next();
+              }
 
               resources[machineName] = doc.toObject();
               debug.cleanUp(`Updated resource component _ids for`, machineName);
@@ -240,6 +248,10 @@ module.exports = (router) => {
             }
           );
         }, done);
+      },
+      query: function(document, template) {
+        let query = {machineName: document.machineName, deleted: {$eq: null}};
+        return hook.alter(`importFormQuery`, query, document, template);
       }
     },
     form: {
@@ -256,6 +268,10 @@ module.exports = (router) => {
         roleMachineNameToId(template, form.access);
         componentMachineNameToId(template, form.components);
         return form;
+      },
+      query: function(document, template) {
+        let query = {machineName: document.machineName, deleted: {$eq: null}};
+        return hook.alter(`importFormQuery`, query, document, template);
       }
     },
     action: {
@@ -277,6 +293,10 @@ module.exports = (router) => {
         }
 
         return action;
+      },
+      query: function(document, template) {
+        let query = {machineName: document.machineName, deleted: {$eq: null}};
+        return hook.alter(`importActionQuery`, query, document, template);
       }
     }
   };
@@ -342,7 +362,11 @@ module.exports = (router) => {
           }
 
           debug.install(document);
-          model.findOne({machineName: document.machineName, deleted: {$eq: null}}, (err, doc) => {
+          let query = entity.query
+            ? entity.query(document, template)
+            : {machineName: document.machineName, deleted: {$eq: null}};
+
+          model.findOne(query, (err, doc) => {
             if (err) {
               debug.install(err);
               return next(err);
@@ -365,8 +389,9 @@ module.exports = (router) => {
                 return next(err);
               }
 
-              debug.install(result);
               items[machineName] = result.toObject();
+              debug.save(machineName);
+              debug.save(items[machineName]);
               next();
             });
           });
