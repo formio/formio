@@ -333,7 +333,7 @@ module.exports = function(formio, items, done) {
 
       // Get the form.io service.
       util.log('Importing template...'.green);
-      var importer = require('./src/templates/import')(formio);
+      var importer = require('./src/templates/import')({formio: formio});
       importer.template(template, function(err, template) {
         if (err) {
           return done(err);
