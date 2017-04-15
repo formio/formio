@@ -145,7 +145,11 @@ Validator.prototype.addValidator = function(schema, component, componentData) {
       // Allow custom components to have subcomponents as well (like layout components).
       if (component.components && Array.isArray(component.components)) {
         component.components.forEach(function(itemComponent) {
-          this.addValidator(component.tree ? objectSchema : schema, itemComponent, _.get(componentData, component.key, componentData));
+          this.addValidator(
+            component.tree ? objectSchema : schema,
+            itemComponent,
+            _.get(componentData, component.key, componentData)
+          );
         }.bind(this));
       }
       fieldValidator = component.tree ? Joi.object(objectSchema) : Joi.any();
