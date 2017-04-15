@@ -1,7 +1,7 @@
 'use strict';
 
 var _ = require('lodash');
-var util = require('formio-utils');
+var util = require('formiojs/utils');
 
 module.exports = function(req, router, cb) {
   var hook = require('./hook')(router.formio);

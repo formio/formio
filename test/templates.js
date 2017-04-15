@@ -2,7 +2,7 @@
 
 let assert = require('assert');
 let _ = require('lodash');
-let formioUtils = require('formio-utils');
+let formioUtils = require('formiojs/utils');
 var docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
@@ -232,7 +232,7 @@ module.exports = (app, template, hook) => {
     };
 
     let alters = hook.alter(`templateAlters`, {});
-    
+
     describe('Empty Template', function() {
       let testTemplate = require('../src/templates/empty.json');
       let _template = _.cloneDeep(testTemplate);
@@ -272,13 +272,13 @@ module.exports = (app, template, hook) => {
       describe('Export', function() {
         let project = {};
         let exportData = {};
-        
+
         it('Should be able to export project data', function(done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
-            
+
             exportData = data;
             return done();
           });

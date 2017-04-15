@@ -2,7 +2,7 @@
 
 var Resource = require('resourcejs');
 var mongoose = require('mongoose');
-var utils = require('formio-utils');
+var utils = require('formiojs/utils');
 var _ = require('lodash');
 
 module.exports = function(router) {

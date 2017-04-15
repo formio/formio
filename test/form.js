@@ -5,7 +5,7 @@ var request = require('supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var chance = new (require('chance'))();
-var formioUtils = require('formio-utils');
+var formioUtils = require('formiojs/utils');
 var async = require('async');
 var docker = process.env.DOCKER;
 var customer = process.env.CUSTOMER;
@@ -3949,7 +3949,7 @@ module.exports = function(app, template, hook) {
             });
           });
         });
-        
+
         // FOR-470
         describe('Custom private validations are hidden from users', function() {
           describe('root level components', function() {
