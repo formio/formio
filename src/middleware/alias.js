@@ -11,7 +11,17 @@ module.exports = function(router) {
   // Setup the reserved forms regex.
   if (!router.formio.config.reservedForms || !router.formio.config.reservedForms.length) {
     /* eslint-disable max-len */
-    router.formio.config.reservedForms = ['submission', 'exists', 'export', 'role', 'current', 'logout', 'form', 'access'];
+    router.formio.config.reservedForms = [
+      'submission',
+      'exists',
+      'export',
+      'role',
+      'current',
+      'logout',
+      'form',
+      'access',
+      'token'
+    ];
     /* eslint-enable max-len */
   }
 
@@ -36,7 +46,7 @@ module.exports = function(router) {
     router.formio.cache.loadFormByAlias(req, alias, function(error, form) {
       if (error) {
         debug('Error: ' + error);
-        return next('Invalid alias');
+        return res.status(400).send('Invalid alias');
       }
       if (!form) {
         return res.status(404).send('Form not found.');

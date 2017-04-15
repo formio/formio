@@ -1,0 +1,46 @@
+{
+  "title": "waterfallFormResources",
+  "name": "waterfallFormResources",
+  "version": "2.0.0",
+  "description": "waterfallFormResources tests",
+  "roles": {},
+  "resources": {},
+  "forms": {
+    "a": {
+      "title": "a",
+      "type": "form",
+      "name": "a",
+      "path": "a",
+      "tags": [],
+      "submissionAccess": [],
+      "access": [],
+      "components": [{
+        "conditional": {
+          "eq": "",
+          "when": null,
+          "show": ""
+        },
+        "tags": [],
+        "type": "resource",
+        "defaultPermission": "",
+        "validate": {
+          "required": false
+        },
+        "clearOnHide": true,
+        "persistent": true,
+        "protected": false,
+        "multiple": false,
+        "searchFields": "",
+        "selectFields": "",
+        "template": "<span>{{ item.data }}</span>",
+        "defaultValue": "",
+        "placeholder": "",
+        "key": "a",
+        "label": "a",
+        "tableView": true,
+        "input": true
+      }]
+    }
+  },
+  "actions": {}
+}

@@ -7,7 +7,18 @@
   "basePath": "",
   "mongo": "mongodb://localhost:27017/formioapp",
   "mongoSecret": "--- change me now ---",
-  "reservedForms": ["submission", "exists", "export", "role", "current", "logout", "import", "form", "access"],
+  "reservedForms": [
+    "submission",
+    "exists",
+    "export",
+    "role",
+    "current",
+    "logout",
+    "import",
+    "form",
+    "access",
+    "token"
+  ],
   "jwt": {
     "secret": "--- change me now ---",
     "expireTime": 240

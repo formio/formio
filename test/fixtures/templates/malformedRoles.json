@@ -1,0 +1,17 @@
+{
+  "title": "malformedRoles",
+  "name": "malformedRoles",
+  "version": "2.0.0",
+  "description": "",
+  "roles": [
+    {
+      "title": "Administrator",
+      "description": "A role for Administrative Users.",
+      "admin": true,
+      "default": false
+    }
+  ],
+  "resources": {},
+  "forms": {},
+  "actions": {}
+}

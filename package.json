@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "1.16.2",
+  "version": "1.16.7",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
@@ -63,7 +63,8 @@
     "chance": "^0.8.0",
     "eslint": "^2.11.1",
     "mocha": "^2.5.3",
-    "supertest": "^1.1.0"
+    "pre-commit": "^1.2.2",
+    "supertest": "^3.0.0"
   },
   "directories": {
     "test": "test"
@@ -79,5 +80,8 @@
   "bugs": {
     "url": "https://github.com/formio/formio/issues"
   },
-  "homepage": "https://github.com/formio/formio#readme"
+  "homepage": "https://github.com/formio/formio#readme",
+  "pre-commit": [
+    "lint"
+  ]
 }

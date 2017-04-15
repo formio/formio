@@ -140,11 +140,11 @@ module.exports = function(router) {
   RoleAction.prototype.resolve = function(handler, method, req, res, next) {
     // Check the submission for the submissionId.
     if (this.settings.association !== 'existing' && this.settings.association !== 'new') {
-      return next('Invalid setting `association` for the RoleAction; expecting `new` or `existing`.');
+      return res.status(400).send('Invalid setting `association` for the RoleAction; expecting `new` or `existing`.');
     }
     // Error if operation type is not valid.
     if (!this.settings.type || (this.settings.type !== 'add' && this.settings.type !== 'remove')) {
-      return next('Invalid setting `type` for the RoleAction; expecting `add` or `remove`.');
+      return res.status(400).send('Invalid setting `type` for the RoleAction; expecting `add` or `remove`.');
     }
     // Error if no resource is being returned.
     if (
@@ -152,17 +152,17 @@ module.exports = function(router) {
       res.hasOwnProperty('resource') &&
       !res.resource.item && this.settings.role
     ) {
-      return next('Invalid resource was provided for RoleAction association of `new`.');
+      return res.status(400).send('Invalid resource was provided for RoleAction association of `new`.');
     }
     // Error if association is existing and valid data was not provided.
     if (this.settings.association === 'existing' && !(this.settings.role || req.submission.data.role)) {
-      return next(
+      return res.status(400).send(
         'Missing role for RoleAction association of `existing`. Must specify role to assign in action settings or a ' +
         'form component named `role`'
       );
     }
     if (this.settings.association === 'existing' && !(req.submission.data.submission || res.resource.item)) {
-      return next(
+      return res.status(400).send(
         'Missing submission for RoleAction association of `existing`. Form must have a resource field named ' +
         '`submission`.'
       );
@@ -180,10 +180,10 @@ module.exports = function(router) {
       debug.loadUser(submission);
       router.formio.resources.submission.model.findById(submission, function(err, user) {
         if (err) {
-          return next(err);
+          return res.status(400).send(err.message || err);
         }
         if (!user) {
-          return next('No Submission was found with the given setting `submission`.');
+          return res.status(400).send('No Submission was found with the given setting `submission`.');
         }
 
         debug.loadUser(user);

@@ -2230,5 +2230,130 @@ module.exports = {
         }
       }
     }
+  },
+  customPrivate: {
+    root: {
+      components: [
+        {
+          "tags": [],
+          "type": "textfield",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "validate": {
+            "customPrivate": true,
+            "custom": "valid = true",
+            "pattern": "",
+            "maxLength": "",
+            "minLength": "",
+            "required": false
+          },
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "multiple": false,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "",
+          "key": "foo",
+          "label": "foo",
+          "inputMask": "",
+          "inputType": "text",
+          "tableView": true,
+          "input": true
+        }
+      ],
+      user: {
+        pass: {
+          customPrivate: true,
+          pattern: "",
+          maxLength: "",
+          minLength: "",
+          required: false
+        }
+      },
+      admin: {
+        pass: {
+          customPrivate: true,
+          custom: "valid = true",
+          pattern: "",
+          maxLength: "",
+          minLength: "",
+          required: false
+        }
+      }
+    },
+    nested: {
+      components: [
+        {
+          "key": "fieldset1",
+          "input": false,
+          "tableView": true,
+          "legend": "test",
+          "components": [
+            {
+              "tags": [],
+              "type": "textfield",
+              "conditional": {
+                "eq": "",
+                "when": null,
+                "show": ""
+              },
+              "validate": {
+                "customPrivate": true,
+                "custom": "valid = true",
+                "pattern": "",
+                "maxLength": "",
+                "minLength": "",
+                "required": false
+              },
+              "persistent": true,
+              "unique": false,
+              "protected": false,
+              "defaultValue": "",
+              "multiple": false,
+              "suffix": "",
+              "prefix": "",
+              "placeholder": "",
+              "key": "foo",
+              "label": "foo",
+              "inputMask": "",
+              "inputType": "text",
+              "tableView": true,
+              "input": true
+            }
+          ],
+          "type": "fieldset",
+          "tags": [],
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          }
+        }
+      ],
+      user: {
+        pass: {
+          customPrivate: true,
+          pattern: "",
+          maxLength: "",
+          minLength: "",
+          required: false
+        }
+      },
+      admin: {
+        pass: {
+          customPrivate: true,
+          custom: "valid = true",
+          pattern: "",
+          maxLength: "",
+          minLength: "",
+          required: false
+        }
+      }
+    }
   }
 };

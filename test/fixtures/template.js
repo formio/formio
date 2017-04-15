@@ -1,14 +1,16 @@
 'use strict';
 
-module.exports = function() {
+let _ = require('lodash');
+
+module.exports = () => {
   // The default project template.
-  var template = require('../src/templates/default.json');
+  let template = _.cloneDeep(require('../../src/templates/default.json'));
 
   // Change the login timeouts for testing
-  template.actions.adminLogin.settings.lockWait = 2;
-  template.actions.adminLogin.settings.attemptWindow = 2;
-  template.actions.userLogin.settings.lockWait = 2;
-  template.actions.userLogin.settings.attemptWindow = 2;
+  template.actions['adminLogin:login'].settings.lockWait = 2;
+  template.actions['adminLogin:login'].settings.attemptWindow = 2;
+  template.actions['userLogin:login'].settings.lockWait = 2;
+  template.actions['userLogin:login'].settings.attemptWindow = 2;
 
   // Create a registration form for admins for testing purposes.
   template.forms.adminRegister = {
@@ -75,7 +77,7 @@ module.exports = function() {
   };
 
   // Create an email template.
-  template.actions.newUserEmail = {
+  template.actions['user:email'] = {
     name: 'email',
     title: 'Email',
     form: 'user',
@@ -92,7 +94,7 @@ module.exports = function() {
   };
 
   // Create a register action for this form.
-  template.actions.adminRegisterSave = {
+  template.actions['adminRegister:save'] = {
     name: 'save',
     title: 'Save Submission',
     form: 'adminRegister',
@@ -108,7 +110,7 @@ module.exports = function() {
     }
   };
 
-  template.actions.adminRegisterLogin = {
+  template.actions['adminRegister:login'] = {
     name: 'login',
     title: 'Login',
     form: 'adminRegister',
