@@ -433,7 +433,7 @@
       "method": ["create", "update"],
       "priority": 10
     },
-    "user:login": {
+    "userLogin:login": {
       "name": "login",
       "title": "Login",
       "form": "userLogin",
@@ -498,7 +498,7 @@
       "method": ["create", "update"],
       "priority": 10
     },
-    "admin:login": {
+    "adminLogin:login": {
       "name": "login",
       "title": "Login",
       "form": "adminLogin",

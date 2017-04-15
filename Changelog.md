@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## 1.16.7
+### Added
+ - Adding entity query hooks to the import entities.
+
 ## 1.16.6
 ### Changed
  - Changed export filename to include version.
@@ -18,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
  - Template import / export tests
  - git pre commit hooks for linting
+ - External token hooks
 
 ### Fixed
  - Template action imports could fail based on resources not existing at creation time.

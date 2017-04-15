@@ -7,10 +7,10 @@ module.exports = () => {
   let template = _.cloneDeep(require('../../src/templates/default.json'));
 
   // Change the login timeouts for testing
-  template.actions['admin:login'].settings.lockWait = 2;
-  template.actions['admin:login'].settings.attemptWindow = 2;
-  template.actions['user:login'].settings.lockWait = 2;
-  template.actions['user:login'].settings.attemptWindow = 2;
+  template.actions['adminLogin:login'].settings.lockWait = 2;
+  template.actions['adminLogin:login'].settings.attemptWindow = 2;
+  template.actions['userLogin:login'].settings.lockWait = 2;
+  template.actions['userLogin:login'].settings.attemptWindow = 2;
 
   // Create a registration form for admins for testing purposes.
   template.forms.adminRegister = {
