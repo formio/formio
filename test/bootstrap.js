@@ -1,7 +1,7 @@
 'use strict';
 
 let assert = require('assert');
-let formioUtils = require('formio-utils');
+let formioUtils = require('formiojs/utils');
 let _ = require('lodash');
 var comparison = null;
 
@@ -10,7 +10,7 @@ module.exports = (app, template, hook) => {
     it('Should remove old test data', function(done) {
       template.clearData(done);
     });
-    
+
     it('Should be able to bootstrap the default template', function(done) {
       comparison = _.cloneDeep(template);
 
