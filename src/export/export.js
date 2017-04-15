@@ -65,7 +65,7 @@ module.exports = function(router) {
               if (field && field._id) {
                 // Add url property for resource fields
                 var fieldUrl = hook.alter('fieldUrl', '/form/' + field.form + '/submission/' + field._id, form, field);
-                field.url = _url.resolve(router.formio.config.apiHost, fieldUrl);
+                field.url = _url.resolve(router.formio.config.host, fieldUrl);
                 // Recurse for nested resources
                 addUrl(field.data);
               }
