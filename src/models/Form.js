@@ -46,6 +46,9 @@ module.exports = function(formio) {
     };
   };
 
+  var keyError = 'A component on this form has an invalid or missing API key. Keys must only contain alphanumeric ';
+  keyError += 'characters or hyphens, and must start with a letter. Please check each component\'s API Property Name.';
+
   var model = require('./BaseModel')({
     schema: new mongoose.Schema({
       title: {
@@ -135,7 +138,7 @@ module.exports = function(formio) {
         description: 'An array of components within the form.',
         validate: [
           {
-            message: 'A component on this form has an invalid or missing API key. Keys must only contain alphanumeric characters or hyphens, and must start with a letter. Please check each component\'s API Property Name.',
+            message: keyError,
             validator: function(components) {
               var validRegex = /^[A-Za-z]+[A-Za-z0-9\-.]*$/g;
               return componentKeys(components).every(function(key) {
