@@ -72,67 +72,71 @@ module.exports = function(formio) {
 
   // Validate the name.
   var invalidRegex = /[^0-9a-zA-Z\-\/]|^\-|\-$|^\/|\/$/;
-  model.schema.path('name').validate(function(name, done) {
-    return done(!invalidRegex.test(name));
+  model.schema.path('name').validate(function(name) {
+    return !invalidRegex.test(name);
   }, 'The Name may only contain letters, numbers, hyphens, and forward slashes (but cannot start or end with a hyphen '
       + 'or forward slash)');
 
   // Validate the uniqueness of the value given for the name.
-  model.schema.path('name').validate(function(value, done) {
-    var search = hook.alter('formSearch', {
-      name: value,
-      deleted: {$eq: null}
-    }, this, value);
+  model.schema.path('name').validate(function(value) {
+    return new Promise((resolve) => {
+      var search = hook.alter('formSearch', {
+        name: value,
+        deleted: {$eq: null}
+      }, this, value);
 
-    // Ignore the id if this is an update.
-    if (this._id) {
-      search._id = {$ne: this._id};
-    }
-
-    mongoose.model('form').findOne(search).exec(function(err, result) {
-      if (err) {
-        debug(err);
-        return done(false);
-      }
-      if (result) {
-        debug(result);
-        return done(false);
+      // Ignore the id if this is an update.
+      if (this._id) {
+        search._id = {$ne: this._id};
       }
 
-      done(true);
+      mongoose.model('form').findOne(search).exec(function(err, result) {
+        if (err) {
+          debug(err);
+          return resolve(false);
+        }
+        if (result) {
+          debug(result);
+          return resolve(false);
+        }
+
+        resolve(true);
+      });
     });
   }, 'The Name must be unique per Project.');
 
   // Validate the path.
-  model.schema.path('path').validate(function(value, done) {
-    return done(!invalidRegex.test(value));
+  model.schema.path('path').validate(function(value) {
+    return !invalidRegex.test(value);
   }, 'The Path may only contain letters, numbers, hyphens, and forward slashes (but cannot start or end with a hyphen '
       + 'or forward slash)'
   );
 
   // Validate the uniqueness of the value given for the name.
-  model.schema.path('path').validate(function(value, done) {
-    var search = hook.alter('formSearch', {
-      path: value,
-      deleted: {$eq: null}
-    }, this, value);
+  model.schema.path('path').validate(function(value) {
+    return new Promise((resolve) => {
+      var search = hook.alter('formSearch', {
+        path: value,
+        deleted: {$eq: null}
+      }, this, value);
 
-    // Ignore the id if this is an update.
-    if (this._id) {
-      search._id = {$ne: this._id};
-    }
-
-    mongoose.model('form').findOne(search).exec(function(err, result) {
-      if (err) {
-        debug(err);
-        return done(false);
-      }
-      if (result) {
-        debug(result);
-        return done(false);
+      // Ignore the id if this is an update.
+      if (this._id) {
+        search._id = {$ne: this._id};
       }
 
-      done(true);
+      mongoose.model('form').findOne(search).exec(function(err, result) {
+        if (err) {
+          debug(err);
+          return resolve(false);
+        }
+        if (result) {
+          debug(result);
+          return resolve(false);
+        }
+
+        resolve(true);
+      });
     });
   }, 'The Path must be unique per Project.');
 
@@ -147,7 +151,7 @@ module.exports = function(formio) {
   };
 
   // Validate component keys are unique
-  model.schema.path('components').validate(function(components, valid) {
+  model.schema.path('components').validate(function(components) {
     var keys = componentKeys(components);
     var msg = 'Component keys must be unique: ';
     var uniq = keys.uniq();
@@ -156,10 +160,10 @@ module.exports = function(formio) {
     });
 
     if (_.isEqual(keys.value(), uniq.value())) {
-      return valid(true);
+      return true;
     }
 
-    return valid(false, (msg + diff.value().join(', ')));
+    return (msg + diff.value().join(', '));
   });
 
   // Validate component keys have valid characters
