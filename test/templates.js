@@ -3,12 +3,17 @@
 let assert = require('assert');
 let _ = require('lodash');
 let formioUtils = require('formio-utils');
+var docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
-  let formio = hook.alter('formio', app.formio);
-  let importer = formio.template;
-
   describe('Template Imports', function() {
+    if (docker) {
+      return;
+    }
+
+    let formio = hook.alter('formio', app.formio);
+    let importer = formio.template;
+
     /**
      * Util function to get the resource name, given an id.
      *
