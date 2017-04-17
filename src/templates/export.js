@@ -191,7 +191,7 @@ module.exports = (router) => {
   let exportTemplate = (options, next) => {
     let template = Object.assign({
       title: 'Export',
-      version: '0.0.0',
+      tag: '0.0.0',
       description: '',
       name: 'export',
       roles: {},
