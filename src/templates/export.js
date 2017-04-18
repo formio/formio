@@ -189,16 +189,20 @@ module.exports = (router) => {
    * Note: This is all of the core entities, not submission data.
    */
   let exportTemplate = (options, next) => {
-    let template = Object.assign({
-      title: 'Export',
-      tag: '2.0.0',
-      description: '',
-      name: 'export',
-      roles: {},
-      forms: {},
-      actions: {},
-      resources: {}
-    }, options);
+    let template = Object.assign(
+      {
+        title: 'Export',
+        version: '2.0.0',
+        description: '',
+        name: 'export'
+      },
+      options,
+      {
+        roles: {},
+        forms: {},
+        actions: {},
+        resources: {}
+      });
 
     // Memoize resource mapping.
     let map = {

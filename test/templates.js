@@ -3027,8 +3027,8 @@ module.exports = (app, template, hook) => {
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('The template should not export any additional information', function() {
-          assert.deepEqual(exportData.foo, undefined);
+        it('The template should export any additional information', function() {
+          assert.deepEqual(exportData.foo, 'bar');
         });
 
         it('An export should match an import', function() {
