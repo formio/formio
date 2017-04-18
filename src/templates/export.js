@@ -191,7 +191,7 @@ module.exports = (router) => {
   let exportTemplate = (options, next) => {
     let template = Object.assign({
       title: 'Export',
-      tag: '0.0.0',
+      tag: '2.0.0',
       description: '',
       name: 'export',
       roles: {},
@@ -199,8 +199,6 @@ module.exports = (router) => {
       actions: {},
       resources: {}
     }, options);
-    // Remove the projectId as it shouldn't be exported.
-    delete template.projectId;
 
     // Memoize resource mapping.
     let map = {

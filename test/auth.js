@@ -1903,7 +1903,7 @@ module.exports = function(app, template, hook) {
           let response = res.body;
           assert.deepEqual(
             Object.keys(response),
-            ['title', 'version', 'description', 'name', 'roles', 'forms', 'actions', 'resources']
+            ['title', 'tag', 'description', 'name', 'roles', 'forms', 'actions', 'resources', 'access']
           );
           return done();
         });
