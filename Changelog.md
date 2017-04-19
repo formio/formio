@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+ - Allow template export steps to be altered with templateExportSteps
+ 
+### Changed
+ - Change templateSteps to templateImportSteps
+ 
+### Reverted
+ - Revert project version back to 2.0.0 and use tag instead.
 
 ## 1.16.7
 ### Added
