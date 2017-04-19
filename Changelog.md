@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
  - Allow template export steps to be altered with templateExportSteps
+ - Allow default template to be modified.
  
 ### Changed
  - Change templateSteps to templateImportSteps
