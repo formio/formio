@@ -189,16 +189,16 @@ module.exports = (router) => {
    * Note: This is all of the core entities, not submission data.
    */
   let exportTemplate = (options, next) => {
-    let template = {
-      title: options.title ? options.title : 'Export',
-      version: '0.0.0',
-      description: options.description ? options.description : '',
-      name: options.name ? options.name : 'export',
+    let template = hook.alter('defaultTemplate', Object.assign({
+      title: 'Export',
+      version: '2.0.0',
+      description: '',
+      name: 'export',
       roles: {},
       forms: {},
       actions: {},
       resources: {}
-    };
+    }, _.pick(options, ['title', 'version', 'description', 'name'])), options);
 
     // Memoize resource mapping.
     let map = {
@@ -207,11 +207,11 @@ module.exports = (router) => {
     };
 
     // Export the roles forms and actions.
-    async.series([
+    async.series(hook.alter(`templateExportSteps`, [
       async.apply(exportRoles, template, map, options),
       async.apply(exportForms, template, map, options),
       async.apply(exportActions, template, map, options)
-    ], (err) => {
+    ], template, map, options), (err) => {
       if (err) {
         return next(err);
       }
