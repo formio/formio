@@ -441,8 +441,7 @@ module.exports = (router) => {
       template.name = 'Export';
     }
 
-    debug.items(JSON.stringify(template));
-    async.series(hook.alter(`templateSteps`, [
+    async.series(hook.alter(`templateImportSteps`, [
       async.apply(install(entities.role), template, template.roles, alter.role),
       async.apply(install(entities.resource), template, template.resources, alter.form),
       async.apply(install(entities.form), template, template.forms, alter.form),
@@ -453,7 +452,6 @@ module.exports = (router) => {
         return done(err);
       }
 
-      debug.final(JSON.stringify(template));
       done(null, template);
     });
   };
