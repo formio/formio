@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+ - Updating the default template for new email actions to use the submission macro, rather than email, to change the
+   output of signature components to be Yes/No
 
 ## 1.16.7
 ### Added
