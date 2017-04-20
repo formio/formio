@@ -120,7 +120,7 @@ module.exports = function(router) {
           label: 'Message',
           key: 'message',
           type: 'textarea',
-          defaultValue: '{{ table(form.components) }}',
+          defaultValue: '{{ submission(data, form.components) }}',
           multiple: false,
           rows: 3,
           suffix: '',
