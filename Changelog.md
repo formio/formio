@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed
+ - Fixed debugger issues with the email threads, due to an issue with process forking using the parent process.
 
 ## 1.17.1
 ### Added
