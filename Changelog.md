@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
  - Fixed debugger issues with the email threads, due to an issue with process forking using the parent process.
+ - Automatic generation of action machine names to be form:action.
 
 ## 1.17.1
 ### Added
