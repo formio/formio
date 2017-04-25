@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
  - Fixed debugger issues with the email threads, due to an issue with process forking using the parent process.
  - Automatic generation of action machine names to be form:action.
+ - Don't attempt to set headers after response has been sent.
 
 ## 1.17.1
 ### Added
@@ -20,7 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
  - Change templateSteps to templateImportSteps
  - Updating the default template for new email actions to use the submission macro, rather than email, to change the
-   output of signature components to be Yes/No   
+   output of signature components to be Yes/No
  
 ### Reverted
  - Revert project version back to 2.0.0 and use tag instead.
