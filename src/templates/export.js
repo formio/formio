@@ -86,7 +86,7 @@ module.exports = (router) => {
           assignRole(_map, action.settings);
           assignResource(_map, action.settings);
           assignResources(_map, action.settings);
-          var machineName = action.machineName;
+          var machineName = action.machineName = hook.alter('machineNameExport', action.machineName);
           _export.actions[machineName] = _.pick(action,
             'title',
             'name',
