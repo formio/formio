@@ -5,8 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+ - Allow exported action machine names to be altered.
+
 ### Fixed
  - Fixed debugger issues with the email threads, due to an issue with process forking using the parent process.
+ - Automatic generation of action machine names to be form:action.
 
 ## 1.17.1
 ### Added
