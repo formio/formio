@@ -5,7 +5,6 @@ let Threads = require('threads');
 let config = Threads.config;
 let Spawn = Threads.spawn;
 let debug = require('debug')('formio:worker:thread');
-let testing = process.env.TEST_SUITE;
 
 config.set({
   basepath: {
@@ -18,7 +17,8 @@ class Thread {
     this.task = task;
 
     let options = undefined;
-    if (testing) {
+    // Check if debug is an argument.
+    if (process.execArgv.reduce((prev, cur) => (prev || cur.indexOf('--debug') !== -1), false)) {
       options = {execArgv: [`--debug=${Math.floor(Math.random() * (65535 - 1025)) + 1024}`]};
     }
 
