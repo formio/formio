@@ -20,7 +20,7 @@ Installation
 -------------------
 To get started you will first need the following installed on your machine.
 
-  - Node.js - https://nodejs.org/en/
+  - Node.js v0.12.x - https://nodejs.org/en/download/releases/
   - MongoDB - http://docs.mongodb.org/manual/installation/
     - On Mac I recomment using Homebrew ```brew install mongodb```
     - On Windows, download and install the MSI package @ https://www.mongodb.org/downloads
