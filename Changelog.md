@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## 1.17.5
+### Fixed
+ - Make sure to not run the temp token tests for customer docker deployment test runs.
+
 ## 1.17.4
 ### Added
  - A tempToken hook system to allow external libraries to modify temp token payloads.
