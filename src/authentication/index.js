@@ -163,7 +163,9 @@ module.exports = function(router) {
       }
 
       // Send the temp token as a response.
-      return res.send(tempToken);
+      return res.json(hook.alter('tempToken', req, res, token, allow, expire, {
+        token: tempToken
+      }));
     });
   };
 

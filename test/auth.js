@@ -873,7 +873,7 @@ module.exports = function(app, template, hook) {
             return done(err);
           }
 
-          tempToken = res.text;
+          tempToken = res.body.token;
           assert(tempToken.length > 10, 'Temporary token was not created');
           done();
         });
@@ -915,7 +915,7 @@ module.exports = function(app, template, hook) {
             return done(err);
           }
 
-          tempToken = res.text;
+          tempToken = res.body.token;
           assert(tempToken.length > 10, 'Temporary token was not created');
           done();
         });
@@ -959,7 +959,7 @@ module.exports = function(app, template, hook) {
           if (err) {
             return done(err);
           }
-          allowedToken = res.text;
+          allowedToken = res.body.token;
           assert(!!allowedToken, 'No allowed token generated');
           return done();
         });
@@ -1005,7 +1005,7 @@ module.exports = function(app, template, hook) {
           if (err) {
             return done(err);
           }
-          allowedToken = res.text;
+          allowedToken = res.body.token;
           assert(!!allowedToken, 'No allowed token generated');
           return done();
         });
@@ -1871,7 +1871,7 @@ module.exports = function(app, template, hook) {
         .end(done);
     });
   });
-  
+
   describe('Template Permissions', function() {
     it('An Anonymous user should not be able to export a project', function(done) {
       request(app)
