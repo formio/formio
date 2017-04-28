@@ -162,8 +162,15 @@ module.exports = function(router) {
         return res.status(400).send(err);
       }
 
+      var tokenResponse = {
+        token: tempToken
+      };
+
+      // Allow other libraries to hook into the response.
+      hook.alter('tempToken', req, res, token, allow, expire, tokenResponse);
+
       // Send the temp token as a response.
-      return res.send(tempToken);
+      return res.json(tokenResponse);
     });
   };
 
