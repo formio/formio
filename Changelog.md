@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## 1.17.4
+### Added
+ - A tempToken hook system to allow external libraries to modify temp token payloads.
+
+## 1.17.3
+### Fixed
+ - The way that the debug flag was being checked for debugging purposes.
+
 ## 1.17.2
 ### Added
  - Allow exported action machine names to be altered.
