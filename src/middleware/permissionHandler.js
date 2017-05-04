@@ -166,6 +166,7 @@ module.exports = function(router) {
         function getFormAccess(callback) {
           access.form = access.form || {};
           access.submission = access.submission || {};
+          access.role = access.role || {};
 
           // Skip form access if no formId was given.
           if (!req.formId) {
@@ -632,6 +633,13 @@ module.exports = function(router) {
         entity = {
           type: 'form',
           id: req.formId
+        };
+      }
+      else if (req.hasOwnProperty('roleId') && ((req.roleId !== null) && (req.roleId !== undefined))) {
+        debug.permissions('Checking access for the Role.');
+        entity = {
+          type: 'role',
+          id: req.roleId
         };
       }
 

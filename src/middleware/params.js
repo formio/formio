@@ -20,6 +20,11 @@ module.exports = function(router) {
       ? params.submission
       : null;
 
+    // Get the roleId from the request url.
+    var roleId = params.hasOwnProperty('role') && params.role !== 'undefined'
+      ? params.role
+      : null;
+
     // FA-993 - Update the request to check submission index in the case of submission exports.
     if (subId === null && formId !== null && params.hasOwnProperty('export')) {
       subId = '';
@@ -28,6 +33,7 @@ module.exports = function(router) {
     // Attach the known id's to the request for other middleware.
     req.formId = formId;
     req.subId = subId;
+    req.roleId = roleId;
     hook.alter('requestParams', req, params);
     debug(params);
 
