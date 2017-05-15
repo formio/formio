@@ -6308,6 +6308,183 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('Submission Resource Access Initial', function() {
+      let subAccessForm = {
+        title: 'Submission Access',
+        name: 'subaccess',
+        path: 'subaccess',
+        components: [{
+          "defaultPermission": "bad",
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "select",
+          "validate": {
+            "required": false
+          },
+          "clearOnHide": true,
+          "hidden": false,
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "multiple": false,
+          "template": "<span>{{ item.label }}</span>",
+          "authenticate": false,
+          "filter": "",
+          "refreshOn": "",
+          "defaultValue": "",
+          "valueProperty": "",
+          "dataSrc": "url",
+          "data": {
+            "project": "",
+            "custom": "",
+            "resource": "",
+            "url": "http://myfake.com/nothing",
+            "json": "",
+            "values": []
+          },
+          "placeholder": "",
+          "key": "permField",
+          "label": "Perm Field",
+          "tableView": true,
+          "input": true
+        }, {
+          "type": "button",
+          "theme": "primary",
+          "disableOnInvalid": false,
+          "action": "submit",
+          "block": false,
+          "rightIcon": "",
+          "leftIcon": "",
+          "size": "md",
+          "key": "submit",
+          "tableView": false,
+          "label": "Submit",
+          "input": true
+        }]
+      };
+
+      it('Create the form with submission access component', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(subAccessForm)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.deepEqual(response.components, subAccessForm.components);
+
+            subAccessForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('Should not allow bad permissions.', done => {
+        let submission = {
+          data: {
+            permField: {
+              _id: '5919b9ddf6cc4b15bd98e0d4',
+              other: 'data',
+              title: 'None'
+            }
+          }
+        };
+        request(app)
+          .post(hook.alter('url', '/form/' + subAccessForm._id + '/submission', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(submission)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+
+            submission = response;
+
+            assert.deepEqual(submission.access, []);
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('Changes permission to read', done => {
+        subAccessForm.components[0].defaultPermission = 'read';
+
+        request(app)
+          .put(hook.alter('url', '/form/' + subAccessForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(subAccessForm)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            //assert.deepEqual(response.components, subAccessForm.components);
+
+            subAccessForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('Should handle objects without ids.', done => {
+        let submission = {
+          data: {
+            permField: {
+              other: 'data',
+              title: 'None'
+            }
+          }
+        };
+        request(app)
+          .post(hook.alter('url', '/form/' + subAccessForm._id + '/submission', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(submission)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+
+            submission = response;
+
+            assert.deepEqual(submission.access, []);
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+    });
+
     describe('Submission Resource Access', function() {
       // Create the temp form for testing.
       var tempForm = {
@@ -6318,6 +6495,123 @@ module.exports = function(app, template, hook) {
         access: [],
         submissionAccess: [],
         components: [
+          {
+            "defaultPermission": "read",
+            "conditional": {
+              "eq": "",
+              "when": null,
+              "show": ""
+            },
+            "tags": [],
+            "type": "select",
+            "validate": {
+              "required": false
+            },
+            "clearOnHide": true,
+            "hidden": false,
+            "persistent": true,
+            "unique": false,
+            "protected": false,
+            "multiple": true,
+            "template": "<span>{{ item.label }}</span>",
+            "authenticate": false,
+            "filter": "",
+            "refreshOn": "",
+            "defaultValue": "",
+            "valueProperty": "",
+            "dataSrc": "url",
+            "data": {
+              "project": "",
+              "custom": "",
+              "resource": "",
+              "url": "http://myfake.com/nothing",
+              "json": "",
+              "values": []
+            },
+            "placeholder": "",
+            "key": "readPerm",
+            "label": "Read Field",
+            "tableView": true,
+            "input": true
+          },
+          {
+            "defaultPermission": "write",
+            "conditional": {
+              "eq": "",
+              "when": null,
+              "show": ""
+            },
+            "tags": [],
+            "type": "select",
+            "validate": {
+              "required": false
+            },
+            "clearOnHide": true,
+            "hidden": false,
+            "persistent": true,
+            "unique": false,
+            "protected": false,
+            "multiple": true,
+            "template": "<span>{{ item.label }}</span>",
+            "authenticate": false,
+            "filter": "",
+            "refreshOn": "",
+            "defaultValue": "",
+            "valueProperty": "",
+            "dataSrc": "url",
+            "data": {
+              "project": "",
+              "custom": "",
+              "resource": "",
+              "url": "http://myfake.com/nothing",
+              "json": "",
+              "values": []
+            },
+            "placeholder": "",
+            "key": "writePerm",
+            "label": "Write Field",
+            "tableView": true,
+            "input": true
+          },
+          {
+            "defaultPermission": "admin",
+            "conditional": {
+              "eq": "",
+              "when": null,
+              "show": ""
+            },
+            "tags": [],
+            "type": "select",
+            "validate": {
+              "required": false
+            },
+            "clearOnHide": true,
+            "hidden": false,
+            "persistent": true,
+            "unique": false,
+            "protected": false,
+            "multiple": true,
+            "template": "<span>{{ item.label }}</span>",
+            "authenticate": false,
+            "filter": "",
+            "refreshOn": "",
+            "defaultValue": "",
+            "valueProperty": "",
+            "dataSrc": "url",
+            "data": {
+              "project": "",
+              "custom": "",
+              "resource": "",
+              "url": "http://myfake.com/nothing",
+              "json": "",
+              "values": []
+            },
+            "placeholder": "",
+            "key": "adminPerm",
+            "label": "Admin Field",
+            "tableView": true,
+            "input": true
+          },
           {
             type: 'textfield',
             validate: {
@@ -6342,7 +6636,11 @@ module.exports = function(app, template, hook) {
       };
 
       // Store the temp submission for this test suite.
-      var submission = {data: {value: 'foo'}};
+      var submission = {
+        data: {
+          value: 'foo'
+        }
+      };
       var tempSubmission = {};
       var tempSubmissions = [];
 
@@ -6477,11 +6775,13 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submissions resource access, without explicit resource access (read)', function(done) {
-          var update = {access: [{type: 'read', resources: [template.users.admin._id]}]};
+          tempSubmission.data.readPerm = [template.users.admin];
+          delete tempSubmission.data.writePerm;
+          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -6491,7 +6791,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.cloneDeep(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'read', resources: [template.users.admin._id]}];
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
@@ -6555,11 +6855,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission, without explicit resource access (read)', function(done) {
-          var update = {data: {value: '1231888123q'}};
+          tempSubmission.data.value = '1231888123q';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -6568,9 +6868,8 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.data.value = update.data.value;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
               tempSubmission = response;
 
               // Store the JWT for future API calls.
@@ -6581,11 +6880,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission owner, without explicit resource access (read)', function(done) {
-          var update = {owner: null};
+          tempSubmission.owner = null;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -6594,19 +6893,18 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.owner = update.owner;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
               tempSubmission = response;
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
 
-              update = {owner: template.users.admin._id};
+              tempSubmission.owner = template.users.admin._id;
               request(app)
                 .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
                 .set('x-jwt-token', template.users.admin.token)
-                .send(update)
+                .send(tempSubmission)
                 .expect(200)
                 .expect('Content-Type', /json/)
                 .end(function(err, res) {
@@ -6615,9 +6913,8 @@ module.exports = function(app, template, hook) {
                   }
 
                   var response = res.body;
-                  var expected = _.clone(tempSubmission);
-                  expected.owner = update.owner;
-                  assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+                  assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
                   tempSubmission = response;
 
                   // Store the JWT for future API calls.
@@ -6625,32 +6922,6 @@ module.exports = function(app, template, hook) {
 
                   done();
                 });
-            });
-        });
-
-        it('An Admin, the owner, can update a submissions resource access, without explicit resource access (read)', function(done) {
-          var update = {access: []};
-          request(app)
-            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(update)
-            .expect(200)
-            .expect('Content-Type', /json/)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.access = update.access;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
-              tempSubmission = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
             });
         });
 
@@ -6714,11 +6985,13 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submissions resource access, without explicit resource access (write)', function(done) {
-          var update = {access: [{type: 'write', resources: [template.users.admin._id]}]};
+          tempSubmission.data.writePerm = [template.users.admin];
+          delete tempSubmission.data.readPerm;
+          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -6728,7 +7001,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.clone(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'write', resources: [template.users.admin._id]}];
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
@@ -6792,11 +7065,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission, with explicit resource access (write)', function(done) {
-          var update = {data: {value: '1231888123q'}};
+          tempSubmission.data.value = '1231888123q';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -6805,9 +7078,8 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.data.value = update.data.value;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
               tempSubmission = response;
 
               // Store the JWT for future API calls.
@@ -6818,11 +7090,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission owner, without explicit resource access (write)', function(done) {
-          var update = {owner: null};
+          tempSubmission.owner = null;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -6831,19 +7103,18 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.owner = update.owner;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
               tempSubmission = response;
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
 
-              update = {owner: template.users.admin._id};
+              tempSubmission.owner = template.users.admin._id;
               request(app)
                 .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
                 .set('x-jwt-token', template.users.admin.token)
-                .send(update)
+                .send(tempSubmission)
                 .expect(200)
                 .expect('Content-Type', /json/)
                 .end(function(err, res) {
@@ -6852,9 +7123,8 @@ module.exports = function(app, template, hook) {
                   }
 
                   var response = res.body;
-                  var expected = _.clone(tempSubmission);
-                  expected.owner = update.owner;
-                  assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+                  assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
                   tempSubmission = response;
 
                   // Store the JWT for future API calls.
@@ -6862,32 +7132,6 @@ module.exports = function(app, template, hook) {
 
                   done();
                 });
-            });
-        });
-
-        it('An Admin, the owner, can update a submissions resource access, without explicit resource access (write)', function(done) {
-          var update = {access: [{type: 'read', resources: [template.users.user2._id]}]};
-          request(app)
-            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(update)
-            .expect(200)
-            .expect('Content-Type', /json/)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.access = update.access;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
-              tempSubmission = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
             });
         });
 
@@ -6951,11 +7195,14 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submissions resource access, with explicit resource access (admin)', function(done) {
+          tempSubmission.data.adminPerm = [template.users.admin];
+          delete tempSubmission.data.writePerm;
+          delete tempSubmission.data.readPerm;
           var update = {access: [{type: 'admin', resources: [template.users.admin._id]}]};
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -6965,7 +7212,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.clone(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'admin', resources: [template.users.admin._id]}];
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
@@ -7029,11 +7276,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission, with explicit resource access (admin)', function(done) {
-          var update = {data: {value: 'qqwee1231'}};
+          tempSubmission.data.value = 'qqwee1231';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7042,9 +7289,8 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.data.value = update.data.value;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
               tempSubmission = response;
 
               // Store the JWT for future API calls.
@@ -7055,11 +7301,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission owner, with explicit resource access (admin)', function(done) {
-          var update = {owner: null};
+          tempSubmission.owner = null;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7068,19 +7314,18 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.owner = update.owner;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
               tempSubmission = response;
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
 
-              update = {owner: template.users.admin._id};
+              tempSubmission.owner = template.users.admin._id;
               request(app)
                 .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
                 .set('x-jwt-token', template.users.admin.token)
-                .send(update)
+                .send(tempSubmission)
                 .expect(200)
                 .expect('Content-Type', /json/)
                 .end(function(err, res) {
@@ -7089,9 +7334,8 @@ module.exports = function(app, template, hook) {
                   }
 
                   var response = res.body;
-                  var expected = _.clone(tempSubmission);
-                  expected.owner = update.owner;
-                  assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+                  assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
                   tempSubmission = response;
 
                   // Store the JWT for future API calls.
@@ -7099,32 +7343,6 @@ module.exports = function(app, template, hook) {
 
                   done();
                 });
-            });
-        });
-
-        it('An Admin, the owner, can update a submissions resource access, with explicit resource access (admin)', function(done) {
-          var update = {access: [{type: 'read', resources: [template.users.user2._id]}]};
-          request(app)
-            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(update)
-            .expect(200)
-            .expect('Content-Type', /json/)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.access = update.access;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
-              tempSubmission = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
             });
         });
 
@@ -7240,11 +7458,13 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (read)', function(done) {
-          var update = {access: [{type: 'read', resources: [template.users.admin2._id]}]};
+          tempSubmission.data.readPerm = [template.users.admin2];
+          delete tempSubmission.data.writePerm;
+          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7254,7 +7474,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.clone(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'read', resources: [template.users.admin2._id]}];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
 
@@ -7317,11 +7537,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission, without explicit resource access (read)', function(done) {
-          var update = {data: {value: '1231888123q'}};
+          tempSubmission.data.value = '1231888123q';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7330,9 +7550,8 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.data.value = update.data.value;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
               tempSubmission = response;
 
               // Store the JWT for future API calls.
@@ -7343,11 +7562,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission owner, without explicit resource access (read)', function(done) {
-          var update = {owner: null};
+          tempSubmission.owner = null;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7356,19 +7575,18 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.owner = update.owner;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
               tempSubmission = response;
 
               // Store the JWT for future API calls.
               template.users.admin2.token = res.headers['x-jwt-token'];
 
-              update = {owner: template.users.admin2._id};
+              tempSubmission.owner = template.users.admin2._id;
               request(app)
                 .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
                 .set('x-jwt-token', template.users.admin2.token)
-                .send(update)
+                .send(tempSubmission)
                 .expect(200)
                 .expect('Content-Type', /json/)
                 .end(function(err, res) {
@@ -7377,9 +7595,8 @@ module.exports = function(app, template, hook) {
                   }
 
                   var response = res.body;
-                  var expected = _.clone(tempSubmission);
-                  expected.owner = update.owner;
-                  assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+                  assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
                   tempSubmission = response;
 
                   // Store the JWT for future API calls.
@@ -7391,11 +7608,13 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (read)', function(done) {
-          var update = {access: [{type: 'read', resources: [template.users.user2._id]}]};
+          tempSubmission.data.readPerm = [template.users.user2];
+          delete tempSubmission.data.writePerm;
+          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7405,7 +7624,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.clone(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'read', resources: [template.users.user2._id]}];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
 
@@ -7476,11 +7695,13 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (write)', function(done) {
-          var update = {access: [{type: 'write', resources: [template.users.admin2._id]}]};
+          tempSubmission.data.writePerm = [template.users.admin2];
+          delete tempSubmission.data.readPerm;
+          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7490,7 +7711,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.clone(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'write', resources: [template.users.admin2._id]}];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
 
@@ -7553,11 +7774,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission, with explicit resource access (write)', function(done) {
-          var update = {data: {value: '1231888123q'}};
+          tempSubmission.data.value = '1231888123q';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7566,9 +7787,8 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.data.value = update.data.value;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
               tempSubmission = response;
 
               // Store the JWT for future API calls.
@@ -7579,11 +7799,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission owner, without explicit resource access (write)', function(done) {
-          var update = {owner: null};
+          tempSubmission.owner = null;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7592,19 +7812,18 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.owner = update.owner;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
               tempSubmission = response;
 
               // Store the JWT for future API calls.
               template.users.admin2.token = res.headers['x-jwt-token'];
 
-              update = {owner: template.users.admin2._id};
+              tempSubmission.owner = template.users.admin2._id;
               request(app)
                 .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
                 .set('x-jwt-token', template.users.admin2.token)
-                .send(update)
+                .send(tempSubmission)
                 .expect(200)
                 .expect('Content-Type', /json/)
                 .end(function(err, res) {
@@ -7613,9 +7832,8 @@ module.exports = function(app, template, hook) {
                   }
 
                   var response = res.body;
-                  var expected = _.clone(tempSubmission);
-                  expected.owner = update.owner;
-                  assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+                  assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
                   tempSubmission = response;
 
                   // Store the JWT for future API calls.
@@ -7627,11 +7845,13 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (write)', function(done) {
-          var update = {access: [{type: 'read', resources: [template.users.user2._id]}]};
+          tempSubmission.data.writePerm = [template.users.user2];
+          delete tempSubmission.data.readPerm;
+          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7641,7 +7861,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.clone(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'write', resources: [template.users.user2._id]}];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
 
@@ -7712,11 +7932,13 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submissions resource access, with explicit resource access (admin)', function(done) {
-          var update = {access: [{type: 'admin', resources: [template.users.admin2._id]}]};
+          tempSubmission.data.adminPerm = [template.users.admin2];
+          delete tempSubmission.data.writePerm;
+          delete tempSubmission.data.readPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7726,7 +7948,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.clone(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'admin', resources: [template.users.admin2._id]}];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
 
@@ -7789,11 +8011,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission, with explicit resource access (admin)', function(done) {
-          var update = {data: {value: '1231888123q'}};
+          tempSubmission.data.value = '1231888123233q';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7802,9 +8024,8 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.data.value = update.data.value;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
               tempSubmission = response;
 
               // Store the JWT for future API calls.
@@ -7815,11 +8036,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission owner, with explicit resource access (admin)', function(done) {
-          var update = {owner: null};
+          tempSubmission.owner = null;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7828,19 +8049,18 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.owner = update.owner;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
               tempSubmission = response;
 
               // Store the JWT for future API calls.
               template.users.admin2.token = res.headers['x-jwt-token'];
 
-              update = {owner: template.users.admin2._id};
+              tempSubmission.owner = template.users.admin2._id;
               request(app)
                 .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
                 .set('x-jwt-token', template.users.admin2.token)
-                .send(update)
+                .send(tempSubmission)
                 .expect(200)
                 .expect('Content-Type', /json/)
                 .end(function(err, res) {
@@ -7849,9 +8069,8 @@ module.exports = function(app, template, hook) {
                   }
 
                   var response = res.body;
-                  var expected = _.clone(tempSubmission);
-                  expected.owner = update.owner;
-                  assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+
+                  assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
                   tempSubmission = response;
 
                   // Store the JWT for future API calls.
@@ -7863,11 +8082,13 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submissions resource access, with explicit resource access (admin)', function(done) {
-          var update = {access: [{type: 'read', resources: [template.users.user2._id]}]};
+          tempSubmission.data.adminPerm = [template.users.user2];
+          delete tempSubmission.data.writePerm;
+          delete tempSubmission.data.readPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -7877,7 +8098,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.clone(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'admin', resources: [template.users.user2._id]}];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
 
@@ -8073,11 +8294,13 @@ module.exports = function(app, template, hook) {
         });
 
         it('Give the user read access to the submission', function(done) {
-          var update = {access: [{type: 'read', resources: [template.users.user1._id]}]};
+          tempSubmission.data.readPerm = [template.users.user1];
+          delete tempSubmission.data.writePerm;
+          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .end(function(err, res) {
               if (err) {
@@ -8086,7 +8309,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.clone(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'read', resources: [template.users.user1._id]}];
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
 
@@ -8233,11 +8456,13 @@ module.exports = function(app, template, hook) {
         });
 
         it('Give the user write access to the submission', function(done) {
-          var update = {access: [{type: 'write', resources: [template.users.user1._id]}]};
+          tempSubmission.data.writePerm = [template.users.user1];
+          delete tempSubmission.data.readPerm;
+          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .end(function(err, res) {
               if (err) {
@@ -8246,7 +8471,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.clone(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'write', resources: [template.users.user1._id]}];
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
 
@@ -8310,11 +8535,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('A user can update a submission, with explicit resource access (write)', function(done) {
-          var update = {data: {value: 'baz'}};
+          tempSubmission.data.value = 'baz';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.user1.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .end(function(err, res) {
               if (err) {
@@ -8322,10 +8547,8 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.data = update.data;
 
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
 
               tempSubmission = response;
 
@@ -8337,11 +8560,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('A user can not update a submissions owner, without explicit resource access (write)', function(done) {
-          var update = {owner: template.users.user1._id};
+          tempSubmission.owner = template.users.user1._id
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.user1.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .end(function(err, res) {
               if (err) {
@@ -8349,31 +8572,10 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
-              assert.notEqual(response.owner, update.owner);
+              assert.deepEqual(_.omit(response, ['modified', 'owner']), _.omit(tempSubmission, ['modified', 'owner']));
+              assert.notEqual(response.owner, tempSubmission.owner);
 
-              // Store the JWT for future API calls.
-              template.users.user1.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-        });
-
-        it('A user can not update a submissions resource access, without explicit resource access (write)', function(done) {
-          var update = {access: [{type: 'admin', resources: [template.users.user1._id]}]};
-          request(app)
-            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
-            .set('x-jwt-token', template.users.user1.token)
-            .send(update)
-            .expect(200)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
-              assert.notEqual(response.access, update.access);
+              tempSubmission = response;
 
               // Store the JWT for future API calls.
               template.users.user1.token = res.headers['x-jwt-token'];
@@ -8403,11 +8605,13 @@ module.exports = function(app, template, hook) {
         });
 
         it('Give the user admin access to the submission', function(done) {
-          var update = {access: [{type: 'admin', resources: [template.users.user1._id]}]};
+          tempSubmission.data.adminPerm = [template.users.user1];
+          delete tempSubmission.data.writePerm;
+          delete tempSubmission.data.readPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .end(function(err, res) {
               if (err) {
@@ -8416,7 +8620,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.clone(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'admin', resources: [template.users.user1._id]}];
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
 
@@ -8480,11 +8684,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('A user can update a submission, with explicit resource access (admin)', function(done) {
-          var update = {data: {value: 'bqqqweqaz'}};
+          tempSubmission.data.value = 'bqqqweqaz';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.user1.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .end(function(err, res) {
               if (err) {
@@ -8492,10 +8696,8 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.data = update.data;
 
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
 
               tempSubmission = response;
 
@@ -8507,11 +8709,11 @@ module.exports = function(app, template, hook) {
         });
 
         it('A user can update a submissions owner, with explicit resource access (admin)', function(done) {
-          var update = {owner: template.users.user1._id};
+          tempSubmission.owner = template.users.user1._id;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.user1.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .end(function(err, res) {
               if (err) {
@@ -8519,42 +8721,14 @@ module.exports = function(app, template, hook) {
               }
 
               var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.owner = update.owner;
 
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
+              assert.deepEqual(_.omit(response, 'modified'), _.omit(tempSubmission, 'modified'));
 
               tempSubmission = response;
 
               // Store the JWT for future API calls.
               template.users.user1.token = res.headers['x-jwt-token'];
 
-              done();
-            });
-        });
-
-        it('A user can update a submissions resource access, with explicit resource access (admin)', function(done) {
-          var update = {access: [{type: 'admin', resources: [template.users.user1._id]}]};
-          request(app)
-            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
-            .set('x-jwt-token', template.users.user1.token)
-            .send(update)
-            .expect(200)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.access = update.access;
-
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
-
-              tempSubmission = response;
-
-              // Store the JWT for future API calls.
-              template.users.user1.token = res.headers['x-jwt-token'];
               done();
             });
         });
@@ -8720,7 +8894,7 @@ module.exports = function(app, template, hook) {
         });
       });
 
-      describe('Condense permissions', function() {
+      describe('Multiple permissions', function() {
         it('An Admin can create a submission', function(done) {
           request(app)
             .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
@@ -8760,11 +8934,13 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin can update the submissions resource access', function(done) {
-          var update = {access: [{type: 'read', resources: [template.users.admin._id]}]};
+          tempSubmission.data.readPerm = [template.users.admin];
+          delete tempSubmission.data.writePerm;
+          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -8774,7 +8950,7 @@ module.exports = function(app, template, hook) {
 
               var response = res.body;
               var expected = _.clone(tempSubmission);
-              expected.access = update.access;
+              expected.access = [{type: 'read', resources: [template.users.admin._id]}];
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
@@ -8787,15 +8963,14 @@ module.exports = function(app, template, hook) {
         });
 
         it('An update to the submissions resource access, will be condensed (single)', function(done) {
-          var update = {access: [
-            {type: 'read', resources: [template.users.admin._id]},
-            {type: 'read', resources: [template.users.admin2._id]}
-          ]};
+          tempSubmission.data.readPerm = [template.users.admin, template.users.admin2];
+          tempSubmission.data.writePerm = [null];
+          tempSubmission.data.adminPerm = [null];
           var condensed = {access: [{type: 'read', resources: [template.users.admin._id, template.users.admin2._id]}]};
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -8818,14 +8993,18 @@ module.exports = function(app, template, hook) {
         });
 
         it('An update to the submissions resource access, will be condensed (multi)', function(done) {
-          var update = {access: [
-            {type: 'read', resources: [template.users.admin._id]},
-            {type: 'read', resources: [template.users.admin2._id]},
-            {type: 'write', resources: [template.users.admin._id]},
-            {type: 'write', resources: [template.users.admin2._id]},
-            {type: 'admin', resources: [template.users.admin._id]},
-            {type: 'admin', resources: [template.users.admin2._id]}
-          ]};
+          tempSubmission.data.readPerm = [
+            template.users.admin,
+            template.users.admin2
+          ];
+          tempSubmission.data.writePerm = [
+            template.users.admin,
+            template.users.admin2
+          ];
+          tempSubmission.data.adminPerm = [
+            template.users.admin,
+            template.users.admin2
+          ];
           var condensed = {access: [
             {type: 'read', resources: [template.users.admin._id, template.users.admin2._id]},
             {type: 'write', resources: [template.users.admin._id, template.users.admin2._id]},
@@ -8834,7 +9013,7 @@ module.exports = function(app, template, hook) {
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
@@ -8856,172 +9035,22 @@ module.exports = function(app, template, hook) {
             });
         });
 
-        it('An update to resource access, with an invalid type, will not be saved (multi)', function(done) {
-          var update = {access: [
-            {type: 'update_all', resources: [template.users.admin._id]},
-            {type: 'read', resources: [template.users.admin2._id]}
-          ]};
-          var filtered = {access: [{type: 'read', resources: [template.users.admin2._id]}]};
-          request(app)
-            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(update)
-            .expect(200)
-            .expect('Content-Type', /json/)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.access = filtered.access;
-
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
-              tempSubmission = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-        });
-
         // FA-892
         it('An update to resource access, with null access, will not be saved (single)', function(done) {
-          var update = {access: [
+          tempSubmission.data.readPerm = [
             null
-          ]};
+          ];
+          tempSubmission.data.writePerm = [
+            null
+          ];
+          tempSubmission.data.adminPerm = [
+            null
+          ];
           var filtered = {access: []};
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(update)
-            .expect(200)
-            .expect('Content-Type', /json/)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.access = filtered.access;
-
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
-              tempSubmission = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-        });
-
-        // FA-892
-        it('An update to resource access, with null access, will not be saved (multi)', function(done) {
-          var update = {access: [
-            {type: 'read', resources: [template.users.admin2._id]},
-            null
-          ]};
-          var filtered = {access: [{type: 'read', resources: [template.users.admin2._id]}]};
-          request(app)
-            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(update)
-            .expect(200)
-            .expect('Content-Type', /json/)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.access = filtered.access;
-
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
-              tempSubmission = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-        });
-
-        it('An update to resource access, without a type, will not be saved (multi)', function(done) {
-          var update = {access: [
-            {resources: [template.users.admin._id]},
-            {type: 'read', resources: [template.users.admin2._id]}
-          ]};
-          var filtered = {access: [{type: 'read', resources: [template.users.admin2._id]}]};
-          request(app)
-            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(update)
-            .expect(200)
-            .expect('Content-Type', /json/)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.access = filtered.access;
-
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
-              tempSubmission = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-        });
-
-        it('An update to resource access, without resources, will not be saved (multi)', function(done) {
-          var update = {access: [
-            {type: 'admin'},
-            {type: 'read', resources: [template.users.admin2._id]}
-          ]};
-          var filtered = {access: [{type: 'read', resources: [template.users.admin2._id]}]};
-          request(app)
-            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(update)
-            .expect(200)
-            .expect('Content-Type', /json/)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              var expected = _.clone(tempSubmission);
-              expected.access = filtered.access;
-
-              assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
-              tempSubmission = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-        });
-
-        it('An update to resource access, will not be saved with invalid resources format', function(done) {
-          var update = {access: [
-            {type: 'read', resources: template.users.admin._id},
-            {type: 'read', resources: [template.users.admin2._id]},
-          ]};
-          var filtered = {access: [{type: 'read', resources: [template.users.admin2._id]}]};
-          request(app)
-            .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(update)
+            .send(tempSubmission)
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function(err, res) {
