@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+ - Submission Resource Access are calculated on the server during submission instead of in the browser.
+
 ### Added
  - Allow roles to have their own permissions appart from default owner permissions.
 
