@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+ - Allow roles to have their own permissions appart from default owner permissions.
 
 ## 1.17.5
 ### Fixed
