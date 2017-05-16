@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## 1.17.6
 ### Changed
  - Submission Resource Access are calculated on the server during submission instead of in the browser.
 
