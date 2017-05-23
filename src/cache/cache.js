@@ -100,14 +100,7 @@ module.exports = function(router) {
       }.bind(this));
     },
 
-    /**
-     * Loads the current form.
-     *
-     * @param req
-     * @param cb
-     * @returns {*}
-     */
-    loadCurrentForm: function(req, cb) {
+    getCurrentFormId: function(req) {
       var formId = req.formId;
       if (req.params.formId) {
         formId = req.params.formId;
@@ -119,9 +112,24 @@ module.exports = function(router) {
         formId = req.query.formId;
       }
       if (!formId) {
-        return cb('No form found.');
+        return '';
       }
       req.formId = formId;
+      return formId;
+    },
+
+    /**
+     * Loads the current form.
+     *
+     * @param req
+     * @param cb
+     * @returns {*}
+     */
+    loadCurrentForm: function(req, cb) {
+      let formId = this.getCurrentFormId(req);
+      if (!formId) {
+        return cb('No form found.');
+      }
       this.loadForm(req, null, formId, cb);
     },
 

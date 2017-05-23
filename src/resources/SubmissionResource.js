@@ -6,9 +6,9 @@ var utils = require('formiojs/utils');
 var _ = require('lodash');
 
 module.exports = function(router) {
-  var hook = require('../util/hook')(router.formio);
-  var handlers = router.formio.middleware.submissionHandler;
-  var hiddenFields = ['deleted', '__v', 'machineName'];
+  let hook = require('../util/hook')(router.formio);
+  let handlers = router.formio.middleware.submissionHandler;
+  let hiddenFields = ['deleted', '__v', 'machineName'];
 
   // Manually update the handlers, to add additional middleware.
   handlers.beforePost = [
@@ -22,7 +22,9 @@ module.exports = function(router) {
   handlers.afterPost = [
     handlers.afterPost,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields('create')
+    router.formio.middleware.filterProtectedFields('create', (req) => {
+      return router.formio.cache.getCurrentFormId(req);
+    })
   ];
   handlers.beforeGet = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
@@ -31,7 +33,9 @@ module.exports = function(router) {
   handlers.afterGet = [
     handlers.afterGet,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields('get')
+    router.formio.middleware.filterProtectedFields('get', (req) => {
+      return router.formio.cache.getCurrentFormId(req);
+    })
   ];
   handlers.beforePut = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
@@ -44,7 +48,9 @@ module.exports = function(router) {
   handlers.afterPut = [
     handlers.afterPut,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields('update')
+    router.formio.middleware.filterProtectedFields('update', (req) => {
+      return router.formio.cache.getCurrentFormId(req);
+    })
   ];
   handlers.beforeIndex = [
     router.formio.middleware.setFilterQueryTypes,
@@ -56,7 +62,9 @@ module.exports = function(router) {
   handlers.afterIndex = [
     handlers.afterIndex,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields('index')
+    router.formio.middleware.filterProtectedFields('index', (req) => {
+      return router.formio.cache.getCurrentFormId(req);
+    })
   ];
   handlers.beforeDelete = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
@@ -66,7 +74,9 @@ module.exports = function(router) {
   handlers.afterDelete = [
     handlers.afterDelete,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields('delete')
+    router.formio.middleware.filterProtectedFields('delete', (req) => {
+      return router.formio.cache.getCurrentFormId(req);
+    })
   ];
 
   // Register an exists endpoint to see if a submission exists.

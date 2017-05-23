@@ -55,6 +55,7 @@ module.exports = function(router, resourceName, resourceId) {
           /* eslint-disable max-depth */
           var hiddenFields = ['deleted', '__v', 'machineName'];
           if (component.reference) {
+            let formId = component.form || component.resource;
             if (
               (handlerName === 'afterGet') &&
               res.resource &&
@@ -65,16 +66,28 @@ module.exports = function(router, resourceName, resourceId) {
                 return Q.ninvoke(hook, 'alter', 'submissionQuery', {
                   _id: util.idToBson(compValue._id.toString()),
                   deleted: {$eq: null}
-                }, null, req).then((query) => {
-                  return Q.ninvoke(router.formio.resources.submission.model, 'findOne', query).then((submission) => {
+                }, null, req)
+                  .then((query) => Q.ninvoke(router.formio.resources.submission.model, 'findOne', query))
+                  .then((submission) => new Promise((resolve, reject) => {
+                    // Manually filter the protected fields.
+                    router.formio.middleware.filterProtectedFields('create', (req) => {
+                      return formId;
+                    })(req, {resource: {item: submission}}, function(err) {
+                      if (err) {
+                        return reject(err);
+                      }
+                      resolve(submission);
+                    });
+                  }))
+                  .then((submission) => {
                     if (submission && submission._id) {
                       _.set(res.resource.item.data, path, _.omit(submission.toObject(), hiddenFields));
                     }
                   });
-                });
               }
             }
             else if ((handlerName === 'afterIndex') && res.resource && res.resource.item) {
+              let formId = component.form || component.resource;
               let resources = [];
               _.each(res.resource.item, (resource) => {
                 let compValue = _.get(resource.data, path);
@@ -85,8 +98,20 @@ module.exports = function(router, resourceName, resourceId) {
               return Q.ninvoke(hook, 'alter', 'submissionQuery', {
                 _id: {'$in': resources},
                 deleted: {$eq: null}
-              }, null, req).then((query) => {
-                return Q.ninvoke(router.formio.resources.submission.model, 'find', query).then((submissions) => {
+              }, null, req)
+                .then((query) => Q.ninvoke(router.formio.resources.submission.model, 'find', query))
+                .then((submissions) => new Promise((resolve, reject) => {
+                  // Manually filter the protected fields.
+                  router.formio.middleware.filterProtectedFields('index', (req) => {
+                    return formId;
+                  })(req, {resource: {item: submissions}}, function(err) {
+                    if (err) {
+                      return reject(err);
+                    }
+                    resolve(submissions);
+                  });
+                }))
+                .then((submissions) => {
                   _.each(res.resource.item, (resource) => {
                     let compValue = _.get(resource.data, path);
                     if (compValue._id) {
@@ -99,7 +124,6 @@ module.exports = function(router, resourceName, resourceId) {
                     }
                   });
                 });
-              });
             }
             else if (
               ((handlerName === 'afterPost') || (handlerName === 'afterPut')) &&
