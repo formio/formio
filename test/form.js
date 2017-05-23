@@ -11684,10 +11684,10 @@ module.exports = function(app, template, hook) {
               .expect(200)
               .end(function(err, res) {
                 if (err) {
-                  return done(err);
+                  return next(err);
                 }
                 resources[index] = res.body;
-                done();
+                next();
               });
           }
         }, done);
