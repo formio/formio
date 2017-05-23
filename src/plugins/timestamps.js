@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = exports = function(schema, options) {
+module.exports = function(schema, options) {
   // Add the created and modified params.
   schema.add({
     created: {
