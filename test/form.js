@@ -11690,6 +11690,9 @@ module.exports = function(app, template, hook) {
                 next();
               });
           }
+          else {
+            next();
+          }
         }, done);
       });
 
