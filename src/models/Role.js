@@ -14,7 +14,35 @@ module.exports = function(router) {
   var RoleSchema = hook.alter('roleSchema', new mongoose.Schema({
     title: {
       type: String,
-      required: true
+      required: true,
+      validate: [
+        {
+          isAsync: true,
+          message: 'Role title must be unique.',
+          validator: function(value, done) {
+            var search = hook.alter('roleSearch', {
+              title: value,
+              deleted: {$eq: null}
+            }, this, value);
+
+            // Ignore the id of the role, if this is an update.
+            if (this._id) {
+              search._id = {
+                $ne: this._id
+              };
+            }
+
+            // Search for roles that exist, with the given parameters.
+            mongoose.model('role').findOne(search, function(err, result) {
+              if (err || result) {
+                return done(false);
+              }
+
+              done(true);
+            });
+          }
+        }
+      ]
     },
     description: {
       type: String,
@@ -33,29 +61,6 @@ module.exports = function(router) {
       default: false
     }
   }));
-
-  RoleSchema.path('title').validate(function(value, done) {
-    var search = hook.alter('roleSearch', {
-      title: value,
-      deleted: {$eq: null}
-    }, this, value);
-
-    // Ignore the id of the role, if this is an update.
-    if (this._id) {
-      search._id = {
-        $ne: this._id
-      };
-    }
-
-    // Search for roles that exist, with the given parameters.
-    mongoose.model('role').findOne(search, function(err, result) {
-      if (err || result) {
-        return done(false);
-      }
-
-      done(true);
-    });
-  }, 'Role title must be unique.');
 
   var model = require('./BaseModel')({
     schema: RoleSchema
