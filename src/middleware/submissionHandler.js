@@ -52,6 +52,7 @@ module.exports = function(router, resourceName, resourceId) {
       Q()
         .then(function() {
           // If this is a component reference.
+          /* eslint-disable max-depth */
           var hiddenFields = ['deleted', '__v', 'machineName'];
           if (component.reference) {
             if (
@@ -131,6 +132,7 @@ module.exports = function(router, resourceName, resourceId) {
               }
             }
           }
+          /* eslint-enable max-depth */
 
           return Q();
         })
