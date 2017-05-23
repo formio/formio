@@ -11521,5 +11521,214 @@ module.exports = function(app, template, hook) {
         });
       });
     });
+
+    describe('Reference Components', function() {
+      var resourceForm = {
+        title: chance.word(),
+        name: chance.word(),
+        path: chance.word(),
+        components: [
+          {
+            input: true,
+            inputType: 'email',
+            label: 'Email',
+            key: 'email',
+            protected: false,
+            persistent: true,
+            type: 'email'
+          }
+        ]
+      };
+      it('Should create a new resource', (done) => {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(resourceForm)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            resourceForm = res.body;
+            done();
+          });
+      });
+
+      var resources = [];
+      it('Should create a few resources', (done) => {
+        for (var i=0; i < 5; i++) {
+          resources.push({data: {email: chance.email()}})
+        }
+        async.eachOf(resources, (resource, index, next) => {
+          request(app)
+            .post(hook.alter('url', '/form/' + resourceForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(resource)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return next(err);
+              }
+              resources[index] = res.body;
+              next();
+            });
+        }, done);
+      });
+
+      var referenceForm = {
+        title: chance.word(),
+        name: chance.word(),
+        path: chance.word(),
+        components: [{
+          "input": true,
+          "tableView": true,
+          "reference": true,
+          "label": "User",
+          "key": "user",
+          "placeholder": "",
+          "resource": resourceForm._id,
+          "project": "",
+          "defaultValue": "",
+          "template": "<span>{{ item.data }}</span>",
+          "selectFields": "",
+          "searchFields": "",
+          "multiple": false,
+          "protected": false,
+          "persistent": true,
+          "clearOnHide": true,
+          "validate": {
+            "required": false
+          },
+          "defaultPermission": "",
+          "type": "resource",
+          "tags": [
+
+          ],
+          "conditional": {
+            "show": "",
+            "when": null,
+            "eq": ""
+          }
+        }]
+      };
+      it('Should create a new form with reference component', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(referenceForm)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            referenceForm = res.body;
+            done();
+          });
+      });
+
+      var references = [];
+      it('Should create a new submission in that form.', (done) => {
+        async.eachOf(resources, (resource, index, next) => {
+          request(app)
+            .post(hook.alter('url', '/form/' + referenceForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                user: resource
+              }
+            })
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return next(err);
+              }
+              references[index] = res.body;
+              assert.deepEqual(references[index].data.user.data, resource.data);
+              next();
+            });
+        }, done);
+      });
+
+      it('Should be able to load the full data when a GET routine is retrieved.', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + referenceForm._id + '/submission/' + references[0]._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert.deepEqual(res.body.data.user, resources[0]);
+            assert.deepEqual(references[0].data.user, resources[0]);
+            done();
+          });
+      });
+
+      it('Should be able to alter some of the resources', (done) => {
+        async.eachOf(resources, (resource, index, next) => {
+          if (index % 2 === 0) {
+            request(app)
+              .put(hook.alter('url', '/form/' + resourceForm._id + '/submission/' + resource._id, template))
+              .send({
+                data: {
+                  email: chance.email()
+                }
+              })
+              .set('x-jwt-token', template.users.admin.token)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                resources[index] = res.body;
+                done();
+              });
+          }
+        }, done);
+      });
+
+      it('Should be able to refer to the correct resource references', (done) => {
+        async.eachOf(references, (reference, index, next) => {
+          request(app)
+            .get(hook.alter('url', '/form/' + referenceForm._id + '/submission/' + reference._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return next(err);
+              }
+              assert.deepEqual(res.body.data.user, resources[index]);
+              next();
+            });
+        }, done);
+      });
+
+      it('Should pull in the references even with index queries.', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + referenceForm._id + '/submission', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            _.each(res.body, (item, index) => {
+              let reference = _.find(references, {_id: item._id});
+              let resource = _.find(resources, {_id: item.data.user._id});
+              assert(!!reference, 'No reference found.');
+              assert.deepEqual(item.data.user, resource);
+            });
+            done();
+          });
+      });
+    });
   });
 };
