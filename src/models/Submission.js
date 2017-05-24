@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 // Defines what each external ID should be.
 var ExternalIdSchema = mongoose.Schema({
   type: String,
+  resource: String,
   id: String
 });
 
