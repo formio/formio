@@ -61,6 +61,7 @@ module.exports = function(router, resourceName, resourceId) {
               res.resource &&
               res.resource.item
             ) {
+              let formId = component.form || component.resource;
               let compValue = _.get(res.resource.item.data, path);
               if (compValue._id) {
                 return Q.ninvoke(hook, 'alter', 'submissionQuery', {
