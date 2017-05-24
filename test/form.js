@@ -11577,43 +11577,44 @@ module.exports = function(app, template, hook) {
         }, done);
       });
 
-      var referenceForm = {
-        title: chance.word(),
-        name: chance.word(),
-        path: chance.word(),
-        components: [{
-          "input": true,
-          "tableView": true,
-          "reference": true,
-          "label": "User",
-          "key": "user",
-          "placeholder": "",
-          "resource": resourceForm._id,
-          "project": "",
-          "defaultValue": "",
-          "template": "<span>{{ item.data }}</span>",
-          "selectFields": "",
-          "searchFields": "",
-          "multiple": false,
-          "protected": false,
-          "persistent": true,
-          "clearOnHide": true,
-          "validate": {
-            "required": false
-          },
-          "defaultPermission": "",
-          "type": "resource",
-          "tags": [
-
-          ],
-          "conditional": {
-            "show": "",
-            "when": null,
-            "eq": ""
-          }
-        }]
-      };
+      var referenceForm = null;
       it('Should create a new form with reference component', function(done) {
+        referenceForm = {
+          title: chance.word(),
+          name: chance.word(),
+          path: chance.word(),
+          components: [{
+            "input": true,
+            "tableView": true,
+            "reference": true,
+            "label": "User",
+            "key": "user",
+            "placeholder": "",
+            "resource": resourceForm._id,
+            "project": "",
+            "defaultValue": "",
+            "template": "<span>{{ item.data }}</span>",
+            "selectFields": "",
+            "searchFields": "",
+            "multiple": false,
+            "protected": false,
+            "persistent": true,
+            "clearOnHide": true,
+            "validate": {
+              "required": false
+            },
+            "defaultPermission": "",
+            "type": "resource",
+            "tags": [
+
+            ],
+            "conditional": {
+              "show": "",
+              "when": null,
+              "eq": ""
+            }
+          }]
+        };
         request(app)
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.admin.token)

@@ -55,7 +55,6 @@ module.exports = function(router, resourceName, resourceId) {
           /* eslint-disable max-depth */
           var hiddenFields = ['deleted', '__v', 'machineName'];
           if (component.reference) {
-            let formId = component.form || component.resource;
             if (
               (handlerName === 'afterGet') &&
               res.resource &&

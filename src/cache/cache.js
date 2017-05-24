@@ -78,26 +78,29 @@ module.exports = function(router) {
         query.type = type;
       }
 
-      router.formio.resources.form.model.findOne(query, function(err, result) {
-        if (err) {
-          debug.loadForm(err);
-          return cb(err);
-        }
-        if (!result) {
-          debug.loadForm('Resource not found for the query');
-          return cb('Resource not found');
-        }
+      router.formio.resources.form.model.findOne(
+        hook.alter('formQuery', query, req),
+        function(err, result) {
+          if (err) {
+            debug.loadForm(err);
+            return cb(err);
+          }
+          if (!result) {
+            debug.loadForm('Resource not found for the query');
+            return cb('Resource not found');
+          }
 
-        var componentMap = {};
-        result = result.toObject();
-        util.eachComponent(result.components, function(component) {
-          componentMap[component.key] = component;
-        }, true);
-        result.componentMap = componentMap;
-        this.updateCache(req, cache, result);
-        debug.loadForm('Caching result');
-        cb(null, result);
-      }.bind(this));
+          var componentMap = {};
+          result = result.toObject();
+          util.eachComponent(result.components, function(component) {
+            componentMap[component.key] = component;
+          }, true);
+          result.componentMap = componentMap;
+          this.updateCache(req, cache, result);
+          debug.loadForm('Caching result');
+          cb(null, result);
+        }.bind(this)
+      );
     },
 
     getCurrentFormId: function(req) {
