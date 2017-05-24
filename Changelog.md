@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## 1.18.0
+### Added
+ - Method for having reference field types that can dynamically link to sub resources.
+
 ### Fixed
  - Deprecated validation handler in the Roles model.
+ - 'Unknown resource' error on PUT of form which has multiple save actions to other resources
 
 ## 1.17.6
 ### Changed
