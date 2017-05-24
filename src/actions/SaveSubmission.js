@@ -174,6 +174,7 @@ module.exports = function(router) {
         req.body.externalIds = req.body.externalIds || [];
         req.body.externalIds.push({
           type: 'resource',
+          resource: this.settings.resource,
           id: res.resource.item._id.toString()
         });
       }
@@ -232,7 +233,7 @@ module.exports = function(router) {
           }
 
           // Find the external submission.
-          var external = _.find(currentSubmission.externalIds, {type: 'resource'});
+          var external = _.find(currentSubmission.externalIds, {type: 'resource', resource: this.settings.resource});
           if (!external) {
             return then();
           }

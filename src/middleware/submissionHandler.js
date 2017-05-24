@@ -51,6 +51,116 @@ module.exports = function(router, resourceName, resourceId) {
     var executeFieldHandler = function(component, path, validation, handlerName, req, res, done) {
       Q()
         .then(function() {
+          // If this is a component reference.
+          /* eslint-disable max-depth */
+          var hiddenFields = ['deleted', '__v', 'machineName'];
+          if (component.reference) {
+            if (
+              (handlerName === 'afterGet') &&
+              res.resource &&
+              res.resource.item
+            ) {
+              let formId = component.form || component.resource;
+              let compValue = _.get(res.resource.item.data, path);
+              if (compValue._id) {
+                return Q.ninvoke(hook, 'alter', 'submissionQuery', {
+                  _id: util.idToBson(compValue._id.toString()),
+                  deleted: {$eq: null}
+                }, null, req)
+                  .then((query) => Q.ninvoke(router.formio.resources.submission.model, 'findOne', query))
+                  .then((submission) => new Promise((resolve, reject) => {
+                    // Manually filter the protected fields.
+                    router.formio.middleware.filterProtectedFields('create', (req) => {
+                      return formId;
+                    })(req, {resource: {item: submission}}, function(err) {
+                      if (err) {
+                        return reject(err);
+                      }
+                      resolve(submission);
+                    });
+                  }))
+                  .then((submission) => {
+                    if (submission && submission._id) {
+                      _.set(res.resource.item.data, path, _.omit(submission.toObject(), hiddenFields));
+                    }
+                  });
+              }
+            }
+            else if ((handlerName === 'afterIndex') && res.resource && res.resource.item) {
+              let formId = component.form || component.resource;
+              let resources = [];
+              _.each(res.resource.item, (resource) => {
+                let compValue = _.get(resource.data, path);
+                if (compValue._id) {
+                  resources.push(util.idToBson(compValue._id.toString()));
+                }
+              });
+              return Q.ninvoke(hook, 'alter', 'submissionQuery', {
+                _id: {'$in': resources},
+                deleted: {$eq: null}
+              }, null, req)
+                .then((query) => Q.ninvoke(router.formio.resources.submission.model, 'find', query))
+                .then((submissions) => new Promise((resolve, reject) => {
+                  // Manually filter the protected fields.
+                  router.formio.middleware.filterProtectedFields('index', (req) => {
+                    return formId;
+                  })(req, {resource: {item: submissions}}, function(err) {
+                    if (err) {
+                      return reject(err);
+                    }
+                    resolve(submissions);
+                  });
+                }))
+                .then((submissions) => {
+                  _.each(res.resource.item, (resource) => {
+                    let compValue = _.get(resource.data, path);
+                    if (compValue._id) {
+                      let submission = _.find(submissions, (sub) => {
+                        return sub._id.toString() === compValue._id.toString();
+                      });
+                      if (submission) {
+                        _.set(resource.data, path, _.omit(submission.toObject(), hiddenFields));
+                      }
+                    }
+                  });
+                });
+            }
+            else if (
+              ((handlerName === 'afterPost') || (handlerName === 'afterPut')) &&
+              res.resource &&
+              res.resource.item
+            ) {
+              // Make sure to reset the value on the return result.
+              let compValue = _.get(res.resource.item.data, path);
+              if (req.resources.hasOwnProperty(compValue._id)) {
+                _.set(res.resource.item.data, path, req.resources[compValue._id]);
+              }
+            }
+            else if (
+              ((handlerName === 'beforePost') || (handlerName === 'beforePut')) &&
+              req.body
+            ) {
+              let compValue = _.get(req.body.data, path);
+              if (compValue._id && compValue.hasOwnProperty('data')) {
+                if (!req.resources) {
+                  req.resources = {};
+                }
+
+                // Save for later.
+                req.resources[compValue._id.toString()] = _.omit(compValue, hiddenFields);
+
+                // Ensure we only set the _id of the resource.
+                _.set(req.body.data, path, {
+                  _id: compValue._id
+                });
+              }
+            }
+          }
+          /* eslint-enable max-depth */
+
+          return Q();
+        })
+        .then(function() {
           // Call the unique field action if applicable.
           if (
             fieldActions.hasOwnProperty('unique')
