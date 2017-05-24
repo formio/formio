@@ -82,7 +82,9 @@ module.exports = function(config) {
 
       // Add Middleware necessary for REST API's
       router.use(bodyParser.urlencoded({extended: true}));
-      router.use(bodyParser.json());
+      router.use(bodyParser.json({
+        limit: '16mb'
+      }));
       router.use(methodOverride('X-HTTP-Method-Override'));
 
       // Error handler for malformed JSON
