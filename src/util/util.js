@@ -5,7 +5,7 @@ var _ = require('lodash');
 var moment = require('moment');
 var nodeUrl = require('url');
 var Q = require('q');
-var formioUtils = require('formio-utils');
+var formioUtils = require('formiojs/utils');
 var deleteProp = require('delete-property').default;
 var debug = {
   idToBson: require('debug')('formio:util:idToBson'),

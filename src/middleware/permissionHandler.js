@@ -166,10 +166,12 @@ module.exports = function(router) {
         function getFormAccess(callback) {
           access.form = access.form || {};
           access.submission = access.submission || {};
+          access.role = access.role || {};
 
           // Skip form access if no formId was given.
           if (!req.formId) {
             debug.getAccess.getFormAccess('Skipping, no req.formId');
+            access.form['read_own'] = !req.projectId;
             return callback(null);
           }
 
@@ -496,8 +498,11 @@ module.exports = function(router) {
           if (
             access.hasOwnProperty(entity.type)
             && access[entity.type].hasOwnProperty(type)
-            && access[entity.type][type] instanceof Array
-            && access[entity.type][type].indexOf(role) !== -1
+            &&
+            (
+              (access[entity.type][type] === true) ||
+              (access[entity.type][type] instanceof Array && access[entity.type][type].indexOf(role) !== -1)
+            )
           ) {
             // Allow anonymous users to create a submission for themselves if defined.
             if (type === 'create_own') {
@@ -581,7 +586,7 @@ module.exports = function(router) {
   return function permissionHandler(req, res, next) {
     // Check for whitelisted paths.
     if (req.method === 'GET') {
-      var whitelist = ['/health', '/current', '/logout', '/access'];
+      var whitelist = ['/health', '/current', '/logout', '/access', '/token'];
       var skip = _.some(whitelist, function(path) {
         if ((req.url === path) || (req.url === hook.alter('path', path, req))) {
           return true;
@@ -628,6 +633,13 @@ module.exports = function(router) {
         entity = {
           type: 'form',
           id: req.formId
+        };
+      }
+      else if (req.hasOwnProperty('roleId') && ((req.roleId !== null) && (req.roleId !== undefined))) {
+        debug.permissions('Checking access for the Role.');
+        entity = {
+          type: 'role',
+          id: req.roleId
         };
       }
 

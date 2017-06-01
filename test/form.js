@@ -5,7 +5,7 @@ var request = require('supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var chance = new (require('chance'))();
-var formioUtils = require('formio-utils');
+var formioUtils = require('formiojs/utils');
 var async = require('async');
 var docker = process.env.DOCKER;
 var customer = process.env.CUSTOMER;
@@ -269,6 +269,26 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('A user should be able to read the index of forms', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.user1.token)
+          .expect('Content-Type', template.project ? /text\/plain/ : /json/)
+          .expect(template.project ? 401 : 200)
+          .end(function(err, res) {
+              if (err) {
+                  return done(err);
+              }
+
+              if (!template.project) {
+                var response = res.body;
+                assert.equal(response.length, 9);
+                template.users.user1.token = res.headers['x-jwt-token'];
+              }
+              done();
+          });
+      });
+
       it('An administrator should be able to Update their Form', function(done) {
         var updatedForm = _.cloneDeep(template.forms.tempForm);
         updatedForm.title = 'Updated';
@@ -401,11 +421,11 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('A user should NOT be able to Read all forms and resources', function(done) {
+      it('A user should be able to Read all forms and resources', function(done) {
         request(app)
           .get(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect(401)
+          .expect(template.project ? 401 : 200)
           .end(done);
       });
 
@@ -658,17 +678,17 @@ module.exports = function(app, template, hook) {
           .end(done);
       });
 
-      it('An Anonymous user should not be able to Read the Index of Forms for a User-Created Project', function(done) {
+      it('An Anonymous user should be able to Read the Index of Forms for a User-Created Project', function(done) {
         request(app)
           .get(hook.alter('url', '/form', template))
-          .expect(401)
+          .expect(template.project ? 401 : 206)
           .end(done);
       });
 
-      it('An Anonymous user should not be able to Read the Index of Forms for a User-Created Project with the Form filter', function(done) {
+      it('An Anonymous user should be able to Read the Index of Forms for a User-Created Project with the Form filter', function(done) {
         request(app)
           .get(hook.alter('url', '/form?type=form', template))
-          .expect(401)
+          .expect(template.project ? 401 : 206)
           .end(done);
       });
 
@@ -2029,7 +2049,7 @@ module.exports = function(app, template, hook) {
 
       // FOR-278
       describe('Adding a min value to an existing component will persist the changes', function() {
-        var for278 = require('./forms/for278');
+        var for278 = require('./fixtures/forms/for278');
         var form = _.cloneDeep(tempForm);
         form.title = chance.word();
         form.name = chance.word();
@@ -3047,14 +3067,14 @@ module.exports = function(app, template, hook) {
             });
         });
       });
-      
+
       // FOR-272
       describe('Old layout components without API keys, still submit data for all child components', function() {
         var form = _.cloneDeep(tempForm);
         form.title = chance.word();
         form.name = chance.word();
         form.path = chance.word();
-        form.components = require('./forms/for272');
+        form.components = require('./fixtures/forms/for272');
 
         it('Bootstrap', function(done) {
           // Create the test form
@@ -3134,13 +3154,13 @@ module.exports = function(app, template, hook) {
 
       // FOR-255
       describe('Custom validation', function() {
-        var templates = require('./forms/customValidation');
+        var templates = require('./fixtures/forms/customValidation');
         var form = _.cloneDeep(tempForm);
         form.title = 'customvalidation';
         form.name = 'customvalidation';
         form.path = 'customvalidation';
         form.components = [];
-        
+
         var updatePrimary = function(done) {
           request(app)
             .put(hook.alter('url', '/form/' + form._id, template))
@@ -3182,6 +3202,27 @@ module.exports = function(app, template, hook) {
               var response = res.body;
               done(null, response);
             });
+        };
+        var getForm = (token, done) => {
+          if (typeof token === 'function') {
+            done = token;
+            token = undefined;
+          }
+
+          if (!token) {
+            return request(app)
+              .get(hook.alter('url', `/form/${form._id}`, template))
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(done);
+          }
+
+          request(app)
+            .get(hook.alter('url', `/form/${form._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(done);
         };
 
         describe('Bootstrap custom validation form', function() {
@@ -3905,6 +3946,87 @@ module.exports = function(app, template, hook) {
             attemptSubmission(templates.valueReplace.text.old.pass, function(err, result) {
               assert.deepEqual(result.data, templates.valueReplace.text.old.pass.data);
               return done();
+            });
+          });
+        });
+
+        // FOR-470
+        describe('Custom private validations are hidden from users', function() {
+          describe('root level components', function() {
+            before(function(done) {
+              form.components = templates.customPrivate.root.components;
+              updatePrimary(done);
+            });
+
+            it('Admins should see the custom private validations for a component', function(done) {
+              getForm(true, (err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                let response = res.body;
+                assert(response.hasOwnProperty('components'));
+                assert.equal(response.components.length, 1);
+                let component = response.components[0];
+                assert.deepEqual(component.validate, templates.customPrivate.root.admin.pass);
+                return done();
+              });
+            });
+
+            it('Users should not see the custom private validations for a component', function(done) {
+              getForm((err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                let response = res.body;
+                assert(response.hasOwnProperty('components'));
+                assert.equal(response.components.length, 1);
+                let component = response.components[0];
+                assert.deepEqual(component.validate, templates.customPrivate.root.user.pass);
+                return done();
+              });
+            });
+          });
+
+          describe('nested components', function() {
+            before(function(done) {
+              form.components = templates.customPrivate.nested.components;
+              updatePrimary(done);
+            });
+
+            it('Admins should see the custom private validations for a component', function(done) {
+              getForm(true, (err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                let response = res.body;
+                assert(response.hasOwnProperty('components'));
+                assert.equal(response.components.length, 1);
+                assert(response.components[0].hasOwnProperty('components'));
+                assert.equal(response.components[0].components.length, 1);
+                let component = response.components[0].components[0];
+                assert.deepEqual(component.validate, templates.customPrivate.nested.admin.pass);
+                return done();
+              });
+            });
+
+            it('Users should not see the custom private validations for a component', function(done) {
+              getForm((err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                let response = res.body;
+                assert(response.hasOwnProperty('components'));
+                assert.equal(response.components.length, 1);
+                assert(response.components[0].hasOwnProperty('components'));
+                assert.equal(response.components[0].components.length, 1);
+                let component = response.components[0].components[0];
+                assert.deepEqual(component.validate, templates.customPrivate.nested.user.pass);
+                return done();
+              });
             });
           });
         });
@@ -11397,6 +11519,219 @@ module.exports = function(app, template, hook) {
             });
           });
         });
+      });
+    });
+
+    describe('Reference Components', function() {
+      var resourceForm = {
+        title: chance.word(),
+        name: chance.word(),
+        path: chance.word(),
+        components: [
+          {
+            input: true,
+            inputType: 'email',
+            label: 'Email',
+            key: 'email',
+            protected: false,
+            persistent: true,
+            type: 'email'
+          }
+        ]
+      };
+      it('Should create a new resource', (done) => {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(resourceForm)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            resourceForm = res.body;
+            done();
+          });
+      });
+
+      var resources = [];
+      it('Should create a few resources', (done) => {
+        for (var i=0; i < 5; i++) {
+          resources.push({data: {email: chance.email()}})
+        }
+        async.eachOf(resources, (resource, index, next) => {
+          request(app)
+            .post(hook.alter('url', '/form/' + resourceForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(resource)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return next(err);
+              }
+              resources[index] = res.body;
+              next();
+            });
+        }, done);
+      });
+
+      var referenceForm = null;
+      it('Should create a new form with reference component', function(done) {
+        referenceForm = {
+          title: chance.word(),
+          name: chance.word(),
+          path: chance.word(),
+          components: [{
+            "input": true,
+            "tableView": true,
+            "reference": true,
+            "label": "User",
+            "key": "user",
+            "placeholder": "",
+            "resource": resourceForm._id,
+            "project": "",
+            "defaultValue": "",
+            "template": "<span>{{ item.data }}</span>",
+            "selectFields": "",
+            "searchFields": "",
+            "multiple": false,
+            "protected": false,
+            "persistent": true,
+            "clearOnHide": true,
+            "validate": {
+              "required": false
+            },
+            "defaultPermission": "",
+            "type": "resource",
+            "tags": [
+
+            ],
+            "conditional": {
+              "show": "",
+              "when": null,
+              "eq": ""
+            }
+          }]
+        };
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(referenceForm)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            referenceForm = res.body;
+            done();
+          });
+      });
+
+      var references = [];
+      it('Should create a new submission in that form.', (done) => {
+        async.eachOf(resources, (resource, index, next) => {
+          request(app)
+            .post(hook.alter('url', '/form/' + referenceForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                user: resource
+              }
+            })
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return next(err);
+              }
+              references[index] = res.body;
+              assert.deepEqual(references[index].data.user.data, resource.data);
+              next();
+            });
+        }, done);
+      });
+
+      it('Should be able to load the full data when a GET routine is retrieved.', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + referenceForm._id + '/submission/' + references[0]._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert.deepEqual(res.body.data.user, resources[0]);
+            assert.deepEqual(references[0].data.user, resources[0]);
+            done();
+          });
+      });
+
+      it('Should be able to alter some of the resources', (done) => {
+        async.eachOf(resources, (resource, index, next) => {
+          if (index % 2 === 0) {
+            request(app)
+              .put(hook.alter('url', '/form/' + resourceForm._id + '/submission/' + resource._id, template))
+              .send({
+                data: {
+                  email: chance.email()
+                }
+              })
+              .set('x-jwt-token', template.users.admin.token)
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return next(err);
+                }
+                resources[index] = res.body;
+                next();
+              });
+          }
+          else {
+            next();
+          }
+        }, done);
+      });
+
+      it('Should be able to refer to the correct resource references', (done) => {
+        async.eachOf(references, (reference, index, next) => {
+          request(app)
+            .get(hook.alter('url', '/form/' + referenceForm._id + '/submission/' + reference._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return next(err);
+              }
+              assert.deepEqual(res.body.data.user, resources[index]);
+              next();
+            });
+        }, done);
+      });
+
+      it('Should pull in the references even with index queries.', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + referenceForm._id + '/submission', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            _.each(res.body, (item, index) => {
+              let reference = _.find(references, {_id: item._id});
+              let resource = _.find(resources, {_id: item.data.user._id});
+              assert(!!reference, 'No reference found.');
+              assert.deepEqual(item.data.user, resource);
+            });
+            done();
+          });
       });
     });
   });

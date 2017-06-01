@@ -5,6 +5,7 @@ module.exports = function(router) {
     alias: require('./alias')(router),
     params: require('./params')(router),
     accessHandler: require('./accessHandler')(router),
+    addSubmissionResourceAccess: require('./addSubmissionResourceAccess')(router),
     bootstrapEntityOwner: require('./bootstrapEntityOwner')(router),
     bootstrapFormAccess: require('./bootstrapFormAccess')(router),
     bootstrapNewRoleAccess: require('./bootstrapNewRoleAccess')(router),

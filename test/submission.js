@@ -17,7 +17,7 @@ module.exports = function(app, template, hook) {
 
     describe('Unnested Submissions', function() {
       it('Saves values for each single value component type1', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -33,7 +33,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Saves values for each single value component type2', function(done) {
-        var test = require('./forms/singlecomponents2.js');
+        var test = require('./fixtures/forms/singlecomponents2.js');
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -50,7 +50,7 @@ module.exports = function(app, template, hook) {
 
       var signatureSubmission1 = null;
       it('Saves submission with a null signature.', function(done) {
-        var test = _.cloneDeep(require('./forms/singlecomponents2.js'));
+        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents2.js'));
         test.submission.signature2 = null;
         helper
           .form('test', test.components)
@@ -69,7 +69,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Updates the submission with a null signature', function(done) {
-        var test = _.cloneDeep(require('./forms/singlecomponents2.js'));
+        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents2.js'));
         var updateSub = _.cloneDeep(signatureSubmission1);
         updateSub.data.signature2 = null;
         helper.updateSubmission(updateSub, function(err, updated) {
@@ -82,7 +82,7 @@ module.exports = function(app, template, hook) {
 
       var signatureSubmission = null;
       it('Saves values with required signature', function(done) {
-        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -98,7 +98,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Updating signatures does not wipe out the signature.', function(done) {
-        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
         var updateSub = _.cloneDeep(signatureSubmission);
         helper.updateSubmission(updateSub, function(err, updated) {
           assert.deepEqual(test.submission, updated.data);
@@ -107,7 +107,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Saving signatures with Bad string does not wipe out the signature.', function(done) {
-        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
         var updateSub = _.cloneDeep(signatureSubmission);
         updateSub.data.signature2 = 'YES';
         helper.updateSubmission(updateSub, function(err, updated) {
@@ -118,7 +118,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Saving signatures with Any other string does not wipe out the signature.', function(done) {
-        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
         var updateSub = _.cloneDeep(signatureSubmission);
         updateSub.data.signature2 = 'sdfsfsdfsdf';
         helper.updateSubmission(updateSub, function(err, updated) {
@@ -143,7 +143,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Gives an error with an empty signature.', function(done) {
-        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
         test.submission.signature2 = '';
         helper
           .form('test', test.components)
@@ -164,7 +164,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Gives an error with a signature not present.', function(done) {
-        var test = _.cloneDeep(require('./forms/singlecomponents3.js'));
+        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
         delete test.submission.signature2;
         helper
           .form('test', test.components)
@@ -185,7 +185,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Throws away extra values', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var values = Object.assign({}, test.submission, {
           extra: true,
           more: 'stuff',
@@ -211,7 +211,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Saves values for each multiple value component', function(done) {
-        var test = require('./forms/multicomponents.js');
+        var test = require('./fixtures/forms/multicomponents.js');
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -229,7 +229,7 @@ module.exports = function(app, template, hook) {
 
     describe('Fieldset nesting', function() {
       it('Nests single value components in a fieldset', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "key": "fieldset1",
           "input": false,
@@ -259,7 +259,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Nests multiple value components in a fieldset', function(done) {
-        var test = require('./forms/multicomponents.js');
+        var test = require('./fixtures/forms/multicomponents.js');
         var components = [{
           "key": "fieldset1",
           "input": false,
@@ -291,8 +291,8 @@ module.exports = function(app, template, hook) {
 
     describe('Column nesting', function() {
       it('Nests single value components in a column', function(done) {
-        var test1 = require('./forms/singlecomponents1.js');
-        var test2 = require('./forms/singlecomponents2.js');
+        var test1 = require('./fixtures/forms/singlecomponents1.js');
+        var test2 = require('./fixtures/forms/singlecomponents2.js');
         var components = [{
           "key": "columns1",
           "input": false,
@@ -328,8 +328,8 @@ module.exports = function(app, template, hook) {
       });
 
       it('Nests multiple value components in a column', function(done) {
-        var test1 = require('./forms/singlecomponents1.js');
-        var test2 = require('./forms/multicomponents.js');
+        var test1 = require('./fixtures/forms/singlecomponents1.js');
+        var test2 = require('./fixtures/forms/multicomponents.js');
         var components = [{
           "key": "columns1",
           "input": false,
@@ -367,7 +367,7 @@ module.exports = function(app, template, hook) {
 
     describe('Panel nesting', function() {
       it('Nests single value components in a panel', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "key": "panel1",
           "input": false,
@@ -397,7 +397,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Nests multiple value components in a panel', function(done) {
-        var test = require('./forms/multicomponents.js');
+        var test = require('./fixtures/forms/multicomponents.js');
         var components = [{
           "key": "panel1",
           "input": false,
@@ -429,7 +429,7 @@ module.exports = function(app, template, hook) {
 
     describe('Well nesting', function() {
       it('Nests single value components in a well', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "key": "well1",
           "input": false,
@@ -457,7 +457,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Nests multiple value components in a well', function(done) {
-        var test = require('./forms/multicomponents.js');
+        var test = require('./fixtures/forms/multicomponents.js');
         var components = [{
           "key": "well1",
           "input": false,
@@ -487,9 +487,9 @@ module.exports = function(app, template, hook) {
 
     describe('Table nesting', function() {
       it('Nests components in a table', function(done) {
-        var test1 = require('./forms/singlecomponents1.js');
-        var test2 = require('./forms/singlecomponents2.js');
-        var test3 = require('./forms/multicomponents.js');
+        var test1 = require('./fixtures/forms/singlecomponents1.js');
+        var test2 = require('./fixtures/forms/singlecomponents2.js');
+        var test3 = require('./fixtures/forms/multicomponents.js');
         var components = [{
           "key": "table1",
           "conditional": {
@@ -562,7 +562,7 @@ module.exports = function(app, template, hook) {
 
     describe('Custom components', function() {
       it('Saves custom components', function(done) {
-        var test = require('./forms/custom.js');
+        var test = require('./fixtures/forms/custom.js');
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -578,7 +578,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Nests single value components in a custom component', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "key": "custom1",
           "input": false,
@@ -606,7 +606,7 @@ module.exports = function(app, template, hook) {
 
     describe('Container nesting', function() {
       it('Nests single value components in a container', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "input": true,
           "tree": true,
@@ -643,7 +643,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Removes extra values in a container', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "input": true,
           "tree": true,
@@ -688,7 +688,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Nests a container in a container', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "input": true,
           "tree": true,
@@ -743,7 +743,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Nests a container in a datagrid', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "conditional": {
             "eq": "",
@@ -799,7 +799,7 @@ module.exports = function(app, template, hook) {
 
     describe('Datagrid nesting', function() {
       it('Nests single value components in a datagrid', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "conditional": {
             "eq": "",
@@ -836,7 +836,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Removes extra values in a datagrid', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "conditional": {
             "eq": "",
@@ -880,7 +880,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Nests a datagrid in a datagrid', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "conditional": {
             "eq": "",
@@ -936,7 +936,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Nests a datagrid in a container', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "input": true,
           "tree": true,
@@ -994,7 +994,7 @@ module.exports = function(app, template, hook) {
 
     describe('Deep nesting', function() {
       it('Nests deeply in layout components', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "key": "fieldset1",
           "input": false,
@@ -1081,7 +1081,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Nests a datagrid deeply in layout components', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "key": "fieldset1",
           "input": false,
@@ -1189,7 +1189,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Nests a container deeply in layout components', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         var components = [{
           "key": "fieldset1",
           "input": false,
@@ -2203,7 +2203,7 @@ module.exports = function(app, template, hook) {
 
     describe('Non Persistent fields dont persist', function() {
       it('Doesn\'t save non-persistent single fields', function(done) {
-        var test = require('./forms/singlecomponents1.js');
+        var test = require('./fixtures/forms/singlecomponents1.js');
         test.components.forEach(function(component) {
           component.persistent = false;
         });
@@ -2223,7 +2223,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Doesn\'t save non-persistent multi fields', function(done) {
-        var test = require('./forms/multicomponents.js');
+        var test = require('./fixtures/forms/multicomponents.js');
         test.components.forEach(function(component) {
           component.persistent = false;
         });
@@ -2493,7 +2493,7 @@ module.exports = function(app, template, hook) {
 
     describe('Complex form with hidden fields and embedded datagrids', function() {
       it('Saves a complex form correctly', function(done) {
-        var test = require('./forms/complex.js');
+        var test = require('./fixtures/forms/complex.js');
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -2510,7 +2510,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Conditionally hidden required fields do not trigger validation', function() {
-      var test = require('./forms/conditional');
+      var test = require('./fixtures/forms/conditional');
       var pass = {show: 'no'};
       var fail = {show: 'yes'};
       var full = {show: 'yes', req: 'foo'};
@@ -2580,7 +2580,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Address Fields', function() {
-      var test = require('./forms/for213.js');
+      var test = require('./fixtures/forms/for213.js');
 
       it('A single unique address will submit without issues', function(done) {
         helper

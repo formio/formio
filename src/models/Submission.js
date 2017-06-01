@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 // Defines what each external ID should be.
 var ExternalIdSchema = mongoose.Schema({
   type: String,
+  resource: String,
   id: String
 });
 
@@ -51,6 +52,12 @@ module.exports = function(formio) {
 
       // An array of external Id's.
       externalIds: [ExternalIdSchema],
+
+      // Configurable meta data associated with a submission.
+      metadata: {
+          type: mongoose.Schema.Types.Mixed,
+          description: 'Configurable metadata.'
+      },
 
       // The data associated with this submission.
       data: {

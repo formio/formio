@@ -239,12 +239,12 @@ module.exports = function(app, template, hook) {
           .end(done);
       });
 
-      it('A user should not be able to Read the Index of Resource for a User-Created Project', function(done) {
+      it('A user should be able to Read the Index of Resource for a User-Created Project', function(done) {
         request(app)
           .get(hook.alter('url', '/form?type=resource', template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect('Content-Type', /text\/plain/)
-          .expect(401)
+          .expect('Content-Type', template.project ? /text\/plain/ : /json/)
+          .expect(template.project ? 401 : 200)
           .end(done);
       });
 
@@ -318,11 +318,11 @@ module.exports = function(app, template, hook) {
           .end(done);
       });
 
-      it('An Anonymous user should not be able to Read the Index of Resource for a User-Created Project', function(done) {
+      it('An Anonymous user should be able to Read the Index of Resource for a User-Created Project', function(done) {
         request(app)
           .get(hook.alter('url', '/form?type=resource', template))
-          .expect('Content-Type', /text\/plain/)
-          .expect(401)
+          .expect('Content-Type', template.project ? /text\/plain/ : /json/)
+          .expect(template.project ? 401 : 200)
           .end(done);
       });
 

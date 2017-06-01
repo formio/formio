@@ -45,9 +45,6 @@ module.exports = function(config) {
     // Add the utils to the formio object.
     router.formio.util = util;
 
-    // Add nunjucks for renderings.
-    router.formio.nunjucks = require('./src/util/nunjucks');
-
     // Get the hook system.
     router.formio.hook = require('./src/util/hook')(router.formio);
 
@@ -85,7 +82,9 @@ module.exports = function(config) {
 
       // Add Middleware necessary for REST API's
       router.use(bodyParser.urlencoded({extended: true}));
-      router.use(bodyParser.json());
+      router.use(bodyParser.json({
+        limit: '16mb'
+      }));
       router.use(methodOverride('X-HTTP-Method-Override'));
 
       // Error handler for malformed JSON
@@ -104,11 +103,20 @@ module.exports = function(config) {
           return next();
         }
 
+        if (res.headersSent) {
+          return next();
+        }
+
         corsRoute(req, res, next);
       });
 
       // Import our authentication models.
       router.formio.auth = require('./src/authentication/index')(router);
+
+      // The get token handler
+      if (!router.formio.hook.invoke('init', 'getTempToken', router.formio)) {
+        router.get('/token', router.formio.auth.tempToken);
+      }
 
       // Perform token mutation before all requests.
       if (!router.formio.hook.invoke('init', 'token', router.formio)) {
@@ -184,20 +192,16 @@ module.exports = function(config) {
         // Load the request cache
         router.formio.cache = require('./src/cache/cache')(router);
 
-        // Add export capabilities.
-        require('./src/export/export')(router);
-
-        // Allow exporting capabilities.
-        router.formio.exporter = require('./src/templates/export')(router.formio);
-        router.get('/export', function(req, res, next) {
-          var exportOptions = router.formio.hook.alter('exportOptions', {}, req, res);
-          router.formio.exporter.export(exportOptions, function(err, _export) {
+        // Add the export function
+        router.get('/export', (req, res, next) => {
+          let options = router.formio.hook.alter('exportOptions', {}, req, res);
+          router.formio.template.export(options, (err, data) => {
             if (err) {
-              _export = '';
+              return next(err.message || err);
             }
 
-            res.attachment(exportOptions.name + '.json');
-            res.end(JSON.stringify(_export));
+            res.attachment(`${options.name}-${options.version}.json`);
+            res.end(JSON.stringify(data));
           });
         });
 
@@ -240,6 +244,18 @@ module.exports = function(config) {
         router.formio.Action = require('./src/models/Action')(router.formio);
         router.formio.actions = require('./src/actions/actions')(router);
 
+        // Add submission data export capabilities.
+        require('./src/export/export')(router);
+
+        // Add the available templates.
+        router.formio.templates = {
+          default: _.cloneDeep(require('./src/templates/default.json')),
+          empty: _.cloneDeep(require('./src/templates/empty.json'))
+        };
+
+        // Add the template functions.
+        router.formio.template = require('./src/templates/index')(router);
+
         var swagger = require('./src/util/swagger');
         // Show the swagger for the whole site.
         router.get('/spec.json', function(req, res, next) {
@@ -254,12 +270,6 @@ module.exports = function(config) {
             res.json(spec);
           });
         });
-
-        // Add the templates.
-        router.formio.templates = require('./src/templates/index');
-
-        // Add the importer.
-        router.formio.import = require('./src/templates/import')(router.formio);
 
         // Say we are done.
         deferred.resolve(router.formio);

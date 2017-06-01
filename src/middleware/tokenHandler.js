@@ -19,6 +19,27 @@ var debug = {
  *   The middleware for an Express endpoint.
  */
 module.exports = function(router) {
+  /**
+   * Util function to update the jwt in the response.
+   *
+   * @param inputToken
+   * @param payload
+   * @param res
+   */
+  let generateToken = (inputToken, payload, res) => {
+    // Refresh the token that is sent back to the user when appropriate.
+    let newToken = router.formio.auth.getToken(payload);
+    res.token = newToken
+      ? newToken
+      : inputToken;
+
+    // Set the headers if they haven't been sent yet.
+    if (!res.headersSent) {
+      res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
+      res.setHeader('x-jwt-token', res.token);
+    }
+  };
+
   return function tokenHandler(req, res, next) {
     // If someone else provided then skip.
     if (req.user && req.token && res.token) {
@@ -54,6 +75,11 @@ module.exports = function(router) {
         }
       }
 
+      // Check to see if this token is allowed to access this path.
+      if (!router.formio.auth.isTokenAllowed(req, decoded)) {
+        return res.sendStatus(401);
+      }
+
       // If this is a temporary token, then decode it and set it in the request.
       if (decoded.temp) {
         debug.handler('Temp token');
@@ -72,6 +98,11 @@ module.exports = function(router) {
 
       // Load the formio hooks.
       var hook = require('../util/hook')(router.formio);
+
+      if (!hook.alter('external', decoded, req)) {
+        generateToken(token, decoded, res);
+        return next();
+      }
 
       // Load the user submission.
       var cache = router.formio.cache || require('../cache/cache')(router);
@@ -110,16 +141,7 @@ module.exports = function(router) {
           req.token = decoded;
 
           // Refresh the token that is sent back to the user when appropriate.
-          var newToken = router.formio.auth.getToken(decoded);
-          res.token = newToken
-            ? newToken
-            : token;
-
-          // Set the headers if they haven't been sent yet.
-          if (!res.headersSent) {
-            res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
-            res.setHeader('x-jwt-token', res.token);
-          }
+          generateToken(token, decoded, res);
 
           next();
         });

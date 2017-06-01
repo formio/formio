@@ -78,7 +78,14 @@ module.exports = function(formio) {
   Action.schema.plugin(require('../plugins/machineName'));
 
   Action.schema.machineName = function(document, done) {
-    hook.alter('actionMachineName', document.name, document, done);
+    formio.resources.form.model.findOne({_id: document.form, deleted: {$eq: null}})
+      .exec((err, form) => {
+        if (err) {
+          return done(err);
+        }
+
+        hook.alter('actionMachineName', form.name + ':' + document.name, document, done);
+      });
   };
 
   /**

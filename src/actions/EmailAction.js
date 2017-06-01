@@ -4,6 +4,7 @@ var request = require('request');
 module.exports = function(router) {
   var Action = router.formio.Action;
   var emailer = require('../util/email')(router.formio);
+  var debug = require('debug')('formio:action:email');
   var macros = require('./macros/macros');
 
   /**
@@ -119,7 +120,7 @@ module.exports = function(router) {
           label: 'Message',
           key: 'message',
           type: 'textarea',
-          defaultValue: '{{ table(form.components) }}',
+          defaultValue: '{{ submission(data, form.components) }}',
           multiple: false,
           rows: 3,
           suffix: '',
@@ -149,7 +150,7 @@ module.exports = function(router) {
     }
 
     // Load the form for this request.
-    router.formio.cache.loadCurrentForm(req, function(err, form) {
+    router.formio.cache.loadCurrentForm(req, (err, form) => {
       if (err) {
         return next(err);
       }
@@ -157,46 +158,54 @@ module.exports = function(router) {
         return next(new Error('Form not found.'));
       }
 
+      // Dont block on sending emails.
+      next(); // eslint-disable-line callback-return
+
       // Get the email parameters.
-      var params = emailer.getParams(res, form, req.body);
+      emailer.getParams(res, form, req.body)
+      .then(params => {
+        let query = {
+          _id: params.owner,
+          deleted: {$eq: null}
+        };
 
-      var query = {
-        _id: params.owner,
-        deleted: {$eq: null}
-      };
-      router.formio.resources.submission.model.findOne(query).exec(function(err, owner) {
-        if (err) {
-          // Don't worry about an error.
-        }
-        if (owner) {
-          params.owner = owner.toObject();
-        }
+        return router.formio.resources.submission.model.findOne(query)
+        .then(owner => {
+          if (owner) {
+            params.owner = owner.toObject();
+          }
 
-        var sendEmail = function(message) {
+          return new Promise((resolve, reject) => {
+            if (!this.settings.template) {
+              return resolve(this.settings.message);
+            }
+
+            return request(this.settings.template, (error, response, body) => {
+              if (!error && response.statusCode === 200) {
+                // Save the content before overwriting the message.
+                params.content = this.settings.message;
+                return resolve(body);
+              }
+
+              return resolve(this.settings.message);
+            });
+          });
+        })
+        .then(template => {
           // Prepend the macros to the message so that they can use them.
-          this.settings.message = message;
+          this.settings.message = macros + template;
 
           // Send the email.
-          emailer.send(req, res, this.settings, params, next);
-        }.bind(this);
-
-        if (this.settings.template) {
-          request(this.settings.template, function(error, response, body) {
-            if (!error && response.statusCode === 200) {
-              // Save the content before overwriting the message.
-              params.content = this.settings.message;
-              sendEmail(macros + body);
-            }
-            else {
-              sendEmail(macros + this.settings.message);
-            }
-          }.bind(this));
-        }
-        else {
-          sendEmail(macros + this.settings.message);
-        }
-      }.bind(this));
-    }.bind(this));
+          emailer.send(req, res, this.settings, params, (err, response) => {
+            debug(`[error]: ${JSON.stringify(err)}`);
+            debug(`[response]: ${JSON.stringify(response)}`);
+          });
+        });
+      })
+      .catch(err => {
+        debug(err);
+      });
+    });
   };
 
   // Return the EmailAction.

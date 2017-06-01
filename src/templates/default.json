@@ -412,7 +412,7 @@
     }
   },
   "actions": {
-    "userRole": {
+    "user:role": {
       "title": "Role Assignment",
       "name": "role",
       "priority": 1,
@@ -425,16 +425,15 @@
         "role": "authenticated"
       }
     },
-    "userSave": {
+    "user:save": {
       "title": "Save Submission",
       "name": "save",
       "form": "user",
       "handler": ["before"],
       "method": ["create", "update"],
-      "priority": 10,
-      "settings": {}
+      "priority": 10
     },
-    "userLogin": {
+    "userLogin:login": {
       "name": "login",
       "title": "Login",
       "form": "userLogin",
@@ -444,10 +443,13 @@
       "settings": {
         "resources": ["user"],
         "username": "email",
-        "password": "password"
+        "password": "password",
+        "allowedAttempts": 5,
+        "attemptWindow": 30,
+        "lockWait": 1800
       }
     },
-    "userRegisterSave": {
+    "userRegister:save": {
       "title": "Save Submission",
       "name": "save",
       "form": "userRegister",
@@ -462,7 +464,7 @@
         }
       }
     },
-    "userRegisterLogin": {
+    "userRegister:login": {
       "name": "login",
       "title": "Login",
       "form": "userRegister",
@@ -475,7 +477,7 @@
         "password": "password"
       }
     },
-    "adminRole": {
+    "admin:role": {
       "title": "Role Assignment",
       "name": "role",
       "priority": 1,
@@ -488,16 +490,15 @@
         "role": "administrator"
       }
     },
-    "adminSave": {
+    "admin:save": {
       "title": "Save Submission",
       "name": "save",
       "form": "admin",
       "handler": ["before"],
       "method": ["create", "update"],
-      "priority": 10,
-      "settings": {}
+      "priority": 10
     },
-    "adminLogin": {
+    "adminLogin:login": {
       "name": "login",
       "title": "Login",
       "form": "adminLogin",
@@ -507,7 +508,10 @@
       "settings": {
         "resources": ["admin"],
         "username": "email",
-        "password": "password"
+        "password": "password",
+        "allowedAttempts": 5,
+        "attemptWindow": 30,
+        "lockWait": 1800
       }
     }
   }
