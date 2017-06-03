@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.18.2
+### Fixed
+ - The possibility of the server crashing for reference fields.
+
 ## 1.18.1
 ### Fixed
  - The body limit for form sizes to allow forms up to 16mb in size (JSON format).
