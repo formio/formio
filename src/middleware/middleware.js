@@ -15,6 +15,7 @@ module.exports = function(router) {
     filterMongooseExists: require('./filterMongooseExists')(router),
     filterResourcejsResponse: require('./filterResourcejsResponse')(router),
     filterProtectedFields: require('./filterProtectedFields')(router),
+    formLoader: require('./formLoader')(router),
     deleteActionHandler: require('./deleteActionHandler')(router),
     deleteFormHandler: require('./deleteFormHandler')(router),
     deleteRoleHandler: require('./deleteRoleHandler')(router),
