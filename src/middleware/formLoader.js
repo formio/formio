@@ -11,7 +11,6 @@ var async = require('async');
  * @returns {*}
  */
 module.exports = function(router) {
-  var hook = require('../util/hook')(router.formio);
   return function formLoader(req, res, next) {
     // Only process on GET request, and if they provide full query.
     if (
