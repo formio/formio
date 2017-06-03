@@ -62,7 +62,7 @@ module.exports = function(router, resourceName, resourceId) {
             ) {
               let formId = component.form || component.resource;
               let compValue = _.get(res.resource.item.data, path);
-              if (compValue._id) {
+              if (compValue && compValue._id) {
                 return Q.ninvoke(hook, 'alter', 'submissionQuery', {
                   _id: util.idToBson(compValue._id.toString()),
                   deleted: {$eq: null}
@@ -91,7 +91,7 @@ module.exports = function(router, resourceName, resourceId) {
               let resources = [];
               _.each(res.resource.item, (resource) => {
                 let compValue = _.get(resource.data, path);
-                if (compValue._id) {
+                if (compValue && compValue._id) {
                   resources.push(util.idToBson(compValue._id.toString()));
                 }
               });
@@ -114,7 +114,7 @@ module.exports = function(router, resourceName, resourceId) {
                 .then((submissions) => {
                   _.each(res.resource.item, (resource) => {
                     let compValue = _.get(resource.data, path);
-                    if (compValue._id) {
+                    if (compValue && compValue._id) {
                       let submission = _.find(submissions, (sub) => {
                         return sub._id.toString() === compValue._id.toString();
                       });
@@ -128,11 +128,12 @@ module.exports = function(router, resourceName, resourceId) {
             else if (
               ((handlerName === 'afterPost') || (handlerName === 'afterPut')) &&
               res.resource &&
-              res.resource.item
+              res.resource.item &&
+              req.resources
             ) {
               // Make sure to reset the value on the return result.
               let compValue = _.get(res.resource.item.data, path);
-              if (req.resources.hasOwnProperty(compValue._id)) {
+              if (compValue && req.resources.hasOwnProperty(compValue._id)) {
                 _.set(res.resource.item.data, path, req.resources[compValue._id]);
               }
             }
@@ -141,7 +142,7 @@ module.exports = function(router, resourceName, resourceId) {
               req.body
             ) {
               let compValue = _.get(req.body.data, path);
-              if (compValue._id && compValue.hasOwnProperty('data')) {
+              if (compValue && compValue._id && compValue.hasOwnProperty('data')) {
                 if (!req.resources) {
                   req.resources = {};
                 }
