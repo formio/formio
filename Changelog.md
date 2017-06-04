@@ -1,8 +1,15 @@
-# Change Log 
+# Change Log
 All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
+
+## 1.18.4
+### Added
+ - The ability to import a custom project.json during installation.
+
+### Fixed
+ - Issue during installation where the paths would get all messed up.
 
 ## 1.18.3
 ### Added
@@ -56,12 +63,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
  - Allow template export steps to be altered with templateExportSteps
  - Allow default template to be modified.
- 
+
 ### Changed
  - Change templateSteps to templateImportSteps
  - Updating the default template for new email actions to use the submission macro, rather than email, to change the
    output of signature components to be Yes/No
- 
+
 ### Reverted
  - Revert project version back to 2.0.0 and use tag instead.
 
