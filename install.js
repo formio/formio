@@ -400,6 +400,8 @@ module.exports = function(formio, items, done) {
         {
           name: 'email',
           description: 'Enter your email address for the root account.',
+          pattern: /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
+          message: 'Must be a valid email',
           required: true
         },
         {
