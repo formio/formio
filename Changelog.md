@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.18.5
+### Fixed
+ - Issue with components still getting cleared even though clearOnHide is false.
+
 ## 1.18.4
 ### Added
  - The ability to import a custom project.json during installation.

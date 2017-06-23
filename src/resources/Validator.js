@@ -434,7 +434,7 @@ Validator.prototype.buildIgnoreList = function(submission) {
       }
 
       // Set this in the show variable.
-      show[component.key] = visible;
+      show[component.key] = component.clearOnHide ? visible : true;
     });
   };
 
