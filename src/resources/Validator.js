@@ -434,9 +434,12 @@ Validator.prototype.buildIgnoreList = function(submission) {
       }
 
       // Set this in the show variable.
-      show[component.key] = component.clearOnHide ? visible : true;
-    });
-  };
+      show[component.key] = component.clearOnHide ? boolean[visible] : true;
+      if (!boolean[visible]) {
+        this.ignore[component.key] = true;
+      }
+    }.bind(this));
+  }.bind(this);
 
   // Ensure this.form.components has a value.
   this.form = this.form || {};
@@ -453,20 +456,6 @@ Validator.prototype.buildIgnoreList = function(submission) {
       return sweepSubmission();
     }
   });
-
-  // Iterate each component we're supposed to show, if we find one we're not supposed to show, add it to the ignore.
-  _.each(show, function(value, key) {
-    try {
-      // If this component isn't being displayed, don't require it.
-      if (!boolean[value]) {
-        this.ignore[key] = true;
-      }
-    }
-    catch (e) {
-      debug.error(e);
-      debug.validator(e);
-    }
-  }.bind(this));
 };
 
 /**
