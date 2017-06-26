@@ -671,5 +671,17 @@ module.exports = function(app) {
     }.bind(this));
   };
 
+  Helper.assert = {
+    propertiesEqual: (source, compare) => {
+      _.each(source, (value, key) => {
+        if (!compare.hasOwnProperty(key)) {
+          return assert(false, 'Key is not found in the comparison.');
+        }
+
+        assert.deepEqual(value, compare[key]);
+      });
+    }
+  };
+
   return Helper;
 };

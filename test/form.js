@@ -11664,8 +11664,8 @@ module.exports = function(app, template, hook) {
             if (err) {
               return done(err);
             }
-            assert.deepEqual(res.body.data.user, resources[0]);
-            assert.deepEqual(references[0].data.user, resources[0]);
+            Helper.assert.propertiesEqual(res.body.data.user, resources[0]);
+            Helper.assert.propertiesEqual(references[0].data.user, resources[0]);
             done();
           });
       });
