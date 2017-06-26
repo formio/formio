@@ -11708,7 +11708,7 @@ module.exports = function(app, template, hook) {
               if (err) {
                 return next(err);
               }
-              assert.deepEqual(res.body.data.user, resources[index]);
+              Helper.assert.propertiesEqual(res.body.data.user, resources[index]);
               next();
             });
         }, done);
@@ -11728,7 +11728,7 @@ module.exports = function(app, template, hook) {
               let reference = _.find(references, {_id: item._id});
               let resource = _.find(resources, {_id: item.data.user._id});
               assert(!!reference, 'No reference found.');
-              assert.deepEqual(item.data.user, resource);
+              Helper.assert.propertiesEqual(item.data.user, resource);
             });
             done();
           });
