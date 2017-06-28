@@ -22,11 +22,6 @@ var Validator = function(form, model) {
   this.schema = null;
   this.model = model;
   this.include = {};
-  this.visible = {
-    '': true,
-    'undefined': true,
-    'null': true
-  };
   this.unique = {};
   this.form = form;
 };
@@ -43,7 +38,10 @@ var Validator = function(form, model) {
  */
 Validator.prototype.addValidator = function(schema, component, componentData) {
   var fieldValidator = null;
-  if (!component || (component.hasOwnProperty('key') && !this.include[component.key])) {
+  if (
+    !component ||
+    (component.hasOwnProperty('key') && this.include.hasOwnProperty(component.key) && !this.include[component.key])
+  ) {
     return;
   }
 
@@ -320,8 +318,7 @@ Validator.prototype.sanitize = function(submission) {
   let isVisible = (component) => {
     if (component && component.key) {
       let parentVisible = !component.parent || isVisible(component.parent);
-      this.visible[component.key] = parentVisible && util.boolean(checkComponentVisibility(component));
-      return this.visible[component.key];
+      return parentVisible && util.boolean(checkComponentVisibility(component));
     }
     return true;
   };
@@ -329,7 +326,8 @@ Validator.prototype.sanitize = function(submission) {
   // Create a visible grid and sanitized data.
   let omit = [];
   util.eachComponent(this.form.components, (component, path) => {
-    this.include[component.key] = !component.clearOnHide || isVisible(component);
+    let clearOnHide = util.isBoolean(component.clearOnHide) ? util.boolean(component.clearOnHide) : true;
+    this.include[component.key] = !clearOnHide || isVisible(component);
     if (!this.include[component.key]) {
       omit.push(path);
     }
