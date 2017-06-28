@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.18.9
+### Fixed
+ - An issue where if you have clearOnHide not set, it would still clear out values for hidden fields.
+
 ## 1.18.6, 1.18.7, 1.18.8
 ### Fixed
  - Issue with unit tests from extended libraries that introduce new properties.

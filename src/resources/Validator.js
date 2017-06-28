@@ -21,7 +21,7 @@ var Validator = function(form, model) {
   this.customValidations = [];
   this.schema = null;
   this.model = model;
-  this.ignore = {};
+  this.include = {};
   this.unique = {};
   this.form = form;
 };
@@ -38,7 +38,10 @@ var Validator = function(form, model) {
  */
 Validator.prototype.addValidator = function(schema, component, componentData) {
   var fieldValidator = null;
-  if (!component || (component.hasOwnProperty('key') && this.ignore.hasOwnProperty(component.key))) {
+  if (
+    !component ||
+    (component.hasOwnProperty('key') && this.include.hasOwnProperty(component.key) && !this.include[component.key])
+  ) {
     return;
   }
 
@@ -194,96 +197,7 @@ Validator.prototype.addValidator = function(schema, component, componentData) {
  * @param {Object} submission
  *   The data submission object.
  */
-Validator.prototype.buildIgnoreList = function(submission) {
-  // Build the display map.
-  var show = {
-    '': true,
-    'undefined': true,
-    'null': true
-  };
-  var boolean = {
-    'true': true,
-    'false': false
-  };
-
-  /**
-   * Sweep the current submission, to identify and remove data that has been conditionally hidden.
-   *
-   * This will iterate over every key in the submission data obj, regardless of the structure.
-   */
-  var sweepSubmission = function() {
-    /**
-     * Sweep the given component keys and remove any data for the given keys which are being conditionally hidden.
-     *
-     * @param {Object} components
-     *   The list of components to sweep.
-     * @param {Boolean} ret
-     *   Whether or not you want to know if a modification needs to be made.
-     */
-    var sweep = function sweep(components, ret) {
-      // Skip our unwanted types.
-      if (components === null || typeof components === 'undefined') {
-        if (ret) {
-          return false;
-        }
-        return;
-      }
-
-      // If given a string, then we are looking at the api key of a component.
-      if (typeof components === 'string') {
-        if (show.hasOwnProperty(components) && show[components] === false) {
-          if (ret) {
-            return true;
-          }
-        }
-
-        return;
-      }
-      // If given an array, iterate over each element, assuming its not a string itself.
-      // If each element is a string, then we aren't looking at a component, but data itself.
-      else if (components instanceof Array) {
-        var filtered = [];
-
-        components.forEach(function(component) {
-          if (typeof component === 'string') {
-            filtered.push(component);
-            return;
-          }
-
-          // Recurse into the components of this component.
-          var modified = sweep(component, true);
-          if (!modified) {
-            filtered.push(component);
-          }
-        });
-
-        components = filtered;
-        return;
-      }
-      // If given an object, iterate the properties as component keys.
-      else if (typeof components === 'object') {
-        Object.keys(components).forEach(function(key) {
-          // If the key is deleted, delete the whole obj.
-          var modifiedKey = sweep(key, true);
-          if (modifiedKey) {
-            delete components[key];
-          }
-          else {
-            // If a child leaf is modified (non key) delete its whole subtree.
-            if (components[key] instanceof Array || typeof components[key] === 'object') {
-              // If the component can have sub-components, recurse.
-              sweep(components[key]);
-            }
-          }
-        });
-        return;
-      }
-
-      return;
-    };
-    return sweep(submission.data || {});
-  };
-
+Validator.prototype.sanitize = function(submission) {
   /**
    * Calculate whether the conditional settings evaluate to true or false.
    *
@@ -295,15 +209,15 @@ Validator.prototype.buildIgnoreList = function(submission) {
     if (typeof value !== 'undefined' && typeof value !== 'object') {
       // Check if the conditional value is equal to the trigger value
       return value.toString() === conditional.eq.toString()
-        ? boolean[conditional.show]
-        : !boolean[conditional.show];
+        ? util.boolean(conditional.show)
+        : !util.boolean(conditional.show);
     }
     // Special check for check boxes component.
     else if (typeof value !== 'undefined' && typeof value === 'object') {
       // Only update the visibility is present, otherwise hide, because it was deleted by the submission sweep.
       if (value.hasOwnProperty(conditional.eq)) {
-        return boolean.hasOwnProperty(value[conditional.eq])
-          ? boolean[value[conditional.eq]]
+        return util.isBoolean(value[conditional.eq])
+          ? util.boolean(value[conditional.eq])
           : true;
       }
       else {
@@ -313,12 +227,12 @@ Validator.prototype.buildIgnoreList = function(submission) {
     // Check against the components default value, if present and the components hasnt been interacted with.
     else if (typeof value === 'undefined' && conditional.hasOwnProperty('defaultValue')) {
       return conditional.defaultValue.toString() === conditional.eq.toString()
-        ? boolean[conditional.show]
-        : !boolean[conditional.show];
+        ? util.boolean(conditional.show)
+        : !util.boolean(conditional.show);
     }
     // If there is no value, we still need to process as not equal.
     else {
-      return !boolean[conditional.show];
+      return !util.boolean(conditional.show);
     }
   };
 
@@ -340,8 +254,8 @@ Validator.prototype.buildIgnoreList = function(submission) {
         timeout: 250
       });
 
-      if (boolean.hasOwnProperty(sandbox.show)) {
-        return boolean[sandbox.show];
+      if (util.isBoolean(sandbox.show)) {
+        return util.boolean(sandbox.show);
       }
       else {
         return true;
@@ -374,8 +288,8 @@ Validator.prototype.buildIgnoreList = function(submission) {
       && (component.conditional.when !== null && component.conditional.when !== '')
     ) {
       // Default the conditional values.
-      component.conditional.show = boolean.hasOwnProperty(component.conditional.show)
-        ? boolean[component.conditional.show]
+      component.conditional.show = util.isBoolean(component.conditional.show)
+        ? util.boolean(component.conditional.show)
         : true;
       component.conditional.eq = component.conditional.eq || '';
 
@@ -396,66 +310,31 @@ Validator.prototype.buildIgnoreList = function(submission) {
     return true;
   };
 
-  /**
-   * Check the visibility of each component recursively.
-   *
-   * @param components
-   */
-  var checkVisibility = function(components, parentVisibility) {
-    parentVisibility = (typeof parentVisibility !== 'undefined' ? parentVisibility : true);
-
-    components.forEach(function(component) {
-      var visible = true;
-      // If the paren't isn't visibly, this component isn't either.
-      if (!parentVisibility) {
-        visible = parentVisibility;
-      }
-      else {
-        visible = checkComponentVisibility(component);
-      }
-
-      // If there are columns, check all components and pass through nested visibility
-      if (component.columns && Array.isArray(component.columns)) {
-        component.columns.forEach(function(column) {
-          checkVisibility(column.components, visible);
-        });
-      }
-
-      // If there are rows, check all components and pass through nested visibility
-      if (component.rows && Array.isArray(component.rows)) {
-        [].concat.apply([], component.rows).forEach(function(row) {
-          checkVisibility(row.components, visible);
-        });
-      }
-
-      // If there are components, check all components and pass through nested visibility
-      if (component.components && Array.isArray(component.components)) {
-        checkVisibility(component.components, visible);
-      }
-
-      // Set this in the show variable.
-      show[component.key] = component.clearOnHide ? boolean[visible] : true;
-      if (!boolean[visible]) {
-        this.ignore[component.key] = true;
-      }
-    }.bind(this));
-  }.bind(this);
-
   // Ensure this.form.components has a value.
   this.form = this.form || {};
   this.form.components = this.form.components || [];
 
-  // Iterate over form components and checkVisibility()
-  checkVisibility(this.form.components);
-
-  // Toggle every conditional.
-  var allHidden = Object.keys(show);
-  (allHidden || []).forEach(function(componentKey) {
-    // If a component is hidden, delete its value, so other conditionals are property chain reacted.
-    if (!show[componentKey]) {
-      return sweepSubmission();
+  // Check to see if a component and its parents are visible.
+  let isVisible = (component) => {
+    if (component && component.key) {
+      let parentVisible = !component.parent || isVisible(component.parent);
+      return parentVisible && util.boolean(checkComponentVisibility(component));
     }
-  });
+    return true;
+  };
+
+  // Create a visible grid and sanitized data.
+  let omit = [];
+  util.eachComponent(this.form.components, (component, path) => {
+    let clearOnHide = util.isBoolean(component.clearOnHide) ? util.boolean(component.clearOnHide) : true;
+    this.include[component.key] = !clearOnHide || isVisible(component);
+    if (!this.include[component.key]) {
+      omit.push(path);
+    }
+  }, false, '', this.form);
+
+  // Sanitize the submission data.
+  submission.data = _.omit(submission.data, omit);
 };
 
 /**
@@ -501,8 +380,8 @@ Validator.prototype.validate = function(submission, next) {
     return next();
   }
 
-  // Using the submission, determine which fields are supposed to be shown; Only validate displayed fields.
-  this.buildIgnoreList(submission);
+  // Sanitize the submission.
+  this.sanitize(submission);
 
   // Build the validator schema.
   this.buildSchema(submission);

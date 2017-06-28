@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "1.18.8",
+  "version": "1.18.9",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
@@ -33,7 +33,7 @@
     "eslint-config-formio": "^1.1.2",
     "event-chain": "^0.0.1",
     "express": "^4.15.3",
-    "formiojs": "^2.8.2",
+    "formiojs": "^2.11.6",
     "fs-extra": "^0.26.7",
     "joi": "^7.3.0",
     "jsonwebtoken": "^5.7.0",
