@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+### [UNRELEASED]
+### Added
+ - Ability to modify the current form based on submission data before validation.
+
 ## 1.18.1
 ### Fixed
  - The body limit for form sizes to allow forms up to 16mb in size (JSON format).
