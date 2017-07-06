@@ -1,13 +1,14 @@
 {
   "name": "formio",
-  "version": "1.18.1",
+  "version": "1.18.9",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
   "scripts": {
-    "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000",
-    "start": "node main.js",
-    "lint": "eslint ."
+    "test": "npm run version && env TEST_SUITE=1 mocha test/test.js -b -t 60000",
+    "start": "npm run version && node main.js",
+    "lint": "eslint .",
+    "version": "check-node-version --node '>=6.0.0'"
   },
   "author": "support@form.io",
   "engines": {
@@ -21,6 +22,7 @@
     "async": "^1.5.2",
     "bcrypt": "^0.8.7",
     "body-parser": "^1.17.1",
+    "check-node-version": "^2.1.0",
     "clone": "^1.0.2",
     "colors": "^1.1.2",
     "config": "^1.24.0",
@@ -31,7 +33,7 @@
     "eslint-config-formio": "^1.1.2",
     "event-chain": "^0.0.1",
     "express": "^4.15.3",
-    "formiojs": "^2.8.2",
+    "formiojs": "^2.11.6",
     "fs-extra": "^0.26.7",
     "joi": "^7.3.0",
     "jsonwebtoken": "^5.7.0",

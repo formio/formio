@@ -1,4 +1,4 @@
-# Change Log 
+# Change Log
 All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### [UNRELEASED]
 ### Added
  - Ability to modify the current form based on submission data before validation.
+
+## 1.18.9
+### Fixed
+ - An issue where if you have clearOnHide not set, it would still clear out values for hidden fields.
+
+## 1.18.6, 1.18.7, 1.18.8
+### Fixed
+ - Issue with unit tests from extended libraries that introduce new properties.
+
+## 1.18.5
+### Fixed
+ - Issue with components still getting cleared even though clearOnHide is false.
+
+## 1.18.4
+### Added
+ - The ability to import a custom project.json during installation.
+
+### Fixed
+ - Issue during installation where the paths would get all messed up.
+
+## 1.18.3
+### Added
+ - The ability to provide "full=true" query paramter to the form load and retrieve the full form, including form components.
+
+## 1.18.2
+### Fixed
+ - The possibility of the server crashing for reference fields.
 
 ## 1.18.1
 ### Fixed
@@ -52,12 +79,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
  - Allow template export steps to be altered with templateExportSteps
  - Allow default template to be modified.
- 
+
 ### Changed
  - Change templateSteps to templateImportSteps
  - Updating the default template for new email actions to use the submission macro, rather than email, to change the
    output of signature components to be Yes/No
- 
+
 ### Reverted
  - Revert project version back to 2.0.0 and use tag instead.
 
