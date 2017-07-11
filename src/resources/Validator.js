@@ -413,7 +413,7 @@ Validator.prototype.validate = function(submission, next) {
 
         // Create the sandbox.
         var sandbox = vm.createContext({
-          input: util.getValue(submission, component.key),
+          input: (typeof _row === 'object') ? util.getValue({data: _row}, component.key) : _row,
           data: submission.data,
           row: _row,
           scope: {data: submission.data},
