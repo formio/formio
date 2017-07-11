@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.18.10
+### Added
+ - Ability to modify the current form based on submission data before validation.
 ### Fixed
  - An issue with custom validations with components within a datagrid were not working properly.
 
