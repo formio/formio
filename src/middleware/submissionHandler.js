@@ -208,7 +208,7 @@ module.exports = function(router, resourceName, resourceId) {
           return done('Form not found.');
         }
 
-        req.currentForm = form;
+        req.currentForm = hook.alter('currentForm', form, req.body);
         req.flattenedComponents = util.flattenComponents(form.components);
         done();
       });
