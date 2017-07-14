@@ -424,7 +424,7 @@ module.exports = function(router) {
                         type: 'textarea',
                         input: true,
                         key: 'custom',
-                        components: form.components,
+                        editorComponents: form.components,
                         placeholder: customPlaceHolder
                       }
                     ]
