@@ -50,6 +50,13 @@ http://localhost:8080
 
 You can also see the contents of the application (for modification) within the ```app``` folder which exists inside of the folder where you downloaded this repository.
 
+Development
+--------------------
+To start server with auto restart capability for development simply run this command:
+```
+npm run start:dev
+```
+
 Help
 --------------------
 We will be updating the help guides found @ https://help.form.io as questions arise and also to help you get started with Form.io.

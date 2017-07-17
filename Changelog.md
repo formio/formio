@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## 1.18.10
 ### Added
  - Ability to modify the current form based on submission data before validation.
+ - `start:dev` script for npm with Nodemon support.
 ### Fixed
  - An issue with custom validations with components within a datagrid were not working properly.
+ - CSV export for Resource component and Select component with data source Resource / URL / JSON.
 
 ## 1.18.9
 ### Fixed
@@ -31,7 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.18.3
 ### Added
- - The ability to provide "full=true" query paramter to the form load and retrieve the full form, including form components.
+ - The ability to provide "full=true" query parameter to the form load and retrieve the full form, including form components.
 
 ## 1.18.2
 ### Fixed
@@ -54,7 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
  - Submission Resource Access are calculated on the server during submission instead of in the browser.
 
 ### Added
- - Allow roles to have their own permissions appart from default owner permissions.
+ - Allow roles to have their own permissions apart from default owner permissions.
 
 ## 1.17.5
 ### Fixed
