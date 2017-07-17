@@ -60,7 +60,7 @@ var CSVExporter = function(form, req, res) {
         items.push({label: [path, question.value].join('.'), path: question.value});
       });
     }
-    else if (~['select', 'resource'].indexOf(component.type)) {
+    else if (['select', 'resource'].indexOf(component.type) !== -1) {
       // Prepare the Lodash template by deleting tags and html entities
       var clearTemplate = Entities.decode(component.template.replace(/<\/?[^>]+(>|$)/g, ''));
       var templateExtractor = _.template(clearTemplate, {
