@@ -237,18 +237,31 @@ module.exports = {
     return false;
   },
 
+    flattenComponentsForRender: function(components) {
+      var flattened = {};
+      this.eachComponent(components, function(component, path) {
+        // Containers will get rendered as flat.
+        if (
+          (component.type === 'container') ||
+          (component.type === 'button') ||
+          (component.type === 'hidden')
+        ) {
+          return;
+        }
+
+        flattened[path] = component;
+
+        if (component.type === 'datagrid') {
+          return true;
+        }
+      });
+      return flattened;
+    },
+
   renderFormSubmission: function(data, components) {
-    var comps = this.flattenComponents(components);
+    var comps = this.flattenComponentsForRender(components);
     var submission = '<table border="1" style="width:100%">';
     _.each(comps, function(component, key) {
-      // Containers will get rendered as flat.
-      if (
-        (component.type === 'container') ||
-        (component.type === 'button') ||
-        (component.type === 'hidden')
-      ) {
-        return;
-      }
       var cmpValue = this.renderComponentValue(data, key, comps);
       if (typeof cmpValue.value === 'string') {
         submission += '<tr>';
@@ -320,15 +333,8 @@ module.exports = {
         compValue.value += '</table>';
         break;
       case 'datagrid':
+        var columns = this.flattenComponentsForRender(component.components);
         compValue.value = '<table border="1" style="width:100%">';
-        var columns = [];
-        if (value.length > 0) {
-          _.each(value[0], function(column, columnKey) {
-            if (components.hasOwnProperty(columnKey)) {
-              columns.push(components[columnKey]);
-            }
-          }.bind(this));
-        }
         compValue.value += '<tr>';
         _.each(columns, function(column) {
           var subLabel = column.label || column.key;
@@ -337,8 +343,8 @@ module.exports = {
         compValue.value += '</tr>';
         _.each(value, function(subValue) {
           compValue.value += '<tr>';
-          _.each(columns, function(column) {
-            var subCompValue = this.renderComponentValue(subValue, column.key, components);
+          _.each(columns, function(column, key) {
+            var subCompValue = this.renderComponentValue(subValue, key, columns);
             if (typeof subCompValue.value === 'string') {
               compValue.value += '<td style="padding:5px 10px;">';
               compValue.value += subCompValue.value;
