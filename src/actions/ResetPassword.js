@@ -200,7 +200,8 @@ module.exports = function(router) {
     var query = {
       deleted: {$eq: null}
     };
-    query[usernamekey] = token.username;
+
+    query[usernamekey] = {$regex: new RegExp('^' + util.escapeRegExp(token.username) + '$'), $options: 'i'};
     query.form = {$in: _.map(token.resources, mongoose.Types.ObjectId)};
 
     // Perform a mongo query to find the submission.
