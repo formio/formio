@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
  - The token generation for SSO tokens to not require erroneous parameters.
+ - An issue with the Reset password action not working with case insensitive emails.
 
 ## 1.18.10
 ### Added
