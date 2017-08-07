@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+
+## 1.18.12
 ### Fixed
  - The token generation for SSO tokens to not require erroneous parameters.
  - An issue with the Reset password action not working with case insensitive emails.
