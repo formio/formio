@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [UNRELEASED]
+## Fixed
+ - Data in a datagrid showing in email notifications.
+
 ## 1.18.10
 ### Added
  - Ability to modify the current form based on submission data before validation.
