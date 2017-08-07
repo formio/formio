@@ -239,7 +239,7 @@ module.exports = function(router, resourceName, resourceId) {
         req.skipResource = true;
 
         // Only allow the data to go through.
-        var properties = hook.alter('submissionParams', ['data', 'owner', 'access', 'metadata', 'deleted']);
+        var properties = hook.alter('submissionParams', ['data', 'owner', 'access']);
         req.body = _.pick(req.body, properties);
 
         // Ensure there is always data provided on POST.
