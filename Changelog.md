@@ -4,8 +4,9 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [UNRELEASED]
-## Fixed
+### Fixed
+ - The token generation for SSO tokens to not require erroneous parameters.
+ - An issue with the Reset password action not working with case insensitive emails.
  - Data in a datagrid showing in email notifications.
 
 ## 1.18.10
