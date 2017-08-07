@@ -239,7 +239,7 @@ module.exports = function(router, resourceName, resourceId) {
         req.skipResource = true;
 
         // Only allow the data to go through.
-        var properties = hook.alter('submissionParams', ['data', 'owner', 'access']);
+        var properties = hook.alter('submissionParams', ['data', 'owner', 'access', 'metadata', 'deleted']);
         req.body = _.pick(req.body, properties);
 
         // Ensure there is always data provided on POST.
@@ -383,6 +383,56 @@ module.exports = function(router, resourceName, resourceId) {
       done();
     };
 
+    /**
+     * Set parenthood of child forms if not already done
+     *
+     * @param req
+     * @param res
+     * @param done
+     */
+    var setChildFormParenthood = function(req, res, done) {
+      if (req.method !== 'POST' && req.method !== 'PUT') {
+        return done();
+      }
+
+      _.each(req.flattenedComponents, function(component, key) {
+        if (component.type === 'form') {
+          var data = req.submission.data[key];
+
+          if (data) {
+            router.formio.resources.submission.model.findOne(
+              {_id: data._id, deleted: {$eq: null}}
+            ).exec(function(err, submission) {
+              if (err) {
+                return router.formio.util.log(err);
+              }
+
+              // Update the submission's externalIds.
+              var found = false;
+              submission.externalIds = submission.externalIds || [];
+              _.each(submission.externalIds, function(externalId) {
+                if (externalId.type === 'parent') {
+                  found = true;
+                }
+              });
+              if (!found) {
+                submission.externalIds.push({
+                  type: 'parent',
+                  id: res.resource.item._id
+                });
+                submission.save(function(err, submission) {
+                  if (err) {
+                    return router.formio.util.log(err);
+                  }
+                });
+              }
+            });
+          }
+        }
+      });
+      done();
+    };
+
     // Add before handlers.
     var before = 'before' + method.method;
     handlers[before] = function(req, res, next) {
@@ -405,6 +455,7 @@ module.exports = function(router, resourceName, resourceId) {
       async.series([
         async.apply(executeActions('after'), req, res),
         async.apply(executeFieldHandlers, true, req, res),
+        async.apply(setChildFormParenthood, req, res),
         async.apply(ensureResponse, req, res)
       ], next);
     };
