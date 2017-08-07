@@ -208,6 +208,24 @@ module.exports = function(config) {
           });
         });
 
+        router.post('/import', (req, res, next) => {
+          let alters = router.formio.hook.alter('templateAlters', {});
+
+          let template = req.body.template;
+          if (typeof template === 'string') {
+            template = JSON.parse(template);
+          }
+
+          template = router.formio.hook.alter('importOptions', template, req, res);
+          router.formio.template.import.template(template, alters, (err, data) => {
+            if (err) {
+              return next(err.message || err);
+            }
+
+            return res.status(200).send('Ok');
+          });
+        });
+
         // Return the form components.
         router.get('/form/:formId/components', function(req, res, next) {
           router.formio.resources.form.model.findOne({_id: req.params.formId}, function(err, form) {
