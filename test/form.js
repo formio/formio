@@ -5989,10 +5989,18 @@ module.exports = function(app, template, hook) {
                       inputType: 'text',
                       input: true
                     }
-                  ]
+                  ],
+                  width: 6,
+                  offset: 0,
+                  push: 0,
+                  pull: 0
                 },
                 {
-                  components: []
+                  components: [],
+                  width: 6,
+                  offset: 0,
+                  push: 0,
+                  pull: 0
                 }
               ]
             }
@@ -6048,7 +6056,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
                     components: [
@@ -6072,7 +6084,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -6126,7 +6142,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
                     components: [
@@ -6150,7 +6170,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -6224,7 +6248,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
                     components: [
@@ -6268,7 +6296,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
