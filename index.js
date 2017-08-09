@@ -195,19 +195,6 @@ module.exports = function(config) {
         // Load the request cache
         router.formio.cache = require('./src/cache/cache')(router);
 
-        // Add the export function
-        router.get('/export', (req, res, next) => {
-          let options = router.formio.hook.alter('exportOptions', {}, req, res);
-          router.formio.template.export(options, (err, data) => {
-            if (err) {
-              return next(err.message || err);
-            }
-
-            res.attachment(`${options.name}-${options.version}.json`);
-            res.end(JSON.stringify(data));
-          });
-        });
-
         // Return the form components.
         router.get('/form/:formId/components', function(req, res, next) {
           router.formio.resources.form.model.findOne({_id: req.params.formId}, function(err, form) {

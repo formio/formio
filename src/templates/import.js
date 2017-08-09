@@ -456,6 +456,25 @@ module.exports = (router) => {
     });
   };
 
+  // Implement an import endpoint.
+  router.post('/import', (req, res, next) => {
+    let alters = hook.alter('templateAlters', {});
+
+    let template = req.body.template;
+    if (typeof template === 'string') {
+      template = JSON.parse(template);
+    }
+
+    template = hook.alter('importOptions', template, req, res);
+    importTemplate(template, alters, (err, data) => {
+      if (err) {
+        return next(err.message || err);
+      }
+
+      return res.status(200).send('Ok');
+    });
+  });
+
   return {
     install,
     template: importTemplate
