@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.18.14
+### Fixed
+ - Issue with import routine crashing on undefined function router.post.
 
 ## 1.18.12
 ### Fixed
