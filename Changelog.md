@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## 1.18.14
 ### Fixed
  - Issue with import routine crashing on undefined function router.post.
+### Added
+ - A way to track the parent submission when viewing submissions submitted from multi-form workflows.
+
+## 1.18.13
+### Fixed
+ - Merging of columns removes width, offset, push and pull settings.
 
 ## 1.18.12
 ### Fixed
