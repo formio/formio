@@ -222,17 +222,19 @@ module.exports = (router) => {
   };
 
   // Add the export endpoint
-  router.get('/export', (req, res, next) => {
-    let options = hook.alter('exportOptions', {}, req, res);
-    exportTemplate(options, (err, data) => {
-      if (err) {
-        return next(err.message || err);
-      }
+  if (router.get) {
+    router.get('/export', (req, res, next) => {
+      let options = hook.alter('exportOptions', {}, req, res);
+      exportTemplate(options, (err, data) => {
+        if (err) {
+          return next(err.message || err);
+        }
 
-      res.attachment(`${options.name}-${options.version}.json`);
-      res.end(JSON.stringify(data));
+        res.attachment(`${options.name}-${options.version}.json`);
+        res.end(JSON.stringify(data));
+      });
     });
-  });
+  }
 
   return exportTemplate;
 };
