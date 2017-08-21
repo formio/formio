@@ -34,7 +34,7 @@
     "eslint-config-formio": "^1.1.2",
     "event-chain": "^0.0.1",
     "express": "^4.15.3",
-    "formiojs": "^2.11.6",
+    "formiojs": "^2.14.1",
     "fs-extra": "^0.26.7",
     "html-entities": "^1.2.1",
     "joi": "^7.3.0",
