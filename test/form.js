@@ -2478,7 +2478,7 @@ module.exports = function(app, template, hook) {
               components: components
             })
             .expect('Content-Type', /json/)
-            .expect(500)
+            .expect(400)
             .end(function(err, res) {
               if (err) {
                 return done(err);
