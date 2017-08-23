@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.19.0
+### Fixed
+ - Datagrids with invalid rows will no longer remove those rows.
+ - Validation errors on PUT will now return 400 instead of 500.
+ - Required fields hidden with JSON logic will no longer throw validation errors.
+
 ## 1.18.14
 ### Fixed
  - Issue with import routine crashing on undefined function router.post.
