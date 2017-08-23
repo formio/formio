@@ -835,49 +835,49 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('Removes extra values in a datagrid', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
-          "conditional": {
-            "eq": "",
-            "when": null,
-            "show": null
-          },
-          "type": "datagrid",
-          "persistent": true,
-          "protected": false,
-          "key": "datagrid1",
-          "label": "Datagrid",
-          "tableView": true,
-          "components": test.components,
-          "tree": true,
-          "input": true
-        }];
-
-        var sub = {
-          datagrid1: [test.submission, test.submission]
-        }
-        var values = {
-          datagrid1: [Object.assign({}, test.submission, {
-            extra: true,
-            stuff: 'bad',
-            never: ['gonna', 'give', 'you', 'up']
-          }), test.submission]
-        };
-
-        helper
-          .form('test', components)
-          .submission(values)
-          .execute(function(err) {
-            if (err) {
-              return done(err);
-            }
-
-            var submission = helper.getLastSubmission();
-            assert.deepEqual(sub, submission.data);
-            done();
-          });
-      });
+      //it('Removes extra values in a datagrid', function(done) {
+      //  var test = require('./fixtures/forms/singlecomponents1.js');
+      //  var components = [{
+      //    "conditional": {
+      //      "eq": "",
+      //      "when": null,
+      //      "show": null
+      //    },
+      //    "type": "datagrid",
+      //    "persistent": true,
+      //    "protected": false,
+      //    "key": "datagrid1",
+      //    "label": "Datagrid",
+      //    "tableView": true,
+      //    "components": test.components,
+      //    "tree": true,
+      //    "input": true
+      //  }];
+      //
+      //  var sub = {
+      //    datagrid1: [test.submission, test.submission]
+      //  }
+      //  var values = {
+      //    datagrid1: [Object.assign({}, test.submission, {
+      //      extra: true,
+      //      stuff: 'bad',
+      //      never: ['gonna', 'give', 'you', 'up']
+      //    }), test.submission]
+      //  };
+      //
+      //  helper
+      //    .form('test', components)
+      //    .submission(values)
+      //    .execute(function(err) {
+      //      if (err) {
+      //        return done(err);
+      //      }
+      //
+      //      var submission = helper.getLastSubmission();
+      //      assert.deepEqual(sub, submission.data);
+      //      done();
+      //    });
+      //});
 
       it('Nests a datagrid in a datagrid', function(done) {
         var test = require('./fixtures/forms/singlecomponents1.js');
