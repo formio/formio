@@ -65,7 +65,7 @@ Validator.prototype.addValidator = function(schema, component, componentData) {
       component.components.forEach(function(itemComponent) {
         this.addValidator(objectSchema, itemComponent, _.get(componentData, component.key, componentData));
       }.bind(this));
-      fieldValidator = Joi.array().items(Joi.object(objectSchema));
+      fieldValidator = Joi.array().items(Joi.object(objectSchema)).options({stripUnknown: false});
       break;
     case 'container':
       component.components.forEach(function(itemComponent) {
@@ -181,7 +181,7 @@ Validator.prototype.addValidator = function(schema, component, componentData) {
 
   // Make sure to change this to an array if multiple is checked.
   if (component.multiple) {
-    fieldValidator = Joi.array().sparse().items(fieldValidator);
+    fieldValidator = Joi.array().sparse().items(fieldValidator).options({stripUnknown: false});
   }
 
   if (component.key && fieldValidator) {
