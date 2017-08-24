@@ -299,6 +299,22 @@ Validator.prototype.buildSchema = function(submission) {
   this.schema = Joi.object().keys(keys);
 };
 
+// rawr
+Validator.prototype.validate = function(submission, next) {
+  var validations = [];
+  util.eachComponent(this.form.components, (component) => {
+    if (component.type === 'form') {
+      // TO-DO:
+      //  1.) Load the subform using form load cache.
+      //  2.) Create a new Validator instance with that form object.
+      //  3.) Push into the validations array, "validator.validate"
+    }
+  });
+
+  validations.push(async.apply(this._validate.bind(this), submission));
+  async.series(validations, next);
+};
+
 /**
  * Validate a submission for a form.
  *
@@ -308,7 +324,7 @@ Validator.prototype.buildSchema = function(submission) {
  *   The callback function to pass the results.
  */
 /* eslint-disable max-statements */
-Validator.prototype.validate = function(submission, next) {
+Validator.prototype._validate = function(submission, next) {
   var valid = true;
   var error = [];
   debug.validator('Starting validation');
