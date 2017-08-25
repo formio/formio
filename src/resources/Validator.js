@@ -299,7 +299,6 @@ Validator.prototype.buildSchema = function(submission) {
   this.schema = Joi.object().keys(keys);
 };
 
-// rawr
 Validator.prototype.validate = function(submission, next) {
   var validations = [];
   util.eachComponent(this.form.components, (component) => {
