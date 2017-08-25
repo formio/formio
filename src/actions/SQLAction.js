@@ -151,10 +151,12 @@ module.exports = function(router) {
       }
 
       var method = req.method.toLowerCase();
+      var wait   = method === 'get' && this.settings.type === 'mssql';
 
       // Called when the submission is loaded.
       var onSubmission = function(submission) {
         if (!submission) {
+          wait = false;
           return;
         }
 
@@ -190,6 +192,7 @@ module.exports = function(router) {
 
         // Make sure our query is still valid.
         if (!query) {
+          wait = false;
           return res.status(400).send('Invalid Query');
         }
 
@@ -230,6 +233,9 @@ module.exports = function(router) {
 
           mssql.connect(config, function(err) {
             if (err) {
+              if (wait) {
+                return next();
+              }
               return;
             }
 
@@ -238,7 +244,14 @@ module.exports = function(router) {
               if ((method === 'post') && !err) {
                 postExecute.call(this, result[0]);
               }
+              if ((method === 'get' ) && !err) {
+                res.resource.item.metadata = res.resource.item.metadata || {};
+                res.resource.item.metadata[this.title] = result.toTable();
+              }
               mssql.close();
+              if (wait) {
+                return next();
+              }
             }.bind(this));
           }.bind(this));
         }
@@ -275,8 +288,11 @@ module.exports = function(router) {
         });
       }
 
-      // Do not wait for the query to execute.
-      next();
+      // Do not wait for the query to execute except...
+      // Do wait on SQL Server get so we can return results
+      if (!wait) {
+        return next();
+      }
     }.bind(this));
   };
 
