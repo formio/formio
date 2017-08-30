@@ -244,7 +244,7 @@ module.exports = function(router) {
               if ((method === 'post') && !err) {
                 postExecute.call(this, result[0]);
               }
-              if ((method === 'get' ) && !err) {
+              if ((method === 'get' ) && !err && res && res.resource && res.resource.item) {
                 res.resource.item.metadata = res.resource.item.metadata || {};
                 res.resource.item.metadata[this.title] = result.toTable();
               }
