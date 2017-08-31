@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.19.1
+### Fixed
+ - Allowed for the temp token hooks to be asynchronous.
+
+### Added
+ - Return SQL Server query results from get action
+
 ## 1.19.0
 ### Fixed
  - Datagrids with invalid rows will no longer remove those rows.
