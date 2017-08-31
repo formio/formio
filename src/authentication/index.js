@@ -152,6 +152,8 @@ module.exports = function(router) {
     var token = req.headers['x-jwt-token'];
     var allow = req.headers['x-allow'];
     var expire = req.headers['x-expire'];
+    expire = expire || 3600;
+    expire = parseInt(expire, 10);
     if (!token) {
       return res.status(400).send('You must provide an existing token in the x-jwt-token header.');
     }
@@ -167,10 +169,9 @@ module.exports = function(router) {
       };
 
       // Allow other libraries to hook into the response.
-      hook.alter('tempToken', req, res, token, allow, expire, tokenResponse);
-
-      // Send the temp token as a response.
-      return res.json(tokenResponse);
+      hook.alter('tempToken', req, res, token, allow, expire, tokenResponse, (err) => {
+        return res.json(tokenResponse);
+      });
     });
   };
 
