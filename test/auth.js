@@ -858,7 +858,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .set('x-jwt-token', template.users.user1.token)
-          .set('x-expire', '1000000000000000000000')
+          .set('x-expire', '1000000000000000')
           .expect(400)
           .expect('Cannot generate extended expiring temp token.')
           .end(done);
