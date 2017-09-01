@@ -6,7 +6,6 @@ const _ = require('lodash');
 const util = require('../util/util');
 const async = require('async');
 
-
 const debug = {
   validator: require('debug')('formio:validator'),
   error: require('debug')('formio:error')
@@ -302,10 +301,9 @@ module.exports = function(router) {
     this.schema = Joi.object().keys(keys);
   };
 
-
   Validator.prototype.validate = function(submission, next, formioCache) {
     let validations = [];
-    let requestCache = { formioCache: formioCache };
+    let requestCache = {formioCache: formioCache};
     util.eachComponent(this.form.components, (component) => {
       if (
         (component.type === 'form') &&
@@ -313,10 +311,9 @@ module.exports = function(router) {
       ) {
         validations.push((done) => {
           router.formio.cache.loadForm(requestCache, "form", component.form, (error, subForm) => {
-            if (error){
-              return done(error)
+            if (error) {
+              return done(error);
             }
-
 
             let subFormValidator = new Validator(subForm, this.model);
             subFormValidator.validate(submission.data[component.key], (err) => {
@@ -462,7 +459,11 @@ module.exports = function(router) {
         query['data.' + _.get(paths, key)] = {$regex: new RegExp('^' + util.escapeRegExp(data) + '$'), $options: 'i'};
       }
       // FOR-213 - Pluck the unique location id
-      else if (typeof data !== 'string' && data.hasOwnProperty('address_components') && data.hasOwnProperty('place_id')) {
+      else if (
+        (typeof data !== 'string') &&
+        data.hasOwnProperty('address_components') &&
+        data.hasOwnProperty('place_id')
+      ) {
         var _path = 'data.' + _.get(paths, key) + '.place_id';
         query[_path] = {$regex: new RegExp('^' + util.escapeRegExp(data.place_id) + '$'), $options: 'i'};
       }
@@ -510,5 +511,4 @@ module.exports = function(router) {
   /* eslint-enable max-statements */
 
   return Validator;
-
 };
