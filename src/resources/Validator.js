@@ -307,22 +307,25 @@ module.exports = function(router) {
     let validations = [];
     let requestCache = { formioCache: formioCache };
     util.eachComponent(this.form.components, (component) => {
-      if (component.type === 'form' && (submission.data[component.key] && !submission.data[component.key]._id)) {
-        validations.push(function(done){
-          router.formio.cache.loadForm(requestCache, "form", component.form, function(error, subForm) {
+      if (
+        (component.type === 'form') &&
+        (submission.data[component.key] && !submission.data[component.key]._id)
+      ) {
+        validations.push((done) => {
+          router.formio.cache.loadForm(requestCache, "form", component.form, (error, subForm) => {
             if (error){
               return done(error)
             }
 
 
             let subFormValidator = new Validator(subForm, this.model);
-            subFormValidator.validate(submission.data[component.key], function(err) {
+            subFormValidator.validate(submission.data[component.key], (err) => {
               if (err) {
                 return done(err);
               }
-            }, requestCache);
 
-            return done()
+              return done();
+            }, requestCache);
           });
         });
       }
