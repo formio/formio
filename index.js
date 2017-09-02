@@ -149,18 +149,23 @@ module.exports = function(config) {
       // Allow libraries to use a single instance of mongoose.
       router.formio.mongoose = mongoose;
 
-      // See if we have high availability environment variable.
+      let mongoUrl = config.mongo;
+      let mongoOptions = {
+        keepAlive: 120,
+        useMongoClient: true
+      };
+
       if (process.env.MONGO_HIGH_AVAILABILITY) {
-        mongoose.connect(config.mongo, {mongos: true});
+        mongoOptions.mongos = true;
       }
-      else if (typeof config.mongo === 'string') {
-        mongoose.connect(config.mongo);
+
+      if (_.isArray(config.mongo)) {
+        mongoUrl = config.mongo.join(',');
+        mongoOptions.mongos = true;
       }
-      else {
-        // NOTE: THIS IS LEGACY CONFIG. USE MONGO_HIGH_AVAILABILITY ENVIRONMENT CONFIGURATION INSTEAD
-        // Connect to multiple mongo instance replica sets with High availability.
-        mongoose.connect(config.mongo.join(','), {mongos: true});
-      }
+
+      // Connect to MongoDB.
+      mongoose.connect(mongoUrl, mongoOptions);
 
       // Trigger when the connection is made.
       mongoose.connection.on('error', function(err) {
