@@ -3,13 +3,12 @@
 var _ = require('lodash');
 var async = require('async');
 var util = require('../util/util');
-
+var Validator = require('../resources/Validator');
 var Q = require('q');
 
 module.exports = function(router, resourceName, resourceId) {
   var hook = require('../util/hook')(router.formio);
   var fieldActions = require('../actions/fields/index')(router);
-  var Validator = require('../resources/Validator')(router);
   var handlers = {};
 
   // Iterate through the possible handlers.
@@ -369,7 +368,7 @@ module.exports = function(router, resourceName, resourceId) {
         }
 
         done();
-      }, req.formioCache);
+      });
     };
 
     /**
