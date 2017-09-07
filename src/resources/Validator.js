@@ -301,36 +301,6 @@ module.exports = function(router) {
     this.schema = Joi.object().keys(keys);
   };
 
-  Validator.prototype.validate = function(submission, next, formioCache) {
-    let validations = [];
-    let requestCache = {formioCache: formioCache};
-    util.eachComponent(this.form.components, (component) => {
-      if (
-        (component.type === 'form') &&
-        (submission.data[component.key] && !submission.data[component.key]._id)
-      ) {
-        validations.push((done) => {
-          router.formio.cache.loadForm(requestCache, "form", component.form, (error, subForm) => {
-            if (error) {
-              return done(error);
-            }
-
-            let subFormValidator = new Validator(subForm, this.model);
-            subFormValidator.validate(submission.data[component.key], (err) => {
-              if (err) {
-                return done(err);
-              }
-
-              return done();
-            }, requestCache);
-          });
-        });
-      }
-    });
-    validations.push(async.apply(this._validate.bind(this), submission));
-    async.series(validations, next);
-  };
-
   /**
    * Validate a submission for a form.
    *
@@ -340,7 +310,7 @@ module.exports = function(router) {
    *   The callback function to pass the results.
    */
   /* eslint-disable max-statements */
-  Validator.prototype._validate = function(submission, next) {
+  Validator.prototype.validate = function(submission, next) {
     var valid = true;
     var error = [];
     debug.validator('Starting validation');
@@ -504,6 +474,7 @@ module.exports = function(router) {
           return next(validateErr);
         }
 
+        submission.data = value;
         next(null, value);
       });
     }.bind(this));
