@@ -1,11 +1,12 @@
 'use strict';
 
-var Joi = require('joi');
-var _ = require('lodash');
-var vm = require('vm');
-var util = require('../util/util');
-var async = require('async');
-var debug = {
+const vm = require('vm');
+const Joi = require('joi');
+const _ = require('lodash');
+const util = require('../util/util');
+const async = require('async');
+
+const debug = {
   validator: require('debug')('formio:validator'),
   error: require('debug')('formio:error')
 };
@@ -427,7 +428,11 @@ Validator.prototype.validate = function(submission, next) {
       query['data.' + _.get(paths, key)] = {$regex: new RegExp('^' + util.escapeRegExp(data) + '$'), $options: 'i'};
     }
     // FOR-213 - Pluck the unique location id
-    else if (typeof data !== 'string' && data.hasOwnProperty('address_components') && data.hasOwnProperty('place_id')) {
+    else if (
+      (typeof data !== 'string') &&
+      data.hasOwnProperty('address_components') &&
+      data.hasOwnProperty('place_id')
+    ) {
       var _path = 'data.' + _.get(paths, key) + '.place_id';
       query[_path] = {$regex: new RegExp('^' + util.escapeRegExp(data.place_id) + '$'), $options: 'i'};
     }
@@ -468,6 +473,7 @@ Validator.prototype.validate = function(submission, next) {
         return next(validateErr);
       }
 
+      submission.data = value;
       next(null, value);
     });
   }.bind(this));
