@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.19.3
+### Added
+ - Sub-submissions and validations for form components where the submissions are already not established.
+
 ## 1.19.2
 ### Fixed
  - Mongoose depcrecation warnings.
