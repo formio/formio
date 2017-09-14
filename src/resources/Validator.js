@@ -182,7 +182,9 @@ Validator.prototype.addValidator = function(schema, component, componentData) {
 
   // Make sure to change this to an array if multiple is checked.
   if (component.multiple) {
-    fieldValidator = Joi.array().sparse().items(fieldValidator).options({stripUnknown: false});
+    // Allow(null) was added since some text fields have empty strings converted to null when multiple which then
+    // throws an error on re-validation. Allowing null fixes the issue.
+    fieldValidator = Joi.array().sparse().items(fieldValidator.allow(null)).options({stripUnknown: false});
   }
 
   if (component.key && fieldValidator) {
