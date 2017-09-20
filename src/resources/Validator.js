@@ -250,7 +250,17 @@ Validator.prototype.sanitize = function(submission) {
     if (component.customConditional) {
       return _evaluateCustomConditional(component.customConditional);
     }
-    return util.checkCondition(component, null, submission.data);
+
+    let check = true;
+    try {
+      check = util.checkCondition(component, null, submission.data);
+    }
+    catch (err) {
+      debug.error(err);
+      check = true;
+    }
+
+    return check;
   };
 
   // Ensure this.form.components has a value.
