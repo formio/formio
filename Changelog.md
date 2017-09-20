@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.19.5
+### Fixed
+ - Added a try/catch around the checkConditionals so that it will not crash when a bad conditional is provided.
+
 ## 1.19.4
 ### Fixed
  - Submission validation with multi-value with empty strings would fail on the second save. Allow nulls.
