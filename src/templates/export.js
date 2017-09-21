@@ -123,6 +123,7 @@ module.exports = (router) => {
             'display',
             'action',
             'tags',
+            'settings',
             'components',
             'access',
             'submissionAccess'
