@@ -439,6 +439,11 @@ module.exports = function(router, resourceName, resourceId) {
       done();
     };
 
+    var alterSubmission = function(req, res, done) {
+      Q.ninvoke(hook, 'alter', 'submission', req, res)
+        .then(done);
+    };
+
     // Add before handlers.
     var before = 'before' + method.method;
     handlers[before] = function(req, res, next) {
@@ -451,6 +456,7 @@ module.exports = function(router, resourceName, resourceId) {
         async.apply(executeFieldHandlers, false, req, res),
         async.apply(validateSubmission, req, res),
         async.apply(executeFieldHandlers, true, req, res),
+        async.apply(alterSubmission, req, res),
         async.apply(executeActions('before'), req, res)
       ], next);
     };
@@ -462,6 +468,7 @@ module.exports = function(router, resourceName, resourceId) {
       async.series([
         async.apply(executeActions('after'), req, res),
         async.apply(executeFieldHandlers, true, req, res),
+        async.apply(alterSubmission, req, res),
         async.apply(ensureResponse, req, res)
       ], next);
     };
