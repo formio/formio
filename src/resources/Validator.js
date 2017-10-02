@@ -475,13 +475,14 @@ Validator.prototype.validate = function(submission, next) {
       if (validateErr) {
         // Add in custom errors.
         validateErr.details = validateErr.details.concat(error);
+        validateErr.data = value;
         debug.validator(validateErr);
         return next(validateErr);
       }
       // If custom errors were found but not joi errors.
       if (error.length > 0) {
         debug.validator('Errors were found.');
-        return next({name: 'ValidationError', details: error});
+        return next({name: 'ValidationError', details: error, data: value});
       }
 
       submission.data = value;
