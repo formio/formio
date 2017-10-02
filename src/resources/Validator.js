@@ -399,14 +399,6 @@ Validator.prototype.validate = function(submission, next) {
     }
   }
 
-  // If an error has occurred in custom validation, fail immediately.
-  debug.validator(error);
-  if (error.length > 0) {
-    var temp = {name: 'ValidationError', details: error};
-    debug.validator('Errors were found.');
-    return next(temp);
-  }
-
   // Iterate through each of the unique keys.
   var uniques = _.keys(this.unique);
 
@@ -479,10 +471,17 @@ Validator.prototype.validate = function(submission, next) {
       return next(err.message);
     }
 
-    Joi.validate(submission.data, this.schema, {stripUnknown: true}, function(validateErr, value) {
+    Joi.validate(submission.data, this.schema, {stripUnknown: true, abortEarly: false}, function(validateErr, value) {
       if (validateErr) {
+        // Add in custom errors.
+        validateErr.details = validateErr.details.concat(error);
         debug.validator(validateErr);
         return next(validateErr);
+      }
+      // If custom errors were found but not joi errors.
+      if (error.length > 0) {
+        debug.validator('Errors were found.');
+        return next({name: 'ValidationError', details: error});
       }
 
       submission.data = value;
