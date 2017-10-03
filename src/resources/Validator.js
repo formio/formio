@@ -227,13 +227,23 @@ Validator.prototype.addValidator = function(schema, component, componentData, su
     case 'editgrid':
     case 'datagrid':
       component.components.forEach(itemComponent => {
-        this.addValidator(objectSchema, itemComponent, _.get(componentData, component.key, componentData), submissionData);
+        this.addValidator(
+          objectSchema,
+          itemComponent,
+          _.get(componentData, component.key, componentData),
+          submissionData
+        );
       });
       fieldValidator = JoiX.array().items(JoiX.object().keys(objectSchema)).options({stripUnknown: false});
       break;
     case 'container':
       component.components.forEach(itemComponent => {
-        this.addValidator(objectSchema, itemComponent, _.get(componentData, component.key, componentData), submissionData);
+        this.addValidator(
+          objectSchema,
+          itemComponent,
+          _.get(componentData, component.key, componentData),
+          submissionData
+        );
       });
       fieldValidator = JoiX.object().keys(objectSchema);
       break;
@@ -241,14 +251,24 @@ Validator.prototype.addValidator = function(schema, component, componentData, su
     case 'panel':
     case 'well':
       component.components.forEach(itemComponent => {
-        this.addValidator(schema, itemComponent, _.get(componentData, component.key, componentData), submissionData);
+        this.addValidator(
+          objectSchema,
+          itemComponent,
+          _.get(componentData, component.key, componentData),
+          submissionData
+        );
       });
       break;
     case 'table':
       component.rows.forEach(row => {
         row.forEach(column => {
           column.components.forEach(itemComponent => {
-            this.addValidator(schema, itemComponent, _.get(componentData, component.key, componentData), submissionData);
+            this.addValidator(
+              objectSchema,
+              itemComponent,
+              _.get(componentData, component.key, componentData),
+              submissionData
+            );
           });
         });
       });
@@ -256,7 +276,12 @@ Validator.prototype.addValidator = function(schema, component, componentData, su
     case 'columns':
       component.columns.forEach(column => {
         column.components.forEach(itemComponent => {
-          this.addValidator(schema, itemComponent, _.get(componentData, component.key, componentData), submissionData);
+          this.addValidator(
+            objectSchema,
+            itemComponent,
+            _.get(componentData, component.key, componentData),
+            submissionData
+          );
         });
       });
       break;
