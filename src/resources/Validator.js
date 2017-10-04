@@ -576,7 +576,7 @@ Validator.prototype.validate = function(submission, next) {
 
     JoiX.validate(submission.data, schema, {stripUnknown: true, abortEarly: false}, function(validateErr, value) {
       if (validateErr) {
-        validateErr.data = value;
+        validateErr._validated = value;
 
         // Remove any.hidden errors as we have to throw an error if it is visible but we don't want to show it.
         validateErr.details = _.reject(validateErr.details, item => item.type.includes('.hidden'));
