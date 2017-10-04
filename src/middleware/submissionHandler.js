@@ -362,10 +362,12 @@ module.exports = function(router, resourceName, resourceId) {
       var validator = new Validator(req.currentForm, router.formio.resources.submission.model);
 
       // Validate the request.
-      validator.validate(req.body, function(err) {
+      validator.validate(req.body, function(err, submission) {
         if (err) {
           return res.status(400).json(err);
         }
+
+        res.submission = {data: submission};
 
         done();
       });
@@ -434,7 +436,7 @@ module.exports = function(router, resourceName, resourceId) {
      */
     var ensureResponse = function(req, res, done) {
       if (!res.resource && !res.headersSent) {
-        res.status(200).json(true);
+        res.status(200).json(res.submission || true);
       }
       done();
     };

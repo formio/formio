@@ -539,7 +539,7 @@ module.exports = function(app) {
         data: data
       })
       .set('x-jwt-token', this.owner.token)
-      .expect('Content-Type', /json/)
+      //.expect('Content-Type', /json/)
       .end(function(err, res) {
         if (err) {
           return done(err);

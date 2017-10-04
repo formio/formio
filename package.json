@@ -37,7 +37,7 @@
     "formiojs": "^2.11.6",
     "fs-extra": "^0.26.7",
     "html-entities": "^1.2.1",
-    "joi": "^7.3.0",
+    "joi": "^11.1.1",
     "jsonwebtoken": "^5.7.0",
     "lodash": "^4.17.4",
     "method-override": "^2.3.0",
