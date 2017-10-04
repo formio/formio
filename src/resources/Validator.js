@@ -11,6 +11,65 @@ const debug = {
   error: require('debug')('formio:error')
 };
 
+/*
+ * Returns true or false based on visibility.
+ *
+ * @param {Object} component
+ *   The form component to check.
+ * @param {Object} row
+ *   The local data to check.
+ * @param {Object} data
+ *   The full submission data.
+ */
+const checkConditional = function(component, row, data, recurse = false) {
+  let isVisible = true;
+
+  if (!component.hasOwnProperty('key')) {
+    return isVisible;
+  }
+
+  // Custom conditional logic. Need special case so the eval is isolated an in a sandbox
+  if (component.customConditional) {
+    try {
+      // Create the sandbox.
+      var sandbox = vm.createContext({
+        data,
+        row
+      });
+
+      // Execute the script.
+      var script = new vm.Script(component.customConditional);
+      script.runInContext(sandbox, {
+        timeout: 250
+      });
+
+      if (util.isBoolean(sandbox.show)) {
+        isVisible = util.boolean(sandbox.show);
+      }
+    }
+    catch (e) {
+      debug.validator('Custom Conditional Error: ');
+      debug.validator(e);
+      debug.error(e);
+    }
+  }
+  else {
+    try {
+      isVisible = util.checkCondition(component, row, data);
+    }
+    catch (err) {
+      debug.error(err);
+    }
+  }
+
+  if (recurse) {
+    return isVisible && (!component.parent || checkConditional(component.parent, row, data, true));
+  }
+  else {
+    return isVisible;
+  }
+};
+
 const getRules = (type) => [
   {
     name: 'custom',
@@ -127,50 +186,13 @@ const getRules = (type) => [
       let data = params.data;
       let row = state.parent;
 
-      let isVisible = true;
+      let isVisible = checkConditional(component, row, data, true);
 
-      if (!component.hasOwnProperty('key')) {
+      if (isVisible) {
         return value;
       }
 
-      // Custom conditional logic. Need special case so the eval is isolated an in a sandbox
-      if (component.customConditional) {
-        try {
-          // Create the sandbox.
-          var sandbox = vm.createContext({
-            data
-          });
-
-          // Execute the script.
-          var script = new vm.Script(component.customConditional);
-          script.runInContext(sandbox, {
-            timeout: 250
-          });
-
-          if (util.isBoolean(sandbox.show)) {
-            isVisible = util.boolean(sandbox.show);
-          }
-        }
-        catch (e) {
-          debug.validator('Custom Conditional Error: ');
-          debug.validator(e);
-          debug.error(e);
-        }
-      }
-      else {
-        try {
-          isVisible = util.checkCondition(component, row, data);
-        }
-        catch (err) {
-          debug.error(err);
-        }
-      }
-
-      if (isVisible) {
-        return this.createError(type + '.hidden', {message: 'visible with error'}, state, options);
-      }
-
-      return value; // Everything is OK
+      return this.createError(type + '.hidden', {message: 'hidden with value'}, state, options);
     }
   },
   {
@@ -463,11 +485,9 @@ Validator.prototype.buildSchema = function(schema, components, componentData, su
       fieldValidator = JoiX.array().sparse().items(fieldValidator.allow(null)).options({stripUnknown: false});
     }
 
-    // Add alternatives in case the field was hidden. This will allow hidden fields to pass validation and strip their values.
-    //fieldValidator = JoiX.alternatives().try(fieldValidator, JoiX.any().hidden(component, submissionData));
-
     if (component.key && fieldValidator) {
       schema[component.key] = fieldValidator;
+      schema[component.key] = fieldValidator.hidden(component, submissionData);
     }
   });
 
@@ -506,12 +526,14 @@ Validator.prototype.validate = function(submission, next) {
   var uniques = _.keys(this.unique);
 
   // Iterate the list of components one time to build the path map.
-  var paths = {};
+  let paths = {};
+  let components = {};
   util.eachComponent(this.form.components, function(component, path) {
     if (component.hasOwnProperty('key')) {
       paths[component.key] = path;
+      components[component.key] = component;
     }
-  }, true);
+  }, true, '', true);
 
   async.eachSeries(uniques, function(key, done) {
     var component = this.unique[key];
@@ -569,26 +591,60 @@ Validator.prototype.validate = function(submission, next) {
 
       done();
     });
-  }.bind(this), function(err) {
+  }.bind(this), (err) => {
     if (err) {
       return next(err.message);
     }
 
-    JoiX.validate(submission.data, schema, {stripUnknown: true, abortEarly: false}, function(validateErr, value) {
+    JoiX.validate(submission.data, schema, {stripUnknown: true, abortEarly: false}, (validateErr, value) => {
       if (validateErr) {
-        validateErr._validated = value;
+        // Remove any conditionally hidden validations. Joi will still throw the errors but we don't want them since the
+        // fields are hidden.
+        validateErr.details = validateErr.details.filter(detail => {
+          // Remove any hidden checks since we've already failed.
+          if (detail.type.includes('.hidden')) {
+            _.unset(value, detail.path);
+            return false;
+          }
 
-        // Remove any.hidden errors as we have to throw an error if it is visible but we don't want to show it.
-        validateErr.details = _.reject(validateErr.details, item => item.type.includes('.hidden'));
+          // Recursively check if each parent is visible.
+          let result = detail.path.reduce((result, key) => {
+            if (isNaN(key)) {
+              const component = components[key];
 
-        debug.validator(validateErr);
-        return next(validateErr);
+              result.hidden = result.hidden || checkConditional(component, _.get(value, result.path), value, true);
+
+              let clearOnHide = util.isBoolean(component.clearOnHide) ? util.boolean(component.clearOnHide) : true;
+
+              if (clearOnHide && result.hidden) {
+                _.unset(value, result.path);
+              }
+            }
+            result.path.push(key);
+
+            return result;
+          }, {path: [], hidden: false});
+
+          return result.hidden;
+        });
+
+        // Only throw error if there are still errors.
+        if (validateErr.details.length) {
+          debug.validator(validateErr);
+
+          validateErr._validated = value;
+
+          return next(validateErr);
+        }
+        else {
+          validateErr._object = value;
+        }
       }
 
       submission.data = value;
       next(null, value);
     });
-  }.bind(this));
+  });
 };
 /* eslint-enable max-statements */
 
