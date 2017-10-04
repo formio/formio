@@ -1554,10 +1554,11 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(submission.details, [
               {
                 context: {
-                  key: 'requiredField'
+                  key: 'requiredField',
+                  label: 'requiredField'
                 },
                 message: '"requiredField" is required',
-                path: 'requiredField',
+                path: ['requiredField'],
                 type: 'any.required'
               }
             ]);
@@ -1918,10 +1919,11 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(submission.details, [
               {
                 context: {
-                  key: 'requiredField'
+                  key: 'requiredField',
+                  label: 'requiredField'
                 },
                 message: '"requiredField" is required',
-                path: 'requiredField',
+                path: ['requiredField'],
                 type: 'any.required'
               }
             ]);
@@ -2323,10 +2325,11 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(submission.details, [
               {
                 context: {
-                  key: 'textField'
+                  key: 'textField',
+                  label: 'textField'
                 },
                 message: '"textField" must be an array',
-                path: 'textField',
+                path: ['textField'],
                 type: 'array.base'
               }
             ]);
@@ -2386,10 +2389,11 @@ module.exports = function(app, template, hook) {
               {
                 context: {
                   key: 'textField',
+                  label: 'textField',
                   value: ['Never', 'gonna', 'give', 'you', 'up']
                 },
                 message: '"textField" must be a string',
-                path: 'textField',
+                path: ['textField'],
                 type: 'string.base'
               }
             ]);
