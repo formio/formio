@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.19.7
+### Fixed
+ - Issue where data grid elements could not share name of parent element.
+
 ## 1.19.6
 ### Changed
  - Include the form settings within the export.

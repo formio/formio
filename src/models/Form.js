@@ -18,6 +18,16 @@ module.exports = function(formio) {
     return _(keys);
   };
 
+  var componentPaths = function(components) {
+    var paths = [];
+    util.eachComponent(components, function(component, path) {
+      if (!_.isUndefined(component.key) && !_.isNull(component.key)) {
+        paths.push(path);
+      }
+    }, true);
+    return _(paths);
+  };
+
   var uniqueMessage = 'may only contain letters, numbers, hyphens, and forward slashes ';
   uniqueMessage += '(but cannot start or end with a hyphen or forward slash)';
   var uniqueValidator = function(property) {
@@ -149,14 +159,14 @@ module.exports = function(formio) {
           {
             isAsync: true,
             validator: function(components, valid) {
-              var keys = componentKeys(components);
+              var paths = componentPaths(components);
               var msg = 'Component keys must be unique: ';
-              var uniq = keys.uniq();
-              var diff = keys.filter(function(value, index, collection) {
+              var uniq = paths.uniq();
+              var diff = paths.filter(function(value, index, collection) {
                 return _.includes(collection, value, index + 1);
               });
 
-              if (_.isEqual(keys.value(), uniq.value())) {
+              if (_.isEqual(paths.value(), uniq.value())) {
                 return valid(true);
               }
 
