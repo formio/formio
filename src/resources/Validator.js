@@ -609,23 +609,26 @@ Validator.prototype.validate = function(submission, next) {
 
           // Recursively check if each parent is visible.
           let result = detail.path.reduce((result, key) => {
-            if (isNaN(key)) {
+            if (!isNaN(key)) {
+              result.path.push(key);
+            }
+            else {
               const component = components[key];
 
-              result.hidden = result.hidden || checkConditional(component, _.get(value, result.path), value, true);
+              result.hidden = result.hidden || !checkConditional(component, _.get(value, result.path), value, true);
 
               let clearOnHide = util.isBoolean(component.clearOnHide) ? util.boolean(component.clearOnHide) : true;
 
+              result.path.push(key);
               if (clearOnHide && result.hidden) {
                 _.unset(value, result.path);
               }
             }
-            result.path.push(key);
 
             return result;
           }, {path: [], hidden: false});
 
-          return result.hidden;
+          return !result.hidden;
         });
 
         // Only throw error if there are still errors.
