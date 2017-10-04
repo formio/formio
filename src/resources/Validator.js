@@ -404,16 +404,25 @@ Validator.prototype.buildSchema = function(schema, components, componentData, su
       default:
         // Allow custom components to have subcomponents as well (like layout components).
         if (component.components && Array.isArray(component.components)) {
-          component.components.forEach(function(itemComponent) {
-            objectSchema[itemComponent.key] = this.buildValidator(
-              //component.tree ? objectSchema : schema,
-              itemComponent,
+          if (component.tree) {
+            objectSchema = this.buildSchema(
+              {},
+              component.components,
               _.get(componentData, component.key, componentData),
               submissionData
             );
-          }.bind(this));
+            fieldValidator = JoiX.object().keys(objectSchema);
+          }
+          else {
+            this.buildSchema(
+              schema,
+              component.components,
+              componentData,
+              submissionData
+            );
+          }
         }
-        fieldValidator = component.tree ? JoiX.object().keys(objectSchema) : JoiX.any();
+        fieldValidator = fieldValidator || JoiX.any();
         break;
     }
     /* eslint-enable max-depth, valid-typeof */
