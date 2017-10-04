@@ -72,9 +72,6 @@
     "pre-commit": "^1.2.2",
     "supertest": "^3.0.0"
   },
-  "directories": {
-    "test": "test"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/formio/formio.git"
