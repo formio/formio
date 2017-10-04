@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
  - Return validation result along with errors
  - Return result on dryrun
 
+## 1.19.7
+### Fixed
+ - Issue where data grid elements could not share name of parent element.
+
 ## 1.19.6
 ### Changed
  - Include the form settings within the export.
