@@ -64,7 +64,7 @@ module.exports = function(router) {
           dataSrc: 'url',
           data: {url: basePath + '?type=resource'},
           valueProperty: '_id',
-          template: '<span>{{ item.title }}</span>',
+          template: '<span>{{ item.title | formioTranslate }}</span>',
           multiple: true,
           validate: {
             required: true
@@ -76,7 +76,7 @@ module.exports = function(router) {
           label: 'Username Field',
           key: 'username',
           placeholder: 'Select the username field',
-          template: '<span>{{ item.label || item.key }}</span>',
+          template: '<span>{{ (item.label || item.key) | formioTranslate }}</span>',
           dataSrc: 'url',
           data: {url: dataSrc},
           valueProperty: 'key',
@@ -91,7 +91,7 @@ module.exports = function(router) {
           label: 'Password Field',
           key: 'password',
           placeholder: 'Select the password field',
-          template: '<span>{{ item.label || item.key }}</span>',
+          template: '<span>{{ (item.label || item.key) | formioTranslate }}</span>',
           dataSrc: 'url',
           data: {url: dataSrc},
           valueProperty: 'key',
