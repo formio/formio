@@ -74,7 +74,7 @@ module.exports = function(router) {
           label: 'SQL ServerType',
           key: 'type',
           placeholder: 'Select the SQL Server Type',
-          template: '<span>{{ item.title }}</span>',
+          template: '<span>{{ item.title | formioTranslate }}</span>',
           dataSrc: 'json',
           data: {
             json: JSON.stringify(serverTypes)

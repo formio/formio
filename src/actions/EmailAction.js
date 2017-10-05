@@ -53,7 +53,7 @@ module.exports = function(router) {
           label: 'Transport',
           key: 'transport',
           placeholder: 'Select the email transport.',
-          template: '<span>{{ item.title }}</span>',
+          template: '<span>{{ item.title | formioTranslate }}</span>',
           defaultValue: 'default',
           dataSrc: 'json',
           data: {
