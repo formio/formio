@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.21.0
+### Changed
+ - Upgraded many dependencies to latest versions.
+
 ## 1.20.0
 ### Added
  - Add json logic validation
