@@ -138,9 +138,14 @@ module.exports = function(router) {
       }
 
       decoded.tempToken = true;
+
+      // Delete the previous expiration so we can generate a new one.
+      delete decoded.exp;
+
+      // Sign the token.
       jwt.sign(decoded, router.formio.config.jwt.secret, {
         expiresIn: expire
-      }, (token) => cb(null, token));
+      }, (err, token) => cb(err, token));
     });
   };
 
