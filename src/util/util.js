@@ -206,6 +206,15 @@ module.exports = {
   isLayoutComponent: formioUtils.isLayoutComponent,
 
   /**
+   * Apply JSON logic functionality.
+   *
+   * @param component
+   * @param row
+   * @param data
+   */
+  jsonLogic: formioUtils.jsonLogic,
+
+  /**
    * Check if the condition for a component is true or not.
    *
    * @param component

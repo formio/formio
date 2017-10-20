@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.21.0
+### Changed
+ - Upgraded many dependencies to latest versions.
+
+## 1.20.0
+### Added
+ - Add json logic validation
+
+### Changed
+ - Upgrade Joi to 1.11.1
+ - Move custom javascript validation to Joi extension
+ - Change validator to return all errors instead of only the first encountered
+ - Return validation result along with errors
+ - Return result on dryrun
+
+## 1.19.7
+### Fixed
+ - Issue where data grid elements could not share name of parent element.
+
 ## 1.19.6
 ### Changed
  - Include the form settings within the export.
