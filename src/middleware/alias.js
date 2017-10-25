@@ -25,7 +25,9 @@ module.exports = function(router) {
     /* eslint-enable max-len */
   }
 
+  /* eslint-disable no-useless-escape */
   var formsRegEx = new RegExp('\/(' + router.formio.config.reservedForms.join('|') + ')($|\/.*)', 'i');
+  /* eslint-enable no-useless-escape */
 
   // Handle the request.
   return function aliasHandler(req, res, next) {
@@ -38,9 +40,11 @@ module.exports = function(router) {
     debug('Alias: ' + alias);
 
     // If this is normal request, then pass this middleware.
+    /* eslint-disable no-useless-escape */
     if (!alias || alias.match(/^(form$|form[\?\/])/) || alias === 'spec.json') {
       return next();
     }
+    /* eslint-enable no-useless-escape */
 
     // Now load the form by alias.
     router.formio.cache.loadFormByAlias(req, alias, function(error, form) {
