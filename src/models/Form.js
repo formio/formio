@@ -7,7 +7,9 @@ var debug = require('debug')('formio:models:form');
 module.exports = function(formio) {
   var hook = require('../util/hook')(formio);
   var util = formio.util;
+  /* eslint-disable no-useless-escape */
   var invalidRegex = /[^0-9a-zA-Z\-\/]|^\-|\-$|^\/|\/$/;
+  /* eslint-enable no-useless-escape */
   var componentKeys = function(components) {
     var keys = [];
     util.eachComponent(components, function(component) {
