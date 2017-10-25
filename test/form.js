@@ -606,8 +606,8 @@ module.exports = function(app, template, hook) {
           // Disallowed characters
           '[a', ']a', '\'a', '!a', ',a', '/a', '?a', '<a', '>a', '~a', '`a', '@a', '#a', '$a', '%a', '^a', '&a',
           'a[', 'a]', 'a\'', 'a!', 'a,', 'a/', 'a?', 'a<', 'a>', 'a~', 'a`', 'a@', 'a#', 'a$', 'a%', 'a^', 'a&',
-          '*a', '(a', ')a', '-a', '_a', '=a', '+a', '|a', '\\a', '{a', '}a', ';a', ':a',
-          'a*', 'a(', 'a)',       'a_', 'a=', 'a+', 'a|', 'a\\', 'a{', 'a}', 'a;', 'a:'
+          '*a', '(a', ')a', '-a', '=a', '+a', '|a', '\\a', '{a', '}a', ';a', ':a', 'a*', 'a(', 'a)', 'a=', 'a+',
+          'a|', 'a\\', 'a{', 'a}', 'a;', 'a:'
 
         ], function(_bad, callback) {
           var temp = _.cloneDeep(tempForm);

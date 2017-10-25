@@ -24,7 +24,7 @@ module.exports = function(router) {
 
     if ((req.method === 'POST' || req.method === 'PUT') && req.body.components) {
       /* eslint-disable no-useless-escape */
-      var badCharacters = /^[^A-Za-z]+|[^A-Za-z0-9\-\.]+/g;
+      var badCharacters = /^[^A-Za-z_]+|[^A-Za-z0-9\-\._]+/g;
       /* eslint-enable no-useless-escape */
       var error = false;
       formio.util.eachComponent(req.body.components, function(component) {
