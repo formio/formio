@@ -185,7 +185,7 @@ module.exports = function(formio) {
   });
 
   // Add machineName to the schema.
-  model.schema.plugin(require('../plugins/machineName'));
+  model.schema.plugin(require('../plugins/machineName')('form'));
 
   // Set the default machine name.
   model.schema.machineName = function(document, done) {

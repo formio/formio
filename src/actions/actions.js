@@ -2,7 +2,6 @@
 
 var Resource = require('resourcejs');
 var async = require('async');
-var mongoose = require('mongoose');
 var vm = require('vm');
 var _ = require('lodash');
 var debug = {
@@ -18,7 +17,6 @@ var debug = {
  * @returns {{actions: {}, register: Function, search: Function, execute: Function}}
  */
 module.exports = function(router) {
-  var Action = router.formio.Action;
   var hook = require('../util/hook')(router.formio);
 
   /**
@@ -44,7 +42,7 @@ module.exports = function(router) {
     /**
      * The model to use for each Action.
      */
-    model: mongoose.model('action', hook.alter('actionSchema', Action.schema)),
+    model: router.formio.models.action,
 
     /**
      * Load all actions for a provided form.

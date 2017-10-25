@@ -1,7 +1,6 @@
 'use strict';
 
 var Resource = require('resourcejs');
-var mongoose = require('mongoose');
 var _ = require('lodash');
 
 module.exports = function(router) {
@@ -44,7 +43,7 @@ module.exports = function(router) {
     next();
   };
 
-  return Resource(router, '', 'form', mongoose.model('form', router.formio.schemas.form))
+  return Resource(router, '', 'form', router.formio.models.form)
   .rest(hook.alter('formRoutes', {
     before: [
       router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),

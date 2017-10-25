@@ -67,7 +67,7 @@ module.exports = function(router) {
   });
 
   // Add machineName to the schema.
-  model.schema.plugin(require('../plugins/machineName'));
+  model.schema.plugin(require('../plugins/machineName')('role'));
 
   // Set the default machine name.
   model.schema.machineName = function(document, done) {

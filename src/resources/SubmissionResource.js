@@ -1,7 +1,6 @@
 'use strict';
 
 var Resource = require('resourcejs');
-var mongoose = require('mongoose');
 var utils = require('formiojs/utils');
 var _ = require('lodash');
 
@@ -159,6 +158,6 @@ module.exports = function(router) {
     router,
     '/form/:formId',
     'submission',
-    mongoose.model('submission', router.formio.schemas.submission)
+    router.formio.models.submission
   ).rest(hook.alter('submissionRoutes', handlers));
 };
