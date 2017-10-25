@@ -2,6 +2,7 @@
 
 var Resource = require('resourcejs');
 var async = require('async');
+var mongoose = require('mongoose');
 var vm = require('vm');
 var _ = require('lodash');
 var debug = {
@@ -42,7 +43,7 @@ module.exports = function(router) {
     /**
      * The model to use for each Action.
      */
-    model: router.formio.models.action,
+    model: mongoose.model('action'),
 
     /**
      * Load all actions for a provided form.

@@ -8,7 +8,7 @@ module.exports = function(router) {
   let hook = require('../util/hook')(router.formio);
 
   // Define our schemas.
-  let schemas = hook.alter('models', {
+  let models = hook.alter('models', {
     action: require('./Action')(router.formio),
     form: require('./Form')(router.formio),
     submission: require('./Submission')(router.formio),
@@ -16,17 +16,16 @@ module.exports = function(router) {
   });
 
   let defs = {
-    classes: {},
     schemas: {},
     models: {},
     specs: {}
   };
 
-  _.each(schemas, (schema, name) => {
-    defs.classes[name] = schema;
-    defs.schemas[name] = hook.alter(name + 'Schema', schema.schema, false);
-    defs.models[name] = mongoose.model(name, schema.schema);
-    defs.specs[name] = schema.spec;
+  _.each(models, (model, name) => {
+    mongoose.model(name, model.schema);
+    defs.models[name] = model;
+    defs.schemas[name] = hook.alter(name + 'Schema', model.schema, false);
+    defs.specs[name] = model.spec;
   });
 
   // Export the model definitions.
