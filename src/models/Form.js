@@ -152,7 +152,7 @@ module.exports = function(formio) {
           {
             message: keyError,
             validator: function(components) {
-              var validRegex = /^[A-Za-z]+[A-Za-z0-9\-.]*$/g;
+              var validRegex = /^[A-Za-z_]+[A-Za-z0-9\-._]*$/g;
               return componentKeys(components).every(function(key) {
                 return key.match(validRegex);
               });
