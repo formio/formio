@@ -191,8 +191,11 @@ module.exports = function(config) {
         // Get the models for our project.
         var models = require('./src/models/models')(router);
 
-        // Load the Models.
+        // Load the Schemas.
         router.formio.schemas = _.assign(router.formio.schemas, models.schemas);
+
+        // Load the Models.
+        router.formio.models = models.models;
 
         // Load the Resources.
         router.formio.resources = require('./src/resources/resources')(router);
@@ -236,7 +239,7 @@ module.exports = function(config) {
         });
 
         // Import the form actions.
-        router.formio.Action = require('./src/models/Action')(router.formio);
+        router.formio.Action = router.formio.models.action;
         router.formio.actions = require('./src/actions/actions')(router);
 
         // Add submission data export capabilities.

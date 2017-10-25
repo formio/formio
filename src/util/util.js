@@ -79,7 +79,9 @@ module.exports = {
    * Returns the URL alias for a form provided the url.
    */
   getAlias: function(req, reservedForms) {
+    /* eslint-disable no-useless-escape */
     var formsRegEx = new RegExp('\/(' + reservedForms.join('|') + ').*', 'i');
+    /* eslint-enable no-useless-escape */
     var alias = req.url.substr(1).replace(formsRegEx, '');
     var additional = req.url.substr(alias.length + 1);
     if (!additional && req.method === 'POST') {

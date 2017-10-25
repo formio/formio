@@ -100,6 +100,7 @@ module.exports = function(router) {
    * @param query
    * @returns {*}
    */
+  /* eslint-disable no-useless-escape */
   SQLAction.prototype.escape = function(query) {
     return query.replace(/[\0\n\r\b\t\\\'\'\x1a]/g, function(s) { // eslint-disable-line no-control-regex
       switch (s) {
@@ -113,6 +114,7 @@ module.exports = function(router) {
       }
     });
   };
+  /* eslint-enable no-useless-escape */
 
   /**
    * Trigger the SQL action.

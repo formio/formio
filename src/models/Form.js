@@ -7,7 +7,9 @@ var debug = require('debug')('formio:models:form');
 module.exports = function(formio) {
   var hook = require('../util/hook')(formio);
   var util = formio.util;
+  /* eslint-disable no-useless-escape */
   var invalidRegex = /[^0-9a-zA-Z\-\/]|^\-|\-$|^\/|\/$/;
+  /* eslint-enable no-useless-escape */
   var componentKeys = function(components) {
     var keys = [];
     util.eachComponent(components, function(component) {
@@ -150,7 +152,7 @@ module.exports = function(formio) {
           {
             message: keyError,
             validator: function(components) {
-              var validRegex = /^[A-Za-z]+[A-Za-z0-9\-.]*$/g;
+              var validRegex = /^[A-Za-z_]+[A-Za-z0-9\-._]*$/g;
               return componentKeys(components).every(function(key) {
                 return key.match(validRegex);
               });
@@ -183,7 +185,7 @@ module.exports = function(formio) {
   });
 
   // Add machineName to the schema.
-  model.schema.plugin(require('../plugins/machineName'));
+  model.schema.plugin(require('../plugins/machineName')('form'));
 
   // Set the default machine name.
   model.schema.machineName = function(document, done) {
