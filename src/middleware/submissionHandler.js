@@ -442,8 +442,7 @@ module.exports = function(router, resourceName, resourceId) {
     };
 
     var alterSubmission = function(req, res, done) {
-      Q.ninvoke(hook, 'alter', 'submission', req, res)
-        .then(done);
+      hook.alter('submission', req, res, done);
     };
 
     // Add before handlers.
