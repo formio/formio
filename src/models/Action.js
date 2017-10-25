@@ -75,13 +75,18 @@ module.exports = function(formio) {
   });
 
   // Add machineName to the schema.
-  Action.schema.plugin(require('../plugins/machineName'));
+  Action.schema.plugin(require('../plugins/machineName')('action'));
 
   Action.schema.machineName = function(document, done) {
-    formio.resources.form.model.findOne({_id: document.form, deleted: {$eq: null}})
+    mongoose.model('form').findOne({_id: document.form, deleted: {$eq: null}})
       .exec((err, form) => {
         if (err) {
           return done(err);
+        }
+
+        if (!form) {
+          hook.alter('actionMachineName', document.form + ':' + document.name, document, done);
+          return;
         }
 
         hook.alter('actionMachineName', form.name + ':' + document.name, document, done);
