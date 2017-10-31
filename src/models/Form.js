@@ -30,11 +30,19 @@ module.exports = function(formio) {
     return _(paths);
   };
 
-  var componentShortcuts = function(components) {
-    var shortcuts = [];
-    util.eachComponent(components, function(component, path) {
-      if (!_.isUndefined(component.shortcut) && !_.isNull(component.shortcut)) {
-        shortcuts.push(_.toUpper(component.shortcut));
+  const componentShortcuts = (components) => {
+    const shortcuts = [];
+    util.eachComponent(components, (component, path) => {
+      if (component.shortcut) {
+        shortcuts.push(_.capitalize(component.shortcut));
+      }
+      if (component.values) {
+        _.forEach(component.values, (value) => {
+          const shortcut = _.get(value, 'shortcut');
+          if (shortcut) {
+            shortcuts.push(_.capitalize(shortcut));
+          }
+        });
       }
     }, true);
     return _(shortcuts);
@@ -200,12 +208,10 @@ module.exports = function(formio) {
           {
             isAsync: true,
             validator: function(components, valid) {
-              var shortcuts = componentShortcuts(components);
-              var msg = 'Component shortcuts must be unique: ';
-              var uniq = shortcuts.uniq();
-              var diff = shortcuts.filter(function(value, index, collection) {
-                return _.includes(collection, value, index + 1);
-              });
+              const shortcuts = componentShortcuts(components);
+              const msg = 'Component shortcuts must be unique: ';
+              const uniq = shortcuts.uniq();
+              const diff = shortcuts.filter((value, index, collection) => _.includes(collection, value, index + 1));
 
               if (_.isEqual(shortcuts.value(), uniq.value())) {
                 return valid(true);
