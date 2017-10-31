@@ -1,18 +1,20 @@
 'use strict';
 
-var mongoose = require('mongoose');
-var _ = require('lodash');
-var debug = require('debug')('formio:models:form');
+const mongoose = require('mongoose');
+const _ = require('lodash');
+const debug = require('debug')('formio:models:form');
 
-module.exports = function(formio) {
-  var hook = require('../util/hook')(formio);
-  var util = formio.util;
+module.exports = (formio) => {
+  const hook = require('../util/hook')(formio);
+  const util = formio.util;
   /* eslint-disable no-useless-escape */
-  var invalidRegex = /[^0-9a-zA-Z\-\/]|^\-|\-$|^\/|\/$/;
+  const invalidRegex = /[^0-9a-zA-Z\-\/]|^\-|\-$|^\/|\/$/;
+  const validKeyRegex = /^[A-Za-z_]+[A-Za-z0-9\-._]*$/g;
+  const validShortcutRegex = /^([A-Z]|Enter|Esc)$/i;
   /* eslint-enable no-useless-escape */
-  var componentKeys = function(components) {
-    var keys = [];
-    util.eachComponent(components, function(component) {
+  const componentKeys = (components) => {
+    const keys = [];
+    util.eachComponent(components, (component) => {
       if (!_.isUndefined(component.key) && !_.isNull(component.key)) {
         keys.push(component.key);
       }
@@ -20,9 +22,9 @@ module.exports = function(formio) {
     return _(keys);
   };
 
-  var componentPaths = function(components) {
-    var paths = [];
-    util.eachComponent(components, function(component, path) {
+  const componentPaths = (components) => {
+    const paths = [];
+    util.eachComponent(components, (component, path) => {
       if (!_.isUndefined(component.key) && !_.isNull(component.key)) {
         paths.push(path);
       }
@@ -48,41 +50,39 @@ module.exports = function(formio) {
     return _(shortcuts);
   };
 
-  var uniqueMessage = 'may only contain letters, numbers, hyphens, and forward slashes ';
-  uniqueMessage += '(but cannot start or end with a hyphen or forward slash)';
-  var uniqueValidator = function(property) {
-    return function(value, done) {
-      var query = {deleted: {$eq: null}};
-      query[property] = value;
-      var search = hook.alter('formSearch', query, this, value);
+  const uniqueMessage = 'may only contain letters, numbers, hyphens, and forward slashes ' +
+    '(but cannot start or end with a hyphen or forward slash)';
+  const uniqueValidator = (property) => function(value, done) {
+    const query = {deleted: {$eq: null}};
+    query[property] = value;
+    const search = hook.alter('formSearch', query, this, value);
 
-      // Ignore the id if this is an update.
-      if (this._id) {
-        search._id = {$ne: this._id};
+    // Ignore the id if this is an update.
+    if (this._id) {
+      search._id = {$ne: this._id};
+    }
+
+    mongoose.model('form').findOne(search).exec((err, result) => {
+      if (err) {
+        debug(err);
+        return done(false);
+      }
+      if (result) {
+        debug(result);
+        return done(false);
       }
 
-      mongoose.model('form').findOne(search).exec(function(err, result) {
-        if (err) {
-          debug(err);
-          return done(false);
-        }
-        if (result) {
-          debug(result);
-          return done(false);
-        }
-
-        done(true);
-      });
-    };
+      done(true);
+    });
   };
 
-  var keyError = 'A component on this form has an invalid or missing API key. Keys must only contain alphanumeric ';
-  keyError += 'characters or hyphens, and must start with a letter. Please check each component\'s API Property Name.';
+  const keyError = 'A component on this form has an invalid or missing API key. Keys must only contain alphanumeric ' +
+    'characters or hyphens, and must start with a letter. Please check each component\'s API Property Name.';
 
-  var shortcutError = 'A component on this form has an invalid shortcut. Shortcuts must only contain alphabetic ';
-  shortcutError += 'characters or must be equal to \'Enter\' or \'Esc\'';
+  const shortcutError = 'A component on this form has an invalid shortcut. Shortcuts must only contain alphabetic ' +
+    'characters or must be equal to \'Enter\' or \'Esc\'';
 
-  var model = require('./BaseModel')({
+  const model = require('./BaseModel')({
     schema: new mongoose.Schema({
       title: {
         type: String,
@@ -96,9 +96,7 @@ module.exports = function(formio) {
         validate: [
           {
             message: 'The Name ' + uniqueMessage,
-            validator: function(value) {
-              return !invalidRegex.test(value);
-            }
+            validator: (value) => !invalidRegex.test(value)
           },
           {
             isAsync: true,
@@ -117,15 +115,11 @@ module.exports = function(formio) {
         validate: [
           {
             message: 'The Path ' + uniqueMessage,
-            validator: function(value) {
-              return !invalidRegex.test(value);
-            }
+            validator: (value) => !invalidRegex.test(value)
           },
           {
             message: 'Path cannot end in `submission` or `action`',
-            validator: function(path) {
-              return !path.match(/(submission|action)\/?$/);
-            }
+            validator: (path) => !path.match(/(submission|action)\/?$/)
           },
           {
             isAsync: true,
@@ -172,31 +166,19 @@ module.exports = function(formio) {
         validate: [
           {
             message: keyError,
-            validator: function(components) {
-              var validRegex = /^[A-Za-z_]+[A-Za-z0-9\-._]*$/g;
-              return componentKeys(components).every(function(key) {
-                return key.match(validRegex);
-              });
-            }
+            validator: (components) => componentKeys(components).every((key) => key.match(validKeyRegex))
           },
           {
             message: shortcutError,
-            validator: function(components) {
-              var validRegex = /^([A-Z]|Enter|Esc)$/i;
-              return componentShortcuts(components).every(function(shortcut) {
-                return shortcut.match(validRegex);
-              });
-            }
+            validator: (components) => componentShortcuts(components).every((shortcut) => shortcut.match(validShortcutRegex))
           },
           {
             isAsync: true,
-            validator: function(components, valid) {
-              var paths = componentPaths(components);
-              var msg = 'Component keys must be unique: ';
-              var uniq = paths.uniq();
-              var diff = paths.filter(function(value, index, collection) {
-                return _.includes(collection, value, index + 1);
-              });
+            validator: (components, valid) => {
+              const paths = componentPaths(components);
+              const msg = 'Component keys must be unique: ';
+              const uniq = paths.uniq();
+              const diff = paths.filter((value, index, collection) => _.includes(collection, value, index + 1));
 
               if (_.isEqual(paths.value(), uniq.value())) {
                 return valid(true);
@@ -207,7 +189,7 @@ module.exports = function(formio) {
           },
           {
             isAsync: true,
-            validator: function(components, valid) {
+            validator: (components, valid) => {
               const shortcuts = componentShortcuts(components);
               const msg = 'Component shortcuts must be unique: ';
               const uniq = shortcuts.uniq();
@@ -233,7 +215,7 @@ module.exports = function(formio) {
   model.schema.plugin(require('../plugins/machineName')('form'));
 
   // Set the default machine name.
-  model.schema.machineName = function(document, done) {
+  model.schema.machineName = (document, done) => {
     hook.alter('formMachineName', document.name, document, done);
   };
 
