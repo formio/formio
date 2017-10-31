@@ -30,6 +30,16 @@ module.exports = function(formio) {
     return _(paths);
   };
 
+  var componentShortcuts = function(components) {
+    var shortcuts = [];
+    util.eachComponent(components, function(component, path) {
+      if (!_.isUndefined(component.shortcut) && !_.isNull(component.shortcut)) {
+        shortcuts.push(_.toUpper(component.shortcut));
+      }
+    }, true);
+    return _(shortcuts);
+  };
+
   var uniqueMessage = 'may only contain letters, numbers, hyphens, and forward slashes ';
   uniqueMessage += '(but cannot start or end with a hyphen or forward slash)';
   var uniqueValidator = function(property) {
@@ -60,6 +70,9 @@ module.exports = function(formio) {
 
   var keyError = 'A component on this form has an invalid or missing API key. Keys must only contain alphanumeric ';
   keyError += 'characters or hyphens, and must start with a letter. Please check each component\'s API Property Name.';
+
+  var shortcutError = 'A component on this form has an invalid shortcut. Shortcuts must only contain alphabetic ';
+  shortcutError += 'characters or must be equal to \'Enter\' or \'Esc\'';
 
   var model = require('./BaseModel')({
     schema: new mongoose.Schema({
@@ -159,6 +172,15 @@ module.exports = function(formio) {
             }
           },
           {
+            message: shortcutError,
+            validator: function(components) {
+              var validRegex = /^([A-Z]|Enter|Esc)$/i;
+              return componentShortcuts(components).every(function(shortcut) {
+                return shortcut.match(validRegex);
+              });
+            }
+          },
+          {
             isAsync: true,
             validator: function(components, valid) {
               var paths = componentPaths(components);
@@ -169,6 +191,23 @@ module.exports = function(formio) {
               });
 
               if (_.isEqual(paths.value(), uniq.value())) {
+                return valid(true);
+              }
+
+              return valid(false, (msg + diff.value().join(', ')));
+            }
+          },
+          {
+            isAsync: true,
+            validator: function(components, valid) {
+              var shortcuts = componentShortcuts(components);
+              var msg = 'Component shortcuts must be unique: ';
+              var uniq = shortcuts.uniq();
+              var diff = shortcuts.filter(function(value, index, collection) {
+                return _.includes(collection, value, index + 1);
+              });
+
+              if (_.isEqual(shortcuts.value(), uniq.value())) {
                 return valid(true);
               }
 
