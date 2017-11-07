@@ -1,6 +1,7 @@
 'use strict';
 
 var mongoose = require('mongoose');
+let util = require('../util/util');
 
 module.exports = (modelName) => {
   return (schema, options) => {
@@ -14,45 +15,28 @@ module.exports = (modelName) => {
       }
     });
 
-    var getNextMachineName = function(machineName, records) {
-      if (!records || !records.length) {
-        return machineName;
-      }
-      var i = 0;
-      records.forEach((record) => {
-        var parts = record.machineName.split(/(\d+)/).filter(Boolean);
-        var number = parts[1] || 0;
-        if (number > i) {
-          i = number;
-        }
-      });
-      i++;
-      return machineName + i;
-    };
-
-    var ensureUnique = function(doc, machineName, next) {
-      if (doc._id && doc.machineName) {
-        return next();
-      }
-      // Ensure this name is unique.
-      mongoose.model(modelName).find({
-        machineName: {"$regex": machineName}
-      }, (err, records) => {
-        doc.machineName = getNextMachineName(machineName, records);
-        next();
-      });
-    };
-
     schema.pre('save', function(next) {
+      let model = mongoose.model(modelName);
       if (typeof schema.machineName !== 'function') {
-        return ensureUnique(this, this.machineName, next);
+        // Do not alter an already established machine name.
+        if (this._id && this.machineName) {
+          return next();
+        }
+
+        return util.uniqueMachineName(this, model, next);
       }
       schema.machineName(this, (err, machineName) => {
         if (err) {
           return next(err);
         }
 
-        ensureUnique(this, machineName, next);
+        // Do not alter an already established machine name.
+        if (this._id && this.machineName) {
+          return next();
+        }
+
+        this.machineName = machineName;
+        util.uniqueMachineName(this, model, next);
       });
     });
   };
