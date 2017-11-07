@@ -108,6 +108,32 @@ module.exports = (router) => {
     return false;
   };
 
+  let setFormProperty = (template, entity) => {
+    if (
+      !entity ||
+      !entity.form ||
+      (!template.hasOwnProperty('forms') && !template.hasOwnProperty('resources'))
+    ) {
+      return false;
+    }
+
+    let changes = false;
+
+    // Attempt to add a form.
+    if (template.forms[entity.form]) {
+      entity.form = template.forms[entity.form]._id.toString();
+      changes = true;
+    }
+
+    // Attempt to add a resource
+    if (!changes && template.resources[entity.form]) {
+      entity.form = template.resources[entity.form]._id.toString();
+      changes = true;
+    }
+
+    return changes;
+  };
+
   /**
    * Converts an entities resource id (machineName) to a bson id.
    *
@@ -162,6 +188,11 @@ module.exports = (router) => {
     util.eachComponent(components, (component) => {
       // Update resource machineNames for resource components.
       if ((component.type === `resource`) && resourceMachineNameToId(template, component)) {
+        changed = true;
+      }
+
+      // Update the form property on the form component.
+      if ((component.type === 'form') && setFormProperty(template, component)) {
         changed = true;
       }
 
