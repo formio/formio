@@ -108,6 +108,32 @@ module.exports = (router) => {
     return false;
   };
 
+  let setFormProperty = (template, entity) => {
+    if (
+      !entity ||
+      !entity.form ||
+      (!template.hasOwnProperty('forms') && !template.hasOwnProperty('resources'))
+    ) {
+      return false;
+    }
+
+    let changes = false;
+
+    // Attempt to add a form.
+    if (template.forms[entity.form]) {
+      entity.form = template.forms[entity.form]._id.toString();
+      changes = true;
+    }
+
+    // Attempt to add a resource
+    if (!changes && template.resources[entity.form]) {
+      entity.form = template.resources[entity.form]._id.toString();
+      changes = true;
+    }
+
+    return changes;
+  };
+
   /**
    * Converts an entities resource id (machineName) to a bson id.
    *
@@ -162,6 +188,11 @@ module.exports = (router) => {
     util.eachComponent(components, (component) => {
       // Update resource machineNames for resource components.
       if ((component.type === `resource`) && resourceMachineNameToId(template, component)) {
+        changed = true;
+      }
+
+      // Update the form property on the form component.
+      if ((component.type === 'form') && setFormProperty(template, component)) {
         changed = true;
       }
 
@@ -362,38 +393,55 @@ module.exports = (router) => {
           }
 
           debug.install(document);
-          let query = entity.query
-            ? entity.query(document, template)
-            : {machineName: document.machineName, deleted: {$eq: null}};
+          let query = entity.query ? entity.query(document, template) : {machineName: document.machineName};
 
           model.findOne(query, (err, doc) => {
             if (err) {
               debug.install(err);
               return next(err);
             }
+
+            let saveDoc = function(updatedDoc) {
+              updatedDoc.save((err, result) => {
+                if (err) {
+                  debug.install(err.errors || err);
+                  return next(err);
+                }
+
+                items[machineName] = result.toObject();
+                debug.save(machineName);
+                debug.save(items[machineName]);
+                next();
+              });
+            };
+
             if (!doc) {
               debug.install(`Existing not found (${document.machineName})`);
               /* eslint-disable new-cap */
-              doc = new model(document);
+              return saveDoc(new model(document));
               /* eslint-enable new-cap */
+            }
+
+            // Check to see if a document exists, but is deleted.
+            if (doc.deleted) {
+              debug.install(`Deleted machine name found (${document.machineName})`);
+              // There exists an already deleted machine name. We need to create a new one.
+              return util.uniqueMachineName(document, model, function(err) {
+                if (err) {
+                  return next(err);
+                }
+
+                /* eslint-disable new-cap */
+                saveDoc(new model(document));
+                /* eslint-enable new-cap */
+              });
             }
             else {
               debug.install(`Existing found`);
               doc = _.assign(doc, document);
               debug.install(doc);
+              return saveDoc(doc);
             }
-
-            doc.save((err, result) => {
-              if (err) {
-                debug.install(err.errors || err);
-                return next(err);
-              }
-
-              items[machineName] = result.toObject();
-              debug.save(machineName);
-              debug.save(items[machineName]);
-              next();
-            });
           });
         });
       }, (err) => {
