@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [UNRELEASED]
+### Added
+ - Possibility to add shortcuts.
+
 ## 1.21.1
 ### Fixed
  - Issues with the machineKey not auto-incrementing and staying unique.
