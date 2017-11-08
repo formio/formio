@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [UNRELEASED]
 ### Added
  - Possibility to add shortcuts.
+ 
+## 1.21.3
+### Fixed
+ - Machine name collisions on project import when there exists deleted entities.
+
+## 1.21.2
+### Fixed
+ - The export and import to translate the form property on form components.
 
 ## 1.21.1
 ### Fixed
