@@ -14,6 +14,9 @@ module.exports = (modelName) => {
       }
     });
 
+    // Add a compound index for both machine name and the deleted flag.
+    schema.index({machineName: 1}, {unique: true, partialFilterExpression: {deleted: {$eq: null}}});
+
     schema.pre('save', function(next) {
       let model = mongoose.model(modelName);
       if (typeof schema.machineName !== 'function') {
