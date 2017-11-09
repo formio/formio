@@ -683,7 +683,8 @@ const Utils = {
    */
   uniqueMachineName: function(document, model, next) {
     model.find({
-      machineName: {"$regex": document.machineName, deleted: {$eq: null}}
+      machineName: {"$regex": document.machineName},
+      deleted: {$eq: null}
     }, (err, records) => {
       if (err) {
         return next(err);
