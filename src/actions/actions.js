@@ -18,7 +18,6 @@ var debug = {
  * @returns {{actions: {}, register: Function, search: Function, execute: Function}}
  */
 module.exports = function(router) {
-  var Action = router.formio.Action;
   var hook = require('../util/hook')(router.formio);
 
   /**
@@ -44,7 +43,7 @@ module.exports = function(router) {
     /**
      * The model to use for each Action.
      */
-    model: mongoose.model('action', hook.alter('actionSchema', Action.schema)),
+    model: mongoose.model('action'),
 
     /**
      * Load all actions for a provided form.
