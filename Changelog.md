@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.21.5
+### Changed
+ - Added update hook to remove previous machineName indexes.
+
+### Fixed
+ - Stop empty string removal on validation
+
 ## 1.21.4
 ### Fixed
  - More changes to machineName so that it is not enforced unique at mongo level to keep duplicate errors from occuring.
