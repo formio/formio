@@ -17,7 +17,7 @@ module.exports = function(db, config, tools, done) {
   var projects = db.collection('projects');
   var roles = db.collection('roles');
   var forms = db.collection('forms');
-  var validRegex = /^[A-Za-z]+[A-Za-z0-9\-.]*$/g;
+  var validRegex = /^[A-Za-z_]+[A-Za-z0-9\-._]*$/g;
   var removeRegex = /[\!\@\#\$\%\^\&\*\(\)\_\+\`\~\=\,\/\<\>\?\;\'\:\"\[\]\{\}\\\|\ ]/g;
   var invalidRegex = /(\.undefined)/g;
 

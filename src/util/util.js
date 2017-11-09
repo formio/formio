@@ -13,7 +13,7 @@ var debug = {
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
 
-module.exports = {
+const Utils = {
   deleteProp: deleteProp,
 
   /**
@@ -79,7 +79,9 @@ module.exports = {
    * Returns the URL alias for a form provided the url.
    */
   getAlias: function(req, reservedForms) {
+    /* eslint-disable no-useless-escape */
     var formsRegEx = new RegExp('\/(' + reservedForms.join('|') + ').*', 'i');
+    /* eslint-enable no-useless-escape */
     var alias = req.url.substr(1).replace(formsRegEx, '');
     var additional = req.url.substr(alias.length + 1);
     if (!additional && req.method === 'POST') {
@@ -668,5 +670,42 @@ module.exports = {
     decode: function(encoded) {
       return new Buffer(encoded.toString()).toString('ascii');
     }
+  },
+
+  /**
+   * Retrieve a unique machine name
+   *
+   * @param document
+   * @param model
+   * @param machineName
+   * @param next
+   * @return {*}
+   */
+  uniqueMachineName: function(document, model, next) {
+    model.find({
+      machineName: {"$regex": document.machineName},
+      deleted: {$eq: null}
+    }, (err, records) => {
+      if (err) {
+        return next(err);
+      }
+
+      if (!records || !records.length) {
+        return next();
+      }
+
+      var i = 0;
+      records.forEach((record) => {
+        var parts = record.machineName.split(/(\d+)/).filter(Boolean);
+        var number = parts[1] || 0;
+        if (number > i) {
+          i = number;
+        }
+      });
+      document.machineName += ++i;
+      next();
+    });
   }
 };
+
+module.exports = Utils;

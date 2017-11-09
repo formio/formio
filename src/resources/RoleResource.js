@@ -21,6 +21,6 @@ module.exports = function(router) {
     router,
     '',
     'role',
-    mongoose.model('role', router.formio.schemas.role)
+    mongoose.model('role')
   ).rest(hook.alter('roleRoutes', handlers));
 };

@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.21.4
+### Fixed
+ - More changes to machineName so that it is not enforced unique at mongo level to keep duplicate errors from occuring.
+
+## 1.21.3
+### Fixed
+ - Machine name collisions on project import when there exists deleted entities.
+
+## 1.21.2
+### Fixed
+ - The export and import to translate the form property on form components.
+
+## 1.21.1
+### Fixed
+ - Issues with the machineKey not auto-incrementing and staying unique.
+
+### Added
+ - Ability to alter submission with a hook.
+ - Possibility to use underscore in API key.
+
+## 1.21.0
+### Changed
+ - Upgraded many dependencies to latest versions.
+
 ## 1.20.0
 ### Added
  - Add json logic validation

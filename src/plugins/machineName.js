@@ -1,61 +1,45 @@
 'use strict';
 
 var mongoose = require('mongoose');
+let util = require('../util/util');
 
-module.exports = function(schema, options) {
-  // Add the machineName param.
-  schema.add({
-    machineName: {
-      type: String,
-      description: 'A unique, exportable name.',
-      unique: true,
-      __readonly: true
-    }
-  });
-
-  var incrementAndSave = function(document, options, cb) {
-    var parts = document.machineName.split(/(\d+)/).filter(Boolean);
-    var name = parts[0];
-    var number = parts[1] || 0;
-    number++;
-    document.machineName = name + number;
-    document.markModified('machineName');
-    return document.save(cb);
-  };
-
-  schema.pre('save', function(next) {
-    if (this.machineName || typeof schema.machineName !== 'function') {
-      return next();
-    }
-    schema.machineName(this, function(err, machineName) {
-      if (err) {
-        return next(err);
+module.exports = (modelName) => {
+  return (schema, options) => {
+    // Add the machineName param.
+    schema.add({
+      machineName: {
+        type: String,
+        description: 'A unique, exportable name.',
+        __readonly: true
       }
+    });
 
-      this.machineName = machineName;
-      next();
-    }.bind(this));
-  });
+    // Add a compound index for both machine name and the deleted flag.
+    schema.index({machineName: 1}, {unique: true, partialFilterExpression: {deleted: {$eq: null}}});
 
-  schema.methods.save = function(options, fn) {
-    if ('function' == typeof options) {
-      fn = options;
-      options = undefined;
-    }
+    schema.pre('save', function(next) {
+      let model = mongoose.model(modelName);
+      if (typeof schema.machineName !== 'function') {
+        // Do not alter an already established machine name.
+        if (this._id && this.machineName) {
+          return next();
+        }
 
-    if (!options) {
-      options = {
-        __noPromise: true
-      };
-    }
-    var self = this;
-    mongoose.Model.prototype.save.call(self, options, function(e, model, num) {
-      if (e && (e.code === 11000  || e.code === 11001) && !!~e.errmsg.indexOf(self['machineName'])) {
-        incrementAndSave(self, options, fn);
+        return util.uniqueMachineName(this, model, next);
       }
-      else {
-        fn(e,model,num);
-      }
+      schema.machineName(this, (err, machineName) => {
+        if (err) {
+          return next(err);
+        }
+
+        // Do not alter an already established machine name.
+        if (this._id && this.machineName) {
+          return next();
+        }
+
+        this.machineName = machineName;
+        util.uniqueMachineName(this, model, next);
+      });
     });
   };
 };
