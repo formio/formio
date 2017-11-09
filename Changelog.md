@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.21.4
+### Fixed
+ - More changes to machineName so that it is not enforced unique at mongo level to keep duplicate errors from occuring.
+
 ## 1.21.3
 ### Fixed
  - Machine name collisions on project import when there exists deleted entities.
