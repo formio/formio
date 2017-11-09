@@ -378,7 +378,7 @@ Validator.prototype.buildSchema = function(schema, components, componentData, su
       case 'textfield':
       case 'textarea':
       case 'phonenumber':
-        fieldValidator = JoiX.string().empty('');
+        fieldValidator = JoiX.string().allow('');
         if (
           component.validate &&
           component.validate.hasOwnProperty('minLength') &&
@@ -397,7 +397,7 @@ Validator.prototype.buildSchema = function(schema, components, componentData, su
         }
         break;
       case 'email':
-        fieldValidator = JoiX.string().email().empty('');
+        fieldValidator = JoiX.string().email().allow('');
         break;
       case 'number':
         fieldValidator = JoiX.number().empty(null);
@@ -421,7 +421,7 @@ Validator.prototype.buildSchema = function(schema, components, componentData, su
         }
         break;
       case 'signature':
-        fieldValidator = JoiX.string().empty('');
+        fieldValidator = JoiX.string().allow('');
         break;
       default:
         // Allow custom components to have subcomponents as well (like layout components).
@@ -453,7 +453,7 @@ Validator.prototype.buildSchema = function(schema, components, componentData, su
     if (component.key && (component.key.indexOf('.') === -1) && isPersistent && component.validate) {
       // Add required validator.
       if (component.validate.required) {
-        fieldValidator = fieldValidator.required().empty();
+        fieldValidator = fieldValidator.required().empty().disallow('', null);
       }
 
       // Add regex validator
