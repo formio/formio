@@ -10,7 +10,6 @@ module.exports = (modelName) => {
       machineName: {
         type: String,
         description: 'A unique, exportable name.',
-        unique: true,
         __readonly: true
       }
     });
