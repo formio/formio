@@ -4,26 +4,30 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 1.21.5
+## 1.22.6
+### Changed
+ - Allow patch schema updates without stopping server start.
+
+## 1.22.5
 ### Changed
  - Added update hook to remove previous machineName indexes.
 
 ### Fixed
  - Stop empty string removal on validation
 
-## 1.21.4
+## 1.22.4
 ### Fixed
  - More changes to machineName so that it is not enforced unique at mongo level to keep duplicate errors from occuring.
 
-## 1.21.3
+## 1.22.3
 ### Fixed
  - Machine name collisions on project import when there exists deleted entities.
 
-## 1.21.2
+## 1.22.2
 ### Fixed
  - The export and import to translate the form property on form components.
 
-## 1.21.1
+## 1.22.1
 ### Fixed
  - Issues with the machineKey not auto-incrementing and staying unique.
 
