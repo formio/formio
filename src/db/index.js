@@ -438,7 +438,10 @@ module.exports = function(formio) {
       debug.db('Current database (' + database + ') and Pending code sversions (' + code + ') are the same.');
       return false;
     }
-    else if (['patch', 'prepatch', 'prerelease'].indexOf(semver.diff(database, code)) === -1) {
+    else if (
+      semver.gt(database, code) &&
+      (['patch', 'prepatch', 'prerelease', 'minor'].indexOf(semver.diff(database, code)) === -1)
+    ) {
       unlock(function() {
         throw new Error(
           'The provided codebase version is more recent than the database schema version. Update the codebase and ' +
