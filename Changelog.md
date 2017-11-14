@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.22.9
+### Fixed
+ - Issue where a database update would be able to occur.
+
 ## 1.22.7
 ### Changed
  - Ensure we are on a 3.1.0 db schema.
