@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.22.10
+### Fixed
+ - Issue with the validation clearing out values when clearOnHide is set to false.
+
+## 1.22.9
+### Fixed
+ - Issue where a database update would be able to occur.
+
+## 1.22.7
+### Changed
+ - Ensure we are on a 3.1.0 db schema.
+
 ## 1.22.6
 ### Changed
  - Allow patch schema updates without stopping server start.

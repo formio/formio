@@ -2229,6 +2229,200 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
+
+      it('Should not clearOnHide when set to false', (done) => {
+        var components = [
+          {
+            "input": true,
+            "tableView": true,
+            "inputType": "radio",
+            "label": "Selector",
+            "key": "selector",
+            "values": [
+              {
+                "value": "one",
+                "label": "One"
+              },
+              {
+                "value": "two",
+                "label": "Two"
+              }
+            ],
+            "defaultValue": "",
+            "protected": false,
+            "persistent": true,
+            "validate": {
+              "required": false,
+              "custom": "",
+              "customPrivate": false
+            },
+            "type": "radio",
+            "conditional": {
+              "show": "",
+              "when": null,
+              "eq": ""
+            }
+          },
+          {
+            "input": false,
+            "title": "Panel",
+            "theme": "default",
+            "components": [
+              {
+                "input": true,
+                "tableView": true,
+                "inputType": "text",
+                "inputMask": "",
+                "label": "No Clear Field",
+                "key": "noClear",
+                "placeholder": "",
+                "prefix": "",
+                "suffix": "",
+                "multiple": false,
+                "defaultValue": "",
+                "protected": false,
+                "unique": false,
+                "persistent": true,
+                "clearOnHide": false,
+                "validate": {
+                  "required": false,
+                  "minLength": "",
+                  "maxLength": "",
+                  "pattern": "",
+                  "custom": "",
+                  "customPrivate": false
+                },
+                "conditional": {
+                  "show": null,
+                  "when": null,
+                  "eq": ""
+                },
+                "type": "textfield"
+              }
+            ],
+            "type": "panel",
+            "key": "panel",
+            "conditional": {
+              "show": "true",
+              "when": "selector",
+              "eq": "two"
+            }
+          }
+        ];
+
+        helper
+          .form('test', components)
+          .submission({
+            selector: 'one',
+            noClear: 'testing'
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual({selector: 'one', noClear: 'testing'}, submission.data);
+            done();
+          });
+      });
+
+      it('Should clearOnHide when set to true', (done) => {
+        var components = [
+          {
+            "input": true,
+            "tableView": true,
+            "inputType": "radio",
+            "label": "Selector",
+            "key": "selector",
+            "values": [
+              {
+                "value": "one",
+                "label": "One"
+              },
+              {
+                "value": "two",
+                "label": "Two"
+              }
+            ],
+            "defaultValue": "",
+            "protected": false,
+            "persistent": true,
+            "validate": {
+              "required": false,
+              "custom": "",
+              "customPrivate": false
+            },
+            "type": "radio",
+            "conditional": {
+              "show": "",
+              "when": null,
+              "eq": ""
+            }
+          },
+          {
+            "input": false,
+            "title": "Panel",
+            "theme": "default",
+            "components": [
+              {
+                "input": true,
+                "tableView": true,
+                "inputType": "text",
+                "inputMask": "",
+                "label": "Clear Me",
+                "key": "clearMe",
+                "placeholder": "",
+                "prefix": "",
+                "suffix": "",
+                "multiple": false,
+                "defaultValue": "",
+                "protected": false,
+                "unique": false,
+                "persistent": true,
+                "clearOnHide": true,
+                "validate": {
+                  "required": false,
+                  "minLength": "",
+                  "maxLength": "",
+                  "pattern": "",
+                  "custom": "",
+                  "customPrivate": false
+                },
+                "conditional": {
+                  "show": null,
+                  "when": null,
+                  "eq": ""
+                },
+                "type": "textfield"
+              }
+            ],
+            "type": "panel",
+            "key": "panel",
+            "conditional": {
+              "show": "true",
+              "when": "selector",
+              "eq": "two"
+            }
+          }
+        ];
+
+        helper
+          .form('test', components)
+          .submission({
+            selector: 'one',
+            clearMe: 'Clear Me!!!!'
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual({selector: 'one'}, submission.data);
+            done();
+          });
+      });
     });
 
     describe('Non Persistent fields dont persist', function() {
