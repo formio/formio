@@ -45,7 +45,8 @@ module.exports = function(router) {
   };
 
   /* eslint-disable new-cap */
-  const FormResource = hook.alter('FormResource', Resource);
+  // If the last argument is a function, hook.alter assumes it is a callback function.
+  const FormResource = hook.alter('FormResource', Resource, null);
 
   return FormResource(router, '', 'form', mongoose.model('form'))
     .rest(hook.alter('formRoutes', {
