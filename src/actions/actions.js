@@ -275,7 +275,7 @@ module.exports = function(router) {
             title: 'After'
           }
         ])},
-        template: '<span>{{ item.title }}</span>',
+        template: '<span>{{ item.title | formioTranslate }}</span>',
         valueProperty: 'name',
         multiple: true
       });
@@ -318,7 +318,7 @@ module.exports = function(router) {
             title: 'Index'
           }
         ])},
-        template: '<span>{{ item.title }}</span>',
+        template: '<span>{{ item.title | formioTranslate }}</span>',
         valueProperty: 'name',
         multiple: true
       });
@@ -369,7 +369,7 @@ module.exports = function(router) {
                     label : '',
                     key : 'eq',
                     placeholder : 'Select comparison',
-                    template : '<span>{{ item.label }}</span>',
+                    template : '<span>{{ item.label | formioTranslate }}</span>',
                     dataSrc : 'values',
                     data : {
                       values : [

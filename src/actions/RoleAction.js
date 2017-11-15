@@ -58,7 +58,7 @@ module.exports = function(router) {
             label: 'Resource Association',
             key: 'association',
             placeholder: 'Select the type of resource to perform role manipulation.',
-            template: '<span>{{ item.title }}</span>',
+            template: '<span>{{ item.title | formioTranslate }}</span>',
             dataSrc: 'json',
             data: {
               json: JSON.stringify([
@@ -84,7 +84,7 @@ module.exports = function(router) {
             label: 'Action Type',
             key: 'type',
             placeholder: 'Select whether this Action will Add or Remove the contained Role.',
-            template: '<span>{{ item.title }}</span>',
+            template: '<span>{{ item.title | formioTranslate }}</span>',
             dataSrc: 'json',
             data: {
               json: JSON.stringify([
@@ -110,7 +110,7 @@ module.exports = function(router) {
             label: 'Role',
             key: 'role',
             placeholder: 'Select the Role that this action will Add or Remove.',
-            template: '<span>{{ item.title }}</span>',
+            template: '<span>{{ item.title | formioTranslate }}</span>',
             dataSrc: 'json',
             data: {json: roles},
             valueProperty: '_id',
