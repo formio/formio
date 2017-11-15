@@ -1,16 +1,16 @@
 'use strict';
 
-var Resource = require('resourcejs');
-var mongoose = require('mongoose');
-var _ = require('lodash');
+const Resource = require('resourcejs');
+const mongoose = require('mongoose');
+const _ = require('lodash');
 
 module.exports = function(router) {
   // Include the hook system.
-  var hook = require('../util/hook')(router.formio);
-  let util = router.formio.util;
+  const hook = require('../util/hook')(router.formio);
+  const util = router.formio.util;
 
   // @TODO: Fix permission check to use the new roles and permissions system.
-  var sanitizeValidations = function(req, res, next) {
+  const sanitizeValidations = function(req, res, next) {
     if (
       req.method === 'GET' &&
       res.resource &&
@@ -44,7 +44,10 @@ module.exports = function(router) {
     next();
   };
 
-  return Resource(router, '', 'form', mongoose.model('form'))
+  /* eslint-disable new-cap */
+  const FormResource = hook.alter('FormResource', Resource);
+
+  return FormResource(router, '', 'form', mongoose.model('form'))
     .rest(hook.alter('formRoutes', {
       before: [
         router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
