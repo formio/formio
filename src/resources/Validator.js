@@ -601,13 +601,7 @@ Validator.prototype.validate = function(submission, next) {
         // Remove any conditionally hidden validations. Joi will still throw the errors but we don't want them since the
         // fields are hidden.
         validateErr.details = validateErr.details.filter(detail => {
-          // Remove any hidden checks since we've already failed.
-          if (detail.type.includes('.hidden')) {
-            _.unset(value, detail.path);
-            return false;
-          }
-
-          // Recursively check if each parent is visible.
+          // Walk up the path tree to determine if the component is hidden.
           let result = detail.path.reduce((result, key) => {
             if (!isNaN(key)) {
               result.path.push(key);
@@ -626,7 +620,7 @@ Validator.prototype.validate = function(submission, next) {
             }
 
             return result;
-          }, {path: [], hidden: false});
+          }, {path: [], hidden: detail.type.includes('.hidden')});
 
           return !result.hidden;
         });
