@@ -170,7 +170,8 @@ module.exports = (formio) => {
           },
           {
             message: shortcutError,
-            validator: (components) => componentShortcuts(components).every((shortcut) => shortcut.match(validShortcutRegex))
+            validator: (components) => componentShortcuts(components)
+              .every((shortcut) => shortcut.match(validShortcutRegex))
           },
           {
             isAsync: true,
