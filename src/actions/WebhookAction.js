@@ -36,6 +36,21 @@ module.exports = function(router) {
   WebhookAction.settingsForm = function(req, res, next) {
     next(null, [
       {
+        label: 'Webhook URL',
+        key: 'url',
+        inputType: 'text',
+        defaultValue: '',
+        input: true,
+        placeholder: 'Call the following URL.',
+        prefix: '',
+        suffix: '',
+        type: 'textfield',
+        multiple: false,
+        validate: {
+          required: true
+        }
+      },
+      {
         conditional: {
           eq: '',
           when: null,
@@ -54,21 +69,6 @@ module.exports = function(router) {
         tableView: true,
         inputType: 'checkbox',
         input: true
-      },
-      {
-        label: 'Webhook URL',
-        key: 'url',
-        inputType: 'text',
-        defaultValue: '',
-        input: true,
-        placeholder: 'Call the following URL.',
-        prefix: '',
-        suffix: '',
-        type: 'textfield',
-        multiple: false,
-        validate: {
-          required: true
-        }
       },
       {
         label: 'Authorize User',
@@ -114,19 +114,16 @@ module.exports = function(router) {
      * @param err
      * @returns {*}
      */
-    let handleErrors = (err) => {
-      debug(err);
+    let handleResponse = (err) => {
       if (!_.get(settings, 'blocking') || _.get(settings, 'blocking') === false) {
         return;
       }
 
-      try {
+      if (err) {
         return next(err.message || err);
       }
-      catch (e) {
-        debug(e);
-        return;
-      }
+
+      return next();
     };
 
     try {
@@ -152,7 +149,7 @@ module.exports = function(router) {
 
       // Cant send a webhook if the url isn't set.
       if (!_.has(settings, 'url')) {
-        return handleErrors('No url given in the settings');
+        return handleResponse('No url given in the settings');
       }
 
       var submission = _.get(res, 'resource.item');
@@ -167,42 +164,21 @@ module.exports = function(router) {
       debug('Request: ' + req.method.toLowerCase());
       switch (req.method.toLowerCase()) {
         case 'post':
-          rest.postJson(this.settings.url, payload, options)
-            .on('complete', function(err, event) {
-              if (err) {
-                return handleErrors(err);
-              }
-
-              debug(event.res);
-            });
+          rest.postJson(this.settings.url, payload, options).on('complete', handleResponse);
           break;
         case 'put':
-          rest.putJson(this.settings.url, payload, options)
-            .on('complete', function(err, event) {
-              if (err) {
-                return handleErrors(err);
-              }
-
-              debug(event.res);
-            });
+          rest.putJson(this.settings.url, payload, options).on('complete', handleResponse);
           break;
         case 'delete':
           options.query = req.params;
-          rest.del(this.settings.url, options)
-            .on('complete', function(err, event) {
-              if (err) {
-                return handleErrors(err);
-              }
-
-              debug(event);
-            });
+          rest.del(this.settings.url, options).on('complete', handleResponse);
           break;
         default:
-          return handleErrors('Could not match request method: ' + req.method.toLowerCase());
+          return handleResponse('Could not match request method: ' + req.method.toLowerCase());
       }
     }
     catch (e) {
-      handleErrors(e);
+      handleResponse(e);
     }
   };
 
