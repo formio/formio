@@ -190,7 +190,11 @@ module.exports = function(router) {
                 componentMapB,
                 [],
                 listKeys
-              )
+              ),
+              width: _.get(colsB[iter], 'width') || _.get(colsA[iter], 'width') || 6,
+              offset: _.get(colsB[iter], 'offset') || _.get(colsA[iter], 'offset') || 0,
+              push: _.get(colsB[iter], 'push') || _.get(colsA[iter], 'push') || 0,
+              pull: _.get(colsB[iter], 'pull') || _.get(colsA[iter], 'pull') || 0
             });
           }
 

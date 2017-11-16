@@ -1,8 +1,154 @@
-# Change Log 
+# Change Log
 All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
+
+## 1.22.10
+### Fixed
+ - Issue with the validation clearing out values when clearOnHide is set to false.
+
+## 1.22.9
+### Fixed
+ - Issue where a database update would be able to occur.
+
+## 1.22.7
+### Changed
+ - Ensure we are on a 3.1.0 db schema.
+
+## 1.22.6
+### Changed
+ - Allow patch schema updates without stopping server start.
+
+## 1.22.5
+### Changed
+ - Added update hook to remove previous machineName indexes.
+
+### Fixed
+ - Stop empty string removal on validation
+
+## 1.22.4
+### Fixed
+ - More changes to machineName so that it is not enforced unique at mongo level to keep duplicate errors from occuring.
+
+## 1.22.3
+### Fixed
+ - Machine name collisions on project import when there exists deleted entities.
+
+## 1.22.2
+### Fixed
+ - The export and import to translate the form property on form components.
+
+## 1.22.1
+### Fixed
+ - Issues with the machineKey not auto-incrementing and staying unique.
+
+### Added
+ - Ability to alter submission with a hook.
+ - Possibility to use underscore in API key.
+
+## 1.21.0
+### Changed
+ - Upgraded many dependencies to latest versions.
+
+## 1.20.0
+### Added
+ - Add json logic validation
+
+### Changed
+ - Upgrade Joi to 1.11.1
+ - Move custom javascript validation to Joi extension
+ - Change validator to return all errors instead of only the first encountered
+ - Return validation result along with errors
+ - Return result on dryrun
+
+## 1.19.7
+### Fixed
+ - Issue where data grid elements could not share name of parent element.
+
+## 1.19.6
+### Changed
+ - Include the form settings within the export.
+
+## 1.19.5
+### Fixed
+ - Added a try/catch around the checkConditionals so that it will not crash when a bad conditional is provided.
+
+## 1.19.4
+### Fixed
+ - Submission validation with multi-value with empty strings would fail on the second save. Allow nulls.
+
+## 1.19.3
+### Added
+ - Sub-submissions and validations for form components where the submissions are already not established.
+
+## 1.19.2
+### Fixed
+ - Mongoose depcrecation warnings.
+
+## 1.19.1
+### Fixed
+ - Allowed for the temp token hooks to be asynchronous.
+
+### Added
+ - Return SQL Server query results from get action
+
+## 1.19.0
+### Fixed
+ - Datagrids with invalid rows will no longer remove those rows.
+ - Validation errors on PUT will now return 400 instead of 500.
+ - Required fields hidden with JSON logic will no longer throw validation errors.
+
+## 1.18.14
+### Fixed
+ - Issue with import routine crashing on undefined function router.post.
+### Added
+ - A way to track the parent submission when viewing submissions submitted from multi-form workflows.
+
+## 1.18.13
+### Fixed
+ - Merging of columns removes width, offset, push and pull settings.
+
+## 1.18.12
+### Fixed
+ - The token generation for SSO tokens to not require erroneous parameters.
+ - An issue with the Reset password action not working with case insensitive emails.
+ - Data in a datagrid showing in email notifications.
+
+## 1.18.10
+### Added
+ - Ability to modify the current form based on submission data before validation.
+ - `start:dev` script for npm with Nodemon support.
+### Fixed
+ - An issue with custom validations with components within a datagrid were not working properly.
+ - CSV export for Resource component and Select component with data source Resource / URL / JSON.
+
+## 1.18.9
+### Fixed
+ - An issue where if you have clearOnHide not set, it would still clear out values for hidden fields.
+
+## 1.18.6, 1.18.7, 1.18.8
+### Fixed
+ - Issue with unit tests from extended libraries that introduce new properties.
+
+## 1.18.5
+### Fixed
+ - Issue with components still getting cleared even though clearOnHide is false.
+
+## 1.18.4
+### Added
+ - The ability to import a custom project.json during installation.
+
+### Fixed
+ - Issue during installation where the paths would get all messed up.
+
+## 1.18.3
+### Added
+ - The ability to provide "full=true" query parameter to the form load and retrieve the full form, including form components.
+
+## 1.18.2
+### Fixed
+ - The possibility of the server crashing for reference fields.
 
 ## 1.18.1
 ### Fixed
@@ -21,7 +167,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
  - Submission Resource Access are calculated on the server during submission instead of in the browser.
 
 ### Added
- - Allow roles to have their own permissions appart from default owner permissions.
+ - Allow roles to have their own permissions apart from default owner permissions.
 
 ## 1.17.5
 ### Fixed
@@ -48,12 +194,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
  - Allow template export steps to be altered with templateExportSteps
  - Allow default template to be modified.
- 
+
 ### Changed
  - Change templateSteps to templateImportSteps
  - Updating the default template for new email actions to use the submission macro, rather than email, to change the
    output of signature components to be Yes/No
- 
+
 ### Reverted
  - Revert project version back to 2.0.0 and use tag instead.
 

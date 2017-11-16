@@ -159,6 +159,6 @@ module.exports = function(router) {
     router,
     '/form/:formId',
     'submission',
-    mongoose.model('submission', router.formio.schemas.submission)
+    mongoose.model('submission')
   ).rest(hook.alter('submissionRoutes', handlers));
 };

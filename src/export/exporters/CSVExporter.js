@@ -5,6 +5,7 @@ var util = require('../../util/util');
 var through = require('through');
 var csv = require('csv');
 var _ = require('lodash');
+var Entities = require('html-entities').AllHtmlEntities;
 
 /**
  * Create a CSV exporter.
@@ -59,6 +60,21 @@ var CSVExporter = function(form, req, res) {
         items.push({label: [path, question.value].join('.'), path: question.value});
       });
     }
+    else if (['select', 'resource'].indexOf(component.type) !== -1) {
+      // Prepare the Lodash template by deleting tags and html entities
+      var clearTemplate = Entities.decode(component.template.replace(/<\/?[^>]+(>|$)/g, ''));
+      var templateExtractor = _.template(clearTemplate, {
+        variable: 'item'
+      });
+
+      items.push({
+        preprocessor: function(value) {
+          return _.isObject(value)
+            ? templateExtractor(value)
+            : value;
+        }
+      });
+    }
     else {
       // Default to the current component item.
       items.push({});
@@ -77,6 +93,10 @@ var CSVExporter = function(form, req, res) {
 
       if (item.hasOwnProperty('type')) {
         finalItem.type = item.type;
+      }
+
+      if (item.hasOwnProperty('preprocessor')) {
+        finalItem.preprocessor = item.preprocessor;
       }
 
       this.fields.push(finalItem);
@@ -139,6 +159,8 @@ CSVExporter.prototype.stream = function(stream) {
      * @returns {string}
      */
     var coerceToString = function(data, column) {
+      data = (column.preprocessor || _.identity)(data);
+
       if (data instanceof Array && data.length > 0) {
         return data.map(function(item) {
           return '"' + coerceToString(_.get(item, column.path, item), column) + '"';

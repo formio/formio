@@ -123,6 +123,7 @@ module.exports = (router) => {
             'display',
             'action',
             'tags',
+            'settings',
             'components',
             'access',
             'submissionAccess'
@@ -133,22 +134,15 @@ module.exports = (router) => {
         // Now assign the resource components.
         _.each(forms, function(form) {
           util.eachComponent(form.components, function(component) {
-            if (
-              (component.type === 'resource') &&
-              (_map.forms && _map.forms.hasOwnProperty(component.resource))
-            ) {
-              component.resource = _map.forms[component.resource];
-            }
-
-            if (
-              (component.type === 'select') &&
-              (component.dataSrc === 'resource') &&
-              (component.data) &&
-              (component.data.resource) &&
-              (_map.forms && _map.forms.hasOwnProperty(component.data.resource))
-            ) {
+            assignForm(_map, component);
+            assignForm(_map, component.data);
+            assignResource(_map, component);
+            assignResource(_map, component.data);
+            if (component && component.data && component.data.project) {
               component.data.project = 'project';
-              component.data.resource = _map.forms[component.data.resource];
+            }
+            if (component && component.project) {
+              component.project = 'project';
             }
 
             // Allow hooks to alter fields.
@@ -220,6 +214,21 @@ module.exports = (router) => {
       return next(null, template);
     });
   };
+
+  // Add the export endpoint
+  if (router.get) {
+    router.get('/export', (req, res, next) => {
+      let options = hook.alter('exportOptions', {}, req, res);
+      exportTemplate(options, (err, data) => {
+        if (err) {
+          return next(err.message || err);
+        }
+
+        res.attachment(`${options.name}-${options.version}.json`);
+        res.end(JSON.stringify(data));
+      });
+    });
+  }
 
   return exportTemplate;
 };

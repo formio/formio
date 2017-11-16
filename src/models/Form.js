@@ -7,7 +7,9 @@ var debug = require('debug')('formio:models:form');
 module.exports = function(formio) {
   var hook = require('../util/hook')(formio);
   var util = formio.util;
+  /* eslint-disable no-useless-escape */
   var invalidRegex = /[^0-9a-zA-Z\-\/]|^\-|\-$|^\/|\/$/;
+  /* eslint-enable no-useless-escape */
   var componentKeys = function(components) {
     var keys = [];
     util.eachComponent(components, function(component) {
@@ -16,6 +18,16 @@ module.exports = function(formio) {
       }
     }, true);
     return _(keys);
+  };
+
+  var componentPaths = function(components) {
+    var paths = [];
+    util.eachComponent(components, function(component, path) {
+      if (!_.isUndefined(component.key) && !_.isNull(component.key)) {
+        paths.push(path);
+      }
+    }, true);
+    return _(paths);
   };
 
   var uniqueMessage = 'may only contain letters, numbers, hyphens, and forward slashes ';
@@ -140,7 +152,7 @@ module.exports = function(formio) {
           {
             message: keyError,
             validator: function(components) {
-              var validRegex = /^[A-Za-z]+[A-Za-z0-9\-.]*$/g;
+              var validRegex = /^[A-Za-z_]+[A-Za-z0-9\-._]*$/g;
               return componentKeys(components).every(function(key) {
                 return key.match(validRegex);
               });
@@ -149,14 +161,14 @@ module.exports = function(formio) {
           {
             isAsync: true,
             validator: function(components, valid) {
-              var keys = componentKeys(components);
+              var paths = componentPaths(components);
               var msg = 'Component keys must be unique: ';
-              var uniq = keys.uniq();
-              var diff = keys.filter(function(value, index, collection) {
+              var uniq = paths.uniq();
+              var diff = paths.filter(function(value, index, collection) {
                 return _.includes(collection, value, index + 1);
               });
 
-              if (_.isEqual(keys.value(), uniq.value())) {
+              if (_.isEqual(paths.value(), uniq.value())) {
                 return valid(true);
               }
 
@@ -173,7 +185,7 @@ module.exports = function(formio) {
   });
 
   // Add machineName to the schema.
-  model.schema.plugin(require('../plugins/machineName'));
+  model.schema.plugin(require('../plugins/machineName')('form'));
 
   // Set the default machine name.
   model.schema.machineName = function(document, done) {

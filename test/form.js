@@ -606,8 +606,8 @@ module.exports = function(app, template, hook) {
           // Disallowed characters
           '[a', ']a', '\'a', '!a', ',a', '/a', '?a', '<a', '>a', '~a', '`a', '@a', '#a', '$a', '%a', '^a', '&a',
           'a[', 'a]', 'a\'', 'a!', 'a,', 'a/', 'a?', 'a<', 'a>', 'a~', 'a`', 'a@', 'a#', 'a$', 'a%', 'a^', 'a&',
-          '*a', '(a', ')a', '-a', '_a', '=a', '+a', '|a', '\\a', '{a', '}a', ';a', ':a',
-          'a*', 'a(', 'a)',       'a_', 'a=', 'a+', 'a|', 'a\\', 'a{', 'a}', 'a;', 'a:'
+          '*a', '(a', ')a', '-a', '=a', '+a', '|a', '\\a', '{a', '}a', ';a', ':a', 'a*', 'a(', 'a)', 'a=', 'a+',
+          'a|', 'a\\', 'a{', 'a}', 'a;', 'a:'
 
         ], function(_bad, callback) {
           var temp = _.cloneDeep(tempForm);
@@ -2478,7 +2478,7 @@ module.exports = function(app, template, hook) {
               components: components
             })
             .expect('Content-Type', /json/)
-            .expect(500)
+            .expect(400)
             .end(function(err, res) {
               if (err) {
                 return done(err);
@@ -3257,7 +3257,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'textfield.custom');
+              assert.equal(err.details[0].type, 'string.custom');
 
               return done();
             });
@@ -3283,7 +3283,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'textfield.custom');
+              assert.equal(err.details[0].type, 'string.custom');
 
               return done();
             });
@@ -3361,7 +3361,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'password.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3388,7 +3388,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'password.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3415,7 +3415,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'textarea.custom');
+              assert.equal(err.details[0].type, 'string.custom');
 
               return done();
             });
@@ -3441,7 +3441,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'textarea.custom');
+              assert.equal(err.details[0].type, 'string.custom');
 
               return done();
             });
@@ -3467,7 +3467,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'selectboxes.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3493,7 +3493,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'selectboxes.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3519,7 +3519,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'select.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3545,7 +3545,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'select.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3571,7 +3571,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'radio.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3597,7 +3597,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'radio.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3623,7 +3623,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'email.custom');
+              assert.equal(err.details[0].type, 'string.custom');
 
               return done();
             });
@@ -3649,7 +3649,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'email.custom');
+              assert.equal(err.details[0].type, 'string.custom');
 
               return done();
             });
@@ -3675,7 +3675,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'datetime.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3701,7 +3701,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'datetime.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3727,7 +3727,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'day.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3753,7 +3753,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'day.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3779,7 +3779,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'currency.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3805,7 +3805,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'currency.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3831,7 +3831,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'survey.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3857,7 +3857,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'survey.custom');
+              assert.equal(err.details[0].type, 'any.custom');
 
               return done();
             });
@@ -3883,9 +3883,9 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 2);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'textfield.custom');
+              assert.equal(err.details[0].type, 'string.custom');
               assert.equal(err.details[1].path, 'bar');
-              assert.equal(err.details[1].type, 'textfield.custom');
+              assert.equal(err.details[1].type, 'string.custom');
               return done();
             });
           });
@@ -3909,8 +3909,8 @@ module.exports = function(app, template, hook) {
               assert.equal(err.name, 'ValidationError');
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
-              assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'textfield.custom');
+              assert.deepEqual(err.details[0].path, ['mydg', 0, 'foo']);
+              assert.equal(err.details[0].type, 'string.custom');
               return done();
             });
           });
@@ -3935,8 +3935,8 @@ module.exports = function(app, template, hook) {
               assert.equal(err.name, 'ValidationError');
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
-              assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'textfield.custom');
+              assert.deepEqual(err.details[0].path, ['foo']);
+              assert.equal(err.details[0].type, 'string.custom');
 
               return done();
             });
@@ -5989,10 +5989,18 @@ module.exports = function(app, template, hook) {
                       inputType: 'text',
                       input: true
                     }
-                  ]
+                  ],
+                  width: 6,
+                  offset: 0,
+                  push: 0,
+                  pull: 0
                 },
                 {
-                  components: []
+                  components: [],
+                  width: 6,
+                  offset: 0,
+                  push: 0,
+                  pull: 0
                 }
               ]
             }
@@ -6048,7 +6056,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
                     components: [
@@ -6072,7 +6084,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -6126,7 +6142,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
                     components: [
@@ -6150,7 +6170,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -6224,7 +6248,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
                     components: [
@@ -6268,7 +6296,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -6406,7 +6438,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
                     components: [
@@ -6430,7 +6466,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -6484,7 +6524,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
                     components: [
@@ -6508,7 +6552,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -6582,7 +6630,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
                     components: [
@@ -6626,7 +6678,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -6743,10 +6799,18 @@ module.exports = function(app, template, hook) {
                 type: 'columns',
                 columns: [
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -6780,10 +6844,18 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -6816,10 +6888,18 @@ module.exports = function(app, template, hook) {
                 type: 'columns',
                 columns: [
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -6916,10 +6996,18 @@ module.exports = function(app, template, hook) {
                 type: 'columns',
                 columns: [
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               },
@@ -6973,10 +7061,18 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -7010,10 +7106,18 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -7110,7 +7214,11 @@ module.exports = function(app, template, hook) {
                 type: 'columns',
                 columns: [
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
                     components: [
@@ -7134,7 +7242,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -7168,10 +7280,18 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -7205,10 +7325,18 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -7305,7 +7433,11 @@ module.exports = function(app, template, hook) {
                 type: 'columns',
                 columns: [
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
                     components: [
@@ -7329,7 +7461,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -7363,10 +7499,18 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -7379,7 +7523,11 @@ module.exports = function(app, template, hook) {
                 type: 'columns',
                 columns: [
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
                     components: [
@@ -7403,7 +7551,11 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -7437,10 +7589,18 @@ module.exports = function(app, template, hook) {
                         inputType: 'text',
                         input: true
                       }
-                    ]
+                    ],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   },
                   {
-                    components: []
+                    components: [],
+                    width: 6,
+                    offset: 0,
+                    push: 0,
+                    pull: 0
                   }
                 ]
               }
@@ -11664,8 +11824,8 @@ module.exports = function(app, template, hook) {
             if (err) {
               return done(err);
             }
-            assert.deepEqual(res.body.data.user, resources[0]);
-            assert.deepEqual(references[0].data.user, resources[0]);
+            Helper.assert.propertiesEqual(res.body.data.user, resources[0]);
+            Helper.assert.propertiesEqual(references[0].data.user, resources[0]);
             done();
           });
       });
@@ -11708,7 +11868,7 @@ module.exports = function(app, template, hook) {
               if (err) {
                 return next(err);
               }
-              assert.deepEqual(res.body.data.user, resources[index]);
+              Helper.assert.propertiesEqual(res.body.data.user, resources[index]);
               next();
             });
         }, done);
@@ -11728,7 +11888,7 @@ module.exports = function(app, template, hook) {
               let reference = _.find(references, {_id: item._id});
               let resource = _.find(resources, {_id: item.data.user._id});
               assert(!!reference, 'No reference found.');
-              assert.deepEqual(item.data.user, resource);
+              Helper.assert.propertiesEqual(item.data.user, resource);
             });
             done();
           });

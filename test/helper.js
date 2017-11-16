@@ -539,7 +539,7 @@ module.exports = function(app) {
         data: data
       })
       .set('x-jwt-token', this.owner.token)
-      .expect('Content-Type', /json/)
+      //.expect('Content-Type', /json/)
       .end(function(err, res) {
         if (err) {
           return done(err);
@@ -669,6 +669,16 @@ module.exports = function(app) {
       }
       done(null, this);
     }.bind(this));
+  };
+
+  Helper.assert = {
+    propertiesEqual: (source, compare) => {
+      _.each(source, (value, key) => {
+        if (compare.hasOwnProperty(key)) {
+          assert.deepEqual(value, compare[key]);
+        }
+      });
+    }
   };
 
   return Helper;
