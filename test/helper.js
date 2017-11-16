@@ -12,6 +12,7 @@ module.exports = function(app) {
   var Helper = function(owner, template, hook) {
     this.contextName = '';
     this.lastSubmission = null;
+    this.lastResponse = null;
     this.owner = owner;
     this.series = [];
     this.template = template || {
@@ -52,6 +53,7 @@ module.exports = function(app) {
         _.each(res.body, function(form) {
           this.template.forms[form.name] = form;
         }.bind(this));
+        this.lastResponse = res;
         this.owner.token = res.headers['x-jwt-token'];
         done(null, this.template.forms);
       }.bind(this));
@@ -64,7 +66,7 @@ module.exports = function(app) {
 
     return null;
   };
-  
+
   Helper.prototype.getAction = function(form, action) {
     if (!action && form) {
       if (typeof form ==='string') {
@@ -93,7 +95,7 @@ module.exports = function(app) {
         return;
       }
     });
-    
+
     return _action;
   };
 
@@ -130,6 +132,7 @@ module.exports = function(app) {
         }.bind(this));
         assert.equal(Object.keys(this.template.roles).length, 3);
         this.owner.token = res.headers['x-jwt-token'];
+        this.lastResponse = res;
         done(null, this.template.roles);
       }.bind(this));
   };
@@ -174,7 +177,7 @@ module.exports = function(app) {
         if (err) {
           return done(err);
         }
-
+        this.lastResponse = res;
         this.template.project = res.body;
         return done(null, res.body);
       }.bind(this));
@@ -198,6 +201,7 @@ module.exports = function(app) {
             return done(err);
           }
 
+          this.lastResponse = res;
           this.template.project = res.body;
           this.getRolesAndForms(function(err) {
             if (err) {
@@ -304,6 +308,7 @@ module.exports = function(app) {
         if (err) {
           return done(err, res);
         }
+        this.lastResponse = res;
         this.owner.token = res.headers['x-jwt-token'];
         this.template.forms[form.name] = res.body;
         done(null, res.body);
@@ -435,6 +440,7 @@ module.exports = function(app) {
           return done('No response', res)
         }
 
+        this.lastResponse = res;
         this.owner.token = res.headers['x-jwt-token'];
         for (var a = 0; a < this.template.actions[form].length; a++) {
           if (
@@ -498,6 +504,7 @@ module.exports = function(app) {
           return done(err);
         }
 
+        this.lastResponse = res;
         this.owner.token = res.headers['x-jwt-token'];
         if (!this.template.actions[form]) {
           this.template.actions[form] = [];
@@ -530,6 +537,7 @@ module.exports = function(app) {
 
         this.owner.token = res.headers['x-jwt-token'];
         this.lastSubmission = res.body;
+        this.lastResponse = res;
         _.each(this.template.submissions, function(sub, form) {
           if (sub._id === submission._id) {
             this.template.submissions[form] = res.body;
@@ -574,6 +582,7 @@ module.exports = function(app) {
         }
 
         this.lastSubmission = res.body;
+        this.lastResponse = res;
         this.template.submissions[form].push(res.body);
         done(null, res.body);
       }.bind(this));
@@ -616,6 +625,7 @@ module.exports = function(app) {
           }
 
           var response = res.body;
+          this.lastResponse = res;
           this.owner.token = res.headers['x-jwt-token'];
           this.template.roles = this.template.roles || {};
           this.template.roles[response.title] = response;
@@ -635,6 +645,7 @@ module.exports = function(app) {
           }
 
           var response = res.body;
+          this.lastResponse = res;
           this.owner.token = res.headers['x-jwt-token'];
           this.template.roles = this.template.roles || {};
           this.template.roles[response.title] = response;
@@ -671,6 +682,7 @@ module.exports = function(app) {
         }
 
         var response = res.body;
+        this.lastResponse = res;
         this.owner.token = res.headers['x-jwt-token'];
         this.template.roles = this.template.roles || {};
         delete this.template.roles[response.title];
