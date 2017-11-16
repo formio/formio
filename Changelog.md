@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [UNRELEASED]
+### Added
+ - Possibility to add shortcuts.
+
 ## 1.22.10
 ### Fixed
  - Issue with the validation clearing out values when clearOnHide is set to false.
