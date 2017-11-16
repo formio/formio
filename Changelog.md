@@ -4,8 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [UNRELEASED]
+## 1.22.11
 ### Added
+ - Allow altering of resources for forms.
+ - Backend validation checks for select dropdown components.
+ - Blocking webhook support
  - Possibility to add shortcuts.
 
 ## 1.22.10
