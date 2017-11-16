@@ -1,14 +1,14 @@
 'use strict';
 
-var Resource = require('resourcejs');
-var mongoose = require('mongoose');
-var utils = require('formiojs/utils');
-var _ = require('lodash');
+const Resource = require('resourcejs');
+const mongoose = require('mongoose');
+const utils = require('formiojs/utils');
+const _ = require('lodash');
 
 module.exports = function(router) {
-  let hook = require('../util/hook')(router.formio);
-  let handlers = router.formio.middleware.submissionHandler;
-  let hiddenFields = ['deleted', '__v', 'machineName'];
+  const hook = require('../util/hook')(router.formio);
+  const handlers = router.formio.middleware.submissionHandler;
+  const hiddenFields = ['deleted', '__v', 'machineName'];
 
   // Manually update the handlers, to add additional middleware.
   handlers.beforePost = [
@@ -88,13 +88,13 @@ module.exports = function(router) {
       }
 
       // Start the query.
-      var query = {
+      let query = {
         form: form._id,
         deleted: {$eq: null}
       };
 
       // Default the query to not be valid.
-      var queryValid = false;
+      let queryValid = false;
 
       // Allow them to provide the owner flag.
       if (req.query.owner) {
@@ -102,9 +102,9 @@ module.exports = function(router) {
         queryValid = true;
       }
 
-      var queryComponents = {};
+      let queryComponents = {};
       _.each(req.query, function(value, key) {
-        var parts = key.split('.');
+        let parts = key.split('.');
         if (parts[0] === 'data' && parts.length > 1) {
           queryComponents[parts[1]] = {
             value: value,
