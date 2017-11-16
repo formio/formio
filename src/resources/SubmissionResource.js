@@ -155,7 +155,11 @@ module.exports = function(router) {
     });
   });
 
-  return Resource(
+  /* eslint-disable new-cap */
+  // If the last argument is a function, hook.alter assumes it is a callback function.
+  const SubmissionResource = hook.alter('SubmissionResource', Resource, null);
+
+  return SubmissionResource(
     router,
     '/form/:formId',
     'submission',
