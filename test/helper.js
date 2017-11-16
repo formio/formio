@@ -226,6 +226,28 @@ module.exports = function(app) {
     return this;
   };
 
+  Helper.prototype.updateForm = function(form, done) {
+    let url = '';
+    if (this.template.project && this.template.project._id) {
+      url += '/project/' + this.template.project._id;
+    }
+    url += '/form/' + form._id;
+
+    request(app).put(url)
+      .send(form)
+      .set('x-jwt-token', this.owner.token)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        if (err) {
+          return done(err, res);
+        }
+        this.owner.token = res.headers['x-jwt-token'];
+        this.template.forms[form.name] = res.body;
+        done(null, res.body);
+      });
+  }
+
   Helper.prototype.upsertForm = function(form, done) {
     this.contextName = form.name;
 
@@ -282,7 +304,7 @@ module.exports = function(app) {
       .set('x-jwt-token', this.owner.token)
       .expect('Content-Type', /json/)
       .expect(status)
-      .end(function(err, res) {
+      .end((err, res) => {
         if (err) {
           return done(err, res);
         }
@@ -290,7 +312,7 @@ module.exports = function(app) {
         this.owner.token = res.headers['x-jwt-token'];
         this.template.forms[form.name] = res.body;
         done(null, res.body);
-      }.bind(this));
+      });
   };
 
   Helper.prototype.form = function(name, components, access) {
