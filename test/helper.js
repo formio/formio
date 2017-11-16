@@ -222,7 +222,7 @@ module.exports = function(app) {
     return this;
   };
 
-  Helper.prototype.updateForm = function(form) {
+  Helper.prototype.updateForm = function(form, done) {
     let url = '';
     if (this.template.project && this.template.project._id) {
       url += '/project/' + this.template.project._id;
@@ -230,10 +230,10 @@ module.exports = function(app) {
     url += '/form/' + form._id;
 
     request(app).put(url)
-      .send(data)
+      .send(form)
       .set('x-jwt-token', this.owner.token)
       .expect('Content-Type', /json/)
-      .expect(status)
+      .expect(200)
       .end((err, res) => {
         if (err) {
           return done(err, res);
