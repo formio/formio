@@ -18,9 +18,13 @@ describe('Initialization', function() {
       app = state.server;
       hook = require('../src/util/hook')(app.formio);
 
+      // Listen on this port.
+      state.server.listen(state.config.port);
+
       // Establish the helper library.
       template.Helper = require('./helper')(app);
       template.hooks = app.formio.hooks || {};
+      template.config = state.config;
 
       /**
        * Remove all the mongo data.
