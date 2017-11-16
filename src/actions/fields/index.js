@@ -5,6 +5,7 @@ module.exports = function(router) {
     signature: require('./signature')(router.formio),
     password: require('./password')(router.formio),
     form: require('./form')(router.formio),
-    email: require('./email')(router.formio)
+    email: require('./email')(router.formio),
+    select: require('./select')(router.formio)
   };
 };

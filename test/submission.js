@@ -2838,5 +2838,120 @@ module.exports = function(app, template, hook) {
           });
       });
     });
+
+    describe('Select validation', () => {
+      before((done) => {
+        // Create a resource to keep records.
+        helper
+          .form('fruits', [
+            {
+              "input": true,
+              "tableView": true,
+              "inputType": "text",
+              "inputMask": "",
+              "label": "Name",
+              "key": "name",
+              "placeholder": "",
+              "prefix": "",
+              "suffix": "",
+              "multiple": false,
+              "defaultValue": "",
+              "protected": false,
+              "unique": false,
+              "persistent": true,
+              "validate": {
+                "required": false,
+                "minLength": "",
+                "maxLength": "",
+                "pattern": "",
+                "custom": "",
+                "customPrivate": false
+              },
+              "conditional": {
+                "show": null,
+                "when": null,
+                "eq": ""
+              },
+              "type": "textfield"
+            }
+          ])
+          .submission('fruits', {name: 'Apple'})
+          .submission('fruits', {name: 'Pear'})
+          .submission('fruits', {name: 'Banana'})
+          .submission('fruits', {name: 'Orange'})
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            let apiUrl = 'http://localhost:' + template.config.port;
+            apiUrl += hook.alter('url', '/form/' + helper.template.forms['fruits']._id + '/submission', template);
+
+            helper.form('fruitSelect', [
+              {
+                type: 'select',
+                key: 'fruit',
+                label: 'Select a fruit',
+                dataSrc: 'url',
+                searchField: 'data.name',
+                authenticate: true,
+                persistent: true,
+                data: {
+                  url: apiUrl
+                },
+                validate: {
+                  select: true
+                }
+              }
+            ])
+              .execute((err) => {
+                if (err) {
+                  return done(err);
+                }
+
+                done();
+              });
+          });
+      });
+
+      it('Should perform a backend validation of the selected value', (done) => {
+        helper.submission('fruitSelect', {fruit: 'Apple'}).execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          var submission = helper.getLastSubmission();
+          assert.deepEqual({fruit: 'Apple'}, submission.data);
+          done();
+        });
+      });
+
+      it('Should allow empty values', (done) => {
+        helper.submission('fruitSelect', {}).execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          var submission = helper.getLastSubmission();
+          assert.deepEqual({}, submission.data);
+          done();
+        });
+      });
+
+      it('Should throw an error when providing a value that is not available.', () => {
+        helper.submission('fruitSelect', {fruit: 'Foo'}).execute((err) => {
+          if (!err) {
+            return done('It should throw an error when providing a bad value.');
+          }
+
+          assert.equal(helper.lastResponse.statusCode, 400);
+          assert.equal(helper.lastResponse.body.name, 'ValidationError');
+          assert.equal(helper.lastResponse.body.details.length, 1);
+          assert.equal(helper.lastResponse.body.details[0].message, '"Foo" for "Select a fruit" is not a valid selection.');
+          assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
+          done();
+        });
+      });
+    });
   });
 };
