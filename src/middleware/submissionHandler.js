@@ -62,7 +62,7 @@ module.exports = function(router, resourceName, resourceId) {
             ) {
               let formId = component.form || component.resource;
               let compValue = _.get(res.resource.item.data, path);
-              if (compValue._id) {
+              if (compValue && compValue._id) {
                 return Q.ninvoke(hook, 'alter', 'submissionQuery', {
                   _id: util.idToBson(compValue._id.toString()),
                   deleted: {$eq: null}
@@ -91,7 +91,7 @@ module.exports = function(router, resourceName, resourceId) {
               let resources = [];
               _.each(res.resource.item, (resource) => {
                 let compValue = _.get(resource.data, path);
-                if (compValue._id) {
+                if (compValue && compValue._id) {
                   resources.push(util.idToBson(compValue._id.toString()));
                 }
               });
@@ -114,7 +114,7 @@ module.exports = function(router, resourceName, resourceId) {
                 .then((submissions) => {
                   _.each(res.resource.item, (resource) => {
                     let compValue = _.get(resource.data, path);
-                    if (compValue._id) {
+                    if (compValue && compValue._id) {
                       let submission = _.find(submissions, (sub) => {
                         return sub._id.toString() === compValue._id.toString();
                       });
@@ -128,11 +128,12 @@ module.exports = function(router, resourceName, resourceId) {
             else if (
               ((handlerName === 'afterPost') || (handlerName === 'afterPut')) &&
               res.resource &&
-              res.resource.item
+              res.resource.item &&
+              req.resources
             ) {
               // Make sure to reset the value on the return result.
               let compValue = _.get(res.resource.item.data, path);
-              if (req.resources.hasOwnProperty(compValue._id)) {
+              if (compValue && req.resources.hasOwnProperty(compValue._id)) {
                 _.set(res.resource.item.data, path, req.resources[compValue._id]);
               }
             }
@@ -141,7 +142,7 @@ module.exports = function(router, resourceName, resourceId) {
               req.body
             ) {
               let compValue = _.get(req.body.data, path);
-              if (compValue._id && compValue.hasOwnProperty('data')) {
+              if (compValue && compValue._id && compValue.hasOwnProperty('data')) {
                 if (!req.resources) {
                   req.resources = {};
                 }
@@ -207,7 +208,7 @@ module.exports = function(router, resourceName, resourceId) {
           return done('Form not found.');
         }
 
-        req.currentForm = form;
+        req.currentForm = hook.alter('currentForm', form, req.body);
         req.flattenedComponents = util.flattenComponents(form.components);
         done();
       });
@@ -262,6 +263,64 @@ module.exports = function(router, resourceName, resourceId) {
     };
 
     /**
+     * Perform hierarchial submissions of sub-forms.
+     */
+    var submitSubForms = function(req, res, done) {
+      if (!req.body || !req.body.data) {
+        return done();
+      }
+      var subsubmissions = [];
+      util.eachComponent(req.currentForm.components, (component) => {
+        // Find subform components, whose data has not been submitted.
+        if (
+          (component.type === 'form') &&
+          (req.body.data[component.key] && !req.body.data[component.key]._id)
+        ) {
+          subsubmissions.push((subDone) => {
+            var url = '/form/:formId/submission';
+            var childRes = {
+              send: () => _.noop,
+              status: (status) => {
+                return {json: (err) => {
+                  if (status > 299) {
+                    // Add the parent path to the details path.
+                    if (err.details && err.details.length) {
+                      _.each(err.details, (details) => {
+                        if (details.path) {
+                          details.path = component.key + '.data.' + details.path;
+                        }
+                      });
+                    }
+
+                    return res.status(status).json(err);
+                  }
+                }};
+              }
+            };
+            var childReq = util.createSubRequest(req);
+            if (!childReq) {
+              return res.status(400).send('Too many recursive requests.');
+            }
+            childReq.body = req.body.data[component.key];
+            childReq.params.formId = component.form;
+            router.resourcejs[url].post(childReq, childRes, function(err) {
+              if (err) {
+                return subDone(err);
+              }
+
+              if (childRes.resource && childRes.resource.item) {
+                req.body.data[component.key] = childRes.resource.item;
+              }
+              subDone();
+            });
+          });
+        }
+      });
+
+      async.series(subsubmissions, done);
+    };
+
+    /**
      * Initialize the actions.
      *
      * @param req
@@ -303,13 +362,13 @@ module.exports = function(router, resourceName, resourceId) {
       var validator = new Validator(req.currentForm, router.formio.resources.submission.model);
 
       // Validate the request.
-      validator.validate(req.body, function(err, value) {
+      validator.validate(req.body, function(err, submission) {
         if (err) {
           return res.status(400).json(err);
         }
 
-        // Reset the value to what the validator returns.
-        req.body.data = value;
+        res.submission = {data: submission};
+
         done();
       });
     };
@@ -377,9 +436,13 @@ module.exports = function(router, resourceName, resourceId) {
      */
     var ensureResponse = function(req, res, done) {
       if (!res.resource && !res.headersSent) {
-        res.status(200).json(true);
+        res.status(200).json(res.submission || true);
       }
       done();
+    };
+
+    var alterSubmission = function(req, res, done) {
+      hook.alter('submission', req, res, done);
     };
 
     // Add before handlers.
@@ -389,10 +452,12 @@ module.exports = function(router, resourceName, resourceId) {
       async.series([
         async.apply(loadCurrentForm, req),
         async.apply(initializeSubmission, req),
+        async.apply(submitSubForms, req, res),
         async.apply(initializeActions, req, res),
         async.apply(executeFieldHandlers, false, req, res),
         async.apply(validateSubmission, req, res),
         async.apply(executeFieldHandlers, true, req, res),
+        async.apply(alterSubmission, req, res),
         async.apply(executeActions('before'), req, res)
       ], next);
     };
@@ -404,6 +469,7 @@ module.exports = function(router, resourceName, resourceId) {
       async.series([
         async.apply(executeActions('after'), req, res),
         async.apply(executeFieldHandlers, true, req, res),
+        async.apply(alterSubmission, req, res),
         async.apply(ensureResponse, req, res)
       ], next);
     };

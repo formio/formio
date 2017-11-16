@@ -16,6 +16,9 @@ var util = require('./src/util/util');
 // Keep track of the formio interface.
 router.formio = {};
 
+// Use custom template delimiters.
+_.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
+
 // Allow custom configurations passed to the Form.IO server.
 module.exports = function(config) {
   // Give app a reference to our config.
@@ -146,18 +149,23 @@ module.exports = function(config) {
       // Allow libraries to use a single instance of mongoose.
       router.formio.mongoose = mongoose;
 
-      // See if we have high availability environment variable.
+      let mongoUrl = config.mongo;
+      let mongoOptions = {
+        keepAlive: 120,
+        useMongoClient: true
+      };
+
       if (process.env.MONGO_HIGH_AVAILABILITY) {
-        mongoose.connect(config.mongo, {mongos: true});
+        mongoOptions.mongos = true;
       }
-      else if (typeof config.mongo === 'string') {
-        mongoose.connect(config.mongo);
+
+      if (_.isArray(config.mongo)) {
+        mongoUrl = config.mongo.join(',');
+        mongoOptions.mongos = true;
       }
-      else {
-        // NOTE: THIS IS LEGACY CONFIG. USE MONGO_HIGH_AVAILABILITY ENVIRONMENT CONFIGURATION INSTEAD
-        // Connect to multiple mongo instance replica sets with High availability.
-        mongoose.connect(config.mongo.join(','), {mongos: true});
-      }
+
+      // Connect to MongoDB.
+      mongoose.connect(mongoUrl, mongoOptions);
 
       // Trigger when the connection is made.
       mongoose.connection.on('error', function(err) {
@@ -183,27 +191,17 @@ module.exports = function(config) {
         // Get the models for our project.
         var models = require('./src/models/models')(router);
 
-        // Load the Models.
+        // Load the Schemas.
         router.formio.schemas = _.assign(router.formio.schemas, models.schemas);
+
+        // Load the Models.
+        router.formio.models = models.models;
 
         // Load the Resources.
         router.formio.resources = require('./src/resources/resources')(router);
 
         // Load the request cache
         router.formio.cache = require('./src/cache/cache')(router);
-
-        // Add the export function
-        router.get('/export', (req, res, next) => {
-          let options = router.formio.hook.alter('exportOptions', {}, req, res);
-          router.formio.template.export(options, (err, data) => {
-            if (err) {
-              return next(err.message || err);
-            }
-
-            res.attachment(`${options.name}-${options.version}.json`);
-            res.end(JSON.stringify(data));
-          });
-        });
 
         // Return the form components.
         router.get('/form/:formId/components', function(req, res, next) {
@@ -241,7 +239,7 @@ module.exports = function(config) {
         });
 
         // Import the form actions.
-        router.formio.Action = require('./src/models/Action')(router.formio);
+        router.formio.Action = router.formio.models.action;
         router.formio.actions = require('./src/actions/actions')(router);
 
         // Add submission data export capabilities.

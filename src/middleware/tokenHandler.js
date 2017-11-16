@@ -89,19 +89,23 @@ module.exports = function(router) {
         res.token = null;
         return next();
       }
+
+      // Load the formio hooks.
+      var hook = require('../util/hook')(router.formio);
+
+      // Allow external tokens.
+      if (!hook.alter('external', decoded, req)) {
+        req.user = decoded.user;
+        req.token = decoded;
+        generateToken(token, decoded, res);
+        return next();
+      }
+
       if (!decoded.form || !decoded.form._id) {
         return res.sendStatus(401);
       }
       if (!decoded.user || !decoded.user._id) {
         return res.sendStatus(401);
-      }
-
-      // Load the formio hooks.
-      var hook = require('../util/hook')(router.formio);
-
-      if (!hook.alter('external', decoded, req)) {
-        generateToken(token, decoded, res);
-        return next();
       }
 
       // Load the user submission.

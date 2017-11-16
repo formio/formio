@@ -23,7 +23,9 @@ module.exports = function(router) {
     }
 
     if ((req.method === 'POST' || req.method === 'PUT') && req.body.components) {
-      var badCharacters = /^[^A-Za-z]+|[^A-Za-z0-9\-\.]+/g;
+      /* eslint-disable no-useless-escape */
+      var badCharacters = /^[^A-Za-z_]+|[^A-Za-z0-9\-\._]+/g;
+      /* eslint-enable no-useless-escape */
       var error = false;
       formio.util.eachComponent(req.body.components, function(component) {
         // Remove all unsupported characters from api keys.

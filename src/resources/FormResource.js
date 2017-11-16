@@ -44,33 +44,34 @@ module.exports = function(router) {
     next();
   };
 
-  return Resource(router, '', 'form', mongoose.model('form', router.formio.schemas.form))
-  .rest(hook.alter('formRoutes', {
-    before: [
-      router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-      router.formio.middleware.bootstrapEntityOwner(false),
-      router.formio.middleware.formHandler,
-      router.formio.middleware.formActionHandler('before'),
-      router.formio.middleware.condensePermissionTypes,
-      router.formio.middleware.deleteFormHandler,
-      router.formio.middleware.mergeFormHandler
-    ],
-    after: [
-      sanitizeValidations,
-      router.formio.middleware.bootstrapFormAccess,
-      router.formio.middleware.formActionHandler('after'),
-      router.formio.middleware.filterResourcejsResponse(['deleted', '__v'])
-    ],
-    hooks: {
-      put: {
-        before: function(req, res, item, next) {
-          if (item.components) {
-            item.markModified('components');
-          }
+  return Resource(router, '', 'form', mongoose.model('form'))
+    .rest(hook.alter('formRoutes', {
+      before: [
+        router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
+        router.formio.middleware.bootstrapEntityOwner(false),
+        router.formio.middleware.formHandler,
+        router.formio.middleware.formActionHandler('before'),
+        router.formio.middleware.condensePermissionTypes,
+        router.formio.middleware.deleteFormHandler,
+        router.formio.middleware.mergeFormHandler
+      ],
+      after: [
+        sanitizeValidations,
+        router.formio.middleware.bootstrapFormAccess,
+        router.formio.middleware.formLoader,
+        router.formio.middleware.formActionHandler('after'),
+        router.formio.middleware.filterResourcejsResponse(['deleted', '__v'])
+      ],
+      hooks: {
+        put: {
+          before: function(req, res, item, next) {
+            if (item.components) {
+              item.markModified('components');
+            }
 
-          return next();
+            return next();
+          }
         }
       }
-    }
-  }));
+    }));
 };

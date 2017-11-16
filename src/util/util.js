@@ -13,7 +13,7 @@ var debug = {
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
 
-module.exports = {
+const Utils = {
   deleteProp: deleteProp,
 
   /**
@@ -33,6 +33,37 @@ module.exports = {
   },
 
   /**
+   * Determine if a value is a boolean representation.
+   * @param value
+   * @return {boolean}
+   */
+  isBoolean: function(value) {
+    if (typeof value === 'boolean') {
+      return true;
+    }
+    else if (typeof value === 'string') {
+      value = value.toLowerCase();
+      return (value === 'true') || (value === 'false');
+    }
+    return false;
+  },
+
+  /**
+   * Quick boolean coercer.
+   * @param value
+   * @return {boolean}
+   */
+  boolean: function(value) {
+    if (typeof value === 'boolean') {
+      return value;
+    }
+    if (typeof value === 'string') {
+      return (value.toLowerCase() === 'true');
+    }
+    return !!value;
+  },
+
+  /**
    * A wrapper around console.error that gets ignored by eslint.
    *
    * @param {*} content
@@ -48,7 +79,9 @@ module.exports = {
    * Returns the URL alias for a form provided the url.
    */
   getAlias: function(req, reservedForms) {
+    /* eslint-disable no-useless-escape */
     var formsRegEx = new RegExp('\/(' + reservedForms.join('|') + ').*', 'i');
+    /* eslint-enable no-useless-escape */
     var alias = req.url.substr(1).replace(formsRegEx, '');
     var additional = req.url.substr(alias.length + 1);
     if (!additional && req.method === 'POST') {
@@ -175,6 +208,24 @@ module.exports = {
   isLayoutComponent: formioUtils.isLayoutComponent,
 
   /**
+   * Apply JSON logic functionality.
+   *
+   * @param component
+   * @param row
+   * @param data
+   */
+  jsonLogic: formioUtils.jsonLogic,
+
+  /**
+   * Check if the condition for a component is true or not.
+   *
+   * @param component
+   * @param row
+   * @param data
+   */
+  checkCondition: formioUtils.checkCondition,
+
+  /**
    * Return the objectId.
    *
    * @param id
@@ -206,18 +257,31 @@ module.exports = {
     return false;
   },
 
+    flattenComponentsForRender: function(components) {
+      var flattened = {};
+      this.eachComponent(components, function(component, path) {
+        // Containers will get rendered as flat.
+        if (
+          (component.type === 'container') ||
+          (component.type === 'button') ||
+          (component.type === 'hidden')
+        ) {
+          return;
+        }
+
+        flattened[path] = component;
+
+        if (component.type === 'datagrid') {
+          return true;
+        }
+      });
+      return flattened;
+    },
+
   renderFormSubmission: function(data, components) {
-    var comps = this.flattenComponents(components);
+    var comps = this.flattenComponentsForRender(components);
     var submission = '<table border="1" style="width:100%">';
     _.each(comps, function(component, key) {
-      // Containers will get rendered as flat.
-      if (
-        (component.type === 'container') ||
-        (component.type === 'button') ||
-        (component.type === 'hidden')
-      ) {
-        return;
-      }
       var cmpValue = this.renderComponentValue(data, key, comps);
       if (typeof cmpValue.value === 'string') {
         submission += '<tr>';
@@ -289,15 +353,8 @@ module.exports = {
         compValue.value += '</table>';
         break;
       case 'datagrid':
+        var columns = this.flattenComponentsForRender(component.components);
         compValue.value = '<table border="1" style="width:100%">';
-        var columns = [];
-        if (value.length > 0) {
-          _.each(value[0], function(column, columnKey) {
-            if (components.hasOwnProperty(columnKey)) {
-              columns.push(components[columnKey]);
-            }
-          }.bind(this));
-        }
         compValue.value += '<tr>';
         _.each(columns, function(column) {
           var subLabel = column.label || column.key;
@@ -306,8 +363,8 @@ module.exports = {
         compValue.value += '</tr>';
         _.each(value, function(subValue) {
           compValue.value += '<tr>';
-          _.each(columns, function(column) {
-            var subCompValue = this.renderComponentValue(subValue, column.key, components);
+          _.each(columns, function(column, key) {
+            var subCompValue = this.renderComponentValue(subValue, key, columns);
             if (typeof subCompValue.value === 'string') {
               compValue.value += '<td style="padding:5px 10px;">';
               compValue.value += subCompValue.value;
@@ -613,5 +670,42 @@ module.exports = {
     decode: function(encoded) {
       return new Buffer(encoded.toString()).toString('ascii');
     }
+  },
+
+  /**
+   * Retrieve a unique machine name
+   *
+   * @param document
+   * @param model
+   * @param machineName
+   * @param next
+   * @return {*}
+   */
+  uniqueMachineName: function(document, model, next) {
+    model.find({
+      machineName: {"$regex": document.machineName},
+      deleted: {$eq: null}
+    }, (err, records) => {
+      if (err) {
+        return next(err);
+      }
+
+      if (!records || !records.length) {
+        return next();
+      }
+
+      var i = 0;
+      records.forEach((record) => {
+        var parts = record.machineName.split(/(\d+)/).filter(Boolean);
+        var number = parts[1] || 0;
+        if (number > i) {
+          i = number;
+        }
+      });
+      document.machineName += ++i;
+      next();
+    });
   }
 };
+
+module.exports = Utils;
