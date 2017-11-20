@@ -3,6 +3,7 @@
 var rest = require('restler');
 var _ = require('lodash');
 var debug = require('debug')('formio:action:webhook');
+const FormioUtils = require('formiojs/utils');
 
 module.exports = function(router) {
   var Action = router.formio.Action;
@@ -109,21 +110,39 @@ module.exports = function(router) {
     let settings = this.settings;
 
     /**
-     * Util function to handle errors for a potentially blocking request.
+     * Util function to handle success for a potentially blocking request.
      *
-     * @param err
+     * @param data
+     * @param response
      * @returns {*}
      */
-    let handleResponse = (err) => {
-      if (!_.get(settings, 'blocking') || _.get(settings, 'blocking') === false) {
+    let handleSuccess = (data, response) => {
+      if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
         return;
       }
 
-      if (err) {
-        return next(err.message || err);
+      // Return response in metadata
+      if (res && res.resource && res.resource.item) {
+        res.resource.item.metadata = res.resource.item.metadata || {};
+        res.resource.item.metadata[this.title] = data;
       }
 
       return next();
+    };
+
+    /**
+     * Util function to handle errors for a potentially blocking request.
+     *
+     * @param data
+     * @param response
+     * @returns {*}
+     */
+    let handleError = (data, response) => {
+      if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
+        return;
+      }
+
+      return next(data.message || data || response.statusMessage);
     };
 
     try {
@@ -132,7 +151,7 @@ module.exports = function(router) {
       }
 
       // Continue if were not blocking
-      if (!_.get(settings, 'blocking') || _.get(settings, 'blocking') === false) {
+      if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
         next(); // eslint-disable-line callback-return
       }
 
@@ -149,9 +168,10 @@ module.exports = function(router) {
 
       // Cant send a webhook if the url isn't set.
       if (!_.has(settings, 'url')) {
-        return handleResponse('No url given in the settings');
+        return handleError('No url given in the settings');
       }
 
+      var url = this.settings.url;
       var submission = _.get(res, 'resource.item');
       var payload = {
         request: _.get(req, 'body'),
@@ -160,25 +180,38 @@ module.exports = function(router) {
         params: _.get(req, 'params')
       };
 
+      // Interpolate URL if possible
+      if (res && res.resource && res.resource.item && res.resource.item.data) {
+        url = FormioUtils.interpolate(url, res.resource.item.data);
+      }
+
+      // Fall back if interpolation failed
+      if (!url) {
+        url = this.settings.url;
+      }
+
       // Make the request.
       debug('Request: ' + req.method.toLowerCase());
       switch (req.method.toLowerCase()) {
+        case 'get':
+          rest.get(url, options).on('success', handleSuccess).on('fail', handleError);
+          break;
         case 'post':
-          rest.postJson(this.settings.url, payload, options).on('complete', handleResponse);
+          rest.postJson(url, payload, options).on('success', handleSuccess).on('fail', handleError);
           break;
         case 'put':
-          rest.putJson(this.settings.url, payload, options).on('complete', handleResponse);
+          rest.putJson(url, payload, options).on('success', handleSuccess).on('fail', handleError);
           break;
         case 'delete':
           options.query = req.params;
-          rest.del(this.settings.url, options).on('complete', handleResponse);
+          rest.del(url, options).on('success', handleSuccess).on('fail', handleError);
           break;
         default:
-          return handleResponse('Could not match request method: ' + req.method.toLowerCase());
+          return handleError('Could not match request method: ' + req.method.toLowerCase());
       }
     }
     catch (e) {
-      handleResponse(e);
+      handleError(e);
     }
   };
 
