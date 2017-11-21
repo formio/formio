@@ -358,18 +358,20 @@ module.exports = function(router, resourceName, resourceId) {
       // Clone the submission to the real value of the request body.
       req.submission = _.cloneDeep(req.body);
 
-      // Next we need to validate the input.
-      var validator = new Validator(req.currentForm, router.formio.resources.submission.model);
+      hook.alter('validateSubmissionForm', req.currentForm, req.body, function(form) {
+        // Next we need to validate the input.
+        var validator = new Validator(req.currentForm, router.formio.resources.submission.model);
 
-      // Validate the request.
-      validator.validate(req.body, function(err, submission) {
-        if (err) {
-          return res.status(400).json(err);
-        }
+        // Validate the request.
+        validator.validate(req.body, function(err, submission) {
+          if (err) {
+            return res.status(400).json(err);
+          }
 
-        res.submission = {data: submission};
+          res.submission = {data: submission};
 
-        done();
+          done();
+        });
       });
     };
 
