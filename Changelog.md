@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [UNRELEASED]
+## 1.22.12
+### Added
+ - Enhancements to webhook actionz
+
 ### Fixed
  - Validation for Checkbox component with 'radio' type and 'name' option.
 
