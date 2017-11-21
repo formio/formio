@@ -563,11 +563,14 @@ module.exports = function(app) {
     }
     url += '/form/' + this.template.forms[form]._id + '/submission';
 
+    // Allow passing in the submission as well
+    if (!data.hasOwnProperty('data')) {
+      data = {data};
+    }
+
     request(app)
       .post(url)
-      .send({
-        data: data
-      })
+      .send(data)
       .set('x-jwt-token', this.owner.token)
       //.expect('Content-Type', /json/)
       .end(function(err, res) {
