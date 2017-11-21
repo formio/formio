@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [UNRELEASED]
+### Fixed
+ - Validation for Checkbox component with 'radio' type and 'name' option.
+
 ## 1.22.11
 ### Added
  - Allow altering of resources for forms.
