@@ -2839,6 +2839,7 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    if (!docker)
     describe('Select validation', () => {
       before((done) => {
         // Create a resource to keep records.
