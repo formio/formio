@@ -2885,7 +2885,7 @@ module.exports = function(app, template, hook) {
             }
 
             let apiUrl = 'http://localhost:' + template.config.port;
-            apiUrl += hook.alter('url', '/form/' + helper.template.forms['fruits']._id + '/submission', template);
+            apiUrl += hook.alter('url', '/form/' + helper.template.forms['fruits']._id + '/submission', helper.template);
 
             helper.form('fruitSelect', [
               {
