@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.22.14
+### Fixed
+ - A hook within the submission tests to get the right hook.alter.
+
 ## 1.22.13
 ### Added
  - Ability to alter validation form before submission validation occurs.
