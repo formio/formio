@@ -343,7 +343,7 @@ class Validator {
           );
 
           fieldValidator = JoiX.array().items(JoiX.object().keys(objectSchema)).options({stripUnknown: false});
-
+          component.multiple = false;
           break;
         case 'container':
           objectSchema = this.buildSchema(
