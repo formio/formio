@@ -343,7 +343,6 @@ class Validator {
           );
 
           fieldValidator = JoiX.array().items(JoiX.object().keys(objectSchema)).options({stripUnknown: false});
-          component.multiple = false;
           break;
         case 'container':
           objectSchema = this.buildSchema(
@@ -482,7 +481,7 @@ class Validator {
       }
 
       // Make sure to change this to an array if multiple is checked.
-      if (component.multiple) {
+      if (component.multiple && (component.type !== 'editgrid')) {
         // Allow(null) was added since some text fields have empty strings converted to null when multiple which then
         // throws an error on re-validation. Allowing null fixes the issue.
         fieldValidator = JoiX.array().sparse().items(fieldValidator.allow(null)).options({stripUnknown: false});
