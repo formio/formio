@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
  - Bugfix/FOR-809. Fix in CSVExporter for multivalue resource and select fields.
 
+## [UNRELEASED]
+### Fixed
+ - EditGrid validation.
+
 ## 1.22.17
 ## 1.22.16
 ## 1.22.15
