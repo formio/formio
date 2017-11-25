@@ -499,7 +499,6 @@ class Validator {
       }
 
       if (component.key && fieldValidator) {
-        schema[component.key] = fieldValidator;
         schema[component.key] = fieldValidator.hidden(component, submissionData);
       }
     });
