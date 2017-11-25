@@ -334,6 +334,16 @@ class Validator {
       /* eslint-disable max-depth, valid-typeof */
       switch (component.type) {
         case 'editgrid':
+          objectSchema = this.buildSchema(
+            {},
+            component.components,
+            _.get(componentData, component.key, componentData),
+            submissionData
+          );
+
+          fieldValidator = JoiX.object().keys(objectSchema).options({stripUnknown: true});
+
+          break;
         case 'datagrid':
           objectSchema = this.buildSchema(
             {},
