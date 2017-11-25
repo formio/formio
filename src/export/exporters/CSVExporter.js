@@ -67,10 +67,28 @@ var CSVExporter = function(form, req, res) {
         variable: 'item'
       });
 
+      var valuesExtractor = function(value) {
+          //checking if the component can accept multiple values.
+          if (component.multiple) {
+              if (component.type === 'resource') {
+                  var tempVal = [];
+                  _.each(value, function(eachItem) {
+                      tempVal.push(templateExtractor(eachItem));
+                  });
+                  return tempVal;
+              }
+              else if (component.type === 'select') {
+                  return value;
+              }
+          }
+          else {
+              return templateExtractor(value);
+          }
+      };
       items.push({
         preprocessor: function(value) {
           return _.isObject(value)
-            ? templateExtractor(value)
+            ? valuesExtractor(value)
             : value;
         }
       });
