@@ -334,17 +334,8 @@ class Validator {
       /* eslint-disable max-depth, valid-typeof */
       switch (component.type) {
         case 'editgrid':
-          objectSchema = this.buildSchema(
-            {},
-            component.components,
-            _.get(componentData, component.key, componentData),
-            submissionData
-          );
-
-          fieldValidator = JoiX.object().keys(objectSchema).options({stripUnknown: true});
-
-          break;
         case 'datagrid':
+          component.multiple = false;
           objectSchema = this.buildSchema(
             {},
             component.components,
@@ -353,7 +344,6 @@ class Validator {
           );
 
           fieldValidator = JoiX.array().items(JoiX.object().keys(objectSchema)).options({stripUnknown: false});
-
           break;
         case 'container':
           objectSchema = this.buildSchema(
