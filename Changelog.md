@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.22.19
+### Changed
+ - Made the editgrid validation not dependant on the multiple flag in component settings.
+
 ## 1.22.18
 ### Fixed
  - Bugfix/FOR-809. Fix in CSVExporter for multivalue resource and select fields.
