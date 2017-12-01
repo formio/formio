@@ -54,6 +54,11 @@ module.exports = function(router) {
         ]
       };
 
+      // Allow administrators to see anonymous submissions
+      if (req.isAdmin) {
+        query.$or.push({owner: {$eq: null}});
+      }
+
       debug(query);
       req.modelQuery = req.modelQuery || this.model;
       req.modelQuery = req.modelQuery.find(query);
