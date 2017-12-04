@@ -8,6 +8,12 @@ module.exports = function(router) {
     var util = router.formio.util;
     var hook = router.formio.hook;
 
+    // Skip this filter, if request is from an administrator.
+    if (req.isAdmin) {
+      debug('Skipping, request is from an administrator.');
+      return next();
+    }
+
     // Skip this filter, if not flagged in the permission handler.
     if (!_.has(req, 'submissionResourceAccessFilter') || !req.submissionResourceAccessFilter) {
       debug('Skipping, no req.submissionResourceAccessFilter.');
@@ -53,11 +59,6 @@ module.exports = function(router) {
           }
         ]
       };
-
-      // Allow administrators to see anonymous submissions
-      if (req.isAdmin) {
-        query.$or.push({owner: {$eq: null}});
-      }
 
       debug(query);
       req.modelQuery = req.modelQuery || this.model;
