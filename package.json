@@ -34,7 +34,7 @@
     "eslint-config-formio": "^1.1.2",
     "event-chain": "^0.0.1",
     "express": "^4.16.2",
-    "formiojs": "^2.24.4",
+    "formiojs": "^2.24.6",
     "fs-extra": "^4.0.2",
     "html-entities": "^1.2.1",
     "joi": "^13.0.1",
@@ -43,7 +43,7 @@
     "method-override": "^2.3.0",
     "moment": "^2.19.3",
     "mongodb": "^2.2.33",
-    "mongoose": "^4.13.5",
+    "mongoose": "^4.13.6",
     "mssql": "^4.1.0",
     "mysql": "^2.7.0",
     "nodemailer": "^4.3.0",
@@ -59,7 +59,7 @@
     "resourcejs": "^1.9.0",
     "restler": "^3.4.0",
     "semver": "^5.3.0",
-    "threads": "^0.9.0",
+    "threads": "^0.10.0",
     "through": "^2.3.8"
   },
   "devDependencies": {
