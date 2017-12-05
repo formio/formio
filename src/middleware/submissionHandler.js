@@ -235,11 +235,7 @@ module.exports = function(router, resourceName, resourceId) {
 
         if (req.handlerName === 'beforeGet') {
           // Improve performance by using the submission cache for simple gets.
-          req.modelQuery.findOne = (query, cb) => {
-            router.formio.cache.loadCurrentSubmission(req, (err, item) => {
-              cb(err, item);
-            });
-          };
+          req.modelQuery.findOne = (query, cb) => router.formio.cache.loadCurrentSubmission(req, cb);
         }
         else {
           // Set the model query to filter based on the ID.
