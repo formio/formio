@@ -31,7 +31,7 @@ module.exports = function(router) {
       return next();
     }
 
-    prune.action(actionId, null, function(err) {
+    prune.action(actionId, null, req, function(err) {
       if (err) {
         debug(err);
         return next(err);

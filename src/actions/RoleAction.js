@@ -178,7 +178,8 @@ module.exports = function(router) {
      */
     var loadUser = function(submission, callback) {
       debug.loadUser(submission);
-      router.formio.resources.submission.model.findById(submission, function(err, user) {
+      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+      submissionModel.findById(submission, function(err, user) {
         if (err) {
           return res.status(400).send(err.message || err);
         }

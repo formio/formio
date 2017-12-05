@@ -44,10 +44,17 @@ module.exports = function(router) {
 
     hook.invoke('formRequest', req, res);
     if (req.method === 'GET') {
-      req.countQuery = req.countQuery || this.model;
-      req.modelQuery = req.modelQuery || this.model;
-      req.countQuery = req.countQuery.find(hook.alter('formQuery', {}, req));
-      req.modelQuery = req.modelQuery.find(hook.alter('formQuery', {}, req));
+      const formQuery = hook.alter('formQuery', {}, req);
+      req.countQuery = req.countQuery || req.model || this.model;
+      req.modelQuery = req.modelQuery || req.model || this.model;
+      if (req.params.formId) {
+        // Use the form cache for performance boost.
+        req.modelQuery.findOne = (query, cb) => router.formio.cache.loadCurrentForm(req, cb);
+      }
+      else {
+        req.countQuery = req.countQuery.find(formQuery);
+        req.modelQuery = req.modelQuery.find(formQuery);
+      }
     }
     next();
   };

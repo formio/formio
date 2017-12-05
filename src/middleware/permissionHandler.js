@@ -316,7 +316,8 @@ module.exports = function(router) {
               ]
             };
 
-            router.formio.resources.submission.model.count(query, function(err, count) {
+            const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+            submissionModel.count(query, function(err, count) {
               if (err) {
                 debug.getAccess.flagRequest(err);
                 return callback();

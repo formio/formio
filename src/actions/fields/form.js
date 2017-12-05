@@ -11,7 +11,8 @@ module.exports = function(formio) {
 
       // Fetch the child form's submission
       if (compValue && compValue._id) {
-        formio.resources.submission.model.findOne(
+        const submissionModel = req.submissionModel || formio.resources.submission.model;
+        submissionModel.findOne(
           {_id: compValue._id, deleted: {$eq: null}}
         ).exec(function(err, submission) {
           if (err) {

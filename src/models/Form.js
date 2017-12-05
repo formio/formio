@@ -212,6 +212,13 @@ module.exports = (formio) => {
     })
   });
 
+  // Add a partial index for deleted forms.
+  model.schema.index({
+    deleted: 1
+  }, {
+    partialFilterExpression: {deleted: {$eq: null}}
+  });
+
   // Add machineName to the schema.
   model.schema.plugin(require('../plugins/machineName')('form'));
 

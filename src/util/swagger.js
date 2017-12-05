@@ -198,7 +198,8 @@ module.exports = function(req, router, cb) {
 
   var submissionSwagger = function(form) {
     // Need to customize per form instead of returning the same swagger for every form.
-    var originalPaths = _.cloneDeep(router.formio.resources.submission.model.schema.paths);
+    const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+    var originalPaths = _.cloneDeep(submissionModel.schema.paths);
     var resource = {
       name: form.title,
       modelName: form.name,
