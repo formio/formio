@@ -5,8 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.23.0
+### Added
+ - Ability to alter models dynamically.
+
 ### Changed
  - Upgrade all dependencies.
+
+### Added
+ - Partial indexes for non-deleted entities.
 
 ## 1.22.19
 ### Changed

@@ -63,11 +63,13 @@ module.exports = function(router, resourceName, resourceId) {
               let formId = component.form || component.resource;
               let compValue = _.get(res.resource.item.data, path);
               if (compValue && compValue._id) {
+                const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+
                 return Q.ninvoke(hook, 'alter', 'submissionQuery', {
                   _id: util.idToBson(compValue._id.toString()),
                   deleted: {$eq: null}
                 }, null, req)
-                  .then((query) => Q.ninvoke(router.formio.resources.submission.model, 'findOne', query))
+                  .then((query) => Q.ninvoke(submissionModel, 'findOne', query))
                   .then((submission) => new Promise((resolve, reject) => {
                     // Manually filter the protected fields.
                     router.formio.middleware.filterProtectedFields('create', (req) => {
@@ -95,11 +97,14 @@ module.exports = function(router, resourceName, resourceId) {
                   resources.push(util.idToBson(compValue._id.toString()));
                 }
               });
+
+              const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+
               return Q.ninvoke(hook, 'alter', 'submissionQuery', {
                 _id: {'$in': resources},
                 deleted: {$eq: null}
               }, null, req)
-                .then((query) => Q.ninvoke(router.formio.resources.submission.model, 'find', query))
+                .then((query) => Q.ninvoke(submissionModel, 'find', query))
                 .then((submissions) => new Promise((resolve, reject) => {
                   // Manually filter the protected fields.
                   router.formio.middleware.filterProtectedFields('index', (req) => {
@@ -225,12 +230,22 @@ module.exports = function(router, resourceName, resourceId) {
 
       // If this is a get method, then filter the model query.
       if (isGet) {
-        req.countQuery = req.countQuery || this.model;
-        req.modelQuery = req.modelQuery || this.model;
+        req.countQuery = req.countQuery || req.model || this.model;
+        req.modelQuery = req.modelQuery || req.model || this.model;
 
-        // Set the model query to filter based on the ID.
-        req.countQuery = req.countQuery.find({form: req.currentForm._id});
-        req.modelQuery = req.modelQuery.find({form: req.currentForm._id});
+        if (req.handlerName === 'beforeGet') {
+          // Improve performance by using the submission cache for simple gets.
+          req.modelQuery.findOne = (query, cb) => {
+            router.formio.cache.loadCurrentSubmission(req, (err, item) => {
+              cb(err, item);
+            });
+          };
+        }
+        else {
+          // Set the model query to filter based on the ID.
+          req.countQuery = req.countQuery.find({form: req.currentForm._id});
+          req.modelQuery = req.modelQuery.find({form: req.currentForm._id});
+        }
       }
 
       // If the request has a body.
@@ -359,8 +374,11 @@ module.exports = function(router, resourceName, resourceId) {
       req.submission = _.cloneDeep(req.body);
 
       hook.alter('validateSubmissionForm', req.currentForm, req.body, function(form) {
+        // Get the submission model.
+        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+
         // Next we need to validate the input.
-        var validator = new Validator(req.currentForm, router.formio.resources.submission.model);
+        var validator = new Validator(req.currentForm, submissionModel);
 
         // Validate the request.
         validator.validate(req.body, function(err, submission) {

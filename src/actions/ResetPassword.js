@@ -205,7 +205,8 @@ module.exports = function(router) {
     query.form = {$in: _.map(token.resources, mongoose.Types.ObjectId)};
 
     // Perform a mongo query to find the submission.
-    router.formio.resources.submission.model.findOne(query, function(err, submission) {
+    const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+    submissionModel.findOne(query, function(err, submission) {
       if (err || !submission) {
         return next.call(this, 'Submission not found.');
       }
@@ -246,7 +247,8 @@ module.exports = function(router) {
         setValue['data.' + this.settings.password] = hash;
 
         // Update the password.
-        router.formio.resources.submission.model.update(
+        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+        submissionModel.update(
           {_id: submission._id},
           {$set: setValue},
           function(err, newSub) {

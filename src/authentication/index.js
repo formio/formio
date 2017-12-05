@@ -196,7 +196,7 @@ module.exports = function(router) {
    * @param next {Function}
    *   The callback function to call after authentication.
    */
-  var authenticate = function(forms, userField, passField, username, password, next) {
+  var authenticate = function(req, forms, userField, passField, username, password, next) {
     // Make sure they have provided a username and password.
     if (!username) {
       return next('Missing username');
@@ -222,7 +222,8 @@ module.exports = function(router) {
     query['data.' + userField] = {$regex: new RegExp('^' + util.escapeRegExp(username) + '$'), $options: 'i'};
 
     // Find the user object.
-    router.formio.resources.submission.model.findOne(query, function(err, user) {
+    const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+    submissionModel.findOne(query, function(err, user) {
       if (err) {
         return next(err);
       }

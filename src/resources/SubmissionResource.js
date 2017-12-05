@@ -136,8 +136,10 @@ module.exports = function(router) {
         return res.status(400).send('Invalid Query.');
       }
 
+      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+
       // Query the submissions for this submission.
-      router.formio.resources.submission.model.findOne(query, function(err, submission) {
+      submissionModel.findOne(query, function(err, submission) {
         if (err) {
           return next(err);
         }

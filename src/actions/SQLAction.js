@@ -201,7 +201,8 @@ module.exports = function(router) {
         // Perform a post execution.
         var postExecute = function(result) {
           // Update the resource with the external Id.
-          router.formio.resources.submission.model.findOne(
+          const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+          submissionModel.findOne(
             {_id: currentResource.item._id, deleted: {$eq: null}}
           ).exec(function(err, submission) {
               if (err) {

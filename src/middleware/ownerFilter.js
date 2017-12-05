@@ -30,7 +30,7 @@ module.exports = function(router) {
       };
     }
 
-    req.modelQuery = req.modelQuery || this.model;
+    req.modelQuery = req.modelQuery || req.model || this.model;
     req.modelQuery = req.modelQuery.find(query);
     next();
   };
