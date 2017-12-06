@@ -313,7 +313,7 @@ module.exports = function(router, resourceName, resourceId) {
               return res.status(400).send('Too many recursive requests.');
             }
             childReq.body = req.body.data[component.key];
-            childReq.params.formId = component.form;
+            childReq.params.formId = req.body.form || component.form;
             router.resourcejs[url].post(childReq, childRes, function(err) {
               if (err) {
                 return subDone(err);
