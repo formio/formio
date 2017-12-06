@@ -145,7 +145,8 @@ module.exports = function(router) {
       // Assign the owner if they are also providing a role.
       if (req.selfOwner && res.resource && res.resource.item) {
         res.resource.item.owner = res.resource.item._id;
-        router.formio.resources.submission.model.update({
+        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+        submissionModel.update({
           _id: res.resource.item._id
         }, {'$set': {owner: res.resource.item._id}}, then);
       }

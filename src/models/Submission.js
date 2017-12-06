@@ -16,7 +16,7 @@ ExternalIdSchema.plugin(require('../plugins/timestamps'));
 module.exports = function(formio) {
   var hook = require('../util/hook')(formio);
 
-  return require('./BaseModel')({
+  const model = require('./BaseModel')({
     schema: new mongoose.Schema(hook.alter('submissionSchema', {
       form: {
         type: mongoose.Schema.Types.ObjectId,
@@ -66,4 +66,13 @@ module.exports = function(formio) {
       }
     }))
   });
+
+  // Add a partial index for deleted submissions.
+  model.schema.index({
+    deleted: 1
+  }, {
+    partialFilterExpression: {deleted: {$eq: null}}
+  });
+
+  return model;
 };
