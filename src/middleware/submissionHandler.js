@@ -232,12 +232,7 @@ module.exports = function(router, resourceName, resourceId) {
       if (isGet) {
         req.countQuery = req.countQuery || req.model || this.model;
         req.modelQuery = req.modelQuery || req.model || this.model;
-
-        if (req.handlerName === 'beforeGet') {
-          // Improve performance by using the submission cache for simple gets.
-          req.modelQuery.findOne = (query, cb) => router.formio.cache.loadCurrentSubmission(req, cb);
-        }
-        else {
+        if (req.handlerName !== 'beforeGet') {
           // Set the model query to filter based on the ID.
           req.countQuery = req.countQuery.find({form: req.currentForm._id});
           req.modelQuery = req.modelQuery.find({form: req.currentForm._id});
