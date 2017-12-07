@@ -1328,13 +1328,13 @@ module.exports = {
       fail: {
         data: {
           trigger: 'false',
-          foo: '2016-01-01T00:00:00.00Z'
+          foo: '2016-01-01T00:00:00.000Z'
         }
       },
       pass: {
         data: {
           trigger: 'true',
-          foo: '2016-01-01T00:00:00.00Z'
+          foo: '2016-01-01T00:00:00.000Z'
         }
       }
     },
@@ -1419,13 +1419,13 @@ module.exports = {
       fail: {
         data: {
           trigger: 'false',
-          foo: '2016-01-01T00:00:00.00Z'
+          foo: '2016-01-01T00:00:00.000Z'
         }
       },
       pass: {
         data: {
           trigger: 'true',
-          foo: '2016-01-01T00:00:00.00Z'
+          foo: '2016-01-01T00:00:00.000Z'
         }
       }
     }
