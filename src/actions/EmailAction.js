@@ -169,7 +169,8 @@ module.exports = function(router) {
           deleted: {$eq: null}
         };
 
-        return router.formio.resources.submission.model.findOne(query)
+        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+        return submissionModel.findOne(query)
         .then(owner => {
           if (owner) {
             params.owner = owner.toObject();
