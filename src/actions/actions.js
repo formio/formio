@@ -621,8 +621,8 @@ module.exports = function(router) {
       }
     }
 
-    req.modelQuery = req.modelQuery || this.model;
-    req.countQuery = req.countQuery || this.model;
+    req.modelQuery = req.modelQuery || req.model || this.model;
+    req.countQuery = req.countQuery || req.model || this.model;
     req.modelQuery = req.modelQuery.find({form: req.params.formId}).sort('-priority');
     req.countQuery = req.countQuery.find({form: req.params.formId});
     next();

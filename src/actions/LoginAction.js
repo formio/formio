@@ -139,7 +139,7 @@ module.exports = function(router) {
    * @returns {*}
    */
   /* eslint-disable max-statements */
-  LoginAction.prototype.checkAttempts = function(error, user, next) {
+  LoginAction.prototype.checkAttempts = function(error, req, user, next) {
     if (!user || !user._id) {
       return next.call(this, error);
     }
@@ -219,7 +219,8 @@ module.exports = function(router) {
     }
 
     // Update the user record
-    router.formio.resources.submission.model.update(
+    const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+    submissionModel.update(
       {_id: user._id},
       {$set: {metadata: user.metadata}},
       function(err) {
@@ -268,6 +269,7 @@ module.exports = function(router) {
 
     // Perform an authentication.
     router.formio.auth.authenticate(
+      req,
       this.settings.resources,
       this.settings.username,
       this.settings.password,
@@ -279,7 +281,7 @@ module.exports = function(router) {
         }
 
         // Check the amount of attempts made by this user.
-        this.checkAttempts(err, response.user, function(error) {
+        this.checkAttempts(err, req, response.user, function(error) {
           if (error) {
             return res.status(401).send(error);
           }

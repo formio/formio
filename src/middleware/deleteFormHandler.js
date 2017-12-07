@@ -18,7 +18,7 @@ module.exports = function(router) {
       return next();
     }
 
-    prune.form(req.formId, function(err) {
+    prune.form(req.formId, req, function(err) {
       if (err) {
         debug(err);
         return next(err);
