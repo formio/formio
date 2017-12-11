@@ -213,9 +213,32 @@ module.exports = function(router, resourceName, resourceId) {
           return done('Form not found.');
         }
 
+        // Get all of the form components.
+        var comps = [];
+        util.eachComponent(form.components, function(component) {
+          if (component.type === 'form') {
+            comps.push(component);
+          }
+        });
+
         req.currentForm = hook.alter('currentForm', form, req.body);
         req.flattenedComponents = util.flattenComponents(form.components);
-        done();
+
+        // Only proceed if we have form components.
+        if (!comps || !comps.length) {
+          return done();
+        }
+
+        // Load each of the forms independently.
+        async.each(comps, function(comp, done) {
+          router.formio.cache.loadForm(req, null, comp.form, function(err, subform) {
+            if (err) {
+              return done(err);
+            }
+            comp.components = subform.components;
+            done();
+          });
+        }, done);
       });
     };
 
@@ -266,64 +289,6 @@ module.exports = function(router, resourceName, resourceId) {
       }
 
       done();
-    };
-
-    /**
-     * Perform hierarchial submissions of sub-forms.
-     */
-    var submitSubForms = function(req, res, done) {
-      if (!req.body || !req.body.data) {
-        return done();
-      }
-      var subsubmissions = [];
-      util.eachComponent(req.currentForm.components, (component) => {
-        // Find subform components, whose data has not been submitted.
-        if (
-          (component.type === 'form') &&
-          (req.body.data[component.key] && !req.body.data[component.key]._id)
-        ) {
-          subsubmissions.push((subDone) => {
-            var url = '/form/:formId/submission';
-            var childRes = {
-              send: () => _.noop,
-              status: (status) => {
-                return {json: (err) => {
-                  if (status > 299) {
-                    // Add the parent path to the details path.
-                    if (err.details && err.details.length) {
-                      _.each(err.details, (details) => {
-                        if (details.path) {
-                          details.path = component.key + '.data.' + details.path;
-                        }
-                      });
-                    }
-
-                    return res.status(status).json(err);
-                  }
-                }};
-              }
-            };
-            var childReq = util.createSubRequest(req);
-            if (!childReq) {
-              return res.status(400).send('Too many recursive requests.');
-            }
-            childReq.body = req.body.data[component.key];
-            childReq.params.formId = req.body.form || component.form;
-            router.resourcejs[url].post(childReq, childRes, function(err) {
-              if (err) {
-                return subDone(err);
-              }
-
-              if (childRes.resource && childRes.resource.item) {
-                req.body.data[component.key] = childRes.resource.item;
-              }
-              subDone();
-            });
-          });
-        }
-      });
-
-      async.series(subsubmissions, done);
     };
 
     /**
@@ -463,7 +428,6 @@ module.exports = function(router, resourceName, resourceId) {
       async.series([
         async.apply(loadCurrentForm, req),
         async.apply(initializeSubmission, req),
-        async.apply(submitSubForms, req, res),
         async.apply(initializeActions, req, res),
         async.apply(executeFieldHandlers, false, req, res),
         async.apply(validateSubmission, req, res),
