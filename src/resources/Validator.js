@@ -24,7 +24,7 @@ const debug = {
 const checkConditional = (component, row, data, recurse = false) => {
   let isVisible = true;
 
-  if (!component.hasOwnProperty('key')) {
+  if (!component || !component.hasOwnProperty('key')) {
     return isVisible;
   }
 
@@ -333,6 +333,28 @@ class Validator {
       let objectSchema;
       /* eslint-disable max-depth, valid-typeof */
       switch (component.type) {
+        case 'form':
+          // Ensure each sub submission at least has an empty object or it won't validate.
+          _.update(componentData, component.key + '.data', value => value ? value : {});
+
+          var subSubmission = _.get(componentData, component.key, {});
+
+          // If this has already been submitted, then it has been validated.
+          if (!subSubmission._id) {
+            var formSchema = this.buildSchema(
+              {},
+              component.components,
+              subSubmission,
+              subSubmission.data
+            );
+            fieldValidator = JoiX.object().unknown(true).keys({
+              data: JoiX.object().keys(formSchema)
+            });
+          }
+          else {
+            fieldValidator = JoiX.object();
+          }
+          break;
         case 'editgrid':
         case 'datagrid':
           component.multiple = false;
@@ -611,14 +633,17 @@ class Validator {
               }
               else {
                 const component = components[key];
+                if (component) {
+                  result.hidden = result.hidden || !checkConditional(component, _.get(value, result.path), value, true);
 
-                result.hidden = result.hidden || !checkConditional(component, _.get(value, result.path), value, true);
+                  const clearOnHide = util.isBoolean(component.clearOnHide) ?
+                    util.boolean(component.clearOnHide) :
+                    true;
 
-                const clearOnHide = util.isBoolean(component.clearOnHide) ? util.boolean(component.clearOnHide) : true;
-
-                result.path.push(key);
-                if (clearOnHide && result.hidden) {
-                  _.unset(value, result.path);
+                  result.path.push(key);
+                  if (clearOnHide && result.hidden) {
+                    _.unset(value, result.path);
+                  }
                 }
               }
 
