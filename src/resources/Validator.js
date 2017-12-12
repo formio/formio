@@ -645,6 +645,9 @@ class Validator {
                     _.unset(value, result.path);
                   }
                 }
+                else {
+                  result.path.push(key);
+                }
               }
 
               return result;
