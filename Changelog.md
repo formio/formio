@@ -4,7 +4,16 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.20.5
+### Fixed
+ - Crash when can't load form.
+
+## 1.20.4
+### Changed
+ - Move subform validation
+
 ## 1.20.3
+### Fixed
  - Stop empty string removal on validation
 
 ## 1.20.0
