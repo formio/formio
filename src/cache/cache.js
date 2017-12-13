@@ -1,4 +1,5 @@
 'use strict';
+const async = require('async');
 
 var debug = {
   form: require('debug')('formio:cache:form'),
@@ -268,6 +269,50 @@ module.exports = function(router) {
           cb(null, result);
         }.bind(this));
       }
+    },
+
+    /**
+     * Load all subforms in a form recursively.
+     *
+     * @param form
+     * @param req
+     * @param next
+     * @param depth
+     * @returns {*}
+     */
+    loadSubForms: function(form, req, next, depth) {
+      depth = depth || 0;
+
+      // Only allow 5 deep.
+      if (depth >= 5) {
+        return next();
+      }
+
+      // Get all of the form components.
+      var comps = [];
+      util.eachComponent(form.components, function(component) {
+        if (component.type === 'form') {
+          comps.push(component);
+        }
+      }, true);
+
+      // Only proceed if we have form components.
+      if (!comps || !comps.length) {
+        return next();
+      }
+
+      // Load each of the forms independent.
+      async.each(comps, (comp, done) => {
+        this.loadForm(req, null, comp.form, (err, subform) => {
+          if (!err) {
+            comp.components = subform.components;
+            this.loadSubForms(subform, req, done, depth + 1);
+          }
+          else {
+            done();
+          }
+        });
+      }, next);
     }
   };
 };
