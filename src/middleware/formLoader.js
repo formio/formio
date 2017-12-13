@@ -11,6 +11,39 @@ var async = require('async');
  * @returns {*}
  */
 module.exports = function(router) {
+  const loadSubForms = function(form, req, next, depth) {
+    // Only allow 5 deep.
+    if (depth >= 5) {
+      return next();
+    }
+
+    // Get all of the form components.
+    var comps = [];
+    util.eachComponent(form.components, function(component) {
+      if (component.type === 'form') {
+        comps.push(component);
+      }
+    }, true);
+
+    // Only proceed if we have form components.
+    if (!comps || !comps.length) {
+      return next();
+    }
+
+    // Load each of the forms independently.
+    async.each(comps, function(comp, done) {
+      router.formio.cache.loadForm(req, null, comp.form, function(err, subform) {
+        if (!err) {
+          comp.components = subform.components;
+          loadSubForms(subform, req, done, depth + 1);
+        }
+        else {
+          done();
+        }
+      });
+    }, next);
+  };
+
   return function formLoader(req, res, next) {
     // Only process on GET request, and if they provide full query.
     if (
@@ -22,28 +55,6 @@ module.exports = function(router) {
       return next();
     }
 
-    // Get all of the form components.
-    var comps = [];
-    util.eachComponent(res.resource.item.components, function(component) {
-      if (component.type === 'form') {
-        comps.push(component);
-      }
-    });
-
-    // Only proceed if we have form components.
-    if (!comps || !comps.length) {
-      return next();
-    }
-
-    // Load each of the forms independently.
-    async.each(comps, function(comp, done) {
-      router.formio.cache.loadForm(req, null, comp.form, function(err, form) {
-        if (err) {
-          return done(err);
-        }
-        comp.components = form.components;
-        done();
-      });
-    }, next);
+    loadSubForms(res.resource.item, req, next, 0);
   };
 };

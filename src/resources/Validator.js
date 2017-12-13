@@ -340,7 +340,7 @@ class Validator {
           var subSubmission = _.get(componentData, component.key, {});
 
           // If this has already been submitted, then it has been validated.
-          if (!subSubmission._id) {
+          if (!subSubmission._id && component.components) {
             var formSchema = this.buildSchema(
               {},
               component.components,
