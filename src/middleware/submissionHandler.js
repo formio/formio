@@ -213,33 +213,14 @@ module.exports = function(router, resourceName, resourceId) {
           return done('Form not found.');
         }
 
-        // Get all of the form components.
-        var comps = [];
-        util.eachComponent(form.components, function(component) {
-          if (component.type === 'form') {
-            comps.push(component);
-          }
-        });
-
         req.currentForm = hook.alter('currentForm', form, req.body);
-        req.flattenedComponents = util.flattenComponents(form.components);
 
-        // Only proceed if we have form components.
-        if (!comps || !comps.length) {
+        // Load all subforms as well.
+        router.formio.cache.loadSubForms(req.currentForm, req, function() {
+          req.flattenedComponents = util.flattenComponents(form.components);
           return done();
-        }
-
-        // Load each of the forms independently.
-        async.each(comps, function(comp, done) {
-          router.formio.cache.loadForm(req, null, comp.form, function(err, subform) {
-            if (err) {
-              return done(err);
-            }
-            comp.components = subform.components;
-            done();
-          });
-        }, done);
-      });
+        });
+      }, true);
     };
 
     /**
