@@ -164,7 +164,11 @@ module.exports = (router) => {
     }
 
     // Attempt to update a single resource if present.
-    if (entity.resource && template.hasOwnProperty(`resources`) && template.resources[entity.resource]) {
+    if (
+      entity.resource && template.hasOwnProperty(`resources`) &&
+      template.resources[entity.resource] &&
+      template.resources[entity.resource]._id
+    ) {
       entity.resource = template.resources[entity.resource]._id.toString();
       changes = true;
     }
