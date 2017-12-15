@@ -280,7 +280,7 @@ const getRules = (type) => [
         request(requestOptions, (err, response, body) => {
           if (err) {
             return resolve({
-              message: 'select validation failed: ' + err,
+              message: 'Select validation error: ' + err,
               path: state.path,
               type: 'any.select'
             });
@@ -288,7 +288,7 @@ const getRules = (type) => [
 
           if (response && parseInt(response.statusCode / 100, 10) !== 2) {
             return resolve({
-              message: 'select validation failed: ' + body,
+              message: 'Select validation error: ' + body,
               path: state.path,
               type: 'any.select'
             });
