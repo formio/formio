@@ -306,6 +306,8 @@ const getRules = (type) => [
           return resolve(null);
         });
       }));
+
+      return value;
     }
   },
   {
