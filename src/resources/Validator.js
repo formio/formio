@@ -4,7 +4,8 @@ const vm = require('vm');
 const Joi = require('joi');
 const _ = require('lodash');
 const util = require('../util/util');
-const async = require('async');
+const FormioUtils = require('formiojs/utils');
+const request = require('request');
 
 const debug = {
   validator: require('debug')('formio:validator'),
@@ -113,10 +114,8 @@ const getRules = (type) => [
             timeout: 100
           });
           valid = sandbox.valid;
-          debug.validator(valid);
         }
         catch (err) {
-          debug.error(err);
           // Say this isn't valid based on bad code executed...
           valid = err.toString();
         }
@@ -194,19 +193,192 @@ const getRules = (type) => [
     }
   },
   {
+    name: 'select',
+    params: {
+      component: Joi.any(),
+      submission: Joi.any(),
+      token: Joi.any(),
+      async: Joi.any()
+    },
+    validate(params, value, state, options) {
+      // Empty values are fine.
+      if (!value) {
+        return value;
+      }
+
+      const component = params.component;
+      const submission = params.submission;
+      const token = params.token;
+      const async = params.async;
+
+      // Initialize the request options.
+      const requestOptions = {
+        url: _.get(component, 'validate.select'),
+        method: 'GET',
+        qs: {},
+        json: true,
+        headers: {}
+      };
+
+      // If the url is a boolean value.
+      if (util.isBoolean(requestOptions.url)) {
+        requestOptions.url = util.boolean(requestOptions.url);
+        if (!requestOptions.url) {
+          return value;
+        }
+
+        if (component.dataSrc !== 'url') {
+          return value;
+        }
+
+        if (!component.data.url || !component.searchField) {
+          return value;
+        }
+
+        // Get the validation url.
+        requestOptions.url = component.data.url;
+
+        // Add the search field.
+        requestOptions.qs[component.searchField] = value;
+
+        // Add the filters.
+        if (component.filter) {
+          requestOptions.url += (!requestOptions.url.includes('?') ? '?' : '&') + component.filter;
+        }
+
+        // If they only wish to return certain fields.
+        if (component.selectFields) {
+          requestOptions.qs.select = component.selectFields;
+        }
+      }
+
+      if (!requestOptions.url) {
+        return value;
+      }
+
+      // Make sure to interpolate.
+      requestOptions.url = FormioUtils.interpolate(requestOptions.url, {
+        data: submission.data
+      });
+
+      // Set custom headers.
+      if (component.data && component.data.headers) {
+        _.each(component.data.headers, (header) => {
+          if (header.key) {
+            requestOptions.headers[header.key] = header.value;
+          }
+        });
+      }
+
+      // Set form.io authentication.
+      if (component.authenticate && token) {
+        requestOptions.headers['x-jwt-token'] = token;
+      }
+
+      async.push(new Promise((resolve, reject) => {
+        // Make the request.
+        request(requestOptions, (err, response, body) => {
+          if (err) {
+            return resolve({
+              message: 'select validation failed: ' + err,
+              path: state.path,
+              type: 'any.select'
+            });
+          }
+
+          if (response && parseInt(response.statusCode / 100, 10) !== 2) {
+            return resolve({
+              message: 'select validation failed: ' + body,
+              path: state.path,
+              type: 'any.select'
+            });
+          }
+
+          if (!body || !body.length) {
+            return resolve({
+              message: '"' + value + '" for "' + (component.label || component.key) + '" is not a valid selection.',
+              path: state.path,
+              type: 'any.select'
+            });
+          }
+
+          // This is a valid selection.
+          return resolve(null);
+        });
+      }));
+    }
+  },
+  {
     name: 'distinct',
     params: {
       component: Joi.any(),
-      data: Joi.any()
+      submission: Joi.any(),
+      model: Joi.any(),
+      async: Joi.any()
     },
     validate(params, value, state, options) {
-      let row = state.parent;
+      const component = params.component;
+      const submission = params.submission;
+      const model = params.model;
+      const async = params.async;
 
-      if (!_.isArray(row)) {
-        row = [row];
+      const path = 'data.' + state.path.join('.');
+
+      // Allow empty.
+      if (!value) {
+        return value;
+      }
+      if (_.isEmpty(value)) {
+        return value;
       }
 
-      // Todo.
+      // Get the query.
+      const query = {form: util.idToBson(submission.form)};
+      if (_.isString(value)) {
+        query[path] = {$regex: new RegExp(`^${util.escapeRegExp(value)}$`), $options: 'i'};
+      }
+      // FOR-213 - Pluck the unique location id
+      else if (
+        !_.isString(value) &&
+        value.hasOwnProperty('address_components') &&
+        value.hasOwnProperty('place_id')
+      ) {
+        query[path + '.place_id'] = {$regex: new RegExp(`^${util.escapeRegExp(value.place_id)}$`), $options: 'i'};
+      }
+      // Compare the contents of arrays vs the order.
+      else if (_.isArray(value)) {
+        query[path] = {$all: value};
+      }
+
+      // Only search for non-deleted items.
+      if (!query.hasOwnProperty('deleted')) {
+        query['deleted'] = {$eq: null};
+      }
+
+      async.push(new Promise((resolve, reject) => {
+        // Try to find an existing value within the form.
+        model.findOne(query, (err, result) => {
+          if (err) {
+            return resolve({
+              message: err,
+              path: state.path,
+              type: 'any.unique'
+            });
+          }
+          else if (result && submission._id && (result._id.toString() === submission._id)) {
+            // This matches the current submission which is allowed.
+            return resolve(null);
+          }
+          else if (result) {
+            return resolve({
+              message: `"${component.label}" must be unique.`,
+              path: state.path,
+              type: 'any.unique'
+            });
+          }
+          return resolve(null);
+        });
+      }));
 
       return value; // Everything is OK
     }
@@ -220,6 +392,7 @@ const JoiX = Joi.extend([
       custom: '{{message}}',
       json: '{{message}}',
       hidden: '{{message}}',
+      select: '{{message}}',
       distinct: '{{message}}'
     },
     rules: getRules('any')
@@ -231,6 +404,7 @@ const JoiX = Joi.extend([
       custom: '{{message}}',
       json: '{{message}}',
       hidden: '{{message}}',
+      select: '{{message}}',
       distinct: '{{message}}'
     },
     rules: getRules('string')
@@ -242,6 +416,7 @@ const JoiX = Joi.extend([
       custom: '{{message}}',
       json: '{{message}}',
       hidden: '{{message}}',
+      select: '{{message}}',
       distinct: '{{message}}'
     },
     rules: getRules('array')
@@ -253,6 +428,7 @@ const JoiX = Joi.extend([
       custom: '{{message}}',
       json: '{{message}}',
       hidden: '{{message}}',
+      select: '{{message}}',
       distinct: '{{message}}'
     },
     rules: getRules('object')
@@ -264,6 +440,7 @@ const JoiX = Joi.extend([
       custom: '{{message}}',
       json: '{{message}}',
       hidden: '{{message}}',
+      select: '{{message}}',
       distinct: '{{message}}'
     },
     rules: getRules('number')
@@ -275,6 +452,7 @@ const JoiX = Joi.extend([
       custom: '{{message}}',
       json: '{{message}}',
       hidden: '{{message}}',
+      select: '{{message}}',
       distinct: '{{message}}'
     },
     rules: getRules('boolean')
@@ -286,6 +464,7 @@ const JoiX = Joi.extend([
       custom: '{{message}}',
       json: '{{message}}',
       hidden: '{{message}}',
+      select: '{{message}}',
       distinct: '{{message}}'
     },
     rules: getRules('date')
@@ -300,10 +479,11 @@ const JoiX = Joi.extend([
  * @constructor
  */
 class Validator {
-  constructor(form, model) {
+  constructor(form, model, token) {
     this.model = model;
-    this.unique = {};
+    this.async = [];
     this.form = form;
+    this.token = token;
   }
 
   /**
@@ -316,16 +496,11 @@ class Validator {
    * @param {Object} componentData
    *   The submission data corresponding to this component.
    */
-  buildSchema(schema, components, componentData, submissionData) {
+  buildSchema(schema, components, componentData, submission) {
     // Add a validator for each component in the form, with its componentData.
     /* eslint-disable max-statements */
     components.forEach((component) => {
       let fieldValidator = null;
-
-      // If the value must be unique.
-      if (component.unique) {
-        this.unique[component.key] = component;
-      }
 
       // The value is persistent if it doesn't say otherwise or explicitly says so.
       const isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
@@ -340,7 +515,7 @@ class Validator {
             {},
             component.components,
             _.get(componentData, component.key, componentData),
-            submissionData
+            submission
           );
 
           fieldValidator = JoiX.array().items(JoiX.object().keys(objectSchema)).options({stripUnknown: false});
@@ -350,7 +525,7 @@ class Validator {
             {},
             component.components,
             _.get(componentData, component.key, componentData),
-            submissionData
+            submission
           );
 
           fieldValidator = JoiX.object().keys(objectSchema);
@@ -358,18 +533,18 @@ class Validator {
         case 'fieldset':
         case 'panel':
         case 'well':
-          this.buildSchema(schema, component.components, componentData, submissionData);
+          this.buildSchema(schema, component.components, componentData, submission);
           break;
         case 'table':
           component.rows.forEach((row) => {
             row.forEach((column) => {
-              this.buildSchema(schema, column.components, componentData, submissionData);
+              this.buildSchema(schema, column.components, componentData, submission);
             });
           });
           break;
         case 'columns':
           component.columns.forEach((column) => {
-            this.buildSchema(schema, column.components, componentData, submissionData);
+            this.buildSchema(schema, column.components, componentData, submission);
           });
           break;
         case 'textfield':
@@ -392,6 +567,12 @@ class Validator {
           ) {
             fieldValidator = fieldValidator.max(component.validate.maxLength);
           }
+          break;
+        case 'select':
+          if (component.validate && component.validate.select) {
+            fieldValidator = JoiX.any().select(component, submission, this.token, this.async);
+          }
+          fieldValidator = fieldValidator || JoiX.any();
           break;
         case 'email':
           fieldValidator = JoiX.string().email().allow('');
@@ -434,7 +615,7 @@ class Validator {
                 {},
                 component.components,
                 _.get(componentData, component.key, componentData),
-                submissionData
+                submission
               );
               fieldValidator = JoiX.object().keys(objectSchema);
             }
@@ -443,7 +624,7 @@ class Validator {
                 schema,
                 component.components,
                 componentData,
-                submissionData
+                submission
               );
             }
           }
@@ -472,13 +653,18 @@ class Validator {
 
         // Add the custom validations.
         if (component.validate && component.validate.custom) {
-          fieldValidator = fieldValidator.custom(component, submissionData);
+          fieldValidator = fieldValidator.custom(component, submission.data);
         }
 
         // Add the json logic validations.
         if (component.validate && component.validate.json) {
-          fieldValidator = fieldValidator.json(component, submissionData);
+          fieldValidator = fieldValidator.json(component, submission.data);
         }
+      }
+
+      // If the value must be unique.
+      if (component.unique) {
+        fieldValidator = fieldValidator.distinct(component, submission, this.model, this.async);
       }
 
       // Make sure to change this to an array if multiple is checked.
@@ -489,7 +675,7 @@ class Validator {
       }
 
       if (component.key && fieldValidator) {
-        schema[component.key] = fieldValidator.hidden(component, submissionData);
+        schema[component.key] = fieldValidator.hidden(component, submission.data);
       }
     });
     /* eslint-enable max-statements */
@@ -523,10 +709,7 @@ class Validator {
     };
 
     // Create the validator schema.
-    schema = JoiX.object().keys(this.buildSchema(schema, this.form.components, submission.data, submission.data));
-
-    // Iterate through each of the unique keys.
-    const uniques = _.keys(this.unique);
+    schema = JoiX.object().keys(this.buildSchema(schema, this.form.components, submission.data, submission));
 
     // Iterate the list of components one time to build the path map.
     const paths = {};
@@ -538,68 +721,21 @@ class Validator {
       }
     }, true, '', true);
 
-    async.eachSeries(uniques, (key, done) => {
-      const component = this.unique[key];
-
-      debug.validator(`Key: ${key}`);
-      // Skip validation of this field, because data wasn't included.
-      const data = _.get(submission.data, _.get(paths, key));
-      debug.validator(data);
-      if (!data) {
-        debug.validator(`Skipping Key: ${key}`);
-        return done();
-      }
-      if (_.isEmpty(data)) {
-        debug.validator(`Skipping Key: ${key}, typeof: ${typeof data}`);
-        return done();
-      }
-
-      // Get the query.
-      const query = {form: util.idToBson(submission.form)};
-      if (_.isString(data)) {
-        query[`data.${_.get(paths, key)}`] = {$regex: new RegExp(`^${util.escapeRegExp(data)}$`), $options: 'i'};
-      }
-      // FOR-213 - Pluck the unique location id
-      else if (
-        !_.isString(data) &&
-        data.hasOwnProperty('address_components') &&
-        data.hasOwnProperty('place_id')
-      ) {
-        const _path = `data.${_.get(paths, key)}.place_id`;
-        query[_path] = {$regex: new RegExp(`^${util.escapeRegExp(data.place_id)}$`), $options: 'i'};
-      }
-      // Compare the contents of arrays vs the order.
-      else if (_.isArray(data)) {
-        query[`data.${_.get(paths, key)}`] = {$all: data};
-      }
-
-      // Only search for non-deleted items.
-      if (!query.hasOwnProperty('deleted')) {
-        query['deleted'] = {$eq: null};
-      }
-
-      // Try to find an existing value within the form.
-      debug.validator(query);
-      this.model.findOne(query, (err, result) => {
-        if (err) {
-          debug.validator(err);
-          return done(err);
+    JoiX.validate(submission.data, schema, {stripUnknown: true, abortEarly: false}, (validateErr, value) => {
+      // Wait for all async validators to complete and add any errors.
+      Promise.all(this.async).then(errors => {
+        errors = errors.filter(item => item);
+        // Add in any asyncronous errors.
+        if (errors.length) {
+          if (!validateErr) {
+            validateErr = new Error('Validation failed');
+            validateErr.name = 'ValidationError';
+            validateErr.details = errors;
+          }
+          else {
+            validateErr.details = validateErr.details.concat(errors);
+          }
         }
-        if (result && submission._id && (result._id.toString() === submission._id)) {
-          return done();
-        }
-        if (result) {
-          return done(new Error(`${component.label} must be unique.`));
-        }
-
-        done();
-      });
-    }, (err) => {
-      if (err) {
-        return next(err.message);
-      }
-
-      JoiX.validate(submission.data, schema, {stripUnknown: true, abortEarly: false}, (validateErr, value) => {
         if (validateErr) {
           // Remove any conditionally hidden validations. Joi will still throw the errors but we don't want them since the
           // fields are hidden.
@@ -630,8 +766,6 @@ class Validator {
 
           // Only throw error if there are still errors.
           if (validateErr.details.length) {
-            debug.validator(validateErr);
-
             validateErr._validated = value;
 
             return next(validateErr);
