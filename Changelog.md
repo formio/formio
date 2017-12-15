@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.20.7
+### Changed
+ - Backport async validator changes and add async select validation.
+
 ## 1.20.6
 ### Fixed
  - Recursive loading of subforms.
