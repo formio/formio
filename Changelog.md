@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.23.3
+### Fixed
+ - Import order of subforms no longer crashes import.
+
 ## 1.23.2
 ### Fixed
  - Issues with problematic aggresive resource caching.
