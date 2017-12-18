@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## 1.23.3
 ### Fixed
  - Problems with using temp tokens with remote environments.
+ - Import order of subforms no longer crashes import.
 
 ## 1.23.2
 ### Fixed
