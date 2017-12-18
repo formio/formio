@@ -351,7 +351,7 @@ const getRules = (type) => [
       else if (_.isArray(value)) {
         query[path] = {$all: value};
       }
-
+      
       // Only search for non-deleted items.
       if (!query.hasOwnProperty('deleted')) {
         query['deleted'] = {$eq: null};
