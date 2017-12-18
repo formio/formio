@@ -120,13 +120,13 @@ module.exports = (router) => {
     let changes = false;
 
     // Attempt to add a form.
-    if (template.forms[entity.form]) {
+    if (template.forms[entity.form] && template.forms[entity.form]._id) {
       entity.form = template.forms[entity.form]._id.toString();
       changes = true;
     }
 
     // Attempt to add a resource
-    if (!changes && template.resources[entity.form]) {
+    if (!changes && template.resources[entity.form] && template.resources[entity.form]._id) {
       entity.form = template.resources[entity.form]._id.toString();
       changes = true;
     }
@@ -164,7 +164,11 @@ module.exports = (router) => {
     }
 
     // Attempt to update a single resource if present.
-    if (entity.resource && template.hasOwnProperty(`resources`) && template.resources[entity.resource]) {
+    if (
+      entity.resource && template.hasOwnProperty(`resources`) &&
+      template.resources[entity.resource] &&
+      template.resources[entity.resource]._id
+    ) {
       entity.resource = template.resources[entity.resource]._id.toString();
       changes = true;
     }
@@ -250,6 +254,7 @@ module.exports = (router) => {
       transform: (template, resource) => {
         roleMachineNameToId(template, resource.submissionAccess);
         roleMachineNameToId(template, resource.access);
+        componentMachineNameToId(template, resource.components);
         return resource;
       },
       cleanUp: (template, resources, done) => {
@@ -299,6 +304,34 @@ module.exports = (router) => {
         roleMachineNameToId(template, form.access);
         componentMachineNameToId(template, form.components);
         return form;
+      },
+      cleanUp: (template, forms, done) => {
+        let model = formio.resources.form.model;
+
+        async.forEachOf(forms, (form, machineName, next) => {
+          if (!componentMachineNameToId(template, form.components)) {
+            return next();
+          }
+
+          debug.cleanUp(`Need to update form component _ids for`, machineName);
+          model.findOneAndUpdate(
+            {_id: form._id, deleted: {$eq: null}},
+            {components: form.components},
+            {new: true},
+            (err, doc) => {
+              if (err) {
+                return next(err);
+              }
+              if (!doc) {
+                return next();
+              }
+
+              forms[machineName] = doc.toObject();
+              debug.cleanUp(`Updated form component _ids for`, machineName);
+              next();
+            }
+          );
+        }, done);
       },
       query: function(document, template) {
         let query = {machineName: document.machineName, deleted: {$eq: null}};

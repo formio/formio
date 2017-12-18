@@ -369,7 +369,8 @@ module.exports = function(router, resourceName, resourceId) {
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
         // Next we need to validate the input.
-        var validator = new Validator(req.currentForm, submissionModel);
+        const token = util.getRequestValue(req, 'x-jwt-token');
+        const validator = new Validator(req.currentForm, submissionModel, token);
 
         // Validate the request.
         validator.validate(req.body, function(err, submission) {
