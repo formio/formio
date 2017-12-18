@@ -64,7 +64,7 @@ const checkConditional = (component, row, data, recurse = false) => {
   }
 
   if (recurse) {
-    return isVisible && (!component.parent || checkConditional(component.parent, row, data, true));
+    return isVisible && (!component.parent || component.parent.type === 'form' || checkConditional(component.parent, row, data, true));
   }
   else {
     return isVisible;
@@ -775,7 +775,7 @@ class Validator {
                 // Form "data" keys don't have components.
                 if (component) {
                   result.hidden = result.hidden ||
-                    !checkConditional(component, _.get(value, result.path), result.submission, false);
+                    !checkConditional(component, _.get(value, result.path), result.submission, true);
 
                   const clearOnHide = util.isBoolean(component.clearOnHide) ?
                     util.boolean(component.clearOnHide) : true;
