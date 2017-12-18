@@ -101,6 +101,16 @@ module.exports = function(router) {
         return next();
       }
 
+      // See if this is a remote token.
+      if (decoded.project && decoded.permission) {
+        req.user = decoded.user;
+        req.token = decoded;
+        req.userProject = decoded.project;
+        req.remotePermission = decoded.permission;
+        generateToken(token, decoded, res);
+        return next();
+      }
+
       if (!decoded.form || !decoded.form._id) {
         return res.sendStatus(401);
       }
