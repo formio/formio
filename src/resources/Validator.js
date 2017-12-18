@@ -64,7 +64,8 @@ const checkConditional = (component, row, data, recurse = false) => {
   }
 
   if (recurse) {
-    return isVisible && (!component.parent || component.parent.type === 'form' || checkConditional(component.parent, row, data, true));
+    let checkParent = checkConditional(component.parent, row, data, true);
+    return isVisible && (!component.parent || component.parent.type === 'form' || checkParent);
   }
   else {
     return isVisible;
@@ -351,7 +352,7 @@ const getRules = (type) => [
       else if (_.isArray(value)) {
         query[path] = {$all: value};
       }
-      
+
       // Only search for non-deleted items.
       if (!query.hasOwnProperty('deleted')) {
         query['deleted'] = {$eq: null};
