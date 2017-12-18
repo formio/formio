@@ -92,61 +92,47 @@ module.exports = function(router) {
    * @param expire
    * @param cb
    */
-  var getTempToken = function(req, res, token, allow, expire, cb) {
-    // Decode/refresh the token and store for later middleware.
-    jwt.verify(token, router.formio.config.jwt.secret, function(err, decoded) {
-      if (err || !decoded) {
-        if (err && (err.name === 'JsonWebTokenError')) {
-          return cb('Bad Token');
-        }
-        else if (err && (err.name === 'TokenExpiredError')) {
-          return cb('Login Timeout');
-        }
-        else {
-          return cb('Unauthorized');
-        }
-      }
+  var getTempToken = function(req, res, allow, expire, cb) {
+    if (!req.token) {
+      return cb('No authentication token provided.');
+    }
 
-      if (!res.headersSent) {
-        res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
-        res.setHeader('x-jwt-token', token);
-      }
+    let tempToken = _.cloneDeep(req.token);
 
-      // Check to see if this path is allowed.
-      if (!isTokenAllowed(req, decoded)) {
-        return res.status(401).send('Token path not allowed.');
-      }
+    // Check to see if this path is allowed.
+    if (!isTokenAllowed(req, tempToken)) {
+      return res.status(401).send('Token path not allowed.');
+    }
 
-      // Do not allow regeneration of temp tokens from other temp tokens.
-      if (decoded.tempToken) {
-        return cb('Cannot issue a temporary token using another temporary token.');
-      }
+    // Do not allow regeneration of temp tokens from other temp tokens.
+    if (tempToken.tempToken) {
+      return cb('Cannot issue a temporary token using another temporary token.');
+    }
 
-      var now = Math.round((new Date()).getTime() / 1000);
-      expire = expire || 3600;
-      expire = parseInt(expire, 10);
-      var timeLeft = (parseInt(decoded.exp, 10) - now);
+    var now = Math.round((new Date()).getTime() / 1000);
+    expire = expire || 3600;
+    expire = parseInt(expire, 10);
+    var timeLeft = (parseInt(tempToken.exp, 10) - now);
 
-      // Ensure they are not trying to create an extended expiration.
-      if ((expire > 3600) && (timeLeft < expire)) {
-        return cb('Cannot generate extended expiring temp token.');
-      }
+    // Ensure they are not trying to create an extended expiration.
+    if ((expire > 3600) && (timeLeft < expire)) {
+      return cb('Cannot generate extended expiring temp token.');
+    }
 
-      // Add the allowed to the token.
-      if (allow) {
-        decoded.allow = allow;
-      }
+    // Add the allowed to the token.
+    if (allow) {
+      tempToken.allow = allow;
+    }
 
-      decoded.tempToken = true;
+    tempToken.tempToken = true;
 
-      // Delete the previous expiration so we can generate a new one.
-      delete decoded.exp;
+    // Delete the previous expiration so we can generate a new one.
+    delete tempToken.exp;
 
-      // Sign the token.
-      jwt.sign(decoded, router.formio.config.jwt.secret, {
-        expiresIn: expire
-      }, (err, token) => cb(err, token));
-    });
+    // Sign the token.
+    jwt.sign(tempToken, router.formio.config.jwt.secret, {
+      expiresIn: expire
+    }, (err, token) => cb(err, token));
   };
 
   var tempToken = function(req, res, next) {
@@ -154,17 +140,17 @@ module.exports = function(router) {
       return res.status(400).send('No headers provided.');
     }
 
-    var token = req.headers['x-jwt-token'];
+    if (!req.token) {
+      return res.status(400).send('No authentication token provided.');
+    }
+
     var allow = req.headers['x-allow'];
     var expire = req.headers['x-expire'];
     expire = expire || 3600;
     expire = parseInt(expire, 10);
-    if (!token) {
-      return res.status(400).send('You must provide an existing token in the x-jwt-token header.');
-    }
 
     // get a temporary token.
-    getTempToken(req, res, token, allow, expire, function(err, tempToken) {
+    getTempToken(req, res, allow, expire, function(err, tempToken) {
       if (err) {
         return res.status(400).send(err);
       }
@@ -174,7 +160,7 @@ module.exports = function(router) {
       };
 
       // Allow other libraries to hook into the response.
-      hook.alter('tempToken', req, res, token, allow, expire, tokenResponse, (err) => {
+      hook.alter('tempToken', req, res, allow, expire, tokenResponse, (err) => {
         return res.json(tokenResponse);
       });
     });
