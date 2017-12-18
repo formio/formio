@@ -29,7 +29,7 @@ const checkConditional = (component, row, data, recurse = false) => {
     return isVisible;
   }
 
-  // Custom conditional logic. Need special case so the eval is isolated an in a sandbox
+  // Custom conditional logic. Need special case so the eval is isolated in a sandbox
   if (component.customConditional) {
     try {
       // Create the sandbox.
@@ -774,7 +774,8 @@ class Validator {
 
                 // Form "data" keys don't have components.
                 if (component) {
-                  result.hidden = result.hidden || !checkConditional(component, _.get(value, result.path), value, true);
+                  result.hidden = result.hidden ||
+                    !checkConditional(component, _.get(value, result.path), result.submission, false);
 
                   const clearOnHide = util.isBoolean(component.clearOnHide) ?
                     util.boolean(component.clearOnHide) : true;
@@ -786,11 +787,13 @@ class Validator {
                 }
                 else {
                   result.path.push(key);
+                  // Since this is a subform, change the submission object going to the conditionals.
+                  result.submission = _.get(value, result.path);
                 }
               }
 
               return result;
-            }, {path: [], hidden: detail.type.includes('.hidden')});
+            }, {path: [], hidden: detail.type.includes('.hidden'), submission: value});
 
             return !result.hidden;
           });
