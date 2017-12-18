@@ -841,7 +841,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .expect(400)
-          .expect('You must provide an existing token in the x-jwt-token header.')
+          .expect('No authentication token provided.')
           .end(done);
       });
 
