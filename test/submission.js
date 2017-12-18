@@ -2449,6 +2449,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
+            assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, '"Text Field" must be unique.');
@@ -2518,6 +2519,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
+            assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, '"Text Field" must be unique.');
@@ -2642,6 +2644,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
+            assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, '"address" must be unique.');
