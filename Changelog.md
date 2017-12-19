@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.23.6
+### Fixed
+ - Threading so that it will not block debugging ports.
+
+## 1.23.5
+### Fixed
+ - Make async validators work properly and move select to joi validation.
+ - Fix issue with importing subforms out of order.
+ - Move sub form validation and submission to the appropriate areas so it works in conjunction with other functionality.
+ - Hooks for tempTokens.
+
 ## 1.23.3
 ### Fixed
  - Problems with using temp tokens with remote environments.
