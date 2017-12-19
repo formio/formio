@@ -22,7 +22,7 @@ class Thread {
       options = {execArgv: [`--debug=${Math.floor(Math.random() * (65535 - 1025)) + 1024}`]};
     }
 
-    this._thread = new Spawn(task, options);
+    this._thread = new Spawn(task, [], options);
   }
 
   start(data) {
