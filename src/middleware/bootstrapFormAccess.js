@@ -25,6 +25,11 @@ module.exports = function(router) {
       return next();
     }
 
+    // If they specify access manually, skip defaults.
+    if (req.body.access) {
+      return next();
+    }
+
     // Query the roles collection, to build the updated form access list.
     router.formio.resources.role.model
       .find(hook.alter('roleQuery', {deleted: {$eq: null}}, req))
