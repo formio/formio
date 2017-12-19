@@ -1055,7 +1055,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+            {
+              type: 'read_all', roles: [,
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_own', roles: [template.roles.authenticated._id.toString()]},
@@ -2038,7 +2044,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_all', roles: [template.roles.authenticated._id.toString()]},
@@ -2763,7 +2775,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_own', roles: [template.roles.authenticated._id.toString()]},
@@ -3131,7 +3149,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_all', roles: [template.roles.authenticated._id.toString()]},
@@ -3543,7 +3567,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.anonymous._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_own', roles: [template.roles.anonymous._id.toString()]},
@@ -4399,7 +4429,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.anonymous._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_all', roles: [template.roles.anonymous._id.toString()]},
@@ -5070,7 +5106,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.anonymous._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_own', roles: [template.roles.anonymous._id.toString()]},
@@ -5443,7 +5485,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.anonymous._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_all', roles: [template.roles.anonymous._id.toString()]},
@@ -6065,7 +6113,13 @@ module.exports = function(app, template, hook) {
       // Before the suite runs, attach the test Project's id to the payload.
       before(function() {
         tempForm.access = [
-          {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+          {
+            type: 'read_all', roles: [
+              template.roles.anonymous._id.toString(),
+              template.roles.authenticated._id.toString(),
+              template.roles.administrator._id.toString()
+            ]
+          }
         ];
         tempForm.submissionAccess = [
           {type: 'update_all', roles: [template.roles.authenticated._id.toString()]}
@@ -9165,10 +9219,9 @@ module.exports = function(app, template, hook) {
             assert.equal(response.type, 'form');
             assert.equal(response.access.length, 1);
             assert.equal(response.access[0].type, 'read_all');
-            assert.equal(response.access[0].roles.length, 3);
+            assert.equal(response.access[0].roles.length, 2);
             assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
             assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
-            assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
 
             // Build a temp list to compare access without mongo id's.
             var tempSubmissionAccess = [];

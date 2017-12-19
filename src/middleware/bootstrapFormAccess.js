@@ -26,7 +26,7 @@ module.exports = function(router) {
     }
 
     // If they specify access manually, skip defaults.
-    if (req.body.access) {
+    if (req.body.access && req.body.access.length) {
       return next();
     }
 
