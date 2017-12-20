@@ -1188,10 +1188,8 @@ module.exports = function(app, template, hook) {
             assert.equal(response.submissionAccess[0].roles[0], template.roles.anonymous._id.toString());
             assert.equal(response.access.length, 1);
             assert.equal(response.access[0].type, 'read_all');
-            assert.equal(response.access[0].roles.length, 3);
+            assert.equal(response.access[0].roles.length, 1);
             assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
-            assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
-            assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
             assert.deepEqual(response.components, template.forms.userRegister2.components);
             template.forms.userRegister2 = response;
 
@@ -1272,10 +1270,8 @@ module.exports = function(app, template, hook) {
             assert.equal(response.submissionAccess[0].roles[0], template.roles.anonymous._id.toString());
             assert.equal(response.access.length, 1);
             assert.equal(response.access[0].type, 'read_all');
-            assert.equal(response.access[0].roles.length, 3);
+            assert.equal(response.access[0].roles.length, 1);
             assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
-            assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
-            assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
             assert.deepEqual(response.components, template.forms.userLogin2.components);
             template.forms.userLogin2 = response;
 
