@@ -116,6 +116,8 @@ module.exports = function(db, config, tools, done) {
   };
 
   getDateForms().then(forms => {
-    return updateSubmissions(forms).then(() => {done()});
+    return updateSubmissions(forms)
+      .then(() => done())
+      .catch(err => done(err));
   });
 };
