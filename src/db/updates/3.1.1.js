@@ -57,7 +57,7 @@ module.exports = function(db, config, tools, done) {
     }
     // Handle Containers
     if (parts.length > 1) {
-      return setDateFields(parts.slice(1).join('.'), value) || changed;
+      return setDateField(parts.slice(1).join('.'), value) || changed;
     }
     if (value && !(value instanceof Date)) {
       data[parts[0]] = new Date(value);
