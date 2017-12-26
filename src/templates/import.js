@@ -503,13 +503,6 @@ module.exports = (router) => {
       return done(`No template provided.`);
     }
 
-    if (!template.title) {
-      template.title = 'Export';
-    }
-    if (!template.name) {
-      template.name = 'Export';
-    }
-
     async.series(hook.alter(`templateImportSteps`, [
       async.apply(install(entities.role), template, template.roles, alter.role),
       async.apply(install(entities.resource), template, template.resources, alter.form),
