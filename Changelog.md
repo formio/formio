@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [UNRELEASED]
 ### Fixed
  - CSV export when Select component within DataGrid component.
+ - Do not replace the title and name during import if none are provided.
+ 
+### Added
+ - Custom Form properties.
 
 ## 1.23.7
 ### Changed
