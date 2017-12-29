@@ -3,7 +3,7 @@
 /**
  * Update 3.1.1
  *
- * This update does the following.
+ * This update needs to be executed manually...
  *
  *   1.) Convert all date values to BSON dates.
  *
@@ -13,6 +13,8 @@
  * @param done
  */
 module.exports = function(db, config, tools, done) {
+  done();
+  /*
   const formCollection = db.collection('forms');
   const submissionCollection = db.collection('submissions');
 
@@ -120,4 +122,5 @@ module.exports = function(db, config, tools, done) {
       .then(() => done())
       .catch(err => done(err));
   });
+  */
 };
