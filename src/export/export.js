@@ -1,22 +1,22 @@
 'use strict';
 
-var exporters = require('./index');
-var _ = require('lodash');
-var through = require('through');
-var _url = require('url');
-var debug = require('debug')('formio:error');
+const exporters = require('./index');
+const _ = require('lodash');
+const through = require('through');
+const _url = require('url');
+const debug = require('debug')('formio:error');
 
-module.exports = function(router) {
-  var hook = require('../util/hook')(router.formio);
+module.exports = (router) => {
+  const hook = require('../util/hook')(router.formio);
 
   // Mount the export endpoint using the url.
-  router.get('/form/:formId/export', function(req, res, next) {
+  router.get('/form/:formId/export', (req, res, next) => {
     if (!_.has(req, 'token') || !_.has(req, 'token.user._id')) {
       return res.sendStatus(400);
     }
 
     // Get the export format.
-    var format = (req.query && req.query.format)
+    const format = (req.query && req.query.format)
       ? req.query.format.toLowerCase()
       : 'json';
 
@@ -26,7 +26,7 @@ module.exports = function(router) {
     }
 
     // Load the form.
-    router.formio.cache.loadCurrentForm(req, function(err, form) {
+    router.formio.cache.loadCurrentForm(req, (err, form) => {
       if (err) {
         return res.sendStatus(401);
       }
@@ -35,7 +35,7 @@ module.exports = function(router) {
       }
 
       // Allow them to provide a query.
-      var query = {};
+      let query = {};
       if (req.headers.hasOwnProperty('x-query')) {
         try {
           query = JSON.parse(req.headers['x-query']);
@@ -55,17 +55,17 @@ module.exports = function(router) {
       }
 
       // Create the exporter.
-      var exporter = new exporters[format](form, req, res);
+      const exporter = new exporters[format](form, req, res);
 
       // Initialize the exporter.
       exporter.init()
-        .then(function() {
-          var addUrl = function(data) {
-            _.each(data, function(field) {
+        .then(() => {
+          const addUrl = (data) => {
+            _.each(data, (field) => {
               if (field && field._id) {
                 // Add url property for resource fields
-                var fieldUrl = hook.alter('fieldUrl', '/form/' + field.form + '/submission/' + field._id, form, field);
-                var apiHost = router.formio.config.apiHost || router.formio.config.host;
+                const fieldUrl = hook.alter('fieldUrl', `/form/${field.form}/submission/${field._id}`, form, field);
+                const apiHost = router.formio.config.apiHost || router.formio.config.host;
                 field.url = _url.resolve(apiHost, fieldUrl);
                 // Recurse for nested resources
                 addUrl(field.data);
@@ -81,11 +81,11 @@ module.exports = function(router) {
 
           // Create the query stream.
           const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-          var stream = submissionModel.find(query)
+          const stream = submissionModel.find(query)
             .snapshot()
             .cursor({batchSize: 1000})
             .pipe(through(function(doc) {
-              var row = doc.toObject({getters: true, virtuals: false});
+              const row = doc.toObject({getters: true, virtuals: false});
 
               addUrl(row.data);
               router.formio.util.removeProtectedFields(form, 'export', row);
@@ -96,7 +96,7 @@ module.exports = function(router) {
           // Create the stream.
           return exporter.stream(stream);
         })
-        .catch(function(error) {
+        .catch((error) => {
           // Send the error.
           res.status(500).send(error);
         });

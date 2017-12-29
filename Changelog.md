@@ -5,11 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [UNRELEASED]
+### Fixed
+ - CSV export when Select component within DataGrid component.
+ - Do not replace the title and name during import if none are provided.
+ 
 ### Added
  - Custom Form properties.
-
-### Fixed
- - Do not replace the title and name during import if none are provided.
 
 ## 1.23.7
 ### Changed
