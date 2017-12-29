@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
  - Custom Form properties.
 
+### Fixed
+ - Do not replace the title and name during import if none are provided.
+
 ## 1.23.7
 ### Changed
  - Allow people to provide their form access settings on POST.
