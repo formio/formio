@@ -208,6 +208,10 @@ module.exports = (formio) => {
       settings: {
         type: mongoose.Schema.Types.Mixed,
         description: 'Custom form settings object.'
+      },
+      properties: {
+        type: mongoose.Schema.Types.Mixed,
+        description: 'Custom form properties.'
       }
     })
   });
