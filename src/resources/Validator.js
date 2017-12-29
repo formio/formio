@@ -63,9 +63,9 @@ const checkConditional = (component, row, data, recurse = false) => {
     }
   }
 
-  if (recurse) {
-    let checkParent = checkConditional(component.parent, row, data, true);
-    return isVisible && (!component.parent || component.parent.type === 'form' || checkParent);
+  // If visible and recurse, continue down tree to check parents.
+  if (isVisible && recurse && component.parent.type !== 'form') {
+    return !component.parent || checkConditional(component.parent, row, data, true);
   }
   else {
     return isVisible;
@@ -523,7 +523,7 @@ class Validator {
               {},
               component.components,
               subSubmission,
-              subSubmission.data
+              subSubmission
             );
             fieldValidator = JoiX.object().unknown(true).keys({
               data: JoiX.object().keys(formSchema)
@@ -737,12 +737,10 @@ class Validator {
     schema = JoiX.object().keys(this.buildSchema(schema, this.form.components, submission.data, submission));
 
     // Iterate the list of components one time to build the path map.
-    const paths = {};
     const components = {};
     util.eachComponent(this.form.components, (component, path) => {
       if (component.hasOwnProperty('key')) {
-        paths[component.key] = path;
-        components[component.key] = component;
+        components[path] = component;
       }
     }, true, '', true);
 
@@ -767,27 +765,23 @@ class Validator {
           validateErr.details = validateErr.details.filter((detail) => {
             // Walk up the path tree to determine if the component is hidden.
             const result = detail.path.reduce((result, key) => {
-              if (!isNaN(key)) {
-                result.path.push(key);
-              }
-              else {
-                const component = components[key];
+              result.path.push(key);
+              if (isNaN(key)) {
+                const component = components[result.path.join('.')];
 
                 // Form "data" keys don't have components.
                 if (component) {
                   result.hidden = result.hidden ||
-                    !checkConditional(component, _.get(value, result.path), result.submission, true);
+                    !checkConditional(component, _.get(value, result.path.slice(0, result.path.length - 1)), result.submission, true);
 
                   const clearOnHide = util.isBoolean(component.clearOnHide) ?
                     util.boolean(component.clearOnHide) : true;
 
-                  result.path.push(key);
                   if (clearOnHide && result.hidden) {
                     _.unset(value, result.path);
                   }
                 }
                 else {
-                  result.path.push(key);
                   // Since this is a subform, change the submission object going to the conditionals.
                   result.submission = _.get(value, result.path);
                 }
