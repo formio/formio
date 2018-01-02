@@ -68,7 +68,7 @@ module.exports = function(router) {
         return cb(null, cache.forms[id]);
       }
 
-      debug.loadForm(`${typeof id  }: ${id}`);
+      debug.loadForm(`${typeof id}: ${id}`);
       id = util.idToBson(id);
       if (id === false) {
         return cb('Invalid form _id given.');
