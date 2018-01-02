@@ -4,12 +4,12 @@ const _ = require('lodash');
 
 module.exports = function(formio) {
   return {
-    beforeGet: function(component, path, validation, req, res, next) {
+    beforeGet(component, path, validation, req, res, next) {
       req.modelQuery.select(`-data.${path}`);
       next();
     },
 
-    encryptField: function(req, component, path, next) {
+    encryptField(req, component, path, next) {
       formio.encrypt(_.get(req.body, `data.${path}`), function encryptResults(err, hash) {
         if (err) {
           return next(err);
@@ -20,7 +20,7 @@ module.exports = function(formio) {
       });
     },
 
-    beforePut: function(component, path, validation, req, res, next) {
+    beforePut(component, path, validation, req, res, next) {
       // Only perform password encryption after validation has occurred.
       if (!validation) {
         return next();
@@ -51,7 +51,7 @@ module.exports = function(formio) {
       }
     },
 
-    beforePost: function(component, path, validation, req, res, next) {
+    beforePost(component, path, validation, req, res, next) {
       // Only perform password encryption after validation has occurred.
       if (!validation) {
         return next();

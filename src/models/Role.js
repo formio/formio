@@ -19,7 +19,7 @@ module.exports = function(router) {
         {
           isAsync: true,
           message: 'Role title must be unique.',
-          validator: function(value, done) {
+          validator(value, done) {
             const search = hook.alter('roleSearch', {
               title: value,
               deleted: {$eq: null}

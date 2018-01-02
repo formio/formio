@@ -22,7 +22,7 @@ const Utils = {
    * @param {*} content
    *   The content to pass to console.log.
    */
-  log: function(content) {
+  log(content) {
     if (process.env.TEST_SUITE) {
       return;
     }
@@ -37,7 +37,7 @@ const Utils = {
    * @param value
    * @return {boolean}
    */
-  isBoolean: function(value) {
+  isBoolean(value) {
     if (typeof value === 'boolean') {
       return true;
     }
@@ -53,7 +53,7 @@ const Utils = {
    * @param value
    * @return {boolean}
    */
-  boolean: function(value) {
+  boolean(value) {
     if (typeof value === 'boolean') {
       return value;
     }
@@ -69,7 +69,7 @@ const Utils = {
    * @param {*} content
    *   The content to pass to console.error.
    */
-  error: function(content) {
+  error(content) {
     /* eslint-disable */
     console.error(content);
     /* eslint-enable */
@@ -78,7 +78,7 @@ const Utils = {
   /**
    * Returns the URL alias for a form provided the url.
    */
-  getAlias: function(req, reservedForms) {
+  getAlias(req, reservedForms) {
     /* eslint-disable no-useless-escape */
     const formsRegEx = new RegExp(`\/(${reservedForms.join('|')}).*`, 'i');
     /* eslint-enable no-useless-escape */
@@ -99,7 +99,7 @@ const Utils = {
    * @param str
    * @returns {*}
    */
-  escapeRegExp: function(str) {
+  escapeRegExp(str) {
     /* eslint-disable */
     return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
     /* eslint-enable */
@@ -110,7 +110,7 @@ const Utils = {
    *
    * @param req
    */
-  createSubRequest: function(req) {
+  createSubRequest(req) {
     // Determine how many child requests have been made.
     let childRequests = req.childRequests || 0;
 
@@ -232,7 +232,7 @@ const Utils = {
    * @returns {*}
    * @constructor
    */
-  ObjectId: function(id) {
+  ObjectId(id) {
     return _.isObject(id)
       ? id
       : mongoose.Types.ObjectId(id);
@@ -249,7 +249,7 @@ const Utils = {
    * @return
    *   The header value if found or false.
    */
-  getHeader: function(req, key) {
+  getHeader(req, key) {
     if (typeof req.headers[key] !== 'undefined') {
       return req.headers[key];
     }
@@ -257,7 +257,7 @@ const Utils = {
     return false;
   },
 
-    flattenComponentsForRender: function(components) {
+    flattenComponentsForRender(components) {
       const flattened = {};
       this.eachComponent(components, function(component, path) {
         // Containers will get rendered as flat.
@@ -278,7 +278,7 @@ const Utils = {
       return flattened;
     },
 
-  renderFormSubmission: function(data, components) {
+  renderFormSubmission(data, components) {
     const comps = this.flattenComponentsForRender(components);
     let submission = '<table border="1" style="width:100%">';
     _.each(comps, function(component, key) {
@@ -305,7 +305,7 @@ const Utils = {
    * @returns {{label: *, value: *}}
    */
   /* eslint-disable max-statements */
-  renderComponentValue: function(data, key, components) {
+  renderComponentValue(data, key, components) {
     let value = _.get(data, key);
     if (!value) {
       value = '';
@@ -447,7 +447,7 @@ const Utils = {
    * @return
    *   The query value if found or false.
    */
-  getQuery: function(req, key) {
+  getQuery(req, key) {
     if (typeof req.query[key] !== 'undefined') {
       return req.query[key];
     }
@@ -466,7 +466,7 @@ const Utils = {
    * @return
    *   The parameter value if found or false.
    */
-  getParameter: function(req, key) {
+  getParameter(req, key) {
     if (typeof req.params[key] !== 'undefined') {
       return req.params[key];
     }
@@ -485,7 +485,7 @@ const Utils = {
    * @return
    *   Return the value of the key or false if not found.
    */
-  getRequestValue: function(req, key) {
+  getRequestValue(req, key) {
     let ret = null;
 
     // If the header is present, return it.
@@ -518,7 +518,7 @@ const Utils = {
    * @returns {{}}
    *   The key/value pairs of the request url.
    */
-  getUrlParams: function(url) {
+  getUrlParams(url) {
     const urlParams = {};
     if (!url) {
       return urlParams;
@@ -553,7 +553,7 @@ const Utils = {
    * @return
    *   The submission key
    */
-  getSubmissionKey: function(key) {
+  getSubmissionKey(key) {
     return key.replace(/\./g, '.data.');
   },
 
@@ -566,7 +566,7 @@ const Utils = {
    * @return
    *   The form component key
    */
-  getFormComponentKey: function(key) {
+  getFormComponentKey(key) {
     return key.replace(/\.data\./g, '.');
   },
 
@@ -587,7 +587,7 @@ const Utils = {
    * @returns {Object}
    *   The mongo BSON id.
    */
-  idToBson: function(_id) {
+  idToBson(_id) {
     try {
       _id = _.isObject(_id)
         ? _id
@@ -610,13 +610,13 @@ const Utils = {
    * @returns {String}
    *   The mongo string id.
    */
-  idToString: function(_id) {
+  idToString(_id) {
     return _.isObject(_id)
       ? _id.toString()
       : _id;
   },
 
-  removeProtectedFields: function(form, action, submissions) {
+  removeProtectedFields(form, action, submissions) {
     if (!(submissions instanceof Array)) {
       submissions = [submissions];
     }
@@ -661,7 +661,7 @@ const Utils = {
      * @return {String}
      *   The base64 representation of the given data.
      */
-    encode: function(decoded) {
+    encode(decoded) {
       return new Buffer(decoded.toString()).toString('base64');
     },
     /**
@@ -673,7 +673,7 @@ const Utils = {
      * @return {String}
      *   The ascii representation of the given encoded data.
      */
-    decode: function(encoded) {
+    decode(encoded) {
       return new Buffer(encoded.toString()).toString('ascii');
     }
   },
@@ -687,7 +687,7 @@ const Utils = {
    * @param next
    * @return {*}
    */
-  uniqueMachineName: function(document, model, next) {
+  uniqueMachineName(document, model, next) {
     model.find({
       machineName: {"$regex": document.machineName},
       deleted: {$eq: null}

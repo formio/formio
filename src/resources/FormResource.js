@@ -68,7 +68,7 @@ module.exports = function(router) {
       ],
       hooks: {
         put: {
-          before: function(req, res, item, next) {
+          before(req, res, item, next) {
             if (item.components) {
               item.markModified('components');
             }

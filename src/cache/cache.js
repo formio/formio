@@ -15,7 +15,7 @@ module.exports = function(router) {
   const util = router.formio.util;
 
   return {
-    cache: function(req) {
+    cache(req) {
       if (!req.formioCache) {
         req.formioCache = hook.alter('cacheInit', {
           names: {},
@@ -33,7 +33,7 @@ module.exports = function(router) {
      * @param req
      * @param result
      */
-    updateCache: function(req, cache, result) {
+    updateCache(req, cache, result) {
       const formId = result._id.toString();
       if (!formId) {
         return;
@@ -61,7 +61,7 @@ module.exports = function(router) {
      * @param id {String}
      * @param cb {function}
      */
-    loadForm: function(req, type, id, cb) {
+    loadForm(req, type, id, cb) {
       const cache = this.cache(req);
       if (cache.forms[id]) {
         debug.loadForm(`Cache hit: ${id}`);
@@ -99,7 +99,7 @@ module.exports = function(router) {
       );
     },
 
-    getCurrentFormId: function(req) {
+    getCurrentFormId(req) {
       let formId = req.formId;
       if (req.params.formId) {
         formId = req.params.formId;
@@ -124,7 +124,7 @@ module.exports = function(router) {
      * @param cb
      * @returns {*}
      */
-    loadCurrentForm: function(req, cb) {
+    loadCurrentForm(req, cb) {
       const formId = this.getCurrentFormId(req);
       if (!formId) {
         return cb('No form found.');
@@ -144,7 +144,7 @@ module.exports = function(router) {
      * @param cb {Function}
      *   The callback function to invoke after loading the submission.
      */
-    loadSubmission: function(req, formId, subId, cb) {
+    loadSubmission(req, formId, subId, cb) {
       const cache = this.cache(req);
       if (cache.submissions[subId]) {
         debug.loadSubmission(`Cache hit: ${subId}`);
@@ -188,7 +188,7 @@ module.exports = function(router) {
      * @param req
      * @param cb
      */
-    loadCurrentSubmission: function(req, cb) {
+    loadCurrentSubmission(req, cb) {
       if (!req.params.submissionId) {
         return cb(new Error('No submission found.'));
       }
@@ -208,7 +208,7 @@ module.exports = function(router) {
      * @param cb {Function}
      *   The callback function to run when complete.
      */
-    loadFormByName: function(req, name, cb) {
+    loadFormByName(req, name, cb) {
       const cache = this.cache(req);
       if (cache.names[name]) {
         debug.loadFormByName(`Cache hit: ${name}`);
@@ -239,7 +239,7 @@ module.exports = function(router) {
     /**
      * Load a resource by alias
      */
-    loadFormByAlias: function(req, alias, cb) {
+    loadFormByAlias(req, alias, cb) {
       const cache = this.cache(req);
       if (cache.aliases[alias]) {
         debug.loadFormByAlias(`Cache hit: ${alias}`);
@@ -276,7 +276,7 @@ module.exports = function(router) {
      * @param depth
      * @returns {*}
      */
-    loadSubForms: function(form, req, next, depth) {
+    loadSubForms(form, req, next, depth) {
       depth = depth || 0;
 
       // Only allow 5 deep.

@@ -102,13 +102,13 @@ module.exports = router => {
   };
 
   return {
-    beforePost: function(component, path, validation, req, res, next) {
+    beforePost(component, path, validation, req, res, next) {
       return submitSubForms(component, path, validation, req, res, next);
     },
-    afterPost: function(component, path, validation, req, res, next) {
+    afterPost(component, path, validation, req, res, next) {
       return setChildFormParenthood(component, path, validation, req, res, next);
     },
-    beforePut: function(component, path, validation, req, res, next) {
+    beforePut(component, path, validation, req, res, next) {
       return submitSubForms(component, path, validation, req, res, next);
     },
     afterPut:  function(component, path, validation, req, res, next) {
