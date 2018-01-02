@@ -1,8 +1,8 @@
 'use strict';
 
-var _ = require('lodash');
-var debug = require('debug')('formio:middleware:condensePermissionTypes');
-var BSON = new RegExp('^[0-9a-fA-F]{24}$');
+const _ = require('lodash');
+const debug = require('debug')('formio:middleware:condensePermissionTypes');
+const BSON = new RegExp('^[0-9a-fA-F]{24}$');
 
 /**
  * The Condense Permission Types middleware.
@@ -22,8 +22,8 @@ module.exports = function(router) {
     }
 
     debug(req.body);
-    var final = null;
-    var condensed = null;
+    let final = null;
+    let condensed = null;
 
     // Attempt to condense the access array if present and populated.
     if (

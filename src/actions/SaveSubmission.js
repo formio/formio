@@ -1,14 +1,14 @@
 'use strict';
 
-var _ = require('lodash');
-var async = require('async');
-var util = require('../util/util');
+const _ = require('lodash');
+const async = require('async');
+const util = require('../util/util');
 
 module.exports = function(router) {
-  var Action = router.formio.Action;
-  var hook = require('../util/hook')(router.formio);
+  const Action = router.formio.Action;
+  const hook = require('../util/hook')(router.formio);
 
-  var SaveSubmission = function(data, req, res) {
+  const SaveSubmission = function(data, req, res) {
     Action.call(this, data, req, res);
   };
 
@@ -82,10 +82,10 @@ module.exports = function(router) {
     }
 
     // Keep track of the cache for this request.
-    var cache = {};
+    const cache = {};
 
     // Save data to a separate resource.
-    var saveToResource = function(resource, body, done) {
+    const saveToResource = function(resource, body, done) {
       if (!body) {
         return done();
       }
@@ -93,7 +93,7 @@ module.exports = function(router) {
       // Here we will clone the request, and then change the request body
       // and parameters to make it seem like a separate request to update
       // the child submissions.
-      var childReq = util.createSubRequest(req);
+      const childReq = util.createSubRequest(req);
       if (!childReq) {
         return done('Too many recursive requests.');
       }
@@ -101,8 +101,8 @@ module.exports = function(router) {
       childReq.body = body;
       childReq.formId = childReq.params.formId = resource._id.toString();
 
-      var url = '/form/:formId/submission';
-      var method = req.method.toLowerCase();
+      let url = '/form/:formId/submission';
+      const method = req.method.toLowerCase();
       if (method === 'put') {
         if (body._id) {
           childReq.subId = childReq.params.submissionId = body._id;
@@ -127,7 +127,7 @@ module.exports = function(router) {
      * Load a resource.
      * @type {function(this:SaveSubmission)}
      */
-    var loadResource = function(cache, then) {
+    const loadResource = function(cache, then) {
       router.formio.cache.loadForm(req, 'resource', this.settings.resource, function(err, resource) {
         if (err) {
           return then(err);
@@ -141,7 +141,7 @@ module.exports = function(router) {
     /**
      * Update the owner of a resource.
      */
-    var updateOwner = function(then) {
+    const updateOwner = function(then) {
       // Assign the owner if they are also providing a role.
       if (req.selfOwner && res.resource && res.resource.item) {
         res.resource.item.owner = res.resource.item._id;
@@ -160,9 +160,9 @@ module.exports = function(router) {
      *
      * @param then
      */
-    var assignResource = function(then) {
+    const assignResource = function(then) {
       // Get the resource.
-      var resource = (res.resource && res.resource.item) ? res.resource.item : cache.submission;
+      const resource = (res.resource && res.resource.item) ? res.resource.item : cache.submission;
 
       // Assign the resource to this submission.
       if (this.settings.property) {
@@ -190,7 +190,7 @@ module.exports = function(router) {
      * @param req
      * @returns {*}
      */
-    var updateSubmission = function(submission) {
+    const updateSubmission = function(submission) {
       submission = submission || {};
       submission.data = submission.data || {};
 
@@ -209,8 +209,8 @@ module.exports = function(router) {
      * @param form
      * @param then
      */
-    var loadSubmission = function(cache, then) {
-      var submission = {data: {}, roles: []};
+    const loadSubmission = function(cache, then) {
+      const submission = {data: {}, roles: []};
 
       // For new submissions, just populate the empty submission.
       if (req.method !== 'PUT') {
@@ -234,7 +234,7 @@ module.exports = function(router) {
           }
 
           // Find the external submission.
-          var external = _.find(currentSubmission.externalIds, {type: 'resource', resource: this.settings.resource});
+          const external = _.find(currentSubmission.externalIds, {type: 'resource', resource: this.settings.resource});
           if (!external) {
             return then();
           }

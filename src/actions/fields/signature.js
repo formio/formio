@@ -1,6 +1,6 @@
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 
 module.exports = function(formio) {
   return {
@@ -8,11 +8,11 @@ module.exports = function(formio) {
       if (!req.body.data) {
         return next();
       }
-      var value = _.get(req.body, 'data.' + path);
+      const value = _.get(req.body, `data.${path}`);
 
       // Coerse the value into an empty string.
       if (!value && value !== '') {
-        _.set(req.body, 'data.' + path, '');
+        _.set(req.body, `data.${path}`, '');
       }
       return next();
     },
@@ -23,12 +23,12 @@ module.exports = function(formio) {
 
       // Ensure that signatures are not ever wiped out with a PUT request
       // of data that came from the index request (where the signature is not populated).
-      var value = _.get(req.body, 'data.' + path);
+      let value = _.get(req.body, `data.${path}`);
 
       // Coerse the value into an empty string.
       if (!value && (value !== '')) {
         value = '';
-        _.set(req.body, 'data.' + path, '');
+        _.set(req.body, `data.${path}`, '');
       }
 
       if (
@@ -43,7 +43,7 @@ module.exports = function(formio) {
             return next(new Error('No submission found.'));
           }
 
-          _.set(req.body, 'data.' + path, _.get(submission.data, path));
+          _.set(req.body, `data.${path}`, _.get(submission.data, path));
           next();
         });
       }

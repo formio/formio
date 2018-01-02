@@ -1,13 +1,13 @@
 'use strict';
 
-var rest = require('restler');
-var _ = require('lodash');
-var debug = require('debug')('formio:action:webhook');
+const rest = require('restler');
+const _ = require('lodash');
+const debug = require('debug')('formio:action:webhook');
 const FormioUtils = require('formiojs/utils');
 
 module.exports = function(router) {
-  var Action = router.formio.Action;
-  var hook = router.formio.hook;
+  const Action = router.formio.Action;
+  const hook = router.formio.hook;
 
   /**
    * WebhookAction class.
@@ -15,7 +15,7 @@ module.exports = function(router) {
    *
    * @constructor
    */
-  var WebhookAction = function(data, req, res) {
+  const WebhookAction = function(data, req, res) {
     Action.call(this, data, req, res);
   };
 
@@ -107,7 +107,7 @@ module.exports = function(router) {
    *   The callback function to execute upon completion.
    */
   WebhookAction.prototype.resolve = function(handler, method, req, res, next) {
-    let settings = this.settings;
+    const settings = this.settings;
 
     /**
      * Util function to handle success for a potentially blocking request.
@@ -116,7 +116,7 @@ module.exports = function(router) {
      * @param response
      * @returns {*}
      */
-    let handleSuccess = (data, response) => {
+    const handleSuccess = (data, response) => {
       if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
         return;
       }
@@ -137,7 +137,7 @@ module.exports = function(router) {
      * @param response
      * @returns {*}
      */
-    let handleError = (data, response) => {
+    const handleError = (data, response) => {
       if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
         return;
       }
@@ -155,7 +155,7 @@ module.exports = function(router) {
         next(); // eslint-disable-line callback-return
       }
 
-      let options = {};
+      const options = {};
       debug(settings);
 
       // Get the settings
@@ -171,9 +171,9 @@ module.exports = function(router) {
         return handleError('No url given in the settings');
       }
 
-      var url = this.settings.url;
-      var submission = _.get(res, 'resource.item');
-      var payload = {
+      let url = this.settings.url;
+      const submission = _.get(res, 'resource.item');
+      const payload = {
         request: _.get(req, 'body'),
         response: _.get(req, 'response'),
         submission: (submission && submission.toObject) ? submission.toObject() : {},
@@ -191,7 +191,7 @@ module.exports = function(router) {
       }
 
       // Make the request.
-      debug('Request: ' + req.method.toLowerCase());
+      debug(`Request: ${req.method.toLowerCase()}`);
       switch (req.method.toLowerCase()) {
         case 'get':
           rest.get(url, options).on('success', handleSuccess).on('fail', handleError);
@@ -207,7 +207,7 @@ module.exports = function(router) {
           rest.del(url, options).on('success', handleSuccess).on('fail', handleError);
           break;
         default:
-          return handleError('Could not match request method: ' + req.method.toLowerCase());
+          return handleError(`Could not match request method: ${req.method.toLowerCase()}`);
       }
     }
     catch (e) {

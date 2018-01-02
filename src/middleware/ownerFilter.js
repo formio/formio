@@ -18,7 +18,7 @@ module.exports = function(router) {
     }
 
     // The default ownerFilter query.
-    var query = {owner: req.token.user._id};
+    let query = {owner: req.token.user._id};
 
     // If the self access flag was enabled in the permissionHandler, allow resources to access themselves.
     if (req.selfAccess) {

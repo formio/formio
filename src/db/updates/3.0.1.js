@@ -1,7 +1,7 @@
 'use strict';
 
-var async = require('async');
-var util = require('../../util/util');
+let async = require('async');
+let util = require('../../util/util');
 
 /**
  * Update 3.0.1
@@ -15,8 +15,8 @@ var util = require('../../util/util');
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var actionCollection = db.collection('actions');
-  var formCollection = db.collection('forms');
+  let actionCollection = db.collection('actions');
+  let formCollection = db.collection('forms');
   actionCollection.find({
     name: 'auth'
   }).snapshot({$snapshot: true}).toArray(function(err, actions) {
@@ -33,17 +33,17 @@ module.exports = function(db, config, tools, done) {
         if (err) { return next(err); }
         if (!form || !form._id) { return next(); }
 
-        var userparts = action.settings.username.split('.');
-        var passparts = action.settings.password.split('.');
-        var resource = userparts[0];
+        let userparts = action.settings.username.split('.');
+        let passparts = action.settings.password.split('.');
+        let resource = userparts[0];
 
-        var resourceFields = {};
+        let resourceFields = {};
         util.eachComponent(form.components, function(component) {
           if (component.validate && component.validate.custom) {
             component.validate.custom = component.validate.custom.replace(resource + '.password', 'password');
           }
           if (component.key) {
-            var subparts = component.key.split('.');
+            let subparts = component.key.split('.');
             if ((subparts.length > 1) && (subparts[0] === resource)) {
               component.key = subparts[1];
               resourceFields[subparts[1]] = subparts[1];
@@ -55,7 +55,7 @@ module.exports = function(db, config, tools, done) {
         formCollection.update({_id:form._id}, {$set:{components:form.components}});
 
         // Query for the resource this auth action is pointing to.
-        var query = {name: resource};
+        let query = {name: resource};
         if (form.hasOwnProperty('project')) {
           query.project = form.project;
         }

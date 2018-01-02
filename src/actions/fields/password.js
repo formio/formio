@@ -1,21 +1,21 @@
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 
 module.exports = function(formio) {
   return {
     beforeGet: function(component, path, validation, req, res, next) {
-      req.modelQuery.select('-data.' + path);
+      req.modelQuery.select(`-data.${path}`);
       next();
     },
 
     encryptField: function(req, component, path, next) {
-      formio.encrypt(_.get(req.body, 'data.' + path), function encryptResults(err, hash) {
+      formio.encrypt(_.get(req.body, `data.${path}`), function encryptResults(err, hash) {
         if (err) {
           return next(err);
         }
 
-        _.set(req.body, 'data.' + path, hash);
+        _.set(req.body, `data.${path}`, hash);
         next();
       });
     },
@@ -31,7 +31,7 @@ module.exports = function(formio) {
         return next();
       }
 
-      if (_.get(req.body, 'data.' + path)) {
+      if (_.get(req.body, `data.${path}`)) {
         this.encryptField(req, component, path, next);
       }
       else {
@@ -45,7 +45,7 @@ module.exports = function(formio) {
             return next(new Error('No submission found.'));
           }
 
-          _.set(req.body, 'data.' + path, _.get(submission.data, path));
+          _.set(req.body, `data.${path}`, _.get(submission.data, path));
           next();
         });
       }
@@ -56,7 +56,7 @@ module.exports = function(formio) {
       if (!validation) {
         return next();
       }
-      if (!_.has(req.body, 'data.' + path)) {
+      if (!_.has(req.body, `data.${path}`)) {
         return next();
       }
 

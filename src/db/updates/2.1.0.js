@@ -1,6 +1,6 @@
 'use strict';
 
-var crypto = require('crypto');
+let crypto = require('crypto');
 
 /**
  * Encrypt some text
@@ -13,8 +13,8 @@ function encrypt(secret, mixed) {
     return undefined;
   }
 
-  var cipher = crypto.createCipher('aes-256-cbc', secret);
-  var decryptedJSON = JSON.stringify(mixed);
+  let cipher = crypto.createCipher('aes-256-cbc', secret);
+  let decryptedJSON = JSON.stringify(mixed);
 
   return Buffer.concat([
     cipher.update(decryptedJSON),
@@ -34,8 +34,8 @@ function decrypt(secret, cipherbuffer) {
     return undefined;
   }
 
-  var decipher = crypto.createDecipher('aes-256-cbc', secret);
-  var decryptedJSON = Buffer.concat([
+  let decipher = crypto.createDecipher('aes-256-cbc', secret);
+  let decryptedJSON = Buffer.concat([
     decipher.update(cipherbuffer), // Buffer contains encrypted utf8
     decipher.final()
   ]);
@@ -53,9 +53,9 @@ function decrypt(secret, cipherbuffer) {
  */
 module.exports = function(db, config, tools, done) {
   // Add cors settings to existing projects.
-  var projects = db.collection('projects');
+  let projects = db.collection('projects');
   projects.find({}).snapshot({$snapshot: true}).forEach(function(project) {
-    var settings = {
+    let settings = {
       cors: '*'
     }
     if (project.settings_encrypted) {

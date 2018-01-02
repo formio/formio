@@ -1,9 +1,9 @@
 'use strict';
 
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 module.exports = function(formio) {
-  var hook = require('../util/hook')(formio);
+  const hook = require('../util/hook')(formio);
 
   /**
    * The base action to inherit from.
@@ -15,7 +15,7 @@ module.exports = function(formio) {
    *
    * @constructor
    */
-  var Action = function(data) {
+  const Action = function(data) {
     this.name = data.name;
     this.title = data.title;
     this.action = data.action;
@@ -85,11 +85,11 @@ module.exports = function(formio) {
         }
 
         if (!form) {
-          hook.alter('actionMachineName', document.form + ':' + document.name, document, done);
+          hook.alter('actionMachineName', `${document.form}:${document.name}`, document, done);
           return;
         }
 
-        hook.alter('actionMachineName', form.name + ':' + document.name, document, done);
+        hook.alter('actionMachineName', `${form.name}:${document.name}`, document, done);
       });
   };
 

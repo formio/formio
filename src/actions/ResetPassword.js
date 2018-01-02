@@ -1,14 +1,14 @@
 'use strict';
 
-var util = require('../util/util');
-var jwt = require('jsonwebtoken');
-var mongoose = require('mongoose');
-var _ = require('lodash');
+const util = require('../util/util');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+const _ = require('lodash');
 
 module.exports = function(router) {
-  var Action = router.formio.Action;
-  var hook = require('../util/hook')(router.formio);
-  var emailer = require('../util/email')(router.formio);
+  const Action = router.formio.Action;
+  const hook = require('../util/hook')(router.formio);
+  const emailer = require('../util/email')(router.formio);
 
   /**
    * ResetPasswordAction class.
@@ -16,7 +16,7 @@ module.exports = function(router) {
    *
    * @constructor
    */
-  var ResetPasswordAction = function(data, req, res) {
+  const ResetPasswordAction = function(data, req, res) {
     Action.call(this, data, req, res);
   };
 
@@ -50,8 +50,8 @@ module.exports = function(router) {
         return next(err);
       }
 
-      var basePath = hook.alter('path', '/form', req);
-      var dataSrc = basePath + '/' + req.params.formId + '/components';
+      const basePath = hook.alter('path', '/form', req);
+      const dataSrc = `${basePath}/${req.params.formId}/components`;
 
       // Return the reset password information.
       next(null, [
@@ -62,7 +62,7 @@ module.exports = function(router) {
           key: 'resources',
           placeholder: 'Select the resources we should reset password against.',
           dataSrc: 'url',
-          data: {url: basePath + '?type=resource'},
+          data: {url: `${basePath}?type=resource`},
           valueProperty: '_id',
           template: '<span>{{ item.title }}</span>',
           multiple: true,
@@ -194,14 +194,14 @@ module.exports = function(router) {
     }
 
     // Set the name of the key for the mongo query.
-    var usernamekey = 'data.' + this.settings.username;
+    const usernamekey = `data.${this.settings.username}`;
 
     // Create the query.
-    var query = {
+    const query = {
       deleted: {$eq: null}
     };
 
-    query[usernamekey] = {$regex: new RegExp('^' + util.escapeRegExp(token.username) + '$'), $options: 'i'};
+    query[usernamekey] = {$regex: new RegExp(`^${util.escapeRegExp(token.username)}$`), $options: 'i'};
     query.form = {$in: _.map(token.resources, mongoose.Types.ObjectId)};
 
     // Perform a mongo query to find the submission.
@@ -243,8 +243,8 @@ module.exports = function(router) {
           return next.call(this, 'Unable to change password.');
         }
 
-        var setValue = {};
-        setValue['data.' + this.settings.password] = hash;
+        const setValue = {};
+        setValue[`data.${this.settings.password}`] = hash;
 
         // Update the password.
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
@@ -269,10 +269,10 @@ module.exports = function(router) {
    */
   ResetPasswordAction.prototype.initialize = function(method, req, res, next) {
     // See if we have a reset password token.
-    var hasResetToken = !!(req.tempToken && (req.tempToken.type === 'resetpass'));
+    const hasResetToken = !!(req.tempToken && (req.tempToken.type === 'resetpass'));
     if (!hasResetToken && (method === 'create')) {
       // Figure out the username data.
-      var username = _.get(req.body.data, this.settings.username);
+      const username = _.get(req.body.data, this.settings.username);
 
       // Make sure they have a username.
       if (!username) {
@@ -280,7 +280,7 @@ module.exports = function(router) {
       }
 
       // Create a token.
-      var token = {
+      const token = {
         username: username,
         form: req.formId,
         resources: this.settings.resources,
@@ -295,13 +295,13 @@ module.exports = function(router) {
         }
 
         // Generate a temporary token for resetting their password.
-        var resetToken = jwt.sign(token, router.formio.config.jwt.secret, {
+        const resetToken = jwt.sign(token, router.formio.config.jwt.secret, {
           expiresIn: 5 * 60
         });
 
         // Create the reset link and add it to the email parameters.
-        var params = {
-          resetlink: this.settings.url + '?x-jwt-token=' + resetToken
+        const params = {
+          resetlink: `${this.settings.url}?x-jwt-token=${resetToken}`
         };
 
         // Now send them an email.
@@ -345,7 +345,7 @@ module.exports = function(router) {
    */
   ResetPasswordAction.prototype.resolve = function(handler, method, req, res, next) {
     // See if we have a reset password token.
-    var hasResetToken = !!(req.tempToken && (req.tempToken.type === 'resetpass'));
+    const hasResetToken = !!(req.tempToken && (req.tempToken.type === 'resetpass'));
 
     // Only show the reset password username field on form get.
     if (
@@ -393,7 +393,7 @@ module.exports = function(router) {
       }
 
       // Get the password
-      var password = _.get(req.submission.data, this.settings.password);
+      const password = _.get(req.submission.data, this.settings.password);
       if (!password) {
         return next.call(this, 'No password provided.');
       }

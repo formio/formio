@@ -1,17 +1,17 @@
 'use strict';
 
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 module.exports = function(router) {
   // Include the hook system.
-  var hook = require('../util/hook')(router);
+  const hook = require('../util/hook')(router);
 
   /**
    * The Schema for Roles.
    *
    * @type {exports.Schema}
    */
-  var RoleSchema = hook.alter('roleSchema', new mongoose.Schema({
+  const RoleSchema = hook.alter('roleSchema', new mongoose.Schema({
     title: {
       type: String,
       required: true,
@@ -20,7 +20,7 @@ module.exports = function(router) {
           isAsync: true,
           message: 'Role title must be unique.',
           validator: function(value, done) {
-            var search = hook.alter('roleSearch', {
+            const search = hook.alter('roleSearch', {
               title: value,
               deleted: {$eq: null}
             }, this, value);
@@ -62,7 +62,7 @@ module.exports = function(router) {
     }
   }));
 
-  var model = require('./BaseModel')({
+  const model = require('./BaseModel')({
     schema: RoleSchema
   });
 

@@ -8,16 +8,16 @@
  *
  * @type {exports}
  */
-var bcrypt = require('bcrypt');
-var jwt = require('jsonwebtoken');
-var util = require('../util/util');
-var _ = require('lodash');
-var debug = {
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const util = require('../util/util');
+const _ = require('lodash');
+const debug = {
   authenticate: require('debug')('formio:authentication:authenticate')
 };
 
 module.exports = function(router) {
-  var hook = require('../util/hook')(router.formio);
+  const hook = require('../util/hook')(router.formio);
 
   /**
    * Generate our JWT with the given payload, and pass it to the given callback function.
@@ -28,11 +28,11 @@ module.exports = function(router) {
    * @return {String|Boolean}
    *   The JWT from the given payload, or false if the jwt payload is still valid.
    */
-  var getToken = function(payload) {
+  const getToken = function(payload) {
     // Ensure that we do not do multiple re-issues consecutively.
     // Re-issue at the maximum rate of 1/min.
     if (payload.iat) {
-      var now = Math.floor(Date.now() / 1000);
+      const now = Math.floor(Date.now() / 1000);
       if ((now - payload.iat) < 60) {
         return false;
       }
@@ -52,15 +52,15 @@ module.exports = function(router) {
    * @param decoded
    * @return {boolean}
    */
-  var isTokenAllowed = function(req, decoded) {
+  const isTokenAllowed = function(req, decoded) {
     if (!decoded.allow) {
       return true;
     }
 
-    var isAllowed = false;
-    var allowed = decoded.allow.split(',');
+    let isAllowed = false;
+    const allowed = decoded.allow.split(',');
     _.each(allowed, function(allow) {
-      var parts = allow.split(':');
+      const parts = allow.split(':');
       if (parts.length < 2) {
         return;
       }
@@ -71,7 +71,7 @@ module.exports = function(router) {
       }
 
       try {
-        var regex = new RegExp(parts[1]);
+        const regex = new RegExp(parts[1]);
         if (regex.test(req.baseUrl + req.url)) {
           isAllowed = true;
           return false;
@@ -92,12 +92,12 @@ module.exports = function(router) {
    * @param expire
    * @param cb
    */
-  var getTempToken = function(req, res, allow, expire, cb) {
+  const getTempToken = function(req, res, allow, expire, cb) {
     if (!req.token) {
       return cb('No authentication token provided.');
     }
 
-    let tempToken = _.cloneDeep(req.token);
+    const tempToken = _.cloneDeep(req.token);
 
     // Check to see if this path is allowed.
     if (!isTokenAllowed(req, tempToken)) {
@@ -109,10 +109,10 @@ module.exports = function(router) {
       return cb('Cannot issue a temporary token using another temporary token.');
     }
 
-    var now = Math.round((new Date()).getTime() / 1000);
+    const now = Math.round((new Date()).getTime() / 1000);
     expire = expire || 3600;
     expire = parseInt(expire, 10);
-    var timeLeft = (parseInt(tempToken.exp, 10) - now);
+    const timeLeft = (parseInt(tempToken.exp, 10) - now);
 
     // Ensure they are not trying to create an extended expiration.
     if ((expire > 3600) && (timeLeft < expire)) {
@@ -135,7 +135,7 @@ module.exports = function(router) {
     }, (err, token) => cb(err, token));
   };
 
-  var tempToken = function(req, res, next) {
+  const tempToken = function(req, res, next) {
     if (!req.headers) {
       return res.status(400).send('No headers provided.');
     }
@@ -144,8 +144,8 @@ module.exports = function(router) {
       return res.status(400).send('No authentication token provided.');
     }
 
-    var allow = req.headers['x-allow'];
-    var expire = req.headers['x-expire'];
+    const allow = req.headers['x-allow'];
+    let expire = req.headers['x-expire'];
     expire = expire || 3600;
     expire = parseInt(expire, 10);
 
@@ -155,7 +155,7 @@ module.exports = function(router) {
         return res.status(400).send(err);
       }
 
-      var tokenResponse = {
+      const tokenResponse = {
         token: tempToken
       };
 
@@ -182,7 +182,7 @@ module.exports = function(router) {
    * @param next {Function}
    *   The callback function to call after authentication.
    */
-  var authenticate = function(req, forms, userField, passField, username, password, next) {
+  const authenticate = function(req, forms, userField, passField, username, password, next) {
     // Make sure they have provided a username and password.
     if (!username) {
       return next('Missing username');
@@ -191,7 +191,7 @@ module.exports = function(router) {
       return next('Missing password');
     }
 
-    var query = {deleted: {$eq: null}};
+    const query = {deleted: {$eq: null}};
 
     // Determine the form id for querying.
     if (_.isArray(forms)) {
@@ -205,7 +205,7 @@ module.exports = function(router) {
     }
 
     // Look for the user.
-    query['data.' + userField] = {$regex: new RegExp('^' + util.escapeRegExp(username) + '$'), $options: 'i'};
+    query[`data.${userField}`] = {$regex: new RegExp(`^${util.escapeRegExp(username)}$`), $options: 'i'};
 
     // Find the user object.
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
@@ -258,7 +258,7 @@ module.exports = function(router) {
             }
 
             // Allow anyone to hook and modify the token.
-            var token = hook.alter('token', {
+            const token = hook.alter('token', {
               user: {
                 _id: user._id
               },
@@ -288,7 +288,7 @@ module.exports = function(router) {
    * @param res
    * @param next
    */
-  var currentUser = function(req, res, next) {
+  const currentUser = function(req, res, next) {
     if (!res.token || !req.token) {
       return res.sendStatus(401);
     }
@@ -300,8 +300,8 @@ module.exports = function(router) {
     }
 
     // Duplicate the current request get the users information.
-    var url = '/form/:formId/submission/:submissionId';
-    var childReq = util.createSubRequest(req);
+    const url = '/form/:formId/submission/:submissionId';
+    const childReq = util.createSubRequest(req);
     if (!childReq) {
       return res.status(400).send('Too many recursive requests.');
     }

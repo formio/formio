@@ -1,7 +1,7 @@
 'use strict';
 const async = require('async');
 
-var debug = {
+const debug = {
   form: require('debug')('formio:cache:form'),
   loadForm: require('debug')('formio:cache:loadForm'),
   loadFormByName: require('debug')('formio:cache:loadFormByName'),
@@ -11,8 +11,8 @@ var debug = {
 };
 
 module.exports = function(router) {
-  var hook = require('../util/hook')(router.formio);
-  var util = router.formio.util;
+  const hook = require('../util/hook')(router.formio);
+  const util = router.formio.util;
 
   return {
     cache: function(req) {
@@ -34,7 +34,7 @@ module.exports = function(router) {
      * @param result
      */
     updateCache: function(req, cache, result) {
-      var formId = result._id.toString();
+      const formId = result._id.toString();
       if (!formId) {
         return;
       }
@@ -62,19 +62,19 @@ module.exports = function(router) {
      * @param cb {function}
      */
     loadForm: function(req, type, id, cb) {
-      var cache = this.cache(req);
+      const cache = this.cache(req);
       if (cache.forms[id]) {
-        debug.loadForm('Cache hit: ' + id);
+        debug.loadForm(`Cache hit: ${id}`);
         return cb(null, cache.forms[id]);
       }
 
-      debug.loadForm(typeof id + ': ' + id);
+      debug.loadForm(`${typeof id  }: ${id}`);
       id = util.idToBson(id);
       if (id === false) {
         return cb('Invalid form _id given.');
       }
 
-      var query = {_id: id, deleted: {$eq: null}};
+      const query = {_id: id, deleted: {$eq: null}};
       if (type) {
         query.type = type;
       }
@@ -100,7 +100,7 @@ module.exports = function(router) {
     },
 
     getCurrentFormId: function(req) {
-      var formId = req.formId;
+      let formId = req.formId;
       if (req.params.formId) {
         formId = req.params.formId;
       }
@@ -125,7 +125,7 @@ module.exports = function(router) {
      * @returns {*}
      */
     loadCurrentForm: function(req, cb) {
-      let formId = this.getCurrentFormId(req);
+      const formId = this.getCurrentFormId(req);
       if (!formId) {
         return cb('No form found.');
       }
@@ -145,9 +145,9 @@ module.exports = function(router) {
      *   The callback function to invoke after loading the submission.
      */
     loadSubmission: function(req, formId, subId, cb) {
-      var cache = this.cache(req);
+      const cache = this.cache(req);
       if (cache.submissions[subId]) {
-        debug.loadSubmission('Cache hit: ' + subId);
+        debug.loadSubmission(`Cache hit: ${subId}`);
         return cb(null, cache.submissions[subId]);
       }
 
@@ -161,8 +161,8 @@ module.exports = function(router) {
         return cb('Invalid form _id given.');
       }
 
-      debug.loadSubmission('Searching for form: ' + formId + ', and submission: ' + subId);
-      var query = {_id: subId, form: formId, deleted: {$eq: null}};
+      debug.loadSubmission(`Searching for form: ${formId}, and submission: ${subId}`);
+      const query = {_id: subId, form: formId, deleted: {$eq: null}};
       debug.loadSubmission(query);
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
       submissionModel.findOne(query)
@@ -209,13 +209,13 @@ module.exports = function(router) {
      *   The callback function to run when complete.
      */
     loadFormByName: function(req, name, cb) {
-      var cache = this.cache(req);
+      const cache = this.cache(req);
       if (cache.names[name]) {
-        debug.loadFormByName('Cache hit: ' + name);
+        debug.loadFormByName(`Cache hit: ${name}`);
         this.loadForm(req, 'resource', cache.names[name], cb);
       }
       else {
-        var query = hook.alter('formQuery', {
+        const query = hook.alter('formQuery', {
           name: name,
           deleted: {$eq: null}
         }, req);
@@ -240,13 +240,13 @@ module.exports = function(router) {
      * Load a resource by alias
      */
     loadFormByAlias: function(req, alias, cb) {
-      var cache = this.cache(req);
+      const cache = this.cache(req);
       if (cache.aliases[alias]) {
-        debug.loadFormByAlias('Cache hit: ' + alias);
+        debug.loadFormByAlias(`Cache hit: ${alias}`);
         this.loadForm(req, 'resource', cache.aliases[alias], cb);
       }
       else {
-        var query = hook.alter('formQuery', {
+        const query = hook.alter('formQuery', {
           path: alias,
           deleted: {$eq: null}
         }, req);
@@ -285,7 +285,7 @@ module.exports = function(router) {
       }
 
       // Get all of the form components.
-      var comps = [];
+      const comps = [];
       util.eachComponent(form.components, function(component) {
         if (component.type === 'form') {
           comps.push(component);

@@ -12,15 +12,15 @@ module.exports = router => {
       return next();
     }
 
-    const subSubmission = _.get(req.body, 'data.' + path, {});
+    const subSubmission = _.get(req.body, `data.${path}`, {});
 
     // if submission has an _id, don't submit. Should be submitted from the frontend.
     if (subSubmission._id) {
       return next();
     }
 
-    var url = '/form/:formId/submission';
-    var childRes = {
+    const url = '/form/:formId/submission';
+    const childRes = {
       send: () => _.noop,
       status: (status) => {
         return {json: (err) => {
@@ -29,7 +29,7 @@ module.exports = router => {
               if (err.details && err.details.length) {
                 _.each(err.details, (details) => {
                   if (details.path) {
-                    details.path = path + '.data.' + details.path;
+                    details.path = `${path}.data.${details.path}`;
                   }
                 });
               }
@@ -39,7 +39,7 @@ module.exports = router => {
           }};
       }
     };
-    var childReq = router.formio.util.createSubRequest(req);
+    const childReq = router.formio.util.createSubRequest(req);
     if (!childReq) {
       return res.status(400).send('Too many recursive requests.');
     }
@@ -51,7 +51,7 @@ module.exports = router => {
       }
 
       if (childRes.resource && childRes.resource.item) {
-        _.set(req.body, 'data.' + path, childRes.resource.item);
+        _.set(req.body, `data.${path}`, childRes.resource.item);
       }
       next();
     });
@@ -63,7 +63,7 @@ module.exports = router => {
   const setChildFormParenthood = function(component, path, validation, req, res, next) {
     if (res.resource && res.resource.item && res.resource.item.data) {
       // Get child form component's value
-      let compValue = _.get(res.resource.item.data, path);
+      const compValue = _.get(res.resource.item.data, path);
 
       // Fetch the child form's submission
       if (compValue && compValue._id) {
@@ -76,7 +76,7 @@ module.exports = router => {
           }
 
           // Update the submission's externalIds.
-          var found = false;
+          let found = false;
           submission.externalIds = submission.externalIds || [];
           _.each(submission.externalIds, function(externalId) {
             if (externalId.type === 'parent') {
