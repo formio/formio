@@ -18,7 +18,7 @@ const MongoClient = mongodb.MongoClient;
 MongoClient.connect(config.mongo, (err, db) => {
   if (err) {
     /* eslint-disable no-console */
-    return console.log('Could not connect to database ' + config.mongo);
+    return console.log(`Could not connect to database ${config.mongo}`);
     /* eslint-enable no-console */
   }
 
@@ -29,7 +29,7 @@ MongoClient.connect(config.mongo, (err, db) => {
       return false;
     }
     const parts = field.split('.');
-    let value = data[parts[0]];
+    const value = data[parts[0]];
     // Handle Datagrids
     if (Array.isArray(value)) {
       return value.reduce((changed, row) => {
@@ -61,14 +61,14 @@ MongoClient.connect(config.mongo, (err, db) => {
   };
 
   let hasNextForm = true;
-  let formCursor = formCollection.find({deleted: {$eq: null}});
+  const formCursor = formCollection.find({deleted: {$eq: null}});
   async.doWhilst((nextForm) => {
     getNext(formCursor, (form) => {
       if (!form) {
         hasNextForm = false;
         return nextForm();
       }
-      let fields = [];
+      const fields = [];
       utils.eachComponent(form.components, function(component, path) {
         // We only care about non-layout components, which are not unique, and have not been blacklisted.
         if (component.type === 'datetime') {
@@ -80,7 +80,7 @@ MongoClient.connect(config.mongo, (err, db) => {
         return nextForm();
       }
 
-      let submissionCursor = submissionCollection.find({
+      const submissionCursor = submissionCollection.find({
         form: form._id,
         deleted: {$eq: null}
       });
@@ -97,7 +97,7 @@ MongoClient.connect(config.mongo, (err, db) => {
           }, false);
           if (changed) {
             /* eslint-disable no-console */
-            console.log('Updating date fields for submission: ' + submission._id);
+            console.log(`Updating date fields for submission: ${submission._id}`);
             /* eslint-enable no-console */
             submissionCollection.updateOne(
               {

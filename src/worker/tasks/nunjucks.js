@@ -1,15 +1,15 @@
 'use strict';
 
 module.exports = (worker, done) => {
-  let vm = require('vm');
-  let clone = require('clone');
-  let nunjucks = require('nunjucks');
-  let dateFilter = require('nunjucks-date-filter');
-  let _ = require('lodash');
-  let util = require('../../util/util');
+  const vm = require('vm');
+  const clone = require('clone');
+  const nunjucks = require('nunjucks');
+  const dateFilter = require('nunjucks-date-filter');
+  const _ = require('lodash');
+  const util = require('../../util/util');
 
   // Configure nunjucks to not watch any files
-  let environment = nunjucks.configure([], {
+  const environment = nunjucks.configure([], {
     watch: false,
     autoescape: false
   });
@@ -33,21 +33,21 @@ module.exports = (worker, done) => {
   });
 
   environment.addFilter('componentValue', function(obj, key, components) {
-    var compValue = util.renderComponentValue(obj, key, components);
+    const compValue = util.renderComponentValue(obj, key, components);
     return new nunjucks.runtime.SafeString(compValue.value);
   });
 
   environment.addFilter('componentLabel', function(key, components) {
-    var label = key;
+    let label = key;
     if (!components.hasOwnProperty(key)) {
       return label;
     }
-    var component = components[key];
+    const component = components[key];
     label = component.label || component.placeholder || component.key;
     return label;
   });
 
-  let filters = worker.filters || {};
+  const filters = worker.filters || {};
   Object.keys(filters).forEach(filter => {
     try {
       // Essentially eval, but it only gets executed in a vm within a child process.
@@ -61,7 +61,7 @@ module.exports = (worker, done) => {
     }
   });
 
-  let getScript = (data) => {
+  const getScript = (data) => {
     if (typeof data === 'string') {
       // Script to render a single string.
       return `
@@ -80,7 +80,7 @@ module.exports = (worker, done) => {
         delete context._private;
       }
       context._rendered = {};
-      for (var prop in input) {
+      for (let prop in input) {
         if (input.hasOwnProperty(prop)) {
           context._rendered[prop] = output[prop] = environment.renderString(
             environment.renderString(input[prop], context),
@@ -91,17 +91,17 @@ module.exports = (worker, done) => {
     `;
   };
 
-  let render = worker.render;
-  let context = worker.context || {};
+  const render = worker.render;
+  const context = worker.context || {};
 
   // Convert all toString functions back to functions.
-  let functions = worker._functions || [];
+  const functions = worker._functions || [];
   functions.forEach(key => {
     context[key] = new Function(`return ${context[key].toString()}`)();
   });
 
   // Build the sandbox context with our dependencies
-  let sandbox = {
+  const sandbox = {
     clone,
     environment,
     input: render,
@@ -109,7 +109,7 @@ module.exports = (worker, done) => {
     output: (typeof render === 'string' ? '' : {})
   };
 
-  let script = new vm.Script(getScript(render));
+  const script = new vm.Script(getScript(render));
   try {
     script.runInContext(vm.createContext(sandbox), {timeout: 15000});
   }

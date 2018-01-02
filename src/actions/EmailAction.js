@@ -1,11 +1,11 @@
 'use strict';
-var request = require('request');
+const request = require('request');
 
 module.exports = function(router) {
-  var Action = router.formio.Action;
-  var emailer = require('../util/email')(router.formio);
-  var debug = require('debug')('formio:action:email');
-  var macros = require('./macros/macros');
+  const Action = router.formio.Action;
+  const emailer = require('../util/email')(router.formio);
+  const debug = require('debug')('formio:action:email');
+  const macros = require('./macros/macros');
 
   /**
    * EmailAction class.
@@ -13,7 +13,7 @@ module.exports = function(router) {
    *
    * @constructor
    */
-  var EmailAction = function(data, req, res) {
+  const EmailAction = function(data, req, res) {
     Action.call(this, data, req, res);
   };
 
@@ -46,7 +46,7 @@ module.exports = function(router) {
       if (err) {
         return next(err);
       }
-      var settingsForm = [
+      const settingsForm = [
         {
           type: 'select',
           input: true,
@@ -164,7 +164,7 @@ module.exports = function(router) {
       // Get the email parameters.
       emailer.getParams(res, form, req.body)
       .then(params => {
-        let query = {
+        const query = {
           _id: params.owner,
           deleted: {$eq: null}
         };

@@ -17,7 +17,7 @@ module.exports = function(router) {
       res.resource.item
     ) {
       // Make sure we do not expose private validations.
-      var checkPrivateValidation = function(form) {
+      const checkPrivateValidation = function(form) {
         if (req.isAdmin) {
           return;
         }

@@ -1,7 +1,7 @@
 'use strict';
 
-var crypto = require('crypto');
-var util = require('../util/util');
+const crypto = require('crypto');
+const util = require('../util/util');
 
 module.exports = function(db, schema) {
   return {
@@ -25,7 +25,7 @@ module.exports = function(db, schema) {
             throw err;
           }
 
-          util.log(' > Upgrading MongoDB Schema lock to v' + version);
+          util.log(` > Upgrading MongoDB Schema lock to v${version}`);
           callback();
         }
       );
@@ -41,8 +41,8 @@ module.exports = function(db, schema) {
         return undefined;
       }
 
-      var cipher = crypto.createCipher('aes-256-cbc', secret);
-      var decryptedJSON = JSON.stringify(mixed);
+      const cipher = crypto.createCipher('aes-256-cbc', secret);
+      const decryptedJSON = JSON.stringify(mixed);
 
       return Buffer.concat([
         cipher.update(decryptedJSON),
@@ -54,8 +54,8 @@ module.exports = function(db, schema) {
         return undefined;
       }
 
-      var decipher = crypto.createDecipher('aes-256-cbc', secret);
-      var decryptedJSON = Buffer.concat([
+      const decipher = crypto.createDecipher('aes-256-cbc', secret);
+      const decryptedJSON = Buffer.concat([
         decipher.update(cipherbuffer), // Buffer contains encrypted utf8
         decipher.final()
       ]);

@@ -150,7 +150,7 @@ module.exports = function(config) {
       router.formio.mongoose = mongoose;
 
       let mongoUrl = config.mongo;
-      let mongoOptions = {
+      const mongoOptions = {
         keepAlive: 120,
         useMongoClient: true
       };

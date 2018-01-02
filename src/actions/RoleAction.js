@@ -1,7 +1,7 @@
 'use strict';
 
-var _ = require('lodash');
-var debug = {
+const _ = require('lodash');
+const debug = {
   loadUser: require('debug')('formio:action:role#loadUser'),
   addRole: require('debug')('formio:action:role#addRole'),
   removeRole: require('debug')('formio:action:role#removeRole'),
@@ -10,9 +10,9 @@ var debug = {
 };
 
 module.exports = function(router) {
-  var Action = router.formio.Action;
-  var hook = require('../util/hook')(router.formio);
-  var util = router.formio.util;
+  const Action = router.formio.Action;
+  const hook = require('../util/hook')(router.formio);
+  const util = router.formio.util;
 
   /**
    * RoleAction class.
@@ -20,7 +20,7 @@ module.exports = function(router) {
    *
    * @constructor
    */
-  var RoleAction = function(data, req, res) {
+  const RoleAction = function(data, req, res) {
     Action.call(this, data, req, res);
   };
 
@@ -176,7 +176,7 @@ module.exports = function(router) {
      * @param callback
      * @returns {*}
      */
-    var loadUser = function(submission, callback) {
+    const loadUser = function(submission, callback) {
       debug.loadUser(submission);
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
       submissionModel.findById(submission, function(err, user) {
@@ -193,8 +193,8 @@ module.exports = function(router) {
     };
 
     // Determine the resources based on the current request.
-    var resource = {};
-    var role = {};
+    let resource = {};
+    let role = {};
     if (this.settings.association === 'existing') {
       resource = req.submission.data.submission || res.resource.item;
       role = this.settings.role
@@ -211,7 +211,7 @@ module.exports = function(router) {
      *
      * @param submission
      */
-    var updateModel = function(submission, association) {
+    const updateModel = function(submission, association) {
       // Try to update the submission directly.
       debug.updateModel(association);
       if (typeof submission.save === 'function') {
@@ -235,11 +235,11 @@ module.exports = function(router) {
      *   The mongoose submission object to be mutated.
      * @returns {*}
      */
-    var addRole = function(role, submission, association) {
-      debug.addRole('Role: ' + role);
+    const addRole = function(role, submission, association) {
+      debug.addRole(`Role: ${role}`);
 
       // The given role already exists in the resource.
-      var compare = [];
+      let compare = [];
       _.each(_.get(submission, 'roles'), function(element) {
         if (element) {
           compare.push(util.idToString(element));
@@ -271,11 +271,11 @@ module.exports = function(router) {
      *   The mongoose submission object to be mutated.
      * @returns {*}
      */
-    var removeRole = function(role, submission, association) {
-      debug.removeRole('Role: ' + role);
+    const removeRole = function(role, submission, association) {
+      debug.removeRole(`Role: ${role}`);
 
       // The given role does not exist in the resource.
-      var compare = [];
+      let compare = [];
       submission.roles.forEach(function(element) {
         if (element) {
           compare.push(util.idToString(element));
@@ -303,11 +303,11 @@ module.exports = function(router) {
      * @param type
      *   The type of role manipulation.
      */
-    var roleManipulation = function(type, association) {
-      debug.roleManipulation('Type: ' + type);
+    const roleManipulation = function(type, association) {
+      debug.roleManipulation(`Type: ${type}`);
 
       // Confirm that the given/configured role is actually accessible.
-      var query = hook.alter('roleQuery', {_id: role, deleted: {$eq: null}}, req);
+      const query = hook.alter('roleQuery', {_id: role, deleted: {$eq: null}}, req);
       router.formio.resources.role.model.findOne(query, function(err, role) {
         if (err || !role) {
           return res.status(400).send('The given role was not found.');

@@ -1,13 +1,13 @@
 'use strict';
 
-var mongoose = require('mongoose');
-var _ = require('lodash');
-var moment = require('moment');
-var nodeUrl = require('url');
-var Q = require('q');
-var formioUtils = require('formiojs/utils');
-var deleteProp = require('delete-property').default;
-var debug = {
+const mongoose = require('mongoose');
+const _ = require('lodash');
+const moment = require('moment');
+const nodeUrl = require('url');
+const Q = require('q');
+const formioUtils = require('formiojs/utils');
+const deleteProp = require('delete-property').default;
+const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
@@ -80,10 +80,10 @@ const Utils = {
    */
   getAlias: function(req, reservedForms) {
     /* eslint-disable no-useless-escape */
-    var formsRegEx = new RegExp('\/(' + reservedForms.join('|') + ').*', 'i');
+    const formsRegEx = new RegExp(`\/(${reservedForms.join('|')}).*`, 'i');
     /* eslint-enable no-useless-escape */
-    var alias = req.url.substr(1).replace(formsRegEx, '');
-    var additional = req.url.substr(alias.length + 1);
+    const alias = req.url.substr(1).replace(formsRegEx, '');
+    let additional = req.url.substr(alias.length + 1);
     if (!additional && req.method === 'POST') {
       additional = '/submission';
     }
@@ -112,7 +112,7 @@ const Utils = {
    */
   createSubRequest: function(req) {
     // Determine how many child requests have been made.
-    var childRequests = req.childRequests || 0;
+    let childRequests = req.childRequests || 0;
 
     // Break recursive child requests.
     if (childRequests > 5) {
@@ -120,11 +120,11 @@ const Utils = {
     }
 
     // Save off formio for fast cloning...
-    var cache = req.formioCache;
+    const cache = req.formioCache;
     delete req.formioCache;
 
     // Clone the request.
-    var childReq = _.cloneDeep(req);
+    const childReq = _.cloneDeep(req);
 
     // Add the parameters back.
     childReq.formioCache = cache;
@@ -258,7 +258,7 @@ const Utils = {
   },
 
     flattenComponentsForRender: function(components) {
-      var flattened = {};
+      const flattened = {};
       this.eachComponent(components, function(component, path) {
         // Containers will get rendered as flat.
         if (
@@ -279,14 +279,14 @@ const Utils = {
     },
 
   renderFormSubmission: function(data, components) {
-    var comps = this.flattenComponentsForRender(components);
-    var submission = '<table border="1" style="width:100%">';
+    const comps = this.flattenComponentsForRender(components);
+    let submission = '<table border="1" style="width:100%">';
     _.each(comps, function(component, key) {
-      var cmpValue = this.renderComponentValue(data, key, comps);
+      const cmpValue = this.renderComponentValue(data, key, comps);
       if (typeof cmpValue.value === 'string') {
         submission += '<tr>';
-        submission += '<th style="padding: 5px 10px;">' + cmpValue.label + '</th>';
-        submission += '<td style="width:100%;padding:5px 10px;">' + cmpValue.value + '</td>';
+        submission += `<th style="padding: 5px 10px;">${cmpValue.label}</th>`;
+        submission += `<td style="width:100%;padding:5px 10px;">${cmpValue.value}</td>`;
         submission += '</tr>';
       }
     }.bind(this));
@@ -304,24 +304,25 @@ const Utils = {
    * @param components
    * @returns {{label: *, value: *}}
    */
+  /* eslint-disable max-statements */
   renderComponentValue: function(data, key, components) {
-    var value = _.get(data, key);
+    let value = _.get(data, key);
     if (!value) {
       value = '';
     }
-    var compValue = {
+    const compValue = {
       label: key,
       value: value
     };
     if (!components.hasOwnProperty(key)) {
       return compValue;
     }
-    var component = components[key];
+    const component = components[key];
     compValue.label = component.label || component.placeholder || component.key;
     if (component.multiple) {
       components[key].multiple = false;
       compValue.value = _.map(value, function(subValue) {
-        var subValues = {};
+        const subValues = {};
         subValues[key] = subValue;
         return this.renderComponentValue(subValues, key, components).value;
       }.bind(this)).join(', ');
@@ -342,29 +343,29 @@ const Utils = {
       case 'container':
         compValue.value = '<table border="1" style="width:100%">';
         _.each(value, function(subValue, subKey) {
-          var subCompValue = this.renderComponentValue(value, subKey, components);
+          const subCompValue = this.renderComponentValue(value, subKey, components);
           if (typeof subCompValue.value === 'string') {
             compValue.value += '<tr>';
-            compValue.value += '<th style="text-align:right;padding: 5px 10px;">' + subCompValue.label + '</th>';
-            compValue.value += '<td style="width:100%;padding:5px 10px;">' + subCompValue.value + '</td>';
+            compValue.value += `<th style="text-align:right;padding: 5px 10px;">${subCompValue.label}</th>`;
+            compValue.value += `<td style="width:100%;padding:5px 10px;">${subCompValue.value}</td>`;
             compValue.value += '</tr>';
           }
         }.bind(this));
         compValue.value += '</table>';
         break;
-      case 'datagrid':
-        var columns = this.flattenComponentsForRender(component.components);
+      case 'datagrid': {
+        const columns = this.flattenComponentsForRender(component.components);
         compValue.value = '<table border="1" style="width:100%">';
         compValue.value += '<tr>';
         _.each(columns, function(column) {
-          var subLabel = column.label || column.key;
-          compValue.value += '<th style="padding: 5px 10px;">' + subLabel + '</th>';
+          const subLabel = column.label || column.key;
+          compValue.value += `<th style="padding: 5px 10px;">${subLabel}</th>`;
         });
         compValue.value += '</tr>';
         _.each(value, function(subValue) {
           compValue.value += '<tr>';
           _.each(columns, function(column, key) {
-            var subCompValue = this.renderComponentValue(subValue, key, columns);
+            const subCompValue = this.renderComponentValue(subValue, key, columns);
             if (typeof subCompValue.value === 'string') {
               compValue.value += '<td style="padding:5px 10px;">';
               compValue.value += subCompValue.value;
@@ -375,8 +376,9 @@ const Utils = {
         }.bind(this));
         compValue.value += '</table>';
         break;
-      case 'datetime':
-        var dateFormat = '';
+      }
+      case 'datetime': {
+        let dateFormat = '';
         if (component.enableDate) {
           dateFormat = component.format.toUpperCase();
         }
@@ -387,33 +389,36 @@ const Utils = {
           compValue.value = moment(value).format(dateFormat);
         }
         break;
+      }
       case 'radio':
-      case 'select':
-        var values = [];
+      case 'select': {
+        let values = [];
         if (component.hasOwnProperty('values')) {
           values = component.values;
         }
         else if (component.hasOwnProperty('data') && component.data.values) {
           values = component.data.values;
         }
-        for (var i in values) {
-          var subCompValue = values[i];
+        for (const i in values) {
+          const subCompValue = values[i];
           if (subCompValue.value === value) {
             compValue.value = subCompValue.label;
             break;
           }
         }
         break;
-      case 'selectboxes':
-        var selectedValues = [];
-        for (var j in component.values) {
-          var selectBoxValue = component.values[j];
+      }
+      case 'selectboxes': {
+        const selectedValues = [];
+        for (const j in component.values) {
+          const selectBoxValue = component.values[j];
           if (value[selectBoxValue.value]) {
             selectedValues.push(selectBoxValue.label);
           }
         }
         compValue.value = selectedValues.join(',');
         break;
+      }
       default:
         if (!component.input) {
           return {value: false};
@@ -429,6 +434,7 @@ const Utils = {
     compValue.value = compValue.value ? compValue.value.toString() : '';
     return compValue;
   },
+  /* eslint-enable max-statements */
 
   /**
    * Search the request query for the given key.
@@ -480,7 +486,7 @@ const Utils = {
    *   Return the value of the key or false if not found.
    */
   getRequestValue: function(req, key) {
-    var ret = null;
+    let ret = null;
 
     // If the header is present, return it.
     ret = this.getHeader(req, key);
@@ -513,12 +519,12 @@ const Utils = {
    *   The key/value pairs of the request url.
    */
   getUrlParams: function(url) {
-    var urlParams = {};
+    const urlParams = {};
     if (!url) {
       return urlParams;
     }
-    var parsed = nodeUrl.parse(url);
-    var parts = parsed.pathname.split('/');
+    const parsed = nodeUrl.parse(url);
+    let parts = parsed.pathname.split('/');
     debug.getUrlParams(parsed);
 
     // Remove element originating from first slash.
@@ -530,7 +536,7 @@ const Utils = {
     }
 
     // Build key/value list.
-    for (var a = 0; a < parts.length; a += 2) {
+    for (let a = 0; a < parts.length; a += 2) {
       urlParams[parts[a]] = parts[a + 1];
     }
 
@@ -588,7 +594,7 @@ const Utils = {
         : mongoose.Types.ObjectId(_id);
     }
     catch (e) {
-      debug.idToBson('Unknown _id given: ' + _id + ', typeof: ' + typeof _id);
+      debug.idToBson(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
       _id = false;
     }
 
@@ -616,11 +622,11 @@ const Utils = {
     }
 
     // Initialize our delete fields array.
-    var modifyFields = [];
+    const modifyFields = [];
 
     // Iterate through all components.
     this.eachComponent(form.components, function(component, path) {
-      path = 'data.' + path;
+      path = `data.${path}`;
       if (component.protected) {
         debug.removeProtectedFields('Removing protected field:', component.key);
         modifyFields.push(deleteProp(path));
@@ -628,7 +634,7 @@ const Utils = {
       else if ((component.type === 'signature') && (action === 'index')) {
         modifyFields.push((function(fieldPath) {
           return function(sub) {
-            var data = _.get(sub, fieldPath);
+            const data = _.get(sub, fieldPath);
             _.set(sub, fieldPath, (!data || (data.length < 25)) ? '' : 'YES');
           };
         })(path));
@@ -694,10 +700,10 @@ const Utils = {
         return next();
       }
 
-      var i = 0;
+      let i = 0;
       records.forEach((record) => {
-        var parts = record.machineName.split(/(\d+)/).filter(Boolean);
-        var number = parts[1] || 0;
+        const parts = record.machineName.split(/(\d+)/).filter(Boolean);
+        const number = parts[1] || 0;
         if (number > i) {
           i = number;
         }

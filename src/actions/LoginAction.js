@@ -1,10 +1,10 @@
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 
 module.exports = function(router) {
-  var Action = router.formio.Action;
-  var hook = require('../util/hook')(router.formio);
+  const Action = router.formio.Action;
+  const hook = require('../util/hook')(router.formio);
 
   /**
    * AuthAction class.
@@ -12,7 +12,7 @@ module.exports = function(router) {
    *
    * @constructor
    */
-  var LoginAction = function(data, req, res) {
+  const LoginAction = function(data, req, res) {
     Action.call(this, data, req, res);
   };
 
@@ -44,8 +44,8 @@ module.exports = function(router) {
    * @param next
    */
   LoginAction.settingsForm = function(req, res, next) {
-    var basePath = hook.alter('path', '/form', req);
-    var dataSrc = basePath + '/' + req.params.formId + '/components';
+    const basePath = hook.alter('path', '/form', req);
+    const dataSrc = `${basePath}/${req.params.formId}/components`;
     next(null, [
       {
         type: 'select',
@@ -54,7 +54,7 @@ module.exports = function(router) {
         key: 'resources',
         placeholder: 'Select the resources we should login against.',
         dataSrc: 'url',
-        data: {url: basePath + '?type=resource'},
+        data: {url: `${basePath}?type=resource`},
         valueProperty: '_id',
         template: '<span>{{ item.title }}</span>',
         multiple: true,
@@ -128,7 +128,7 @@ module.exports = function(router) {
    * @returns {string}
    */
   LoginAction.prototype.waitText = function(time) {
-    return (time > 60) ? parseInt(time / 60, 10) + ' minutes' : parseInt(time, 10) + ' seconds';
+    return (time > 60) ? `${parseInt(time / 60, 10)  } minutes` : `${parseInt(time, 10)  } seconds`;
   };
 
   /**
@@ -148,7 +148,7 @@ module.exports = function(router) {
       return next.call(this, error);
     }
 
-    var allowedAttempts = parseInt(this.settings.allowedAttempts, 10);
+    const allowedAttempts = parseInt(this.settings.allowedAttempts, 10);
     if (!allowedAttempts) {
       return next.call(this, error);
     }
@@ -161,8 +161,8 @@ module.exports = function(router) {
         user.metadata.login = {};
     }
 
-    var now = (new Date()).getTime();
-    var lastAttempt = parseInt(user.metadata.login.last, 10) || 0;
+    const now = (new Date()).getTime();
+    const lastAttempt = parseInt(user.metadata.login.last, 10) || 0;
 
     // See if the login is locked.
     if (user.metadata.login.locked) {
@@ -180,31 +180,31 @@ module.exports = function(router) {
         user.metadata.login.last = now;
       }
       else {
-        var howLong = (lastAttempt + lockWait) - now;
-        return next.call(this, 'You must wait ' + this.waitText(howLong / 1000) + ' before you can login.');
+        const howLong = (lastAttempt + lockWait) - now;
+        return next.call(this, `You must wait ${this.waitText(howLong / 1000)  } before you can login.`);
       }
     }
     else if (error) {
-      var attemptWindow = parseInt(this.settings.attemptWindow, 10) || 30;
+      let attemptWindow = parseInt(this.settings.attemptWindow, 10) || 30;
 
       // Normalize to milliseconds.
       attemptWindow *= 1000;
 
       // Determine the login attempts within a certain window.
-      var withinWindow = lastAttempt ? ((lastAttempt + attemptWindow) > now) : false;
+      const withinWindow = lastAttempt ? ((lastAttempt + attemptWindow) > now) : false;
 
       if (!withinWindow) {
         user.metadata.login.attempts = 0;
         user.metadata.login.last = now;
       }
       else {
-        var attempts = parseInt(user.metadata.login.attempts, 10) || 0;
+        let attempts = parseInt(user.metadata.login.attempts, 10) || 0;
         attempts++;
 
         // If they exceeded the login attempts.
         if (attempts >= allowedAttempts) {
-          let lockWait = parseInt(this.settings.lockWait, 10) || 1800;
-          error = 'Maximum Login attempts. Please wait ' + this.waitText(lockWait) + ' before trying again.';
+          const lockWait = parseInt(this.settings.lockWait, 10) || 1800;
+          error = `Maximum Login attempts. Please wait ${this.waitText(lockWait)} before trying again.`;
           user.metadata.login.locked = true;
         }
 

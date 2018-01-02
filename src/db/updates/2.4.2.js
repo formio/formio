@@ -1,7 +1,7 @@
 'use strict';
 
-var async = require('async');
-var _ = require('lodash');
+let async = require('async');
+let _ = require('lodash');
 
 /**
  * Update 2.4.2
@@ -14,18 +14,18 @@ var _ = require('lodash');
  * Update all forms to have the required fields.
  */
 module.exports = function(db, config, tools, done) {
-  var projects = db.collection('projects');
-  var roles = db.collection('roles');
-  var forms = db.collection('forms');
-  var validRegex = /^[A-Za-z_]+[A-Za-z0-9\-._]*$/g;
-  var removeRegex = /[\!\@\#\$\%\^\&\*\(\)\_\+\`\~\=\,\/\<\>\?\;\'\:\"\[\]\{\}\\\|\ ]/g;
-  var invalidRegex = /(\.undefined)/g;
+  let projects = db.collection('projects');
+  let roles = db.collection('roles');
+  let forms = db.collection('forms');
+  let validRegex = /^[A-Za-z_]+[A-Za-z0-9\-._]*$/g;
+  let removeRegex = /[\!\@\#\$\%\^\&\*\(\)\_\+\`\~\=\,\/\<\>\?\;\'\:\"\[\]\{\}\\\|\ ]/g;
+  let invalidRegex = /(\.undefined)/g;
 
   // Recursively get keys of components
-  var getKeys = function getKeys(component) {
+  let getKeys = function getKeys(component) {
     if (!component) return [];
 
-    var components = component.components || component.columns;
+    let components = component.components || component.columns;
     if (components) {
       return _.map(components, getKeys).concat(component.key);
     }
@@ -35,12 +35,12 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Make a new, random key.
-  var newKey = function() {
+  let newKey = function() {
     return 'key' + Math.floor(Math.random() * 100000).toString();
   };
 
   // Update the access properties for all pre-existing projects.
-  var updateProjectAccess = function(then) {
+  let updateProjectAccess = function(then) {
     projects.find({deleted: {$eq: null}}).snapshot({$snapshot: true}).toArray(function(err, docs) {
       if (err) {
         return then(err);
@@ -49,8 +49,8 @@ module.exports = function(db, config, tools, done) {
         return then('No Projects found.');
       }
 
-      var createAdminRole = function(project, callback) {
-        var doc = {
+      let createAdminRole = function(project, callback) {
+        let doc = {
           project: project._id,
           title: 'Administrator',
           description : 'The Administrator Role.',
@@ -90,7 +90,7 @@ module.exports = function(db, config, tools, done) {
           },
           // Update the access for each project.
           function(role, cb) {
-            var access = [
+            let access = [
               {type: 'create_all', roles: [role._id]},
               {type: 'read_all', roles: [role._id]},
               {type: 'update_all', roles: [role._id]},
@@ -128,7 +128,7 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Prune the `settings` on pre-existing projects.
-  var pruneProjectSettings = function(then) {
+  let pruneProjectSettings = function(then) {
     projects.find({settings: {$ne: null}}).snapshot({$snapshot: true}).toArray(function(err, docs) {
       if (err) {
         return then(err);
@@ -161,10 +161,10 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Remove invalid keys for layout form components.
-  var cleanLayoutKeys = function(iter, _id) {
+  let cleanLayoutKeys = function(iter, _id) {
     iter = iter || [];
-    for (var a = 0; a < iter.length; a++) {
-      var element = iter[a];
+    for (let a = 0; a < iter.length; a++) {
+      let element = iter[a];
 
       // Remove keys for layout components.
       if (element.hasOwnProperty('input') && element.input === false) {
@@ -186,15 +186,15 @@ module.exports = function(db, config, tools, done) {
     return iter;
   };
 
-  var updateForm = function(form, changes, then) {
-    var updateKey = function(iter, change) {
+  let updateForm = function(form, changes, then) {
+    let updateKey = function(iter, change) {
       iter = iter || [];
 
       if (!change._new && !change._old && !change._done) return;
       if (change._done) return iter;
 
-      for (var a = 0; a < iter.length; a++) {
-        var element = iter[a];
+      for (let a = 0; a < iter.length; a++) {
+        let element = iter[a];
 
         // Add the key change if this element is a input component and the keys match.
         if (element.hasOwnProperty('input') && element.input === true) {
@@ -236,14 +236,14 @@ module.exports = function(db, config, tools, done) {
     });
   };
 
-  var cleanFormComponentKeys = function(then) {
+  let cleanFormComponentKeys = function(then) {
     // Check each given component key for validity.
-    var matches = function(item, changes, uniques) {
-      var _old = item;
+    let matches = function(item, changes, uniques) {
+      let _old = item;
 
       item = _.deburr(item);
       item = item.replace(removeRegex, '');
-      var valid = item.match(validRegex);
+      let valid = item.match(validRegex);
 
       while (!item || !valid || item.match(invalidRegex) || (uniques.indexOf(item) !== -1)) {
         item = newKey();
@@ -264,8 +264,8 @@ module.exports = function(db, config, tools, done) {
     };
 
     // Check if the given form components have valid keys.
-    var isValid = function(form, changes, uniques) {
-      var keys = _(form.components).map(getKeys).flatten().filter(function(key) {
+    let isValid = function(form, changes, uniques) {
+      let keys = _(form.components).map(getKeys).flatten().filter(function(key) {
         return !_.isUndefined(key);
       }).values();
 
@@ -293,8 +293,8 @@ module.exports = function(db, config, tools, done) {
       }
 
       async.forEachOf(docs, function(form, key, next) {
-        var changes = [];
-        var uniques = [];
+        let changes = [];
+        let uniques = [];
         if (!isValid(form, changes, uniques)) {
           return next('Form w/ _id: ' + form._id + ', is not valid.');
         }
@@ -311,7 +311,7 @@ module.exports = function(db, config, tools, done) {
     });
   };
 
-  var verifyFormComponents = function(then) {
+  let verifyFormComponents = function(then) {
     forms.find().snapshot({$snapshot: true}).toArray(function(err, docs) {
       if (err) {
         return then(err);
@@ -321,14 +321,14 @@ module.exports = function(db, config, tools, done) {
       }
 
       async.forEachOfSeries(docs, function(form, key, next) {
-        var _valid = _(form.components).map(getKeys).flatten().filter(function(key) {
+        let _valid = _(form.components).map(getKeys).flatten().filter(function(key) {
           return !_.isUndefined(key);
         }).all(function(key) {
           if (!key) return true;
           return key.match(validRegex);
         });
 
-        var _unique = _(form.components).map(getKeys).flatten().filter(function(key) {
+        let _unique = _(form.components).map(getKeys).flatten().filter(function(key) {
           return !_.isUndefined(key);
         }).value();
         _unique = _.isEqual(_unique, _.unique(_unique));

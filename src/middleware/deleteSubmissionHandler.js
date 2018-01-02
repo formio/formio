@@ -1,6 +1,6 @@
 'use strict';
 
-var debug = require('debug')('formio:middleware:deleteSubmissionHandler');
+const debug = require('debug')('formio:middleware:deleteSubmissionHandler');
 
 /**
  * The deleteSubmissionHandler middleware.
@@ -11,7 +11,7 @@ var debug = require('debug')('formio:middleware:deleteSubmissionHandler');
  * @returns {Function}
  */
 module.exports = function(router) {
-  var prune = require('../util/delete')(router);
+  const prune = require('../util/delete')(router);
   return function(req, res, next) {
     debug(!(req.method !== 'DELETE' || !req.subId));
     if (req.method !== 'DELETE' || !req.subId) {

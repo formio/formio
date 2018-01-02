@@ -1,7 +1,7 @@
 'use strict';
 
-var async = require('async');
-var util = require('../util/util');
+const async = require('async');
+const util = require('../util/util');
 
 /**
  * Install script.

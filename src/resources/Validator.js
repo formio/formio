@@ -281,7 +281,7 @@ const getRules = (type) => [
         request(requestOptions, (err, response, body) => {
           if (err) {
             return resolve({
-              message: 'Select validation error: ' + err,
+              message: `Select validation error: ${err}`,
               path: state.path,
               type: 'any.select'
             });
@@ -289,7 +289,7 @@ const getRules = (type) => [
 
           if (response && parseInt(response.statusCode / 100, 10) !== 2) {
             return resolve({
-              message: 'Select validation error: ' + body,
+              message: `Select validation error: ${body}`,
               path: state.path,
               type: 'any.select'
             });
@@ -297,7 +297,7 @@ const getRules = (type) => [
 
           if (!body || !body.length) {
             return resolve({
-              message: '"' + value + '" for "' + (component.label || component.key) + '" is not a valid selection.',
+              message: `"${value}" for "${component.label || component.key  }" is not a valid selection.`,
               path: state.path,
               type: 'any.select'
             });
@@ -325,7 +325,7 @@ const getRules = (type) => [
       const model = params.model;
       const async = params.async;
 
-      const path = 'data.' + state.path.join('.');
+      const path = `data.${state.path.join('.')}`;
 
       // Allow empty.
       if (!value) {
@@ -346,7 +346,7 @@ const getRules = (type) => [
         value.hasOwnProperty('address_components') &&
         value.hasOwnProperty('place_id')
       ) {
-        query[path + '.place_id'] = {$regex: new RegExp(`^${util.escapeRegExp(value.place_id)}$`), $options: 'i'};
+        query[`${path}.place_id`] = {$regex: new RegExp(`^${util.escapeRegExp(value.place_id)}$`), $options: 'i'};
       }
       // Compare the contents of arrays vs the order.
       else if (_.isArray(value)) {
@@ -511,15 +511,15 @@ class Validator {
       let objectSchema;
       /* eslint-disable max-depth, valid-typeof */
       switch (component.type) {
-        case 'form':
+        case 'form': {
           // Ensure each sub submission at least has an empty object or it won't validate.
-          _.update(componentData, component.key + '.data', value => value ? value : {});
+          _.update(componentData, `${component.key}.data`, value => value ? value : {});
 
-          var subSubmission = _.get(componentData, component.key, {});
+          const subSubmission = _.get(componentData, component.key, {});
 
           // If this has already been submitted, then it has been validated.
           if (!subSubmission._id && component.components) {
-            var formSchema = this.buildSchema(
+            const formSchema = this.buildSchema(
               {},
               component.components,
               subSubmission,
@@ -533,6 +533,7 @@ class Validator {
             fieldValidator = JoiX.object();
           }
           break;
+        }
         case 'editgrid':
         case 'datagrid':
           component.multiple = false;
@@ -607,7 +608,7 @@ class Validator {
           if (component.validate) {
             // If the step is provided... we can infer float vs. integer.
             if (component.validate.step && (component.validate.step !== 'any')) {
-              var parts = component.validate.step.split('.');
+              const parts = component.validate.step.split('.');
               if (parts.length === 1) {
                 fieldValidator = fieldValidator.integer();
               }
@@ -772,7 +773,8 @@ class Validator {
                 // Form "data" keys don't have components.
                 if (component) {
                   result.hidden = result.hidden ||
-                    !checkConditional(component, _.get(value, result.path.slice(0, result.path.length - 1)), result.submission, true);
+                    !checkConditional(component,
+                      _.get(value, result.path.slice(0, result.path.length - 1)), result.submission, true);
 
                   const clearOnHide = util.isBoolean(component.clearOnHide) ?
                     util.boolean(component.clearOnHide) : true;

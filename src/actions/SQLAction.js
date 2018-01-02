@@ -1,12 +1,12 @@
 'use strict';
 
-var mssql = require('mssql');
-var mysql = require('mysql');
-var _ = require('lodash');
+const mssql = require('mssql');
+const mysql = require('mysql');
+const _ = require('lodash');
 
 module.exports = function(router) {
-  var Action = router.formio.Action;
-  var hook = require('../util/hook')(router.formio);
+  const Action = router.formio.Action;
+  const hook = require('../util/hook')(router.formio);
 
   /**
    * SQLAction class.
@@ -14,7 +14,7 @@ module.exports = function(router) {
    *
    * @constructor
    */
-  var SQLAction = function(data, req, res) {
+  const SQLAction = function(data, req, res) {
     Action.call(this, data, req, res);
   };
 
@@ -42,8 +42,8 @@ module.exports = function(router) {
       settings = settings || {};
 
       // Include only server types that have complete configurations
-      var missingSetting = null;
-      var serverTypes = [];
+      let missingSetting = null;
+      const serverTypes = [];
       if (settings.databases && settings.databases.mysql) {
         missingSetting = _.find(['host', 'port', 'database', 'user', 'password'], function(prop) {
           return !settings.databases.mysql[prop];
@@ -110,7 +110,7 @@ module.exports = function(router) {
         case '\b': return '\\b';
         case '\t': return '\\t';
         case '\x1a': return '\\Z';
-        default: return '\\' + s;
+        default: return `\\${s}`;
       }
     });
   };
@@ -128,7 +128,7 @@ module.exports = function(router) {
    */
   SQLAction.prototype.resolve = function(handler, method, req, res, next) {
     // Store the current resource.
-    var currentResource = res.resource;
+    const currentResource = res.resource;
 
     // Load the settings.
     hook.settings(req, function(err, settings) {
@@ -140,11 +140,11 @@ module.exports = function(router) {
       settings = settings.databases[this.settings.type];
 
       // Make sure there aren't any missing settings
-      var missingSetting = _.find(['host', 'port', 'database', 'user', 'password'], function(prop) {
+      const missingSetting = _.find(['host', 'port', 'database', 'user', 'password'], function(prop) {
         return !settings[prop];
       });
       if (missingSetting) {
-        return res.status(400).send('Database settings is missing `' + missingSetting + '`');
+        return res.status(400).send(`Database settings is missing \`${missingSetting}\``);
       }
 
       // Make sure they cannot connect to localhost.
@@ -152,20 +152,20 @@ module.exports = function(router) {
         return res.status(400).send('Invalid SQL Host');
       }
 
-      var method = req.method.toLowerCase();
-      var wait   = method === 'get' && this.settings.type === 'mssql';
+      const method = req.method.toLowerCase();
+      let wait   = method === 'get' && this.settings.type === 'mssql';
 
       // Called when the submission is loaded.
-      var onSubmission = function(submission) {
+      const onSubmission = function(submission) {
         if (!submission) {
           wait = false;
           return;
         }
 
         // Create the query based on callbacks.
-        var query = this.settings.query.replace(/{{\s+([^}]+)\s+}}/g, function() {
-          var value = '';
-          var data = _.cloneDeep(submission);
+        const query = this.settings.query.replace(/{{\s+([^}]+)\s+}}/g, function() {
+          let value = '';
+          let data = _.cloneDeep(submission);
 
           // Replace {{ id }} with the external ID.
           if (arguments[1] === 'id') {
@@ -173,8 +173,8 @@ module.exports = function(router) {
           }
           else {
             // Replace all others with the data from the submission.
-            var parts = arguments[1].split('.');
-            for (var i = 0; i < parts.length; i++) {
+            const parts = arguments[1].split('.');
+            for (let i = 0; i < parts.length; i++) {
               if (data.hasOwnProperty(parts[i])) {
                 data = value = data[parts[i]];
               }
@@ -199,7 +199,7 @@ module.exports = function(router) {
         }
 
         // Perform a post execution.
-        var postExecute = function(result) {
+        const postExecute = function(result) {
           // Update the resource with the external Id.
           const submissionModel = req.submissionModel || router.formio.resources.submission.model;
           submissionModel.findOne(
@@ -225,7 +225,7 @@ module.exports = function(router) {
 
         // Execute the query.
         if (this.settings.type === 'mssql') {
-          var config = {
+          const config = {
             user: settings.user,
             password: settings.password,
             server: settings.host,
@@ -242,8 +242,8 @@ module.exports = function(router) {
               return;
             }
 
-            var request = new mssql.Request();
-            request.query(query + '; SELECT SCOPE_IDENTITY() as id;', function(err, result) {
+            const request = new mssql.Request();
+            request.query(`${query}; SELECT SCOPE_IDENTITY() as id;`, function(err, result) {
               if ((method === 'post') && !err) {
                 postExecute.call(this, result[0]);
               }
@@ -259,7 +259,7 @@ module.exports = function(router) {
           }.bind(this));
         }
         else if (this.settings.type === 'mysql') {
-          var connection = mysql.createConnection({
+          const connection = mysql.createConnection({
             host: settings.host,
             port: settings.port,
             user: settings.user,
