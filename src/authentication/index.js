@@ -333,7 +333,7 @@ module.exports = function(router) {
     authenticate: authenticate,
     currentUser: currentUser,
     tempToken: tempToken,
-    logout: function(req, res) {
+    logout(req, res) {
       res.setHeader('x-jwt-token', '');
       res.sendStatus(200);
     }

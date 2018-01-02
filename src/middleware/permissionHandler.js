@@ -159,7 +159,7 @@ module.exports = function(router) {
      * @return
      *   The access object for the given form/sub id.
      */
-    getAccess: function(req, res, done) {
+    getAccess(req, res, done) {
       const access = {};
       async.series(hook.alter('getAccess', [
         // Get the permissions for a Form and Submissions with the given ObjectId.
@@ -396,7 +396,7 @@ module.exports = function(router) {
      *   If the user has access to this method, with their given roles.
      */
     /* eslint-disable max-statements */
-    hasAccess: function(req, access, entity, res) {
+    hasAccess(req, access, entity, res) {
       const method = req.method.toUpperCase();
 
       // Determine the roles and user based on the available token.

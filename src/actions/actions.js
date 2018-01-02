@@ -52,7 +52,7 @@ module.exports = function(router) {
      * @param next
      * @returns {*}
      */
-    loadActions: function(req, res, next) {
+    loadActions(req, res, next) {
       if (!req.actions) {
         req.actions = {};
       }
@@ -103,7 +103,7 @@ module.exports = function(router) {
      * @param req
      * @param next
      */
-    search: function(handler, method, req, res, next) {
+    search(handler, method, req, res, next) {
       if (!req.formId) {
         return next(null, []);
       }
@@ -139,7 +139,7 @@ module.exports = function(router) {
      * @param res
      * @param next
      */
-    initialize: function(method, req, res, next) {
+    initialize(method, req, res, next) {
       this.search(null, method, req, res, function(err, actions) {
         if (err) {
           return next(err);
@@ -166,7 +166,7 @@ module.exports = function(router) {
      * @param res
      * @param next
      */
-    execute: function(handler, method, req, res, next) {
+    execute(handler, method, req, res, next) {
       // Find the available actions.
       this.search(handler, method, req, res, function(err, actions) {
         if (err) {

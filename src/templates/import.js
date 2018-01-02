@@ -237,7 +237,7 @@ module.exports = (router) => {
         return false;
       },
       transform: (template, role) => role,
-      query: function(document, template) {
+      query(document, template) {
         const query = {machineName: document.machineName, deleted: {$eq: null}};
         return hook.alter(`importRoleQuery`, query, document, template);
       }
@@ -285,7 +285,7 @@ module.exports = (router) => {
           );
         }, done);
       },
-      query: function(document, template) {
+      query(document, template) {
         const query = {machineName: document.machineName, deleted: {$eq: null}};
         return hook.alter(`importFormQuery`, query, document, template);
       }
@@ -333,7 +333,7 @@ module.exports = (router) => {
           );
         }, done);
       },
-      query: function(document, template) {
+      query(document, template) {
         const query = {machineName: document.machineName, deleted: {$eq: null}};
         return hook.alter(`importFormQuery`, query, document, template);
       }
@@ -358,7 +358,7 @@ module.exports = (router) => {
 
         return action;
       },
-      query: function(document, template) {
+      query(document, template) {
         const query = {machineName: document.machineName, deleted: {$eq: null}};
         return hook.alter(`importActionQuery`, query, document, template);
       }

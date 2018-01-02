@@ -2,7 +2,7 @@
 
 module.exports = function(formio) {
   return {
-    settings: function(req, cb) {
+    settings(req, cb) {
       const settings = (formio.config && formio.config.settings) || {};
       if (formio.hooks && formio.hooks.settings) {
         return formio.hooks.settings(settings, req, cb);
@@ -11,7 +11,7 @@ module.exports = function(formio) {
       // Load the settings directly.
       cb(null, settings);
     },
-    invoke: function() {
+    invoke() {
       const name = arguments[0];
       if (
         formio.hooks &&
@@ -23,7 +23,7 @@ module.exports = function(formio) {
       }
       return false;
     },
-    alter: function() {
+    alter() {
       const debug = require('debug')('formio:hook:alter');
       const name = arguments[0];
       const fn = (typeof arguments[arguments.length - 1] === 'function') ? arguments[arguments.length - 1] : null;

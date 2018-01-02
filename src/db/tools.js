@@ -16,7 +16,7 @@ module.exports = function(db, schema) {
      * @param version
      * @returns {Function}
      */
-    updateLockVersion: function(version, callback) {
+    updateLockVersion(version, callback) {
       schema.findOneAndUpdate(
         {key: 'formio'},
         {$set: {version: version}},
@@ -36,7 +36,7 @@ module.exports = function(db, schema) {
      * @param   {Object} mixed
      * @returns {Buffer}
      */
-    encrypt: function(secret, mixed) {
+    encrypt(secret, mixed) {
       if (mixed === undefined) {
         return undefined;
       }
@@ -49,7 +49,7 @@ module.exports = function(db, schema) {
         cipher.final()
       ]);
     },
-    decrypt: function(secret, cipherbuffer) {
+    decrypt(secret, cipherbuffer) {
       if (cipherbuffer === undefined) {
         return undefined;
       }
