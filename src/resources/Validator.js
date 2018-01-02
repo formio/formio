@@ -297,7 +297,7 @@ const getRules = (type) => [
 
           if (!body || !body.length) {
             return resolve({
-              message: `"${value}" for "${component.label || component.key  }" is not a valid selection.`,
+              message: `"${value}" for "${component.label || component.key}" is not a valid selection.`,
               path: state.path,
               type: 'any.select'
             });

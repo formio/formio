@@ -22,7 +22,7 @@ module.exports = function(router) {
       return next();
     }
 
-    debug(`Blocking request: ${(req.method || '').toUpperCase()  } ${req.url}`);
+    debug(`Blocking request: ${(req.method || '').toUpperCase()} ${req.url}`);
     return res.sendStatus(405);
   };
 };
