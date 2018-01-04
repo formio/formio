@@ -76,7 +76,7 @@ module.exports = (router) => {
           // Skip this owner filter, if the user is the admin or owner.
           if (req.skipOwnerFilter !== true && req.isAdmin !== true) {
             // The default ownerFilter query.
-            query.owner = req.token.user._id;
+            query.owner = router.formio.util.ObjectId(req.token.user._id);
           }
 
           // Create the query stream.
