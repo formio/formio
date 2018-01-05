@@ -57,49 +57,56 @@ module.exports = (router) => {
       // Create the exporter.
       const exporter = new exporters[format](form, req, res);
 
-      // Initialize the exporter.
-      exporter.init()
-        .then(() => {
-          const addUrl = (data) => {
-            _.each(data, (field) => {
-              if (field && field._id) {
-                // Add url property for resource fields
-                const fieldUrl = hook.alter('fieldUrl', `/form/${field.form}/submission/${field._id}`, form, field);
-                const apiHost = router.formio.config.apiHost || router.formio.config.host;
-                field.url = _url.resolve(apiHost, fieldUrl);
-                // Recurse for nested resources
-                addUrl(field.data);
-              }
-            });
-          };
+      // Allow an alter of the export logic.
+      hook.alter('export', req, query, form, exporter, (err) => {
+        if (err) {
+          return res.status(500).send(err.message);
+        }
 
-          // Skip this owner filter, if the user is the admin or owner.
-          if (req.skipOwnerFilter !== true && req.isAdmin !== true) {
-            // The default ownerFilter query.
-            query.owner = req.token.user._id;
-          }
+        // Initialize the exporter.
+        exporter.init()
+          .then(() => {
+            const addUrl = (data) => {
+              _.each(data, (field) => {
+                if (field && field._id) {
+                  // Add url property for resource fields
+                  const fieldUrl = hook.alter('fieldUrl', `/form/${field.form}/submission/${field._id}`, form, field);
+                  const apiHost = router.formio.config.apiHost || router.formio.config.host;
+                  field.url = _url.resolve(apiHost, fieldUrl);
+                  // Recurse for nested resources
+                  addUrl(field.data);
+                }
+              });
+            };
 
-          // Create the query stream.
-          const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-          const stream = submissionModel.find(query)
-            .snapshot()
-            .cursor({batchSize: 1000})
-            .pipe(through(function(doc) {
-              const row = doc.toObject({getters: true, virtuals: false});
+            // Skip this owner filter, if the user is the admin or owner.
+            if (req.skipOwnerFilter !== true && req.isAdmin !== true) {
+              // The default ownerFilter query.
+              query.owner = req.token.user._id;
+            }
 
-              addUrl(row.data);
-              router.formio.util.removeProtectedFields(form, 'export', row);
+            // Create the query stream.
+            const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+            const stream = submissionModel.find(query)
+              .snapshot()
+              .cursor({batchSize: 1000})
+              .pipe(through(function(doc) {
+                const row = doc.toObject({getters: true, virtuals: false});
 
-              this.queue(row);
-            }));
+                addUrl(row.data);
+                router.formio.util.removeProtectedFields(form, 'export', row);
 
-          // Create the stream.
-          return exporter.stream(stream);
-        })
-        .catch((error) => {
-          // Send the error.
-          res.status(500).send(error);
-        });
+                this.queue(row);
+              }));
+
+            // Create the stream.
+            return exporter.stream(stream);
+          })
+          .catch((error) => {
+            // Send the error.
+            res.status(500).send(error);
+          });
+      });
     });
   });
 };
