@@ -36,13 +36,13 @@ module.exports = function(formio, items, done) {
   var download = function(url, zipFile, dir, done) {
     // Check to see if the client already exists.
     if (fs.existsSync(zipFile)) {
-      util.log(directories[dir] + ' file already exists, skipping download.');
+      util.log(`${directories[dir]  } file already exists, skipping download.`);
       return done();
     }
 
     var request = require('request');
     var ProgressBar = require('progress');
-    util.log('Downloading ' + dir + '...'.green);
+    util.log(`Downloading ${  dir  }${'...'.green}`);
 
     // Download the project.
     var downloadError = null;
@@ -103,7 +103,7 @@ module.exports = function(formio, items, done) {
   var extract = function(zipFile, fromDir, dir, done) {
     // See if we need to extract.
     if (fs.existsSync(directories[dir])) {
-      util.log(directories[dir] + ' already exists, skipping extraction.');
+      util.log(`${directories[dir]  } already exists, skipping extraction.`);
       return done();
     }
 
@@ -190,7 +190,7 @@ module.exports = function(formio, items, done) {
       ];
       var message = '\nWhich Github application would you like to install?\n'.green;
       _.each(repos, function(repo, index) {
-        message += '  ' + (index + 1) + '.) ' + repo + '\n';
+        message += `  ${  index + 1  }.) ${  repo  }\n`;
       });
       message += '\nOr, you can provide a custom Github repository...\n'.green;
       util.log(message);
@@ -237,7 +237,7 @@ module.exports = function(formio, items, done) {
 
       // Download the app.
       download(
-        'https://nodeload.github.com/' + application + '/zip/master',
+        `https://nodeload.github.com/${  application  }/zip/master`,
         'app.zip',
         'app',
         done
@@ -256,7 +256,7 @@ module.exports = function(formio, items, done) {
       }
 
       var parts = application.split('/');
-      var appDir = parts[1] + '-master';
+      var appDir = `${parts[1]  }-master`;
       extract('app.zip', appDir, 'app', done);
     },
 

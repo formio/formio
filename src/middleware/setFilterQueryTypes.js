@@ -1,7 +1,7 @@
 'use strict';
 
-var _ = require('lodash');
-var util = require('../util/util');
+const _ = require('lodash');
+const util = require('../util/util');
 
 /**
  * Middleware function to coerce filter queries for a submission Index
@@ -33,10 +33,10 @@ module.exports = function(router) {
             }
 
             // Get the filter object.
-            var filter = _.zipObject(['name', 'selector'], _.words(name, /[^,_ ]+/g));
+            const filter = _.zipObject(['name', 'selector'], _.words(name, /[^,_ ]+/g));
             // Convert to component key
-            var key = util.getFormComponentKey(filter.name).substring(5);
-            var component = util.getComponent(currentForm.components, key);
+            const key = util.getFormComponentKey(filter.name).substring(5);
+            const component = util.getComponent(currentForm.components, key);
             // Coerce these queries to proper data type
             if (component) {
               if (component.type === 'number') {

@@ -1,9 +1,9 @@
 'use strict';
 
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 // Defines what each external ID should be.
-var ExternalIdSchema = mongoose.Schema({
+const ExternalIdSchema = mongoose.Schema({
   type: String,
   resource: String,
   id: String
@@ -14,7 +14,7 @@ ExternalIdSchema.plugin(require('../plugins/timestamps'));
 
 // Export the submission model.
 module.exports = function(formio) {
-  var hook = require('../util/hook')(formio);
+  const hook = require('../util/hook')(formio);
 
   const model = require('./BaseModel')({
     schema: new mongoose.Schema(hook.alter('submissionSchema', {
