@@ -1,9 +1,9 @@
 'use strict';
 
-var mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
-var _ = require('lodash');
-var debug = require('debug')('formio:middleware:bootstrapFormAccess');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+const _ = require('lodash');
+const debug = require('debug')('formio:middleware:bootstrapFormAccess');
 
 /**
  * Middleware to bootstrap the access of forms.
@@ -16,7 +16,7 @@ var debug = require('debug')('formio:middleware:bootstrapFormAccess');
  * @returns {*}
  */
 module.exports = function(router) {
-  var hook = require('../util/hook')(router.formio);
+  const hook = require('../util/hook')(router.formio);
 
   return function bootstrapFormAccess(req, res, next) {
     // Only bootstrap access on Form creation.
@@ -49,7 +49,7 @@ module.exports = function(router) {
           return ObjectId(role.toObject()._id);
         });
 
-        var update = [{type: 'read_all', roles: roles}];
+        const update = [{type: 'read_all', roles: roles}];
         debug(update);
         router.formio.resources.form.model.findOne({_id: res.resource.item._id, deleted: {$eq: null}})
           .exec(function(err, form) {
@@ -58,7 +58,7 @@ module.exports = function(router) {
               return next(err);
             }
             if (!form) {
-              debug('No form found with _id: ' + res.resource.item._id);
+              debug(`No form found with _id: ${res.resource.item._id}`);
               return next();
             }
 
@@ -72,7 +72,7 @@ module.exports = function(router) {
 
               // Update the response to reflect the access changes.
               // Filter the response to have no __v and deleted key.
-              var ret = _.omit(_.omit(form.toObject(), 'deleted'), '__v');
+              const ret = _.omit(_.omit(form.toObject(), 'deleted'), '__v');
               res.resource.item = ret;
               next();
             });

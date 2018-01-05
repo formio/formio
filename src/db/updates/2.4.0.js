@@ -1,7 +1,7 @@
 'use strict';
-var Q = require('q');
-var _ = require('lodash');
-var utils = require('../../util/util');
+let Q = require('q');
+let _ = require('lodash');
+let utils = require('../../util/util');
 
 /**
  * Update 2.4.0
@@ -19,11 +19,11 @@ var utils = require('../../util/util');
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var forms = db.collection('forms');
-  var formPromises = [];
+  let forms = db.collection('forms');
+  let formPromises = [];
 
   forms.find().snapshot({$snapshot: true}).forEach(function(form) {
-    var componentPromises = [];
+    let componentPromises = [];
     // Loop through all components
     utils.eachComponent(form.components, function(component) {
       // Ignore non-input or non-embedded components
@@ -32,7 +32,7 @@ module.exports = function(db, config, tools, done) {
       }
 
       // Find source of embedded component form first part of key
-      var keyParts = component.key.split('.');
+      let keyParts = component.key.split('.');
       componentPromises.push(forms.findOne({name: keyParts[0], project: form.project}).then(function(resource) {
         if(resource === null) {
           // Embedded component had bad name, attempt to fix by camel casing name

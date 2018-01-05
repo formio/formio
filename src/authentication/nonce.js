@@ -11,7 +11,7 @@ module.exports = {
    *
    * @returns {number}
    */
-  random: function() {
+  random() {
     return Math.floor(Math.random() * this.MAX_NONCE); // 0 - 4294967295 (2^32 - 1)
   }
 };

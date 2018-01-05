@@ -1,9 +1,9 @@
 'use strict';
 
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 module.exports = function(formio) {
-  var hook = require('../util/hook')(formio);
+  const hook = require('../util/hook')(formio);
 
   /**
    * The base action to inherit from.
@@ -12,20 +12,38 @@ module.exports = function(formio) {
    *   The data for this action.
    * @param req
    * @param res
-   *
-   * @constructor
    */
-  var Action = function(data) {
-    this.name = data.name;
-    this.title = data.title;
-    this.action = data.action;
-    this.handler = data.handler;
-    this.method = data.method;
-    this.priority = data.priority;
-    this.form = data.form;
-    this.settings = data.settings;
-    this.condition = data.condition;
-  };
+  class Action {
+    constructor(data) {
+      this.name = data.name;
+      this.title = data.title;
+      this.action = data.action;
+      this.handler = data.handler;
+      this.method = data.method;
+      this.priority = data.priority;
+      this.form = data.form;
+      this.settings = data.settings;
+      this.condition = data.condition;
+    }
+
+    /**
+     * Resolve the action using the current request.
+     *
+     * Note: This is to be overwritten by any child actions.
+     *
+     * @param handler
+     *   The handler for the resolution.
+     * @param method
+     *   The method of execution.
+     * @param req
+     *   The Express request object.
+     * @param res
+     *   The Express response object.
+     * @param next
+     *   The callback function to be executed after processing.
+     */
+    resolve(handler, method, req, res, next) {}
+  }
 
   /**
    * The Action mongoose schema.
@@ -85,31 +103,13 @@ module.exports = function(formio) {
         }
 
         if (!form) {
-          hook.alter('actionMachineName', document.form + ':' + document.name, document, done);
+          hook.alter('actionMachineName', `${document.form}:${document.name}`, document, done);
           return;
         }
 
-        hook.alter('actionMachineName', form.name + ':' + document.name, document, done);
+        hook.alter('actionMachineName', `${form.name}:${document.name}`, document, done);
       });
   };
-
-  /**
-   * Resolve the action using the current request.
-   *
-   * Note: This is to be overwritten by any child actions.
-   *
-   * @param handler
-   *   The handler for the resolution.
-   * @param method
-   *   The method of execution.
-   * @param req
-   *   The Express request object.
-   * @param res
-   *   The Express response object.
-   * @param next
-   *   The callback function to be executed after processing.
-   */
-  Action.prototype.resolve = function(handler, method, req, res, next) {};
 
   return Action;
 };

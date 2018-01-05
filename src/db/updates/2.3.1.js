@@ -1,6 +1,6 @@
 'use strict';
 
-var async = require('async');
+let async = require('async');
 
 /**
  * Update 2.3.1
@@ -13,16 +13,16 @@ var async = require('async');
  * Update the projects name index.
  */
 module.exports = function(db, config, tools, done) {
-  var projects = db.collection('projects');
+  let projects = db.collection('projects');
 
-  var dropOldIndex = function(name, cb) {
+  let dropOldIndex = function(name, cb) {
     projects.dropIndex(name, function(err, collection) {
       // Ignore errors for non-existing index on drop, because we dont care about it.
       cb();
     });
   };
 
-  var addNewNameIndex = function(cb) {
+  let addNewNameIndex = function(cb) {
     projects.createIndex({name: 1}, {background: true}, function(err, index) {
       if (err) {
         return cb(err);

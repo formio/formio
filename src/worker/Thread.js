@@ -1,10 +1,10 @@
 'use strict';
 
-let path = require('path');
-let Threads = require('threads');
-let config = Threads.config;
-let Spawn = Threads.spawn;
-let debug = require('debug')('formio:worker:thread');
+const path = require('path');
+const Threads = require('threads');
+const config = Threads.config;
+const Spawn = Threads.spawn;
+const debug = require('debug')('formio:worker:thread');
 
 config.set({
   basepath: {
@@ -27,7 +27,7 @@ class Thread {
 
   start(data) {
     // Stringify all custom functions and let the thread know, since you cant pass functions to a child process.
-    let functions = [];
+    const functions = [];
     Object.keys(data.context || {}).forEach(key => {
       if (typeof data.context[key] === 'function') {
         data.context[key] = data.context[key].toString();

@@ -1,9 +1,9 @@
 'use strict';
 
-var async = require('async');
-var util = require('../../util/util');
-var _ = require('lodash');
-var ObjectId = require('mongodb').ObjectID;
+let async = require('async');
+let util = require('../../util/util');
+let _ = require('lodash');
+let ObjectId = require('mongodb').ObjectID;
 
 /**
  * Update 3.0.2
@@ -18,8 +18,8 @@ var ObjectId = require('mongodb').ObjectID;
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var actionCollection = db.collection('actions');
-  var formCollection = db.collection('forms');
+  let actionCollection = db.collection('actions');
+  let formCollection = db.collection('forms');
 
   // Find all resource actions.
   actionCollection.find({name: 'resource'}).snapshot({$snapshot: true}).toArray(function(err, actions) {
@@ -29,7 +29,7 @@ module.exports = function(db, config, tools, done) {
 
     async.forEachOf(actions, function(action, key, next) {
 
-      var formId = '';
+      let formId = '';
       try {
         formId = ObjectId(action.settings.resource);
       }
@@ -43,7 +43,7 @@ module.exports = function(db, config, tools, done) {
 
       // Find all actions associated with the resource.
       actionCollection.find({form: formId}).snapshot({$snapshot: true}).toArray(function(err, resourceActions) {
-        var roleAction = _.find(resourceActions, {name: 'role'});
+        let roleAction = _.find(resourceActions, {name: 'role'});
         if (!roleAction) {
           actionCollection.insert({
             title: 'Role Assignment',

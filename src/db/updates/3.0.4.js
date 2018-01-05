@@ -1,7 +1,7 @@
 'use strict';
 
-var async = require('async');
-var _ = require('lodash');
+let async = require('async');
+let _ = require('lodash');
 
 /**
  * Update 3.0.4
@@ -17,7 +17,7 @@ var _ = require('lodash');
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var roleCollection = db.collection('roles');
+  let roleCollection = db.collection('roles');
 
   async.series([
     function checkDefaultRole(callback) {

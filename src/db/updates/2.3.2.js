@@ -1,7 +1,7 @@
 'use strict';
 
-var async = require('async');
-var invalid =  /(^|\/)(form)($|\/)/;
+let async = require('async');
+let invalid =  /(^|\/)(form)($|\/)/;
 
 /**
  * Update 2.3.2
@@ -14,12 +14,12 @@ var invalid =  /(^|\/)(form)($|\/)/;
  * Update all forms to have the required fields.
  */
 module.exports = function(db, config, tools, done) {
-  var forms = db.collection('forms');
-  var projPaths = {};
+  let forms = db.collection('forms');
+  let projPaths = {};
 
-  var makeUnique = function(form, cb) {
-    var iter = 2;
-    var comparison = form.path.toString() + iter.toString();
+  let makeUnique = function(form, cb) {
+    let iter = 2;
+    let comparison = form.path.toString() + iter.toString();
     while (form.path.match(invalid) || projPaths[form.project.toString()].indexOf(comparison) !== -1) {
       comparison = form.path.toString() + (++iter).toString();
     }
@@ -34,7 +34,7 @@ module.exports = function(db, config, tools, done) {
     });
   };
 
-  var verifyUniquePaths = function() {
+  let verifyUniquePaths = function() {
     projPaths = {};
     forms.find({}).snapshot({$snapshot: true}).toArray(function(err, docs) {
       async.eachSeries(docs, function(form, cb) {
