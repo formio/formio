@@ -1,6 +1,6 @@
 'use strict';
 
-var async = require('async');
+let async = require('async');
 
 /**
  * Update 1.0.0
@@ -16,7 +16,7 @@ module.exports = function(db, config, tools, done) {
   /**
    * Example update 1.
    */
-  var update1 = function(callback) {
+  let update1 = function(callback) {
     // db.collection.update();
     callback();
   };
@@ -24,7 +24,7 @@ module.exports = function(db, config, tools, done) {
   /**
    * Example update 2.
    */
-  var update2 = function(callback) {
+  let update2 = function(callback) {
     // db.collection.update();
     callback();
   };
@@ -32,7 +32,7 @@ module.exports = function(db, config, tools, done) {
   /**
    * Example update 3.
    */
-  var update3 = function(callback) {
+  let update3 = function(callback) {
     // db.collection.update();
     callback();
   };

@@ -1,5 +1,5 @@
 'use strict';
-var async = require('async');
+let async = require('async');
 module.exports = function(db, config, tools, done) {
   let dropIndex = function(collection, index, next) {
     console.log('Dropping ' + collection + ' index ' + index);

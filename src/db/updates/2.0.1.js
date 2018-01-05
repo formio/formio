@@ -1,7 +1,7 @@
 'use strict';
 
-var _ = require('lodash');
-var async = require('async');
+let _ = require('lodash');
+let async = require('async');
 
 /**
  * Update 2.0.1
@@ -15,26 +15,26 @@ var async = require('async');
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var projects = db.collection('projects');
-  var forms = db.collection('forms');
-  var roles = db.collection('roles');
+  let projects = db.collection('projects');
+  let forms = db.collection('forms');
+  let roles = db.collection('roles');
 
   /**
    * Async operation to fix Projects.
    *
    * @param callback
    */
-  var fixProjects = function(callback) {
+  let fixProjects = function(callback) {
     projects.find({}).snapshot({$snapshot: true}).forEach(function(project) {
       // Reset the access permissions if duplicate types exist (mangled by bug).
-      var included = [];
+      let included = [];
 
       /**
        * Async function for getting the roles associated with the current project.
        *
        * @param next
        */
-      var getRoles = function(next) {
+      let getRoles = function(next) {
         roles.find({query: {project: project._id}, $snapshot: true}).toArray(function(err, docs) {
           if (err) {
             return next(err);
@@ -50,20 +50,20 @@ module.exports = function(db, config, tools, done) {
        *
        * @param next
        */
-      var calculateAccess = function(next) {
+      let calculateAccess = function(next) {
         if (!project.access) {
           console.log('No project.access found for: ' + project._id);
           return next();
         }
 
         // Check for mangled access
-        var type = _.pluck(project.access, 'type');
-        var foundReadAll = false;
+        let type = _.pluck(project.access, 'type');
+        let foundReadAll = false;
         if (type.length === _.uniq(type).length) {
           // Remove the _id of each subdocument, added by mongoose.
-          var filteredAccess = [];
+          let filteredAccess = [];
           project.access.forEach(function(permission) {
-            var temp = _.omit(permission, '_id');
+            let temp = _.omit(permission, '_id');
 
             // Overwrite the read_all roles to contain all roles defined within a project.
             if (temp.type === 'read_all') {
@@ -108,7 +108,7 @@ module.exports = function(db, config, tools, done) {
        *
        * @param next
        */
-      var saveProject = function(next) {
+      let saveProject = function(next) {
         projects.updateOne({_id: project._id}, {$set: {access: project.access}}, next);
       };
 
@@ -139,17 +139,17 @@ module.exports = function(db, config, tools, done) {
    *
    * @param callback
    */
-  var fixForms = function(callback) {
+  let fixForms = function(callback) {
     forms.find({}).snapshot({$snapshot: true}).forEach(function(form) {
       // Reset the access permissions if duplicate types exist (mangled by bug).
-      var included = [];
+      let included = [];
 
       /**
        * Async function for getting the roles associated with the current form.
        *
        * @param next
        */
-      var getRoles = function(next) {
+      let getRoles = function(next) {
         roles.find({query: {project: form.project}, $snapshot: true}).toArray(function(err, docs) {
           if (err) {
             return next(err);
@@ -166,16 +166,16 @@ module.exports = function(db, config, tools, done) {
        * @param next
        * @returns {*}
        */
-      var calculateAccess = function(next) {
+      let calculateAccess = function(next) {
         form.access = form.access || [];
 
-        var type = _.pluck(form.access, 'type');
-        var foundReadAll = false;
+        let type = _.pluck(form.access, 'type');
+        let foundReadAll = false;
         if (type.length === _.uniq(type).length) {
           // Remove the _id of each subdocument, added by mongoose.
-          var filteredAccess = [];
+          let filteredAccess = [];
           form.access.forEach(function(permission) {
-            var temp = _.omit(permission, '_id');
+            let temp = _.omit(permission, '_id');
 
             // Overwrite the read_all roles to contain all roles defined within a project.
             if (temp.type === 'read_all') {
@@ -215,20 +215,20 @@ module.exports = function(db, config, tools, done) {
        * @param next
        * @returns {*}
        */
-      var calculateSubmissionAccess = function(next) {
+      let calculateSubmissionAccess = function(next) {
         form.submissionAccess = form.submissionAccess || [];
 
         // Reset the submission Access permissions if duplicate types exist (mangled by bug).
-        var type = _.pluck(form.submissionAccess, 'type');
+        let type = _.pluck(form.submissionAccess, 'type');
         if (type.length > _.uniq(type).length) {
           form.submissionAccess = [];
           return next();
         }
 
         // Remove the _id of each subdocument, added by mongoose.
-        var filteredSubmissionAccess = [];
+        let filteredSubmissionAccess = [];
         form.submissionAccess.forEach(function(permission) {
-          var temp = _.omit(permission, '_id');
+          let temp = _.omit(permission, '_id');
 
           // Remove any malformed permissions.
           if (temp.type) {
@@ -246,7 +246,7 @@ module.exports = function(db, config, tools, done) {
        *
        * @param next
        */
-      var saveForm = function(next) {
+      let saveForm = function(next) {
         forms.updateOne({_id: form._id}, {$set: {access: form.access, submissionAccess: form.submissionAccess}}, next);
       };
 

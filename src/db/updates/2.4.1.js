@@ -1,9 +1,9 @@
 'use strict';
-var Q = require('q');
-var util = require('../../util/util');
-var deleteProp = require('delete-property').default;
-var ObjectID = require('mongodb').ObjectID;
-var _ = require('lodash');
+let Q = require('q');
+let util = require('../../util/util');
+let deleteProp = require('delete-property').default;
+let ObjectID = require('mongodb').ObjectID;
+let _ = require('lodash');
 /**
  * Update 2.4.1
  *
@@ -16,11 +16,11 @@ var _ = require('lodash');
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var forms = db.collection('forms');
-  var formsToPurge = {};
+  let forms = db.collection('forms');
+  let formsToPurge = {};
 
   forms.find().snapshot({$snapshot: true}).forEach(function(form) {
-    var deleteFns = _(util.flattenComponents(form.components))
+    let deleteFns = _(util.flattenComponents(form.components))
       .filter(function(component) {
         // Filter for non-persistent components
         return (component.hasOwnProperty('persistent') && !component.persistent)
@@ -37,14 +37,14 @@ module.exports = function(db, config, tools, done) {
       formsToPurge[form._id.toString()] = deleteFns;
     }
   }, function() {
-    var submissions = db.collection('submissions');
+    let submissions = db.collection('submissions');
 
     // Create a single query for every form id in formsToPurge
-    var query = _.map(Object.keys(formsToPurge), function(id) {
+    let query = _.map(Object.keys(formsToPurge), function(id) {
       return {form: new ObjectID(id)};
     });
 
-    var updatePromises = [];
+    let updatePromises = [];
 
     submissions.find({$or: query}).snapshot({$snapshot: true}).forEach(function(submission) {
       // Call each deleteFn with submission as the argument

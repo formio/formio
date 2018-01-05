@@ -1,11 +1,11 @@
 'use strict';
 
-var Resource = require('resourcejs');
-var async = require('async');
-var mongoose = require('mongoose');
-var vm = require('vm');
-var _ = require('lodash');
-var debug = {
+const Resource = require('resourcejs');
+const async = require('async');
+const mongoose = require('mongoose');
+const vm = require('vm');
+const _ = require('lodash');
+const debug = {
   error: require('debug')('formio:error'),
   action: require('debug')('formio:action')
 };
@@ -18,14 +18,14 @@ var debug = {
  * @returns {{actions: {}, register: Function, search: Function, execute: Function}}
  */
 module.exports = function(router) {
-  var hook = require('../util/hook')(router.formio);
+  const hook = require('../util/hook')(router.formio);
 
   /**
    * Create the ActionIndex object.
    *
    * @type {{actions: {}, register: Function, search: Function, execute: Function}}
    */
-  var ActionIndex = {
+  const ActionIndex = {
 
     /**
      * A list of all the actions.
@@ -52,12 +52,12 @@ module.exports = function(router) {
      * @param next
      * @returns {*}
      */
-    loadActions: function(req, res, next) {
+    loadActions(req, res, next) {
       if (!req.actions) {
         req.actions = {};
       }
 
-      var form = req.formId;
+      const form = req.formId;
       if (!form) {
         return next();
       }
@@ -79,14 +79,14 @@ module.exports = function(router) {
         }
 
         // Iterate through all of the actions and load them.
-        var actions = [];
+        const actions = [];
         _.each(result, function(action) {
           if (!this.actions.hasOwnProperty(action.name)) {
             return;
           }
 
           // Create the action class.
-          var ActionClass = this.actions[action.name];
+          const ActionClass = this.actions[action.name];
           actions.push(new ActionClass(action, req, res));
         }.bind(this));
 
@@ -103,14 +103,14 @@ module.exports = function(router) {
      * @param req
      * @param next
      */
-    search: function(handler, method, req, res, next) {
+    search(handler, method, req, res, next) {
       if (!req.formId) {
         return next(null, []);
       }
 
       // Make sure we have actions attached to the request.
       if (req.actions) {
-        var actions = [];
+        const actions = [];
         _.each(req.actions[req.formId], function(action) {
           if (
             (!handler || action.handler.indexOf(handler) !== -1) &&
@@ -139,7 +139,7 @@ module.exports = function(router) {
      * @param res
      * @param next
      */
-    initialize: function(method, req, res, next) {
+    initialize(method, req, res, next) {
       this.search(null, method, req, res, function(err, actions) {
         if (err) {
           return next(err);
@@ -166,7 +166,7 @@ module.exports = function(router) {
      * @param res
      * @param next
      */
-    execute: function(handler, method, req, res, next) {
+    execute(handler, method, req, res, next) {
       // Find the available actions.
       this.search(handler, method, req, res, function(err, actions) {
         if (err) {
@@ -175,13 +175,13 @@ module.exports = function(router) {
 
         // Iterate and execute each action.
         async.eachSeries(actions, function(action, cb) {
-          var execute = true;
+          let execute = true;
 
           try {
             // See if there is a custom condition.
             if (_.get(action, 'condition.custom')) {
-              var script = new vm.Script(action.condition.custom);
-              var sandbox = {
+              const script = new vm.Script(action.condition.custom);
+              const sandbox = {
                 data: req.body.data,
                 execute: false
               };
@@ -192,10 +192,10 @@ module.exports = function(router) {
             }
 
             // See if a condition is not established within the action.
-            var field = _.get(action, 'condition.field');
-            var eq = _.get(action, 'condition.eq');
-            var value = _.get(req, 'body.data.' + field);
-            var compare = _.get(action, 'condition.value');
+            const field = _.get(action, 'condition.field');
+            const eq = _.get(action, 'condition.eq');
+            const value = _.get(req, `body.data.${field}`);
+            const compare = _.get(action, 'condition.value');
             debug.action(
               '\nfield', field,
               '\neq', eq,
@@ -218,7 +218,7 @@ module.exports = function(router) {
             execute = false;
           }
 
-          debug.action('execute (' + execute + '):', action);
+          debug.action(`execute (${execute}):`, action);
           if (!execute) {
             return cb();
           }
@@ -241,11 +241,11 @@ module.exports = function(router) {
    *
    * @param action
    */
-  var getSettingsForm = function(action, req, cb) {
-    var mainSettings = {
+  const getSettingsForm = function(action, req, cb) {
+    const mainSettings = {
       components: []
     };
-    var conditionalSettings = {
+    const conditionalSettings = {
       components: []
     };
 
@@ -329,14 +329,14 @@ module.exports = function(router) {
         return cb('Could not load form components for conditional actions.');
       }
 
-      var filteredComponents = _(router.formio.util.flattenComponents(form.components))
+      const filteredComponents = _(router.formio.util.flattenComponents(form.components))
       .filter(function(component) {
         return component.key && component.input === true;
       })
       .value();
 
-      var components = [{key: ''}].concat(filteredComponents);
-      var customPlaceHolder = "// Example: Only execute if submitted roles has 'authenticated'.\n";
+      const components = [{key: ''}].concat(filteredComponents);
+      let customPlaceHolder = "// Example: Only execute if submitted roles has 'authenticated'.\n";
       customPlaceHolder +=    "execute = (data.roles.indexOf('authenticated') !== -1);";
       conditionalSettings.components.push({
         type: 'container',
@@ -436,7 +436,7 @@ module.exports = function(router) {
       });
 
       // Create the settings form.
-      var actionSettings = {
+      const actionSettings = {
         type: 'fieldset',
         input: false,
         tree: true,
@@ -445,7 +445,7 @@ module.exports = function(router) {
       };
 
       // The default settings form.
-      var settingsForm = {
+      const settingsForm = {
         components: [
           {type: 'hidden', input: true, key: 'priority'},
           {type: 'hidden', input: true, key: 'name'},
@@ -506,10 +506,10 @@ module.exports = function(router) {
 
   // Return a list of available actions.
   router.get('/form/:formId/actions', function(req, res, next) {
-    var result = [];
+    const result = [];
 
     // Add an action to the results array.
-    var addAction = function(action) {
+    const addAction = function(action) {
       action.defaults = action.defaults || {};
       action.defaults = _.assign(action.defaults, {
         priority: action.priority || 0,
@@ -545,7 +545,7 @@ module.exports = function(router) {
 
   // Return a list of available actions.
   router.get('/form/:formId/actions/:name', function(req, res, next) {
-    var action = ActionIndex.actions[req.params.name];
+    const action = ActionIndex.actions[req.params.name];
     if (!action) {
       return res.status(400).send('Action not found');
     }
@@ -582,7 +582,7 @@ module.exports = function(router) {
             }];
 
             info.settingsForm = settings.settingsForm;
-            info.settingsForm.action = hook.alter('path', '/form/' + req.params.formId + '/action', req);
+            info.settingsForm.action = hook.alter('path', `/form/${req.params.formId}/action`, req);
             hook.alter('actionInfo', info, req);
             res.json(info);
           });
@@ -596,7 +596,7 @@ module.exports = function(router) {
   });
 
   // Before all middleware for actions.
-  var actionPayload = function(req, res, next) {
+  const actionPayload = function(req, res, next) {
     if (req.body) {
       // Translate the request body if data is provided.
       if (req.body.hasOwnProperty('data')) {
@@ -629,7 +629,7 @@ module.exports = function(router) {
   };
 
   // After Index middleware for actions.
-  var indexPayload = function(req, res, next) {
+  const indexPayload = function(req, res, next) {
     res.resource.status = 200;
     _.each(res.resource.item, function(item) {
       if (ActionIndex.actions.hasOwnProperty(item.name)) {
@@ -641,14 +641,14 @@ module.exports = function(router) {
   };
 
   // Build the middleware stack.
-  var handlers = {};
-  var methods = ['Post', 'Get', 'Put', 'Index', 'Delete'];
+  const handlers = {};
+  const methods = ['Post', 'Get', 'Put', 'Index', 'Delete'];
   methods.forEach(function(method) {
-    handlers['before' + method] = [
+    handlers[`before${method}`] = [
       router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
       actionPayload
     ];
-    handlers['after' + method] = [
+    handlers[`after${method}`] = [
       router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens'])
     ];
   });

@@ -1,7 +1,7 @@
 'use strict';
 
-var mongoose = require('mongoose');
-let util = require('../util/util');
+const mongoose = require('mongoose');
+const util = require('../util/util');
 
 module.exports = (modelName) => {
   return (schema, options) => {
@@ -18,7 +18,7 @@ module.exports = (modelName) => {
     schema.index({machineName: 1}, {unique: true, partialFilterExpression: {deleted: {$eq: null}}});
 
     schema.pre('save', function(next) {
-      let model = mongoose.model(modelName);
+      const model = mongoose.model(modelName);
       if (typeof schema.machineName !== 'function') {
         // Do not alter an already established machine name.
         if (this._id && this.machineName) {

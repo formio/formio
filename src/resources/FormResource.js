@@ -17,7 +17,7 @@ module.exports = function(router) {
       res.resource.item
     ) {
       // Make sure we do not expose private validations.
-      var checkPrivateValidation = function(form) {
+      const checkPrivateValidation = function(form) {
         if (req.isAdmin) {
           return;
         }
@@ -68,7 +68,7 @@ module.exports = function(router) {
       ],
       hooks: {
         put: {
-          before: function(req, res, item, next) {
+          before(req, res, item, next) {
             if (item.components) {
               item.markModified('components');
             }
