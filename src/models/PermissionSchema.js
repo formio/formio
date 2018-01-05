@@ -1,12 +1,12 @@
 'use strict';
 
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 module.exports = function(formio) {
-  var hook = require('../util/hook')(formio);
+  const hook = require('../util/hook')(formio);
 
   // Define the available permissions for a form.
-  var available = [
+  let available = [
     'create_all',
     'read_all',
     'update_all',

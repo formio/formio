@@ -1,6 +1,6 @@
 'use strict';
 
-var bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt');
 module.exports = function(text, next) {
     bcrypt.genSalt(10, function(err, salt) {
         if (err) {

@@ -1,12 +1,12 @@
 'use strict';
 
-var _ = require('lodash');
-var debug = require('debug')('formio:middleware:submissionResourceAccessFilter');
+const _ = require('lodash');
+const debug = require('debug')('formio:middleware:submissionResourceAccessFilter');
 
 module.exports = function(router) {
   return function submissionResourceAccessFilter(req, res, next) {
-    var util = router.formio.util;
-    var hook = router.formio.hook;
+    const util = router.formio.util;
+    const hook = router.formio.hook;
 
     // Skip this filter, if not flagged in the permission handler.
     if (!_.has(req, 'submissionResourceAccessFilter') || !req.submissionResourceAccessFilter) {
@@ -28,19 +28,19 @@ module.exports = function(router) {
 
     // Cant determine submission resource access for not authenticated users.
     if (!req.user || !_.has(req, 'user._id') || !req.user._id) {
-      debug('No user given (' + req.user + ')');
+      debug(`No user given (${req.user})`);
       return res.sendStatus(401);
     }
 
-    var user = req.user._id;
-    var search = [util.idToString(user), util.idToBson(user)];
+    const user = req.user._id;
+    const search = [util.idToString(user), util.idToBson(user)];
     hook.alter('resourceAccessFilter', search, req, function(err, search) {
       // Try to recover if the hook fails.
       if (err) {
         debug(err);
       }
 
-      var query = {
+      const query = {
         form: util.idToBson(req.formId),
         deleted: {$eq: null},
         $or: [

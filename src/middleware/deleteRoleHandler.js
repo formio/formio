@@ -1,7 +1,7 @@
 'use strict';
 
-var util = require('../util/util');
-var debug = require('debug')('formio:middleware:deleteRoleHandler');
+const util = require('../util/util');
+const debug = require('debug')('formio:middleware:deleteRoleHandler');
 
 /**
  * The Delete Role Handler middleware.
@@ -13,7 +13,7 @@ var debug = require('debug')('formio:middleware:deleteRoleHandler');
  * @returns {Function}
  */
 module.exports = function(router) {
-  var prune = require('../util/delete')(router);
+  const prune = require('../util/delete')(router);
   return function deleteRoleHandler(req, res, next) {
     // Only stop delete requests!
     if (req.method !== 'DELETE') {
@@ -22,10 +22,10 @@ module.exports = function(router) {
     }
 
     // Split the request url into its corresponding parameters.
-    var params = util.getUrlParams(req.url);
+    const params = util.getUrlParams(req.url);
 
     // Get the roleId from the request url.
-    var roleId = params.hasOwnProperty('role')
+    const roleId = params.hasOwnProperty('role')
       ? params.role
       : null;
 
@@ -37,7 +37,7 @@ module.exports = function(router) {
     // Load the role in question.
     router.formio.resources.role.model.findById(roleId).exec(function(err, role) {
       if (err || !role) {
-        debug(err || 'No Role found with roleId: ' + roleId);
+        debug(err || `No Role found with roleId: ${roleId}`);
         return res.status(404).send('Unknown Role.');
       }
       role = role.toObject();
@@ -54,7 +54,7 @@ module.exports = function(router) {
           return next(err);
         }
 
-        debug('Deleted role w/ _id: ' + role._id);
+        debug(`Deleted role w/ _id: ${role._id}`);
         res.sendStatus(200);
       });
     });

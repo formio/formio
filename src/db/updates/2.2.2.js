@@ -12,8 +12,8 @@
  */
 module.exports = function(db, config, tools, done) {
   // Add default flags to all of the project default roles.
-  var projects = db.collection('projects');
-  var roles = db.collection('roles');
+  let projects = db.collection('projects');
+  let roles = db.collection('roles');
   projects.find({}).forEach(function(project) {
     if (project.defaultAccess) {
       roles.update(

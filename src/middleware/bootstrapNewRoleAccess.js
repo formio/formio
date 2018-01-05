@@ -1,8 +1,8 @@
 'use strict';
 
-var debug = require('debug')('formio:middleware:bootstrapNewRoleAccess');
-var async = require('async');
-var _ = require('lodash');
+const debug = require('debug')('formio:middleware:bootstrapNewRoleAccess');
+const async = require('async');
+const _ = require('lodash');
 
 /**
  * Middleware to bootstrap forms when a new role is created.
@@ -17,7 +17,7 @@ var _ = require('lodash');
  */
 module.exports = function(router) {
   return function bootstrapNewRoleAccess(req, res, next) {
-    var hook = require('../util/hook')(router.formio);
+    const hook = require('../util/hook')(router.formio);
 
     // Only bootstrap existing form access on Role creation.
     if (req.method !== 'POST' || !res || !res.hasOwnProperty('resource') || !res.resource.item) {
@@ -25,15 +25,15 @@ module.exports = function(router) {
       return next();
     }
 
-    var roleId = res.resource.item._id.toString();
+    const roleId = res.resource.item._id.toString();
 
     /**
      * Async function to add the new role to the read_all access of each form.
      *
      * @param done
      */
-    var updateForms = function(_role, done) {
-      var query = hook.alter('roleQuery', {deleted: {$eq: null}}, req);
+    const updateForms = function(_role, done) {
+      const query = hook.alter('roleQuery', {deleted: {$eq: null}}, req);
       debug(query);
 
       // Query the forms collection, to build the updated form access list.
@@ -52,8 +52,8 @@ module.exports = function(router) {
 
           // Add the new roleId to the access list for read_all (form).
           form.access = form.access || [];
-          var found = false;
-          for (var a = 0; a < form.access.length; a++) {
+          let found = false;
+          for (let a = 0; a < form.access.length; a++) {
             if (form.access[a].type === 'read_all') {
               form.access[a].roles = form.access[a].roles || [];
               form.access[a].roles.push(_role);
@@ -83,8 +83,8 @@ module.exports = function(router) {
       });
     };
 
-    var bound = [];
-    var fns = hook.alter('newRoleAccess', [updateForms], req);
+    const bound = [];
+    const fns = hook.alter('newRoleAccess', [updateForms], req);
     fns.forEach(function(f) {
       bound.push(async.apply(f, roleId));
     });
