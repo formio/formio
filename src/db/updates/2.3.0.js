@@ -1,8 +1,8 @@
 'use strict';
 
-var _ = require('lodash');
-var async = require('async');
-var ObjectId = require('mongodb').ObjectID;
+let _ = require('lodash');
+let async = require('async');
+let ObjectId = require('mongodb').ObjectID;
 
 /**
  * Update 2.3.0
@@ -16,22 +16,22 @@ var ObjectId = require('mongodb').ObjectID;
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var forms = db.collection('forms');
-  var actions = db.collection('actions');
-  var roles = db.collection('roles');
-  var projects = db.collection('projects');
+  let forms = db.collection('forms');
+  let actions = db.collection('actions');
+  let roles = db.collection('roles');
+  let projects = db.collection('projects');
 
   // The list of forms that have already been modified.
-  var alreadyDone = [];
+  let alreadyDone = [];
 
   // The list of all the forms in the system.
-  var allForms = [];
+  let allForms = [];
 
   // A mapping of formId:projectId
-  var formsAndProjects = [];
+  let formsAndProjects = [];
 
   // Remove all auth actions that dont have settings.
-  var pruneAuthActions = function(cb) {
+  let pruneAuthActions = function(cb) {
     actions.deleteMany({name: 'auth', settings: {$eq: null}}, function(err, result) {
       if (err) {
         return cb(err);
@@ -42,11 +42,11 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Get all the forms in the platform, with their projectId's
-  var getAllForms = function(cb) {
+  let getAllForms = function(cb) {
     forms.find({deleted: {$eq: null}}, {project: 1}).snapshot({$snapshot: true}).toArray(cb);
   };
 
-  var filterForms = function(documents, cb) {
+  let filterForms = function(documents, cb) {
     // Map the forms for later lookups
     allForms = _.map(documents, function(element) {
       formsAndProjects[element._id.toString()] = formsAndProjects[element._id.toString()] || element.project.toString();
@@ -57,15 +57,15 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Get all the auth and role actions in the system.
-  var getAllActions = function(cb) {
-    var query = {deleted: {$eq: null}, $or: [{name: 'auth'}, {name: 'role'}]};
+  let getAllActions = function(cb) {
+    let query = {deleted: {$eq: null}, $or: [{name: 'auth'}, {name: 'role'}]};
     actions.find(query).snapshot({$snapshot: true}).toArray(cb);
   };
 
   // Sort the actions by formId, so we can merge Auth/Role actions on forms.
-  var filterActions = function(documents, cb) {
+  let filterActions = function(documents, cb) {
     // The formId:[actionId] pairs.
-    var filteredActions = {};
+    let filteredActions = {};
     documents.forEach(function(element) {
       filteredActions[element.form.toString()] = filteredActions[element.form.toString()] || [];
       filteredActions[element.form.toString()].push(element);
@@ -75,23 +75,23 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Update the auth action with the given actionId, to have the roleId as the default role assignment.
-  var updateAuthenticationAction = function(actionId, roleId, cb) {
-    var query = {_id: ObjectId(actionId)};
-    var update = {$set: {'settings.role': ObjectId(roleId)}};
+  let updateAuthenticationAction = function(actionId, roleId, cb) {
+    let query = {_id: ObjectId(actionId)};
+    let update = {$set: {'settings.role': ObjectId(roleId)}};
     actions.findOneAndUpdate(query, update, cb);
   };
 
   // Delete the roleAction with the given actionId;
-  var deleteRoleAction = function(actionId, cb) {
-    var query = {_id: ObjectId(actionId)};
+  let deleteRoleAction = function(actionId, cb) {
+    let query = {_id: ObjectId(actionId)};
     actions.findOneAndDelete(query, cb);
   };
 
   // Condense the given actions (role and auth), to be a single authentication action.
-  var condenseActions = function(formActions, formId, cb) {
-    var role = null;
-    var roleActionId = null;
-    var authActionId = null;
+  let condenseActions = function(formActions, formId, cb) {
+    let role = null;
+    let roleActionId = null;
+    let authActionId = null;
     formActions.forEach(function(action) {
       if (action.name === 'role') {
         roleActionId = action._id.toString();
@@ -129,7 +129,7 @@ module.exports = function(db, config, tools, done) {
     });
   };
 
-  var processActions = function(filteredActions, cb) {
+  let processActions = function(filteredActions, cb) {
     async.forEachOfSeries(filteredActions, function(formActions, formId, callback) {
       if (!(formActions instanceof Array)) {
         return callback('Expected Array, got: ' + JSON.stringify(formActions))
@@ -139,7 +139,7 @@ module.exports = function(db, config, tools, done) {
       }
 
       if (formActions.length === 2) {
-        var association = null;
+        let association = null;
         formActions.forEach(function(action) {
           if (!action.settings || !action.settings.hasOwnProperty('association')) {
             return callback('Expected the action to have association settings... ' + JSON.stringify(action));
@@ -185,29 +185,29 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Find all the auth actions that have not been already migrated.
-  var findAuthActionsToMigrate = function(cb) {
-    var query = {name: 'auth', 'settings.association': 'new', form: {$nin: alreadyDone}, deleted: {$eq: null}};
+  let findAuthActionsToMigrate = function(cb) {
+    let query = {name: 'auth', 'settings.association': 'new', form: {$nin: alreadyDone}, deleted: {$eq: null}};
     actions.find(query).snapshot({$snapshot: true}).toArray(cb);
   };
 
   // Get the authenticated role for the project containing the given formId.
-  var getAuthenticatedRole = function(formId, cb) {
-    var proj = formsAndProjects[formId];
+  let getAuthenticatedRole = function(formId, cb) {
+    let proj = formsAndProjects[formId];
 
     // Special case for boardman project.
     if (proj === '552b2297d70ef854300001e5') {
-      var query = {title: 'Agent', project: ObjectId(proj), deleted: {$eq: null}};
+      let query = {title: 'Agent', project: ObjectId(proj), deleted: {$eq: null}};
       roles.find(query).snapshot({$snapshot: true}).toArray(cb);
     }
     else {
-      var query = {title: 'Authenticated', project: ObjectId(proj), deleted: {$eq: null}};
+      let query = {title: 'Authenticated', project: ObjectId(proj), deleted: {$eq: null}};
       roles.find(query).snapshot({$snapshot: true}).toArray(cb);
     }
   };
 
-  var addRoleToAuthAction = function(actionId, roleId, cb) {
-    var query = {_id: ObjectId(actionId)};
-    var update = {$set: {'settings.role': ObjectId(roleId.toString())}};
+  let addRoleToAuthAction = function(actionId, roleId, cb) {
+    let query = {_id: ObjectId(actionId)};
+    let update = {$set: {'settings.role': ObjectId(roleId.toString())}};
     actions.findOneAndUpdate(query, update, function(err, result) {
       if (err) {
         return cb(err);
@@ -218,7 +218,7 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Migrate any auth actions that were not configured with role actions.
-  var migrateAuthActions = function(documents, cb) {
+  let migrateAuthActions = function(documents, cb) {
     async.eachSeries(documents, function(action, callback) {
       async.waterfall([
         function(next) {
@@ -250,8 +250,8 @@ module.exports = function(db, config, tools, done) {
     });
   };
 
-  var checkMigrations = function(cb) {
-    var checkRoleActions = function(callback) {
+  let checkMigrations = function(cb) {
+    let checkRoleActions = function(callback) {
       actions.find({name: 'role', deleted: {$eq: null}}).snapshot({$snapshot: true}).toArray(function(err, documents) {
         if (err) {
           return callback(err);
@@ -268,7 +268,7 @@ module.exports = function(db, config, tools, done) {
       });
     };
 
-    var checkAuthActions = function(callback) {
+    let checkAuthActions = function(callback) {
       actions.find({name: 'auth', deleted: {$eq: null}, 'settings.role': {$eq: null}, 'settings.association': 'new'})
         .snapshot({$snapshot: true}).toArray(function(err, documents) {
           if (err) {
@@ -286,7 +286,7 @@ module.exports = function(db, config, tools, done) {
         });
     };
 
-    var checkBothActions = function(callback) {
+    let checkBothActions = function(callback) {
       actions.find({$or: [{name: 'auth'}, {name: 'role'}], deleted: {$eq: null}})
         .snapshot({$snapshot: true}).toArray(function(err, documents) {
           if (err) {
@@ -296,8 +296,8 @@ module.exports = function(db, config, tools, done) {
             return callback();
           }
 
-          var allFormIds = [];
-          var formsAndActions = {};
+          let allFormIds = [];
+          let formsAndActions = {};
           documents.forEach(function(doc) {
             allFormIds.push(doc.form.toString());
 

@@ -1,11 +1,11 @@
 'use strict';
 
-var Resource = require('resourcejs');
-var mongoose = require('mongoose');
+const Resource = require('resourcejs');
+const mongoose = require('mongoose');
 
 module.exports = function(router) {
-  var hook = require('../util/hook')(router.formio);
-  var handlers = {};
+  const hook = require('../util/hook')(router.formio);
+  const handlers = {};
 
   handlers.before = [
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),

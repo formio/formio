@@ -95,7 +95,7 @@ module.exports = (formio) => {
         required: true,
         validate: [
           {
-            message: 'The Name ' + uniqueMessage,
+            message: `The Name ${uniqueMessage}`,
             validator: (value) => !invalidRegex.test(value)
           },
           {
@@ -114,7 +114,7 @@ module.exports = (formio) => {
         trim: true,
         validate: [
           {
-            message: 'The Path ' + uniqueMessage,
+            message: `The Path ${uniqueMessage}`,
             validator: (value) => !invalidRegex.test(value)
           },
           {

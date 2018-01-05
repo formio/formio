@@ -1,6 +1,6 @@
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 
 /**
  * The Condense Submission Permission Types middleware.
@@ -20,8 +20,8 @@ module.exports = function(router) {
       return next();
     }
 
-    var final = [];
-    var condensed = {};
+    const final = [];
+    const condensed = {};
 
     // Create permissions map for permissions with a type and resources.
     _.each(req.body.access, function(permission) {

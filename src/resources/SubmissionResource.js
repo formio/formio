@@ -88,7 +88,7 @@ module.exports = function(router) {
       }
 
       // Start the query.
-      let query = {
+      const query = {
         form: form._id,
         deleted: {$eq: null}
       };
@@ -102,9 +102,9 @@ module.exports = function(router) {
         queryValid = true;
       }
 
-      let queryComponents = {};
+      const queryComponents = {};
       _.each(req.query, function(value, key) {
-        let parts = key.split('.');
+        const parts = key.split('.');
         if (parts[0] === 'data' && parts.length > 1) {
           queryComponents[parts[1]] = {
             value: value,
@@ -124,7 +124,7 @@ module.exports = function(router) {
           queryValid = true;
 
           // Get the query component.
-          var queryComponent = queryComponents[component.key];
+          const queryComponent = queryComponents[component.key];
 
           // Add this to the query data.
           query[queryComponent.key] = queryComponent.value;
