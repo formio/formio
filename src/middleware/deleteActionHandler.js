@@ -1,7 +1,7 @@
 'use strict';
 
-var util = require('../util/util');
-var debug = require('debug')('formio:middleware:deleteActionHandler');
+const util = require('../util/util');
+const debug = require('debug')('formio:middleware:deleteActionHandler');
 
 /**
  * The deleteActionHandler middleware.
@@ -12,7 +12,7 @@ var debug = require('debug')('formio:middleware:deleteActionHandler');
  * @returns {Function}
  */
 module.exports = function(router) {
-  var prune = require('../util/delete')(router);
+  const prune = require('../util/delete')(router);
   return function(req, res, next) {
     if (req.method !== 'DELETE') {
       debug('Skipping');
@@ -20,10 +20,10 @@ module.exports = function(router) {
     }
 
     // Split the request url into its corresponding parameters.
-    var params = util.getUrlParams(req.url);
+    const params = util.getUrlParams(req.url);
 
     // Get the actionId from the request url.
-    var actionId = params.hasOwnProperty('action')
+    const actionId = params.hasOwnProperty('action')
       ? params.action
       : null;
 

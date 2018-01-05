@@ -1,10 +1,10 @@
 'use strict';
 
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 module.exports = function(formio) {
   // Define the available permissions for a submission.
-  var available = [
+  const available = [
     'read',
     'write',
     'admin'

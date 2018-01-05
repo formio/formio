@@ -1,8 +1,8 @@
 'use strict';
 
-var jwt = require('jsonwebtoken');
-var util = require('../util/util');
-var debug = {
+const jwt = require('jsonwebtoken');
+const util = require('../util/util');
+const debug = {
   error: require('debug')('formio:error'),
   handler: require('debug')('formio:middleware:tokenHandler')
 };
@@ -26,9 +26,9 @@ module.exports = function(router) {
    * @param payload
    * @param res
    */
-  let generateToken = (inputToken, payload, res) => {
+  const generateToken = (inputToken, payload, res) => {
     // Refresh the token that is sent back to the user when appropriate.
-    let newToken = router.formio.auth.getToken(payload);
+    const newToken = router.formio.auth.getToken(payload);
     res.token = newToken
       ? newToken
       : inputToken;
@@ -46,7 +46,7 @@ module.exports = function(router) {
       return next();
     }
 
-    var token = util.getRequestValue(req, 'x-jwt-token');
+    const token = util.getRequestValue(req, 'x-jwt-token');
 
     // Skip the token handling if no token was given.
     if (!token) {
@@ -61,7 +61,7 @@ module.exports = function(router) {
     // Decode/refresh the token and store for later middleware.
     jwt.verify(token, router.formio.config.jwt.secret, function(err, decoded) {
       if (err || !decoded) {
-        debug.handler(err || 'Token could not decoded: ' + token);
+        debug.handler(err || `Token could not decoded: ${token}`);
 
         // If the token has expired, send a 440 error (Login Timeout)
         if (err && (err.name === 'JsonWebTokenError')) {
@@ -91,7 +91,7 @@ module.exports = function(router) {
       }
 
       // Load the formio hooks.
-      var hook = require('../util/hook')(router.formio);
+      const hook = require('../util/hook')(router.formio);
 
       // Allow external tokens.
       if (!hook.alter('external', decoded, req)) {
@@ -119,7 +119,7 @@ module.exports = function(router) {
       }
 
       // Load the user submission.
-      var cache = router.formio.cache || require('../cache/cache')(router);
+      const cache = router.formio.cache || require('../cache/cache')(router);
       cache.loadSubmission(req, decoded.form._id, decoded.user._id, function(err, user) {
         if (err) {
           // Couldn't load the use, try to fail safely.

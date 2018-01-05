@@ -1,7 +1,7 @@
 'use strict';
 
-var debug = require('debug')('formio:middleware:filterProtectedFields');
-var util = require('../util/util');
+const debug = require('debug')('formio:middleware:filterProtectedFields');
+const util = require('../util/util');
 
 /**
  * Middleware function to filter protected fields from a submission response.
