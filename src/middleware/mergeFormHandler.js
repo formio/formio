@@ -206,7 +206,10 @@ module.exports = function(router) {
         }
 
         // Merge each row if present in the component.
-        if (a.hasOwnProperty('rows') || b.hasOwnProperty('rows')) {
+        if (
+          (a.hasOwnProperty('rows') && Array.isArray(a.rows)) ||
+          (b.hasOwnProperty('rows') && Array.isArray(b.rows))
+        ) {
           const rowsA = a.rows || [];
           const rowsB = b.rows || [];
           const finalRows = [];
