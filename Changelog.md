@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.24.1
+### Changed
+ - Upgraded resourcejs to latest version.
+
 ## 1.24.0
 ### Changed
  - Upgraded all dependencies.
