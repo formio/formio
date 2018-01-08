@@ -42,7 +42,7 @@
     "lodash": "^4.17.4",
     "method-override": "^2.3.0",
     "moment": "^2.19.3",
-    "mongodb": "^3.0.1",
+    "mongodb": "^2.2.34",
     "mongoose": "^4.13.9",
     "mssql": "^4.1.0",
     "mysql": "^2.7.0",
