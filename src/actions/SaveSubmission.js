@@ -231,7 +231,10 @@ module.exports = function(router) {
             }
 
             // Find the external submission.
-            const external = _.find(currentSubmission.externalIds, {type: 'resource', resource: this.settings.resource});
+            const external = _.find(currentSubmission.externalIds, {
+              type: 'resource',
+              resource: this.settings.resource
+            });
             if (!external) {
               return then();
             }
