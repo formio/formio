@@ -124,7 +124,7 @@ module.exports = function(router) {
      * @returns {string}
      */
     waitText(time) {
-      return (time > 60) ? `${parseInt(time / 60, 10)  } minutes` : `${parseInt(time, 10)} seconds`;
+      return (time > 60) ? `${parseInt(time / 60, 10)} minutes` : `${parseInt(time, 10)} seconds`;
     }
 
     /**
