@@ -2,10 +2,14 @@
 
 const Exporter = require('../Exporter');
 const util = require('../../util/util');
+const {
+  convertFormatToMoment,
+} = require('formiojs/utils');
 const through = require('through');
 const csv = require('csv');
 const _ = require('lodash');
 const Entities = require('html-entities').AllHtmlEntities;
+const moment = require('moment');
 
 /**
  * Create a CSV exporter.
@@ -111,6 +115,13 @@ class CSVExporter extends Exporter {
               return _.isObject(value)
                 ? valuesExtractor(value)
                 : value;
+            }
+          });
+        }
+        else if (component.type === 'datetime') {
+          items.push({
+            preprocessor(data) {
+              return moment(data).format(convertFormatToMoment(component.format));
             }
           });
         }
