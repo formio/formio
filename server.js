@@ -49,7 +49,7 @@ module.exports = function(options) {
   });
 
   // Mount the client application.
-  app.use('/', express.static(`${__dirname  }/client/dist`));
+  app.use('/', express.static(`${__dirname}/client/dist`));
 
   // Load the form.io server.
   var server = options.server || require('./index')(config);
@@ -62,11 +62,11 @@ module.exports = function(options) {
       // Start the application.
       if (fs.existsSync('app')) {
         var application = express();
-        application.use('/', express.static(`${__dirname  }/app/dist`));
+        application.use('/', express.static(`${__dirname}/app/dist`));
         config.appPort = config.appPort || 8080;
         application.listen(config.appPort);
-        var appHost = `http://localhost:${  config.appPort}`;
-        util.log(` > Serving application at ${  appHost.green}`);
+        var appHost = `http://localhost:${config.appPort}`;
+        util.log(` > Serving application at ${appHost.green}`);
       }
 
       // Mount the Form.io API platform.
