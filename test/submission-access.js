@@ -6934,7 +6934,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission owner, without explicit resource access (read)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -7144,7 +7144,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission owner, without explicit resource access (write)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -7355,7 +7355,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission owner, with explicit resource access (admin)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -7616,7 +7616,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission owner, without explicit resource access (read)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -7853,7 +7853,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission owner, without explicit resource access (write)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -8090,7 +8090,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission owner, with explicit resource access (admin)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)

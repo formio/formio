@@ -233,9 +233,14 @@ const Utils = {
    * @constructor
    */
   ObjectId(id) {
-    return _.isObject(id)
-      ? id
-      : mongoose.Types.ObjectId(id);
+    try {
+      return _.isObject(id)
+        ? id
+        : mongoose.Types.ObjectId(id);
+    }
+    catch (e) {
+      return id;
+    }
   },
 
   /**

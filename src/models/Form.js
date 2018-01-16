@@ -155,10 +155,17 @@ module.exports = (formio) => {
       access: [formio.schemas.PermissionSchema],
       submissionAccess: [formio.schemas.PermissionSchema],
       owner: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.Mixed,
         ref: 'submission',
         index: true,
-        default: null
+        default: null,
+        set: owner => {
+          // Attempt to convert to objectId.
+          return formio.util.ObjectId(owner);
+        },
+        get: owner => {
+          return owner ? owner.toString() : owner;
+        }
       },
       components: {
         type: [mongoose.Schema.Types.Mixed],

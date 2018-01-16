@@ -2849,6 +2849,63 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('Form metadata handling.', () => {
+      it('Should allow for submission metadata to be passed to the submission.', (done) => {
+        // Create a resource to keep records.
+        helper
+          .form('metadata', [
+            {
+              "input": true,
+              "tableView": true,
+              "inputType": "text",
+              "inputMask": "",
+              "label": "Name",
+              "key": "name",
+              "placeholder": "",
+              "prefix": "",
+              "suffix": "",
+              "multiple": false,
+              "defaultValue": "",
+              "protected": false,
+              "unique": false,
+              "persistent": true,
+              "validate": {
+                "required": false,
+                "minLength": "",
+                "maxLength": "",
+                "pattern": "",
+                "custom": "",
+                "customPrivate": false
+              },
+              "conditional": {
+                "show": null,
+                "when": null,
+                "eq": ""
+              },
+              "type": "textfield"
+            }
+          ])
+          .submission('metadata', {
+            data: {
+              name: "testing"
+            },
+            metadata: {
+              testing: 'hello'
+            }
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, {name: 'testing'});
+            assert.deepEqual(submission.metadata, {testing: 'hello'});
+            done();
+          });
+      });
+    });
+
     if (!docker)
     describe('Select validation', () => {
       before((done) => {
