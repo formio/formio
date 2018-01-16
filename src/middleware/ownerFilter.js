@@ -1,5 +1,7 @@
 'use strict';
 
+const util = require('../util/util');
+
 /**
  * Middleware to filter the request by owner.
  *
@@ -18,7 +20,7 @@ module.exports = function(router) {
     }
 
     // The default ownerFilter query.
-    let query = {owner: req.token.user._id};
+    let query = {owner: util.ObjectId(req.token.user._id)};
 
     // If the self access flag was enabled in the permissionHandler, allow resources to access themselves.
     if (req.selfAccess) {

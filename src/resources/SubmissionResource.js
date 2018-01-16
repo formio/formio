@@ -98,7 +98,7 @@ module.exports = function(router) {
 
       // Allow them to provide the owner flag.
       if (req.query.owner) {
-        query.owner = req.query.owner;
+        query.owner = router.formio.util.ObjectId(req.query.owner);
         queryValid = true;
       }
 

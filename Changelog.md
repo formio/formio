@@ -4,11 +4,36 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [UNRELEASED]
+## 1.24.2
+### Fixed
+ - Issue where the metadata property for submissions was getting stripped out.
+ - DateTime component export.
+
+## 1.24.1
+### Changed
+ - Upgraded resourcejs to latest version.
+
+## 1.24.0
+### Changed
+ - Upgraded all dependencies.
+
+## 1.23.12
+### Changed
+ - Upgraded resourcejs to fix crash in index queries.
+
+## 1.23.11
+### Changed
+ - The owner property to be either a MongoID or a string with custom value.
+ - Converted some code into ES6 patterns.
+
+### Added
+ - Hook into the export capabilities.
+
+## 1.23.10
 ### Fixed
  - CSV export when Select component within DataGrid component.
  - Do not replace the title and name during import if none are provided.
- 
+
 ### Added
  - Custom Form properties.
 

@@ -153,8 +153,8 @@ module.exports = function(router) {
       // Error if association is existing and valid data was not provided.
       if (this.settings.association === 'existing' && !(this.settings.role || req.submission.data.role)) {
         return res.status(400).send(
-          'Missing role for RoleAction association of `existing`. Must specify role to assign in action settings or a ' +
-          'form component named `role`'
+          'Missing role for RoleAction association of `existing`. Must specify role to assign in action settings ' +
+          'or a form component named `role`'
         );
       }
       if (this.settings.association === 'existing' && !(req.submission.data.submission || res.resource.item)) {
