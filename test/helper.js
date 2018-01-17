@@ -607,11 +607,6 @@ module.exports = function(app) {
     }
     url += '/form/' + this.template.forms[form]._id + '/submission/' + id;
 
-    // Allow passing in the submission as well
-    if (!data.hasOwnProperty('data')) {
-      data = {data};
-    }
-
     request(app)
       .get(url)
       .send()
