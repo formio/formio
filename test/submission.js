@@ -3016,6 +3016,42 @@ module.exports = function(app, template, hook) {
           done();
         });
       });
+
+      it('Should allow saving select resource by reference', done => {
+        const submission = helper.template.submissions['fruitSelect'][0];
+        helper
+          .form('myFruit', {
+            input: true,
+            label: "Fruit",
+            key: "fruit",
+            data: {
+              resource: helper.template.forms['fruits']._id,
+              project: helper.template.project ? helper.template.project._id : ''
+            },
+            dataSrc: "resource",
+            reference: true,
+            valueProperty: "",
+            defaultValue: "",
+            template: "<span>{{ item.data.name }}</span>",
+            multiple: false,
+            persistent: true,
+            type: "select"
+          })
+          .submission('myFruit', {fruit: submission})
+          .execute(err => {
+            if (err) {
+              return done(err);
+            }
+            helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(submission._id, fromsub.data.fruit._id);
+              assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+              done();
+            });
+          });
+      });
     });
   });
 };

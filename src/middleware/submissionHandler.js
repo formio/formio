@@ -60,7 +60,7 @@ module.exports = function(router, resourceName, resourceId) {
               res.resource &&
               res.resource.item
             ) {
-              const formId = component.form || component.resource;
+              const formId = component.form || component.resource || component.data.resource;
               const compValue = _.get(res.resource.item.data, path);
               if (compValue && compValue._id) {
                 const submissionModel = req.submissionModel || router.formio.resources.submission.model;
