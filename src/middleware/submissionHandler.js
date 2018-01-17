@@ -89,7 +89,7 @@ module.exports = function(router, resourceName, resourceId) {
               }
             }
             else if ((handlerName === 'afterIndex') && res.resource && res.resource.item) {
-              const formId = component.form || component.resource;
+              const formId = component.form || component.resource || component.data.resource;
               const resources = [];
               _.each(res.resource.item, (resource) => {
                 const compValue = _.get(resource.data, path);
