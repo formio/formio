@@ -3018,9 +3018,9 @@ module.exports = function(app, template, hook) {
       });
 
       it('Should allow saving select resource by reference', done => {
-        const submission = helper.template.submissions['fruitSelect'][0];
+        const submission = helper.template.submissions['fruits'][0];
         helper
-          .form('myFruit', {
+          .form('myFruit', [{
             input: true,
             label: "Fruit",
             key: "fruit",
@@ -3036,8 +3036,8 @@ module.exports = function(app, template, hook) {
             multiple: false,
             persistent: true,
             type: "select"
-          })
-          .submission('myFruit', {fruit: submission})
+          }])
+          .submission('myFruit', {fruit: {_id: submission._id, form: helper.template.forms['fruits']._id}})
           .execute(err => {
             if (err) {
               return done(err);
