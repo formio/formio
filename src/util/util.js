@@ -132,6 +132,7 @@ const Utils = {
     childReq.modelQuery = null;
     childReq.countQuery = null;
     childReq.childRequests = ++childRequests;
+    childReq.permissionsChecked = false;
 
     // Delete the actions cache.
     delete childReq.actions;
