@@ -86,7 +86,7 @@ module.exports = router => {
   const getResource = function(component, path, req, res) {
     // Make sure to reset the value on the return result.
     const compValue = _.get(res.resource.item.data, path);
-    if (compValue && req.resources.hasOwnProperty(compValue._id)) {
+    if (compValue && req.resources && req.resources.hasOwnProperty(compValue._id)) {
       _.set(res.resource.item.data, path, req.resources[compValue._id]);
     }
     return Promise.resolve();

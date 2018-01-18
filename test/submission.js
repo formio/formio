@@ -2955,23 +2955,24 @@ module.exports = function(app, template, hook) {
             let apiUrl = 'http://localhost:' + template.config.port;
             apiUrl += hook.alter('url', '/form/' + helper.template.forms['fruits']._id + '/submission', helper.template);
 
-            helper.form('fruitSelect', [
-              {
-                type: 'select',
-                key: 'fruit',
-                label: 'Select a fruit',
-                dataSrc: 'url',
-                searchField: 'data.name',
-                authenticate: true,
-                persistent: true,
-                data: {
-                  url: apiUrl
-                },
-                validate: {
-                  select: true
+            helper
+              .form('fruitSelect', [
+                {
+                  type: 'select',
+                  key: 'fruit',
+                  label: 'Select a fruit',
+                  dataSrc: 'url',
+                  searchField: 'data.name',
+                  authenticate: true,
+                  persistent: true,
+                  data: {
+                    url: apiUrl
+                  },
+                  validate: {
+                    select: true
+                  }
                 }
-              }
-            ])
+              ])
               .execute((err) => {
                 if (err) {
                   return done(err);
