@@ -585,6 +585,12 @@ module.exports = function(router) {
    *   The callback function to invoke after completion.
    */
   return function permissionHandler(req, res, next) {
+    // If permissions have already been checked.
+    if (req.permissionsChecked) {
+      return next();
+    }
+    req.permissionsChecked = true;
+
     // Check for whitelisted paths.
     if (req.method === 'GET') {
       const whitelist = ['/health', '/current', '/logout', '/access', '/token'];
@@ -671,6 +677,10 @@ module.exports = function(router) {
 
       // If someone else before this sent the status, then go to the next middleware.
       debug.permissions('Access Denied!');
+      if (req.noResponse) {
+        res.status(401);
+        return next();
+      }
       return res.headersSent ? next() : res.sendStatus(401);
     });
   };

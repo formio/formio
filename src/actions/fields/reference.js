@@ -29,29 +29,20 @@ module.exports = router => {
 
       const childRes = {
         send: () => _.noop,
-        status: (status) => {
-          return {
-            json: (err) => {
-              if (status > 299) {
-                // Add the parent path to the details path.
-                if (err.details && err.details.length) {
-                  _.each(err.details, (details) => {
-                    if (details.path) {
-                      details.path = `${path}.data.${details.path}`;
-                    }
-                  });
-                }
-
-                return res.status(status).json(err);
-              }
-            }
-          };
+        status: function(status) {
+          this.statusCode = status;
         }
       };
       if (router.resourcejs.hasOwnProperty(childReq.url) && router.resourcejs[childReq.url].hasOwnProperty(method)) {
         return new Promise((resolve, reject) => {
-          router.resourcejs[childReq.url][method].call(this, childReq, childRes, function(one, two, three) {
-            _.set(resource.data, path, childRes.resource.item);
+          router.resourcejs[childReq.url][method].call(this, childReq, childRes, function(err) {
+            if (!childRes.statusCode || childRes.statusCode < 300) {
+              _.set(resource.data, path, childRes.resource.item);
+            }
+            else {
+              // If they don't have access, only return the id.
+              _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
+            }
             return resolve();
           });
         });

@@ -3037,7 +3037,14 @@ module.exports = function(app, template, hook) {
             multiple: false,
             persistent: true,
             type: "select"
-          }])
+          }], {
+            submissionAccess: [
+              {
+                type: 'read_all',
+                roles: [template.roles.authenticated._id.toString()]
+              }
+            ]
+          })
           .submission('myFruit', {fruit: {_id: submission._id, form: helper.template.forms['fruits']._id}})
           .execute(err => {
             if (err) {
@@ -3051,6 +3058,41 @@ module.exports = function(app, template, hook) {
               assert.equal(submission.data.name, fromsub.data.fruit.data.name);
               done();
             });
+          });
+      });
+
+      it('Should allow saving select resource with whole object by reference', done => {
+        const submission = helper.template.submissions['fruits'][0];
+        helper
+          .submission('myFruit', {fruit: submission})
+          .execute(err => {
+            if (err) {
+              return done(err);
+            }
+            helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(submission._id, fromsub.data.fruit._id);
+              assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+              done();
+            });
+          });
+      });
+
+      it('Should check permissions when loading from reference', done => {
+        request(app)
+          .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission/' + helper.lastSubmission._id, template))
+          .set('x-jwt-token', template.users.user1.token)
+          .send()
+          // .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert(res.body.data.fruit.hasOwnProperty('_id'), 'Must contain the _id.');
+            assert.equal(1, Object.keys(res.body.data.fruit).length);
+            done();
           });
       });
     });
