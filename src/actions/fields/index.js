@@ -6,6 +6,7 @@ module.exports = function(router) {
     password: require('./password')(router.formio),
     form: require('./form')(router),
     email: require('./email')(router.formio),
-    datetime: require('./datetime')(router.formio)
+    datetime: require('./datetime')(router.formio),
+    reference: require('./reference')(router)
   };
 };
