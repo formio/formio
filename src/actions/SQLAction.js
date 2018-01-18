@@ -63,17 +63,17 @@ module.exports = function(router) {
           }
         }
 
-      next(null, [
-        {
-          type: 'select',
-          input: true,
-          label: 'SQL ServerType',
-          key: 'type',
-          placeholder: 'Select the SQL Server Type',
-          template: '<span>{{ item.title | formioTranslate }}</span>',
-          dataSrc: 'json',
-          data: {
-            json: JSON.stringify(serverTypes)
+        next(null, [
+          {
+            type: 'select',
+            input: true,
+            label: 'SQL ServerType',
+            key: 'type',
+            placeholder: 'Select the SQL Server Type',
+            template: '<span>{{ item.title }}</span>',
+            dataSrc: 'json',
+            data: {
+              json: JSON.stringify(serverTypes)
             },
             valueProperty: 'type',
             multiple: false
