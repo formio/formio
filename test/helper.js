@@ -591,6 +591,50 @@ module.exports = function(app) {
       }.bind(this));
   };
 
+  Helper.prototype.getSubmission = function(form, id, done) {
+    if (typeof form === 'object') {
+      data = form;
+      form = this.contextName;
+    }
+
+    if (!this.template.forms.hasOwnProperty(form)) {
+      return done('Form not found');
+    }
+
+    var url = '';
+    if (this.template.project && this.template.project._id) {
+      url += '/project/' + this.template.project._id;
+    }
+    url += '/form/' + this.template.forms[form]._id + '/submission/' + id;
+
+    request(app)
+      .get(url)
+      .send()
+      .set('x-jwt-token', this.owner.token)
+      .end(function(err, res) {
+        if (err) {
+          return done(err);
+        }
+
+        this.owner.token = res.headers['x-jwt-token'];
+        this.template.submissions = this.template.submissions || {};
+        if (!this.template.submissions[form]) {
+          this.template.submissions[form] = [];
+        }
+
+        this.lastSubmission = res.body;
+        this.lastResponse = res;
+        const index = _.findIndex(this.template.submissions[form], {_id: res.body._id});
+        if (index === -1) {
+          this.template.submissions[form].push(res.body);
+        }
+        else {
+          this.template.submissions[form][index] = res.body;
+        }
+        done(null, res.body);
+      }.bind(this));
+  };
+
   /**
    * Internal helper to create or edit a role
    *

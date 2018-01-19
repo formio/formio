@@ -302,6 +302,7 @@ module.exports = function(router) {
     // Duplicate the current request get the users information.
     const url = '/form/:formId/submission/:submissionId';
     const childReq = util.createSubRequest(req);
+    childReq.permissionsChecked = true;
     if (!childReq) {
       return res.status(400).send('Too many recursive requests.');
     }
