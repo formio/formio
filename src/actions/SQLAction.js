@@ -230,7 +230,8 @@ module.exports = function(router) {
               options: {encrypt: settings.azure ? true : false}
             };
 
-            mssql.connect(config, function(err) {
+            const pool = new mssql.ConnectionPool(config);
+            pool.connect(function(err) {
               if (err) {
                 if (wait) {
                   return next();
@@ -238,16 +239,16 @@ module.exports = function(router) {
                 return;
               }
 
-              const request = new mssql.Request();
+              const request = new mssql.Request(pool);
               request.query(`${query}; SELECT SCOPE_IDENTITY() as id;`, function(err, result) {
                 if ((method === 'post') && !err) {
-                  postExecute.call(this, result[0]);
+                  postExecute.call(this, result.recordset[0]);
                 }
                 if ((method === 'get' ) && !err && res && res.resource && res.resource.item) {
                   res.resource.item.metadata = res.resource.item.metadata || {};
-                  res.resource.item.metadata[this.title] = result.toTable();
+                  res.resource.item.metadata[this.title] = result.recordset.toTable();
                 }
-                mssql.close();
+                pool.close();
                 if (wait) {
                   return next();
                 }
