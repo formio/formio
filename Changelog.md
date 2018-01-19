@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.24.3
+### Fixed
+ - Problems with the Save as Reference for Select dropdowns and other bugs.
+ - Connection issues with SQL Action.
+
+### Changed
+ - ES6 cleanup items.
+
 ## 1.24.2
 ### Fixed
  - Issue where the metadata property for submissions was getting stripped out.
