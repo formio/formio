@@ -19,6 +19,11 @@ module.exports = function(router) {
       return res.sendStatus(401);
     }
 
+    // Convert any owner queries to ObjectId's.
+    if (req.query && req.query.owner) {
+      req.query.owner = util.ObjectId(req.query.owner);
+    }
+
     // The default ownerFilter query.
     let query = {owner: util.ObjectId(req.token.user._id)};
 
