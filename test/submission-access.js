@@ -1283,6 +1283,28 @@ module.exports = function(app, template, hook) {
               });
           });
 
+          it('A Registered user should be able to Read the Index of their submissions with owner property set', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/submission?owner=' + template.users.user1._id.toString(), template))
+              .set('x-jwt-token', template.users.user1.token)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.equal(response.length, 1);
+                assert.deepEqual(response[0], tempSubmissionUser1);
+
+                // Store the JWT for future API calls.
+                template.users.user1.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
           it('A Registered user should be able to Read a submission with explicit Own permissions using the Form alias', function(done) {
             request(app)
               .get(hook.alter('url', '/' + tempForm.path + '/submission/' + tempSubmissionUser1._id, template))
