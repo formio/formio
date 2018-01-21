@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.24.4
+### Fixed
+ - Submission index queries that filter based on the user owner.
+
 ## 1.24.3
 ### Fixed
  - Problems with the Save as Reference for Select dropdowns and other bugs.
