@@ -3082,7 +3082,7 @@ module.exports = function(app, template, hook) {
 
       it('Should check permissions when loading from reference', done => {
         request(app)
-          .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission/' + helper.lastSubmission._id, template))
+          .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission/' + helper.lastSubmission._id, helper.template))
           .set('x-jwt-token', template.users.user1.token)
           .send()
           // .expect(200)
