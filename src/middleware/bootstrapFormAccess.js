@@ -21,7 +21,6 @@ module.exports = function(router) {
   return function bootstrapFormAccess(req, res, next) {
     // Only bootstrap access on Form creation.
     if (req.method !== 'POST' || !res || !res.hasOwnProperty('resource') || !res.resource.item) {
-      debug('Skipping');
       return next();
     }
 
@@ -39,18 +38,15 @@ module.exports = function(router) {
           return next(err);
         }
         if (!roles || roles.length === 0) {
-          debug('No roles found');
           return next();
         }
 
         // Convert the roles to ObjectIds before saving.
-        debug(roles);
         roles = _.map(roles, function(role) {
           return ObjectId(role.toObject()._id);
         });
 
         const update = [{type: 'read_all', roles: roles}];
-        debug(update);
         router.formio.resources.form.model.findOne({_id: res.resource.item._id, deleted: {$eq: null}})
           .exec(function(err, form) {
             if (err) {
@@ -58,7 +54,6 @@ module.exports = function(router) {
               return next(err);
             }
             if (!form) {
-              debug(`No form found with _id: ${res.resource.item._id}`);
               return next();
             }
 

@@ -1,7 +1,5 @@
 'use strict';
 
-const debug = require('debug')('formio:middleware:filterMongooseExists');
-
 /**
  * Middleware to filter the Mongoose query for the existance of a field, using the provided settings,
  *
@@ -16,7 +14,6 @@ module.exports = function(router) {
   return function(settings) {
     return function(req, res, next) {
       // Only filter on non empty objects.
-      debug(settings);
       if (!settings || typeof settings !== 'object' || settings === {}) {
         return next();
       }
@@ -38,7 +35,6 @@ module.exports = function(router) {
       const query = {};
       query[settings.field] = exists;
 
-      debug(query);
       req.modelQuery = req.modelQuery || req.model || this.model;
       req.modelQuery = req.modelQuery.find(query);
 

@@ -2,7 +2,6 @@
 
 const util = require('../util/util');
 const _ = require('lodash');
-const debug = require('debug')('formio:request');
 
 module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
@@ -35,7 +34,6 @@ module.exports = function(router) {
     req.subId = subId;
     req.roleId = roleId;
     hook.alter('requestParams', req, params);
-    debug(params);
 
     next();
   };

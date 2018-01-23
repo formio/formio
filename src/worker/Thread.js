@@ -4,7 +4,6 @@ const path = require('path');
 const Threads = require('threads');
 const config = Threads.config;
 const Spawn = Threads.spawn;
-const debug = require('debug')('formio:worker:thread');
 
 config.set({
   basepath: {
@@ -39,7 +38,6 @@ class Thread {
     return new Promise((resolve, reject) => {
       this._thread.send(data)
       .on('message', message => {
-        debug(`[message]: ${JSON.stringify(message)}`);
         // Kill the worker process.
         this._thread.kill();
 
@@ -53,12 +51,10 @@ class Thread {
         return reject(new Error(`Unknown response given from child thread of ${this.task}`));
       })
       .on('error', error => {
-        debug(`[error]: ${JSON.stringify(error)}`);
         this._thread.kill();
         return reject(error);
       })
       .on('exit', response => {
-        debug(`[exit]: ${JSON.stringify(response)}`);
         this._thread.kill();
       });
     });

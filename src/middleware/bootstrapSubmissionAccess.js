@@ -1,6 +1,5 @@
 'use strict';
 
-const debug = require('debug')('formio:middleware:bootstrapSubmissionAccess');
 const _ = require('lodash');
 
 module.exports = function(router) {
@@ -15,7 +14,6 @@ module.exports = function(router) {
       }
 
       // Submission access could not be modified.
-      debug('Submission access could not be modified.');
       return next();
     };
 
@@ -28,13 +26,11 @@ module.exports = function(router) {
 
     // Skip this middleware if the submission access was not even supplied.
     if (!_.has(req, 'body.access')) {
-      debug('Update requested without access supplied, skipping submission access filter.');
       return next();
     }
 
     // Allow new submissions to define its access.
     if (isPost) {
-      debug('Submission access allowed for new submission.');
       return next();
     }
 
