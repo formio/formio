@@ -10,25 +10,21 @@ module.exports = function(router) {
 
     // Skip this filter, if not flagged in the permission handler.
     if (!_.has(req, 'submissionResourceAccessFilter') || !req.submissionResourceAccessFilter) {
-      debug('Skipping, no req.submissionResourceAccessFilter.');
       return next();
     }
 
     // Should never get here without a form id present..
     if (!req.formId) {
-      debug('No req.formId given.');
       return res.sendStatus(500);
     }
 
     // Should never get here with a submission id present..
     if (req.subId) {
-      debug('req.subId given, skipping.');
       return res.sendStatus(500);
     }
 
     // Cant determine submission resource access for not authenticated users.
     if (!req.user || !_.has(req, 'user._id') || !req.user._id) {
-      debug(`No user given (${req.user})`);
       return res.sendStatus(401);
     }
 
@@ -54,7 +50,6 @@ module.exports = function(router) {
         ]
       };
 
-      debug(query);
       req.modelQuery = req.modelQuery || req.model || this.model;
       req.modelQuery = req.modelQuery.find(query);
 

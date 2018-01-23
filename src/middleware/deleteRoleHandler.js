@@ -17,7 +17,6 @@ module.exports = function(router) {
   return function deleteRoleHandler(req, res, next) {
     // Only stop delete requests!
     if (req.method !== 'DELETE') {
-      debug('Skipping');
       return next();
     }
 
@@ -30,18 +29,15 @@ module.exports = function(router) {
       : null;
 
     if (!roleId) {
-      debug('No roleId given.');
       return next();
     }
 
     // Load the role in question.
     router.formio.resources.role.model.findById(roleId).exec(function(err, role) {
       if (err || !role) {
-        debug(err || `No Role found with roleId: ${roleId}`);
         return res.status(404).send('Unknown Role.');
       }
       role = role.toObject();
-      debug(role);
 
       // Do not allow default roles to be deleted.
       if (role.default || role.admin) {
@@ -54,7 +50,6 @@ module.exports = function(router) {
           return next(err);
         }
 
-        debug(`Deleted role w/ _id: ${role._id}`);
         res.sendStatus(200);
       });
     });

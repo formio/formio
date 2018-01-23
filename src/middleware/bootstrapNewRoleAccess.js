@@ -21,7 +21,6 @@ module.exports = function(router) {
 
     // Only bootstrap existing form access on Role creation.
     if (req.method !== 'POST' || !res || !res.hasOwnProperty('resource') || !res.resource.item) {
-      debug('Skipping');
       return next();
     }
 
@@ -34,7 +33,6 @@ module.exports = function(router) {
      */
     const updateForms = function(_role, done) {
       const query = hook.alter('roleQuery', {deleted: {$eq: null}}, req);
-      debug(query);
 
       // Query the forms collection, to build the updated form access list.
       router.formio.resources.form.model.find(query).snapshot().exec(function(err, forms) {
@@ -43,13 +41,10 @@ module.exports = function(router) {
           return done(err);
         }
         if (!forms || forms.length === 0) {
-          debug('No Forms found');
           return done();
         }
 
         async.eachSeries(forms, function(form, formDone) {
-          debug('Loaded Form');
-
           // Add the new roleId to the access list for read_all (form).
           form.access = form.access || [];
           let found = false;
@@ -94,7 +89,6 @@ module.exports = function(router) {
         debug(err);
         return next(err);
       }
-      debug(result);
 
       return next();
     });

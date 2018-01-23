@@ -1,7 +1,6 @@
 'use strict';
 
 const _ = require('lodash');
-const debug = require('debug')('formio:middleware:condensePermissionTypes');
 const BSON = new RegExp('^[0-9a-fA-F]{24}$');
 
 /**
@@ -21,7 +20,6 @@ module.exports = function(router) {
       return next();
     }
 
-    debug(req.body);
     let final = null;
     let condensed = null;
 
