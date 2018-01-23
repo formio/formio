@@ -1,7 +1,5 @@
 'use strict';
 
-const debug = require('debug')('formio:middleware:restrictRequestTypes');
-
 module.exports = function(router) {
   /**
    * Middleware to restrict incoming requests by method.
@@ -22,7 +20,6 @@ module.exports = function(router) {
       return next();
     }
 
-    debug(`Blocking request: ${(req.method || '').toUpperCase()} ${req.url}`);
     return res.sendStatus(405);
   };
 };

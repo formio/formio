@@ -1,6 +1,5 @@
 'use strict';
 
-const debug = require('debug')('formio:middleware:mergeFormHandler');
 const _ = require('lodash');
 const suffixRegex = /(\d+)$/;
 
@@ -21,7 +20,6 @@ module.exports = function(router) {
     const cache = router.formio.cache;
 
     if (req.method !== 'PUT' || !req.formId || !_.has(req, 'body.modified') || !_.has(req, 'body.components')) {
-      debug('Skipping');
       return next();
     }
 
@@ -122,7 +120,6 @@ module.exports = function(router) {
       formB = formB || [];
       list = list || [];
       listKeys = listKeys || [];
-      debug('new merge()');
 
       /**
        * Add the given unique component to the final list.
@@ -135,7 +132,6 @@ module.exports = function(router) {
        *   The final list of component keys, used for quick unique searches.
        */
       const addUniqueComponent = function(component) {
-        debug('add: ', component.key);
         list.push(component);
         listKeys.push(component.key);
 
@@ -168,14 +164,12 @@ module.exports = function(router) {
 
         // If neither component a or b has child components, return to merging.
         if (!a.hasOwnProperty(container) && !b.hasOwnProperty(container)) {
-          debug('No child components in a or b, skipping recursive call');
           addUniqueComponent(tempA);
           return true;
         }
 
         // Merge each column if present in the component.
         if (a.hasOwnProperty('columns') || b.hasOwnProperty('columns')) {
-          debug('Merge columns');
           const colsA = a.columns || [];
           const colsB = b.columns || [];
           const max = Math.max(colsA.length, colsB.length, 0);
@@ -257,8 +251,6 @@ module.exports = function(router) {
 
       // Traverse all the components in form a for merging.
       util.eachComponent(formA, function(a, pathA) {
-        debug('pathA: ', pathA);
-
         // Skip components which have been inserted already.
         if (listKeys.indexOf(a.key) !== -1) {
           return;
@@ -278,8 +270,6 @@ module.exports = function(router) {
         // Traverse all the components in form b for merging.
         let skip = false;
         util.eachComponent(formB, function(b, pathB) {
-          debug('pathB: ', pathB);
-
           if (skip || listKeys.indexOf(b.key) !== -1) {
             return;
           }
@@ -314,7 +304,6 @@ module.exports = function(router) {
     cache.loadCurrentForm(req, function(err, form) {
       if (err || !form) {
         const msg = err || 'No form was contained in the current request.';
-        debug(msg);
         return next(msg);
       }
 
@@ -323,7 +312,6 @@ module.exports = function(router) {
       const timeStable = new Date(_.get(form, 'modified', current.getTime())).getTime();
       const timeLocal = new Date(_.get(req, 'body.modified', current.getTime())).getTime();
       if (timeStable === timeLocal) {
-        debug('skipping - up to date');
         return next();
       }
 
@@ -358,7 +346,6 @@ module.exports = function(router) {
 
       // Merge the stable and local form.
       req.body.components = merge(stable, componentMap.stable, local, componentMap.local);
-      debug(JSON.stringify(req.body.components));
       return next();
     });
   };

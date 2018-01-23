@@ -68,7 +68,6 @@ module.exports = (formio) => {
         return done(false);
       }
       if (result) {
-        debug(result);
         return done(false);
       }
 

@@ -1,6 +1,5 @@
 'use strict';
 
-const debug = require('debug')('formio:middleware:filterProtectedFields');
 const util = require('../util/util');
 
 /**
@@ -23,7 +22,6 @@ module.exports = function(router) {
         }
 
         util.removeProtectedFields(form, action, res.resource.item);
-        debug(res.resource.item);
         next();
       });
     };
