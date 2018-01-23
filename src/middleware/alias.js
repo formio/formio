@@ -36,8 +36,6 @@ module.exports = function(router) {
 
     // Get the alias from the request.
     const alias = url.parse(req.url).pathname.substr(baseUrl.length).replace(formsRegEx, '').substr(1);
-    debug(`url: ${req.url}`);
-    debug(`Alias: ${alias}`);
 
     // If this is normal request, then pass this middleware.
     /* eslint-disable no-useless-escape */
@@ -69,7 +67,6 @@ module.exports = function(router) {
 
       // Create the new URL for the project.
       req.url = `${baseUrl}/form/${form._id}${additional}`;
-      debug(`Rewriting the request from the FormCache: ${req.url}`);
       next();
     });
   };

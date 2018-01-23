@@ -2,7 +2,6 @@
 
 const rest = require('restler');
 const _ = require('lodash');
-const debug = require('debug')('formio:action:webhook');
 const FormioUtils = require('formiojs/utils');
 
 module.exports = function(router) {
@@ -152,7 +151,6 @@ module.exports = function(router) {
         }
 
         const options = {};
-        debug(settings);
 
         // Get the settings
         if (_.has(settings, 'username')) {
@@ -187,7 +185,6 @@ module.exports = function(router) {
         }
 
         // Make the request.
-        debug(`Request: ${req.method.toLowerCase()}`);
         switch (req.method.toLowerCase()) {
           case 'get':
             rest.get(url, options).on('success', handleSuccess).on('fail', handleError);

@@ -13,7 +13,6 @@ const debug = require('debug')('formio:middleware:deleteSubmissionHandler');
 module.exports = function(router) {
   const prune = require('../util/delete')(router);
   return function(req, res, next) {
-    debug(!(req.method !== 'DELETE' || !req.subId));
     if (req.method !== 'DELETE' || !req.subId) {
       return next();
     }

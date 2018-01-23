@@ -1,7 +1,6 @@
 'use strict';
 
 const _ = require('lodash');
-const debug = require('debug')('formio:middleware:filterResourcejsResponse');
 
 /**
  * Middleware function to filter the response from resourcejs.
@@ -21,7 +20,6 @@ module.exports = function(router) {
         return next();
       }
 
-      debug(settings);
       // Merge all results into an array, to handle the cases with multiple results.
       let multi = false;
       const list = [].concat(res.resource.item);
@@ -39,7 +37,6 @@ module.exports = function(router) {
           }
           // Remove the key if found.
           if (list[b].hasOwnProperty(settings[a])) {
-            debug(`Removing: ${settings[a]}`);
             list[b] = _.omit(list[b], settings[a]);
           }
         }

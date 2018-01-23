@@ -193,9 +193,10 @@ module.exports = function(router) {
             this.settings.message = macros + template;
 
             // Send the email.
-            emailer.send(req, res, this.settings, params, (err, response) => {
-              debug(`[error]: ${JSON.stringify(err)}`);
-              debug(`[response]: ${JSON.stringify(response)}`);
+            emailer.send(req, res, this.settings, params, (err) => {
+              if (err) {
+                debug(`[error]: ${JSON.stringify(err)}`);
+              }
             });
           });
         })
