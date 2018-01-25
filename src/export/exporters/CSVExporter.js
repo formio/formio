@@ -95,7 +95,14 @@ class CSVExporter extends Exporter {
                 if (component.type === 'resource') {
                   const tempVal = [];
                   _.each(value, (eachItem) => {
-                    tempVal.push(templateExtractor(eachItem));
+                    let result = '';
+                    try {
+                      result = templateExtractor(eachItem);
+                    }
+                    catch (err) {
+                      result = err.message;
+                    }
+                    tempVal.push(result);
                   });
                   return tempVal;
                 }
@@ -104,9 +111,14 @@ class CSVExporter extends Exporter {
                 }
               }
               else {
-                return _.isObject(value)
-                  ? templateExtractor(value)
-                  : value;
+                let result = '';
+                try {
+                  result = _.isObject(value) ? templateExtractor(value) : value;
+                }
+                catch (err) {
+                  result = err.message;
+                }
+                return result;
               }
             }
           };

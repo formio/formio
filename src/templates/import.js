@@ -120,13 +120,13 @@ module.exports = (router) => {
     let changes = false;
 
     // Attempt to add a form.
-    if (template.forms[entity.form] && template.forms[entity.form]._id) {
+    if (template.forms && template.forms[entity.form] && template.forms[entity.form]._id) {
       entity.form = template.forms[entity.form]._id.toString();
       changes = true;
     }
 
     // Attempt to add a resource
-    if (!changes && template.resources[entity.form] && template.resources[entity.form]._id) {
+    if (!changes && template.resources && template.resources[entity.form] && template.resources[entity.form]._id) {
       entity.form = template.resources[entity.form]._id.toString();
       changes = true;
     }
