@@ -60,14 +60,14 @@ describe('Initialization', function() {
   after(function() {
     require('./templates')(app, template, hook);
     require('./bootstrap')(app, template, hook);
-    // require('./unit')(app, template, hook);
+    require('./unit')(app, template, hook);
     require('./auth')(app, template, hook);
-    // require('./roles')(app, template, hook);
-    // require('./form')(app, template, hook);
-    // require('./resource')(app, template, hook);
-    // require('./nested')(app, template, hook);
-    // require('./actions')(app, template, hook);
-    // require('./submission-access')(app, template, hook);
+    require('./roles')(app, template, hook);
+    require('./form')(app, template, hook);
+    require('./resource')(app, template, hook);
+    require('./nested')(app, template, hook);
+    require('./actions')(app, template, hook);
+    require('./submission-access')(app, template, hook);
     require('./submission')(app, template, hook);
   });
 });
