@@ -91,6 +91,10 @@ module.exports = function(router) {
         // and parameters to make it seem like a separate request to update
         // the child submissions.
         const childReq = util.createSubRequest(req);
+        if (!childReq) {
+          return res.status(400).send('Too many recursive requests.');
+        }
+
         // Don't recheck permissions against the new resource.
         childReq.permissionsChecked = true;
         if (!childReq) {
