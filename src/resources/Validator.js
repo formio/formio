@@ -505,6 +505,8 @@ class Validator {
     components.forEach((component) => {
       let fieldValidator = null;
 
+      this.applyAdvancedConditions(component, componentData, submission.data);
+
       // The value is persistent if it doesn't say otherwise or explicitly says so.
       const isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
 
@@ -707,6 +709,31 @@ class Validator {
     /* eslint-enable max-statements */
 
     return schema;
+  }
+
+  applyAdvancedConditions(component, row, data) {
+    if (!component.advancedConditions || !Array.isArray(component.advancedConditions)) {
+      return;
+    }
+
+    component.advancedConditions.forEach(condition => {
+      const result = FormioUtils.checkTrigger(component, condition.trigger, row, data);
+
+      if (result) {
+        condition.actions.forEach(action => {
+          let newValue;
+          switch (action.type) {
+            case 'property':
+              FormioUtils.setActionProperty(component, action, row, data, component, result);
+              break;
+            case 'value':
+              newValue = (new Function('row', 'data', 'component', 'result', action.value))(row, data, component, result);
+              row[component.key] = newValue;
+              break;
+          }
+        });
+      }
+    });
   }
 
   /**
