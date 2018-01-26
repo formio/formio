@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.25.0
+### Changed
+ - Upgrade MongoDB (v3) and Mongoose (v5) to latest versions.
+
 ## 1.24.7
 ### Fixed
  - Potential crashes in CSV export and template imports.
