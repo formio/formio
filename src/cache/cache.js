@@ -1,5 +1,6 @@
 'use strict';
 const async = require('async');
+const cloneDeep = require('lodash/cloneDeep');
 
 const debug = {
   form: require('debug')('formio:cache:form'),
@@ -276,8 +277,9 @@ module.exports = function(router) {
      * @param depth
      * @returns {*}
      */
-    loadSubForms(form, req, next, depth) {
+    loadSubForms(form, req, next, depth, forms) {
       depth = depth || 0;
+      forms = forms || {};
 
       // Only allow 5 deep.
       if (depth >= 5) {
@@ -300,9 +302,15 @@ module.exports = function(router) {
       // Load each of the forms independent.
       async.each(comps, (comp, done) => {
         this.loadForm(req, null, comp.form, (err, subform) => {
+          subform = cloneDeep(subform);
           if (!err) {
+            // Protect against recursion.
+            if (forms[comp.form]) {
+              return done();
+            }
+            forms[comp.form] = true;
             comp.components = subform.components;
-            this.loadSubForms(subform, req, done, depth + 1);
+            this.loadSubForms(subform, req, done, depth + 1, forms);
           }
           else {
             done();
