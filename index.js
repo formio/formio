@@ -151,8 +151,7 @@ module.exports = function(config) {
 
       let mongoUrl = config.mongo;
       const mongoOptions = {
-        keepAlive: 120,
-        useMongoClient: true
+        keepAlive: 120
       };
 
       if (process.env.MONGO_HIGH_AVAILABILITY) {
