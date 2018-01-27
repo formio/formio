@@ -305,10 +305,10 @@ module.exports = function(router) {
           subform = cloneDeep(subform);
           if (!err) {
             // Protect against recursion.
-            if (forms[comp.form]) {
+            if (forms[comp.form.toString()]) {
               return done();
             }
-            forms[comp.form] = true;
+            forms[comp.form.toString()] = true;
             comp.components = subform.components;
             this.loadSubForms(subform, req, done, depth + 1, forms);
           }
