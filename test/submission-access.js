@@ -234,7 +234,7 @@ module.exports = function(app, template, hook) {
 
                 var response = res.body;
                 assert.equal(response.length, 1, 'The response should contain 1 element');
-                assert(!response[0].hasOwnPropert('data'));
+                assert(!response[0].hasOwnProperty('data'));
 
                 // Store the JWT for future API calls.
                 template.users.admin.token = res.headers['x-jwt-token'];
