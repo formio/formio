@@ -15,13 +15,14 @@ const config = require('config');
 const async = require('async');
 const mongodb = require('mongodb');
 const MongoClient = mongodb.MongoClient;
-MongoClient.connect(config.mongo, (err, db) => {
+MongoClient.connect(config.mongo, (err, client) => {
   if (err) {
     /* eslint-disable no-console */
     return console.log(`Could not connect to database ${config.mongo}`);
     /* eslint-enable no-console */
   }
 
+  const db = client.db(client.s.options.dbName);
   const formCollection = db.collection('forms');
   const submissionCollection = db.collection('submissions');
   const setDateField = (field, data) => {
