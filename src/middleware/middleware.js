@@ -30,6 +30,7 @@ module.exports = function(router) {
     submissionResourceAccessFilter: require('./submissionResourceAccessFilter')(router),
     tokenHandler: require('./tokenHandler')(router),
     restrictRequestTypes: require('./restrictRequestTypes')(router),
-    mergeFormHandler: require('./mergeFormHandler')(router)
+    mergeFormHandler: require('./mergeFormHandler')(router),
+    filterIndex: require('./filterIndex')(router)
   };
 };
