@@ -3171,7 +3171,7 @@ module.exports = function(app, template, hook) {
             "inputType": "text",
             "tableView": true,
             "input": true,
-            "advancedConditions": [
+            "logic": [
               {
                 "name": "Test 2",
                 "trigger": {
@@ -3308,7 +3308,7 @@ module.exports = function(app, template, hook) {
             "inputType": "text",
             "tableView": true,
             "input": true,
-            "advancedConditions": [
+            "logic": [
               {
                 "name": "Test 1",
                 "trigger": {
