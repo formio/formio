@@ -505,7 +505,7 @@ class Validator {
     components.forEach((component) => {
       let fieldValidator = null;
 
-      this.applyAdvancedConditions(component, componentData, submission.data);
+      this.applyLogic(component, componentData, submission.data);
 
       // The value is persistent if it doesn't say otherwise or explicitly says so.
       const isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
@@ -711,24 +711,43 @@ class Validator {
     return schema;
   }
 
-  applyAdvancedConditions(component, row, data) {
-    if (!component.advancedConditions || !Array.isArray(component.advancedConditions)) {
+  applyLogic(component, row, data) {
+    if (!component.logic || !Array.isArray(component.logic)) {
       return;
     }
 
-    component.advancedConditions.forEach(condition => {
-      const result = FormioUtils.checkTrigger(component, condition.trigger, row, data);
+    component.logic.forEach(logic => {
+      const result = FormioUtils.checkTrigger(component, logic.trigger, row, data);
 
       if (result) {
-        condition.actions.forEach(action => {
-          let newValue;
+        logic.actions.forEach(action => {
           switch (action.type) {
             case 'property':
               FormioUtils.setActionProperty(component, action, row, data, component, result);
               break;
             case 'value':
-              newValue = (new Function('row', 'data', 'component', 'result', action.value))(row, data, component, result);
-              row[component.key] = newValue;
+              try {
+                // Create the sandbox.
+                const sandbox = vm.createContext({
+                  data,
+                  row,
+                  component,
+                  result
+                });
+
+                // Execute the script.
+                const script = new vm.Script(action.value);
+                script.runInContext(sandbox, {
+                  timeout: 250
+                });
+
+                row[component.key] = sandbox.value.toString();
+              }
+              catch (e) {
+                debug.validator('Custom Logic Error: ');
+                debug.validator(e);
+                debug.error(e);
+              }
               break;
           }
         });
