@@ -47,15 +47,18 @@ module.exports = function(router) {
     }
 
     const token = util.getRequestValue(req, 'x-jwt-token');
-
-    // Skip the token handling if no token was given.
-    if (!token) {
-      debug.handler('No token');
+    const noToken = function() {
+      // Try the request with no tokens.
+      delete req.headers['x-jwt-token'];
       req.user = null;
       req.token = null;
       res.token = null;
-
       return next();
+    };
+
+    // Skip the token handling if no token was given.
+    if (!token) {
+      return noToken();
     }
 
     // Decode/refresh the token and store for later middleware.
@@ -71,13 +74,13 @@ module.exports = function(router) {
           return res.status(440).send('Login Timeout');
         }
         else {
-          return res.sendStatus(401);
+          return noToken();
         }
       }
 
       // Check to see if this token is allowed to access this path.
       if (!router.formio.auth.isTokenAllowed(req, decoded)) {
-        return res.sendStatus(401);
+        return noToken();
       }
 
       // If this is a temporary token, then decode it and set it in the request.
@@ -112,10 +115,10 @@ module.exports = function(router) {
       }
 
       if (!decoded.form || !decoded.form._id) {
-        return res.sendStatus(401);
+        return noToken();
       }
       if (!decoded.user || !decoded.user._id) {
-        return res.sendStatus(401);
+        return noToken();
       }
 
       // Load the user submission.
