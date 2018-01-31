@@ -168,10 +168,16 @@ module.exports = function(router) {
           const submissionModel = req.submissionModel || router.formio.resources.submission.model;
           return submissionModel.findOne(query)
           .then(owner => {
+            return owner.toObject();
+          })
+          .catch(() => {
+            // If there is no owner, just proceed as normal.
+            return {_id: params.owner};
+          })
+          .then(owner => {
             if (owner) {
-              params.owner = owner.toObject();
+              params.owner = owner;
             }
-
             return new Promise((resolve, reject) => {
               if (!this.settings.template) {
                 return resolve(this.settings.message);
