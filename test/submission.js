@@ -2459,6 +2459,62 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('Required multivalue fields', function() {
+      it('Returns an error when required multivalue fields are missing', function(done) {
+        var components = [
+          {
+            "input": true,
+            "tableView": true,
+            "inputType": "text",
+            "inputMask": "",
+            "label": "Text Field",
+            "key": "textField",
+            "placeholder": "",
+            "prefix": "",
+            "suffix": "",
+            "multiple": true,
+            "defaultValue": "",
+            "protected": false,
+            "unique": false,
+            "persistent": true,
+            "validate": {
+              "required": true,
+              "minLength": "",
+              "maxLength": "",
+              "pattern": "",
+              "custom": "",
+              "customPrivate": false
+            },
+            "conditional": {
+              "show": null,
+              "when": null,
+              "eq": ""
+            },
+            "type": "textfield"
+          }
+        ];
+        var values = {};
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details[0].message, '"textField" is required');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+            done();
+          });
+      });
+    });
+
     describe('Unique Fields with multiple', function() {
       var components = [
         {
