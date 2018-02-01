@@ -770,25 +770,25 @@ class Validator {
             // Walk up the path tree to determine if the component is hidden.
             const result = detail.path.reduce((result, key) => {
               result.path.push(key);
-              if (isNaN(key)) {
-                const component = components[result.path.join('.')];
 
-                // Form "data" keys don't have components.
-                if (component) {
-                  result.hidden = result.hidden ||
-                    !checkConditional(component, _.get(value, result.path.slice(0, result.path.length - 1)), result.submission, true);
+              const component = components[result.path.filter(isNaN).join('.')];
 
-                  const clearOnHide = util.isBoolean(component.clearOnHide) ?
-                    util.boolean(component.clearOnHide) : true;
+              // Form "data" keys don't have components.
+              if (component) {
+                result.hidden = result.hidden ||
+                  !checkConditional(component,
+                    _.get(value, result.path.slice(0, result.path.length - 1)), result.submission, true);
 
-                  if (clearOnHide && result.hidden) {
-                    _.unset(value, result.path);
-                  }
+                const clearOnHide = util.isBoolean(component.clearOnHide) ?
+                  util.boolean(component.clearOnHide) : true;
+
+                if (clearOnHide && result.hidden) {
+                  _.unset(value, result.path);
                 }
-                else {
-                  // Since this is a subform, change the submission object going to the conditionals.
-                  result.submission = _.get(value, result.path);
-                }
+              }
+              else {
+                // Since this is a subform, change the submission object going to the conditionals.
+                result.submission = _.get(value, result.path);
               }
 
               return result;
