@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.25.1
+### Changed
+ - Upgraded MongoDB driver to 3.0.2, Mongoose 5.0.3
+
+### Added
+ - Add list querystring to allow more efficient list returns.
+ - Field Logic handling.
+
+### Fixed
+ - Fix required multi-value fields not returning required.
+ - Fix the way rows are found for datagrid checkConditionals.
+ - Fix email actions for external authentication (User doesn't exist in form.io)
+ - Fixed an issue where the token handler would return 401 when it should try as anonymous.
+
 ## 1.25.0
 ### Changed
  - Upgrade MongoDB (v3) and Mongoose (v5) to latest versions.

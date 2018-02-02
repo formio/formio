@@ -733,6 +733,7 @@ class Validator {
               try {
                 // Create the sandbox.
                 const sandbox = vm.createContext({
+                  value: row[component.key],
                   data,
                   row,
                   component,
