@@ -56,6 +56,14 @@ module.exports = function(router) {
     })
   ];
   handlers.beforeIndex = [
+    (req, res, next) => {
+      // If we leave list in query it will interfere with the find query.
+      if (req.query.list) {
+        req.filterIndex = true;
+        delete req.query.list;
+      }
+      next();
+    },
     router.formio.middleware.permissionHandler,
     router.formio.middleware.setFilterQueryTypes,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
@@ -68,7 +76,8 @@ module.exports = function(router) {
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
     router.formio.middleware.filterProtectedFields('index', (req) => {
       return router.formio.cache.getCurrentFormId(req);
-    })
+    }),
+    router.formio.middleware.filterIndex(['data'])
   ];
   handlers.beforeDelete = [
     router.formio.middleware.permissionHandler,
