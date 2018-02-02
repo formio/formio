@@ -159,7 +159,7 @@ const Utils = {
    *   Whether or not to include layout components.
    * @param {String} path
    */
-  eachComponent: formioUtils.eachComponent,
+  eachComponent: formioUtils.eachComponent.bind(formioUtils),
 
   /**
    * Get a component by its key
@@ -172,7 +172,7 @@ const Utils = {
    * @returns {Object}
    *   The component that matches the given key, or undefined if not found.
    */
-  getComponent: formioUtils.getComponent,
+  getComponent: formioUtils.getComponent.bind(formioUtils),
 
   /**
    * Flatten the form components for data manipulation.
@@ -185,7 +185,7 @@ const Utils = {
    * @returns {Object}
    *   The flattened components map.
    */
-  flattenComponents: formioUtils.flattenComponents,
+  flattenComponents: formioUtils.flattenComponents.bind(formioUtils),
 
   /**
    * Get the value for a component key, in the given submission.
@@ -195,7 +195,7 @@ const Utils = {
    * @param {String} key
    *   A for components API key to search for.
    */
-  getValue: formioUtils.getValue,
+  getValue: formioUtils.getValue.bind(formioUtils),
 
   /**
    * Determine if a component is a layout component or not.
@@ -206,7 +206,7 @@ const Utils = {
    * @returns {Boolean}
    *   Whether or not the component is a layout component.
    */
-  isLayoutComponent: formioUtils.isLayoutComponent,
+  isLayoutComponent: formioUtils.isLayoutComponent.bind(formioUtils),
 
   /**
    * Apply JSON logic functionality.
@@ -224,7 +224,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  checkCondition: formioUtils.checkCondition,
+  checkCondition: formioUtils.checkCondition.bind(formioUtils),
 
   /**
    * Return the objectId.
