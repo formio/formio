@@ -3375,7 +3375,7 @@ module.exports = function(app, template, hook) {
                   {
                     "name": "Set Value",
                     "type": "value",
-                    "value": "return 'Foo'"
+                    "value": "value = 'Foo'"
                   }
                 ]
               }
