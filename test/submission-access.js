@@ -221,6 +221,28 @@ module.exports = function(app, template, hook) {
               });
           });
 
+          it('The Project Owner should be able to Read the Index of submissions without explicit permissions without data', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/submission?list=1', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.equal(response.length, 1, 'The response should contain 1 element');
+                assert(!response[0].hasOwnProperty('data'));
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
           it('The Project Owner should be able to Read a submission without explicit permissions using the Form alias', function(done) {
             request(app)
               .get(hook.alter('url', '/' + tempForm.path + '/submission/' + tempSubmission._id, template))
