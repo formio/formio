@@ -289,6 +289,29 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('A user should be able to read the index of forms without components', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form?list=1', template))
+          .set('x-jwt-token', template.users.user1.token)
+          .expect('Content-Type', template.project ? /text\/plain/ : /json/)
+          .expect(template.project ? 401 : 200)
+          .end(function(err, res) {
+              if (err) {
+                  return done(err);
+              }
+
+              if (!template.project) {
+                var response = res.body;
+                assert.equal(response.length, 9);
+                response.forEach(form => {
+                  assert(!form.hasOwnProperty('components'));
+                });
+                template.users.user1.token = res.headers['x-jwt-token'];
+              }
+              done();
+          });
+      });
+
       it('An administrator should be able to Update their Form', function(done) {
         var updatedForm = _.cloneDeep(template.forms.tempForm);
         updatedForm.title = 'Updated';
