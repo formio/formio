@@ -51,6 +51,14 @@ module.exports = function(router) {
   return FormResource(router, '', 'form', mongoose.model('form'))
     .rest(hook.alter('formRoutes', {
       before: [
+        (req, res, next) => {
+          // If we leave list in query it will interfere with the find query.
+          if (req.query.list) {
+            req.filterIndex = true;
+            delete req.query.list;
+          }
+          next();
+        },
         router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
         router.formio.middleware.bootstrapEntityOwner(false),
         router.formio.middleware.formHandler,
@@ -64,7 +72,8 @@ module.exports = function(router) {
         router.formio.middleware.bootstrapFormAccess,
         router.formio.middleware.formLoader,
         router.formio.middleware.formActionHandler('after'),
-        router.formio.middleware.filterResourcejsResponse(['deleted', '__v'])
+        router.formio.middleware.filterResourcejsResponse(['deleted', '__v']),
+        router.formio.middleware.filterIndex(['components'])
       ],
       hooks: {
         put: {
