@@ -505,6 +505,8 @@ class Validator {
     components.forEach((component) => {
       let fieldValidator = null;
 
+      this.applyLogic(component, componentData, submission.data);
+
       // The value is persistent if it doesn't say otherwise or explicitly says so.
       const isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
 
@@ -711,6 +713,50 @@ class Validator {
     /* eslint-enable max-statements */
 
     return schema;
+  }
+
+  applyLogic(component, row, data) {
+    if (!component.logic || !Array.isArray(component.logic)) {
+      return;
+    }
+
+    component.logic.forEach(logic => {
+      const result = FormioUtils.checkTrigger(component, logic.trigger, row, data);
+
+      if (result) {
+        logic.actions.forEach(action => {
+          switch (action.type) {
+            case 'property':
+              FormioUtils.setActionProperty(component, action, row, data, component, result);
+              break;
+            case 'value':
+              try {
+                // Create the sandbox.
+                const sandbox = vm.createContext({
+                  data,
+                  row,
+                  component,
+                  result
+                });
+
+                // Execute the script.
+                const script = new vm.Script(action.value);
+                script.runInContext(sandbox, {
+                  timeout: 250
+                });
+
+                row[component.key] = sandbox.value.toString();
+              }
+              catch (e) {
+                debug.validator('Custom Logic Error: ');
+                debug.validator(e);
+                debug.error(e);
+              }
+              break;
+          }
+        });
+      }
+    });
   }
 
   /**

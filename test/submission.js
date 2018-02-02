@@ -3152,5 +3152,255 @@ module.exports = function(app, template, hook) {
           });
       });
     });
+
+    describe('Advanced Conditions', () => {
+      it('Requires a conditionally required field from advanced conditions', function(done) {
+        var components = [
+          {
+            "properties": {},
+            "tags": [],
+            "labelPosition": "top",
+            "hideLabel": false,
+            "type": "textfield",
+            "conditional": {
+              "eq": "",
+              "when": null,
+              "show": ""
+            },
+            "validate": {
+              "customPrivate": false,
+              "custom": "",
+              "pattern": "",
+              "maxLength": "",
+              "minLength": "",
+              "required": false
+            },
+            "clearOnHide": true,
+            "hidden": false,
+            "persistent": true,
+            "unique": false,
+            "protected": false,
+            "defaultValue": "",
+            "multiple": false,
+            "suffix": "",
+            "prefix": "",
+            "placeholder": "",
+            "key": "test",
+            "label": "Test",
+            "inputMask": "",
+            "inputType": "text",
+            "tableView": true,
+            "input": true
+          },
+          {
+            "properties": {},
+            "tags": [],
+            "labelPosition": "top",
+            "hideLabel": false,
+            "type": "textfield",
+            "conditional": {
+              "eq": "",
+              "when": null,
+              "show": ""
+            },
+            "validate": {
+              "customPrivate": false,
+              "custom": "",
+              "pattern": "",
+              "maxLength": "",
+              "minLength": "",
+              "required": false
+            },
+            "clearOnHide": true,
+            "hidden": false,
+            "persistent": true,
+            "unique": false,
+            "protected": false,
+            "defaultValue": "",
+            "multiple": false,
+            "suffix": "",
+            "prefix": "",
+            "placeholder": "",
+            "key": "changeme",
+            "label": "Change me",
+            "inputMask": "",
+            "inputType": "text",
+            "tableView": true,
+            "input": true,
+            "logic": [
+              {
+                "name": "Test 2",
+                "trigger": {
+                  "javascript": "result = data.test === '2';",
+                  "type": "javascript"
+                },
+                "actions": [
+                  {
+                    "name": "Set Title to Two",
+                    "type": "property",
+                    "property": {
+                      "label": "Title",
+                      "value": "label",
+                      "type": "string"
+                    },
+                    "text": "Two"
+                  },
+                  {
+                    "name": "Set Required",
+                    "type": "property",
+                    "property": {
+                      "label": "Required",
+                      "value": "validate.required",
+                      "type": "boolean"
+                    },
+                    "state": true
+                  }
+                ]
+              }
+            ]
+          }
+        ];
+
+        var values = {
+          test: '2'
+        };
+
+        helper
+          .form('advancedCond', components)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert(submission.isJoi);
+            assert.equal(submission.name, 'ValidationError');
+            assert.deepEqual(submission.details, [
+              {
+                context: {
+                  key: 'changeme',
+                  label: 'changeme'
+                },
+                message: '"changeme" is required',
+                path: ['changeme'],
+                type: 'any.required'
+              }
+            ]);
+            done();
+          });
+      });
+
+      it('Sets a value based on advanced conditions', function(done) {
+        var components = [
+          {
+            "properties": {},
+            "tags": [],
+            "labelPosition": "top",
+            "hideLabel": false,
+            "type": "textfield",
+            "conditional": {
+              "eq": "",
+              "when": null,
+              "show": ""
+            },
+            "validate": {
+              "customPrivate": false,
+              "custom": "",
+              "pattern": "",
+              "maxLength": "",
+              "minLength": "",
+              "required": false
+            },
+            "clearOnHide": true,
+            "hidden": false,
+            "persistent": true,
+            "unique": false,
+            "protected": false,
+            "defaultValue": "",
+            "multiple": false,
+            "suffix": "",
+            "prefix": "",
+            "placeholder": "",
+            "key": "test",
+            "label": "Test",
+            "inputMask": "",
+            "inputType": "text",
+            "tableView": true,
+            "input": true
+          },
+          {
+            "properties": {},
+            "tags": [],
+            "labelPosition": "top",
+            "hideLabel": false,
+            "type": "textfield",
+            "conditional": {
+              "eq": "",
+              "when": null,
+              "show": ""
+            },
+            "validate": {
+              "customPrivate": false,
+              "custom": "",
+              "pattern": "",
+              "maxLength": "",
+              "minLength": "",
+              "required": false
+            },
+            "clearOnHide": true,
+            "hidden": false,
+            "persistent": true,
+            "unique": false,
+            "protected": false,
+            "defaultValue": "",
+            "multiple": false,
+            "suffix": "",
+            "prefix": "",
+            "placeholder": "",
+            "key": "changeme",
+            "label": "Change me",
+            "inputMask": "",
+            "inputType": "text",
+            "tableView": true,
+            "input": true,
+            "logic": [
+              {
+                "name": "Test 1",
+                "trigger": {
+                  "javascript": "result = data.test === '1';",
+                  "type": "javascript"
+                },
+                "actions": [
+                  {
+                    "name": "Set Value",
+                    "type": "value",
+                    "value": "return 'Foo'"
+                  }
+                ]
+              }
+            ]
+          }
+        ];
+
+        var values = {
+          test: '1'
+        };
+
+        helper
+          .form('advancedCond2', components)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(submission.data.test, '1');
+            assert.equal(submission.data.changeme, 'Foo');
+            done();
+          });
+      });
+    });
   });
 };
