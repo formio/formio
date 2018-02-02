@@ -215,7 +215,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  jsonLogic: formioUtils.jsonLogic.bind(formioUtils),
+  jsonLogic: formioUtils.jsonLogic,
 
   /**
    * Check if the condition for a component is true or not.
