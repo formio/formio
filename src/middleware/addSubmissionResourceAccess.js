@@ -35,6 +35,10 @@ module.exports = function(router) {
     const defaultPermissions = {};
     req.body.access = [];
     router.formio.cache.loadForm(req, undefined, req.params.formId, function(err, form) {
+      if (err || !form) {
+        return next(`Cannot load form ${req.params.formId}`);
+      }
+
       util.eachComponent(form.components, function(component) {
         if (component.key && component.defaultPermission) {
           defaultPermissions[component.key] = component.defaultPermission;
