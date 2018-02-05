@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.25.2
+### Changed
+ - Upgrade config@1.29.4, joi@13.1.2, lodash@4.17.5, eslint@4.17.0
+
+### Fixed
+ - A potential crash when assigning submission resource access.
+
 ## 1.25.1
 ### Changed
  - Upgraded MongoDB driver to 3.0.2, Mongoose 5.0.3
