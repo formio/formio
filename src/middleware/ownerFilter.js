@@ -10,6 +10,11 @@ const util = require('../util/util');
  */
 module.exports = function(router) {
   return function ownerFilter(req, res, next) {
+    // Convert any owner queries to ObjectId's.
+    if (req.query && req.query.owner) {
+      req.query.owner = util.ObjectId(req.query.owner);
+    }
+
     // Skip this owner filter, if the user is the admin or owner.
     if (req.skipOwnerFilter || req.isAdmin) {
       return next();
@@ -17,11 +22,6 @@ module.exports = function(router) {
 
     if (!req.token || !req.token.user) {
       return res.sendStatus(401);
-    }
-
-    // Convert any owner queries to ObjectId's.
-    if (req.query && req.query.owner) {
-      req.query.owner = util.ObjectId(req.query.owner);
     }
 
     // The default ownerFilter query.
