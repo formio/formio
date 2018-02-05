@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.25.3
+### Fixed
+ - Problem with the owner property not getting set properly when they are an admin.
+
 ## 1.25.2
 ### Changed
  - Upgrade config@1.29.4, joi@13.1.2, lodash@4.17.5, eslint@4.17.0
