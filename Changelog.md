@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.25.4
+### Changed
+ - Removed all calls to snapshot since it was causing serious performance regressions.
+
 ## 1.25.3
 ### Fixed
  - Problem with the owner property not getting set properly when they are an admin.

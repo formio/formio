@@ -169,7 +169,7 @@ module.exports = function(formio) {
     if (config.mongoSecretOld) {
       formio.util.log('DB Secret update required.');
       const projects = db.collection('projects');
-      projects.find({}).snapshot().forEach(function(project) {
+      projects.find({}).forEach(function(project) {
         if (project.settings_encrypted) {
           try {
             const settings = tools.decrypt(config.mongoSecretOld, project.settings_encrypted.buffer);
