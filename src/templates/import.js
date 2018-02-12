@@ -219,6 +219,8 @@ module.exports = (router) => {
     return changed;
   };
 
+  const isObject = (value) => typeof value === 'object' && !Array.isArray(value);
+
   /**
    * The list of installable entities. Each entity must have a model and a transform.
    *
@@ -229,13 +231,7 @@ module.exports = (router) => {
   const entities = {
     role: {
       model: formio.resources.role.model,
-      valid: (roles) => {
-        if (typeof roles === 'object' && !(roles instanceof Array)) {
-          return true;
-        }
-
-        return false;
-      },
+      valid: isObject,
       transform: (template, role) => role,
       query(document, template) {
         const query = {machineName: document.machineName, deleted: {$eq: null}};
@@ -244,13 +240,7 @@ module.exports = (router) => {
     },
     resource: {
       model: formio.resources.form.model,
-      valid: (resources) => {
-        if (typeof resources === 'object' && !(resources instanceof Array)) {
-          return true;
-        }
-
-        return false;
-      },
+      valid: isObject,
       transform: (template, resource) => {
         roleMachineNameToId(template, resource.submissionAccess);
         roleMachineNameToId(template, resource.access);
@@ -292,13 +282,7 @@ module.exports = (router) => {
     },
     form: {
       model: formio.resources.form.model,
-      valid: (forms) => {
-        if (typeof forms === 'object' && !(forms instanceof Array)) {
-          return true;
-        }
-
-        return false;
-      },
+      valid: isObject,
       transform: (template, form) => {
         roleMachineNameToId(template, form.submissionAccess);
         roleMachineNameToId(template, form.access);
@@ -340,13 +324,7 @@ module.exports = (router) => {
     },
     action: {
       model: formio.actions.model,
-      valid: (actions) => {
-        if (typeof actions === 'object' && !(actions instanceof Array)) {
-          return true;
-        }
-
-        return false;
-      },
+      valid: isObject,
       transform: (template, action) => {
         resourceMachineNameToId(template, action.settings);
         roleMachineNameToId(template, action.settings);
