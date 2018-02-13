@@ -661,54 +661,52 @@ class Validator {
       }
       /* eslint-enable max-depth, valid-typeof */
 
-      // Only run validations for persistent fields with values but not on embedded.
-      if (isPersistent) {
-        if (component.key && (component.key.indexOf('.') === -1) && component.validate) {
-          // Add required validator.
-          if (component.validate.required) {
-            fieldValidator = fieldValidator.required().empty().disallow('', null);
-          }
+      if (component.key && (component.key.indexOf('.') === -1) && component.validate) {
+        // Add required validator.
+        if (component.validate.required) {
+          fieldValidator = fieldValidator.required().empty().disallow('', null);
+        }
 
-          // Add regex validator
-          if (component.validate.pattern) {
-            try {
-              const regex = new RegExp(component.validate.pattern);
-              fieldValidator = fieldValidator.regex(regex);
-            }
-            catch (err) {
-              debug.error(err);
-            }
+        // Add regex validator
+        if (component.validate.pattern) {
+          try {
+            const regex = new RegExp(component.validate.pattern);
+            fieldValidator = fieldValidator.regex(regex);
           }
-
-          // Add the custom validations.
-          if (component.validate && component.validate.custom) {
-            fieldValidator = fieldValidator.custom(component, submission.data);
-          }
-
-          // Add the json logic validations.
-          if (component.validate && component.validate.json) {
-            fieldValidator = fieldValidator.json(component, submission.data);
+          catch (err) {
+            debug.error(err);
           }
         }
 
-        // If the value must be unique.
-        if (component.unique) {
-          fieldValidator = fieldValidator.distinct(component, submission, this.model, this.async);
+        // Add the custom validations.
+        if (component.validate && component.validate.custom) {
+          fieldValidator = fieldValidator.custom(component, submission.data);
         }
 
-        // Make sure to change this to an array if multiple is checked.
-        if (component.multiple) {
-          // Allow(null) was added since some text fields have empty strings converted to null when multiple which then
-          // throws an error on re-validation. Allowing null fixes the issue.
-          fieldValidator = JoiX.array().sparse().items(fieldValidator.allow(null)).options({stripUnknown: false});
-          // If a multi-value is required, make sure there is at least one.
-          if (component.validate && component.validate.required) {
-            fieldValidator = fieldValidator.min(1).required();
-          }
+        // Add the json logic validations.
+        if (component.validate && component.validate.json) {
+          fieldValidator = fieldValidator.json(component, submission.data);
         }
       }
 
-      if (component.key && fieldValidator) {
+      // If the value must be unique.
+      if (component.unique) {
+        fieldValidator = fieldValidator.distinct(component, submission, this.model, this.async);
+      }
+
+      // Make sure to change this to an array if multiple is checked.
+      if (component.multiple) {
+        // Allow(null) was added since some text fields have empty strings converted to null when multiple which then
+        // throws an error on re-validation. Allowing null fixes the issue.
+        fieldValidator = JoiX.array().sparse().items(fieldValidator.allow(null)).options({stripUnknown: false});
+        // If a multi-value is required, make sure there is at least one.
+        if (component.validate && component.validate.required) {
+          fieldValidator = fieldValidator.min(1).required();
+        }
+      }
+
+      // Only run validations for persistent fields.
+      if (component.key && fieldValidator && isPersistent) {
         schema[component.key] = fieldValidator.hidden(component, submission.data);
       }
     });
