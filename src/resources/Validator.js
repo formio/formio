@@ -661,8 +661,7 @@ class Validator {
       }
       /* eslint-enable max-depth, valid-typeof */
 
-      // Only run validations for persistent fields with values but not on embedded.
-      if (component.key && (component.key.indexOf('.') === -1) && isPersistent && component.validate) {
+      if (component.key && (component.key.indexOf('.') === -1) && component.validate) {
         // Add required validator.
         if (component.validate.required) {
           fieldValidator = fieldValidator.required().empty().disallow('', null);
@@ -706,7 +705,8 @@ class Validator {
         }
       }
 
-      if (component.key && fieldValidator) {
+      // Only run validations for persistent fields.
+      if (component.key && fieldValidator && isPersistent) {
         schema[component.key] = fieldValidator.hidden(component, submission.data);
       }
     });
