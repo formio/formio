@@ -218,7 +218,7 @@ module.exports = function(formio) {
     if (process.env.TEST_SUITE) {
       debug.db('Skipping for TEST_SUITE');
       return response
-        ? res.sendStatus(200)
+        ? res.status(200).send('OK')
         : next();
     }
 
@@ -236,7 +236,7 @@ module.exports = function(formio) {
       }
 
       return response
-        ? res.sendStatus(200)
+        ? res.status(200).send('OK')
         : next();
     };
 

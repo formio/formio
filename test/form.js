@@ -273,7 +273,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .get(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect('Content-Type', template.project ? /text\/plain/ : /json/)
+          .expect('Content-Type', template.project ? /text/ : /json/)
           .expect(template.project ? 401 : 200)
           .end(function(err, res) {
               if (err) {
@@ -293,7 +293,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .get(hook.alter('url', '/form?list=1', template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect('Content-Type', template.project ? /text\/plain/ : /json/)
+          .expect('Content-Type', template.project ? /text/ : /json/)
           .expect(template.project ? 401 : 200)
           .end(function(err, res) {
               if (err) {
@@ -736,7 +736,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .put(hook.alter('url', '/' + template.forms.tempForm.path, template))
           .send({title: 'Updated2'})
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });

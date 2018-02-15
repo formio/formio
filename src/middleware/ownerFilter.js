@@ -21,7 +21,7 @@ module.exports = function(router) {
     }
 
     if (!req.token || !req.token.user) {
-      return res.sendStatus(401);
+      return res.status(401).send('Unauthorized');
     }
 
     // The default ownerFilter query.

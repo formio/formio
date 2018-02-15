@@ -20,7 +20,7 @@ module.exports = function(router) {
       return next();
     }
 
-    return res.sendStatus(405);
+    return res.status(405).send('Request Type Not Allowed');
   };
 };
 

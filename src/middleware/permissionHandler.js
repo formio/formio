@@ -445,7 +445,7 @@ module.exports = function(router) {
       // Unsupported request method.
       if (search === undefined) {
         if (res) {
-          res.sendStatus(404);
+          res.status(404).send('Not Found');
         }
         return false;
       }
@@ -565,7 +565,7 @@ module.exports = function(router) {
     router.formio.access.getAccess(req, res, function(err, access) {
       if (err) {
         if (_.isNumber(err)) {
-          return res.sendStatus(err);
+          return res.status(err).send('Access Denied');
         }
 
         return res.status(400).send(err.message || err);
@@ -617,7 +617,7 @@ module.exports = function(router) {
         res.status(401);
         return next();
       }
-      return res.headersSent ? next() : res.sendStatus(401);
+      return res.headersSent ? next() : res.status(401).send('Unauthorized');
     });
   };
 };

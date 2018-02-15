@@ -590,7 +590,7 @@ module.exports = function(router) {
       }
       catch (e) {
         debug.error(e);
-        return res.sendStatus(500);
+        return res.status(500).send('Bad Request');
       }
     });
   });

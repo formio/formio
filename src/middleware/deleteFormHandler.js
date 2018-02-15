@@ -23,7 +23,7 @@ module.exports = function(router) {
         return next(err);
       }
 
-      return res.sendStatus(200);
+      return res.status(200).send('OK');
     });
   };
 };
