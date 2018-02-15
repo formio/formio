@@ -290,7 +290,7 @@ module.exports = function(router) {
    */
   const currentUser = function(req, res, next) {
     if (!res.token || !req.token) {
-      return res.sendStatus(401);
+      return res.status(401).send('No token provided.');
     }
 
     // Set the headers if they haven't been sent yet.
@@ -336,7 +336,7 @@ module.exports = function(router) {
     tempToken: tempToken,
     logout(req, res) {
       res.setHeader('x-jwt-token', '');
-      res.sendStatus(200);
+      res.status(200).send('OK');
     }
   };
 };

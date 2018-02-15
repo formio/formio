@@ -15,17 +15,17 @@ module.exports = function(router) {
 
     // Should never get here without a form id present..
     if (!req.formId) {
-      return res.sendStatus(500);
+      return res.status(400).send('No form provided');
     }
 
     // Should never get here with a submission id present..
     if (req.subId) {
-      return res.sendStatus(500);
+      return res.status(400).send('No submission provided');
     }
 
     // Cant determine submission resource access for not authenticated users.
     if (!req.user || !_.has(req, 'user._id') || !req.user._id) {
-      return res.sendStatus(401);
+      return res.status(401).send('Unauthorized');
     }
 
     const user = req.user._id;

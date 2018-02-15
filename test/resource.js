@@ -203,7 +203,7 @@ module.exports = function(app, template, hook) {
           .post(hook.alter('url', '/form', template))
           .set('x-jwt-token', template.users.user1.token)
           .send(template.resources.tempResource)
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -234,7 +234,7 @@ module.exports = function(app, template, hook) {
           .put(hook.alter('url', '/form/' + template.resources.tempResource._id, template))
           .set('x-jwt-token', template.users.user1.token)
           .send({title: updatedResource.title})
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -243,7 +243,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .get(hook.alter('url', '/form?type=resource', template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect('Content-Type', template.project ? /text\/plain/ : /json/)
+          .expect('Content-Type', template.project ? /text/ : /json/)
           .expect(template.project ? 401 : 200)
           .end(done);
       });
@@ -273,7 +273,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .put(hook.alter('url', '/' + template.resources.tempResource.path, template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -284,7 +284,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .post(hook.alter('url', '/form', template))
           .send(template.resources.tempResource)
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -313,7 +313,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .put(hook.alter('url', '/form/' + template.resources.tempResource._id, template))
           .send({title: updatedResource.title})
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -321,7 +321,7 @@ module.exports = function(app, template, hook) {
       it('An Anonymous user should be able to Read the Index of Resource for a User-Created Project', function(done) {
         request(app)
           .get(hook.alter('url', '/form?type=resource', template))
-          .expect('Content-Type', template.project ? /text\/plain/ : /json/)
+          .expect('Content-Type', template.project ? /text/ : /json/)
           .expect(template.project ? 401 : 200)
           .end(done);
       });
@@ -349,7 +349,7 @@ module.exports = function(app, template, hook) {
 
         request(app)
           .put(hook.alter('url', '/' + template.resources.tempResource.path, template))
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });

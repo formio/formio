@@ -12,7 +12,7 @@ module.exports = (router) => {
   // Mount the export endpoint using the url.
   router.get('/form/:formId/export', (req, res, next) => {
     if (!_.has(req, 'token') || !_.has(req, 'token.user._id')) {
-      return res.sendStatus(400);
+      return res.status(400).send('Invalid token');
     }
 
     // Get the export format.
@@ -22,16 +22,16 @@ module.exports = (router) => {
 
     // Handle unknown formats.
     if (!exporters.hasOwnProperty(format)) {
-      return res.status(500).send('Unknown format');
+      return res.status(400).send('Unknown format');
     }
 
     // Load the form.
     router.formio.cache.loadCurrentForm(req, (err, form) => {
       if (err) {
-        return res.sendStatus(401);
+        return res.status(401).send(err);
       }
       if (!form) {
-        return res.sendStatus(404);
+        return res.status(404).send('Form not found');
       }
 
       // Allow them to provide a query.

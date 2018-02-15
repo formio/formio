@@ -199,7 +199,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .post(hook.alter('url', '/role', template))
           .send(template.roles.tempRole)
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -207,7 +207,7 @@ module.exports = function(app, template, hook) {
       it('An Anonymous user should not be able to Read a Role for a User-Created Project', function(done) {
         request(app)
           .get(hook.alter('url', '/role/' + template.roles.tempRole._id, template))
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -216,7 +216,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .get(hook.alter('url', '/role/' + template.roles.tempRole._id, template))
           .send({title: 'Some Update'})
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -224,7 +224,7 @@ module.exports = function(app, template, hook) {
       it('An Anonymous user should not be able to Read the Index of Roles for a User-Created Project', function(done) {
         request(app)
           .get(hook.alter('url', '/role', template))
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -232,7 +232,7 @@ module.exports = function(app, template, hook) {
       it('An Anonymous user should not be able to Delete a Role for a User-Created Project', function(done) {
         request(app)
           .delete(hook.alter('url', '/role/' + template.roles.tempRole._id, template))
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -243,7 +243,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .delete(hook.alter('url', '/role/' + template.roles.anonymous._id, template))
           .set('x-jwt-token', template.users.admin.token)
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(405)
           .end(function(err, res) {
             if (err) {
@@ -251,7 +251,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.text;
-            assert.equal(response, 'Method Not Allowed');
+            assert.equal(response, 'Not Allowed');
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
@@ -264,7 +264,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .delete(hook.alter('url', '/role/' + template.roles.administrator._id, template))
           .set('x-jwt-token', template.users.admin.token)
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(405)
           .end(function(err, res) {
             if (err) {
@@ -272,7 +272,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.text;
-            assert.equal(response, 'Method Not Allowed');
+            assert.equal(response, 'Not Allowed');
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];

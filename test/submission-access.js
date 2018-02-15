@@ -14,7 +14,7 @@ var request401 = function(request, done, user) {
   }
   request
     .expect(401)
-    .expect('Content-Type', /text\/plain/)
+    .expect('Content-Type', /text/)
     .end(function(err, res) {
       if (err) {
         return done(err);

@@ -232,7 +232,7 @@ module.exports = function(app, template, hook) {
           .post(hook.alter('url', '/form/' + tempForm._id + '/action', template))
           .set('x-jwt-token', template.users.user1.token)
           .send(tempAction)
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -251,7 +251,7 @@ module.exports = function(app, template, hook) {
           .put(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
           .set('x-jwt-token', template.users.user1.token)
           .send({foo: 'bar'})
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -286,7 +286,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .delete(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -297,7 +297,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .post(hook.alter('url', '/form/' + tempForm._id + '/action', template))
           .send(tempAction)
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -314,7 +314,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .put(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
           .send({foo: 'bar'})
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });
@@ -347,7 +347,7 @@ module.exports = function(app, template, hook) {
       it('An Anonymous user should not be able to Delete an Action for a User-Created Project Form', function(done) {
         request(app)
           .delete(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
-          .expect('Content-Type', /text\/plain/)
+          .expect('Content-Type', /text/)
           .expect(401)
           .end(done);
       });

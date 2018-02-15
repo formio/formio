@@ -41,7 +41,7 @@ module.exports = function(router) {
 
       // Do not allow default roles to be deleted.
       if (role.default || role.admin) {
-        return res.sendStatus(405);
+        return res.status(405).send('Not Allowed');
       }
 
       prune.role(role._id, req, function(err) {
@@ -50,7 +50,7 @@ module.exports = function(router) {
           return next(err);
         }
 
-        res.sendStatus(200);
+        res.status(200).send('OK');
       });
     });
   };
