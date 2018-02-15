@@ -565,7 +565,7 @@ module.exports = function(router) {
     router.formio.access.getAccess(req, res, function(err, access) {
       if (err) {
         if (_.isNumber(err)) {
-          return res.sendStatus(err);
+          return (typeof res.sendStatus === 'function') ? res.sendStatus(err) : next('Invalid Request');
         }
 
         return res.status(400).send(err.message || err);
