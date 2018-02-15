@@ -198,7 +198,7 @@ module.exports = function(router) {
       let query = {_id: {$in: _.map(formIds, util.idToBson)}, $or: or};
       query = hook.alter('formQuery', query, req);
 
-      router.formio.resources.form.model.find(query).snapshot(true).exec(function(err, forms) {
+      router.formio.resources.form.model.find(query).exec(function(err, forms) {
         if (err) {
           return cb(err);
         }
@@ -245,7 +245,7 @@ module.exports = function(router) {
       // Find all submissions that contain the role in its roles.
       const query = {form: {$in: _.map(formIds, util.idToBson)}, deleted: {$eq: null}, roles: util.idToBson(roleId)};
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.find(query).snapshot(true).exec(function(err, submissions) {
+      submissionModel.find(query).exec(function(err, submissions) {
         if (err) {
           return cb(err);
         }
@@ -276,7 +276,7 @@ module.exports = function(router) {
     let query = {deleted: {$eq: null}};
     query = hook.alter('formQuery', query, req);
 
-    router.formio.resources.form.model.find(query).select('_id').snapshot(true).exec(function(err, ids) {
+    router.formio.resources.form.model.find(query).select('_id').exec(function(err, ids) {
       if (err) {
         return next(err);
       }
