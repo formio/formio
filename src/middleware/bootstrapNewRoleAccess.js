@@ -35,7 +35,7 @@ module.exports = function(router) {
       const query = hook.alter('roleQuery', {deleted: {$eq: null}}, req);
 
       // Query the forms collection, to build the updated form access list.
-      router.formio.resources.form.model.find(query).snapshot().exec(function(err, forms) {
+      router.formio.resources.form.model.find(query).exec(function(err, forms) {
         if (err) {
           debug(err);
           return done(err);
