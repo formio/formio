@@ -106,6 +106,30 @@ const Utils = {
   },
 
   /**
+   * Create a sub response object that only handles errors.
+   *
+   * @param res
+   * @return {{send: function(), sendStatus: function(*=), status: function(*=)}}
+   */
+  createSubResponse(response) {
+    response = response || _.noop;
+    const subResponse = {
+      statusCode: 200,
+      send: (err) => response(err),
+      json: (err) => response(err),
+      sendStatus: (status) => {
+        subResponse.statusCode = status;
+        response(status);
+      },
+      status: (status) => {
+        subResponse.statusCode = status;
+        return subResponse;
+      }
+    };
+    return subResponse;
+  },
+
+  /**
    * Create a sub-request object from the original request.
    *
    * @param req
