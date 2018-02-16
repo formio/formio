@@ -20,25 +20,20 @@ module.exports = router => {
     }
 
     const url = '/form/:formId/submission';
-    const childRes = {
-      send: () => _.noop,
-      status: (status) => {
-        return {json: (err) => {
-            if (status > 299) {
-              // Add the parent path to the details path.
-              if (err.details && err.details.length) {
-                _.each(err.details, (details) => {
-                  if (details.path) {
-                    details.path = `${path}.data.${details.path}`;
-                  }
-                });
-              }
-
-              return res.status(status).json(err);
+    const childRes = router.formio.util.createSubResponse((err) => {
+      if (childRes.statusCode > 299) {
+        // Add the parent path to the details path.
+        if (err && err.details && err.details.length) {
+          _.each(err.details, (details) => {
+            if (details.path) {
+              details.path = `${path}.data.${details.path}`;
             }
-          }};
+          });
+        }
+
+        return res.status(childRes.statusCode).json(err);
       }
-    };
+    });
     const childReq = router.formio.util.createSubRequest(req);
     if (!childReq) {
       return res.status(400).json('Too many recursive requests.');
