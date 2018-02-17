@@ -27,12 +27,7 @@ module.exports = router => {
       childReq.url = '/form/:formId/submission/:submissionId';
       childReq.method = method.toUpperCase();
 
-      const childRes = {
-        send: () => _.noop,
-        status: function(status) {
-          this.statusCode = status;
-        }
-      };
+      const childRes = util.createSubResponse();
       if (router.resourcejs.hasOwnProperty(childReq.url) && router.resourcejs[childReq.url].hasOwnProperty(method)) {
         return new Promise((resolve, reject) => {
           router.resourcejs[childReq.url][method].call(this, childReq, childRes, function(err) {
