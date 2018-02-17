@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.25.6
+### Fixed
+ - Problems with sub-responses calling methods that do not exist.
+
+### Changed
+ - Upgraded mongoose to 5.0.6, formio.js to 2.29.2
+
 ## 1.25.4
 ### Changed
  - Removed all calls to snapshot since it was causing serious performance regressions.
