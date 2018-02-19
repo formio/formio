@@ -24,7 +24,8 @@ module.exports = router => {
     childReq.url = '/form/:formId/submission';
     /* eslint-disable camelcase */
     childReq.query = {
-      _id__in: ids.join(',')
+      _id__in: ids.join(','),
+      limit: 10000000
     };
     /* eslint-enable camelcase */
     childReq.method = method.toUpperCase();
@@ -107,11 +108,13 @@ module.exports = router => {
 
           res.resource.item.map(resource => {
             const compValue = _.get(resource.data, path);
-            if (compValue && compValue._id && mappedItems[compValue._id]) {
-              _.set(resource.data, path, mappedItems[compValue._id]);
-            }
-            else {
-              _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
+            if (compValue && compValue._id) {
+              if (mappedItems[compValue._id]) {
+                _.set(resource.data, path, mappedItems[compValue._id]);
+              }
+              else {
+                _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
+              }
             }
           });
         });
