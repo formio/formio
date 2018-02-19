@@ -106,7 +106,7 @@ module.exports = router => {
             mappedItems[item._id] = item;
           });
 
-          res.resource.item.map(resource => {
+          res.resource.item.forEach(resource => {
             const compValue = _.get(resource.data, path);
             if (compValue && compValue._id) {
               if (mappedItems[compValue._id]) {
