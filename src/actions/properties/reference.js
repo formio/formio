@@ -17,6 +17,7 @@ module.exports = router => {
       return Promise.reject('Too many recursive requests.');
     }
     childReq.noResponse = true;
+    childReq.skipOwnerFilter = false;
     childReq.formId = childReq.params.formId = formId;
 
     const method = 'get';
