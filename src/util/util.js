@@ -117,6 +117,7 @@ const Utils = {
       statusCode: 200,
       send: (err) => response(err),
       json: (err) => response(err),
+      setHeader: () => _.noop,
       sendStatus: (status) => {
         subResponse.statusCode = status;
         response(status);
