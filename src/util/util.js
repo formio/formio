@@ -149,7 +149,7 @@ const Utils = {
     delete req.formioCache;
 
     // Clone the request.
-    const childReq = _.cloneDeep(req);
+    const childReq = _.clone(req);
 
     // Add the parameters back.
     childReq.formioCache = cache;
@@ -161,6 +161,9 @@ const Utils = {
 
     // Delete the actions cache.
     delete childReq.actions;
+
+    // Delete submission model.
+    delete childReq.submissionModel;
 
     // Delete default resourceData from actions
     // otherwise you get an endless loop
