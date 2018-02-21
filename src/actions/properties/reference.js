@@ -68,17 +68,24 @@ module.exports = router => {
   };
 
   const getResource = function(component, path, req, res) {
+    const resource = _.get(res, 'resource.item');
+    if (!resource || !resource.data) {
+      return Promise.resolve();
+    }
     // Make sure to reset the value on the return result.
-    const compValue = _.get(res.resource.item.data, path);
+    const compValue = _.get(resource.data, path);
     if (compValue && req.resources && req.resources.hasOwnProperty(compValue._id)) {
-      _.set(res.resource.item.data, path, req.resources[compValue._id]);
+      _.set(resource.data, path, req.resources[compValue._id]);
     }
     return Promise.resolve();
   };
 
   return {
     afterGet: function(component, path, req, res) {
-      const resource = res.resource.item;
+      const resource = _.get(res, 'resource.item');
+      if (!resource) {
+        return Promise.resolve();
+      }
       const compValue = _.get(resource.data, path);
       if (compValue && compValue._id) {
         return loadReferences(component, path, [compValue._id], req, res)
@@ -93,8 +100,12 @@ module.exports = router => {
       }
     },
     afterIndex: function(component, path, req, res) {
+      const resource = _.get(res, 'resource.item');
+      if (!resource) {
+        return Promise.resolve();
+      }
       const _ids = [];
-      res.resource.item.map(resource => {
+      resource.map(resource => {
         const compValue = _.get(resource.data, path);
         if (compValue && compValue._id) {
           _ids.push(compValue._id);
@@ -107,7 +118,7 @@ module.exports = router => {
             mappedItems[item._id] = item;
           });
 
-          res.resource.item.forEach(resource => {
+          resource.forEach(resource => {
             const compValue = _.get(resource.data, path);
             if (compValue && compValue._id) {
               if (mappedItems[compValue._id]) {
