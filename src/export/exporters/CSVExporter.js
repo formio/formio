@@ -13,8 +13,14 @@ const Entities = require('html-entities').AllHtmlEntities;
 const moment = require('moment');
 const {conformToMask} = require('vanilla-text-mask');
 
-const interpolate = (string, data) => string.replace(/{{\s*(\S*)\s*}}/g, (match, path) =>
-  JSON.stringify(_.get(data, path)));
+const interpolate = (string, data) => string.replace(/{{\s*(\S*)\s*}}/g, (match, path) => {
+  const value = _.get(data, path);
+  if (_.isObject(value)) {
+    return JSON.stringify(value);
+  }
+
+  return value;
+});
 
 /**
  * Create a CSV exporter.
@@ -70,6 +76,10 @@ class CSVExporter extends Exporter {
         else if (component.type === 'radio') {
           items.push({
             preprocessor(value) {
+              if (_.isObject(value)) {
+                return value;
+              }
+
               const componentValue = component.values.find((v) => v.value === value) || '';
                 return componentValue && formattedView
                   ? componentValue.label
@@ -77,21 +87,11 @@ class CSVExporter extends Exporter {
             }
           });
         }
-        else if (formattedView && component.inputMask) {
-          const mask = getInputMask(component.inputMask);
-          items.push({
-            preprocessor(value) {
-              return conformToMask(value, mask).conformedValue;
-            }
-          });
-        }
         else if (formattedView && ['currency', 'number'].includes(component.type)) {
           const currency = component.type === 'currency';
 
           const formatOptions = {
-            style: currency
-              ? 'currency'
-              : 'decimal',
+            style: currency ? 'currency' : 'decimal',
             useGrouping: true,
             maximumFractionDigits: component.decimalLimit || 2
           };
@@ -102,6 +102,10 @@ class CSVExporter extends Exporter {
 
           items.push({
             preprocessor(value) {
+              if (_.isObject(value)) {
+                return value;
+              }
+
               return value.toLocaleString('en', formatOptions);
             }
           });
@@ -231,6 +235,14 @@ class CSVExporter extends Exporter {
             }
           });
         }
+        else if (formattedView && component.inputMask) {
+          const mask = getInputMask(component.inputMask);
+          items.push({
+            preprocessor(value) {
+              return conformToMask(value, mask).conformedValue;
+            }
+          });
+        }
         else {
           // Default to the current component item.
           items.push({});
@@ -338,7 +350,7 @@ class CSVExporter extends Exporter {
           return data.map((item) => `"${coerceToString(_.get(item, fullPath, item), column)}"`).join(',');
         }
         if (_.isString(data)) {
-          if (_.isBoolean(column.type)) {
+          if (column.type === 'boolean') {
             return Boolean(data).toString();
           }
 
