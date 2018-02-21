@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Fixed
  - A bunch of small bugs in CSV export.
 
+## 1.25.7
+### Fixed
+ - Issue with the resource references index query taking too long and taking a lot of memory.
+ - Problems with using cloneDeep on sub-requests which would gobble up memory.
+
 ## 1.25.6
 ### Fixed
  - Problems with sub-responses calling methods that do not exist.
