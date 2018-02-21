@@ -69,7 +69,7 @@ module.exports = router => {
 
   const getResource = function(component, path, req, res) {
     const resource = _.get(res, 'resource.item');
-    if (!resource || !resource.data) {
+    if (!resource) {
       return Promise.resolve();
     }
     // Make sure to reset the value on the return result.
@@ -100,12 +100,12 @@ module.exports = router => {
       }
     },
     afterIndex: function(component, path, req, res) {
-      const resource = _.get(res, 'resource.item');
-      if (!resource) {
+      const resources = _.get(res, 'resource.item');
+      if (!resources) {
         return Promise.resolve();
       }
       const _ids = [];
-      resource.map(resource => {
+      resources.map(resource => {
         const compValue = _.get(resource.data, path);
         if (compValue && compValue._id) {
           _ids.push(compValue._id);
@@ -118,7 +118,7 @@ module.exports = router => {
             mappedItems[item._id] = item;
           });
 
-          resource.forEach(resource => {
+          resources.forEach(resource => {
             const compValue = _.get(resource.data, path);
             if (compValue && compValue._id) {
               if (mappedItems[compValue._id]) {
