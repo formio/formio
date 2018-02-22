@@ -113,6 +113,9 @@ module.exports = router => {
       });
       return loadReferences(component, path, _ids, req, res)
         .then(items => {
+          if (!items || !items.length) {
+            return;
+          }
           const mappedItems = {};
           items.forEach(item => {
             mappedItems[item._id] = item;

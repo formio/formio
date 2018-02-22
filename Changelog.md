@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.25.9
+### Fixed
+ - Issue where empty list of references would fail the request.
+
 ## 1.25.8
 ### Fixed
  - Some potential undefined references causing crashes.
