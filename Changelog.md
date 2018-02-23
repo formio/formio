@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ## 1.25.9
 ### Fixed
+ - CSV exporter that would throw an error for DateTime components.
+ - Issue where hidden components that have a value set remove their parent containers or datagrids.
+ - Ensure sub-requests get their own cloned request paramters.
+ - Issue with the field parameter actions would execute twice unintentionally.
  - Issue where empty list of references would fail the request.
 
 ## 1.25.8
