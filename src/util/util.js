@@ -150,6 +150,8 @@ const Utils = {
 
     // Clone the request.
     const childReq = _.clone(req);
+    childReq.params = _.clone(childReq.params);
+    childReq.query = _.clone(childReq.query);
 
     // Add the parameters back.
     childReq.formioCache = cache;
