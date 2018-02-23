@@ -767,32 +767,49 @@ class Validator {
           // Remove any conditionally hidden validations. Joi will still throw the errors but we don't want them since the
           // fields are hidden.
           validateErr.details = validateErr.details.filter((detail) => {
-            // Walk up the path tree to determine if the component is hidden.
-            const result = detail.path.reduce((result, key) => {
-              result.path.push(key);
+            let result = {
+              hidden: false
+            };
+            if (detail.type.includes('.hidden')) {
+              const component = components[detail.path.filter(isNaN).join('.')];
 
-              const component = components[result.path.filter(isNaN).join('.')];
+              const clearOnHide = util.isBoolean(component.clearOnHide) ?
+                util.boolean(component.clearOnHide) : true;
 
-              // Form "data" keys don't have components.
-              if (component) {
-                result.hidden = result.hidden ||
-                  !checkConditional(component,
-                    _.get(value, result.path.slice(0, result.path.length - 1)), result.submission, true);
+              if (clearOnHide) {
+                _.unset(value, detail.path);
+              }
 
-                const clearOnHide = util.isBoolean(component.clearOnHide) ?
-                  util.boolean(component.clearOnHide) : true;
+              result.hidden = true;
+            }
+            else {
+              // Walk up the path tree to determine if the component is hidden.
+              result = detail.path.reduce((result, key) => {
+                result.path.push(key);
 
-                if (clearOnHide && result.hidden) {
-                  _.unset(value, result.path);
+                const component = components[result.path.filter(isNaN).join('.')];
+
+                // Form "data" keys don't have components.
+                if (component) {
+                  result.hidden = result.hidden ||
+                    !checkConditional(component,
+                      _.get(value, result.path.slice(0, result.path.length - 1)), result.submission, true);
+
+                  const clearOnHide = util.isBoolean(component.clearOnHide) ?
+                    util.boolean(component.clearOnHide) : true;
+
+                  if (clearOnHide && result.hidden) {
+                    _.unset(value, result.path);
+                  }
                 }
-              }
-              else {
-                // Since this is a subform, change the submission object going to the conditionals.
-                result.submission = _.get(value, result.path);
-              }
+                else {
+                  // Since this is a subform, change the submission object going to the conditionals.
+                  result.submission = _.get(value, result.path);
+                }
 
-              return result;
-            }, {path: [], hidden: detail.type.includes('.hidden'), submission: value});
+                return result;
+              }, {path: [], hidden: false, submission: value});
+            }
 
             return !result.hidden;
           });
