@@ -2,6 +2,8 @@
 
 const _ = require('lodash');
 const util = require('../../util/util');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 module.exports = router => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
@@ -61,7 +63,7 @@ module.exports = router => {
 
       // Ensure we only set the _id of the resource.
       _.set(req.body.data, path, {
-        _id: compValue._id
+        _id: ObjectId(compValue._id)
       });
     }
     return Promise.resolve();
@@ -99,40 +101,18 @@ module.exports = router => {
           });
       }
     },
-    afterIndex: function(component, path, req, res) {
-      const resources = _.get(res, 'resource.item');
-      if (!resources) {
-        return Promise.resolve();
-      }
-      const _ids = [];
-      resources.map(resource => {
-        const compValue = _.get(resource.data, path);
-        if (compValue && compValue._id) {
-          _ids.push(compValue._id);
+    beforeIndex: function(component, path, req, res) {
+      // Add a pipeline to load all the resources.
+      req.modelQuery = req.modelQuery || req.model || this.model;
+      req.modelQuery.pipeline = [{
+        $lookup: {
+          from: 'submissions',
+          localField: `${path}._id`,
+          foreignField: '_id',
+          as: path
         }
-      });
-      return loadReferences(component, path, _ids, req, res)
-        .then(items => {
-          if (!items || !items.length) {
-            return;
-          }
-          const mappedItems = {};
-          items.forEach(item => {
-            mappedItems[item._id] = item;
-          });
-
-          resources.forEach(resource => {
-            const compValue = _.get(resource.data, path);
-            if (compValue && compValue._id) {
-              if (mappedItems[compValue._id]) {
-                _.set(resource.data, path, mappedItems[compValue._id]);
-              }
-              else {
-                _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
-              }
-            }
-          });
-        });
+      }];
+      return Promise.resolve();
     },
     afterPost: getResource,
     afterPut: getResource,
