@@ -212,7 +212,7 @@ class CSVExporter extends Exporter {
               }
 
               if (!formattedView) {
-                return value.toISOString();
+                return value ? value.toISOString() : '';
               }
 
               if (value) {
