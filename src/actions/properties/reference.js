@@ -131,7 +131,7 @@ module.exports = router => {
       const subQuery = {};
       _.each(req.query, (value, param) => {
         if (param.indexOf(`data.${path}`) === 0) {
-          subQuery[param.replace(new RegExp(`$data.${path}.`), '')] = value;
+          subQuery[param.replace(new RegExp(`^data\\.${path}\\.`), '')] = value;
           delete req.query[param];
         }
       });
@@ -146,9 +146,9 @@ module.exports = router => {
           let sort = req.query.sort;
           const negate = req.query.sort.indexOf('-') === 0;
           sort = negate ? sort.substr(1) : sort;
-          if (req.query.sort.indexOf(`data.${path}`) === 0) {
+          if (sort.indexOf(`data.${path}`) === 0) {
             subQuery.sort = negate ? '-' : '';
-            subQuery.sort += sort.replace(new RegExp(`$data.${path}.`), '');
+            subQuery.sort += sort.replace(new RegExp(`^data\\.${path}\\.`), '');
             delete req.query.sort;
           }
         }
@@ -156,7 +156,20 @@ module.exports = router => {
         // Perform this query first.
         return loadReferences(component, path, subQuery, req, res).then(items => {
           req.referenceItems = (items && items.length) ? items : [];
-          req.query[`data.${path}._id__in`] = _.map(req.referenceItems, (item) => (item._id.toString())).join(',');
+          const refIds = _.map(req.referenceItems, (item) => (item._id.toString()));
+          let queryPath = `data.${path}._id`;
+          if (refIds && refIds.length > 1) {
+            queryPath += '__in';
+          }
+          if (!refIds || !refIds.length) {
+            req.query[queryPath] = '0';
+          }
+          else if (refIds.length === 1) {
+            req.query[queryPath] = refIds[0];
+          }
+          else {
+            req.query[queryPath] = refIds.join(',');
+          }
         });
       }
     },
