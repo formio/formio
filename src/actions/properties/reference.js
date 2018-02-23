@@ -26,10 +26,10 @@ module.exports = router => {
     childReq.query = query;
     childReq.method = method.toUpperCase();
 
-    const childRes = util.createSubResponse();
     if (router.resourcejs.hasOwnProperty(childReq.url) && router.resourcejs[childReq.url].hasOwnProperty(method)) {
       return new Promise((resolve, reject) => {
-        router.resourcejs[childReq.url][method].call(this, childReq, childRes, function(err) {
+        const childRes = util.createSubResponse();
+        router.resourcejs[childReq.url][method].call(this, childReq, childRes, () => {
           if (!childRes.statusCode || childRes.statusCode < 300) {
             return resolve(childRes.resource.item);
           }

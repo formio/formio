@@ -52,17 +52,19 @@ module.exports = function(router, resourceName, resourceId) {
       const handlers = [];
       const properties = ['reference'];
 
-      // Execute the property handlers.
-      properties.map(property => {
-        if (component.hasOwnProperty(property) && component[property]) {
-          if (
-            propertyActions.hasOwnProperty(property) &&
-            propertyActions[property].hasOwnProperty(handlerName)
-          ) {
-            handlers.push(propertyActions[property][handlerName](component, path, req, res));
+      // Execute the property handlers after validation has occurred.
+      if (validation) {
+        properties.map(property => {
+          if (component.hasOwnProperty(property) && component[property]) {
+            if (
+              propertyActions.hasOwnProperty(property) &&
+              propertyActions[property].hasOwnProperty(handlerName)
+            ) {
+              handlers.push(propertyActions[property][handlerName](component, path, req, res));
+            }
           }
-        }
-      });
+        });
+      }
 
       // Execute the field handler.
       if (
