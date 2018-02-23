@@ -128,7 +128,7 @@ module.exports = router => {
     },
     beforeIndex(component, path, req, res) {
       // Determine if any filters or sorts are applied to elements within this path.
-      let subQuery = {};
+      const subQuery = {};
       _.each(req.query, (value, param) => {
         if (param.indexOf(`data.${path}`) === 0) {
           subQuery[param.replace(new RegExp(`$data.${path}.`), '')] = value;
@@ -144,7 +144,7 @@ module.exports = router => {
 
         if (req.query.sort) {
           let sort = req.query.sort;
-          let negate = req.query.sort.indexOf('-') === 0;
+          const negate = req.query.sort.indexOf('-') === 0;
           sort = negate ? sort.substr(1) : sort;
           if (req.query.sort.indexOf(`data.${path}`) === 0) {
             subQuery.sort = negate ? '-' : '';
@@ -172,13 +172,15 @@ module.exports = router => {
         applyReferences(resources, req.referenceItems, path);
       }
       else {
+        /* eslint-disable camelcase */
         return loadReferences(component, path, {
           _id__in: _.filter(_.map(resources, (resource) => {
-            let _id = _.get(resource, `data.${path}._id`);
+            const _id = _.get(resource, `data.${path}._id`);
             return _id ? _id.toString() : null;
           })).join(','),
           limit: 10000000
         }, req, res).then(items => applyReferences(resources, items, path));
+        /* eslint-enable camelcase */
       }
     },
     afterPost: getResource,
