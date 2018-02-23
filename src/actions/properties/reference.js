@@ -31,9 +31,11 @@ module.exports = router => {
     /* eslint-enable camelcase */
     childReq.method = method.toUpperCase();
 
-    const childRes = util.createSubResponse();
-    if (router.resourcejs.hasOwnProperty(childReq.url) && router.resourcejs[childReq.url].hasOwnProperty(method)) {
-      return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
+      const childRes = util.createSubResponse(() => {
+        return resolve([]);
+      });
+      if (router.resourcejs.hasOwnProperty(childReq.url) && router.resourcejs[childReq.url].hasOwnProperty(method)) {
         router.resourcejs[childReq.url][method].call(this, childReq, childRes, function(err) {
           if (!childRes.statusCode || childRes.statusCode < 300) {
             return resolve(childRes.resource.item);
@@ -42,11 +44,11 @@ module.exports = router => {
             return reject(childRes.statusMessage);
           }
         });
-      });
-    }
-    else {
-      return Promise.reject('Unknown resource handler.');
-    }
+      }
+      else {
+        return reject('Unknown resource handler.');
+      }
+    });
   };
 
   const setResource = function(component, path, req, res) {
