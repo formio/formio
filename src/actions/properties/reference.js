@@ -75,31 +75,139 @@ module.exports = router => {
     return Promise.resolve();
   };
 
-  const applyReferences = function(items, references, path) {
+  /**
+   * Applies the references to the returned list.
+   *
+   * @param items
+   * @param references
+   * @param path
+   * @param orderByReference
+   * @return {Array}
+   */
+  const applyReferences = function(items, references, path, orderByReference) {
     // Do not apply if there are neither items nor references
     if (
       (!references || !references.length) ||
       (!items || !items.length)
     ) {
-      return;
+      return [];
     }
 
+    const newItems = [];
     const mappedItems = {};
-    references.forEach(reference => {
-      mappedItems[reference._id.toString()] = reference;
-    });
+    if (orderByReference) {
+      // Remove all items that are referenced.
+      _.remove(items, (item) => {
+        const compValue = _.get(item.data, path);
+        if (compValue && compValue._id) {
+          mappedItems[compValue._id] = item.toObject();
+          return true;
+        }
+        return false;
+      });
 
-    items.forEach(item => {
-      const compValue = _.get(item.data, path);
-      if (compValue && compValue._id) {
-        if (mappedItems[compValue._id]) {
-          _.set(item.data, path, mappedItems[compValue._id]);
+      // Add references first.
+      references.forEach(reference => {
+        if (mappedItems[reference._id]) {
+          _.set(mappedItems[reference._id], `data.${path}`, reference);
+          newItems.push(mappedItems[reference._id]);
         }
-        else {
-          _.set(item.data, path, _.pick(_.get(item.data, path), ['_id']));
+      });
+
+      // Next add remainder of items.
+      items.forEach(item => {
+        _.set(item, `data.${path}`, _.pick(_.get(item, `data.${path}`), ['_id']));
+        newItems.push(item);
+      });
+    }
+    else {
+      references.forEach(reference => {
+        mappedItems[reference._id.toString()] = reference;
+      });
+
+      items.forEach(item => {
+        const compValue = _.get(item.data, path);
+        if (compValue && compValue._id) {
+          if (mappedItems[compValue._id]) {
+            _.set(item, `data.${path}`, mappedItems[compValue._id]);
+          }
+          else {
+            _.set(item, `data.${path}`, _.pick(_.get(item, `data.${path}`), ['_id']));
+          }
+          newItems.push(item);
         }
+      });
+    }
+
+    return newItems;
+  };
+
+  /**
+   * Returns a query specific to this sub-reference.
+   *
+   * @param query
+   * @param path
+   * @return {{}}
+   */
+  const getSubQuery = function(query, path) {
+    const subQuery = {};
+
+    // Look for filters.
+    _.each(query, (value, param) => {
+      if (param.indexOf(`data.${path}.`) === 0) {
+        subQuery.subFilter = true;
+        subQuery[param.replace(new RegExp(`^data\\.${path}\\.`), '')] = value;
+        delete query[param];
       }
     });
+
+    // Add sub limit.
+    if (query.limit) {
+      subQuery.limit = query.limit;
+    }
+
+    // Add sub-selects.
+    if (query.select) {
+      const selects = query.select.split(',');
+      const subSelects = [];
+      let rootSelect = false;
+      _.remove(selects, (select) => {
+        if (select.indexOf(`data.${path}`) === 0) {
+          if (select === `data.${path}`) {
+            rootSelect = true;
+          }
+          else {
+            subSelects.push(select.replace(new RegExp(`^data\\.${path}\\.`), ''));
+          }
+          return true;
+        }
+        return false;
+      });
+
+      if (subSelects.length) {
+        if (!rootSelect) {
+          // Need to make sure to include the root.
+          selects.push(`data.${path}`);
+        }
+        subQuery.select = subSelects.join(',');
+        query.select = selects.join(',');
+      }
+    }
+
+    // Add sub sorts
+    if (query.sort) {
+      let sort = query.sort;
+      const negate = query.sort.indexOf('-') === 0;
+      sort = negate ? sort.substr(1) : sort;
+      if (sort.indexOf(`data.${path}.`) === 0) {
+        subQuery.subFilter = true;
+        subQuery.sort = negate ? '-' : '';
+        subQuery.sort += sort.replace(new RegExp(`^data\\.${path}\\.`), '');
+        delete query.sort;
+      }
+    }
+
+    return subQuery;
   };
 
   return {
@@ -126,33 +234,10 @@ module.exports = router => {
     },
     beforeIndex(component, path, req, res) {
       // Determine if any filters or sorts are applied to elements within this path.
-      const subQuery = {};
-      _.each(req.query, (value, param) => {
-        if (param.indexOf(`data.${path}`) === 0) {
-          subQuery[param.replace(new RegExp(`^data\\.${path}\\.`), '')] = value;
-          delete req.query[param];
-        }
-      });
-
-      // If there is a subquery to perform.
-      if (!_.isEmpty(subQuery)) {
-        if (req.query.limit) {
-          subQuery.limit = req.query.limit;
-        }
-
-        if (req.query.sort) {
-          let sort = req.query.sort;
-          const negate = req.query.sort.indexOf('-') === 0;
-          sort = negate ? sort.substr(1) : sort;
-          if (sort.indexOf(`data.${path}`) === 0) {
-            subQuery.sort = negate ? '-' : '';
-            subQuery.sort += sort.replace(new RegExp(`^data\\.${path}\\.`), '');
-            delete req.query.sort;
-          }
-        }
-
-        // Perform this query first.
-        return loadReferences(component, path, subQuery, req, res).then(items => {
+      req.subQuery = getSubQuery(req.query, path);
+      if (req.subQuery.subFilter) {
+        delete req.subQuery.subFilter;
+        return loadReferences(component, path, req.subQuery, req, res).then(items => {
           req.referenceItems = (items && items.length) ? items : [];
           const refIds = _.map(req.referenceItems, (item) => (item._id.toString()));
           let queryPath = `data.${path}._id`;
@@ -180,18 +265,22 @@ module.exports = router => {
       // If this request has reference items, even if empty.
       if (req.hasOwnProperty('referenceItems')) {
         // Apply the found references.
-        applyReferences(resources, req.referenceItems, path);
+        _.set(res, 'resource.item', applyReferences(resources, req.referenceItems, path, true));
       }
       else {
+        // Add a filter to the subquery.
         /* eslint-disable camelcase */
-        return loadReferences(component, path, {
-          _id__in: _.filter(_.map(resources, (resource) => {
-            const _id = _.get(resource, `data.${path}._id`);
-            return _id ? _id.toString() : null;
-          })).join(','),
-          limit: 10000000
-        }, req, res).then(items => applyReferences(resources, items, path));
+        req.subQuery._id__in = _.filter(_.map(resources, (resource) => {
+          const _id = _.get(resource, `data.${path}._id`);
+          return _id ? _id.toString() : null;
+        })).join(',');
         /* eslint-enable camelcase */
+
+        // Add a limit.
+        req.subQuery.limit = 10000000;
+        return loadReferences(component, path, req.subQuery, req, res).then(
+          items => _.set(res, 'resource.item', applyReferences(resources, items, path))
+        );
       }
     },
     afterPost: getResource,
