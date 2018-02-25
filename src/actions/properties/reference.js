@@ -6,7 +6,7 @@ const util = require('../../util/util');
 module.exports = router => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
 
-  const loadReferences = function(component, path, ids, req, res) {
+  const loadReferences = function(component, path, query, req, res) {
     const formId = component.form || component.resource || component.data.resource;
 
     // Here we will clone the request, and then change the request body
@@ -23,20 +23,13 @@ module.exports = router => {
     const method = 'get';
 
     childReq.url = '/form/:formId/submission';
-    /* eslint-disable camelcase */
-    childReq.query = {
-      _id__in: ids.join(','),
-      limit: 10000000
-    };
-    /* eslint-enable camelcase */
+    childReq.query = query;
     childReq.method = method.toUpperCase();
 
-    return new Promise((resolve, reject) => {
-      const childRes = util.createSubResponse(() => {
-        return resolve([]);
-      });
-      if (router.resourcejs.hasOwnProperty(childReq.url) && router.resourcejs[childReq.url].hasOwnProperty(method)) {
-        router.resourcejs[childReq.url][method].call(this, childReq, childRes, function(err) {
+    if (router.resourcejs.hasOwnProperty(childReq.url) && router.resourcejs[childReq.url].hasOwnProperty(method)) {
+      return new Promise((resolve, reject) => {
+        const childRes = util.createSubResponse();
+        router.resourcejs[childReq.url][method].call(this, childReq, childRes, () => {
           if (!childRes.statusCode || childRes.statusCode < 300) {
             return resolve(childRes.resource.item);
           }
@@ -44,11 +37,11 @@ module.exports = router => {
             return reject(childRes.statusMessage);
           }
         });
-      }
-      else {
-        return reject('Unknown resource handler.');
-      }
-    });
+      });
+    }
+    else {
+      return Promise.reject('Unknown resource handler.');
+    }
   };
 
   const setResource = function(component, path, req, res) {
@@ -82,15 +75,153 @@ module.exports = router => {
     return Promise.resolve();
   };
 
+  /**
+   * Applies the references to the returned list.
+   *
+   * @param items
+   * @param references
+   * @param path
+   * @param orderByReference
+   * @return {Array}
+   */
+  const applyReferences = function(items, references, path, orderByReference) {
+    // Do not apply if there are neither items nor references
+    if (
+      (!references || !references.length) ||
+      (!items || !items.length)
+    ) {
+      return [];
+    }
+
+    const newItems = [];
+    const mappedItems = {};
+    if (orderByReference) {
+      // Remove all items that are referenced.
+      _.remove(items, (item) => {
+        const compValue = _.get(item.data, path);
+        if (compValue && compValue._id) {
+          mappedItems[compValue._id] = item.toObject();
+          return true;
+        }
+        return false;
+      });
+
+      // Add references first.
+      references.forEach(reference => {
+        if (mappedItems[reference._id]) {
+          _.set(mappedItems[reference._id], `data.${path}`, reference);
+          newItems.push(mappedItems[reference._id]);
+        }
+      });
+
+      // Next add remainder of items.
+      items.forEach(item => {
+        _.set(item, `data.${path}`, _.pick(_.get(item, `data.${path}`), ['_id']));
+        newItems.push(item);
+      });
+    }
+    else {
+      references.forEach(reference => {
+        mappedItems[reference._id.toString()] = reference;
+      });
+
+      items.forEach(item => {
+        const compValue = _.get(item.data, path);
+        if (compValue && compValue._id) {
+          if (mappedItems[compValue._id]) {
+            _.set(item, `data.${path}`, mappedItems[compValue._id]);
+          }
+          else {
+            _.set(item, `data.${path}`, _.pick(_.get(item, `data.${path}`), ['_id']));
+          }
+          newItems.push(item);
+        }
+      });
+    }
+
+    return newItems;
+  };
+
+  /**
+   * Returns a query specific to this sub-reference.
+   *
+   * @param query
+   * @param path
+   * @return {{}}
+   */
+  const getSubQuery = function(query, path) {
+    const subQuery = {};
+
+    // Look for filters.
+    _.each(query, (value, param) => {
+      if (param.indexOf(`data.${path}.`) === 0) {
+        subQuery.subFilter = true;
+        subQuery[param.replace(new RegExp(`^data\\.${path}\\.`), '')] = value;
+        delete query[param];
+      }
+    });
+
+    // Add sub limit.
+    if (query.limit) {
+      subQuery.limit = query.limit;
+    }
+
+    // Add sub-selects.
+    if (query.select) {
+      const selects = query.select.split(',');
+      const subSelects = [];
+      let rootSelect = false;
+      _.remove(selects, (select) => {
+        if (select.indexOf(`data.${path}`) === 0) {
+          if (select === `data.${path}`) {
+            rootSelect = true;
+          }
+          else {
+            subSelects.push(select.replace(new RegExp(`^data\\.${path}\\.`), ''));
+          }
+          return true;
+        }
+        return false;
+      });
+
+      if (subSelects.length) {
+        if (!rootSelect) {
+          // Need to make sure to include the root.
+          selects.push(`data.${path}`);
+        }
+        subQuery.select = subSelects.join(',');
+        query.select = selects.join(',');
+      }
+    }
+
+    // Add sub sorts
+    if (query.sort) {
+      let sort = query.sort;
+      const negate = query.sort.indexOf('-') === 0;
+      sort = negate ? sort.substr(1) : sort;
+      if (sort.indexOf(`data.${path}.`) === 0) {
+        subQuery.subFilter = true;
+        subQuery.sort = negate ? '-' : '';
+        subQuery.sort += sort.replace(new RegExp(`^data\\.${path}\\.`), '');
+        delete query.sort;
+      }
+    }
+
+    return subQuery;
+  };
+
   return {
-    afterGet: function(component, path, req, res) {
+    afterGet(component, path, req, res) {
       const resource = _.get(res, 'resource.item');
       if (!resource) {
         return Promise.resolve();
       }
       const compValue = _.get(resource.data, path);
       if (compValue && compValue._id) {
-        return loadReferences(component, path, [compValue._id], req, res)
+        return loadReferences(component, path, {
+          _id: compValue._id,
+          limit: 10000000
+        }, req, res)
           .then(items => {
             if (items.length > 0) {
               _.set(resource.data, path, items[0]);
@@ -101,40 +232,56 @@ module.exports = router => {
           });
       }
     },
-    afterIndex: function(component, path, req, res) {
+    beforeIndex(component, path, req, res) {
+      // Determine if any filters or sorts are applied to elements within this path.
+      req.subQuery = getSubQuery(req.query, path);
+      if (req.subQuery.subFilter) {
+        delete req.subQuery.subFilter;
+        return loadReferences(component, path, req.subQuery, req, res).then(items => {
+          req.referenceItems = (items && items.length) ? items : [];
+          const refIds = _.map(req.referenceItems, (item) => (item._id.toString()));
+          let queryPath = `data.${path}._id`;
+          if (refIds && refIds.length > 1) {
+            queryPath += '__in';
+          }
+          if (!refIds || !refIds.length) {
+            req.query[queryPath] = '0';
+          }
+          else if (refIds.length === 1) {
+            req.query[queryPath] = refIds[0];
+          }
+          else {
+            req.query[queryPath] = refIds.join(',');
+          }
+        });
+      }
+    },
+    afterIndex(component, path, req, res) {
       const resources = _.get(res, 'resource.item');
       if (!resources) {
         return Promise.resolve();
       }
-      const _ids = [];
-      resources.map(resource => {
-        const compValue = _.get(resource.data, path);
-        if (compValue && compValue._id) {
-          _ids.push(compValue._id);
-        }
-      });
-      return loadReferences(component, path, _ids, req, res)
-        .then(items => {
-          if (!items || !items.length) {
-            return;
-          }
-          const mappedItems = {};
-          items.forEach(item => {
-            mappedItems[item._id] = item;
-          });
 
-          resources.forEach(resource => {
-            const compValue = _.get(resource.data, path);
-            if (compValue && compValue._id) {
-              if (mappedItems[compValue._id]) {
-                _.set(resource.data, path, mappedItems[compValue._id]);
-              }
-              else {
-                _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
-              }
-            }
-          });
-        });
+      // If this request has reference items, even if empty.
+      if (req.hasOwnProperty('referenceItems')) {
+        // Apply the found references.
+        _.set(res, 'resource.item', applyReferences(resources, req.referenceItems, path, true));
+      }
+      else {
+        // Add a filter to the subquery.
+        /* eslint-disable camelcase */
+        req.subQuery._id__in = _.filter(_.map(resources, (resource) => {
+          const _id = _.get(resource, `data.${path}._id`);
+          return _id ? _id.toString() : null;
+        })).join(',');
+        /* eslint-enable camelcase */
+
+        // Add a limit.
+        req.subQuery.limit = 10000000;
+        return loadReferences(component, path, req.subQuery, req, res).then(
+          items => _.set(res, 'resource.item', applyReferences(resources, items, path))
+        );
+      }
     },
     afterPost: getResource,
     afterPut: getResource,
