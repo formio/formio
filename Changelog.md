@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.25.10
+### Fixed
+ - The filter and sort index queries for referenced fields.
+
 ## 1.25.9
 ### Fixed
  - CSV exporter that would throw an error for DateTime components.
