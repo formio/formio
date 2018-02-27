@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.25.12
+### Fixed
+ - The form component unique validation to only care about input components.
+
+## 1.25.11
+### Fixed
+ - Issues with the store as reference features.
+
 ## 1.25.10
 ### Fixed
  - The filter and sort index queries for referenced fields.
