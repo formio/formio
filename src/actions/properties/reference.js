@@ -112,7 +112,6 @@ module.exports = router => {
       });
 
       // Add references first.
-      const idsAdded = {};
       references.forEach(reference => {
         if (mappedItems[reference._id]) {
           _.set(mappedItems[reference._id], `data.${path}`, reference);
