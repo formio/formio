@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.26.1
+### Fixed
+ - Correct sorting for save-as-reference when there are more items than references.
+ - Issues with save-as-reference lookup for single references.
+
 ## 1.26.0
 ### Fixed
  - Some more issues with save as reference features.
