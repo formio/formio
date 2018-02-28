@@ -19,6 +19,9 @@ module.exports = router => {
     childReq.noResponse = true;
     childReq.skipOwnerFilter = false;
     childReq.formId = childReq.params.formId = formId;
+    if (query._id) {
+      childReq.subId = childReq.params.submissionId = query._id;
+    }
 
     const method = 'get';
 
@@ -107,34 +110,44 @@ module.exports = router => {
       // Get all items that are referenced.
       _.each(items, (item) => {
         const compValue = _.get(item.data, path);
-        if (compValue && compValue._id && !mappedItems[compValue._id]) {
-          mappedItems[compValue._id] = item;
+        if (compValue && compValue._id) {
+          if (!mappedItems[compValue._id]) {
+            mappedItems[compValue._id] = [];
+          }
+          mappedItems[compValue._id].push(item);
         }
       });
 
       // Add references first.
-      references.forEach(reference => {
+      _.each(references, reference => {
+        if (newItems.length >= limit) {
+          return false;
+        }
         if (mappedItems[reference._id]) {
-          _.set(mappedItems[reference._id], `data.${path}`, reference);
-          const item = mappedItems[reference._id];
-          usedItems[item._id] = true;
-          mappedItems[reference._id] = false;
-          newItems.push(item);
+          _.each(mappedItems[reference._id], (mappedItem) => {
+            if (newItems.length >= limit) {
+              return false;
+            }
+            _.set(mappedItem, `data.${path}`, reference);
+            usedItems[mappedItem._id] = true;
+            newItems.push(mappedItem);
+          });
         }
       });
 
       // Next add items that were not referenced.
       _.each(items, (item) => {
-        if (!usedItems[item._id] && (newItems.length < limit)) {
+        if (newItems.length >= limit) {
+          return false;
+        }
+
+        if (!usedItems[item._id]) {
           newItems.push(item);
         }
       });
     }
     else {
-      references.forEach(reference => {
-        mappedItems[reference._id.toString()] = reference;
-      });
-
+      references.forEach(reference => (mappedItems[reference._id.toString()] = reference));
       items.forEach(item => {
         const compValue = _.get(item.data, path);
         if (compValue && compValue._id) {
@@ -265,6 +278,9 @@ module.exports = router => {
             else {
               _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
             }
+          })
+          .catch((err) => {
+            _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
           });
       }
     },
