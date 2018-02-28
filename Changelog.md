@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.26.0
+### Fixed
+ - Some more issues with save as reference features.
+
+### Changed
+ - Resourcejs to allow fix date values.
+ - Upgrade dependencies.
+
 ## 1.25.12
 ### Fixed
  - The form component unique validation to only care about input components.
