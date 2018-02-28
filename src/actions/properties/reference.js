@@ -91,7 +91,7 @@ module.exports = router => {
    * @param orderByReference
    * @return {Array}
    */
-  const applyReferences = function(items, references, path, orderByReference) {
+  const applyReferences = function(items, references, path, limit, orderByReference) {
     // Do not apply if there are neither items nor references
     if (
       (!references || !references.length) ||
@@ -102,6 +102,7 @@ module.exports = router => {
 
     const newItems = [];
     const mappedItems = {};
+    const usedItems = {};
     if (orderByReference) {
       // Get all items that are referenced.
       _.each(items, (item) => {
@@ -116,7 +117,15 @@ module.exports = router => {
         if (mappedItems[reference._id]) {
           _.set(mappedItems[reference._id], `data.${path}`, reference);
           const item = mappedItems[reference._id];
+          usedItems[item._id] = true;
           mappedItems[reference._id] = false;
+          newItems.push(item);
+        }
+      });
+
+      // Next add items that were not referenced.
+      _.each(items, (item) => {
+        if (!usedItems[item._id] && (newItems.length < limit)) {
           newItems.push(item);
         }
       });
@@ -277,6 +286,7 @@ module.exports = router => {
             req.referenceItems[path] = (items && items.length) ? items : [];
             // Make the limit huge so that we can get all duplicates, limits are establshied by the ID's of the
             // references added to the query.
+            req.originalLimit = parseInt(req.query.limit, 10) || 10;
             req.query.limit = 1000000000;
 
             const refIds = _.map(req.referenceItems[path], (item) => (item._id.toString()));
@@ -306,7 +316,7 @@ module.exports = router => {
       // If this request has reference items, even if empty.
       if (req.referenceItems && req.referenceItems[path]) {
         // Apply the found references.
-        _.set(res, 'resource.item', applyReferences(resources, req.referenceItems[path], path, true));
+        _.set(res, 'resource.item', applyReferences(resources, req.referenceItems[path], path, req.originalLimit, true));
       }
       else {
         // Add a filter to the subquery.
