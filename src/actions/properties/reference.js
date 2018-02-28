@@ -316,7 +316,13 @@ module.exports = router => {
       // If this request has reference items, even if empty.
       if (req.referenceItems && req.referenceItems[path]) {
         // Apply the found references.
-        _.set(res, 'resource.item', applyReferences(resources, req.referenceItems[path], path, req.originalLimit, true));
+        _.set(res, 'resource.item', applyReferences(
+          resources,
+          req.referenceItems[path],
+          path,
+          req.originalLimit,
+          true
+        ));
       }
       else {
         // Add a filter to the subquery.
