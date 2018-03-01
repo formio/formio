@@ -32,7 +32,7 @@ module.exports = router => {
     if (router.resourcejs.hasOwnProperty(childReq.url) && router.resourcejs[childReq.url].hasOwnProperty(method)) {
       return new Promise((resolve, reject) => {
         const childRes = util.createSubResponse((err) => {
-          if (!childRes.statusCode || childRes.statusCode < 300) {
+          if (!childRes.statusCode || childRes.statusCode < 300 || childRes.statusCode === 416) {
             return resolve([]);
           }
           else {
@@ -40,7 +40,7 @@ module.exports = router => {
           }
         });
         router.resourcejs[childReq.url][method].call(this, childReq, childRes, () => {
-          if (!childRes.statusCode || childRes.statusCode < 300) {
+          if (!childRes.statusCode || childRes.statusCode < 300 || childRes.statusCode === 416) {
             return resolve(childRes.resource.item);
           }
           else {
@@ -215,6 +215,10 @@ module.exports = router => {
       subQuery.limit = query.limit;
     }
 
+    if (subQuery.subFilter && query.skip) {
+      subQuery.skip = query.skip;
+    }
+
     // Add sub-selects.
     if (query.select) {
       const selects = query.select.split(',');
@@ -285,26 +289,31 @@ module.exports = router => {
       }
     },
     beforeIndex(component, path, req, res) {
+      if (!req.subQuery) {
+        req.subQuery = {};
+      }
+
       // Determine if any filters or sorts are applied to elements within this path.
-      req.subQuery = getSubQuery(req.query, path);
-      if (req.subQuery.subFilter) {
+      req.subQuery[path] = getSubQuery(req.query, path);
+      if (req.subQuery[path].subFilter) {
+        // Make the limit huge so that we can get all duplicates, limits are establshied by the ID's of the
+        // references added to the query.
+        req.originalLimit = parseInt(req.query.limit, 10) || 10;
+        req.query.limit = 1000000000;
+        req.query.skip = 0;
+
         return getSubIds(req, path).then((resourceIds) => {
-          delete req.subQuery.subFilter;
+          delete req.subQuery[path].subFilter;
 
           /* eslint-disable camelcase */
-          req.subQuery._id__in = _.filter(resourceIds);
+          req.subQuery[path]._id__in = _.filter(resourceIds);
           /* eslint-enable camelcase */
 
-          return loadReferences(component, path, req.subQuery, req, res).then(items => {
+          return loadReferences(component, path, req.subQuery[path], req, res).then(items => {
             if (!req.referenceItems) {
               req.referenceItems = {};
             }
             req.referenceItems[path] = (items && items.length) ? items : [];
-            // Make the limit huge so that we can get all duplicates, limits are establshied by the ID's of the
-            // references added to the query.
-            req.originalLimit = parseInt(req.query.limit, 10) || 10;
-            req.query.limit = 1000000000;
-
             const refIds = _.map(req.referenceItems[path], (item) => (item._id.toString()));
             let queryPath = `data.${path}._id`;
             if (refIds && refIds.length > 1) {
@@ -319,6 +328,12 @@ module.exports = router => {
             else {
               req.query[queryPath] = refIds;
             }
+          }).catch(() => {
+            if (!req.referenceItems) {
+              req.referenceItems = {};
+            }
+            req.referenceItems[path] = [];
+            req.query[`data.${path}._id`] = '0';
           });
         });
       }
@@ -341,17 +356,22 @@ module.exports = router => {
         ));
       }
       else {
+        if (!req.subQuery) {
+          req.subQuery = {};
+        }
+
         // Add a filter to the subquery.
         /* eslint-disable camelcase */
-        req.subQuery._id__in = _.uniq(_.filter(_.map(resources, (resource) => {
+        req.subQuery[path]._id__in = _.uniq(_.filter(_.map(resources, (resource) => {
           const _id = _.get(resource, `data.${path}._id`);
           return _id ? _id.toString() : null;
         })));
         /* eslint-enable camelcase */
 
         // Add a limit.
-        req.subQuery.limit = 1000000000;
-        return loadReferences(component, path, req.subQuery, req, res).then(
+        req.subQuery[path].limit = 1000000000;
+        req.subQuery[path].skip = 0;
+        return loadReferences(component, path, req.subQuery[path], req, res).then(
           items => _.set(res, 'resource.item', applyReferences(resources, items, path))
         );
       }
