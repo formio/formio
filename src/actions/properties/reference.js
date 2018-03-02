@@ -215,10 +215,6 @@ module.exports = router => {
       subQuery.limit = query.limit;
     }
 
-    if (subQuery.subFilter && query.skip) {
-      subQuery.skip = query.skip;
-    }
-
     // Add sub-selects.
     if (query.select) {
       const selects = query.select.split(',');
@@ -260,6 +256,11 @@ module.exports = router => {
       }
     }
 
+    // If a skip is provided, and we are filtering by reference, then we need to set the limit to huge.
+    if (subQuery.subFilter && query.skip) {
+      subQuery.limit = 1000000;
+    }
+
     return subQuery;
   };
 
@@ -296,12 +297,6 @@ module.exports = router => {
       // Determine if any filters or sorts are applied to elements within this path.
       req.subQuery[path] = getSubQuery(req.query, path);
       if (req.subQuery[path].subFilter) {
-        // Make the limit huge so that we can get all duplicates, limits are establshied by the ID's of the
-        // references added to the query.
-        req.originalLimit = parseInt(req.query.limit, 10) || 10;
-        req.query.limit = 1000000000;
-        req.query.skip = 0;
-
         return getSubIds(req, path).then((resourceIds) => {
           delete req.subQuery[path].subFilter;
 
@@ -351,7 +346,7 @@ module.exports = router => {
           resources,
           req.referenceItems[path],
           path,
-          req.originalLimit,
+          req.query.limit,
           true
         ));
       }
@@ -368,11 +363,8 @@ module.exports = router => {
         })));
         /* eslint-enable camelcase */
 
-        // Add a limit.
-        req.subQuery[path].limit = 1000000000;
-        req.subQuery[path].skip = 0;
         return loadReferences(component, path, req.subQuery[path], req, res).then(
-          items => _.set(res, 'resource.item', applyReferences(resources, items, path))
+          items => _.set(res, 'resource.item', applyReferences(resources, items, path, req.query.limit))
         );
       }
     },
