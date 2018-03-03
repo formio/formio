@@ -39,7 +39,7 @@ module.exports = router => {
   // Checks access within a form index.
   const checkAccess = function(component, query, req, res) {
     return new Promise((resolve, reject) => {
-      let sub = {}
+      let sub = {};
       const respond = function() {
         if (!sub.res.statusCode || sub.res.statusCode < 300 || sub.res.statusCode === 416) {
           return resolve(true);
@@ -62,6 +62,7 @@ module.exports = router => {
   // Loads all sub-references.
   const loadReferences = function(component, query, req, res) {
     return new Promise((resolve, reject) => {
+      let sub = {};
       const respond = function() {
         if (!sub.res.statusCode || sub.res.statusCode < 300 || sub.res.statusCode === 416) {
           return resolve(sub.res.resource ? sub.res.resource.item : []);
@@ -70,7 +71,7 @@ module.exports = router => {
           return reject(sub.res.statusMessage);
         }
       };
-      const sub = getSubRequest(component, query, req, res, respond);
+      sub = getSubRequest(component, query, req, res, respond);
       if (router.resourcejs.hasOwnProperty(sub.req.url) && router.resourcejs[sub.req.url].hasOwnProperty('get')) {
         router.resourcejs[sub.req.url].get.call(this, sub.req, sub.res, respond);
       }
@@ -139,7 +140,7 @@ module.exports = router => {
 
     // Add sub sorts
     if (query.sort) {
-      let sorts = query.sort.split(',');
+      const sorts = query.sort.split(',');
       _.each(sorts, (sort, index) => {
         const negate = sort.indexOf('-') === 0;
         const sortParam = negate ? sort.substr(1) : sort;
@@ -179,7 +180,7 @@ module.exports = router => {
       });
 
       // Flatten the reference to an object.
-      pipeline.push({ $unwind: `$data.${path}`});
+      pipeline.push({$unwind: `$data.${path}`});
 
       // Add a match if relevant.
       if (!_.isEmpty(subQuery.match)) {
@@ -206,7 +207,7 @@ module.exports = router => {
           var queues = [];
           FormioUtils.eachComponent(form.components, (subcomp, subpath) => {
             if (subcomp.reference) {
-              queues.push(buildPipeline(subcomp, path + '.data.' + subpath, req, res).then((subpipe) => {
+              queues.push(buildPipeline(subcomp, `${path}.data.${subpath}`, req, res).then((subpipe) => {
                 pipeline = pipeline.concat(subpipe);
               }));
             }
