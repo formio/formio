@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.26.3
+### Fixed
+ - Refactored the save-as-reference so pagination + sort works as expected.
+
 ## 1.26.2
 ### Fixed
  - Pagination issues with save-as-reference

@@ -1,59 +1,86 @@
 'use strict';
-
+const FormioUtils = require('formiojs/utils');
 const _ = require('lodash');
 const util = require('../../util/util');
+const async = require('async');
 
 module.exports = router => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
 
-  const loadReferences = function(component, path, query, req, res) {
+  // Get a subrequest and sub response for a nested request.
+  const getSubRequest = function(component, query, req, res, response) {
     const formId = component.form || component.resource || component.data.resource;
+    const sub = {
+      req: null,
+      res: null
+    };
 
     // Here we will clone the request, and then change the request body
     // and parameters to make it seem like a separate request to get
     // the reference submission.
-    const childReq = util.createSubRequest(req);
-    if (!childReq) {
+    sub.req = util.createSubRequest(req);
+    if (!sub.req) {
       return Promise.reject('Too many recursive requests.');
     }
-    childReq.noResponse = true;
-    childReq.skipOwnerFilter = false;
-    childReq.formId = childReq.params.formId = formId;
+    sub.req.noResponse = true;
+    sub.req.skipOwnerFilter = false;
+    sub.req.formId = sub.req.params.formId = formId;
     if (query._id) {
-      childReq.subId = childReq.params.submissionId = query._id;
+      sub.req.subId = sub.req.params.submissionId = query._id;
     }
 
-    const method = 'get';
-
-    childReq.url = '/form/:formId/submission';
-    childReq.query = query;
-    childReq.method = method.toUpperCase();
-
-    if (router.resourcejs.hasOwnProperty(childReq.url) && router.resourcejs[childReq.url].hasOwnProperty(method)) {
-      return new Promise((resolve, reject) => {
-        const childRes = util.createSubResponse((err) => {
-          if (!childRes.statusCode || childRes.statusCode < 300 || childRes.statusCode === 416) {
-            return resolve([]);
-          }
-          else {
-            return reject(err);
-          }
-        });
-        router.resourcejs[childReq.url][method].call(this, childReq, childRes, () => {
-          if (!childRes.statusCode || childRes.statusCode < 300 || childRes.statusCode === 416) {
-            return resolve(childRes.resource.item);
-          }
-          else {
-            return reject(childRes.statusMessage);
-          }
-        });
-      });
-    }
-    else {
-      return Promise.reject('Unknown resource handler.');
-    }
+    sub.req.url = '/form/:formId/submission';
+    sub.req.query = query;
+    sub.req.method = 'GET';
+    sub.res = util.createSubResponse(response);
+    return sub;
   };
 
+  // Checks access within a form index.
+  const checkAccess = function(component, query, req, res) {
+    return new Promise((resolve, reject) => {
+      let sub = {}
+      const respond = function() {
+        if (!sub.res.statusCode || sub.res.statusCode < 300 || sub.res.statusCode === 416) {
+          return resolve(true);
+        }
+        else {
+          return reject();
+        }
+      };
+      sub = getSubRequest(component, query, req, res, respond);
+      async.applyEachSeries(router.formio.resources.submission.handlers.beforeIndex, sub.req, sub.res, (err) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve();
+      });
+    });
+  };
+
+  // Loads all sub-references.
+  const loadReferences = function(component, query, req, res) {
+    return new Promise((resolve, reject) => {
+      const respond = function() {
+        if (!sub.res.statusCode || sub.res.statusCode < 300 || sub.res.statusCode === 416) {
+          return resolve(sub.res.resource ? sub.res.resource.item : []);
+        }
+        else {
+          return reject(sub.res.statusMessage);
+        }
+      };
+      const sub = getSubRequest(component, query, req, res, respond);
+      if (router.resourcejs.hasOwnProperty(sub.req.url) && router.resourcejs[sub.req.url].hasOwnProperty('get')) {
+        router.resourcejs[sub.req.url].get.call(this, sub.req, sub.res, respond);
+      }
+      else {
+        return reject('Unknown resource handler.');
+      }
+    });
+  };
+
+  // Sets a resource object.
   const setResource = function(component, path, req, res) {
     const compValue = _.get(req.body.data, path);
     if (compValue && compValue._id && compValue.hasOwnProperty('data')) {
@@ -66,7 +93,7 @@ module.exports = router => {
 
       // Ensure we only set the _id of the resource.
       _.set(req.body.data, path, {
-        _id: compValue._id
+        _id: util.ObjectId(compValue._id)
       });
     }
     return Promise.resolve();
@@ -86,182 +113,109 @@ module.exports = router => {
   };
 
   /**
-   * Applies the references to the returned list.
-   *
-   * @param items
-   * @param references
-   * @param path
-   * @param orderByReference
-   * @return {Array}
-   */
-  const applyReferences = function(items, references, path, limit, orderByReference) {
-    // Do not apply if there are neither items nor references
-    if (
-      (!references || !references.length) ||
-      (!items || !items.length)
-    ) {
-      return items;
-    }
-
-    const newItems = [];
-    const mappedItems = {};
-    const usedItems = {};
-    if (orderByReference) {
-      // Get all items that are referenced.
-      _.each(items, (item) => {
-        const compValue = _.get(item.data, path);
-        if (compValue && compValue._id) {
-          if (!mappedItems[compValue._id]) {
-            mappedItems[compValue._id] = [];
-          }
-          mappedItems[compValue._id].push(item);
-        }
-      });
-
-      // Add references first.
-      _.each(references, reference => {
-        if (newItems.length >= limit) {
-          return false;
-        }
-        if (mappedItems[reference._id]) {
-          _.each(mappedItems[reference._id], (mappedItem) => {
-            if (newItems.length >= limit) {
-              return false;
-            }
-            _.set(mappedItem, `data.${path}`, reference);
-            usedItems[mappedItem._id] = true;
-            newItems.push(mappedItem);
-          });
-        }
-      });
-
-      // Next add items that were not referenced.
-      _.each(items, (item) => {
-        if (newItems.length >= limit) {
-          return false;
-        }
-
-        if (!usedItems[item._id]) {
-          newItems.push(item);
-        }
-      });
-    }
-    else {
-      references.forEach(reference => (mappedItems[reference._id.toString()] = reference));
-      items.forEach(item => {
-        const compValue = _.get(item.data, path);
-        if (compValue && compValue._id) {
-          if (mappedItems[compValue._id]) {
-            _.set(item, `data.${path}`, mappedItems[compValue._id]);
-          }
-          else {
-            _.set(item, `data.${path}`, _.pick(_.get(item, `data.${path}`), ['_id']));
-          }
-        }
-        newItems.push(item);
-      });
-    }
-
-    return newItems;
-  };
-
-  /**
-   * Returns all the referenced ids within this resource.
-   *
-   * @param req
-   * @param path
-   */
-  const getSubIds = function(req, path) {
-    return new Promise((resolve, reject) => {
-      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.find({
-        form: req.formId,
-        deleted: null
-      })
-        .distinct(`data.${path}._id`)
-        .exec((err, ids) => {
-          if (err) {
-            return reject(err);
-          }
-
-          return resolve(ids);
-        }
-      );
-    });
-  };
-
-  /**
    * Returns a query specific to this sub-reference.
    *
    * @param query
    * @param path
    * @return {{}}
    */
-  const getSubQuery = function(query, path) {
-    const subQuery = {};
+  const getSubQuery = function(formId, query, path) {
+    const subMatch = {};
+    subMatch[`data.${path}.form`] = util.ObjectId(formId);
+    subMatch[`data.${path}.deleted`] = {$eq: null};
+    const subQuery = {
+      match: subMatch,
+      sort: {}
+    };
 
     // Look for filters.
     _.each(query, (value, param) => {
       // Don't include the _id as a subQuery since this can be retrieved from the parent.
       if ((param !== `data.${path}._id`) && (param.indexOf(`data.${path}.`) === 0)) {
-        subQuery.subFilter = true;
-        subQuery[param.replace(new RegExp(`^data\\.${path}\\.`), '')] = value;
+        subQuery.match[param] = value;
         delete query[param];
       }
     });
 
-    // Add sub limit.
-    if (query.limit) {
-      subQuery.limit = query.limit;
-    }
-
-    // Add sub-selects.
-    if (query.select) {
-      const selects = query.select.split(',');
-      const subSelects = [];
-      let rootSelect = false;
-      _.remove(selects, (select) => {
-        if (select.indexOf(`data.${path}`) === 0) {
-          if (select === `data.${path}`) {
-            rootSelect = true;
-          }
-          else {
-            subSelects.push(select.replace(new RegExp(`^data\\.${path}\\.`), ''));
-          }
-          return true;
-        }
-        return false;
-      });
-
-      if (subSelects.length) {
-        if (!rootSelect) {
-          // Need to make sure to include the root.
-          selects.push(`data.${path}`);
-        }
-        subQuery.select = subSelects.join(',');
-        query.select = selects.join(',');
-      }
-    }
-
     // Add sub sorts
     if (query.sort) {
-      let sort = query.sort;
-      const negate = query.sort.indexOf('-') === 0;
-      sort = negate ? sort.substr(1) : sort;
-      if (sort.indexOf(`data.${path}.`) === 0) {
-        subQuery.subFilter = true;
-        subQuery.sort = negate ? '-' : '';
-        subQuery.sort += sort.replace(new RegExp(`^data\\.${path}\\.`), '');
-        delete query.sort;
-      }
-    }
-
-    // If a skip is provided, and we are filtering by reference, then we need to set the limit to huge.
-    if (subQuery.subFilter && query.skip) {
-      subQuery.limit = 1000000;
+      let sorts = query.sort.split(',');
+      _.each(sorts, (sort, index) => {
+        const negate = sort.indexOf('-') === 0;
+        const sortParam = negate ? sort.substr(1) : sort;
+        if (sortParam.indexOf(`data.${path}.`) === 0) {
+          subQuery.sort[sortParam] = negate ? -1 : 1;
+          delete sorts[index];
+        }
+      });
+      query.sort = sorts.join(',');
     }
 
     return subQuery;
+  };
+
+  // Build a pipeline to load all references within an index.
+  const buildPipeline = function(component, path, req, res) {
+    // First check their access within this form.
+    return checkAccess(component, req.query, req, res).then(() => {
+      const formId = component.form || component.resource || component.data.resource;
+
+      // Get the subquery.
+      const subQuery = getSubQuery(formId, req.query, path);
+      const subQueryReq = {query: subQuery.match};
+      const subFindQuery = router.formio.resources.submission.getFindQuery(subQueryReq);
+
+      // Create the pipeline for this component.
+      let pipeline = [];
+
+      // Load the reference.
+      pipeline.push({
+        $lookup: {
+          from: 'submissions',
+          localField: `data.${path}._id`,
+          foreignField: '_id',
+          as: `data.${path}`
+        }
+      });
+
+      // Flatten the reference to an object.
+      pipeline.push({ $unwind: `$data.${path}`});
+
+      // Add a match if relevant.
+      if (!_.isEmpty(subQuery.match)) {
+        pipeline.push({
+          $match: subFindQuery
+        });
+      }
+
+      // Add a sort if relevant.
+      if (!_.isEmpty(subQuery.sort)) {
+        pipeline.push({
+          $sort: subQuery.sort
+        });
+      }
+
+      return new Promise((resolve, reject) => {
+        // Load the form.
+        router.formio.cache.loadForm(req, null, formId, function(err, form) {
+          if (err) {
+            return reject(err);
+          }
+
+          // Build the pipeline for the subdata.
+          var queues = [];
+          FormioUtils.eachComponent(form.components, (subcomp, subpath) => {
+            if (subcomp.reference) {
+              queues.push(buildPipeline(subcomp, path + '.data.' + subpath, req, res).then((subpipe) => {
+                pipeline = pipeline.concat(subpipe);
+              }));
+            }
+          });
+
+          Promise.all(queues).then(() => resolve(pipeline)).catch((err) => reject(err));
+        });
+      });
+    });
   };
 
   return {
@@ -272,7 +226,7 @@ module.exports = router => {
       }
       const compValue = _.get(resource.data, path);
       if (compValue && compValue._id) {
-        return loadReferences(component, path, {
+        return loadReferences(component, {
           _id: compValue._id,
           limit: 10000000
         }, req, res)
@@ -290,83 +244,11 @@ module.exports = router => {
       }
     },
     beforeIndex(component, path, req, res) {
-      if (!req.subQuery) {
-        req.subQuery = {};
-      }
-
-      // Determine if any filters or sorts are applied to elements within this path.
-      req.subQuery[path] = getSubQuery(req.query, path);
-      if (req.subQuery[path].subFilter) {
-        return getSubIds(req, path).then((resourceIds) => {
-          delete req.subQuery[path].subFilter;
-
-          /* eslint-disable camelcase */
-          req.subQuery[path]._id__in = _.filter(resourceIds);
-          /* eslint-enable camelcase */
-
-          return loadReferences(component, path, req.subQuery[path], req, res).then(items => {
-            if (!req.referenceItems) {
-              req.referenceItems = {};
-            }
-            req.referenceItems[path] = (items && items.length) ? items : [];
-            const refIds = _.map(req.referenceItems[path], (item) => (item._id.toString()));
-            let queryPath = `data.${path}._id`;
-            if (refIds && refIds.length > 1) {
-              queryPath += '__in';
-            }
-            if (!refIds || !refIds.length) {
-              req.query[queryPath] = '0';
-            }
-            else if (refIds.length === 1) {
-              req.query[queryPath] = refIds[0];
-            }
-            else {
-              req.query[queryPath] = refIds;
-            }
-          }).catch(() => {
-            if (!req.referenceItems) {
-              req.referenceItems = {};
-            }
-            req.referenceItems[path] = [];
-            req.query[`data.${path}._id`] = '0';
-          });
-        });
-      }
-    },
-    afterIndex(component, path, req, res) {
-      const resources = _.get(res, 'resource.item');
-      if (!resources) {
-        return Promise.resolve();
-      }
-
-      // If this request has reference items, even if empty.
-      if (req.referenceItems && req.referenceItems[path]) {
-        // Apply the found references.
-        _.set(res, 'resource.item', applyReferences(
-          resources,
-          req.referenceItems[path],
-          path,
-          req.query.limit,
-          true
-        ));
-      }
-      else {
-        if (!req.subQuery) {
-          req.subQuery = {};
-        }
-
-        // Add a filter to the subquery.
-        /* eslint-disable camelcase */
-        req.subQuery[path]._id__in = _.uniq(_.filter(_.map(resources, (resource) => {
-          const _id = _.get(resource, `data.${path}._id`);
-          return _id ? _id.toString() : null;
-        })));
-        /* eslint-enable camelcase */
-
-        return loadReferences(component, path, req.subQuery[path], req, res).then(
-          items => _.set(res, 'resource.item', applyReferences(resources, items, path, req.query.limit))
-        );
-      }
+      return buildPipeline(component, path, req, res).then((subpipe) => {
+        let pipeline = req.modelQuery.pipeline || [];
+        pipeline = pipeline.concat(subpipe);
+        req.countQuery.pipeline = req.modelQuery.pipeline = pipeline;
+      });
     },
     afterPost: getResource,
     afterPut: getResource,
