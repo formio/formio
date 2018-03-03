@@ -175,10 +175,17 @@ module.exports = function(router) {
   // If the last argument is a function, hook.alter assumes it is a callback function.
   const SubmissionResource = hook.alter('SubmissionResource', Resource, null);
 
-  return SubmissionResource(
+  const submissionResource = SubmissionResource(
     router,
     '/form/:formId',
     'submission',
     mongoose.model('submission')
   ).rest(hook.alter('submissionRoutes', handlers));
+  _.each(handlers, (handler) => {
+    _.each(handler, (fn, index) => {
+      handler[index] = fn.bind(submissionResource);
+    });
+  });
+  submissionResource.handlers = handlers;
+  return submissionResource;
 };
