@@ -107,8 +107,9 @@ module.exports = router => {
     }
     // Make sure to reset the value on the return result.
     const compValue = _.get(resource.data, path);
-    if (compValue && req.resources && req.resources.hasOwnProperty(compValue._id)) {
-      _.set(resource.data, path, req.resources[compValue._id]);
+    const compValueId = compValue._id.toString();
+    if (compValue && req.resources && req.resources.hasOwnProperty(compValueId)) {
+      _.set(resource.data, path, req.resources[compValueId]);
     }
     return Promise.resolve();
   };
@@ -131,8 +132,10 @@ module.exports = router => {
 
     // Look for filters.
     _.each(query, (value, param) => {
-      // Don't include the _id as a subQuery since this can be retrieved from the parent.
-      if ((param !== `data.${path}._id`) && (param.indexOf(`data.${path}.`) === 0)) {
+      if (param === `data.${path}._id`) {
+        query[param] = util.ObjectId(value);
+      }
+      else if (param.indexOf(`data.${path}.`) === 0) {
         subQuery.match[param] = value;
         delete query[param];
       }
@@ -150,6 +153,13 @@ module.exports = router => {
         }
       });
       query.sort = sorts.join(',');
+    }
+
+    // Get the find query for this resource.
+    if (!_.isEmpty(subQuery.match)) {
+      subQuery.match = router.formio.resources.submission.getFindQuery({
+        query: subQuery.match
+      });
     }
 
     return subQuery;
