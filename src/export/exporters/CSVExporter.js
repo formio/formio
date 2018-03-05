@@ -211,8 +211,8 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              if (!formattedView) {
-                return value ? value.toISOString() : '';
+              if (!formattedView && value) {
+                return (typeof value.toISOString === 'function') ? value.toISOString() : value;
               }
 
               if (value) {
