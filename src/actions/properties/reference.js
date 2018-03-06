@@ -131,15 +131,15 @@ module.exports = router => {
     const withinForm = {};
     withinForm[`data.${path}.form`] = util.ObjectId(formId);
     withinForm[`data.${path}.deleted`] = {$eq: null};
-    const subMatch = {
-      $or: [
-        doesNotExist,
-        withinForm
-      ]
-    };
 
+    // Create the subquery.
     const subQuery = {
-      match: subMatch,
+      match: {
+        $or: [
+          doesNotExist,
+          withinForm
+        ]
+      },
       sort: {}
     };
 
@@ -169,11 +169,9 @@ module.exports = router => {
     }
 
     // Get the find query for this resource.
-    if (!_.isEmpty(subQuery.match)) {
-      subQuery.match = router.formio.resources.submission.getFindQuery({
-        query: subQuery.match
-      });
-    }
+    subQuery.match = router.formio.resources.submission.getFindQuery({
+      query: subQuery.match
+    });
 
     return subQuery;
   };
