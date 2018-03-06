@@ -56,7 +56,7 @@
     "prompt": "^1.0.0",
     "q": "^1.5.0",
     "request": "^2.83.0",
-    "resourcejs": "^1.18.0",
+    "resourcejs": "^1.21.0",
     "restler": "^3.4.0",
     "semver": "^5.5.0",
     "threads": "^0.10.1",
