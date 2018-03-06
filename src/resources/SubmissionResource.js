@@ -179,7 +179,10 @@ module.exports = function(router) {
     router,
     '/form/:formId',
     'submission',
-    mongoose.model('submission')
+    mongoose.model('submission'),
+    {
+      convertIds: /(^|\.)(_id|form|owner)$/
+    }
   ).rest(hook.alter('submissionRoutes', handlers));
   _.each(handlers, (handler) => {
     _.each(handler, (fn, index) => {
