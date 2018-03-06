@@ -25,9 +25,6 @@ module.exports = router => {
     sub.req.noResponse = true;
     sub.req.skipOwnerFilter = false;
     sub.req.formId = sub.req.params.formId = formId;
-    if (query._id) {
-      sub.req.subId = sub.req.params.submissionId = query._id;
-    }
 
     sub.req.url = '/form/:formId/submission';
     sub.req.query = query;
@@ -171,6 +168,8 @@ module.exports = router => {
     // Get the find query for this resource.
     subQuery.match = router.formio.resources.submission.getFindQuery({
       query: subQuery.match
+    }, {
+      convertIds: new RegExp(`data.${path}._id`)
     });
 
     return subQuery;
