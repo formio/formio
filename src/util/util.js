@@ -652,6 +652,54 @@ const Utils = {
       : _id;
   },
 
+  /**
+   * Ensures that a submission data has MongoDB ObjectID's for all "id" fields.
+   * @param data
+   * @return {boolean}
+   */
+  ensureIds(data) {
+    if (!data) {
+      return false;
+    }
+    let changed = false;
+
+    // See if this is a sub-submission.
+    const isSub =
+      data.hasOwnProperty('_id') &&
+      data.hasOwnProperty('form') &&
+      data.hasOwnProperty('owner') &&
+      data.hasOwnProperty('data');
+    _.each(data, (value, key) => {
+      if (!value) {
+        return;
+      }
+      if (_.isArray(value)) {
+        changed = value.reduce((subchanged, row) => {
+          return Utils.ensureIds(row) || subchanged;
+        }, false) || changed;
+      }
+      else if (_.isObject(value)) {
+        changed = Utils.ensureIds(value) || changed;
+      }
+      else if (
+        isSub &&
+        (
+          (key === '_id') ||
+          (key === 'form') ||
+          (key === 'owner')
+        ) &&
+        (typeof value === 'string')
+      ) {
+        const bsonId = Utils.idToBson(value);
+        if (bsonId) {
+          data[key] = bsonId;
+          changed = true;
+        }
+      }
+    });
+    return changed;
+  },
+
   removeProtectedFields(form, action, submissions) {
     if (!(submissions instanceof Array)) {
       submissions = [submissions];
