@@ -107,6 +107,10 @@ module.exports = router => {
     }
     // Make sure to reset the value on the return result.
     const compValue = _.get(resource.data, path);
+    if (!compValue || !compValue._id) {
+      return Promise.resolve();
+    }
+
     const compValueId = compValue._id.toString();
     if (compValue && req.resources && req.resources.hasOwnProperty(compValueId)) {
       _.set(resource.data, path, req.resources[compValueId]);
@@ -122,9 +126,18 @@ module.exports = router => {
    * @return {{}}
    */
   const getSubQuery = function(formId, query, path) {
-    const subMatch = {};
-    subMatch[`data.${path}.form`] = util.ObjectId(formId);
-    subMatch[`data.${path}.deleted`] = {$eq: null};
+    const doesNotExist = {};
+    doesNotExist[`data.${path}._id`] = {$exists: false};
+    const withinForm = {};
+    withinForm[`data.${path}.form`] = util.ObjectId(formId);
+    withinForm[`data.${path}.deleted`] = {$eq: null};
+    const subMatch = {
+      $or: [
+        doesNotExist,
+        withinForm
+      ]
+    };
+
     const subQuery = {
       match: subMatch,
       sort: {}
@@ -190,7 +203,12 @@ module.exports = router => {
       });
 
       // Flatten the reference to an object.
-      pipeline.push({$unwind: `$data.${path}`});
+      pipeline.push({
+        $unwind: {
+          path: `$data.${path}`,
+          preserveNullAndEmptyArrays: true
+        }
+      });
 
       // Add a match if relevant.
       if (!_.isEmpty(subQuery.match)) {
