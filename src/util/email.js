@@ -79,10 +79,7 @@ module.exports = (formio) => {
           title: 'Mailgun'
         });
       }
-      if (_.get(settings, 'email.smtp.host')
-        && _.get(settings, 'email.smtp.auth.user')
-        && _.get(settings, 'email.smtp.auth.pass')
-      ) {
+      if (_.get(settings, 'email.smtp.host')) {
         availableTransports.push({
           transport: 'smtp',
           title: 'SMTP'
@@ -347,7 +344,10 @@ module.exports = (formio) => {
             if (_.has(settings, 'email.smtp.host')) {
               _settings['host'] = _.get(settings, 'email.smtp.host');
             }
-            if (_.has(settings, 'email.smtp.auth')) {
+            if (
+              _.has(settings, 'email.smtp.auth') &&
+              _.get(settings, 'email.smtp.auth.user', false)
+            ) {
               _settings['auth'] = {
                 user: _.get(settings, 'email.smtp.auth.user'),
                 pass: _.get(settings, 'email.smtp.auth.pass')
