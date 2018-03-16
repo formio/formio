@@ -89,7 +89,7 @@ module.exports = router => {
   // Sets a resource object.
   const setResource = function(component, path, req, res) {
     const compValue = _.get(req.body.data, path);
-    if (compValue && compValue._id && compValue.hasOwnProperty('data')) {
+    if (compValue && compValue._id) {
       if (!req.resources) {
         req.resources = {};
       }

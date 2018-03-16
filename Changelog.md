@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.26.8
+### Fixed
+ - Problem where the references could get in a state where the Id's are not ObjectIds.
+ - Running the update hook to fix the references again to ensure they are all ObjectIds.
+
 ## 1.26.7
 ### Fixed
  - Issues with single record save-as-reference where previous submission would mess up queries.
