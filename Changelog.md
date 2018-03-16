@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.26.7
+### Fixed
+ - Issues with single record save-as-reference where previous submission would mess up queries.
+ - Problems with the SMTP settings where username and password could be optional.
+
+## 1.26.6
+### Fixed
+ - Problems with the save-as-reference not working with empty references.
+
 ## 1.26.5
 ### Fixed
  - Fixed some filtering issues with Save as reference.

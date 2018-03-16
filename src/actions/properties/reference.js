@@ -25,8 +25,13 @@ module.exports = router => {
     sub.req.noResponse = true;
     sub.req.skipOwnerFilter = false;
     sub.req.formId = sub.req.params.formId = formId;
+
+    // Make sure to change the submission id.
     if (query._id) {
-      sub.req.subId = sub.req.params.submissionId = query._id;
+      sub.req.subId = query._id;
+    }
+    else {
+      delete sub.req.subId;
     }
 
     sub.req.url = '/form/:formId/submission';
@@ -107,6 +112,10 @@ module.exports = router => {
     }
     // Make sure to reset the value on the return result.
     const compValue = _.get(resource.data, path);
+    if (!compValue || !compValue._id) {
+      return Promise.resolve();
+    }
+
     const compValueId = compValue._id.toString();
     if (compValue && req.resources && req.resources.hasOwnProperty(compValueId)) {
       _.set(resource.data, path, req.resources[compValueId]);
@@ -122,11 +131,20 @@ module.exports = router => {
    * @return {{}}
    */
   const getSubQuery = function(formId, query, path) {
-    const subMatch = {};
-    subMatch[`data.${path}.form`] = util.ObjectId(formId);
-    subMatch[`data.${path}.deleted`] = {$eq: null};
+    const doesNotExist = {};
+    doesNotExist[`data.${path}._id`] = {$exists: false};
+    const withinForm = {};
+    withinForm[`data.${path}.form`] = util.ObjectId(formId);
+    withinForm[`data.${path}.deleted`] = {$eq: null};
+
+    // Create the subquery.
     const subQuery = {
-      match: subMatch,
+      match: {
+        $or: [
+          doesNotExist,
+          withinForm
+        ]
+      },
       sort: {}
     };
 
@@ -156,11 +174,11 @@ module.exports = router => {
     }
 
     // Get the find query for this resource.
-    if (!_.isEmpty(subQuery.match)) {
-      subQuery.match = router.formio.resources.submission.getFindQuery({
-        query: subQuery.match
-      });
-    }
+    subQuery.match = router.formio.resources.submission.getFindQuery({
+      query: subQuery.match
+    }, {
+      convertIds: new RegExp(`data.${path}._id`)
+    });
 
     return subQuery;
   };
@@ -190,7 +208,12 @@ module.exports = router => {
       });
 
       // Flatten the reference to an object.
-      pipeline.push({$unwind: `$data.${path}`});
+      pipeline.push({
+        $unwind: {
+          path: `$data.${path}`,
+          preserveNullAndEmptyArrays: true
+        }
+      });
 
       // Add a match if relevant.
       if (!_.isEmpty(subQuery.match)) {
