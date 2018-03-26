@@ -88,5 +88,12 @@ module.exports = function(formio) {
     partialFilterExpression: {deleted: {$eq: null}}
   });
 
+  // Add a "recommmended" combined index.
+  model.schema.index({
+    form: 1,
+    deleted: 1,
+    created: -1
+  });
+
   return model;
 };

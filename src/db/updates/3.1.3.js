@@ -15,13 +15,23 @@ const ProgressBar = require('progress');
 module.exports = function(db, config, tools, done) {
   done();
   const submissions = db.collection('submissions');
-  submissions.count({deleted: {$eq: null}}, (err, count) => {
-    const progress = new ProgressBar('Fixing IDs [:bar] :current/:total', { total: count });
-    submissions.find({deleted: {$eq: null}}).batchSize(1000).each((err, submission) => {
+  const forms = db.collection('forms');
+  forms.count({deleted: {$eq: null}}, (err, count) => {
+    const progress = new ProgressBar('[:bar] :current/:total', { total: count });
+    forms.find({deleted: {$eq: null}}).forEach((form) => {
+      utils.eachComponent(form.components, function(component, path) {
+        if (component.reference) {
+          submissions.find({form: form._id, deleted: {$eq: null}}).forEach((submission) => {
+            const refId = _.get(submission, `data.${path}._id`);
+            if (refId) {
+              const update = {};
+              update[`data.${path}._id`] = new ObjectID(refId);
+              submissions.update({_id: submission._id}, {$set: update});
+            }
+          });
+        }
+      }, true);
       progress.tick();
-      if (submission && submission.data && utils.ensureIds(submission.data)) {
-        submissions.update({_id: submission._id}, submission);
-      }
     });
   });
 };
