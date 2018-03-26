@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const ObjectID = require('mongodb').ObjectID;
 const _ = require('lodash');
 const moment = require('moment');
 const nodeUrl = require('url');
@@ -662,13 +663,6 @@ const Utils = {
       return false;
     }
     let changed = false;
-
-    // See if this is a sub-submission.
-    const isSub =
-      data.hasOwnProperty('_id') &&
-      data.hasOwnProperty('form') &&
-      data.hasOwnProperty('owner') &&
-      data.hasOwnProperty('data');
     _.each(data, (value, key) => {
       if (!value) {
         return;
@@ -682,13 +676,13 @@ const Utils = {
         changed = Utils.ensureIds(value) || changed;
       }
       else if (
-        isSub &&
         (
           (key === '_id') ||
           (key === 'form') ||
           (key === 'owner')
         ) &&
-        (typeof value === 'string')
+        (typeof value === 'string') &&
+        ObjectID.isValid(value)
       ) {
         const bsonId = Utils.idToBson(value);
         if (bsonId) {
