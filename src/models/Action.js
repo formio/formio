@@ -88,6 +88,7 @@ module.exports = function(formio) {
     },
     deleted: {
       type: Number,
+      index: true,
       default: null
     }
   });
