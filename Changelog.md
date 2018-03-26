@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.27.1
+### Changed
+ - Upgraded express@4.16.3, mongodb@3.0.5, mongoose@5.0.11, nodemailer@4.6.3, mocha@5.0.5, nodemon@1.17.2, colors@1.2.1, formiojs@2.30.0, request@2.85.0, eslint@4.19.1
+
 ## 1.27.0
 ### Changed
  - Convert all sub-document submissions to use ObjectId's for form, owner, and _id.
