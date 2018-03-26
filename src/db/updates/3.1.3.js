@@ -1,5 +1,7 @@
 'use strict';
 const utils = require('../../util/util');
+const _ = require('lodash');
+const ObjectID = require('mongodb').ObjectID;
 const ProgressBar = require('progress');
 
 /**
