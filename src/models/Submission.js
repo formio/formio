@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const utils = require('../util/util');
 
 // Defines what each external ID should be.
 const ExternalIdSchema = mongoose.Schema({
@@ -72,6 +73,12 @@ module.exports = function(formio) {
         required: true
       }
     }))
+  });
+
+  // Ensure that all _id's within the data are ObjectId's
+  model.schema.pre('save', function(next) {
+    utils.ensureIds(this.data);
+    next();
   });
 
   // Add a partial index for deleted submissions.

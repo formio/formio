@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.27.0
+### Changed
+ - Convert all sub-document submissions to use ObjectId's for form, owner, and _id.
+ - Added recommended indexes for performance.
+
 ## 1.26.8
 ### Fixed
  - Problem where the references could get in a state where the Id's are not ObjectIds.
