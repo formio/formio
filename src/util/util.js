@@ -456,6 +456,19 @@ const Utils = {
         compValue.value = selectedValues.join(',');
         break;
       }
+      case 'file': {
+        if (!compValue.value) {
+          compValue.value = '';
+        }
+        else {
+          const {
+            originalName,
+            url,
+          } = Array.isArray(compValue.value) ? compValue.value[0] : compValue.value;
+          compValue.value = `<a href="${url}" target="_blank">${originalName}</a>`;
+        }
+        break;
+      }
       default:
         if (!component.input) {
           return {value: false};
