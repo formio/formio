@@ -133,7 +133,7 @@ module.exports = function(config) {
 
       // The current user handler.
       if (!router.formio.hook.invoke('init', 'current', router.formio)) {
-        router.get('/current', router.formio.auth.currentUser);
+        router.get('/current', router.formio.hook.alter('currentUser', [router.formio.auth.currentUser]));
       }
 
       // The access handler.
