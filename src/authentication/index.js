@@ -290,7 +290,7 @@ module.exports = function(router) {
    */
   const currentUser = function(req, res, next) {
     if (!res.token || !req.token) {
-      return res.send({});
+      return res.sendStatus(401);
     }
 
     // Set the headers if they haven't been sent yet.
