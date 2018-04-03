@@ -207,13 +207,15 @@ module.exports = router => {
         }
       });
 
-      // Flatten the reference to an object.
-      pipeline.push({
-        $unwind: {
-          path: `$data.${path}`,
-          preserveNullAndEmptyArrays: true
-        }
-      });
+      // Flatten the reference to an object if we are not configured as multiple.
+      if (!component.multiple) {
+        pipeline.push({
+          $unwind: {
+            path: `$data.${path}`,
+            preserveNullAndEmptyArrays: true
+          }
+        });
+      }
 
       // Add a match if relevant.
       if (!_.isEmpty(subQuery.match)) {
@@ -252,6 +254,34 @@ module.exports = router => {
     });
   };
 
+  /**
+   * Loads a single reference into the resource data.
+   *
+   * @param component
+   * @param path
+   * @param req
+   * @param res
+   * @param resource
+   * @param reference
+   */
+  const loadSingleReference = function(component, path, req, res, resource, reference) {
+    return loadReferences(component, {
+      _id: reference._id,
+      limit: 10000000
+    }, req, res)
+      .then(items => {
+        if (items.length > 0) {
+          _.set(resource.data, path, items[0]);
+        }
+        else {
+          _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
+        }
+      })
+      .catch((err) => {
+        _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
+      });
+  };
+
   return {
     afterGet(component, path, req, res) {
       const resource = _.get(res, 'resource.item');
@@ -259,22 +289,18 @@ module.exports = router => {
         return Promise.resolve();
       }
       const compValue = _.get(resource.data, path);
-      if (compValue && compValue._id) {
-        return loadReferences(component, {
-          _id: compValue._id,
-          limit: 10000000
-        }, req, res)
-          .then(items => {
-            if (items.length > 0) {
-              _.set(resource.data, path, items[0]);
-            }
-            else {
-              _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
-            }
-          })
-          .catch((err) => {
-            _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
-          });
+      if (!compValue) {
+        return Promise.resolve();
+      }
+      if (component.multiple && _.isArray(compValue)) {
+        const promises = [];
+        _.each(compValue, (val, index) => {
+          promises.push(loadSingleReference(component, `${path}[${index}]`, req, res, resource, val));
+        });
+        return Promise.all(promises);
+      }
+      else if (compValue._id) {
+        return loadSingleReference(component, path, req, res, resource, compValue);
       }
     },
     beforeIndex(component, path, req, res) {
