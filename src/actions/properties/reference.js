@@ -8,7 +8,7 @@ module.exports = router => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
 
   // Get a subrequest and sub response for a nested request.
-  const getSubRequest = function(component, query, req, res, response) {
+  const getSubRequest = function(component, subQuery, req, res, response) {
     const formId = component.form || component.resource || component.data.resource;
     const sub = {
       req: null,
@@ -27,15 +27,15 @@ module.exports = router => {
     sub.req.formId = sub.req.params.formId = formId;
 
     // Make sure to change the submission id.
-    if (query._id) {
-      sub.req.subId = query._id;
+    if (subQuery && subQuery._id) {
+      sub.req.subId = subQuery._id;
     }
     else {
       delete sub.req.subId;
     }
 
     sub.req.url = '/form/:formId/submission';
-    sub.req.query = query;
+    sub.req.query = subQuery || {};
     sub.req.method = 'GET';
     sub.res = util.createSubResponse(response);
     return sub;
@@ -53,7 +53,7 @@ module.exports = router => {
           return reject();
         }
       };
-      sub = getSubRequest(component, query, req, res, respond);
+      sub = getSubRequest(component, null, req, res, respond);
       async.applyEachSeries(router.formio.resources.submission.handlers.beforeIndex, sub.req, sub.res, (err) => {
         if (err) {
           return reject(err);
