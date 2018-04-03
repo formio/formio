@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const ObjectID = require('mongodb').ObjectID;
 const _ = require('lodash');
 const moment = require('moment');
 const nodeUrl = require('url');
@@ -455,6 +456,19 @@ const Utils = {
         compValue.value = selectedValues.join(',');
         break;
       }
+      case 'file': {
+        if (!compValue.value) {
+          compValue.value = '';
+        }
+        else {
+          const {
+            originalName,
+            url,
+          } = Array.isArray(compValue.value) ? compValue.value[0] : compValue.value;
+          compValue.value = `<a href="${url}" target="_blank">${originalName}</a>`;
+        }
+        break;
+      }
       default:
         if (!component.input) {
           return {value: false};
@@ -650,6 +664,47 @@ const Utils = {
     return _.isObject(_id)
       ? _id.toString()
       : _id;
+  },
+
+  /**
+   * Ensures that a submission data has MongoDB ObjectID's for all "id" fields.
+   * @param data
+   * @return {boolean}
+   */
+  ensureIds(data) {
+    if (!data) {
+      return false;
+    }
+    let changed = false;
+    _.each(data, (value, key) => {
+      if (!value) {
+        return;
+      }
+      if (_.isArray(value)) {
+        changed = value.reduce((subchanged, row) => {
+          return Utils.ensureIds(row) || subchanged;
+        }, false) || changed;
+      }
+      else if (_.isObject(value)) {
+        changed = Utils.ensureIds(value) || changed;
+      }
+      else if (
+        (
+          (key === '_id') ||
+          (key === 'form') ||
+          (key === 'owner')
+        ) &&
+        (typeof value === 'string') &&
+        ObjectID.isValid(value)
+      ) {
+        const bsonId = Utils.idToBson(value);
+        if (bsonId) {
+          data[key] = bsonId;
+          changed = true;
+        }
+      }
+    });
+    return changed;
   },
 
   removeProtectedFields(form, action, submissions) {

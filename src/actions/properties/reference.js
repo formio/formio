@@ -26,6 +26,14 @@ module.exports = router => {
     sub.req.skipOwnerFilter = false;
     sub.req.formId = sub.req.params.formId = formId;
 
+    // Make sure to change the submission id.
+    if (query._id) {
+      sub.req.subId = query._id;
+    }
+    else {
+      delete sub.req.subId;
+    }
+
     sub.req.url = '/form/:formId/submission';
     sub.req.query = query;
     sub.req.method = 'GET';
@@ -81,7 +89,7 @@ module.exports = router => {
   // Sets a resource object.
   const setResource = function(component, path, req, res) {
     const compValue = _.get(req.body.data, path);
-    if (compValue && compValue._id && compValue.hasOwnProperty('data')) {
+    if (compValue && compValue._id) {
       if (!req.resources) {
         req.resources = {};
       }
