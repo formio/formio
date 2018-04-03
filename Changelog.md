@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.27.3
+### Fixed
+ - Save as reference issues with multiple configuration.
+ - Problems with using the "exists" endpoint with the new converted ObjectId's
+ - Problems with providing an _id filter when using save as reference indexes.
+
+### Changed
+ - Upgraded formiojs@2.30.1, mongoose@5.0.12, nodemailer@4.6.4, nodemon@1.17.3, moment@2.22.0
+
+### Added
+ - Email view for File component.
+
 ## 1.27.2
 ### Fixed
  - Problem where some values would get converted to ObjectIds and then would not work with indexing.
