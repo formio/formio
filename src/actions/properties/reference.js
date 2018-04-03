@@ -254,34 +254,6 @@ module.exports = router => {
     });
   };
 
-  /**
-   * Loads a single reference into the resource data.
-   *
-   * @param component
-   * @param path
-   * @param req
-   * @param res
-   * @param resource
-   * @param reference
-   */
-  const loadSingleReference = function(component, path, req, res, resource, reference) {
-    return loadReferences(component, {
-      _id: reference._id,
-      limit: 10000000
-    }, req, res)
-      .then(items => {
-        if (items.length > 0) {
-          _.set(resource.data, path, items[0]);
-        }
-        else {
-          _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
-        }
-      })
-      .catch((err) => {
-        _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
-      });
-  };
-
   return {
     afterGet(component, path, req, res) {
       const resource = _.get(res, 'resource.item');
