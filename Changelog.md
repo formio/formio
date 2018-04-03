@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [UNRELEASED]
+### Added
+ - Email view for File component.
+
 ## 1.27.2
 ### Fixed
  - Problem where some values would get converted to ObjectIds and then would not work with indexing.
