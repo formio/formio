@@ -101,55 +101,10 @@ module.exports = function(router) {
         return next(err);
       }
 
-      // Start the query.
-      const query = {
-        form: form._id,
-        deleted: {$eq: null}
-      };
-
-      // Default the query to not be valid.
-      let queryValid = false;
-
-      // Allow them to provide the owner flag.
-      if (req.query.owner) {
-        query.owner = router.formio.util.ObjectId(req.query.owner);
-        queryValid = true;
-      }
-
-      const queryComponents = {};
-      _.each(req.query, function(value, key) {
-        const parts = key.split('.');
-        if (parts[0] === 'data' && parts.length > 1) {
-          queryComponents[parts[1]] = {
-            value: value,
-            key: key
-          };
-        }
-      });
-
-      // Build the data query.
-      utils.eachComponent(form.components, function(component) {
-        // Only add components that are not protected and are persistent.
-        if (
-          queryComponents.hasOwnProperty(component.key) &&
-          !component.protected &&
-          (!component.hasOwnProperty('persistent') || component.persistent)
-        ) {
-          queryValid = true;
-
-          // Get the query component.
-          const queryComponent = queryComponents[component.key];
-
-          // Add this to the query data.
-          query[queryComponent.key] = queryComponent.value;
-        }
-      });
-
-      // Ensure they provide query components.
-      if (!queryValid) {
-        return res.status(400).send('Invalid Query.');
-      }
-
+      // Get the find query for this item.
+      const query = router.formio.resources.submission.getFindQuery(req);
+      query.form = form._id;
+      query.deleted = {$eq: null};
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
       // Query the submissions for this submission.
