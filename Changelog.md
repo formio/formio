@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Problems with using the "exists" endpoint with the new converted ObjectId's
  - Problems with providing an _id filter when using save as reference indexes.
 
+### Changed
+ - Upgraded formiojs@2.30.1, mongoose@5.0.12, nodemailer@4.6.4, nodemon@1.17.3, moment@2.22.0
+
 ### Added
  - Email view for File component.
 
