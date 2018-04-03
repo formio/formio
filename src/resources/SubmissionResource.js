@@ -102,6 +102,10 @@ module.exports = function(router) {
 
       // Get the find query for this item.
       const query = router.formio.resources.submission.getFindQuery(req);
+      if (_.isEmpty(query)) {
+        return res.status(400).send('Invalid query');
+      }
+
       query.form = form._id;
       query.deleted = {$eq: null};
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
