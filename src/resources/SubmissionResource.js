@@ -2,7 +2,6 @@
 
 const Resource = require('resourcejs');
 const mongoose = require('mongoose');
-const utils = require('formiojs/utils');
 const _ = require('lodash');
 
 module.exports = function(router) {
