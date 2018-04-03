@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [UNRELEASED]
+## 1.27.3
+### Fixed
+ - Save as reference issues with multiple configuration.
+ - Problems with using the "exists" endpoint with the new converted ObjectId's
+ - Problems with providing an _id filter when using save as reference indexes.
+
 ### Added
  - Email view for File component.
 
