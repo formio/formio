@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const utils = require('../util/util');
 
 // Defines what each external ID should be.
 const ExternalIdSchema = mongoose.Schema({
@@ -74,11 +75,24 @@ module.exports = function(formio) {
     }))
   });
 
+  // Ensure that all _id's within the data are ObjectId's
+  model.schema.pre('save', function(next) {
+    utils.ensureIds(this.data);
+    next();
+  });
+
   // Add a partial index for deleted submissions.
   model.schema.index({
     deleted: 1
   }, {
     partialFilterExpression: {deleted: {$eq: null}}
+  });
+
+  // Add a "recommmended" combined index.
+  model.schema.index({
+    form: 1,
+    deleted: 1,
+    created: -1
   });
 
   return model;

@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [UNRELEASED]
+### Added
+ - Email view for File component.
+
+## 1.27.2
+### Fixed
+ - Problem where some values would get converted to ObjectIds and then would not work with indexing.
+
+## 1.27.1
+### Changed
+ - Upgraded express@4.16.3, mongodb@3.0.5, mongoose@5.0.11, nodemailer@4.6.3, mocha@5.0.5, nodemon@1.17.2, colors@1.2.1, formiojs@2.30.0, request@2.85.0, eslint@4.19.1
+
+## 1.27.0
+### Changed
+ - Convert all sub-document submissions to use ObjectId's for form, owner, and _id.
+ - Added recommended indexes for performance.
+
+## 1.26.8
+### Fixed
+ - Problem where the references could get in a state where the Id's are not ObjectIds.
+ - Running the update hook to fix the references again to ensure they are all ObjectIds.
+
+## 1.26.7
+### Fixed
+ - Issues with single record save-as-reference where previous submission would mess up queries.
+ - Problems with the SMTP settings where username and password could be optional.
+
 ## 1.26.6
 ### Fixed
  - Problems with the save-as-reference not working with empty references.
