@@ -292,16 +292,45 @@ module.exports = router => {
       if (!compValue) {
         return Promise.resolve();
       }
+
+      let idQuery = null;
       if (component.multiple && _.isArray(compValue)) {
-        const promises = [];
-        _.each(compValue, (val, index) => {
-          promises.push(loadSingleReference(component, `${path}[${index}]`, req, res, resource, val));
-        });
-        return Promise.all(promises);
+        idQuery = {$in: []};
+        _.map(compValue, (val) => idQuery.$in.push(util.ObjectId(val._id)));
       }
       else if (compValue._id) {
-        return loadSingleReference(component, path, req, res, resource, compValue);
+        idQuery = util.ObjectId(compValue._id);
       }
+
+      if (!idQuery) {
+        return Promise.resolve();
+      }
+
+      return loadReferences(component, {
+        _id: idQuery,
+        limit: 10000000
+      }, req, res)
+        .then(items => {
+          if (items.length > 0) {
+            _.set(resource.data, path, component.multiple ? items : items[0]);
+          }
+          else {
+            if (component.multiple) {
+              _.set(resource.data, path, _.map(_.get(resource.data, path), iData => _.pick(iData, ['_id'])));
+            }
+            else {
+              _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
+            }
+          }
+        })
+        .catch((err) => {
+          if (component.multiple) {
+            _.set(resource.data, path, _.map(_.get(resource.data, path), iData => _.pick(iData, ['_id'])));
+          }
+          else {
+            _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
+          }
+        });
     },
     beforeIndex(component, path, req, res) {
       return buildPipeline(component, path, req, res).then((subpipe) => {
