@@ -322,7 +322,7 @@ module.exports = function(router) {
           options.password = _.get(settings, 'password');
         }
 
-        if (_.has(settings, 'forwardHeaders')) {
+        if (_.get(settings, 'forwardHeaders', false)) {
           options.headers = _.clone(req.headers);
         }
         else {
