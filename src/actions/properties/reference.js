@@ -8,7 +8,7 @@ module.exports = router => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
 
   // Get a subrequest and sub response for a nested request.
-  const getSubRequest = function(component, query, req, res, response) {
+  const getSubRequest = function(component, subQuery, req, res, response) {
     const formId = component.form || component.resource || component.data.resource;
     const sub = {
       req: null,
@@ -27,15 +27,15 @@ module.exports = router => {
     sub.req.formId = sub.req.params.formId = formId;
 
     // Make sure to change the submission id.
-    if (query._id) {
-      sub.req.subId = query._id;
+    if (subQuery && subQuery._id) {
+      sub.req.subId = subQuery._id;
     }
     else {
       delete sub.req.subId;
     }
 
     sub.req.url = '/form/:formId/submission';
-    sub.req.query = query;
+    sub.req.query = subQuery || {};
     sub.req.method = 'GET';
     sub.res = util.createSubResponse(response);
     return sub;
@@ -53,7 +53,7 @@ module.exports = router => {
           return reject();
         }
       };
-      sub = getSubRequest(component, query, req, res, respond);
+      sub = getSubRequest(component, null, req, res, respond);
       async.applyEachSeries(router.formio.resources.submission.handlers.beforeIndex, sub.req, sub.res, (err) => {
         if (err) {
           return reject(err);
@@ -207,13 +207,15 @@ module.exports = router => {
         }
       });
 
-      // Flatten the reference to an object.
-      pipeline.push({
-        $unwind: {
-          path: `$data.${path}`,
-          preserveNullAndEmptyArrays: true
-        }
-      });
+      // Flatten the reference to an object if we are not configured as multiple.
+      if (!component.multiple) {
+        pipeline.push({
+          $unwind: {
+            path: `$data.${path}`,
+            preserveNullAndEmptyArrays: true
+          }
+        });
+      }
 
       // Add a match if relevant.
       if (!_.isEmpty(subQuery.match)) {
@@ -259,23 +261,48 @@ module.exports = router => {
         return Promise.resolve();
       }
       const compValue = _.get(resource.data, path);
-      if (compValue && compValue._id) {
-        return loadReferences(component, {
-          _id: compValue._id,
-          limit: 10000000
-        }, req, res)
-          .then(items => {
-            if (items.length > 0) {
-              _.set(resource.data, path, items[0]);
+      if (!compValue) {
+        return Promise.resolve();
+      }
+
+      let idQuery = null;
+      if (component.multiple && _.isArray(compValue)) {
+        idQuery = {$in: []};
+        _.map(compValue, (val) => idQuery.$in.push(util.ObjectId(val._id)));
+      }
+      else if (compValue._id) {
+        idQuery = util.ObjectId(compValue._id);
+      }
+
+      if (!idQuery) {
+        return Promise.resolve();
+      }
+
+      return loadReferences(component, {
+        _id: idQuery,
+        limit: 10000000
+      }, req, res)
+        .then(items => {
+          if (items.length > 0) {
+            _.set(resource.data, path, component.multiple ? items : items[0]);
+          }
+          else {
+            if (component.multiple) {
+              _.set(resource.data, path, _.map(_.get(resource.data, path), iData => _.pick(iData, ['_id'])));
             }
             else {
               _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
             }
-          })
-          .catch((err) => {
+          }
+        })
+        .catch((err) => {
+          if (component.multiple) {
+            _.set(resource.data, path, _.map(_.get(resource.data, path), iData => _.pick(iData, ['_id'])));
+          }
+          else {
             _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
-          });
-      }
+          }
+        });
     },
     beforeIndex(component, path, req, res) {
       return buildPipeline(component, path, req, res).then((subpipe) => {
