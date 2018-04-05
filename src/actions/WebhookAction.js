@@ -122,6 +122,18 @@ module.exports = function(router) {
           title: "HTTP Headers",
           components: [
             {
+              type: 'checkbox',
+              persistent: true,
+              protected: false,
+              defaultValue: false,
+              key: 'forwardHeaders',
+              label: 'Forward headers',
+              tooltip: 'Pass on any headers received by the form.io server.',
+              hideLabel: false,
+              inputType: 'checkbox',
+              input: true
+            },
+            {
               key: "fieldset",
               input: false,
               tableView: false,
@@ -224,7 +236,6 @@ module.exports = function(router) {
           type: "panel",
           label: "Panel"
         },
-
         {
           type: 'checkbox',
           persistent: true,
@@ -251,6 +262,7 @@ module.exports = function(router) {
      * @param next
      *   The callback function to execute upon completion.
      */
+    /* eslint-disable max-statements */
     resolve(handler, method, req, res, next) {
       const settings = this.settings;
 
@@ -310,10 +322,16 @@ module.exports = function(router) {
           options.password = _.get(settings, 'password');
         }
 
-        options.headers = {
-          'Accept': '*/*',
-          'User-Agent': 'Form.io Webhook Action'
-        };
+        if (_.has(settings, 'forwardHeaders')) {
+          options.headers = _.clone(req.headers);
+        }
+        else {
+          options.headers = {
+            'Accept': '*/*'
+          };
+        }
+        // Always set user agent to indicate it came from us.
+        options.headers['user-agent'] = 'Form.io Webhook Action';
 
         // Add custom headers.
         const headers = _.get(settings, 'headers', []);
