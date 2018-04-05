@@ -60,7 +60,8 @@
     "restler": "^3.4.0",
     "semver": "^5.5.0",
     "threads": "^0.10.1",
-    "through": "^2.3.8"
+    "through": "^2.3.8",
+    "vanilla-text-mask": "^5.0.1"
   },
   "devDependencies": {
     "chance": "^1.0.11",
