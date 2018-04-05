@@ -366,7 +366,7 @@ module.exports = function(router) {
         }
 
         // Allow user scripts to transform the payload.
-        if (_.get(settings, 'transform')) {
+        if (_.has(settings, 'transform')) {
           const script = new vm.Script(settings.transform);
           const sandbox = {
             payload
