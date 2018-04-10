@@ -5,7 +5,7 @@ const _ = require('lodash');
 const FormioUtils = require('formiojs/utils');
 const vm = require('vm');
 
-module.exports = function(router) {
+module.exports = router => {
   const Action = router.formio.Action;
   const hook = router.formio.hook;
 
@@ -103,7 +103,7 @@ module.exports = function(router) {
                   validate: {
                     required: true
                   },
-                  description: 'The URL the request will be made to.'
+                  description: 'The URL the request will be made to. You can interpolate the URL with {{ data.myfield }} or {{ externalId }} variables.'
                 },
 
               ],
@@ -231,21 +231,60 @@ module.exports = function(router) {
               wysiwyg: false,
               spellcheck: true,
               type: "textarea",
+              description: "Available variables are payload, externalId, and headers."
             }
           ],
           type: "panel",
           label: "Panel"
         },
         {
-          type: 'checkbox',
-          persistent: true,
-          protected: false,
-          defaultValue: false,
-          key: 'block',
-          label: 'Wait for webhook response before continuing actions',
-          hideLabel: false,
-          inputType: 'checkbox',
-          input: true
+          key: 'panel3',
+          type: 'panel',
+          title: 'Response Payload',
+          input: false,
+          components: [
+            {
+              type: 'checkbox',
+              persistent: true,
+              protected: false,
+              defaultValue: false,
+              key: 'block',
+              label: 'Wait for webhook response before continuing actions',
+              hideLabel: false,
+              inputType: 'checkbox',
+              input: true
+            },
+            {
+              key: "content",
+              input: false,
+              html: '<p>When making a request to an external service, you may want to save an external Id in association with this submission so you can refer to the same external resource later. To do that, enter an external ID reference name and the path to the id in the response data object. This value will then be available as {{externalId}} in the Request URL and Transform Payload fields.</p>',
+              type: "content",
+              label: "content",
+            },
+            {
+              input: true,
+              inputType: "text",
+              label: "External Id Type",
+              key: "externalIdType",
+              multiple: false,
+              protected: false,
+              unique: false,
+              persistent: true,
+              type: "textfield",
+              description: "The name to store and reference the external Id for this request",
+            },
+            {
+              input: true,
+              inputType: "text",
+              label: "External Id Path",
+              key: "externalIdPath",
+              multiple: false,
+              protected: false,
+              clearOnHide: true,
+              type: "textfield",
+              description: "The path to the data in the webhook response object",
+            }
+          ]
         }
       ]);
     }
@@ -274,6 +313,41 @@ module.exports = function(router) {
        * @returns {*}
        */
       const handleSuccess = (data, response) => {
+        if (_.has(settings, 'externalIdType') && _.has(settings, 'externalIdPath')) {
+          const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+          submissionModel.findOne(
+            {_id: _.get(res, 'resource.item._id'), deleted: {$eq: null}}
+          ).exec(function(err, submission) {
+            if (err) {
+              return router.formio.util.log(err);
+            }
+            submission.externalIds = submission.externalIds || [];
+
+            const type = _.get(settings, 'externalIdType');
+            const id = _.get(data, _.get(settings, 'externalIdPath'), '');
+
+            // Either update the existing ID or create a new one.
+            let found = false;
+            submission.externalIds.forEach(externalId => {
+              if (externalId.type === type) {
+                externalId.id = id;
+                found = true;
+              }
+            });
+            if (!found) {
+              submission.externalIds.push({
+                type,
+                id
+              });
+            }
+            submission.save(function(err, submission) {
+              if (err) {
+                return router.formio.util.log(err);
+              }
+            });
+          });
+        }
+
         if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
           return;
         }
@@ -312,6 +386,9 @@ module.exports = function(router) {
           next(); // eslint-disable-line callback-return
         }
 
+        const submission = _.get(res, 'resource.item');
+        const externalId = _.get(submission, _.get(settings, 'externalIdType', 'none'), '');
+
         const options = {};
 
         // Get the settings
@@ -336,7 +413,7 @@ module.exports = function(router) {
         // Add custom headers.
         const headers = _.get(settings, 'headers', []);
         headers.forEach(header => {
-          if (header.header) {
+          if (header && header.header) {
             options.headers[header.header] = header.value;
           }
         });
@@ -347,7 +424,6 @@ module.exports = function(router) {
         }
 
         let url = this.settings.url;
-        const submission = _.get(res, 'resource.item');
         let payload = {
           request: _.get(req, 'body'),
           response: _.get(req, 'response'),
@@ -357,7 +433,11 @@ module.exports = function(router) {
 
         // Interpolate URL if possible
         if (res && res.resource && res.resource.item && res.resource.item.data) {
-          url = FormioUtils.interpolate(url, res.resource.item.data);
+          // Interpolation data was originally just the data object itself. We have to move it to "data" so merge it as the root item.
+          const data = _.clone(res.resource.item.data);
+          data.data = res.resource.item.data;
+          data.externalId = externalId;
+          url = FormioUtils.interpolate(url, data);
         }
 
         // Fall back if interpolation failed
@@ -369,6 +449,7 @@ module.exports = function(router) {
         if (_.has(settings, 'transform')) {
           const script = new vm.Script(settings.transform);
           const sandbox = {
+            externalId,
             payload,
             headers: options.headers
           };
