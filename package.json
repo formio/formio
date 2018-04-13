@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "1.27.3",
+  "version": "1.27.4",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
@@ -42,8 +42,8 @@
     "lodash": "^4.17.5",
     "method-override": "^2.3.0",
     "moment": "^2.22.0",
-    "mongodb": "^3.0.5",
-    "mongoose": "^5.0.12",
+    "mongodb": "^3.0.6",
+    "mongoose": "5.0.12",
     "mssql": "^4.1.0",
     "mysql": "^2.7.0",
     "nodemailer": "^4.6.4",
@@ -60,7 +60,8 @@
     "restler": "^3.4.0",
     "semver": "^5.5.0",
     "threads": "^0.10.1",
-    "through": "^2.3.8"
+    "through": "^2.3.8",
+    "vanilla-text-mask": "^5.0.1"
   },
   "devDependencies": {
     "chance": "^1.0.11",
