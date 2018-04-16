@@ -13,7 +13,7 @@ const _ = require('lodash');
 module.exports = function(router) {
   return function(settings) {
     return function(req, res, next) {
-      if (!settings || settings === [] || !(settings instanceof Array)) {
+      if (!Array.isArray(settings)) {
         return next();
       }
       if (!res || !res.resource || !res.resource.item) {
@@ -21,26 +21,15 @@ module.exports = function(router) {
       }
 
       // Merge all results into an array, to handle the cases with multiple results.
-      let multi = false;
-      const list = [].concat(res.resource.item);
-      if (res.resource.item instanceof Array) {
-        multi = true;
-      }
-
-      // Iterate each provided filter.
-      for (let a = 0; a < settings.length; a++) {
-        // Iterate each result.
-        for (let b = 0; b < list.length; b++) {
-          // Change the response object from a mongoose model to a js object.
-          if (list[b].constructor.name === 'model') {
-            list[b] = list[b].toObject();
-          }
-          // Remove the key if found.
-          if (list[b].hasOwnProperty(settings[a])) {
-            list[b] = _.omit(list[b], settings[a]);
-          }
+      const multi = Array.isArray(res.resource.item);
+      const list = [].concat(res.resource.item).map((item) => {
+        // Change the response object from a mongoose model to a js object.
+        if (item.constructor.name === 'model') {
+          item = item.toObject();
         }
-      }
+
+        return _.omit(item, settings);
+      });
 
       // If there were multiple results, update the response list, otherwise return only the original item.
       if (multi) {
