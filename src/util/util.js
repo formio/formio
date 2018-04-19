@@ -116,15 +116,21 @@ const Utils = {
     response = response || _.noop;
     const subResponse = {
       statusCode: 200,
-      send: (err) => response(err),
-      json: (err) => response(err),
-      setHeader: () => _.noop,
-      sendStatus: (status) => {
-        subResponse.statusCode = status;
+      send(err) {
+        return response(err);
+      },
+      json(err) {
+        return response(err);
+      },
+      setHeader() {
+        return _.noop;
+      },
+      sendStatus(status) {
+        this.statusCode = status;
         response(status);
       },
-      status: (status) => {
-        subResponse.statusCode = status;
+      status(status) {
+        this.statusCode = status;
         return subResponse;
       }
     };
@@ -138,7 +144,7 @@ const Utils = {
    */
   createSubRequest(req) {
     // Determine how many child requests have been made.
-    let childRequests = req.childRequests || 0;
+    const childRequests = req.childRequests || 0;
 
     // Break recursive child requests.
     if (childRequests > 5) {
@@ -156,10 +162,9 @@ const Utils = {
 
     // Add the parameters back.
     childReq.formioCache = cache;
-    childReq.user = req.user;
     childReq.modelQuery = null;
     childReq.countQuery = null;
-    childReq.childRequests = ++childRequests;
+    childReq.childRequests = childRequests + 1;
     childReq.permissionsChecked = false;
 
     // Delete the actions cache.

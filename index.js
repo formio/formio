@@ -55,7 +55,7 @@ module.exports = function(config) {
     router.formio.encrypt = require('./src/util/encrypt');
 
     // Load the updates and attach them to the router.
-    router.formio.update = require('./src/db/index')(router.formio);
+    router.formio.update = require('./src/db')(router.formio);
 
     // Run the healthCheck sanity check on /health
     /* eslint-disable max-statements */
@@ -114,7 +114,7 @@ module.exports = function(config) {
       });
 
       // Import our authentication models.
-      router.formio.auth = require('./src/authentication/index')(router);
+      router.formio.auth = require('./src/authentication')(router);
 
       // Perform token mutation before all requests.
       if (!router.formio.hook.invoke('init', 'token', router.formio)) {
@@ -251,7 +251,7 @@ module.exports = function(config) {
         };
 
         // Add the template functions.
-        router.formio.template = require('./src/templates/index')(router);
+        router.formio.template = require('./src/templates')(router);
 
         const swagger = require('./src/util/swagger');
         // Show the swagger for the whole site.

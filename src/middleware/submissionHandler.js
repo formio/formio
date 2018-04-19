@@ -7,8 +7,8 @@ const Validator = require('../resources/Validator');
 
 module.exports = function(router, resourceName, resourceId) {
   const hook = require('../util/hook')(router.formio);
-  const fieldActions = require('../actions/fields/index')(router);
-  const propertyActions = require('../actions/properties/index')(router);
+  const fieldActions = require('../actions/fields')(router);
+  const propertyActions = require('../actions/properties')(router);
   const handlers = {};
 
   // Iterate through the possible handlers.
@@ -54,7 +54,7 @@ module.exports = function(router, resourceName, resourceId) {
 
       // Execute the property handlers after validation has occurred.
       if (validation) {
-        properties.map(property => {
+        properties.map((property) => {
           if (component.hasOwnProperty(property) && component[property]) {
             if (
               propertyActions.hasOwnProperty(property) &&

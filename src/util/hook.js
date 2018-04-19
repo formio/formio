@@ -11,35 +11,33 @@ module.exports = function(formio) {
       // Load the settings directly.
       cb(null, settings);
     },
-    invoke() {
-      const name = arguments[0];
+    invoke(name, ...args) {
       if (
         formio.hooks &&
         formio.hooks.on &&
         formio.hooks.on[name]
       ) {
-        const retVal = formio.hooks.on[name].apply(formio.hooks.on, Array.prototype.slice.call(arguments, 1));
-        return (retVal !== undefined) ? !!retVal : true;
+        const retVal = formio.hooks.on[name].apply(formio.hooks.on, args);
+        return (retVal !== undefined) ? Boolean(retVal) : true;
       }
       return false;
     },
-    alter() {
-      const name = arguments[0];
-      const fn = (typeof arguments[arguments.length - 1] === 'function') ? arguments[arguments.length - 1] : null;
+    alter(name, ...args) {
+      const fn = (typeof args[args.length - 1] === 'function') ? args[args.length - 1] : null;
       if (
         formio.hooks &&
         formio.hooks.alter &&
         formio.hooks.alter[name]
       ) {
-        return formio.hooks.alter[name].apply(formio.hooks.alter, Array.prototype.slice.call(arguments, 1));
+        return formio.hooks.alter[name].apply(formio.hooks.alter, args);
       }
       else {
         // If this is an async hook instead of a sync.
         if (fn) {
-          return fn(null, arguments[1]);
+          return fn(null, args[0]);
         }
         else {
-          return arguments[1];
+          return args[0];
         }
       }
     }

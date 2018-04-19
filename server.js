@@ -52,7 +52,7 @@ module.exports = function(options) {
   app.use('/', express.static(`${__dirname}/client/dist`));
 
   // Load the form.io server.
-  const server = options.server || require('./index')(config);
+  const server = options.server || require('.')(config);
   const hooks = options.hooks || {};
 
   app.use(server.formio.middleware.restrictRequestTypes);
