@@ -89,18 +89,30 @@ module.exports = router => {
   // Sets a resource object.
   const setResource = function(component, path, req, res) {
     const compValue = _.get(req.body.data, path);
-    if (compValue && compValue._id) {
+    if (compValue) {
       if (!req.resources) {
         req.resources = {};
       }
 
       // Save for later.
-      req.resources[compValue._id.toString()] = _.omit(compValue, hiddenFields);
+      if (component.multiple && Array.isArray(compValue)) {
+        compValue.forEach((val) => {
+          req.resources[val._id.toString()] = _.omit(val, hiddenFields);
+        });
 
-      // Ensure we only set the _id of the resource.
-      _.set(req.body.data, path, {
-        _id: util.ObjectId(compValue._id)
-      });
+        // Ensure we only set the _id of the resources.
+        _.set(req.body.data, path, compValue.map((val) => ({
+          _id: util.ObjectId(val._id)
+        })));
+      }
+      else if (compValue._id) {
+        req.resources[compValue._id.toString()] = _.omit(compValue, hiddenFields);
+
+        // Ensure we only set the _id of the resource.
+        _.set(req.body.data, path, {
+          _id: util.ObjectId(compValue._id)
+        });
+      }
     }
     return Promise.resolve();
   };
@@ -112,14 +124,17 @@ module.exports = router => {
     }
     // Make sure to reset the value on the return result.
     const compValue = _.get(resource.data, path);
-    if (!compValue || !compValue._id) {
+    if (!compValue) {
       return Promise.resolve();
     }
 
-    const compValueId = compValue._id.toString();
-    if (compValue && req.resources && req.resources.hasOwnProperty(compValueId)) {
-      _.set(resource.data, path, req.resources[compValueId]);
+    if (component.multiple && Array.isArray(compValue)) {
+      _.set(resource.data, path, compValue.map((val) => _.get(req.resources, val._id.toString(), val)));
     }
+    else {
+      _.set(resource.data, path, _.get(req.resources, compValue._id.toString(), compValue));
+    }
+
     return Promise.resolve();
   };
 
@@ -266,9 +281,8 @@ module.exports = router => {
       }
 
       let idQuery = null;
-      if (component.multiple && _.isArray(compValue)) {
-        idQuery = {$in: []};
-        _.map(compValue, (val) => idQuery.$in.push(util.ObjectId(val._id)));
+      if (component.multiple && Array.isArray(compValue)) {
+        idQuery = {$in: compValue.map((val) => util.ObjectId(val._id))};
       }
       else if (compValue._id) {
         idQuery = util.ObjectId(compValue._id);
@@ -282,25 +296,20 @@ module.exports = router => {
         _id: idQuery,
         limit: 10000000
       }, req, res)
-        .then(items => {
+        .then((items) => {
           if (items.length > 0) {
             _.set(resource.data, path, component.multiple ? items : items[0]);
           }
           else {
-            if (component.multiple) {
-              _.set(resource.data, path, _.map(_.get(resource.data, path), iData => _.pick(iData, ['_id'])));
-            }
-            else {
-              _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
-            }
+            throw new Error('Resources not found.');
           }
         })
         .catch((err) => {
           if (component.multiple) {
-            _.set(resource.data, path, _.map(_.get(resource.data, path), iData => _.pick(iData, ['_id'])));
+            _.set(resource.data, path, compValue.map((val) => _.pick(val, '_id')));
           }
           else {
-            _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
+            _.set(resource.data, path, _.pick(compValue, '_id'));
           }
         });
     },
