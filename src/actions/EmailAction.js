@@ -159,7 +159,7 @@ module.exports = function(router) {
 
         // Get the email parameters.
         emailer.getParams(res, form, req.body)
-        .then(params => {
+        .then((params) => {
           const query = {
             _id: params.owner,
             deleted: {$eq: null}
@@ -167,17 +167,14 @@ module.exports = function(router) {
 
           const submissionModel = req.submissionModel || router.formio.resources.submission.model;
           return submissionModel.findOne(query)
-          .then(owner => {
-            return owner.toObject();
-          })
-          .catch(() => {
-            // If there is no owner, just proceed as normal.
-            return {_id: params.owner};
-          })
-          .then(owner => {
+          .then((owner) => owner.toObject())
+          // If there is no owner, just proceed as normal.
+          .catch(() => ({_id: params.owner}))
+          .then((owner) => {
             if (owner) {
               params.owner = owner;
             }
+
             return new Promise((resolve, reject) => {
               if (!this.settings.template) {
                 return resolve(this.settings.message);
@@ -194,7 +191,7 @@ module.exports = function(router) {
               });
             });
           })
-          .then(template => {
+          .then((template) => {
             // Prepend the macros to the message so that they can use them.
             this.settings.message = macros + template;
 
@@ -206,7 +203,7 @@ module.exports = function(router) {
             });
           });
         })
-        .catch(err => {
+        .catch((err) => {
           debug(err);
         });
       });

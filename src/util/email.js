@@ -54,14 +54,12 @@ module.exports = (formio) => {
           title: 'G-Mail'
         });
       }
-      if (
-        (_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key'))
-        || ((!_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key')))
-      ) {
+      if (_.get(settings, 'email.sendgrid.auth.api_key')) {
         // Omit the username if user has configured sendgrid for api key access.
         if (_.get(settings, 'email.sendgrid.auth.api_user') === 'apikey') {
-          settings.email.sendgrid.auth = _.omit(settings.email.sendgrid.auth, 'api_user');
+          delete settings.email.sendgrid.auth.api_user;
         }
+
         availableTransports.push({
           transport: 'sendgrid',
           title: 'SendGrid'
@@ -122,14 +120,14 @@ module.exports = (formio) => {
    * @returns {Promise}
    *   The available substitution values.
    */
-  const getParams = (res, form, submission) => new Promise((resolve, reject) => {
-    let params = _.cloneDeep(submission);
+  const getParams = (res, form, submission) => {
+    const params = _.cloneDeep(submission);
     if (res && res.resource && res.resource.item) {
       if (typeof res.resource.item.toObject === 'function') {
-        params = _.assign(params, res.resource.item.toObject());
+        Object.assign(params, res.resource.item.toObject());
       }
       else {
-        params = _.assign(params, res.resource.item);
+        Object.assign(params, res.resource.item);
       }
       params.id = params._id.toString();
     }
@@ -145,13 +143,14 @@ module.exports = (formio) => {
       if (component.type === 'resource' && params.data[component.key]) {
         params.data[`${component.key}Obj`] = params.data[component.key];
 
-        const thread = new Thread(Thread.Tasks.nunjucks).start({
+        const thread = new Thread(Thread.Tasks.nunjucks)
+        .start({
           template: component.template,
           context: {
             item: params.data[component.key]
           }
         })
-        .then(response => {
+        .then((response) => {
           params.data[component.key] = response.output;
           return response;
         });
@@ -160,13 +159,12 @@ module.exports = (formio) => {
       }
     });
 
-    Promise.all(replacements).then(results => {
+    return Promise.all(replacements).then((results) => {
       // Get the parameters for the email.
       params.form = form;
-      return resolve(params);
-    })
-    .catch(reject);
-  });
+      return params;
+    });
+  };
 
   /**
    * Util function to run the email through nunjucks.
@@ -176,9 +174,9 @@ module.exports = (formio) => {
    *
    * @return {Promise}
    */
-  const nunjucksInjector = (mail, options) => new Promise((resolve, reject) => {
+  const nunjucksInjector = (mail, options) => {
     if (!mail || !mail.to) {
-      return reject(`No mail was given to send.`);
+      throw new Error('No mail was given to send.');
     }
 
     const params = options.params;
@@ -198,15 +196,15 @@ module.exports = (formio) => {
       render: mail,
       context: params
     })
-    .then(injectedEmail => {
+    .then((injectedEmail) => {
       debug.nunjucksInjector(injectedEmail);
       if (!injectedEmail) {
-        return reject(`An error occurred while processing the Email.`);
+        throw new Error('An error occurred while processing the Email.');
       }
 
-      return resolve(injectedEmail);
+      return injectedEmail;
     });
-  });
+  };
 
   /**
    * Send an email using the current context data.
@@ -409,7 +407,7 @@ module.exports = (formio) => {
       };
 
       nunjucksInjector(mail, options)
-      .then(email => {
+      .then((email) => {
         const queue = [];
         const emails = [];
 
@@ -467,8 +465,8 @@ module.exports = (formio) => {
 
         return Promise.all(queue);
       })
-      .then(response => next(null, response))
-      .catch(err => {
+      .then((response) => next(null, response))
+      .catch((err) => {
         debug.error(err);
         return next(err);
       });
