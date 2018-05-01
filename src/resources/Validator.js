@@ -6,6 +6,7 @@ const _ = require('lodash');
 const util = require('../util/util');
 const FormioUtils = require('formiojs/utils');
 const request = require('request');
+const moment = require('moment');
 
 const debug = {
   validator: require('debug')('formio:validator'),
@@ -509,6 +510,7 @@ class Validator {
       let fieldValidator = null;
 
       this.applyLogic(component, componentData, submission.data);
+      this.calculateValue(component, componentData, submission.data);
 
       // The value is persistent if it doesn't say otherwise or explicitly says so.
       const isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
@@ -736,7 +738,7 @@ class Validator {
               try {
                 // Create the sandbox.
                 const sandbox = vm.createContext({
-                  value: row[component.key],
+                  value: _.get(row, component.key),
                   data,
                   row,
                   component,
@@ -749,7 +751,7 @@ class Validator {
                   timeout: 250
                 });
 
-                row[component.key] = sandbox.value.toString();
+                _.set(row, component.key, sandbox.value.toString());
               }
               catch (e) {
                 debug.validator('Custom Logic Error: ');
@@ -761,6 +763,46 @@ class Validator {
         });
       }
     });
+  }
+
+  calculateValue(component, row, data) {
+    if (component.calculateServer && component.calculateValue) {
+      if (_.isString(component.calculateValue)) {
+        try {
+          const sandbox = vm.createContext({
+            value: _.get(row, component.key),
+            data,
+            row,
+            component,
+            util,
+            moment
+          });
+
+          // Execute the script.
+          const script = new vm.Script(component.calculateValue);
+          script.runInContext(sandbox, {
+            timeout: 250
+          });
+
+          _.set(row, component.key, sandbox.value);
+        }
+        catch (e) {
+          // Need to log error for calculated value.
+        }
+      }
+      else {
+        try {
+          _.set(row, component.key, util.jsonLogic(component.calculateValue, {
+            data,
+            row,
+            _
+          }));
+        }
+        catch (e) {
+          // Need to log error for calculated value.
+        }
+      }
+    }
   }
 
   /**
