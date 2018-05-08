@@ -699,6 +699,18 @@ class Validator {
         fieldValidator = fieldValidator.distinct(component, submission, this.model, this.async);
       }
 
+      //if multiple masks input, then data is object with 'value' field, and validation should be applied to that field
+      if (component.allowMultipleMasks) {
+        fieldValidator = JoiX.object().keys({
+          value: fieldValidator,
+          maskName: JoiX.string()
+        });
+        //additionally apply required rule to the field itself
+        if (component.validate && component.validate.required) {
+          fieldValidator = fieldValidator.required();
+        }
+      }
+
       // Make sure to change this to an array if multiple is checked.
       if (component.multiple) {
         // Allow(null) was added since some text fields have empty strings converted to null when multiple which then
