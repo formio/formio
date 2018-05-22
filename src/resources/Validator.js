@@ -516,6 +516,7 @@ class Validator {
       const isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
 
       let objectSchema;
+      let skipSchema = false;
       /* eslint-disable max-depth, valid-typeof */
       switch (component.type) {
         case 'form': {
@@ -637,6 +638,7 @@ class Validator {
         case 'checkbox':
           if (component.name && !_.find(components, ['key', component.name])) {
             schema[component.name] = JoiX.any();
+            skipSchema = true;
           }
           fieldValidator = fieldValidator || JoiX.any();
           break;
@@ -711,7 +713,7 @@ class Validator {
       }
 
       // Only run validations for persistent fields.
-      if (component.key && fieldValidator && isPersistent) {
+      if (component.key && fieldValidator && isPersistent && !skipSchema) {
         schema[component.key] = fieldValidator.hidden(component, submission.data);
       }
     });
