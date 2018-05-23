@@ -210,7 +210,7 @@ module.exports = function(router) {
           const maxR = Math.max(rowsA.length, rowsB.length, 0);
           for (let r = 0; r < maxR; r++) {
             const finalCols = [];
-            const maxC = Math.max(rowsA[r].length, rowsB[r].length, 0);
+            const maxC = Math.max((rowsA[r] ? rowsA[r].length : 0), (rowsB[r] ? rowsB[r].length : 0), 0);
             for (let c = 0; c < maxC; c++) {
               // Merge each column from a and b together.
               finalCols.push({
