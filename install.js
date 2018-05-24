@@ -447,14 +447,6 @@ module.exports = function(formio, items, done) {
   util.log('Installing...');
   prompt.start();
   async.series([
-    steps.areYouSure,
-    steps.whatApp,
-    steps.downloadApp,
-    steps.extractApp,
-    steps.downloadClient,
-    steps.extractClient,
-    steps.whatTemplate,
-    steps.importTemplate,
     steps.createRootUser
   ], function(err, result) {
     if (err) {
