@@ -154,299 +154,314 @@ module.exports = function(formio, items, done) {
 
   // All the steps in the installation.
   const steps = {
-    /**
-     * Step to perform the are you sure step.
-     *
-     * @param done
-     */
-    areYouSure: function(done) {
-      prompt.get([
-        {
-          name: 'install',
-          description: 'Are you sure you wish to install? (y/N)',
-          required: true
-        }
-      ], function(err, results) {
-        if (err) {
-          return done(err);
-        }
-        if (results.install.toLowerCase() !== 'y') {
-          return done('Installation canceled.');
-        }
+      /**
+       * Step to perform the are you sure step.
+       *
+       * @param done
+       */
+      areYouSure: function(done) {
+          prompt.get([
+              {
+                  name: 'install',
+                  description: 'Are you sure you wish to install? (y/N)',
+                  required: true
+              }
+          ], function(err, results) {
+              if (err) {
+                  return done(err);
+              }
+              if (results.install.toLowerCase() !== 'y') {
+                  return done('Installation canceled.');
+              }
 
-        done();
-      });
-    },
-
-    // Allow them to select the application.
-    whatApp: function(done) {
-      const repos = [
-        'None',
-        'https://github.com/formio/formio-app-humanresources',
-        'https://github.com/formio/formio-app-servicetracker',
-        'https://github.com/formio/formio-app-todo',
-        'https://github.com/formio/formio-app-salesquote',
-        'https://github.com/formio/formio-app-basic'
-      ];
-      let message = '\nWhich Github application would you like to install?\n'.green;
-      _.each(repos, function(repo, index) {
-        message += `  ${index + 1}.) ${repo}\n`;
-      });
-      message += '\nOr, you can provide a custom Github repository...\n'.green;
-      util.log(message);
-      prompt.get([
-        {
-          name: 'app',
-          description: 'GitHub repository or selection?',
-          default: '1',
-          required: true
-        }
-      ], function(err, results) {
-        if (err) {
-          return done(err);
-        }
-
-        if (results.app.indexOf('https://github.com/') !== -1) {
-          application = results.app;
-        }
-        else {
-          const selection = parseInt(results.app, 10);
-          if (_.isNumber(selection)) {
-            if ((selection > 1) && (selection <= repos.length)) {
-              application = repos[selection - 1];
-            }
-          }
-        }
-
-        // Replace github.com url.
-        application = application.replace('https://github.com/', '');
-        done();
-      });
-    },
-
-    /**
-     * Download the application.
-     *
-     * @param done
-     * @returns {*}
-     */
-    downloadApp: function(done) {
-      if (!application) {
-        return done();
-      }
-
-      // Download the app.
-      download(
-        `https://nodeload.github.com/${application}/zip/master`,
-        'app.zip',
-        'app',
-        done
-      );
-    },
-
-    /**
-     * Extract the application to the app folder.
-     *
-     * @param done
-     * @returns {*}
-     */
-    extractApp: function(done) {
-      if (!application) {
-        return done();
-      }
-
-      const parts = application.split('/');
-      const appDir = `${parts[1]}-master`;
-      extract('app.zip', appDir, 'app', done);
-    },
-
-    /**
-     * Download the Form.io admin client.
-     *
-     * @param done
-     * @returns {*}
-     */
-    downloadClient: function(done) {
-      if (!items.download) {
-        return done();
-      }
-
-      // Download the client.
-      download(
-        'https://nodeload.github.com/formio/formio-app-formio/zip/master',
-        'client.zip',
-        'client',
-        done
-      );
-    },
-
-    /**
-     * Extract the client.
-     *
-     * @param done
-     * @returns {*}
-     */
-    extractClient: function(done) {
-      if (!items.extract) {
-        return done();
-      }
-
-      extract('client.zip', 'formio-app-formio-master', 'client', done);
-    },
-
-    /**
-     * Select the template to use.
-     *
-     * @param done
-     * @return {*}
-     */
-    whatTemplate: function(done) {
-      if (application) {
-        templateFile = 'app';
-        return done();
-      }
-
-      let message = '\nWhich project template would you like to install?\n'.green;
-      message += '\n   Please provide the local file path of the project.json file.'.yellow;
-      message += '\n   Or, just press '.yellow + 'ENTER'.green + ' to use the default template.\n'.yellow;
-      util.log(message);
-      prompt.get([
-        {
-          name: 'templateFile',
-          description: 'Local file path or just press Enter for default.',
-          default: 'client',
-          required: true
-        }
-      ], function(err, results) {
-        if (err) {
-          return done(err);
-        }
-
-        templateFile = results.templateFile ? results.templateFile : 'client';
-        done();
-      });
-    },
-
-    /**
-     * Import the template.
-     * @param done
-     */
-    importTemplate: function(done) {
-      if (!items.import) {
-        return done();
-      }
-
-      // Determine if this is a custom project.
-      const customProject = (['app', 'client'].indexOf(templateFile) === -1);
-      let directoryPath = '';
-
-      if (!customProject) {
-        directoryPath = directories[templateFile];
-        // Get the package json file.
-        let info = {};
-        try {
-          info = JSON.parse(fs.readFileSync(path.join(directoryPath, 'package.json')));
-        }
-        catch (err) {
-          debug(err);
-          return done(err);
-        }
-
-        // Change the document root if we need to.
-        if (info.formio && info.formio.docRoot) {
-          directoryPath = path.join(directoryPath, info.formio.docRoot);
-        }
-      }
-
-      const projectJson = customProject ? templateFile : path.join(directoryPath, 'project.json');
-      if (!fs.existsSync(projectJson)) {
-        util.log(projectJson);
-        return done('Missing project.json file'.red);
-      }
-
-      let template = {};
-      try {
-        template = JSON.parse(fs.readFileSync(projectJson));
-      }
-      catch (err) {
-        debug(err);
-        return done(err);
-      }
-
-      // Get the form.io service.
-      util.log('Importing template...'.green);
-      const importer = require('./src/templates/import')({formio: formio});
-      importer.template(template, function(err, template) {
-        if (err) {
-          return done(err);
-        }
-
-        project = template;
-        done(null, template);
-      });
-    },
-
-    /**
-     * Create the root user object.
-     *
-     * @param done
-     */
-    createRootUser: function(done) {
-      if (!items.user) {
-        return done();
-      }
-      util.log('Creating root user account...'.green);
-      prompt.get([
-        {
-          name: 'email',
-          description: 'Enter your email address for the root account.',
-          pattern: /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
-          message: 'Must be a valid email',
-          required: true
-        },
-        {
-          name: 'password',
-          description: 'Enter your password for the root account.',
-          require: true,
-          hidden: true
-        }
-      ], function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        util.log('Encrypting password');
-        formio.encrypt(result.password, function(err, hash) {
-          if (err) {
-            return done(err);
-          }
-
-          // Create the root user submission.
-          util.log('Creating root user account');
-          formio.resources.submission.model.create({
-            form: project.resources.admin._id,
-            data: {
-              email: result.email,
-              password: hash
-            },
-            roles: [
-              project.roles.administrator._id
-            ]
-          }, function(err, item) {
-            if (err) {
-              return done(err);
-            }
-
-            done();
+              done();
           });
-        });
-      });
-    }
-  };
+      },
+
+      // Allow them to select the application.
+      whatApp: function(done) {
+          const repos = [
+              'None',
+              'https://github.com/formio/formio-app-humanresources',
+              'https://github.com/formio/formio-app-servicetracker',
+              'https://github.com/formio/formio-app-todo',
+              'https://github.com/formio/formio-app-salesquote',
+              'https://github.com/formio/formio-app-basic'
+          ];
+          let message = '\nWhich Github application would you like to install?\n'.green;
+          _.each(repos, function(repo, index) {
+              message += `  ${index + 1}.) ${repo}\n`;
+          });
+          message += '\nOr, you can provide a custom Github repository...\n'.green;
+          util.log(message);
+          prompt.get([
+              {
+                  name: 'app',
+                  description: 'GitHub repository or selection?',
+                  default: '1',
+                  required: true
+              }
+          ], function(err, results) {
+              if (err) {
+                  return done(err);
+              }
+
+              if (results.app.indexOf('https://github.com/') !== -1) {
+                  application = results.app;
+              }
+              else {
+                  const selection = parseInt(results.app, 10);
+                  if (_.isNumber(selection)) {
+                      if ((selection > 1) && (selection <= repos.length)) {
+                          application = repos[selection - 1];
+                      }
+                  }
+              }
+
+              // Replace github.com url.
+              application = application.replace('https://github.com/', '');
+              done();
+          });
+      },
+
+      /**
+       * Download the application.
+       *
+       * @param done
+       * @returns {*}
+       */
+      downloadApp: function(done) {
+          if (!application) {
+              return done();
+          }
+
+          // Download the app.
+          download(
+              `https://nodeload.github.com/${application}/zip/master`,
+              'app.zip',
+              'app',
+              done
+          );
+      },
+
+      /**
+       * Extract the application to the app folder.
+       *
+       * @param done
+       * @returns {*}
+       */
+      extractApp: function(done) {
+          if (!application) {
+              return done();
+          }
+
+          const parts = application.split('/');
+          const appDir = `${parts[1]}-master`;
+          extract('app.zip', appDir, 'app', done);
+      },
+
+      /**
+       * Download the Form.io admin client.
+       *
+       * @param done
+       * @returns {*}
+       */
+      downloadClient: function(done) {
+          if (!items.download) {
+              return done();
+          }
+
+          // Download the client.
+          download(
+              'https://nodeload.github.com/formio/formio-app-formio/zip/master',
+              'client.zip',
+              'client',
+              done
+          );
+      },
+
+      /**
+       * Extract the client.
+       *
+       * @param done
+       * @returns {*}
+       */
+      extractClient: function(done) {
+          if (!items.extract) {
+              return done();
+          }
+
+          extract('client.zip', 'formio-app-formio-master', 'client', done);
+      },
+
+      /**
+       * Select the template to use.
+       *
+       * @param done
+       * @return {*}
+       */
+      whatTemplate: function(done) {
+          if (application) {
+              templateFile = 'app';
+              return done();
+          }
+
+          let message = '\nWhich project template would you like to install?\n'.green;
+          message += '\n   Please provide the local file path of the project.json file.'.yellow;
+          message += '\n   Or, just press '.yellow + 'ENTER'.green + ' to use the default template.\n'.yellow;
+          util.log(message);
+          prompt.get([
+              {
+                  name: 'templateFile',
+                  description: 'Local file path or just press Enter for default.',
+                  default: 'client',
+                  required: true
+              }
+          ], function(err, results) {
+              if (err) {
+                  return done(err);
+              }
+
+              templateFile = results.templateFile ? results.templateFile : 'client';
+              done();
+          });
+      },
+
+
+
+      /**
+       * Import the template.
+       * @param done
+       */
+      importTemplate: function(done) {
+        if (!templateFile || templateFile === '') {
+            templateFile = 'client';
+        }
+          if (!items.import) {
+              return done();
+          }
+
+          // Determine if this is a custom project.
+          const customProject = (['app', 'client'].indexOf(templateFile) === -1);
+          let directoryPath = '';
+
+          if (!customProject) {
+              directoryPath = directories[templateFile];
+              // Get the package json file.
+              let info = {};
+              try {
+                  info = JSON.parse(fs.readFileSync(path.join(directoryPath, 'package.json')));
+              }
+              catch (err) {
+                  debug(err);
+                  return done(err);
+              }
+
+              // Change the document root if we need to.
+              if (info.formio && info.formio.docRoot) {
+                  directoryPath = path.join(directoryPath, info.formio.docRoot);
+              }
+          }
+
+          const projectJson = customProject ? templateFile : path.join(directoryPath, 'project.json');
+          if (!fs.existsSync(projectJson)) {
+              util.log(projectJson);
+              return done('Missing project.json file'.red);
+          }
+
+          let template = {};
+          try {
+              template = JSON.parse(fs.readFileSync(projectJson));
+          }
+          catch (err) {
+              debug(err);
+              return done(err);
+          }
+
+          // Get the form.io service.
+          util.log('Importing template...'.green);
+          const importer = require('./src/templates/import')({formio: formio});
+          importer.template(template, function(err, template) {
+              if (err) {
+                  return done(err);
+              }
+
+              project = template;
+              done(null, template);
+          });
+      },
+
+      /**
+       * Create the root user object.
+       *
+       * @param done
+       */
+      createRootUser: function(done) {
+          if (!items.user) {
+              return done();
+          }
+
+          formio.resources.submission.model.findOne({}, (err, user) => {
+              if(err) {
+                return done(err);
+              }
+              else if (user) {
+                  return done();
+              }
+              util.log('Creating root user account...'.green);
+              prompt.get([
+                  {
+                      name: 'email',
+                      description: 'Enter your email address for the root account.',
+                      pattern: /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
+                      message: 'Must be a valid email',
+                      required: true
+                  },
+                  {
+                      name: 'password',
+                      description: 'Enter your password for the root account.',
+                      require: true,
+                      hidden: true
+                  }
+              ], function(err, result) {
+                  if (err) {
+                      return done(err);
+                  }
+
+                  util.log('Encrypting password');
+                  formio.encrypt(result.password, function(err, hash) {
+                      if (err) {
+                          return done(err);
+                      }
+
+                      // Create the root user submission.
+                      util.log('Creating root user account');
+                      formio.resources.submission.model.create({
+                          form: project.resources.admin._id,
+                          data: {
+                              email: result.email,
+                              password: hash
+                          },
+                          roles: [
+                              project.roles.administrator._id
+                          ]
+                      }, function(err, item) {
+                          if (err) {
+                              return done(err);
+                          }
+
+                          done();
+                      });
+                  });
+              });
+          });
+      }
+  }
 
   util.log('Installing...');
   prompt.start();
   async.series([
+      steps.importTemplate,
     steps.createRootUser
   ], function(err, result) {
     if (err) {
