@@ -40,7 +40,9 @@ module.exports = function(options) {
   const app = options.app || express();
 
   // Use the given config.
-  const config = options.config || require('config');
+  // override any variables in config if given environment variables
+  const config = options.config || Object.assign({},  require('config'), process.env);
+  console.log('config',config);
 
   // Configure nunjucks.
   nunjucks.configure('client', {

@@ -11,7 +11,7 @@
  * @param done
  */
 const utils = require('formiojs/utils');
-const config = require('config');
+const config = Object.assign({},  require('config'), process.env);
 const async = require('async');
 const mongodb = require('mongodb');
 const MongoClient = mongodb.MongoClient;
