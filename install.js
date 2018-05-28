@@ -145,7 +145,7 @@ module.exports = function(formio, items, done) {
       // Change the project configuration.
       const config = fs.readFileSync(path.join(directoryPath, 'config.template.js'));
       const newConfig = nunjucks.renderString(config.toString(), {
-        domain: formio.config.domain ? formio.config.domain : 'https://form.io'
+        domain: formio.config.domain ? formio.config.domain : 'http://localhost'
       });
       fs.writeFileSync(path.join(directoryPath, 'config.js'), newConfig);
       done();
@@ -406,49 +406,31 @@ module.exports = function(formio, items, done) {
                   return done();
               }
               util.log('Creating root user account...'.green);
-              prompt.get([
-                  {
-                      name: 'email',
-                      description: 'Enter your email address for the root account.',
-                      pattern: /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
-                      message: 'Must be a valid email',
-                      required: true
-                  },
-                  {
-                      name: 'password',
-                      description: 'Enter your password for the root account.',
-                      require: true,
-                      hidden: true
-                  }
-              ], function(err, result) {
+              util.log('Encrypting password');
+              var password = process.env.PASSWORD;
+              var username = process.env.USERNAME;
+              formio.encrypt(password, function(err, hash) {
                   if (err) {
                       return done(err);
                   }
 
-                  util.log('Encrypting password');
-                  formio.encrypt(result.password, function(err, hash) {
+                  // Create the root user submission.
+                  util.log('Creating root user account');
+                  formio.resources.submission.model.create({
+                      form: project.resources.admin._id,
+                      data: {
+                          email: username,
+                          password: hash
+                      },
+                      roles: [
+                          project.roles.administrator._id
+                      ]
+                  }, function(err, item) {
                       if (err) {
                           return done(err);
                       }
 
-                      // Create the root user submission.
-                      util.log('Creating root user account');
-                      formio.resources.submission.model.create({
-                          form: project.resources.admin._id,
-                          data: {
-                              email: result.email,
-                              password: hash
-                          },
-                          roles: [
-                              project.roles.administrator._id
-                          ]
-                      }, function(err, item) {
-                          if (err) {
-                              return done(err);
-                          }
-
-                          done();
-                      });
+                      done();
                   });
               });
           });
