@@ -326,9 +326,6 @@ module.exports = function(formio, items, done) {
               done();
           });
       },
-
-
-
       /**
        * Import the template.
        * @param done
@@ -402,7 +399,7 @@ module.exports = function(formio, items, done) {
           }
 
           formio.resources.submission.model.findOne({}, (err, user) => {
-              if(err) {
+              if (err) {
                 return done(err);
               }
               else if (user) {
@@ -456,7 +453,7 @@ module.exports = function(formio, items, done) {
               });
           });
       }
-  }
+  };
 
   util.log('Installing...');
   prompt.start();
