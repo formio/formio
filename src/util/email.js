@@ -86,8 +86,11 @@ module.exports = (formio) => {
         });
       }
 
-      availableTransports = hook.alter('emailTransports', availableTransports, settings);
-      next(null, availableTransports);
+      availableTransports = hook.alter('emailTransports', availableTransports, settings, req, next);
+      // Make it reverse compatible. Should be asyncronous now.
+      if (availableTransports) {
+        return next(null, availableTransports);
+      }
     });
   };
 
@@ -402,7 +405,8 @@ module.exports = (formio) => {
         from: message.from ? message.from : 'no-reply@form.io',
         to: (typeof message.emails === 'string') ? message.emails : message.emails.join(', '),
         subject: message.subject,
-        html: message.message
+        html: message.message,
+        transport: emailType
       };
       const options = {
         params
