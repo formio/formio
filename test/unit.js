@@ -7,7 +7,7 @@ let docker = process.env.DOCKER;
 var request = require('supertest');
 
 module.exports = function(app, template, hook) {
-  let Thread = require('../src/worker/Thread');
+  let Thread = require('formio-workers/Thread');
 
   /**
    * Unit tests for various parts of the platform.
