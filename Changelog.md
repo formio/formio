@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Added
  - Validation changes for multi-mask fields
 
+## 1.29.2
+### Fixed
+ - Potential crash when merging forms when one row was empty or missing.
+
 ## 1.29.1
 ### Changed
  - Upgraded resourcejs to v1.23.1 to fix issue with number filtering.
