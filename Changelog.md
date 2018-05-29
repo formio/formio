@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased]
+### Added
+ - Validation changes for multi-mask fields
+
 ## 1.29.2
 ### Fixed
  - Potential crash when merging forms when one row was empty or missing.
