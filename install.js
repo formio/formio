@@ -440,6 +440,8 @@ module.exports = function(formio, items, done) {
   util.log('Installing...');
   prompt.start();
   async.series([
+      steps.downloadClient,
+      steps.extractClient,
       steps.importTemplate,
     steps.createRootUser
   ], function(err, result) {

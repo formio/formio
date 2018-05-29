@@ -4,3 +4,4 @@ node_modules
 app*
 npm-debug.log
 docker-compose.yml
+client/
