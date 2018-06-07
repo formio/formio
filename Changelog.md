@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.30.1
+### Fixed
+ - Issues with the machine name generation for names with more than 10 instances.
+
 ## 1.30.0
 ### Added
  - Ability for email templates to execute from workers library.
