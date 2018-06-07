@@ -592,7 +592,7 @@ const Utils = {
    */
   uniqueMachineName(document, model, next) {
     model.find({
-      machineName: {"$regex": document.machineName},
+      machineName: {"$regex": `^${document.machineName}`},
       deleted: {$eq: null}
     }, (err, records) => {
       if (err) {
@@ -606,7 +606,7 @@ const Utils = {
       let i = 0;
       records.forEach((record) => {
         const parts = record.machineName.split(/(\d+)/).filter(Boolean);
-        const number = parts[1] || 0;
+        const number = parseInt(parts[1], 10) || 0;
         if (number > i) {
           i = number;
         }
