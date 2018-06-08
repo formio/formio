@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.30.2
+### Fixed
+ - Problems with the machine name generation where numbers in the project name would mess it up.
+
 ## 1.30.1
 ### Fixed
  - Issues with the machine name generation for names with more than 10 instances.
