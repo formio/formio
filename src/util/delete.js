@@ -136,7 +136,7 @@ module.exports = (router) => {
         return form.save()
           .then(() => Promise.all([
             deleteAction(null, formId, req),
-            deleteSubmission(null, formId, req)
+            deleteSubmission(null, formId, req),
           ]))
           .then(() => form);
       });
@@ -218,7 +218,7 @@ module.exports = (router) => {
       const query = {
         form: {$in: formIds.map(util.idToBson)},
         deleted: {$eq: null},
-        roles: util.idToBson(roleId)
+        roles: util.idToBson(roleId),
       };
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
@@ -258,7 +258,7 @@ module.exports = (router) => {
 
         return Promise.all([
           removeFromForm(formIds),
-          removeFromSubmissions(formIds)
+          removeFromSubmissions(formIds),
         ]);
       });
   }
