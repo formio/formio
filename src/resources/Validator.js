@@ -5,8 +5,9 @@ const Joi = require('joi');
 const _ = require('lodash');
 const util = require('../util/util');
 const FormioUtils = require('formiojs/utils');
-const request = require('request');
+const request = require('request-promise-native');
 const moment = require('moment');
+const cache = require('memory-cache');
 
 const debug = {
   validator: require('debug')('formio:validator'),
@@ -200,7 +201,8 @@ const getRules = (type) => [
       component: Joi.any(),
       submission: Joi.any(),
       token: Joi.any(),
-      async: Joi.any()
+      async: Joi.any(),
+      requests: Joi.any()
     },
     validate(params, value, state, options) {
       // Empty values are fine.
@@ -212,6 +214,7 @@ const getRules = (type) => [
       const submission = params.submission;
       const token = params.token;
       const async = params.async;
+      const requests = params.requests;
 
       // Initialize the request options.
       const requestOptions = {
@@ -278,35 +281,52 @@ const getRules = (type) => [
       }
 
       async.push(new Promise((resolve, reject) => {
-        // Make the request.
-        request(requestOptions, (err, response, body) => {
-          if (err) {
-            return resolve({
-              message: `Select validation error: ${err}`,
+        /* eslint-disable prefer-template */
+        const cacheKey = `${requestOptions.method}:${requestOptions.url}?` + Object.keys(requestOptions.qs).map(key => key + '=' + requestOptions.qs[key]).join('&');
+        /* eslint-enable prefer-template */
+        const cacheTime = 3 * 60 * 60 * 1000;
+
+        // Check if this request was cached
+        const result = cache.get(cacheKey);
+        if (result !== null) {
+          debug.validator(cacheKey, 'hit!');
+          // Null means no cache hit but is also used as a success callback which we are faking with true here.
+          if (result === true) {
+            return resolve(null);
+          }
+          else {
+            return resolve(result);
+          }
+        }
+        debug.validator(cacheKey, 'miss');
+
+        // Us an existing promise or create a new one.
+        requests[cacheKey] = requests[cacheKey] || request(requestOptions);
+
+        requests[cacheKey]
+          .then(body => {
+            if (!body || !body.length) {
+              const error = {
+                message: `"${value}" for "${component.label || component.key}" is not a valid selection.`,
+                path: state.path,
+                type: 'any.select'
+              };
+              cache.put(cacheKey, error, cacheTime);
+              return resolve(error);
+            }
+
+            cache.put(cacheKey, true, cacheTime);
+            return resolve(null);
+          })
+          .catch(result => {
+            const error = {
+              message: `Select validation error: ${result.error}`,
               path: state.path,
               type: 'any.select'
-            });
-          }
-
-          if (response && parseInt(response.statusCode / 100, 10) !== 2) {
-            return resolve({
-              message: `Select validation error: ${body}`,
-              path: state.path,
-              type: 'any.select'
-            });
-          }
-
-          if (!body || !body.length) {
-            return resolve({
-              message: `"${value}" for "${component.label || component.key}" is not a valid selection.`,
-              path: state.path,
-              type: 'any.select'
-            });
-          }
-
-          // This is a valid selection.
-          return resolve(null);
-        });
+            };
+            cache.put(cacheKey, error, cacheTime);
+            return resolve(error);
+          });
       }));
 
       return value;
@@ -489,6 +509,7 @@ class Validator {
   constructor(form, model, token) {
     this.model = model;
     this.async = [];
+    this.requests = {};
     this.form = form;
     this.token = token;
   }
@@ -603,7 +624,7 @@ class Validator {
           break;
         case 'select':
           if (component.validate && component.validate.select) {
-            fieldValidator = JoiX.any().select(component, submission, this.token, this.async);
+            fieldValidator = JoiX.any().select(component, submission, this.token, this.async, this.requests);
           }
           fieldValidator = fieldValidator || JoiX.any();
           break;
