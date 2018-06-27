@@ -10,27 +10,29 @@ const debug = require('debug')('formio:middleware:deleteSubmissionHandler');
  * @param router
  * @returns {Function}
  */
-module.exports = function(router) {
+module.exports = (router) => {
   const prune = require('../util/delete')(router);
-  return function(req, res, next) {
+
+  return (req, res, next) => {
     if (req.method !== 'DELETE' || !req.subId) {
       return next();
     }
 
-    prune.submission(req.subId, null, req, function(err, submission) {
-      if (err) {
+    prune.submission(req.subId, null, req)
+      .then((submission = []) => {
+        // Skip the resource...
+        req.skipResource = true;
+        res.resource = {
+          status: 200,
+          item: {},
+          previousItem: submission[0],
+          deleted: true
+        };
+        next();
+      })
+      .catch((err) => {
         debug(err);
         return next(err);
-      }
-
-      // Skip the resource...
-      req.skipResource = true;
-      res.resource = {
-        status: 200,
-        item: {},
-        deleted: true
-      };
-      next();
-    });
+      });
   };
 };
