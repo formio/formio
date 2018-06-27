@@ -2,7 +2,6 @@
 
 const util = require('../util/util');
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
 const _ = require('lodash');
 
 module.exports = function(router) {
@@ -194,7 +193,7 @@ module.exports = function(router) {
       };
 
       query[usernamekey] = {$regex: new RegExp(`^${util.escapeRegExp(token.username)}$`), $options: 'i'};
-      query.form = {$in: _.map(token.resources, mongoose.Types.ObjectId)};
+      query.form = {$in: _.map(token.resources, router.formio.mongoose.Types.ObjectId)};
 
       // Perform a mongo query to find the submission.
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;

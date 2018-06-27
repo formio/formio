@@ -1,7 +1,5 @@
 'use strict';
 
-const mongoose = require('mongoose');
-
 module.exports = function(formio) {
   const hook = require('../util/hook')(formio);
 
@@ -30,7 +28,7 @@ module.exports = function(formio) {
       required: 'A permission type is required to associate an available permission with a given role.'
     },
     roles: {
-      type: [mongoose.Schema.Types.ObjectId],
+      type: [formio.mongoose.Schema.Types.ObjectId],
       ref: 'role'
     }
   };

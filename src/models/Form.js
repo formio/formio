@@ -1,6 +1,5 @@
 'use strict';
 
-const mongoose = require('mongoose');
 const _ = require('lodash');
 const debug = require('debug')('formio:models:form');
 
@@ -62,7 +61,7 @@ module.exports = (formio) => {
       search._id = {$ne: this._id};
     }
 
-    mongoose.model('form').findOne(search).exec((err, result) => {
+    formio.mongoose.model('form').findOne(search).exec((err, result) => {
       if (err) {
         debug(err);
         return done(false);
@@ -82,7 +81,7 @@ module.exports = (formio) => {
     'characters or must be equal to \'Enter\' or \'Esc\'';
 
   const model = require('./BaseModel')({
-    schema: new mongoose.Schema({
+    schema: new formio.mongoose.Schema({
       title: {
         type: String,
         description: 'The title for the form.',
@@ -154,7 +153,7 @@ module.exports = (formio) => {
       access: [formio.schemas.PermissionSchema],
       submissionAccess: [formio.schemas.PermissionSchema],
       owner: {
-        type: mongoose.Schema.Types.Mixed,
+        type: formio.mongoose.Schema.Types.Mixed,
         ref: 'submission',
         index: true,
         default: null,
@@ -167,7 +166,7 @@ module.exports = (formio) => {
         }
       },
       components: {
-        type: [mongoose.Schema.Types.Mixed],
+        type: [formio.mongoose.Schema.Types.Mixed],
         description: 'An array of components within the form.',
         validate: [
           {
@@ -212,11 +211,11 @@ module.exports = (formio) => {
         ]
       },
       settings: {
-        type: mongoose.Schema.Types.Mixed,
+        type: formio.mongoose.Schema.Types.Mixed,
         description: 'Custom form settings object.'
       },
       properties: {
-        type: mongoose.Schema.Types.Mixed,
+        type: formio.mongoose.Schema.Types.Mixed,
         description: 'Custom form properties.'
       }
     })
@@ -230,7 +229,7 @@ module.exports = (formio) => {
   });
 
   // Add machineName to the schema.
-  model.schema.plugin(require('../plugins/machineName')('form'));
+  model.schema.plugin(require('../plugins/machineName')('form', formio));
 
   // Set the default machine name.
   model.schema.machineName = (document, done) => {
