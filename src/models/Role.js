@@ -1,17 +1,15 @@
 'use strict';
 
-const mongoose = require('mongoose');
-
-module.exports = function(router) {
+module.exports = function(formio) {
   // Include the hook system.
-  const hook = require('../util/hook')(router);
+  const hook = require('../util/hook')(formio);
 
   /**
    * The Schema for Roles.
    *
    * @type {exports.Schema}
    */
-  const RoleSchema = hook.alter('roleSchema', new mongoose.Schema({
+  const RoleSchema = hook.alter('roleSchema', new formio.mongoose.Schema({
     title: {
       type: String,
       required: true,
@@ -33,7 +31,7 @@ module.exports = function(router) {
             }
 
             // Search for roles that exist, with the given parameters.
-            mongoose.model('role').findOne(search, function(err, result) {
+            formio.mongoose.model('role').findOne(search, function(err, result) {
               if (err || result) {
                 return done(false);
               }
@@ -67,7 +65,7 @@ module.exports = function(router) {
   });
 
   // Add machineName to the schema.
-  model.schema.plugin(require('../plugins/machineName')('role'));
+  model.schema.plugin(require('../plugins/machineName')('role', formio));
 
   // Set the default machine name.
   model.schema.machineName = function(document, done) {

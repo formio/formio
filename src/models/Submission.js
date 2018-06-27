@@ -1,32 +1,31 @@
 'use strict';
 
-const mongoose = require('mongoose');
 const utils = require('../util/util');
-
-// Defines what each external ID should be.
-const ExternalIdSchema = mongoose.Schema({
-  type: String,
-  resource: String,
-  id: String
-});
-
-// Add timestamps to the external ids.
-ExternalIdSchema.plugin(require('../plugins/timestamps'));
 
 // Export the submission model.
 module.exports = function(formio) {
+  // Defines what each external ID should be.
+  const ExternalIdSchema = formio.mongoose.Schema({
+    type: String,
+    resource: String,
+    id: String
+  });
+
+  // Add timestamps to the external ids.
+  ExternalIdSchema.plugin(require('../plugins/timestamps'));
+
   const hook = require('../util/hook')(formio);
 
   const model = require('./BaseModel')({
-    schema: new mongoose.Schema(hook.alter('submissionSchema', {
+    schema: new formio.mongoose.Schema(hook.alter('submissionSchema', {
       form: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: formio.mongoose.Schema.Types.ObjectId,
         ref: 'form',
         index: true,
         required: true
       },
       owner: {
-        type: mongoose.Schema.Types.Mixed,
+        type: formio.mongoose.Schema.Types.Mixed,
         ref: 'submission',
         index: true,
         default: null,
@@ -46,7 +45,7 @@ module.exports = function(formio) {
       // The roles associated with this submission, if any.
       // Useful for complex custom resources.
       roles: {
-        type: [mongoose.Schema.Types.ObjectId],
+        type: [formio.mongoose.Schema.Types.ObjectId],
         ref: 'role',
         index: true
       },
@@ -63,13 +62,13 @@ module.exports = function(formio) {
 
       // Configurable meta data associated with a submission.
       metadata: {
-          type: mongoose.Schema.Types.Mixed,
+          type: formio.mongoose.Schema.Types.Mixed,
           description: 'Configurable metadata.'
       },
 
       // The data associated with this submission.
       data: {
-        type: mongoose.Schema.Types.Mixed,
+        type: formio.mongoose.Schema.Types.Mixed,
         required: true
       }
     }))

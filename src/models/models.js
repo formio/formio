@@ -1,7 +1,6 @@
 'use strict';
 
 const _ = require('lodash');
-const mongoose = require('mongoose');
 
 module.exports = function(router) {
   // Implement our hook system.
@@ -22,7 +21,7 @@ module.exports = function(router) {
   };
 
   _.each(models, (model, name) => {
-    mongoose.model(name, model.schema);
+    router.formio.mongoose.model(name, model.schema);
     defs.models[name] = model;
     defs.schemas[name] = hook.alter(`${name}Schema`, model.schema, false);
     defs.specs[name] = model.spec;

@@ -1,8 +1,6 @@
 'use strict';
 
 const Resource = require('resourcejs');
-const mongoose = require('mongoose');
-
 module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
   const handlers = {};
@@ -21,6 +19,6 @@ module.exports = function(router) {
     router,
     '',
     'role',
-    mongoose.model('role')
+    router.formio.mongoose.model('role')
   ).rest(hook.alter('roleRoutes', handlers));
 };
