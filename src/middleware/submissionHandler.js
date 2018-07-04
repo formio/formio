@@ -12,7 +12,7 @@ module.exports = function(router, resourceName, resourceId) {
   const handlers = {};
 
   // Iterate through the possible handlers.
-  _.each([
+  [
     {
       name: 'read',
       method: 'Get'
@@ -33,7 +33,7 @@ module.exports = function(router, resourceName, resourceId) {
       name: 'index',
       method: 'Index'
     }
-  ], function(method) {
+  ].forEach((method) => {
     /**
      * Execute the field handler.
      *
@@ -48,7 +48,7 @@ module.exports = function(router, resourceName, resourceId) {
      * @param res
      * @param done
      */
-    const executeFieldHandler = function(component, path, validation, handlerName, req, res, done) {
+    function executeFieldHandler(component, path, validation, handlerName, req, res, done) {
       const handlers = [];
       const properties = ['reference'];
 
@@ -84,7 +84,7 @@ module.exports = function(router, resourceName, resourceId) {
       Promise.all(handlers)
         .then(() => done())
         .catch(done);
-    };
+    }
 
     /**
      * Load the current form into the request.
@@ -92,7 +92,7 @@ module.exports = function(router, resourceName, resourceId) {
      * @param req
      * @param done
      */
-    const loadCurrentForm = function(req, done) {
+    function loadCurrentForm(req, done) {
       router.formio.cache.loadCurrentForm(req, function(err, form) {
         if (err) {
           return done(err);
@@ -109,7 +109,7 @@ module.exports = function(router, resourceName, resourceId) {
           return done();
         });
       }, true);
-    };
+    }
 
     /**
      * Initialize the submission object which includes filtering.
@@ -117,7 +117,7 @@ module.exports = function(router, resourceName, resourceId) {
      * @param req
      * @param done
      */
-    const initializeSubmission = function(req, done) {
+    function initializeSubmission(req, done) {
       const isGet = (req.method === 'GET');
 
       // If this is a get method, then filter the model query.
@@ -158,7 +158,7 @@ module.exports = function(router, resourceName, resourceId) {
       }
 
       done();
-    };
+    }
 
     /**
      * Initialize the actions.
@@ -167,14 +167,14 @@ module.exports = function(router, resourceName, resourceId) {
      * @param res
      * @param done
      */
-    const initializeActions = function(req, res, done) {
+    function initializeActions(req, res, done) {
       // If they wish to disable actions, then just skip.
       if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
         return done();
       }
 
       router.formio.actions.initialize(method.name, req, res, done);
-    };
+    }
 
     /**
      * Validate a submission.
@@ -183,7 +183,7 @@ module.exports = function(router, resourceName, resourceId) {
      * @param form
      * @param done
      */
-    const validateSubmission = function(req, res, done) {
+    function validateSubmission(req, res, done) {
       // No need to validate on GET requests.
       if (!((req.method === 'POST' || req.method === 'PUT') && req.body && !req.noValidate)) {
         return done();
@@ -217,7 +217,7 @@ module.exports = function(router, resourceName, resourceId) {
           done();
         });
       });
-    };
+    }
 
     /**
      * Execute the actions.
@@ -226,7 +226,7 @@ module.exports = function(router, resourceName, resourceId) {
      * @param res
      * @param done
      */
-    const executeActions = function(handler) {
+    function executeActions(handler) {
       return function(req, res, done) {
         // If they wish to disable actions, then just skip.
         if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
@@ -243,7 +243,7 @@ module.exports = function(router, resourceName, resourceId) {
 
         router.formio.actions.execute(handler, method.name, req, res, done);
       };
-    };
+    }
 
     /**
      * Execute the field handlers.
@@ -254,7 +254,7 @@ module.exports = function(router, resourceName, resourceId) {
      * @param res
      * @param done
      */
-    const executeFieldHandlers = function(validation, req, res, done) {
+    function executeFieldHandlers(validation, req, res, done) {
       // If they wish to disable actions, then just skip.
       if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
         return done();
@@ -271,7 +271,7 @@ module.exports = function(router, resourceName, resourceId) {
 
         executeFieldHandler(component, path, validation, req.handlerName, req, res, cb);
       }, done);
-    };
+    }
 
     /**
      * Ensure that a response is always sent.
@@ -280,16 +280,16 @@ module.exports = function(router, resourceName, resourceId) {
      * @param res
      * @param done
      */
-    const ensureResponse = function(req, res, done) {
+    function ensureResponse(req, res, done) {
       if (!res.resource && !res.headersSent) {
         res.status(200).json(res.submission || true);
       }
       done();
-    };
+    }
 
-    const alterSubmission = function(req, res, done) {
+    function alterSubmission(req, res, done) {
       hook.alter('submission', req, res, done);
-    };
+    }
 
     // Add before handlers.
     const before = `before${method.method}`;
