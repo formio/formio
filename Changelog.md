@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [UNRELEASED]
+### Added
+ - Date converting for filter.
+
 ## 1.31.1
 ### Changed
  - Moved all instances of mongoose to use a single entity provided within the formio object.
@@ -13,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Make select query validation use caching to limit requests being made.
  - CSV export of wysiwyg
  - Webhook improvements
- 
+
 ### Changed
  - Upgrade mongoose@5.1.7, nodemailer@4.6.7, jsonwebtoken@8.3.0, eslint@5.0.1
 
