@@ -11,9 +11,10 @@ const debug = require('debug')('formio:middleware:deleteActionHandler');
  * @param router
  * @returns {Function}
  */
-module.exports = function(router) {
+module.exports = (router) => {
   const prune = require('../util/delete')(router);
-  return function(req, res, next) {
+
+  return (req, res, next) => {
     if (req.method !== 'DELETE') {
       return next();
     }
@@ -30,13 +31,11 @@ module.exports = function(router) {
       return next();
     }
 
-    prune.action(actionId, null, req, function(err) {
-      if (err) {
+    prune.action(actionId, null, req)
+      .then(() => res.sendStatus(200))
+      .catch((err) => {
         debug(err);
         return next(err);
-      }
-
-      return res.sendStatus(200);
-    });
+      });
   };
 };

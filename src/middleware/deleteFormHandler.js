@@ -10,20 +10,19 @@ const debug = require('debug')('formio:middleware:deleteFormHandler');
  * @param router
  * @returns {Function}
  */
-module.exports = function(router) {
+module.exports = (router) => {
   const prune = require('../util/delete')(router);
-  return function(req, res, next) {
+
+  return (req, res, next) => {
     if (req.method !== 'DELETE' || !req.formId) {
       return next();
     }
 
-    prune.form(req.formId, req, function(err) {
-      if (err) {
+    prune.form(req.formId, req)
+      .then(() => res.sendStatus(200))
+      .catch((err) => {
         debug(err);
         return next(err);
-      }
-
-      return res.sendStatus(200);
-    });
+      });
   };
 };
