@@ -404,6 +404,7 @@ module.exports = (formio) => {
         to: (typeof message.emails === 'string') ? message.emails : message.emails.join(', '),
         subject: message.subject,
         html: message.message,
+        msgTransport: message.transport,
         transport: emailType
       };
       const options = {
