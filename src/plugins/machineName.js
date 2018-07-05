@@ -1,9 +1,8 @@
 'use strict';
 
-const mongoose = require('mongoose');
 const util = require('../util/util');
 
-module.exports = (modelName) => {
+module.exports = (modelName, formio) => {
   return (schema, options) => {
     // Add the machineName param.
     schema.add({
@@ -18,7 +17,7 @@ module.exports = (modelName) => {
     schema.index({machineName: 1}, {unique: true, partialFilterExpression: {deleted: {$eq: null}}});
 
     schema.pre('save', function(next) {
-      const model = mongoose.model(modelName);
+      const model = formio.mongoose.model(modelName);
       if (typeof schema.machineName !== 'function') {
         // Do not alter an already established machine name.
         if (this._id && this.machineName) {

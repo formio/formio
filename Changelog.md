@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.31.1
+### Changed
+ - Moved all instances of mongoose to use a single entity provided within the formio object.
+
+## 1.31.0
+### Fixed
+ - Make select query validation use caching to limit requests being made.
+ - CSV export of wysiwyg
+ - Webhook improvements
+ 
+### Changed
+ - Upgrade mongoose@5.1.7, nodemailer@4.6.7, jsonwebtoken@8.3.0, eslint@5.0.1
+
 ## 1.30.2
 ### Fixed
  - Problems with the machine name generation where numbers in the project name would mess it up.

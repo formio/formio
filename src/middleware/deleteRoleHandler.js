@@ -12,9 +12,10 @@ const debug = require('debug')('formio:middleware:deleteRoleHandler');
  * @param router
  * @returns {Function}
  */
-module.exports = function(router) {
+module.exports = (router) => {
   const prune = require('../util/delete')(router);
-  return function deleteRoleHandler(req, res, next) {
+
+  return (req, res, next) => {
     // Only stop delete requests!
     if (req.method !== 'DELETE') {
       return next();
@@ -44,14 +45,12 @@ module.exports = function(router) {
         return res.sendStatus(405);
       }
 
-      prune.role(role._id, req, function(err) {
-        if (err) {
+      prune.role(role._id, req)
+        .then(() => res.sendStatus(200))
+        .catch((err) => {
           debug(err);
           return next(err);
-        }
-
-        res.sendStatus(200);
-      });
+        });
     });
   };
 };
