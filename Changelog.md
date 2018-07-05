@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Added
  - Date converting for filter.
 
+## 1.31.2
+### Added
+ - The original message type of an email to the message payload.
+
 ## 1.31.1
 ### Changed
  - Moved all instances of mongoose to use a single entity provided within the formio object.
