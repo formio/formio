@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.31.2
+### Added
+ - The original message type of an email to the message payload.
+
 ## 1.31.1
 ### Changed
  - Moved all instances of mongoose to use a single entity provided within the formio object.
