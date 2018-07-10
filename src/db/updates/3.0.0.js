@@ -1,6 +1,7 @@
 'use strict';
 
-let async = require('async');
+const _ = require('lodash');
+const async = require('async');
 
 /**
  * Update 3.0.0
@@ -135,7 +136,7 @@ module.exports = function(db, config, tools, done) {
           if (project) {
             machineName = project.machineName + ':';
           }
-          machineName = machineName + role.title.toLowerCase();
+          machineName = machineName + _.camelCase(role.title);
           roles.findOneAndUpdate(
             {_id: role._id},
             {$set: {machineName: machineName}},

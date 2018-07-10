@@ -1,4 +1,5 @@
 'use strict';
+const _ = require('lodash');
 
 module.exports = function(formio) {
   // Include the hook system.
@@ -69,7 +70,7 @@ module.exports = function(formio) {
 
   // Set the default machine name.
   model.schema.machineName = function(document, done) {
-    return hook.alter('roleMachineName', document.title.toLowerCase(), document, done);
+    return hook.alter('roleMachineName', _.camelCase(document.title), document, done);
   };
 
   // Return the defined roles and permissions functions.
