@@ -2,7 +2,7 @@
 
 let assert = require('assert');
 let _ = require('lodash');
-let formioUtils = require('formiojs/utils');
+let formioUtils = require('formiojs/utils').default;
 var docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {

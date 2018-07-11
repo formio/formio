@@ -41,16 +41,18 @@ module.exports = function(router) {
             const key = util.getFormComponentKey(filter.name).substring(prefixLength);
             const component = util.getComponent(currentForm.components, key);
             // Coerce these queries to proper data type
-            switch (component.type) {
-              case 'number':
-                return Number(value);
-              case 'checkbox':
-                return value !== 'false';
-              case 'datetime': {
-                const date = moment.utc(value, ['YYYY-MM-DD', 'YYYY-MM', 'YYYY', 'x', moment.ISO_8601], true);
+            if (component) {
+              switch (component.type) {
+                case 'number':
+                  return Number(value);
+                case 'checkbox':
+                  return value !== 'false';
+                case 'datetime': {
+                  const date = moment.utc(value, ['YYYY-MM-DD', 'YYYY-MM', 'YYYY', 'x', moment.ISO_8601], true);
 
-                if (date.isValid()) {
-                  return date.toDate();
+                  if (date.isValid()) {
+                    return date.toDate();
+                  }
                 }
               }
             }
