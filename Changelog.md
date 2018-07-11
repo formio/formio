@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## 1.31.3
+## 1.31.4
 ### Fixed
  - Fixed the machine names to be performant and without special chars.
  - Allow admins the ability to see all anonymous submissions
