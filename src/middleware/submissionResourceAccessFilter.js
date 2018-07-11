@@ -8,6 +8,12 @@ module.exports = function(router) {
     const util = router.formio.util;
     const hook = router.formio.hook;
 
+    // Skip this filter, if request is from an administrator.
+    if (req.isAdmin) {
+      debug('Skipping, request is from an administrator.');
+      return next();
+    }
+
     // Skip this filter, if not flagged in the permission handler.
     if (!_.has(req, 'submissionResourceAccessFilter') || !req.submissionResourceAccessFilter) {
       return next();
