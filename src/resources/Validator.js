@@ -285,7 +285,7 @@ const getRules = (type) => [
         const cacheKey = `${requestOptions.method}:${requestOptions.url}?` +
           Object.keys(requestOptions.qs).map(key => key + '=' + requestOptions.qs[key]).join('&');
         /* eslint-enable prefer-template */
-        const cacheTime = 3 * 60 * 60 * 1000;
+        const cacheTime = (process.env.VALIDATOR_CACHE_TIME || (3 * 60)) * 60 * 1000;
 
         // Check if this request was cached
         const result = cache.get(cacheKey);
