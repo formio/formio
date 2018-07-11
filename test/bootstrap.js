@@ -1,7 +1,7 @@
 'use strict';
 
 let assert = require('assert');
-let formioUtils = require('formiojs/utils');
+let formioUtils = require('formiojs/utils').default;
 let _ = require('lodash');
 var comparison = null;
 

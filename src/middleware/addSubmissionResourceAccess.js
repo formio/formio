@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const util = require('formiojs/utils');
+const util = require('formiojs/utils').default;
 
 /**
  * Go through each field and if Submission Resource Access is defined on it, add it to the submissionAccess array.
