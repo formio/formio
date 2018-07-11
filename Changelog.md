@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [UNRELEASED]
+## 1.31.3
+### Fixed
+ - Fixed the machine names to be performant and without special chars.
+ - Allow admins the ability to see all anonymous submissions
+
+### Changed
+ - formiojs@2.32.3, mongodb@3.1.1, mongoose@5.2.3, eslint@5.1.0, nodemon@1.18.1, bcrypt@3.0.0
+
 ### Added
  - Date converting for filter.
 
