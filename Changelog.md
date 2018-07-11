@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Fixed
  - Fixed the machine names to be performant and without special chars.
  - Allow admins the ability to see all anonymous submissions
+ - Issues where the validator would crash for certain JSON form structures.
 
 ### Changed
  - formiojs@2.32.3, mongodb@3.1.1, mongoose@5.2.3, eslint@5.1.0, nodemon@1.18.1, bcrypt@3.0.0

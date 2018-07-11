@@ -591,10 +591,15 @@ const Utils = {
    * @return {*}
    */
   uniqueMachineName(document, model, next) {
-    model.find({
-      machineName: {"$regex": `^${document.machineName}`},
+    var query = {
+      machineName: {$regex: `^${document.machineName}[0-9]*$`},
       deleted: {$eq: null}
-    }, (err, records) => {
+    };
+    if (document._id) {
+      query._id = {$ne: document._id};
+    }
+
+    model.find(query, (err, records) => {
       if (err) {
         return next(err);
       }

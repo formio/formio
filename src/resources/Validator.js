@@ -285,7 +285,7 @@ const getRules = (type) => [
         const cacheKey = `${requestOptions.method}:${requestOptions.url}?` +
           Object.keys(requestOptions.qs).map(key => key + '=' + requestOptions.qs[key]).join('&');
         /* eslint-enable prefer-template */
-        const cacheTime = 3 * 60 * 60 * 1000;
+        const cacheTime = (process.env.VALIDATOR_CACHE_TIME || (3 * 60)) * 60 * 1000;
 
         // Check if this request was cached
         const result = cache.get(cacheKey);
@@ -900,8 +900,8 @@ class Validator {
             if (detail.type.includes('.hidden')) {
               const component = components[detail.path.filter(isNaN).join('.')];
 
-              const clearOnHide = util.isBoolean(component.clearOnHide) ?
-                util.boolean(component.clearOnHide) : true;
+              const clearOnHide = util.isBoolean(_.get(component, 'clearOnHide')) ?
+                util.boolean(_.get(component, 'clearOnHide')) : true;
 
               if (clearOnHide) {
                 _.unset(value, detail.path);
@@ -922,8 +922,8 @@ class Validator {
                     !checkConditional(component,
                       _.get(value, result.path.slice(0, result.path.length - 1)), result.submission, true);
 
-                  const clearOnHide = util.isBoolean(component.clearOnHide) ?
-                    util.boolean(component.clearOnHide) : true;
+                  const clearOnHide = util.isBoolean(_.get(component, 'clearOnHide')) ?
+                    util.boolean(_.get(component, 'clearOnHide')) : true;
 
                   if (clearOnHide && result.hidden) {
                     _.unset(value, result.path);
