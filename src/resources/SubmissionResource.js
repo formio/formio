@@ -1,8 +1,6 @@
 'use strict';
 
 const Resource = require('resourcejs');
-const mongoose = require('mongoose');
-const utils = require('formiojs/utils');
 const _ = require('lodash');
 
 module.exports = function(router) {
@@ -12,6 +10,7 @@ module.exports = function(router) {
 
   // Manually update the handlers, to add additional middleware.
   handlers.beforePost = [
+    router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.bootstrapEntityOwner(true),
     router.formio.middleware.bootstrapSubmissionAccess,
@@ -27,6 +26,7 @@ module.exports = function(router) {
     })
   ];
   handlers.beforeGet = [
+    router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     handlers.beforeGet
   ];
@@ -38,6 +38,7 @@ module.exports = function(router) {
     })
   ];
   handlers.beforePut = [
+    router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.bootstrapEntityOwner(false),
     router.formio.middleware.bootstrapSubmissionAccess,
@@ -53,6 +54,15 @@ module.exports = function(router) {
     })
   ];
   handlers.beforeIndex = [
+    (req, res, next) => {
+      // If we leave list in query it will interfere with the find query.
+      if (req.query.list) {
+        req.filterIndex = true;
+        delete req.query.list;
+      }
+      next();
+    },
+    router.formio.middleware.permissionHandler,
     router.formio.middleware.setFilterQueryTypes,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.ownerFilter,
@@ -64,9 +74,11 @@ module.exports = function(router) {
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
     router.formio.middleware.filterProtectedFields('index', (req) => {
       return router.formio.cache.getCurrentFormId(req);
-    })
+    }),
+    router.formio.middleware.filterIndex(['data'])
   ];
   handlers.beforeDelete = [
+    router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     handlers.beforeDelete,
     router.formio.middleware.deleteSubmissionHandler
@@ -87,57 +99,18 @@ module.exports = function(router) {
         return next(err);
       }
 
-      // Start the query.
-      let query = {
-        form: form._id,
-        deleted: {$eq: null}
-      };
-
-      // Default the query to not be valid.
-      let queryValid = false;
-
-      // Allow them to provide the owner flag.
-      if (req.query.owner) {
-        query.owner = req.query.owner;
-        queryValid = true;
+      // Get the find query for this item.
+      const query = router.formio.resources.submission.getFindQuery(req);
+      if (_.isEmpty(query)) {
+        return res.status(400).send('Invalid query');
       }
 
-      let queryComponents = {};
-      _.each(req.query, function(value, key) {
-        let parts = key.split('.');
-        if (parts[0] === 'data' && parts.length > 1) {
-          queryComponents[parts[1]] = {
-            value: value,
-            key: key
-          };
-        }
-      });
-
-      // Build the data query.
-      utils.eachComponent(form.components, function(component) {
-        // Only add components that are not protected and are persistent.
-        if (
-          queryComponents.hasOwnProperty(component.key) &&
-          !component.protected &&
-          (!component.hasOwnProperty('persistent') || component.persistent)
-        ) {
-          queryValid = true;
-
-          // Get the query component.
-          var queryComponent = queryComponents[component.key];
-
-          // Add this to the query data.
-          query[queryComponent.key] = queryComponent.value;
-        }
-      });
-
-      // Ensure they provide query components.
-      if (!queryValid) {
-        return res.status(400).send('Invalid Query.');
-      }
+      query.form = form._id;
+      query.deleted = {$eq: null};
+      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
       // Query the submissions for this submission.
-      router.formio.resources.submission.model.findOne(query, function(err, submission) {
+      submissionModel.findOne(query, function(err, submission) {
         if (err) {
           return next(err);
         }
@@ -159,10 +132,20 @@ module.exports = function(router) {
   // If the last argument is a function, hook.alter assumes it is a callback function.
   const SubmissionResource = hook.alter('SubmissionResource', Resource, null);
 
-  return SubmissionResource(
+  const submissionResource = SubmissionResource(
     router,
     '/form/:formId',
     'submission',
-    mongoose.model('submission')
+    router.formio.mongoose.model('submission'),
+    {
+      convertIds: /(^|\.)(_id|form|owner)$/
+    }
   ).rest(hook.alter('submissionRoutes', handlers));
+  _.each(handlers, (handler) => {
+    _.each(handler, (fn, index) => {
+      handler[index] = fn.bind(submissionResource);
+    });
+  });
+  submissionResource.handlers = handlers;
+  return submissionResource;
 };

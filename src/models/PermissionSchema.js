@@ -1,12 +1,10 @@
 'use strict';
 
-var mongoose = require('mongoose');
-
 module.exports = function(formio) {
-  var hook = require('../util/hook')(formio);
+  const hook = require('../util/hook')(formio);
 
   // Define the available permissions for a form.
-  var available = [
+  let available = [
     'create_all',
     'read_all',
     'update_all',
@@ -30,7 +28,7 @@ module.exports = function(formio) {
       required: 'A permission type is required to associate an available permission with a given role.'
     },
     roles: {
-      type: [mongoose.Schema.Types.ObjectId],
+      type: [formio.mongoose.Schema.Types.ObjectId],
       ref: 'role'
     }
   };

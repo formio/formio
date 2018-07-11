@@ -1,28 +1,28 @@
 'use strict';
 
-var prompt = require('prompt');
-var async = require('async');
-var fs = require('fs-extra');
-var _ = require('lodash');
-var nunjucks = require('nunjucks');
+const prompt = require('prompt');
+const async = require('async');
+const fs = require('fs-extra');
+const _ = require('lodash');
+const nunjucks = require('nunjucks');
 nunjucks.configure([], {watch: false});
-var util = require('./src/util/util');
-var debug = require('debug')('formio:error');
-var path = require('path');
+const util = require('./src/util/util');
+const debug = require('debug')('formio:error');
+const path = require('path');
 
 module.exports = function(formio, items, done) {
   // The project that was created.
-  var project = {};
+  let project = {};
 
   // The directory for the client application.
-  var directories = {
+  const directories = {
     client: path.join(__dirname, 'client'),
     app: path.join(__dirname, 'app')
   };
 
   // The application they wish to install.
-  var application = '';
-  var templateFile = '';
+  let application = '';
+  let templateFile = '';
 
   /**
    * Download a zip file.
@@ -33,21 +33,21 @@ module.exports = function(formio, items, done) {
    * @param done
    * @returns {*}
    */
-  var download = function(url, zipFile, dir, done) {
+  const download = function(url, zipFile, dir, done) {
     // Check to see if the client already exists.
     if (fs.existsSync(zipFile)) {
-      util.log(directories[dir] + ' file already exists, skipping download.');
+      util.log(`${directories[dir]} file already exists, skipping download.`);
       return done();
     }
 
-    var request = require('request');
-    var ProgressBar = require('progress');
-    util.log('Downloading ' + dir + '...'.green);
+    const request = require('request');
+    const ProgressBar = require('progress');
+    util.log(`Downloading ${dir}${'...'.green}`);
 
     // Download the project.
-    var downloadError = null;
-    var tries = 0;
-    var bar = null;
+    let downloadError = null;
+    let tries = 0;
+    let bar = null;
     (function downloadProject() {
       request.get(url)
         .on('response', function(res) {
@@ -100,17 +100,17 @@ module.exports = function(formio, items, done) {
    * @param done
    * @returns {*}
    */
-  var extract = function(zipFile, fromDir, dir, done) {
+  const extract = function(zipFile, fromDir, dir, done) {
     // See if we need to extract.
     if (fs.existsSync(directories[dir])) {
-      util.log(directories[dir] + ' already exists, skipping extraction.');
+      util.log(`${directories[dir]} already exists, skipping extraction.`);
       return done();
     }
 
     // Unzip the contents.
-    var AdmZip = require('adm-zip');
+    const AdmZip = require('adm-zip');
     util.log('Extracting contents...'.green);
-    var zip = new AdmZip(zipFile);
+    const zip = new AdmZip(zipFile);
     zip.extractAllTo('', true);
     fs.move(fromDir, directories[dir], function(err) {
       if (err) {
@@ -121,7 +121,7 @@ module.exports = function(formio, items, done) {
       fs.remove(zipFile);
 
       // Get the package json file.
-      var info = {};
+      let info = {};
       try {
         info = JSON.parse(fs.readFileSync(path.join(directories[dir], 'package.json')));
       }
@@ -131,7 +131,7 @@ module.exports = function(formio, items, done) {
       }
 
       // Set local variable to directory path.
-      var directoryPath = directories[dir];
+      let directoryPath = directories[dir];
 
       // Change the document root if we need to.
       if (info.formio && info.formio.docRoot) {
@@ -143,8 +143,8 @@ module.exports = function(formio, items, done) {
       }
 
       // Change the project configuration.
-      var config = fs.readFileSync(path.join(directoryPath, 'config.template.js'));
-      var newConfig = nunjucks.renderString(config.toString(), {
+      const config = fs.readFileSync(path.join(directoryPath, 'config.template.js'));
+      const newConfig = nunjucks.renderString(config.toString(), {
         domain: formio.config.domain ? formio.config.domain : 'https://form.io'
       });
       fs.writeFileSync(path.join(directoryPath, 'config.js'), newConfig);
@@ -153,7 +153,7 @@ module.exports = function(formio, items, done) {
   };
 
   // All the steps in the installation.
-  var steps = {
+  const steps = {
     /**
      * Step to perform the are you sure step.
      *
@@ -180,7 +180,7 @@ module.exports = function(formio, items, done) {
 
     // Allow them to select the application.
     whatApp: function(done) {
-      var repos = [
+      const repos = [
         'None',
         'https://github.com/formio/formio-app-humanresources',
         'https://github.com/formio/formio-app-servicetracker',
@@ -188,9 +188,9 @@ module.exports = function(formio, items, done) {
         'https://github.com/formio/formio-app-salesquote',
         'https://github.com/formio/formio-app-basic'
       ];
-      var message = '\nWhich Github application would you like to install?\n'.green;
+      let message = '\nWhich Github application would you like to install?\n'.green;
       _.each(repos, function(repo, index) {
-        message += '  ' + (index + 1) + '.) ' + repo + '\n';
+        message += `  ${index + 1}.) ${repo}\n`;
       });
       message += '\nOr, you can provide a custom Github repository...\n'.green;
       util.log(message);
@@ -210,7 +210,7 @@ module.exports = function(formio, items, done) {
           application = results.app;
         }
         else {
-          var selection = parseInt(results.app, 10);
+          const selection = parseInt(results.app, 10);
           if (_.isNumber(selection)) {
             if ((selection > 1) && (selection <= repos.length)) {
               application = repos[selection - 1];
@@ -237,7 +237,7 @@ module.exports = function(formio, items, done) {
 
       // Download the app.
       download(
-        'https://nodeload.github.com/' + application + '/zip/master',
+        `https://nodeload.github.com/${application}/zip/master`,
         'app.zip',
         'app',
         done
@@ -255,8 +255,8 @@ module.exports = function(formio, items, done) {
         return done();
       }
 
-      var parts = application.split('/');
-      var appDir = parts[1] + '-master';
+      const parts = application.split('/');
+      const appDir = `${parts[1]}-master`;
       extract('app.zip', appDir, 'app', done);
     },
 
@@ -306,7 +306,7 @@ module.exports = function(formio, items, done) {
         return done();
       }
 
-      var message = '\nWhich project template would you like to install?\n'.green;
+      let message = '\nWhich project template would you like to install?\n'.green;
       message += '\n   Please provide the local file path of the project.json file.'.yellow;
       message += '\n   Or, just press '.yellow + 'ENTER'.green + ' to use the default template.\n'.yellow;
       util.log(message);
@@ -337,13 +337,13 @@ module.exports = function(formio, items, done) {
       }
 
       // Determine if this is a custom project.
-      var customProject = (['app', 'client'].indexOf(templateFile) === -1);
-      var directoryPath = '';
+      const customProject = (['app', 'client'].indexOf(templateFile) === -1);
+      let directoryPath = '';
 
       if (!customProject) {
         directoryPath = directories[templateFile];
         // Get the package json file.
-        var info = {};
+        let info = {};
         try {
           info = JSON.parse(fs.readFileSync(path.join(directoryPath, 'package.json')));
         }
@@ -358,13 +358,13 @@ module.exports = function(formio, items, done) {
         }
       }
 
-      var projectJson = customProject ? templateFile : path.join(directoryPath, 'project.json');
+      const projectJson = customProject ? templateFile : path.join(directoryPath, 'project.json');
       if (!fs.existsSync(projectJson)) {
         util.log(projectJson);
         return done('Missing project.json file'.red);
       }
 
-      var template = {};
+      let template = {};
       try {
         template = JSON.parse(fs.readFileSync(projectJson));
       }
@@ -375,7 +375,7 @@ module.exports = function(formio, items, done) {
 
       // Get the form.io service.
       util.log('Importing template...'.green);
-      var importer = require('./src/templates/import')({formio: formio});
+      const importer = require('./src/templates/import')({formio: formio});
       importer.template(template, function(err, template) {
         if (err) {
           return done(err);

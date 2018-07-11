@@ -950,7 +950,6 @@ module.exports = function(app, template, hook) {
         name: 'addform',
         path: 'addform',
         type: 'form',
-        access: [],
         submissionAccess: [],
         components: []
       };
@@ -1119,10 +1118,7 @@ module.exports = function(app, template, hook) {
                 assert.equal(response.access[0].type, 'read_all');
                 assert.equal(response.access[0].roles.length, 4);
                 assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
-                assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
-                assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
-                assert.notEqual(response.access[0].roles.indexOf(dummyRole._id), -1);
-                assert.deepEqual(response.submissionAccess, []);
+                assert.equal(response.submissionAccess.length, 0);
                 assert.deepEqual(response.components, addForm.components);
                 addForm = response;
 
@@ -1252,11 +1248,8 @@ module.exports = function(app, template, hook) {
                 assert(response.hasOwnProperty('submissionAccess'), 'The response should contain an the `submissionAccess`.');
                 assert.equal(response.access.length, 1);
                 assert.equal(response.access[0].type, 'read_all');
-                assert.equal(response.access[0].roles.length, 4);
+                assert.equal(response.access[0].roles.length, 1);
                 assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
-                assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
-                assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
-                assert.notEqual(response.access[0].roles.indexOf(dummyRole._id), -1);
                 assert.equal(response.submissionAccess.length, 4);
                 assert.equal(response.title, submissionForm.title);
                 assert.equal(response.name, submissionForm.name);

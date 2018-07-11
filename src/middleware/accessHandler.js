@@ -1,7 +1,7 @@
 'use strict';
 /*eslint max-statements: 0*/
 
-var _ = require('lodash');
+const _ = require('lodash');
 
 /**
  * The Access handler returns all the access information for the forms and roles within the project.
@@ -9,7 +9,7 @@ var _ = require('lodash');
  * @param router
  */
 module.exports = function(router) {
-  var hook = require('../util/hook')(router.formio);
+  const hook = require('../util/hook')(router.formio);
   return function accessHandler(req, res, next) {
     // Load all the roles.
     router.formio.resources.role.model.find(hook.alter('roleQuery', {deleted: {$eq: null}}, req))
@@ -23,7 +23,7 @@ module.exports = function(router) {
           return res.status(400).send('Could not load the Roles.');
         }
 
-        var roles = {};
+        const roles = {};
         _.each(roleResult, function(role) {
           if (role.title) {
             roles[role.title.replace(/\s/g, '').toLowerCase()] = role.toObject();
@@ -44,7 +44,7 @@ module.exports = function(router) {
               return res.status(400).send('Could not load the Forms.');
             }
 
-            var forms = {};
+            const forms = {};
             _.each(formResult, function(form) {
               forms[form.name] = form.toObject();
             });

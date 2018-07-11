@@ -10,7 +10,7 @@
  * @returns {Function}
  */
 module.exports = function(router) {
-  var hook = require('../util/hook')(router.formio);
+  const hook = require('../util/hook')(router.formio);
   return function(settings) {
     return function sortMongooseQuery(req, res, next) {
       // Only filter on non empty objects.
@@ -26,7 +26,7 @@ module.exports = function(router) {
        *
        * @see https://jira.mongodb.org/browse/SERVER-90
        */
-      req.modelQuery = req.modelQuery || this.model;
+      req.modelQuery = req.modelQuery || req.model || this.model;
       req.modelQuery = req.modelQuery.find(hook.alter('roleQuery', {}, req)).sort(settings);
 
       next();

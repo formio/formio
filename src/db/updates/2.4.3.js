@@ -1,6 +1,6 @@
 'use strict';
 
-var async = require('async');
+let async = require('async');
 
 /**
  * Update 2.4.3
@@ -13,7 +13,7 @@ var async = require('async');
  * Update all submissions to have owners
  */
 module.exports = function(db, config, tools, done) {
-  var submissions = db.collection('submissions');
+  let submissions = db.collection('submissions');
   submissions.find({owner: {$eq: null}}).snapshot({$snapshot: true}).toArray(function(err, docs) {
     if (err) {
       return done(err);

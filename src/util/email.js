@@ -1,20 +1,19 @@
 'use strict';
 
-let nodemailer = require('nodemailer');
-let sgTransport = require('nodemailer-sendgrid-transport');
-let mandrillTransport = require('nodemailer-mandrill-transport');
-let mailgunTransport = require('nodemailer-mailgun-transport');
-let debug = {
+const nodemailer = require('nodemailer');
+const sgTransport = require('nodemailer-sendgrid-transport');
+const mandrillTransport = require('nodemailer-mandrill-transport');
+const mailgunTransport = require('nodemailer-mailgun-transport');
+const debug = {
   email: require('debug')('formio:settings:email'),
   send: require('debug')('formio:settings:send'),
   error: require('debug')('formio:error'),
   nunjucksInjector: require('debug')('formio:email:nunjucksInjector')
 };
-let rest = require('restler');
-let util = require('./util');
-let _ = require('lodash');
-let EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
-let Thread = require('../worker/Thread');
+const rest = require('restler');
+const util = require('./util');
+const _ = require('lodash');
+const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
 
 /**
  * The email sender for emails.
@@ -22,7 +21,8 @@ let Thread = require('../worker/Thread');
  * @returns {{send: Function}}
  */
 module.exports = (formio) => {
-  let hook = require('./hook')(formio);
+  const hook = require('./hook')(formio);
+  const Worker = require('../worker/Worker')(formio);
 
   /**
    * Get the list of available email transports.
@@ -30,7 +30,7 @@ module.exports = (formio) => {
    * @param req
    * @param next
    */
-  let availableTransports = (req, next) => {
+  const availableTransports = (req, next) => {
     hook.settings(req, (err, settings) => {
       if (err) {
         debug.email(err);
@@ -79,18 +79,18 @@ module.exports = (formio) => {
           title: 'Mailgun'
         });
       }
-      if (_.get(settings, 'email.smtp.host')
-        && _.get(settings, 'email.smtp.auth.user')
-        && _.get(settings, 'email.smtp.auth.pass')
-      ) {
+      if (_.get(settings, 'email.smtp.host')) {
         availableTransports.push({
           transport: 'smtp',
           title: 'SMTP'
         });
       }
 
-      availableTransports = hook.alter('emailTransports', availableTransports, settings);
-      next(null, availableTransports);
+      availableTransports = hook.alter('emailTransports', availableTransports, settings, req, next);
+      // Make it reverse compatible. Should be asyncronous now.
+      if (availableTransports) {
+        return next(null, availableTransports);
+      }
     });
   };
 
@@ -105,7 +105,7 @@ module.exports = (formio) => {
    *
    * @returns {{transport: *, from: *, emails: *, subject: *, message: *}}
    */
-  let settings = (transport, from, emails, subject, message) => {
+  const settings = (transport, from, emails, subject, message) => {
     return {
       transport,
       from,
@@ -125,7 +125,7 @@ module.exports = (formio) => {
    * @returns {Promise}
    *   The available substitution values.
    */
-  let getParams = (res, form, submission) => new Promise((resolve, reject) => {
+  const getParams = (res, form, submission) => new Promise((resolve, reject) => {
     let params = _.cloneDeep(submission);
     if (res && res.resource && res.resource.item) {
       if (typeof res.resource.item.toObject === 'function') {
@@ -140,26 +140,24 @@ module.exports = (formio) => {
     // The form components.
     params.components = {};
 
-    let replacements = [];
+    const replacements = [];
 
     // Flatten the resource data.
     util.eachComponent(form.components, (component) => {
       params.components[component.key] = component;
       if (component.type === 'resource' && params.data[component.key]) {
-        params.data[component.key + 'Obj'] = params.data[component.key];
-
-        let thread = new Thread(Thread.Tasks.nunjucks).start({
+        params.data[`${component.key}Obj`] = params.data[component.key];
+        replacements.push((new Worker('nunjucks')).start({
+          form: form,
+          submission: submission,
           template: component.template,
           context: {
             item: params.data[component.key]
           }
-        })
-        .then(response => {
+        }).then(response => {
           params.data[component.key] = response.output;
           return response;
-        });
-
-        replacements.push(thread);
+        }));
       }
     });
 
@@ -179,12 +177,12 @@ module.exports = (formio) => {
    *
    * @return {Promise}
    */
-  let nunjucksInjector = (mail, options) => new Promise((resolve, reject) => {
+  const nunjucksInjector = (mail, options) => new Promise((resolve, reject) => {
     if (!mail || !mail.to) {
       return reject(`No mail was given to send.`);
     }
 
-    let params = options.params;
+    const params = options.params;
 
     // Replace all newline chars with empty strings, to fix newline support in html emails.
     if (mail.html && (typeof mail.html === 'string')) {
@@ -196,8 +194,8 @@ module.exports = (formio) => {
     params.mail = mail;
 
     // Compile the email with nunjucks in a separate thread.
-    return new Thread(Thread.Tasks.nunjucks)
-    .start({
+    return new Worker('nunjucks').start({
+      options: options,
       render: mail,
       context: params
     })
@@ -221,7 +219,7 @@ module.exports = (formio) => {
    * @param next
    * @returns {*}
    */
-  let send = (req, res, message, params, next) => {
+  const send = (req, res, message, params, next) => {
     // The transporter object.
     let transporter = {sendMail: null};
 
@@ -243,7 +241,7 @@ module.exports = (formio) => {
       ? message.transport
       : 'default';
 
-    let _config = (formio && formio.config && formio.config.email && formio.config.email.type);
+    const _config = (formio && formio.config && formio.config.email && formio.config.email.type);
     debug.send(message);
     debug.send(emailType);
 
@@ -258,7 +256,7 @@ module.exports = (formio) => {
       // us to use ngrok to test emails out of test platform.
       if (EMAIL_OVERRIDE) {
         try {
-          let override = JSON.parse(EMAIL_OVERRIDE);
+          const override = JSON.parse(EMAIL_OVERRIDE);
           if (override && override.hasOwnProperty('transport')) {
             emailType = override.transport;
             settings.email = {};
@@ -329,7 +327,7 @@ module.exports = (formio) => {
           break;
         case 'smtp':
           if (_.has(settings, 'email.smtp')) {
-            let _settings = {
+            const _settings = {
               debug: true
             };
 
@@ -337,7 +335,7 @@ module.exports = (formio) => {
               _settings['port'] = parseInt(_.get(settings, 'email.smtp.port'));
             }
             if (_.has(settings, 'email.smtp.secure')) {
-              let boolean = {
+              const boolean = {
                 'true': true,
                 'false': false
               };
@@ -347,7 +345,10 @@ module.exports = (formio) => {
             if (_.has(settings, 'email.smtp.host')) {
               _settings['host'] = _.get(settings, 'email.smtp.host');
             }
-            if (_.has(settings, 'email.smtp.auth')) {
+            if (
+              _.has(settings, 'email.smtp.auth') &&
+              _.get(settings, 'email.smtp.auth.user', false)
+            ) {
               _settings['auth'] = {
                 user: _.get(settings, 'email.smtp.auth.user'),
                 pass: _.get(settings, 'email.smtp.auth.pass')
@@ -360,7 +361,7 @@ module.exports = (formio) => {
         case 'custom':
           if (_.has(settings, 'email.custom')) {
             transporter.sendMail = (mail, cb) => {
-              let options = {};
+              const options = {};
               if (settings.email.custom.username) {
                 options.username = settings.email.custom.username;
                 options.password = settings.email.custom.password;
@@ -379,7 +380,7 @@ module.exports = (formio) => {
           break;
         case 'gmail':
           if (_.has(settings, 'email.gmail')) {
-            let options = settings.email.gmail;
+            const options = settings.email.gmail;
             options.service = 'Gmail';
             transporter = nodemailer.createTransport(options);
           }
@@ -398,25 +399,27 @@ module.exports = (formio) => {
         return next();
       }
 
-      let mail = {
+      const mail = {
         from: message.from ? message.from : 'no-reply@form.io',
         to: (typeof message.emails === 'string') ? message.emails : message.emails.join(', '),
         subject: message.subject,
-        html: message.message
+        html: message.message,
+        msgTransport: message.transport,
+        transport: emailType
       };
-      let options = {
+      const options = {
         params
       };
 
       nunjucksInjector(mail, options)
       .then(email => {
-        let queue = [];
-        let emails = [];
+        const queue = [];
+        const emails = [];
 
         debug.send(`message.sendEach: ${message.sendEach}`);
         debug.send(`email: ${JSON.stringify(email)}`);
         if (message.sendEach === true) {
-          let addresses = _.uniq(_.map(email.to.split(','), _.trim));
+          const addresses = _.uniq(_.map(email.to.split(','), _.trim));
           debug.send(`addresses: ${JSON.stringify(addresses)}`);
           addresses.forEach(address => {
             // Make a copy of the email for each recipient.
@@ -435,7 +438,7 @@ module.exports = (formio) => {
             email.html = email.html.replace(/\n/g, '');
           }
 
-          let pending = new Promise((resolve, reject) => {
+          const pending = new Promise((resolve, reject) => {
             // Allow anyone to hook the final email before sending.
             return hook.alter('email', email, req, res, params, (err, email) => {
               if (err) {

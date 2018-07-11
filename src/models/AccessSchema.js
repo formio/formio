@@ -1,10 +1,8 @@
 'use strict';
 
-var mongoose = require('mongoose');
-
 module.exports = function(formio) {
   // Define the available permissions for a submission.
-  var available = [
+  const available = [
     'read',
     'write',
     'admin'
@@ -19,7 +17,7 @@ module.exports = function(formio) {
       required: 'A permission type is required to associate an available permission with a Resource.'
     },
     resources: {
-      type: [mongoose.Schema.Types.ObjectId],
+      type: [formio.mongoose.Schema.Types.ObjectId],
       ref: 'form'
     }
   };

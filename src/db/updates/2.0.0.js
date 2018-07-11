@@ -1,6 +1,6 @@
 'use strict';
 
-var async = require('async');
+let async = require('async');
 
 /**
  * Update 2.0.0
@@ -11,9 +11,9 @@ var async = require('async');
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var applications = db.collection('applications');
-  var forms = db.collection('forms');
-  var roles = db.collection('roles');
+  let applications = db.collection('applications');
+  let forms = db.collection('forms');
+  let roles = db.collection('roles');
 
   /**
    * Update the applications collection.
@@ -21,7 +21,7 @@ module.exports = function(db, config, tools, done) {
    * Steps:
    *   1. Rename the application collection to projects.
    */
-  var updateApplications = function(cb) {
+  let updateApplications = function(cb) {
     applications.rename('projects', function(err) {
       if (err) {
         return cb(err);
@@ -39,9 +39,9 @@ module.exports = function(db, config, tools, done) {
    *   2. Rename the app property for every document.
    *   3. Add an index for project
    */
-  var updateForms = function(cb) {
+  let updateForms = function(cb) {
     // Forms update step 1.
-    var dropIndex = function(next) {
+    let dropIndex = function(next) {
       forms.dropIndex('app_1', function(err) {
         if (err) {
           return next(err);
@@ -52,7 +52,7 @@ module.exports = function(db, config, tools, done) {
     };
 
     // Forms update step 2.
-    var rename = function(next) {
+    let rename = function(next) {
       forms.update({}, {$rename: {'app': 'project'}}, {multi: 1}, function(err) {
         if (err) {
           return next(err);
@@ -63,7 +63,7 @@ module.exports = function(db, config, tools, done) {
     };
 
     // Forms update step 3.
-    var createIndex = function(next) {
+    let createIndex = function(next) {
       forms.createIndex({project: 1}, function(err) {
         if (err) {
           return next(err);
@@ -94,9 +94,9 @@ module.exports = function(db, config, tools, done) {
    *   2. Rename the app property for every document.
    *   3. Add an index for project
    */
-  var updateRoles = function(cb) {
+  let updateRoles = function(cb) {
     // Roles update step 1.
-    var dropIndex = function(next) {
+    let dropIndex = function(next) {
       roles.dropIndex('app_1', function(err) {
         if (err) {
           return next(err);
@@ -107,7 +107,7 @@ module.exports = function(db, config, tools, done) {
     };
 
     // Roles update step 2.
-    var rename = function(next) {
+    let rename = function(next) {
       roles.update({}, {$rename: {'app': 'project'}}, {multi: 1}, function(err) {
         if (err) {
           return next(err);
@@ -118,7 +118,7 @@ module.exports = function(db, config, tools, done) {
     };
 
     // Roles update step 3.
-    var createIndex = function(next) {
+    let createIndex = function(next) {
       roles.createIndex({project: 1}, function(err) {
         if (err) {
           return next(err);

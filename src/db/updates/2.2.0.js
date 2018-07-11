@@ -1,8 +1,8 @@
 'use strict';
 
-var _ = require('lodash');
-var async = require('async');
-var chain = require('event-chain')();
+let _ = require('lodash');
+let async = require('async');
+let chain = require('event-chain')();
 
 /**
  * Update 2.2.0
@@ -15,11 +15,11 @@ var chain = require('event-chain')();
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var projects = db.collection('projects');
-  var forms = db.collection('forms');
-  var roles = db.collection('roles');
-  var actions = db.collection('actions');
-  var submissions = db.collection('submissions');
+  let projects = db.collection('projects');
+  let forms = db.collection('forms');
+  let roles = db.collection('roles');
+  let actions = db.collection('actions');
+  let submissions = db.collection('submissions');
 
   /**
    * Async operation to fix Projects.
@@ -28,8 +28,8 @@ module.exports = function(db, config, tools, done) {
    *
    * @param callback
    */
-  var updateProjects = function(callback) {
-    var projectChain = chain.on(['dropIndex', 'addIndex', 'addDeleted'], callback);
+  let updateProjects = function(callback) {
+    let projectChain = chain.on(['dropIndex', 'addIndex', 'addDeleted'], callback);
 
     projects.dropIndex('name_1', function(err, result) {
       if (err) {
@@ -63,7 +63,7 @@ module.exports = function(db, config, tools, done) {
    *
    * @param callback
    */
-  var updateForms = function(callback) {
+  let updateForms = function(callback) {
     forms.updateMany({}, {$set: {deleted: null}}, function(err, results) {
       if (err) {
         return callback(err);
@@ -80,7 +80,7 @@ module.exports = function(db, config, tools, done) {
    *
    * @param callback
    */
-  var updateRoles = function(callback) {
+  let updateRoles = function(callback) {
     roles.updateMany({}, {$set: {deleted: null}}, function(err, results) {
       if (err) {
         return callback(err);
@@ -97,7 +97,7 @@ module.exports = function(db, config, tools, done) {
    *
    * @param callback
    */
-  var updateActions = function(callback) {
+  let updateActions = function(callback) {
     actions.updateMany({}, {$set: {deleted: null}}, function(err, results) {
       if (err) {
         return callback(err);
@@ -114,7 +114,7 @@ module.exports = function(db, config, tools, done) {
    *
    * @param callback
    */
-  var updateSubmissions = function(callback) {
+  let updateSubmissions = function(callback) {
     submissions.updateMany({}, {$set: {deleted: null}}, function(err, results) {
       if (err) {
         return callback(err);

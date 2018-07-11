@@ -1,8 +1,7 @@
 'use strict';
 
-var debug = require('debug')('formio:middleware:mergeFormHandler');
-var _ = require('lodash');
-var suffixRegex = /(\d+)$/;
+const _ = require('lodash');
+const suffixRegex = /(\d+)$/;
 
 /**
  * The mergeFormHandler middleware.
@@ -17,11 +16,10 @@ var suffixRegex = /(\d+)$/;
 /* eslint-disable max-statements, max-depth */
 module.exports = function(router) {
   return function(req, res, next) {
-    var util = router.formio.util;
-    var cache = router.formio.cache;
+    const util = router.formio.util;
+    const cache = router.formio.cache;
 
     if (req.method !== 'PUT' || !req.formId || !_.has(req, 'body.modified') || !_.has(req, 'body.components')) {
-      debug('Skipping');
       return next();
     }
 
@@ -36,8 +34,8 @@ module.exports = function(router) {
      * @returns {String}
      *   A unique key derived from the input key.
      */
-    var uniquifyKey = function(exhausted, current) {
-      var key = current.key;
+    const uniquifyKey = function(exhausted, current) {
+      let key = current.key;
 
       // FOR-392 - Default unknown keys.
       if (_.isNull(key) || _.isUndefined(key)) {
@@ -47,7 +45,7 @@ module.exports = function(router) {
       // Make the key unique by iterating it.
       while (_.has(exhausted, key) && exhausted[key] !== current.type) {
         if (!key.match(suffixRegex)) {
-          return key + '2';
+          return `${key}2`;
         }
 
         return key.replace(suffixRegex, function(suffix) {
@@ -66,8 +64,8 @@ module.exports = function(router) {
      *
      * @returns {*}
      */
-    var getComponentsName = function(component) {
-      var container = _.intersection(['components', 'rows', 'columns'], Object.keys(component));
+    const getComponentsName = function(component) {
+      const container = _.intersection(['components', 'rows', 'columns'], Object.keys(component));
       return _.first(container);
     };
 
@@ -81,8 +79,8 @@ module.exports = function(router) {
      * @param [String] container
      *   The container name, if known
      */
-    var addChildKeysToList = function(component, list, children) {
-      var container = children || getComponentsName(component);
+    const addChildKeysToList = function(component, list, children) {
+      const container = children || getComponentsName(component);
       util.eachComponent(_.get(component, container), function(child) {
         if (list.indexOf(child) === -1) {
           list.push(child.key);
@@ -117,12 +115,11 @@ module.exports = function(router) {
      *   settings). This will be fixed when we update the form builder to not send blank/null/default settings in the
      *   update payload.
      */
-    var merge = function(formA, componentMapA, formB, componentMapB, list, listKeys) {
+    const merge = function(formA, componentMapA, formB, componentMapB, list, listKeys) {
       formA = formA || [];
       formB = formB || [];
       list = list || [];
       listKeys = listKeys || [];
-      debug('new merge()');
 
       /**
        * Add the given unique component to the final list.
@@ -134,13 +131,12 @@ module.exports = function(router) {
        * @param {Array} listKeys
        *   The final list of component keys, used for quick unique searches.
        */
-      var addUniqueComponent = function(component) {
-        debug('add: ', component.key);
+      const addUniqueComponent = function(component) {
         list.push(component);
         listKeys.push(component.key);
 
         // Update the listKeys with all this components children.
-        var children = getComponentsName(component);
+        const children = getComponentsName(component);
         if (!component.input && children) {
           addChildKeysToList(component, listKeys, children);
         }
@@ -157,30 +153,28 @@ module.exports = function(router) {
        * @returns {boolean}
        *   If an item was combined.
        */
-      var combine = function(a, b) {
+      const combine = function(a, b) {
         // Build a copy of each component without child components.
-        var container = getComponentsName(a);
-        var tempA = _.omit(a, container);
-        var tempB = _.omit(b, container);
+        const container = getComponentsName(a);
+        let tempA = _.omit(a, container);
+        const tempB = _.omit(b, container);
 
         // Update tempA with the settings of tempB.
         tempA = _.assign(tempA, tempB);
 
         // If neither component a or b has child components, return to merging.
         if (!a.hasOwnProperty(container) && !b.hasOwnProperty(container)) {
-          debug('No child components in a or b, skipping recursive call');
           addUniqueComponent(tempA);
           return true;
         }
 
         // Merge each column if present in the component.
         if (a.hasOwnProperty('columns') || b.hasOwnProperty('columns')) {
-          debug('Merge columns');
-          var colsA = a.columns || [];
-          var colsB = b.columns || [];
-          var max = Math.max(colsA.length, colsB.length, 0);
-          var finalColumns = [];
-          for (var iter = 0; iter < max; iter++) {
+          const colsA = a.columns || [];
+          const colsB = b.columns || [];
+          const max = Math.max(colsA.length, colsB.length, 0);
+          const finalColumns = [];
+          for (let iter = 0; iter < max; iter++) {
             // Merge each column from a and b together.
             finalColumns.push({
               components: merge(
@@ -206,15 +200,18 @@ module.exports = function(router) {
         }
 
         // Merge each row if present in the component.
-        if (a.hasOwnProperty('rows') || b.hasOwnProperty('rows')) {
-          var rowsA = a.rows || [];
-          var rowsB = b.rows || [];
-          var finalRows = [];
-          var maxR = Math.max(rowsA.length, rowsB.length, 0);
-          for (var r = 0; r < maxR; r++) {
-            var finalCols = [];
-            var maxC = Math.max(rowsA[r].length, rowsB[r].length, 0);
-            for (var c = 0; c < maxC; c++) {
+        if (
+          (a.hasOwnProperty('rows') && Array.isArray(a.rows)) ||
+          (b.hasOwnProperty('rows') && Array.isArray(b.rows))
+        ) {
+          const rowsA = a.rows || [];
+          const rowsB = b.rows || [];
+          const finalRows = [];
+          const maxR = Math.max(rowsA.length, rowsB.length, 0);
+          for (let r = 0; r < maxR; r++) {
+            const finalCols = [];
+            const maxC = Math.max((rowsA[r] ? rowsA[r].length : 0), (rowsB[r] ? rowsB[r].length : 0), 0);
+            for (let c = 0; c < maxC; c++) {
               // Merge each column from a and b together.
               finalCols.push({
                 components: merge(
@@ -239,8 +236,8 @@ module.exports = function(router) {
 
         // Merge each component array if present in the component.
         if (a.hasOwnProperty('components') || b.hasOwnProperty('component')) {
-          var componentsA = a.components || [];
-          var componentsB = b.components || [];
+          const componentsA = a.components || [];
+          const componentsB = b.components || [];
 
           tempA.components = merge(componentsA, componentMapA, componentsB, componentMapB, [], listKeys);
           addUniqueComponent(tempA);
@@ -254,8 +251,6 @@ module.exports = function(router) {
 
       // Traverse all the components in form a for merging.
       util.eachComponent(formA, function(a, pathA) {
-        debug('pathA: ', pathA);
-
         // Skip components which have been inserted already.
         if (listKeys.indexOf(a.key) !== -1) {
           return;
@@ -273,10 +268,8 @@ module.exports = function(router) {
         }
 
         // Traverse all the components in form b for merging.
-        var skip = false;
+        let skip = false;
         util.eachComponent(formB, function(b, pathB) {
-          debug('pathB: ', pathB);
-
           if (skip || listKeys.indexOf(b.key) !== -1) {
             return;
           }
@@ -310,17 +303,15 @@ module.exports = function(router) {
 
     cache.loadCurrentForm(req, function(err, form) {
       if (err || !form) {
-        var msg = err || 'No form was contained in the current request.';
-        debug(msg);
+        const msg = err || 'No form was contained in the current request.';
         return next(msg);
       }
 
       // If both times are the same, continue as usual, because no outside modifications have been made since.
-      var current = new Date();
-      var timeStable = new Date(_.get(form, 'modified', current.getTime())).getTime();
-      var timeLocal = new Date(_.get(req, 'body.modified', current.getTime())).getTime();
+      const current = new Date();
+      const timeStable = new Date(_.get(form, 'modified', current.getTime())).getTime();
+      const timeLocal = new Date(_.get(req, 'body.modified', current.getTime())).getTime();
       if (timeStable === timeLocal) {
-        debug('skipping - up to date');
         return next();
       }
 
@@ -335,12 +326,12 @@ module.exports = function(router) {
        * 1) Build the key map to force unique key:type pairs across each form, with the stable form having priority
        * 2) Build the component key maps for merge(), to greatly increase performance of searching for components by key
        */
-      var stable = _.cloneDeep(form.components);
-      var local = _.cloneDeep(req.body.components);
-      var componentMap = {stable: {}, local: {}};
-      var keyMap = {};
+      const stable = _.cloneDeep(form.components);
+      const local = _.cloneDeep(req.body.components);
+      const componentMap = {stable: {}, local: {}};
+      const keyMap = {};
       ['stable', 'local'].forEach(function(type) {
-        var components = (type === 'stable') ? stable : local;
+        const components = (type === 'stable') ? stable : local;
         util.eachComponent(components, function(component) {
           // Force each component to be unique, with stable taking precedence.
           if (type === 'local') {
@@ -355,7 +346,6 @@ module.exports = function(router) {
 
       // Merge the stable and local form.
       req.body.components = merge(stable, componentMap.stable, local, componentMap.local);
-      debug(JSON.stringify(req.body.components));
       return next();
     });
   };

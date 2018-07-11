@@ -2644,7 +2644,67 @@ module.exports = function(app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert.equal('Text Field must be unique.', submission);
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details[0].message, '"Text Field" must be unique.');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+            done();
+          });
+      });
+    });
+
+    describe('Required multivalue fields', function() {
+      it('Returns an error when required multivalue fields are missing', function(done) {
+        var components = [
+          {
+            "input": true,
+            "tableView": true,
+            "inputType": "text",
+            "inputMask": "",
+            "label": "Text Field",
+            "key": "textField",
+            "placeholder": "",
+            "prefix": "",
+            "suffix": "",
+            "multiple": true,
+            "defaultValue": "",
+            "protected": false,
+            "unique": false,
+            "persistent": true,
+            "validate": {
+              "required": true,
+              "minLength": "",
+              "maxLength": "",
+              "pattern": "",
+              "custom": "",
+              "customPrivate": false
+            },
+            "conditional": {
+              "show": null,
+              "when": null,
+              "eq": ""
+            },
+            "type": "textfield"
+          }
+        ];
+        var values = {};
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details[0].message, '"textField" is required');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
             done();
           });
       });
@@ -2710,8 +2770,11 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
-            assert.equal(submission, 'Text Field must be unique.');
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details[0].message, '"Text Field" must be unique.');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField', 0]);
             done();
           });
       });
@@ -2832,8 +2895,68 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details[0].message, '"address" must be unique.');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['for213']);
+            done();
+          });
+      });
+    });
+
+    describe('Form metadata handling.', () => {
+      it('Should allow for submission metadata to be passed to the submission.', (done) => {
+        // Create a resource to keep records.
+        helper
+          .form('metadata', [
+            {
+              "input": true,
+              "tableView": true,
+              "inputType": "text",
+              "inputMask": "",
+              "label": "Name",
+              "key": "name",
+              "placeholder": "",
+              "prefix": "",
+              "suffix": "",
+              "multiple": false,
+              "defaultValue": "",
+              "protected": false,
+              "unique": false,
+              "persistent": true,
+              "validate": {
+                "required": false,
+                "minLength": "",
+                "maxLength": "",
+                "pattern": "",
+                "custom": "",
+                "customPrivate": false
+              },
+              "conditional": {
+                "show": null,
+                "when": null,
+                "eq": ""
+              },
+              "type": "textfield"
+            }
+          ])
+          .submission('metadata', {
+            data: {
+              name: "testing"
+            },
+            metadata: {
+              testing: 'hello'
+            }
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
             var submission = helper.getLastSubmission();
-            assert.equal(submission, 'address must be unique.');
+            assert.deepEqual(submission.data, {name: 'testing'});
+            assert.deepEqual(submission.metadata, {testing: 'hello'});
             done();
           });
       });
@@ -2888,23 +3011,24 @@ module.exports = function(app, template, hook) {
             let apiUrl = 'http://localhost:' + template.config.port;
             apiUrl += hook.alter('url', '/form/' + helper.template.forms['fruits']._id + '/submission', helper.template);
 
-            helper.form('fruitSelect', [
-              {
-                type: 'select',
-                key: 'fruit',
-                label: 'Select a fruit',
-                dataSrc: 'url',
-                searchField: 'data.name',
-                authenticate: true,
-                persistent: true,
-                data: {
-                  url: apiUrl
-                },
-                validate: {
-                  select: true
+            helper
+              .form('fruitSelect', [
+                {
+                  type: 'select',
+                  key: 'fruit',
+                  label: 'Select a fruit',
+                  dataSrc: 'url',
+                  searchField: 'data.name',
+                  authenticate: true,
+                  persistent: true,
+                  data: {
+                    url: apiUrl
+                  },
+                  validate: {
+                    select: true
+                  }
                 }
-              }
-            ])
+              ])
               .execute((err) => {
                 if (err) {
                   return done(err);
@@ -2948,6 +3072,334 @@ module.exports = function(app, template, hook) {
           assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
           done();
         });
+      });
+
+      it('Should allow saving select resource by reference', done => {
+        const submission = helper.template.submissions['fruits'][0];
+        helper
+          .form('myFruit', [{
+            input: true,
+            label: "Fruit",
+            key: "fruit",
+            data: {
+              resource: helper.template.forms['fruits']._id,
+              project: helper.template.project ? helper.template.project._id : ''
+            },
+            dataSrc: "resource",
+            reference: true,
+            valueProperty: "",
+            defaultValue: "",
+            template: "<span>{{ item.data.name }}</span>",
+            multiple: false,
+            persistent: true,
+            type: "select"
+          }], {
+            submissionAccess: [
+              {
+                type: 'read_all',
+                roles: [template.roles.authenticated._id.toString()]
+              }
+            ]
+          })
+          .submission('myFruit', {fruit: {_id: submission._id, form: helper.template.forms['fruits']._id}})
+          .execute(err => {
+            if (err) {
+              return done(err);
+            }
+            helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(submission._id, fromsub.data.fruit._id);
+              assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+              done();
+            });
+          });
+      });
+
+      it('Should allow saving select resource with whole object by reference', done => {
+        const submission = helper.template.submissions['fruits'][0];
+        helper
+          .submission('myFruit', {fruit: submission})
+          .execute(err => {
+            if (err) {
+              return done(err);
+            }
+            helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(submission._id, fromsub.data.fruit._id);
+              assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+              done();
+            });
+          });
+      });
+
+      it('Should check permissions when loading from reference', done => {
+        request(app)
+          .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+          .set('x-jwt-token', template.users.user1.token)
+          .send()
+          // .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert(res.body.data.fruit.hasOwnProperty('_id'), 'Must contain the _id.');
+            assert.equal(1, Object.keys(res.body.data.fruit).length);
+            done();
+          });
+      });
+    });
+
+    describe('Advanced Conditions', () => {
+      it('Requires a conditionally required field from advanced conditions', function(done) {
+        var components = [
+          {
+            "properties": {},
+            "tags": [],
+            "labelPosition": "top",
+            "hideLabel": false,
+            "type": "textfield",
+            "conditional": {
+              "eq": "",
+              "when": null,
+              "show": ""
+            },
+            "validate": {
+              "customPrivate": false,
+              "custom": "",
+              "pattern": "",
+              "maxLength": "",
+              "minLength": "",
+              "required": false
+            },
+            "clearOnHide": true,
+            "hidden": false,
+            "persistent": true,
+            "unique": false,
+            "protected": false,
+            "defaultValue": "",
+            "multiple": false,
+            "suffix": "",
+            "prefix": "",
+            "placeholder": "",
+            "key": "test",
+            "label": "Test",
+            "inputMask": "",
+            "inputType": "text",
+            "tableView": true,
+            "input": true
+          },
+          {
+            "properties": {},
+            "tags": [],
+            "labelPosition": "top",
+            "hideLabel": false,
+            "type": "textfield",
+            "conditional": {
+              "eq": "",
+              "when": null,
+              "show": ""
+            },
+            "validate": {
+              "customPrivate": false,
+              "custom": "",
+              "pattern": "",
+              "maxLength": "",
+              "minLength": "",
+              "required": false
+            },
+            "clearOnHide": true,
+            "hidden": false,
+            "persistent": true,
+            "unique": false,
+            "protected": false,
+            "defaultValue": "",
+            "multiple": false,
+            "suffix": "",
+            "prefix": "",
+            "placeholder": "",
+            "key": "changeme",
+            "label": "Change me",
+            "inputMask": "",
+            "inputType": "text",
+            "tableView": true,
+            "input": true,
+            "logic": [
+              {
+                "name": "Test 2",
+                "trigger": {
+                  "javascript": "result = data.test === '2';",
+                  "type": "javascript"
+                },
+                "actions": [
+                  {
+                    "name": "Set Title to Two",
+                    "type": "property",
+                    "property": {
+                      "label": "Title",
+                      "value": "label",
+                      "type": "string"
+                    },
+                    "text": "Two"
+                  },
+                  {
+                    "name": "Set Required",
+                    "type": "property",
+                    "property": {
+                      "label": "Required",
+                      "value": "validate.required",
+                      "type": "boolean"
+                    },
+                    "state": true
+                  }
+                ]
+              }
+            ]
+          }
+        ];
+
+        var values = {
+          test: '2'
+        };
+
+        helper
+          .form('advancedCond', components)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert(submission.isJoi);
+            assert.equal(submission.name, 'ValidationError');
+            assert.deepEqual(submission.details, [
+              {
+                context: {
+                  key: 'changeme',
+                  label: 'changeme'
+                },
+                message: '"changeme" is required',
+                path: ['changeme'],
+                type: 'any.required'
+              }
+            ]);
+            done();
+          });
+      });
+
+      it('Sets a value based on advanced conditions', function(done) {
+        var components = [
+          {
+            "properties": {},
+            "tags": [],
+            "labelPosition": "top",
+            "hideLabel": false,
+            "type": "textfield",
+            "conditional": {
+              "eq": "",
+              "when": null,
+              "show": ""
+            },
+            "validate": {
+              "customPrivate": false,
+              "custom": "",
+              "pattern": "",
+              "maxLength": "",
+              "minLength": "",
+              "required": false
+            },
+            "clearOnHide": true,
+            "hidden": false,
+            "persistent": true,
+            "unique": false,
+            "protected": false,
+            "defaultValue": "",
+            "multiple": false,
+            "suffix": "",
+            "prefix": "",
+            "placeholder": "",
+            "key": "test",
+            "label": "Test",
+            "inputMask": "",
+            "inputType": "text",
+            "tableView": true,
+            "input": true
+          },
+          {
+            "properties": {},
+            "tags": [],
+            "labelPosition": "top",
+            "hideLabel": false,
+            "type": "textfield",
+            "conditional": {
+              "eq": "",
+              "when": null,
+              "show": ""
+            },
+            "validate": {
+              "customPrivate": false,
+              "custom": "",
+              "pattern": "",
+              "maxLength": "",
+              "minLength": "",
+              "required": false
+            },
+            "clearOnHide": true,
+            "hidden": false,
+            "persistent": true,
+            "unique": false,
+            "protected": false,
+            "defaultValue": "",
+            "multiple": false,
+            "suffix": "",
+            "prefix": "",
+            "placeholder": "",
+            "key": "changeme",
+            "label": "Change me",
+            "inputMask": "",
+            "inputType": "text",
+            "tableView": true,
+            "input": true,
+            "logic": [
+              {
+                "name": "Test 1",
+                "trigger": {
+                  "javascript": "result = data.test === '1';",
+                  "type": "javascript"
+                },
+                "actions": [
+                  {
+                    "name": "Set Value",
+                    "type": "value",
+                    "value": "value = 'Foo'"
+                  }
+                ]
+              }
+            ]
+          }
+        ];
+
+        var values = {
+          test: '1'
+        };
+
+        helper
+          .form('advancedCond2', components)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(submission.data.test, '1');
+            assert.equal(submission.data.changeme, 'Foo');
+            done();
+          });
       });
     });
   });

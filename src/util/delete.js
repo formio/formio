@@ -1,15 +1,12 @@
 'use strict';
 
-var _ = require('lodash');
-var async = require('async');
-
 /**
  *
  * @param router
  * @returns {{submission: Function, form: Function}}
  */
-module.exports = function(router) {
-  var hook = require('./hook')(router.formio);
+module.exports = (router) => {
+  const hook = require('./hook')(router.formio);
 
   /**
    * Flag a submission as deleted. If given a subId, one submission will be flagged; if given a formId, then all the
@@ -19,52 +16,47 @@ module.exports = function(router) {
    *   The submission id to flag as deleted.
    * @param {Array} forms
    *   A list of form ids to flag all submissions as deleted.
-   * @param {Function} next
-   *   The callback function to return the results.
+   * @param {Object} req
+   *   The express request object.
+   *
+   * @returns {Promise}
+   *   Result of deleting the submission(s), resolved by deleted entity(ies).
    */
-  var deleteSubmission = function(subId, forms, next) {
-    var debug = require('debug')('formio:delete:submission');
-    var util = router.formio.util;
+  function deleteSubmission(subId, forms, req) {
+    const util = router.formio.util;
     if (!subId && !forms) {
-      debug('Skipping');
-      return next();
+      return Promise.resolve();
     }
     // Convert the forms to an array if only one was provided.
-    if (forms && !(forms instanceof Array)) {
+    if (forms && !Array.isArray(forms)) {
       forms = [forms];
     }
 
     // Build the query, using either the subId or forms array.
-    var query = {deleted: {$eq: null}};
+    const query = {deleted: {$eq: null}};
     if (subId) {
       query._id = util.idToBson(subId);
     }
     else {
-      forms = _(forms)
-        .map(util.idToBson)
-        .value();
-
+      forms = forms.map(util.idToBson);
       query.form = {$in: forms};
     }
 
-    debug('Deleting ' + (subId ? 'single submission' : 'multiple submissions'));
-    router.formio.resources.submission.model.find(query, function(err, submissions) {
-      if (err) {
-        debug(err);
-        return next(err);
-      }
-      if (!submissions || submissions.length === 0) {
-        debug('No submissions found.');
-        return next();
-      }
+    const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+    return submissionModel.find(query).exec()
+      .then((submissions) => {
+        if (!submissions || submissions.length === 0) {
+          return Promise.resolve();
+        }
 
-      async.eachSeries(submissions, function(submission, cb) {
-        submission.deleted = Date.now();
-        submission.markModified('deleted');
-        submission.save(cb);
-      }, next);
-    });
-  };
+        return Promise.all(submissions.map((submission) => {
+          submission.deleted = Date.now();
+          submission.markModified('deleted');
+          return submission.save();
+        }))
+          .then(() => submissions);
+      });
+  }
 
   /**
    * Flag an Action as deleted. If given a actionId, one action will be flagged; if given a formId, or array of formIds,
@@ -74,101 +66,81 @@ module.exports = function(router) {
    *   The Action id to flag as deleted.
    * @param {String|ObjectId|Array} forms
    *   A list of form ids to flag all Actions as deleted.
-   * @param {Function} next
-   *   The callback function to return the results.
+   * @param {Object} req
+   *   The express request object.
+   *
+   * @returns {Promise}
+   *   Result of deleting the action(s), resolved by deleted entity(ies).
    */
-  var deleteAction = function(actionId, forms, next) {
-    var debug = require('debug')('formio:delete:action');
-    var util = router.formio.util;
+  function deleteAction(actionId, forms, req) {
+    const util = router.formio.util;
     if (!actionId && !forms) {
-      debug('Skipping');
-      return next();
+      return Promise.resolve();
     }
     // Convert the forms to an array if only one was provided.
-    if (forms && !(forms instanceof Array)) {
+    if (forms && !Array.isArray(forms)) {
       forms = [forms];
     }
 
-    var query = {deleted: {$eq: null}};
+    const query = {deleted: {$eq: null}};
     if (actionId) {
       query._id = util.idToBson(actionId);
     }
     else {
-      forms = _(forms)
-        .map(util.idToBson)
-        .value();
-
+      forms = forms.map(util.idToBson);
       query.form = {$in: forms};
     }
 
-    debug('Deleting ' + (actionId ? 'single action' : 'multiple actions'));
-    debug(query);
-    router.formio.actions.model.find(query, function(err, actions) {
-      if (err) {
-        debug(err);
-        return next(err);
-      }
-      if (!actions || actions.length === 0) {
-        debug('No actions found.');
-        return next();
-      }
+    return router.formio.actions.model.find(query).exec()
+      .then((actions) => {
+        if (!actions || actions.length === 0) {
+          return Promise.resolve();
+        }
 
-      async.eachSeries(actions, function(action, cb) {
-        action.settings = action.settings || {};
-        action.deleted = Date.now();
-        action.markModified('deleted');
-        action.save(cb);
-      }, next);
-    });
-  };
+        return Promise.all(actions.map((action) => {
+          action.settings = action.settings || {};
+          action.deleted = Date.now();
+          action.markModified('deleted');
+          return action.save();
+        }))
+          .then(() => actions);
+      });
+  }
 
   /**
    * Flag a form as deleted. If given a formId, one form will be flagged;
    *
    * @param {String|ObjectId} formId
    *   The form id to flag as deleted.
-   * @param {Function} next
-   *   The callback function to return the results.
+   * @param {Object} req
+   *   The express request object.
+   *
+   * @returns {Promise}
+   *   Result of deleting the form, resolved by deleted entity.
    */
-  var deleteForm = function(formId, next) {
-    var debug = require('debug')('formio:delete:form');
-    var util = router.formio.util;
+  function deleteForm(formId, req) {
+    const util = router.formio.util;
     if (!formId) {
-      debug('Skipping');
-      return next();
+      return Promise.resolve();
     }
 
-    var query = {_id: util.idToBson(formId), deleted: {$eq: null}};
-    debug(query);
-    router.formio.resources.form.model.findOne(query, function(err, form) {
-      if (err) {
-        debug(err);
-        return next(err);
-      }
-      if (!form) {
-        debug('No form found with the _id: ' + formId);
-        return next();
-      }
-
-      form.deleted = Date.now();
-      form.markModified('deleted');
-      form.save(function(err) {
-        if (err) {
-          debug(err);
-          return next(err);
+    const query = {_id: util.idToBson(formId), deleted: {$eq: null}};
+    return router.formio.resources.form.model.findOne(query).exec()
+      .then((form) => {
+        if (!form) {
+          return Promise.resolve();
         }
 
-        deleteAction(null, formId, function(err) {
-          if (err) {
-            debug(err);
-            return next(err);
-          }
-
-          deleteSubmission(null, formId, next);
-        });
+        form.deleted = Date.now();
+        form.markModified('deleted');
+        return form.save()
+          .then(() => Promise.all([
+            deleteAction(null, formId, req),
+            deleteSubmission(null, formId, req),
+          ]))
+          .then(() => form);
       });
-    });
-  };
+  }
 
   /**
    * Delete all known references to access for the given role.
@@ -176,151 +148,120 @@ module.exports = function(router) {
    * @param {String|ObjectId} roleId
    *   The roleId to delete access for.
    * @param {Object} req
-   *   The express callback function.
-   * @param {Function} next
-   *   The callback function to return the results.
+   *   The express request object.
    */
-  var deleteRoleAccess = function(roleId, req, next) {
-    var debug = require('debug')('formio:delete:roleaccess');
-    var util = router.formio.util;
+  function deleteRoleAccess(roleId, req) {
+    const util = router.formio.util;
     if (!roleId) {
-      debug('Skipping');
-      return next();
+      return Promise.resolve();
     }
 
     // Convert the roldId to a string for comparison.
     roleId = util.idToString(roleId);
 
-    // The access types to check.
-    var accessType = ['access', 'submissionAccess'];
-
-    // The formIds to check.
-    var formIds = null;
-
     /**
      * Remove the roleId from the forms' access types.
      *
-     * @param {Function} cb
-     *   The callback function to invoke after the role has been removed.
+     * @param {[ObjectId]} formIds
+     *   Ids of forms for which role should be removed.
      */
-    var removeFromForm = function(cb) {
+    function removeFromForm(formIds) {
       // Build the or query on accessTypes.
-      var or = [];
-      accessType.forEach(function(access) {
-        var temp = {};
-        var key = access + '.roles';
-        temp[key] = util.idToBson(roleId);
-        or.push(temp);
-      });
+      const accessTypes = ['access', 'submissionAccess'];
+      const or = accessTypes.map((accessType) => ({
+        [`${accessType}.roles`]: util.idToBson(roleId)
+      }));
 
       // Build the search query, and allow anyone to hook it.
-      var query = {_id: {$in: _.map(formIds, util.idToBson)}, $or: or};
-      query = hook.alter('formQuery', query, req);
+      const query = hook.alter('formQuery', {
+        _id: {$in: formIds.map(util.idToBson)},
+        $or: or,
+      }, req);
 
-      debug(query);
-      router.formio.resources.form.model.find(query).snapshot(true).exec(function(err, forms) {
-        if (err) {
-          debug(err);
-          return cb(err);
-        }
-        if (!forms || forms.length === 0) {
-          return cb();
-        }
+      return router.formio.resources.form.model.find(query).exec()
+        .then((forms) => {
+          if (!forms || forms.length === 0) {
+            return Promise.resolve();
+          }
 
-        // Iterate each form and remove the role.
-        debug('Found ' + forms.length + ' forms to modify.');
-        async.eachSeries(forms, function(form, done) {
-          // Iterate each access type to remove the role.
-          accessType.forEach(function(access) {
-            var temp = form.toObject()[access] || [];
+          // Iterate each form and remove the role.
+          return Promise.all(forms.map((form) => {
+            // Iterate each access type to remove the role.
+            for (const accessType of accessTypes) {
+              const accesses = form.toObject()[accessType] || [];
 
-            // Iterate the roles for each permission type, and remove the given roleId.
-            for (var b = 0; b < temp.length; b++) {
-              // Convert the ObjectIds to strings for comparison.
-              temp[b].roles = _.map((temp[b].roles || []), util.idToString);
-
-              // Remove the given roleId if it was defined in the access.
-              if (temp[b].roles.indexOf(roleId) !== -1) {
-                _.pull(temp[b].roles, roleId);
+              // Iterate the roles for each permission type, and remove the given roleId.
+              for (const access of accesses) {
+                access.roles = (access.roles || [])
+                  .map(util.idToString)
+                  .filter((role) => role !== roleId)
+                  .map(util.idToBson);
               }
 
-              // Convert the role ids back to bson strings for storage.
-              temp[b].roles = _.map((temp[b].roles || []), util.idToBson);
+              form.set(accessType, accesses);
+              form.markModified(accessType);
             }
 
-            form.set(access, temp);
-            form.markModified(access);
-          });
-
-          form.save(done);
-        }, cb);
-      });
-    };
+            return form.save();
+          }));
+        });
+    }
 
     /**
      * Remove the roleId from the submissions for the given formIds.
      *
-     * @param {Function} cb
-     *   The callback function to invoke after the roles have been removed.
+     * @param {[ObjectId]} formIds
+     *   Submissions form ids for which role should be removed.
      */
-    var removeFromSubmissions = function(cb) {
+    function removeFromSubmissions(formIds) {
       // Find all submissions that contain the role in its roles.
-      var query = {form: {$in: _.map(formIds, util.idToBson)}, deleted: {$eq: null}, roles: util.idToBson(roleId)};
-      debug(query);
-      router.formio.resources.submission.model.find(query).snapshot(true).exec(function(err, submissions) {
-        if (err) {
-          debug(err);
-          return cb(err);
-        }
-        if (!submissions || submissions.length === 0) {
-          return cb();
-        }
+      const query = {
+        form: {$in: formIds.map(util.idToBson)},
+        deleted: {$eq: null},
+        roles: util.idToBson(roleId),
+      };
+      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
-        // Iterate each submission to filter the roles.
-        async.eachSeries(submissions, function(submission, done) {
-          var temp = _.map((submission.toObject().roles || []), util.idToString);
-
-          // Omit the given role from all submissions.
-          if (temp.indexOf(roleId) !== -1) {
-            _.pull(temp, roleId);
+      return submissionModel.find(query).exec()
+        .then((submissions) => {
+          if (!submissions || submissions.length === 0) {
+            return Promise.resolve();
           }
 
-          // Convert all the roles back to bson strings for storage.
-          temp = _.map(temp, util.idToBson);
+          // Iterate each submission to filter the roles.
+          return Promise.all(submissions.map((submission) => {
+            const roles = (submission.toObject().roles || [])
+              .map(util.idToString)
+              .filter((role) => role !== roleId)
+              .map(util.idToBson);
 
-          submission.set('roles', temp);
-          submission.markModified('roles');
-          submission.save(done);
-        }, cb);
-      });
-    };
+            submission.set('roles', roles);
+            submission.markModified('roles');
+            return submission.save();
+          }));
+        });
+    }
 
     // Build the search query and allow anyone to hook it.
-    var query = {deleted: {$eq: null}};
-    query = hook.alter('formQuery', query, req);
+    const query = hook.alter('formQuery', {deleted: {$eq: null}}, req);
 
-    router.formio.resources.form.model.find(query).select('_id').snapshot(true).exec(function(err, ids) {
-      if (err) {
-        debug(err);
-        return next(err);
-      }
-      if (!ids) {
-        debug('No form ids found.');
-        return next();
-      }
+    return router.formio.resources.form.model.find(query).select('_id').exec()
+      .then((forms) => {
+        if (!forms) {
+          return Promise.resolve();
+        }
 
-      // update the list of formIds
-      formIds = _(ids)
-        .map('_id')
-        .map(util.idToString)
-        .value();
+        // update the list of formIds
+        const formIds = forms
+          .map((form) => form._id)
+          .map(util.idToString);
 
-      async.series([
-        removeFromForm,
-        removeFromSubmissions
-      ], next);
-    });
-  };
+        return Promise.all([
+          removeFromForm(formIds),
+          removeFromSubmissions(formIds),
+        ]);
+      });
+  }
 
   /**
    * Flag a Role as deleted. If given a roleId, one Role will be flagged;
@@ -329,49 +270,38 @@ module.exports = function(router) {
    *   The Role id to flag as deleted.
    * @param {Object} req
    *   The express request object.
-   * @param {Function} next
-   *   The callback function to return the results.
+   *
+   * @returns {Promise}
+   *   Result of deleting the role, resolved by deleted entity.
    */
-  var deleteRole = function(roleId, req, next) {
-    var debug = require('debug')('formio:delete:role');
-    var util = router.formio.util;
+  function deleteRole(roleId, req) {
+    const util = router.formio.util;
     if (!roleId) {
-      debug('Skipping');
-      return next();
+      return Promise.resolve();
     }
 
-    var query = {_id: util.idToBson(roleId), deleted: {$eq: null}};
-    debug(query);
-    router.formio.resources.role.model.findOne(query, function(err, role) {
-      if (err) {
-        debug(err);
-        return next(err);
-      }
-      if (!role) {
-        debug('No role found with _id: ' + roleId);
-        return next();
-      }
-
-      role.deleted = Date.now();
-      role.markModified('deleted');
-      role.save(function(err) {
-        if (err) {
-          debug(err);
-          return next(err);
+    const query = {_id: util.idToBson(roleId), deleted: {$eq: null}};
+    return router.formio.resources.role.model.findOne(query).exec()
+      .then((role) => {
+        if (!role) {
+          return Promise.resolve();
         }
 
-        deleteRoleAccess(roleId, req, next);
+        role.deleted = Date.now();
+        role.markModified('deleted');
+        return role.save()
+          .then(() => deleteRoleAccess(roleId, req))
+          .then(() => role);
       });
-    });
-  };
+  }
 
   /**
    * Expose the internal functionality for hiding 'deleted' entities.
    */
   return {
-    submission: deleteSubmission,
-    form: deleteForm,
     action: deleteAction,
-    role: deleteRole
+    form: deleteForm,
+    role: deleteRole,
+    submission: deleteSubmission,
   };
 };

@@ -1,7 +1,7 @@
 'use strict';
 
-var _ = require('lodash');
-var util = require('formiojs/utils');
+const _ = require('lodash');
+const util = require('formiojs/utils');
 
 /**
  * Go through each field and if Submission Resource Access is defined on it, add it to the submissionAccess array.
@@ -16,7 +16,7 @@ module.exports = function(router) {
       input = [input];
     }
 
-    var final = [];
+    const final = [];
     input.forEach(function(element) {
       if (element && element._id) {
         final.push(element._id);
@@ -32,9 +32,13 @@ module.exports = function(router) {
       return next();
     }
 
-    let defaultPermissions = {};
+    const defaultPermissions = {};
     req.body.access = [];
     router.formio.cache.loadForm(req, undefined, req.params.formId, function(err, form) {
+      if (err || !form) {
+        return next(`Cannot load form ${req.params.formId}`);
+      }
+
       util.eachComponent(form.components, function(component) {
         if (component.key && component.defaultPermission) {
           defaultPermissions[component.key] = component.defaultPermission;
@@ -54,7 +58,7 @@ module.exports = function(router) {
             value = [value];
           }
 
-          let ids = grabIds(value);
+          const ids = grabIds(value);
           if (ids.length) {
             // Try to find and update an existing permission.
             let found = false;

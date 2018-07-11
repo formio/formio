@@ -289,6 +289,29 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('A user should be able to read the index of forms without components', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form?list=1', template))
+          .set('x-jwt-token', template.users.user1.token)
+          .expect('Content-Type', template.project ? /text\/plain/ : /json/)
+          .expect(template.project ? 401 : 200)
+          .end(function(err, res) {
+              if (err) {
+                  return done(err);
+              }
+
+              if (!template.project) {
+                var response = res.body;
+                assert.equal(response.length, 9);
+                response.forEach(form => {
+                  assert(!form.hasOwnProperty('components'));
+                });
+                template.users.user1.token = res.headers['x-jwt-token'];
+              }
+              done();
+          });
+      });
+
       it('An administrator should be able to Update their Form', function(done) {
         var updatedForm = _.cloneDeep(template.forms.tempForm);
         updatedForm.title = 'Updated';
@@ -1188,10 +1211,8 @@ module.exports = function(app, template, hook) {
             assert.equal(response.submissionAccess[0].roles[0], template.roles.anonymous._id.toString());
             assert.equal(response.access.length, 1);
             assert.equal(response.access[0].type, 'read_all');
-            assert.equal(response.access[0].roles.length, 3);
+            assert.equal(response.access[0].roles.length, 1);
             assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
-            assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
-            assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
             assert.deepEqual(response.components, template.forms.userRegister2.components);
             template.forms.userRegister2 = response;
 
@@ -1272,10 +1293,8 @@ module.exports = function(app, template, hook) {
             assert.equal(response.submissionAccess[0].roles[0], template.roles.anonymous._id.toString());
             assert.equal(response.access.length, 1);
             assert.equal(response.access[0].type, 'read_all');
-            assert.equal(response.access[0].roles.length, 3);
+            assert.equal(response.access[0].roles.length, 1);
             assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
-            assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
-            assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
             assert.deepEqual(response.components, template.forms.userLogin2.components);
             template.forms.userLogin2 = response;
 
@@ -11696,6 +11715,22 @@ module.exports = function(app, template, hook) {
             protected: false,
             persistent: true,
             type: 'email'
+          },
+          {
+            input: true,
+            type: 'textfield',
+            label: 'First Name',
+            key: 'firstName',
+            persistent: true,
+            protected: false
+          },
+          {
+            input: true,
+            type: 'textfield',
+            label: 'Last Name',
+            key: 'lastName',
+            persistent: true,
+            protected: false
           }
         ]
       };
@@ -11717,9 +11752,33 @@ module.exports = function(app, template, hook) {
 
       var resources = [];
       it('Should create a few resources', (done) => {
-        for (var i=0; i < 5; i++) {
-          resources.push({data: {email: chance.email()}})
-        }
+        resources = [
+          {data: {
+            firstName: 'Joe',
+            lastName: 'Smith',
+            email: chance.email()
+          }},
+          {data: {
+            firstName: 'Joe',
+            lastName: 'Thompson',
+            email: chance.email()
+          }},
+          {data: {
+            firstName: 'Sally',
+            lastName: 'Smith',
+            email: chance.email()
+          }},
+          {data: {
+            firstName: 'Susie',
+            lastName: 'Johnston',
+            email: chance.email()
+          }},
+          {data: {
+            firstName: 'Zack',
+            lastName: 'Murray',
+            email: chance.email()
+          }}
+        ];
         async.eachOf(resources, (resource, index, next) => {
           request(app)
             .post(hook.alter('url', '/form/' + resourceForm._id + '/submission', template))
@@ -11812,6 +11871,98 @@ module.exports = function(app, template, hook) {
               next();
             });
         }, done);
+      });
+
+      it('Should be able to filter the list of references', (done) => {
+        let url = '/form/' + referenceForm._id + '/submission';
+        url += '?data.user.data.firstName=Joe';
+        request(app)
+          .get(hook.alter('url', url, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            assert.equal(res.body.length, 2);
+            _.each(res.body, (item, index) => {
+              assert.equal(item.data.user.data.firstName, 'Joe');
+            });
+            done();
+          });
+      });
+
+      it('Should be able to filter and sort the list of references', (done) => {
+        let url = '/form/' + referenceForm._id + '/submission';
+        url += '?data.user.data.firstName=Joe&sort=data.user.data.lastName';
+        request(app)
+          .get(hook.alter('url', url, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            assert.equal(res.body.length, 2);
+            _.each(res.body, (item, index) => {
+              assert.equal(item.data.user.data.firstName, 'Joe');
+            });
+            assert.equal(res.body[0].data.user.data.lastName, 'Smith');
+            assert.equal(res.body[1].data.user.data.lastName, 'Thompson');
+            done();
+          });
+      });
+
+      it('Should be able to filter and descend sort the list of references', (done) => {
+        let url = '/form/' + referenceForm._id + '/submission';
+        url += '?data.user.data.firstName=Joe&sort=-data.user.data.lastName';
+        request(app)
+          .get(hook.alter('url', url, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            assert.equal(res.body.length, 2);
+            _.each(res.body, (item, index) => {
+              assert(item.data.user.data.hasOwnProperty('email'), 'Must contain email');
+              assert.equal(item.data.user.data.firstName, 'Joe');
+            });
+            assert.equal(res.body[0].data.user.data.lastName, 'Thompson');
+            assert.equal(res.body[1].data.user.data.lastName, 'Smith');
+            done();
+          });
+      });
+
+      it('Should be able to filter and sort and pick certain fields of the list of references', (done) => {
+        let url = '/form/' + referenceForm._id + '/submission';
+        url += '?data.user.data.firstName=Joe&sort=data.user.data.lastName&select=data.user.data.firstName,data.user.data.lastName';
+        request(app)
+          .get(hook.alter('url', url, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            assert.equal(res.body.length, 2);
+            _.each(res.body, (item, index) => {
+              assert(!item.data.user.data.hasOwnProperty('email'), 'Must not contain email');
+              assert.equal(item.data.user.data.firstName, 'Joe');
+            });
+            assert.equal(res.body[0].data.user.data.lastName, 'Smith');
+            assert.equal(res.body[1].data.user.data.lastName, 'Thompson');
+            done();
+          });
       });
 
       it('Should be able to load the full data when a GET routine is retrieved.', (done) => {
