@@ -3,20 +3,20 @@
 /**
  * This is the Form.io application server.
  */
-var express = require('express');
-var nunjucks = require('nunjucks');
-var fs = require('fs-extra');
-var util = require('./src/util/util');
+const express = require('express');
+const nunjucks = require('nunjucks');
+const fs = require('fs-extra');
+const util = require('./src/util/util');
 require('colors');
-var Q = require('q');
-var test = process.env.TEST_SUITE;
+const Q = require('q');
+const test = process.env.TEST_SUITE;
 
 module.exports = function(options) {
   options = options || {};
-  var q = Q.defer();
+  const q = Q.defer();
 
   util.log('');
-  var rl = require('readline').createInterface({
+  const rl = require('readline').createInterface({
     input: require('fs').createReadStream('logo.txt')
   });
 
@@ -37,10 +37,10 @@ module.exports = function(options) {
   });
 
   // Use the express application.
-  var app = options.app || express();
+  const app = options.app || express();
 
   // Use the given config.
-  var config = options.config || require('config');
+  const config = options.config || require('config');
 
   // Configure nunjucks.
   nunjucks.configure('client', {
@@ -49,24 +49,24 @@ module.exports = function(options) {
   });
 
   // Mount the client application.
-  app.use('/', express.static(__dirname + '/client/dist'));
+  app.use('/', express.static(`${__dirname}/client/dist`));
 
   // Load the form.io server.
-  var server = options.server || require('./index')(config);
-  var hooks = options.hooks || {};
+  const server = options.server || require('./index')(config);
+  const hooks = options.hooks || {};
 
   app.use(server.formio.middleware.restrictRequestTypes);
   server.init(hooks).then(function(formio) {
     // Called when we are ready to start the server.
-    var start = function() {
+    const start = function() {
       // Start the application.
       if (fs.existsSync('app')) {
-        var application = express();
-        application.use('/', express.static(__dirname + '/app/dist'));
+        const application = express();
+        application.use('/', express.static(`${__dirname}/app/dist`));
         config.appPort = config.appPort || 8080;
         application.listen(config.appPort);
-        var appHost = 'http://localhost:' + config.appPort;
-        util.log(' > Serving application at ' + appHost.green);
+        const appHost = `http://localhost:${config.appPort}`;
+        util.log(` > Serving application at ${appHost.green}`);
       }
 
       // Mount the Form.io API platform.
@@ -83,7 +83,7 @@ module.exports = function(options) {
     };
 
     // Which items should be installed.
-    var install = {
+    const install = {
       download: false,
       extract: false,
       import: false,

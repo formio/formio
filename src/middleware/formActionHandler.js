@@ -21,7 +21,7 @@ module.exports = function(router) {
           (res.resource && res.resource.item) &&
           (!req.body.noSave)
         ) {
-          var Action = router.formio.actions.model;
+          const Action = router.formio.actions.model;
 
           // Insert the save submission action for new forms.
           (new Action({

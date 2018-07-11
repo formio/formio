@@ -1,9 +1,9 @@
 'use strict';
 
 module.exports = function(formio) {
-  var hook = require('../../util/hook')(formio);
+  const hook = require('../../util/hook')(formio);
   return {
-    beforePut: function(component, path, validation, req, res, next) {
+    beforePut(component, path, validation, req, res, next) {
       // Only perform before validation has occurred.
       if (validation) {
         return next();
@@ -13,7 +13,7 @@ module.exports = function(formio) {
       }
     },
 
-    beforePost: function(component, path, validation, req, res, next) {
+    beforePost(component, path, validation, req, res, next) {
       // Only perform before validation has occurred.
       if (validation) {
         return next();

@@ -1,22 +1,22 @@
 'use strict';
 
-var _ = require('lodash');
-var util = require('formiojs/utils');
+const _ = require('lodash');
+const util = require('formiojs/utils');
 
 module.exports = function(req, router, cb) {
-  var hook = require('./hook')(router.formio);
+  const hook = require('./hook')(router.formio);
 
   /**
    * Create a resource Url for a swagger spec.
    * @param form
    * @returns {*}
    */
-  var resourceUrl = function(form) {
-    return '/' + form.path + '/submission';
+  const resourceUrl = function(form) {
+    return `/${form.path}/submission`;
   };
 
   /*eslint-disable camelcase*/
-  var addressComponent = function() {
+  const addressComponent = function() {
     return {
       address: {
         properties: {
@@ -103,8 +103,8 @@ module.exports = function(req, router, cb) {
    * @param form
    * @returns {undefined}
    */
-  var getDefinition = function(components, name) {
-    var definitions = {};
+  const getDefinition = function(components, name) {
+    let definitions = {};
     definitions[name] = {
       properties: {},
       required: []
@@ -112,7 +112,7 @@ module.exports = function(req, router, cb) {
 
     util.eachComponent(components, function(component) {
       if (component.key) {
-        var property;
+        let property;
         switch (component.type) {
           case 'email':
           case 'textfield':
@@ -196,10 +196,11 @@ module.exports = function(req, router, cb) {
     return definitions;
   };
 
-  var submissionSwagger = function(form) {
+  const submissionSwagger = function(form) {
     // Need to customize per form instead of returning the same swagger for every form.
-    var originalPaths = _.cloneDeep(router.formio.resources.submission.model.schema.paths);
-    var resource = {
+    const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+    const originalPaths = _.cloneDeep(submissionModel.schema.paths);
+    const resource = {
       name: form.title,
       modelName: form.name,
       route: resourceUrl(form),
@@ -211,14 +212,14 @@ module.exports = function(req, router, cb) {
       methods: _.clone(router.formio.resources.submission.methods)
     };
 
-    var swagger = router.formio.resources.submission.swagger.call(resource, true);
+    const swagger = router.formio.resources.submission.swagger.call(resource, true);
 
     // Override the body definition.
     swagger.definitions[resource.modelName].required = ['data'];
     swagger.definitions[resource.modelName].properties.data = {
-      $ref: '#/definitions/' + resource.modelName + 'Data'
+      $ref: `#/definitions/${resource.modelName}Data`
     };
-    swagger.definitions = _.merge(swagger.definitions, getDefinition(form.components, resource.modelName + 'Data'));
+    swagger.definitions = _.merge(swagger.definitions, getDefinition(form.components, `${resource.modelName}Data`));
     return swagger;
   };
 
@@ -227,20 +228,20 @@ module.exports = function(req, router, cb) {
    * @param options
    * @returns {{swagger: string, info: {title: (string|*), description: (string|*), termsOfService: string, contact: {name: string, url: string, email: string}, license: {name: string, url: string}, version: string}, host: *, basePath: string, schemes: Array, consumes: string[], produces: string[], paths: {}, definitions: {}, securityDefinitions: {bearer: {type: string, name: string, in: string}}}}
    */
-  var swaggerSpec = function(specs, options) {
+  const swaggerSpec = function(specs, options) {
     // Available Options and Defaults
     options = options || {};
     if (!options.shortTitle) {
       options.shortTitle = 'Form.io';
     }
     if (!options.title) {
-      options.title = options.shortTitle + ' API';
+      options.title = `${options.shortTitle} API`;
     }
     if (!options.description) {
-      options.description = options.shortTitle + ' Swagger 2.0 API specification.  This API spec can be used for '
-        + 'integrating your Form.io project into non-HTML5 programs like "native" phone apps, "legacy" and "enterprise"'
-        + ' systems, embedded "Internet of Things" applications (IoT), and other programming languages.  Note: '
-        + 'The URL\'s below are configured for your specific project and form.';
+      options.description = `${options.shortTitle} Swagger 2.0 API specification.  This API spec can be used for `
+        + `integrating your Form.io project into non-HTML5 programs like "native" phone apps, "legacy" and "enterprise"`
+        + ` systems, embedded "Internet of Things" applications (IoT), and other programming languages.  Note: `
+        + `The URL's below are configured for your specific project and form.`;
     }
     if (!options.version) {
       options.version = '1.0.0';
@@ -257,8 +258,8 @@ module.exports = function(req, router, cb) {
     }
 
     // Get paths and definitions
-    var paths = {};
-    var definitions = {};
+    let paths = {};
+    let definitions = {};
 
     _.each(specs, function(spec) {
       paths = _.assign(paths, spec.paths);
@@ -300,7 +301,7 @@ module.exports = function(req, router, cb) {
     };
   };
 
-  var options = {
+  const options = {
     host: hook.alter('host', router.formio.config.baseUrl, req)
   };
 
@@ -310,7 +311,7 @@ module.exports = function(req, router, cb) {
         throw err;
       }
 
-      var specs = [];
+      const specs = [];
       specs.push(submissionSwagger(form));
       cb(swaggerSpec(specs, options));
     });
@@ -321,7 +322,7 @@ module.exports = function(req, router, cb) {
         throw err;
       }
 
-      var specs = [];
+      const specs = [];
       forms.forEach(function(form) {
         specs.push(submissionSwagger(form));
       });

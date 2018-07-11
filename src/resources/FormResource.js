@@ -1,7 +1,6 @@
 'use strict';
 
 const Resource = require('resourcejs');
-const mongoose = require('mongoose');
 const _ = require('lodash');
 
 module.exports = function(router) {
@@ -17,7 +16,7 @@ module.exports = function(router) {
       res.resource.item
     ) {
       // Make sure we do not expose private validations.
-      var checkPrivateValidation = function(form) {
+      const checkPrivateValidation = function(form) {
         if (req.isAdmin) {
           return;
         }
@@ -48,9 +47,17 @@ module.exports = function(router) {
   // If the last argument is a function, hook.alter assumes it is a callback function.
   const FormResource = hook.alter('FormResource', Resource, null);
 
-  return FormResource(router, '', 'form', mongoose.model('form'))
+  return FormResource(router, '', 'form', router.formio.mongoose.model('form'))
     .rest(hook.alter('formRoutes', {
       before: [
+        (req, res, next) => {
+          // If we leave list in query it will interfere with the find query.
+          if (req.query.list) {
+            req.filterIndex = true;
+            delete req.query.list;
+          }
+          next();
+        },
         router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
         router.formio.middleware.bootstrapEntityOwner(false),
         router.formio.middleware.formHandler,
@@ -64,11 +71,12 @@ module.exports = function(router) {
         router.formio.middleware.bootstrapFormAccess,
         router.formio.middleware.formLoader,
         router.formio.middleware.formActionHandler('after'),
-        router.formio.middleware.filterResourcejsResponse(['deleted', '__v'])
+        router.formio.middleware.filterResourcejsResponse(['deleted', '__v']),
+        router.formio.middleware.filterIndex(['components'])
       ],
       hooks: {
         put: {
-          before: function(req, res, item, next) {
+          before(req, res, item, next) {
             if (item.components) {
               item.markModified('components');
             }

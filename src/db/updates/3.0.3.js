@@ -1,8 +1,8 @@
 'use strict';
 
-var async = require('async');
-var util = require('../../util/util');
-var _ = require('lodash');
+let async = require('async');
+let util = require('../../util/util');
+let _ = require('lodash');
 
 /**
  * Update 3.0.3
@@ -20,8 +20,8 @@ var _ = require('lodash');
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var actionCollection = db.collection('actions');
-  var formCollection = db.collection('forms');
+  let actionCollection = db.collection('actions');
+  let formCollection = db.collection('forms');
 
   // Iterate through all forms.
   formCollection.find({}).snapshot({$snapshot: true}).toArray(function(err, forms) {
@@ -30,7 +30,7 @@ module.exports = function(db, config, tools, done) {
     }
 
     // Iterate through each form.
-    var formsUpdated = 0;
+    let formsUpdated = 0;
     console.log('Updating ' + forms.length + ' forms.');
     async.forEachOf(forms, function(form, key, next) {
       actionCollection.find({
@@ -40,9 +40,9 @@ module.exports = function(db, config, tools, done) {
           return next(err);
         }
 
-        var resourceAction = _.find(actions, {name: 'resource'});
-        var noSubmitAction = _.find(actions, {name: 'nosubmit'});
-        var resetpassAction = _.find(actions, {name: 'resetpass'});
+        let resourceAction = _.find(actions, {name: 'resource'});
+        let noSubmitAction = _.find(actions, {name: 'nosubmit'});
+        let resetpassAction = _.find(actions, {name: 'resetpass'});
 
         if (resourceAction) {
           // Handle #1 case

@@ -2,7 +2,307 @@
 All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
-and this project adheres to [Semantic Versioning](http://semver.org/).
+and this project adheres to [Semantic Versioning](http://semver.org/)
+
+## 1.31.3
+### Fixed
+ - Issues where the validator would crash for certain JSON form structures.
+
+## 1.31.2
+### Added
+ - The original message type of an email to the message payload.
+
+## 1.31.1
+### Changed
+ - Moved all instances of mongoose to use a single entity provided within the formio object.
+
+## 1.31.0
+### Fixed
+ - Make select query validation use caching to limit requests being made.
+ - CSV export of wysiwyg
+ - Webhook improvements
+ 
+### Changed
+ - Upgrade mongoose@5.1.7, nodemailer@4.6.7, jsonwebtoken@8.3.0, eslint@5.0.1
+
+## 1.30.2
+### Fixed
+ - Problems with the machine name generation where numbers in the project name would mess it up.
+
+## 1.30.1
+### Fixed
+ - Issues with the machine name generation for names with more than 10 instances.
+
+## 1.30.0
+### Added
+ - Ability for email templates to execute from workers library.
+ - Validation changes for multi-mask fields
+ - Ability to configure email transports via hooks.
+
+### Changed
+ - Upgraded JSONStream@1.3.3, async@2.6.1, body-parser@1.18.3, mongodb@3.0.8, nodemailer@4.6.5, vanilla-text-mask@5.1.1, nodemon@1.17.5, colors@1.3.0, csv@3.1.0, formiojs@2.32.2, joi@13.3.0, mongoose@5.1.3, nodemailer-mailgun-transport@1.4.0, request@2.87.0, mocha@5.2.0, supertest@3.1.0, fs-extra@6.0.1, adm-zip@0.4.11
+
+## 1.29.2
+### Fixed
+ - Potential crash when merging forms when one row was empty or missing.
+
+## 1.29.1
+### Changed
+ - Upgraded resourcejs to v1.23.1 to fix issue with number filtering.
+
+## 1.29.0
+### Added
+ - Ability to calculate values of fields on server.
+
+## 1.28.0
+### Added
+ - Unique validation for objects.
+
+### Fixed
+ - Issues with DataGrid exports.
+ - Issues with DateTime filters on index apis.
+
+### Changed
+ - Upgraded dependencies.
+
+## 1.27.3
+### Fixed
+ - Save as reference issues with multiple configuration.
+ - Problems with using the "exists" endpoint with the new converted ObjectId's
+ - Problems with providing an _id filter when using save as reference indexes.
+
+### Changed
+ - Upgraded formiojs@2.30.1, mongoose@5.0.12, nodemailer@4.6.4, nodemon@1.17.3, moment@2.22.0
+
+### Added
+ - Email view for File component.
+
+## 1.27.2
+### Fixed
+ - Problem where some values would get converted to ObjectIds and then would not work with indexing.
+
+## 1.27.1
+### Changed
+ - Upgraded express@4.16.3, mongodb@3.0.5, mongoose@5.0.11, nodemailer@4.6.3, mocha@5.0.5, nodemon@1.17.2, colors@1.2.1, formiojs@2.30.0, request@2.85.0, eslint@4.19.1
+
+## 1.27.0
+### Changed
+ - Convert all sub-document submissions to use ObjectId's for form, owner, and _id.
+ - Added recommended indexes for performance.
+
+## 1.26.8
+### Fixed
+ - Problem where the references could get in a state where the Id's are not ObjectIds.
+ - Running the update hook to fix the references again to ensure they are all ObjectIds.
+
+## 1.26.7
+### Fixed
+ - Issues with single record save-as-reference where previous submission would mess up queries.
+ - Problems with the SMTP settings where username and password could be optional.
+
+## 1.26.6
+### Fixed
+ - Problems with the save-as-reference not working with empty references.
+
+## 1.26.5
+### Fixed
+ - Fixed some filtering issues with Save as reference.
+
+## 1.26.4
+### Fixed
+ - Potential crash within the CSV export functions.
+
+## 1.26.3
+### Fixed
+ - Refactored the save-as-reference so pagination + sort works as expected.
+
+## 1.26.2
+### Fixed
+ - Pagination issues with save-as-reference
+
+## 1.26.1
+### Fixed
+ - Correct sorting for save-as-reference when there are more items than references.
+ - Issues with save-as-reference lookup for single references.
+
+## 1.26.0
+### Fixed
+ - Some more issues with save as reference features.
+
+### Changed
+ - Resourcejs to allow fix date values.
+ - Upgrade dependencies.
+
+## 1.25.12
+### Fixed
+ - The form component unique validation to only care about input components.
+
+## 1.25.11
+### Fixed
+ - Issues with the store as reference features.
+
+## 1.25.10
+### Fixed
+ - The filter and sort index queries for referenced fields.
+
+## 1.25.9
+### Fixed
+ - CSV exporter that would throw an error for DateTime components.
+ - Issue where hidden components that have a value set remove their parent containers or datagrids.
+ - Ensure sub-requests get their own cloned request paramters.
+ - Issue with the field parameter actions would execute twice unintentionally.
+ - Issue where empty list of references would fail the request.
+
+## 1.25.8
+### Fixed
+ - Some potential undefined references causing crashes.
+ - A bunch of small bugs in CSV export.
+
+## 1.25.7
+### Fixed
+ - Issue with the resource references index query taking too long and taking a lot of memory.
+ - Problems with using cloneDeep on sub-requests which would gobble up memory.
+
+## 1.25.8
+### Fixed
+ - Problems with sub-responses calling methods that do not exist.
+
+### Changed
+ - Upgraded formiojs (2.29.5), nodemailer (4.5.0), nunjucks (3.1.0)
+ - Upgraded mongoose to 5.0.6, formio.js to 2.29.2
+
+## 1.25.4
+### Changed
+ - Removed all calls to snapshot since it was causing serious performance regressions.
+
+## 1.25.3
+### Fixed
+ - Problem with the owner property not getting set properly when they are an admin.
+
+## 1.25.2
+### Changed
+ - Upgrade config@1.29.4, joi@13.1.2, lodash@4.17.5, eslint@4.17.0
+
+### Fixed
+ - A potential crash when assigning submission resource access.
+
+## 1.25.1
+### Changed
+ - Upgraded MongoDB driver to 3.0.2, Mongoose 5.0.3
+
+### Added
+ - Add list querystring to allow more efficient list returns.
+ - Field Logic handling.
+
+### Fixed
+ - Fix required multi-value fields not returning required.
+ - Fix the way rows are found for datagrid checkConditionals.
+ - Fix email actions for external authentication (User doesn't exist in form.io)
+ - Fixed an issue where the token handler would return 401 when it should try as anonymous.
+
+## 1.25.0
+### Changed
+ - Upgrade MongoDB (v3) and Mongoose (v5) to latest versions.
+
+## 1.24.7
+### Fixed
+ - Potential crashes in CSV export and template imports.
+
+## 1.24.6
+### Changed
+ - Removed a bunch of superfluous debug messages for memory and performance improvements.
+
+## 1.24.5
+### Fixed
+ - Tests to refer to the correct helper template instead of the global one.
+
+## 1.24.4
+### Fixed
+ - Submission index queries that filter based on the user owner.
+
+## 1.24.3
+### Fixed
+ - Problems with the Save as Reference for Select dropdowns and other bugs.
+ - Connection issues with SQL Action.
+
+### Changed
+ - ES6 cleanup items.
+
+## 1.24.2
+### Fixed
+ - Issue where the metadata property for submissions was getting stripped out.
+ - DateTime component export.
+
+## 1.24.1
+### Changed
+ - Upgraded resourcejs to latest version.
+
+## 1.24.0
+### Changed
+ - Upgraded all dependencies.
+
+## 1.23.12
+### Changed
+ - Upgraded resourcejs to fix crash in index queries.
+
+## 1.23.11
+### Changed
+ - The owner property to be either a MongoID or a string with custom value.
+ - Converted some code into ES6 patterns.
+
+### Added
+ - Hook into the export capabilities.
+
+## 1.23.10
+### Fixed
+ - CSV export when Select component within DataGrid component.
+ - Do not replace the title and name during import if none are provided.
+
+### Added
+ - Custom Form properties.
+
+## 1.23.7
+### Changed
+ - Allow people to provide their form access settings on POST.
+
+### Fixed
+ - Issue with CSV export crashing on fields within a datagrid.
+
+## 1.23.6
+### Fixed
+ - Threading so that it will not block debugging ports.
+
+## 1.23.5
+### Fixed
+ - Make async validators work properly and move select to joi validation.
+ - Fix issue with importing subforms out of order.
+ - Move sub form validation and submission to the appropriate areas so it works in conjunction with other functionality.
+ - Hooks for tempTokens.
+
+## 1.23.3
+### Fixed
+ - Problems with using temp tokens with remote environments.
+ - Import order of subforms no longer crashes import.
+
+## 1.23.2
+### Fixed
+ - Issues with problematic aggresive resource caching.
+
+## 1.23.1
+### Changed
+ - Upgraded dependencies.
+
+## 1.23.0
+### Fixed
+ - Datetime fields to be stored as MongoDB Date objects.
+
+### Added
+ - Ability to alter models dynamically.
+ - Partial indexes for non-deleted entities.
+ - Ability to provide dynamic sub-forms from parent form submissions.
+
+### Changed
+ - Upgrade all dependencies.
 
 ## 1.22.19
 ### Changed

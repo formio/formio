@@ -221,6 +221,28 @@ module.exports = function(app, template, hook) {
               });
           });
 
+          it('The Project Owner should be able to Read the Index of submissions without explicit permissions without data', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/submission?list=1', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.equal(response.length, 1, 'The response should contain 1 element');
+                assert(!response[0].hasOwnProperty('data'));
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
           it('The Project Owner should be able to Read a submission without explicit permissions using the Form alias', function(done) {
             request(app)
               .get(hook.alter('url', '/' + tempForm.path + '/submission/' + tempSubmission._id, template))
@@ -1055,7 +1077,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+            {
+              type: 'read_all', roles: [,
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_own', roles: [template.roles.authenticated._id.toString()]},
@@ -1258,6 +1286,28 @@ module.exports = function(app, template, hook) {
           it('A Registered user should be able to Read the Index of their submissions with explicit Own permissions', function(done) {
             request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+              .set('x-jwt-token', template.users.user1.token)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.equal(response.length, 1);
+                assert.deepEqual(response[0], tempSubmissionUser1);
+
+                // Store the JWT for future API calls.
+                template.users.user1.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
+          it('A Registered user should be able to Read the Index of their submissions with owner property set', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/submission?owner=' + template.users.user1._id.toString(), template))
               .set('x-jwt-token', template.users.user1.token)
               .expect(200)
               .expect('Content-Type', /json/)
@@ -2038,7 +2088,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_all', roles: [template.roles.authenticated._id.toString()]},
@@ -2763,7 +2819,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_own', roles: [template.roles.authenticated._id.toString()]},
@@ -3131,7 +3193,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_all', roles: [template.roles.authenticated._id.toString()]},
@@ -3543,7 +3611,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.anonymous._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_own', roles: [template.roles.anonymous._id.toString()]},
@@ -4399,7 +4473,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.anonymous._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_all', roles: [template.roles.anonymous._id.toString()]},
@@ -5070,7 +5150,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.anonymous._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_own', roles: [template.roles.anonymous._id.toString()]},
@@ -5443,7 +5529,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.anonymous._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_all', roles: [template.roles.anonymous._id.toString()]},
@@ -6065,7 +6157,13 @@ module.exports = function(app, template, hook) {
       // Before the suite runs, attach the test Project's id to the payload.
       before(function() {
         tempForm.access = [
-          {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+          {
+            type: 'read_all', roles: [
+              template.roles.anonymous._id.toString(),
+              template.roles.authenticated._id.toString(),
+              template.roles.administrator._id.toString()
+            ]
+          }
         ];
         tempForm.submissionAccess = [
           {type: 'update_all', roles: [template.roles.authenticated._id.toString()]}
@@ -6880,7 +6978,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission owner, without explicit resource access (read)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -7090,7 +7188,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission owner, without explicit resource access (write)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -7301,7 +7399,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission owner, with explicit resource access (admin)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -7562,7 +7660,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission owner, without explicit resource access (read)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -7799,7 +7897,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission owner, without explicit resource access (write)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -8036,7 +8134,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission owner, with explicit resource access (admin)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -9165,10 +9263,9 @@ module.exports = function(app, template, hook) {
             assert.equal(response.type, 'form');
             assert.equal(response.access.length, 1);
             assert.equal(response.access[0].type, 'read_all');
-            assert.equal(response.access[0].roles.length, 3);
+            assert.equal(response.access[0].roles.length, 2);
             assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
             assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
-            assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
 
             // Build a temp list to compare access without mongo id's.
             var tempSubmissionAccess = [];
