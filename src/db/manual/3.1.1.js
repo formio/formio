@@ -10,7 +10,7 @@
  * @param tools
  * @param done
  */
-const utils = require('formiojs/utils');
+const utils = require('formiojs/utils').default;
 const config = require('config');
 const async = require('async');
 const mongodb = require('mongodb');

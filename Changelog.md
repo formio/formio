@@ -6,7 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ## 1.31.3
 ### Fixed
+ - Fixed the machine names to be performant and without special chars.
+ - Allow admins the ability to see all anonymous submissions
  - Issues where the validator would crash for certain JSON form structures.
+
+### Changed
+ - formiojs@2.32.3, mongodb@3.1.1, mongoose@5.2.3, eslint@5.1.0, nodemon@1.18.1, bcrypt@3.0.0
+
+### Added
+ - Date converting for filter.
 
 ## 1.31.2
 ### Added
@@ -21,7 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Make select query validation use caching to limit requests being made.
  - CSV export of wysiwyg
  - Webhook improvements
- 
+
 ### Changed
  - Upgrade mongoose@5.1.7, nodemailer@4.6.7, jsonwebtoken@8.3.0, eslint@5.0.1
 
