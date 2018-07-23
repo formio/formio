@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.32.0
+### Changed
+ - Upgraded colors@1.3.1, mongoose@5.2.4, nodemon@1.18.3, mysql@2.16.0, eslint@5.2.0, fs-extra@7.0.0, method-override@3.0.0
+
+### Fixed
+ - Issue with SQL Action for update commands.
+
+### Added
+ - maxWords and minWords validation.
+
 ## 1.31.4
 ### Fixed
  - Fixed the machine names to be performant and without special chars.
