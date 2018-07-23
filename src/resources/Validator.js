@@ -196,6 +196,32 @@ const getRules = (type) => [
     }
   },
   {
+    name: 'maxWords',
+    params: {
+      maxWords: Joi.any()
+    },
+    validate(params, value, state, options) {
+      if (value.trim().split(/\s+/).length <= parseInt(params.maxWords, 10)) {
+        return value;
+      }
+
+      return this.createError(`${type}.maxWords`, {message: 'exceeded maximum words.'}, state, options);
+    }
+  },
+  {
+    name: 'minWords',
+    params: {
+      minWords: Joi.any()
+    },
+    validate(params, value, state, options) {
+      if (value.trim().split(/\s+/).length >= parseInt(params.minWords, 10)) {
+        return value;
+      }
+
+      return this.createError(`${type}.minWords`, {message: 'does not have enough words.'}, state, options);
+    }
+  },
+  {
     name: 'select',
     params: {
       component: Joi.any(),
@@ -430,6 +456,8 @@ const JoiX = Joi.extend([
     base: Joi.string(),
     language: {
       custom: '{{message}}',
+      maxWords: '{{message}}',
+      minWords: '{{message}}',
       json: '{{message}}',
       hidden: '{{message}}',
       select: '{{message}}',
@@ -538,6 +566,12 @@ class Validator {
       const isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
 
       let objectSchema;
+      const stringValidators = {
+        minLength: 'min',
+        maxLength: 'max',
+        minWords: 'minWords',
+        maxWords: 'maxWords'
+      };
       /* eslint-disable max-depth, valid-typeof */
       switch (component.type) {
         case 'form': {
@@ -606,21 +640,16 @@ class Validator {
         case 'textarea':
         case 'phonenumber':
           fieldValidator = JoiX.string().allow('');
-          if (
-            component.validate &&
-            component.validate.hasOwnProperty('minLength') &&
-            _.isNumber(component.validate.minLength) &&
-            component.validate.minLength >= 0
-          ) {
-            fieldValidator = fieldValidator.min(component.validate.minLength);
-          }
-          if (
-            component.validate &&
-            component.validate.hasOwnProperty('maxLength') &&
-            _.isNumber(component.validate.maxLength) &&
-            component.validate.maxLength >= 0
-          ) {
-            fieldValidator = fieldValidator.max(component.validate.maxLength);
+          for (const name in stringValidators) {
+            const funcName = stringValidators[name];
+            if (
+              component.validate &&
+              component.validate.hasOwnProperty(name) &&
+              _.isNumber(component.validate[name]) &&
+              component.validate[name] >= 0
+            ) {
+              fieldValidator = fieldValidator[funcName](component.validate[name]);
+            }
           }
           break;
         case 'select':
