@@ -391,7 +391,6 @@ module.exports = function(router) {
 
       // Setup some flags for other handlers.
       req.isAdmin = false;
-      req.ownerAssign = false;
 
       // Determine access based on the given access method.
       const methods = {
@@ -450,7 +449,7 @@ module.exports = function(router) {
       // If they have all access and are within the submissionResourceAdmin roles.
       if (hasAllAccess && (req.method === 'POST' || req.method === 'PUT')) {
         const submissionResourceAdmin = (_.get(req, 'submissionResourceAccessAdminBlock') || []);
-        if (submissionResourceAdmin.length && _.intersection(submissionResourceAdmin, roles).length) {
+        if (!_.intersection(submissionResourceAdmin, roles).length) {
           // Only allow the the bootstrapEntityOwner middleware to assign an owner if defined in the payload.
           if (_.has(req, 'body.owner')) {
             req.assignOwner = true;
@@ -476,7 +475,7 @@ module.exports = function(router) {
 
       // Check for all access.
       if (hasAllAccess) {
-        if (req.method === 'POST' || (user && req.method === 'PUT')) {
+        if (req.method === 'POST') {
           req.ownerAssign = true;
         }
         req.skipOwnerFilter = true;

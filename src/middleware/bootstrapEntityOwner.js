@@ -15,9 +15,6 @@ module.exports = function(router) {
     // Util to determine if we have a token to default access.
     const tokenPresent = (_.has(req, 'token') && req.token !== null && _.has(req, 'token.user._id'));
 
-    // See if this request has provided an owner.
-    const hasOwner = _.has(req, 'body.owner');
-
     // Confirm we are only modifying PUT/POST requests.
     const isPut = (req.method === 'PUT');
     const isPost = (req.method === 'POST');
@@ -31,12 +28,7 @@ module.exports = function(router) {
     }
 
     // Allow an admin to manually override the owner property.
-    if (hasOwner && _.has(req, 'isAdmin') && req.isAdmin) {
-      return next();
-    }
-
-    // If the body has an owner and the ownerAssign flag is set, then allow.
-    else if (hasOwner && req.ownerAssign) {
+    if (_.has(req, 'isAdmin') && req.isAdmin) {
       return next();
     }
 
@@ -46,12 +38,8 @@ module.exports = function(router) {
       return next();
     }
 
-    // If the payload has a owner, but we could not determine who the owner should be, strip the owner data.
-    if (hasOwner) {
-      req.body = _.omit(req.body, 'owner');
-    }
-
-    // Unknown entity owner.
+    // Omit the owner from the body.
+    req.body = _.omit(req.body, 'owner');
     next();
   };
 };
