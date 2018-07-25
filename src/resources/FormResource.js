@@ -59,7 +59,7 @@ module.exports = function(router) {
           next();
         },
         router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-        router.formio.middleware.bootstrapEntityOwner(false),
+        router.formio.middleware.bootstrapEntityOwner,
         router.formio.middleware.formHandler,
         router.formio.middleware.formActionHandler('before'),
         router.formio.middleware.condensePermissionTypes,
