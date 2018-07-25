@@ -445,22 +445,7 @@ module.exports = function(router) {
       const isPost = (method === 'POST') && entity.hasOwnProperty('id') && (entity.id === '');
       const hasOwnAccess = typedAccess(search.own);
       const hasAllAccess = typedAccess(search.all);
-
-      // If they have all access and are within the submissionResourceAdmin roles.
-      if (hasAllAccess && (req.method === 'POST' || req.method === 'PUT')) {
-        const submissionResourceAdmin = (_.get(req, 'submissionResourceAccessAdminBlock') || []);
-        if (!_.intersection(submissionResourceAdmin, roles).length) {
-          // Only allow the the bootstrapEntityOwner middleware to assign an owner if defined in the payload.
-          if (_.has(req, 'body.owner')) {
-            req.assignOwner = true;
-          }
-
-          // Only allow the the bootstrapSubmissionAccess middleware to assign access if defined in the payload.
-          if (entity.type === 'submission' && _.has(req, 'body.access')) {
-            req.assignSubmissionAccess = true;
-          }
-        }
-      }
+      let _hasAccess = false;
 
       // Check for self access.
       if (
@@ -470,25 +455,37 @@ module.exports = function(router) {
           (isOwner && (user === entity.id))
         )
       ) {
-        return true;
+        _hasAccess = true;
       }
 
       // Check for all access.
       if (hasAllAccess) {
-        if (req.method === 'POST') {
-          req.ownerAssign = true;
+        const submissionResourceAdmin = (_.get(req, 'submissionResourceAccessAdminBlock') || []);
+        if (
+          (req.method === 'POST' || req.method === 'PUT') &&
+          !_.intersection(submissionResourceAdmin, roles).length
+        ) {
+          // Allow them to assign the owner.
+          req.assignOwner = true;
+
+          // Only allow the the bootstrapSubmissionAccess middleware to assign access if defined in the payload.
+          if (entity.type === 'submission' && _.has(req, 'body.access')) {
+            req.assignSubmissionAccess = true;
+          }
         }
+
+        // Skip the owner filter if they have all access.
         req.skipOwnerFilter = true;
-        return true;
+        _hasAccess = true;
       }
 
       // Check for own access.
       if (hasOwnAccess && (isOwner || isIndex || isPost)) {
-        return true;
+        _hasAccess = true;
       }
 
-      // Not allowed.
-      return false;
+      // Return if they have access.
+      return _hasAccess;
     }
     /* eslint-enable max-statements */
   };
