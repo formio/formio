@@ -3,6 +3,7 @@
 const async = require('async');
 const _ = require('lodash');
 const util = require('../util/util');
+const EVERYONE = '000000000000000000000000';
 
 /**
  * Perform an export of a specified template.
@@ -19,7 +20,10 @@ module.exports = (router) => {
     _.each(perms, function(access) {
       _.each(access.roles, function(roleId, i) {
         roleId = roleId.toString();
-        if (_map.roles && _map.roles.hasOwnProperty(roleId)) {
+        if (roleId === EVERYONE) {
+          access.roles[i] = 'everyone';
+        }
+        else if (_map.roles && _map.roles.hasOwnProperty(roleId)) {
           access.roles[i] = _map.roles[roleId];
         }
       });
@@ -31,8 +35,14 @@ module.exports = (router) => {
     if (!entity) {
       return;
     }
-    if (entity.hasOwnProperty('role') && _map.roles && _map.roles.hasOwnProperty(entity.role)) {
-      entity.role = _map.roles[entity.role];
+
+    if (entity.hasOwnProperty('role')) {
+      if (entity.role.toString() === EVERYONE) {
+        entity.role = 'everyone';
+      }
+      else if (_map.roles && _map.roles.hasOwnProperty(entity.role)) {
+        entity.role = _map.roles[entity.role];
+      }
     }
   };
 

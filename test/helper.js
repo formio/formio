@@ -15,6 +15,7 @@ module.exports = function(app) {
     this.lastResponse = null;
     this.owner = owner;
     this.series = [];
+    this.expects = [];
     this.template = template || {
       project: null,
       forms: {},
@@ -24,6 +25,19 @@ module.exports = function(app) {
       users: {}
     };
     this.hook = hook;
+  };
+
+  Helper.prototype.perms = function(permissions) {
+    const permsConfig = [];
+    _.each(permissions, (roles, name) => {
+      permsConfig.push({
+        type: name,
+        roles: _.map(roles, (roleName) => {
+          return this.template.roles[roleName]._id.toString()
+        })
+      });
+    });
+    return permsConfig;
   };
 
   Helper.prototype.getTemplate = function() {
@@ -520,12 +534,18 @@ module.exports = function(app) {
     return this;
   };
 
-  Helper.prototype.updateSubmission = function(submission, user, done) {
+  Helper.prototype.updateSubmission = function(submission, user, expect, done) {
     if (typeof user === 'function') {
       done = user;
       user = this.owner;
     }
 
+    if (typeof expect === 'function') {
+      done = expect;
+      expect = [];
+    }
+
+    expect = expect || [];
     if (typeof user === 'string') {
       user = this.template.users[user];
     }
@@ -539,29 +559,39 @@ module.exports = function(app) {
       url += '/project/' + this.template.project._id;
     }
     url += '/form/' + submission.form + '/submission/' + submission._id;
-    request(app)
-      .put(url)
-      .send(submission)
-      .set('x-jwt-token', user.token)
-      .expect('Content-Type', /json/)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
 
-        user.token = res.headers['x-jwt-token'];
-        this.lastSubmission = res.body;
-        this.lastResponse = res;
-        _.each(this.template.submissions, (sub, form) => {
-          if (sub._id === submission._id) {
-            this.template.submissions[form] = res.body;
-          }
-        });
-        done(null, res.body);
+    let currentRequest = request(app).put(url).send(submission);
+    if (user) {
+      currentRequest = currentRequest.set('x-jwt-token', user.token);
+    }
+    if (expect.length) {
+      currentRequest = currentRequest.expect('Content-Type', expect[0]).expect(expect[1]);
+    }
+    else {
+      currentRequest = currentRequest.expect('Content-Type', /json/).expect(200);
+    }
+    currentRequest.end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      this.lastResponse = res;
+      if (expect.length && expect[1] > 299) {
+        return done(null, res.body);
+      }
+
+      user.token = res.headers['x-jwt-token'];
+      this.lastSubmission = res.body;
+      _.each(this.template.submissions, (sub, form) => {
+        if (sub._id === submission._id) {
+          this.template.submissions[form] = res.body;
+        }
       });
+      done(null, res.body);
+    });
   };
 
-  Helper.prototype.createSubmission = function(form, data, user, done) {
+  Helper.prototype.createSubmission = function(form, data, user, expect, done) {
     // Two arguments.
     if (typeof form === 'object') {
       if (typeof data === 'function') {
@@ -577,6 +607,13 @@ module.exports = function(app) {
       user = this.owner;
     }
 
+    // Four arguments
+    if (typeof expect === 'function') {
+      done = expect;
+      expect = [];
+    }
+
+    expect = expect || [];
     if (typeof user === 'string') {
       user = this.template.users[user];
     }
@@ -604,12 +641,31 @@ module.exports = function(app) {
     if (user) {
       currentRequest = currentRequest.set('x-jwt-token', user.token);
     }
+    if (expect.length) {
+      currentRequest = currentRequest.expect('Content-Type', expect[0]).expect(expect[1]);
+    }
+    else {
+      if (this.expects.length) {
+        _.each(this.expects, (expect) => {
+          currentRequest = currentRequest.expect(...expect);
+        });
+      }
+      else {
+        currentRequest = currentRequest.expect('Content-Type', /json/).expect(201);
+      }
+    }
     currentRequest.end((err, res) => {
+      this.nextExpect = false;
       if (err) {
         return done(err);
       }
 
-      if (user) {
+      this.lastResponse = res;
+      if (expect.length && expect[1] > 299) {
+        return done(null, res.body);
+      }
+
+      if (user && res.headers['x-jwt-token']) {
         user.token = res.headers['x-jwt-token'];
       }
       this.template.submissions = this.template.submissions || {};
@@ -618,7 +674,6 @@ module.exports = function(app) {
       }
 
       this.lastSubmission = res.body;
-      this.lastResponse = res;
       this.template.submissions[form].push(res.body);
       done(null, res.body);
     });
@@ -633,7 +688,7 @@ module.exports = function(app) {
    * @param done
    * @return {*}
    */
-  Helper.prototype.getSubmission = function(form, id, user, done) {
+  Helper.prototype.getSubmission = function(form, id, user, expect, done) {
     if (typeof form === 'object') {
       if (typeof id === 'function') {
         done = id;
@@ -647,6 +702,12 @@ module.exports = function(app) {
       user = this.owner;
     }
 
+    if (typeof expect === 'function') {
+      done = expect;
+      expect = [];
+    }
+
+    expect = expect || [];
     if (typeof user === 'string') {
       user = this.template.users[user];
     }
@@ -674,12 +735,23 @@ module.exports = function(app) {
     if (user) {
       currentRequest = currentRequest.set('x-jwt-token', user.token);
     }
+    if (expect.length) {
+      currentRequest = currentRequest.expect('Content-Type', expect[0]).expect(expect[1]);
+    }
+    else {
+      currentRequest = currentRequest.expect('Content-Type', /json/).expect(200);
+    }
     currentRequest.end((err, res) => {
       if (err) {
         return done(err);
       }
 
-      if (user) {
+      this.lastResponse = res;
+      if (expect.length && expect[1] > 299) {
+        return done();
+      }
+
+      if (user && res.headers['x-jwt-token']) {
         user.token = res.headers['x-jwt-token'];
       }
       this.template.submissions = this.template.submissions || {};
@@ -692,7 +764,6 @@ module.exports = function(app) {
 
       const submission = subIndex ? res.body[id] : res.body;
       this.lastSubmission = submission;
-      this.lastResponse = res;
       if (!subIndex) {
         const index = _.findIndex(this.template.submissions[form], {_id: submission._id});
         if (index === -1) {
@@ -706,12 +777,18 @@ module.exports = function(app) {
     });
   };
 
-  Helper.prototype.deleteUnauthorized = function(submission, user, done) {
+  Helper.prototype.deleteSubmission = function(submission, user, expect, done) {
     if (typeof user === 'function') {
       done = user;
       user = this.owner;
     }
 
+    if (typeof expect === 'function') {
+      done = expect;
+      expect = [];
+    }
+
+    expect = expect || [];
     if (typeof user === 'string') {
       user = this.template.users[user];
     }
@@ -730,46 +807,25 @@ module.exports = function(app) {
     if (user) {
       currentRequest = currentRequest.set('x-jwt-token', user.token);
     }
-    currentRequest
-      .expect('Content-Type', /text\/plain/)
-      .expect(401)
-      .end(done);
-  };
-
-  Helper.prototype.deleteSubmission = function(submission, user, done) {
-    if (typeof user === 'function') {
-      done = user;
-      user = this.owner;
+    if (expect.length) {
+      currentRequest = currentRequest.expect('Content-Type', expect[0]).expect(expect[1]);
     }
-
-    if (typeof user === 'string') {
-      user = this.template.users[user];
+    else {
+      currentRequest = currentRequest.expect('Content-Type', /json/).expect(200);
     }
-
-    if (user === undefined) {
-      user = this.owner;
-    }
-
-    var url = '';
-    if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
-    }
-    url += '/form/' + submission.form + '/submission/' + submission._id;
-
-    let currentRequest = request(app).delete(url).send(submission);
-    if (user) {
-      currentRequest = currentRequest.set('x-jwt-token', user.token);
-    }
-    currentRequest.expect('Content-Type', /json/)
-      .end((err, res) => {
+    currentRequest.end((err, res) => {
         if (err) {
           return done(err);
         }
 
-        if (user) {
+        this.lastResponse = res;
+        if (expect.length && expect[1] > 299) {
+          return done();
+        }
+
+        if (user && res.headers['x-jwt-token']) {
           user.token = res.headers['x-jwt-token'];
         }
-        this.lastResponse = res;
         _.remove(this.template.submissions, {_id: submission._id});
         done();
       });
@@ -877,8 +933,13 @@ module.exports = function(app) {
       });
   };
 
-  Helper.prototype.submission = function(form, data, user) {
-    this.series.push(async.apply(this.createSubmission.bind(this), form, data, user));
+  Helper.prototype.submission = function(form, data, user, expects) {
+    this.series.push(async.apply(this.createSubmission.bind(this), form, data, user, expects));
+    return this;
+  };
+
+  Helper.prototype.expect = function(...args) {
+    this.expects.push(args);
     return this;
   };
 
@@ -898,10 +959,10 @@ module.exports = function(app) {
         this.template.users[user].data.password = data.password;
 
         // Now authenticate as this user to get JWT token.
-        this.createSubmission('userLogin', {data: {
+        this.createSubmission(form + 'Login', {data: {
           email: this.template.users[user].data.email,
           password: this.template.users[user].data.password
-        }}, null, (err) => {
+        }}, null, [/application\/json/, 200], (err) => {
           if (err) {
             return done(err);
           }
@@ -919,6 +980,7 @@ module.exports = function(app) {
   Helper.prototype.execute = function(done) {
     return async.series(this.series, (err, res) => {
       this.series = [];
+      this.expects = [];
       if (err) {
         return done(err, res);
       }
