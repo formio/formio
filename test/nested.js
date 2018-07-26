@@ -570,7 +570,7 @@ module.exports = function(app, template, hook) {
     });
 
     it('Should NOT be able to delete the submission as user1 since they don\'t have permission', (done) => {
-      helper.deleteUnauthorized(savedSubmission, 'user1', done);
+      helper.deleteSubmission(savedSubmission, 'user1', [/text\/plain/, 401], done);
     });
 
     it('Should be able to delete the submission as admin.', (done) => {

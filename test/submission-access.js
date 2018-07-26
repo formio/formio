@@ -33,6 +33,7 @@ var request401 = function(request, done, user) {
 };
 
 module.exports = function(app, template, hook) {
+  var Helper = require('./helper')(app);
   describe('Submissions', function() {
     describe('Submission Level Permissions (Project Owner)', function() {
       describe('Submission CRUD', function() {
@@ -9191,6 +9192,550 @@ module.exports = function(app, template, hook) {
               done();
             });
         });
+      });
+    });
+
+    describe('Mix and Match Permissions', () => {
+      var helper = null;
+      it('Create the project with a new users.', (done) => {
+        var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+        helper = new Helper(owner);
+        helper
+          .project()
+          .user('admin', 'admin1')
+          .user('admin', 'admin2')
+          .user('user', 'user1')
+          .user('user', 'user2')
+          .execute(done);
+      });
+
+      const components = [
+        {
+          type: 'textfield',
+          persistent: true,
+          unique: false,
+          protected: false,
+          defaultValue: '',
+          suffix: '',
+          prefix: '',
+          placeholder: '',
+          key: 'a',
+          label: 'a',
+          inputType: 'text',
+          tableView: true,
+          input: true
+        },
+        {
+          type: 'textfield',
+          persistent: true,
+          unique: false,
+          protected: false,
+          defaultValue: '',
+          suffix: '',
+          prefix: '',
+          placeholder: '',
+          key: 'b',
+          label: 'b',
+          inputType: 'text',
+          tableView: true,
+          input: true
+        },
+        {
+          type: 'textfield',
+          persistent: true,
+          unique: false,
+          protected: false,
+          defaultValue: '',
+          suffix: '',
+          prefix: '',
+          placeholder: '',
+          key: 'c',
+          label: 'c',
+          inputType: 'text',
+          tableView: true,
+          input: true
+        }
+      ];
+
+      it('Create the resources', function(done) {
+        const components = [
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'a',
+            label: 'a',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          },
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'b',
+            label: 'b',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          },
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'c',
+            label: 'c',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          }
+        ];
+        helper
+          .resource('mixmatcha', components, {
+            submissionAccess: helper.perms({
+              create_own: ['authenticated'],
+              read_own: ['authenticated'],
+              update_own: ['authenticated']
+            })
+          })
+          .resource('mixmatchb', components, {
+            submissionAccess: helper.perms({
+              create_own: ['anonymous'],
+              read_own: ['anonymous'],
+              update_own: ['anonymous'],
+              delete_own: ['anonymous']
+            })
+          })
+          .resource('mixmatchc', components, {
+            submissionAccess: helper.perms({
+              create_all: ['anonymous'],
+              create_own: ['authenticated', 'anonymous'],
+              read_own: ['authenticated'],
+              update_own: ['authenticated'],
+              delete_own: ['authenticated']
+            })
+          })
+          .resource('mixmatchd', components, {
+            submissionAccess: helper.perms({
+              create_all: ['authenticated'],
+              read_all: ['anonymous'],
+              read_own: ['authenticated', 'anonymous'],
+              update_own: ['authenticated'],
+              delete_all: ['anonymous']
+            })
+          })
+          .execute(done);
+      });
+
+      it('Should not allow anonymous to create a record in mixmatcha', (done) => {
+        helper.submission('mixmatcha', {
+          a: 'test',
+          b: 'test2',
+          c: 'test3'
+        }, null, [/text\/plain/, 401]).execute(done)
+      });
+
+      it('Should allow authenticated to create a record in mixmatcha', (done) => {
+        helper.submission('mixmatcha', {
+          a: 'test',
+          b: 'test2',
+          c: 'test3'
+        }, 'user1').execute(done)
+      });
+
+      it('Should not allow user2 to see user1 submission', (done) => {
+        helper.getSubmission('mixmatcha', helper.lastSubmission._id, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user1 to see their own submission', (done) => {
+        helper.getSubmission('mixmatcha', helper.lastSubmission._id, 'user1', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, helper.lastSubmission.data);
+          done();
+        });
+      });
+
+      it('Should allow admin users to see user1 submission', (done) => {
+        helper.getSubmission('mixmatcha', helper.lastSubmission._id, 'admin1', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, helper.lastSubmission.data);
+          done();
+        });
+      });
+
+      it('Should not allow user1 to change the owner of the submission in mixmatcha', (done) => {
+        helper.submission('mixmatcha', {
+          data: {
+            a: 'test',
+            b: 'test2',
+            c: 'test3'
+          },
+          owner: helper.template.users.user2._id.toString()
+        }, 'user1').execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          assert.equal(submission.owner.toString(), helper.template.users.user1._id.toString());
+          assert(submission.owner.toString() !== helper.template.users.user2._id.toString(), 'Owner should not be user2');
+          done();
+        })
+      });
+
+      it('Should allow admins to change the owner of the submission in mixmatcha', (done) => {
+        helper.createSubmission('mixmatcha', {
+          data: {
+            a: 'test',
+            b: 'test2',
+            c: 'test3'
+          },
+          owner: helper.template.users.user2._id.toString()
+        }, 'admin1', (err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          assert.equal(submission.owner.toString(), helper.template.users.user2._id.toString());
+          done();
+        })
+      });
+
+      it('Should not allow user1 to see that submission now.', (done) => {
+        helper.getSubmission('mixmatcha', helper.lastSubmission._id, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user2 to see the submission now.', (done) => {
+        helper.getSubmission('mixmatcha', helper.lastSubmission._id, 'user2', done);
+      });
+
+      it('Should not allow user1 to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should not allow user2 to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow an administrator to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'admin2', done);
+      });
+
+      it('Should not allow authenticated to create a submission in mixmatchb', (done) => {
+        helper.createSubmission('mixmatchb', {
+          a: 'testing',
+          b: 'one',
+          c: 'two'
+        }, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow admins to create a submisison in mixmatchb', (done) => {
+        helper.createSubmission('mixmatchb', {
+          a: 'testing',
+          b: 'one',
+          c: 'two'
+        }, 'admin2', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, {
+            a: 'testing',
+            b: 'one',
+            c: 'two'
+          });
+          assert.equal(submission.owner, helper.template.users.admin2._id.toString());
+          done();
+        });
+      });
+
+      it('Should also allow for anonymous users to create a submission in mixmatchb', (done) => {
+        helper.createSubmission('mixmatchb', {
+          a: 'testing',
+          b: 'one',
+          c: 'two'
+        }, null, (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, {
+            a: 'testing',
+            b: 'one',
+            c: 'two'
+          });
+          assert.equal(submission.owner, null);
+          done();
+        });
+      });
+
+      it('Should NOT allow anonymous user to update the submission in mixmatchb', (done) => {
+        helper.lastSubmission.data = {
+          a: 'test2',
+          b: 'test3',
+          c: 'test4'
+        };
+        helper.updateSubmission(helper.lastSubmission, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow anonymous user to delete the submission in mixmatchb', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow anonymous to view the submission in mixmatchb', (done) => {
+        helper.getSubmission('mixmatchb', helper.lastSubmission._id, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow user1 to view the submission in mixmatchb', (done) => {
+        helper.getSubmission('mixmatchb', helper.lastSubmission._id, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow user1 to delete the submission in mixmatchb', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow admin1 to get the submission in mixmatchb', (done) => {
+        helper.getSubmission('mixmatchb', helper.lastSubmission._id, 'admin1', done);
+      });
+
+      it('Should allow admin2 to delete the submission in mixmatchb', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'admin2', done);
+      });
+
+      it('Should allow an admin to assign owner on create', (done) => {
+        helper.createSubmission('mixmatchb', {
+          owner: helper.template.users.admin2._id.toString(),
+          data: {
+            a: 'hello',
+            b: 'there',
+            c: 'admin2'
+          }
+        }, 'admin1', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(submission.owner, helper.template.users.admin2._id.toString());
+          done();
+        });
+      });
+
+      it('Should NOT allow anonymous to assign owner on create', (done) => {
+        helper.createSubmission('mixmatchb', {
+          owner: helper.template.users.admin2._id.toString(),
+          data: {
+            a: 'hello',
+            b: 'there',
+            c: 'admin2'
+          }
+        }, null, (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(submission.owner, null);
+          done();
+        });
+      });
+
+      it('Should allow anonymous to create submission and change owner in mixmatchc', (done) => {
+        helper.createSubmission('mixmatchc', {
+          owner: helper.template.users.user1._id.toString(),
+          data: {
+            a: 'hello',
+            b: 'there',
+            c: 'admin2'
+          }
+        }, null, (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(submission.owner, helper.template.users.user1._id.toString());
+          done();
+        });
+      });
+
+      it('Should allow user1 to get that submission that was created on behalf of that user', (done) => {
+        helper.getSubmission('mixmatchc', helper.lastSubmission._id, 'user1', done);
+      });
+
+      it('Should NOT allow user2 to get that submission that was created on behalf of that user', (done) => {
+        helper.getSubmission('mixmatchc', helper.lastSubmission._id, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow anonymous to read the created submission either.', (done) => {
+        helper.getSubmission('mixmatchc', helper.lastSubmission._id, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should allow an admin to read the submission', (done) => {
+        helper.getSubmission('mixmatchc', helper.lastSubmission._id, 'admin2', done);
+      });
+
+      it('Should NOT allow user2 to update the created submission', (done) => {
+        helper.lastSubmission.data = {
+          a: 'test2',
+          b: 'test3',
+          c: 'test4'
+        };
+        helper.updateSubmission(helper.lastSubmission, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow anonymous to update the created submission', (done) => {
+        helper.lastSubmission.data = {
+          a: 'test2',
+          b: 'test3',
+          c: 'test4'
+        };
+        helper.updateSubmission(helper.lastSubmission, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user1 to update their submission.', (done) => {
+        helper.lastSubmission.data = {
+          a: 'test345',
+          b: 'test234234',
+          c: 'test567567'
+        };
+        helper.updateSubmission(helper.lastSubmission, 'user1', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, {
+            a: 'test345',
+            b: 'test234234',
+            c: 'test567567'
+          });
+          done();
+        });
+      });
+
+      it('Should also allow an admin to update the submission', (done) => {
+        helper.lastSubmission.data = {
+          a: 'a',
+          b: 'b',
+          c: 'c'
+        };
+        helper.updateSubmission(helper.lastSubmission, 'admin1', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, {
+            a: 'a',
+            b: 'b',
+            c: 'c'
+          });
+          done();
+        });
+      });
+
+      it('Should not allow user2 to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should not allow anonymous to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user1 to delete their own submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user1', done);
+      });
+
+      it('Should NOT allow anonymous users to create submissions in mixmatchd', (done) => {
+        helper.createSubmission('mixmatchd', {
+          a: 'a',
+          b: 'b',
+          c: 'c'
+        }, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user2 to create a submission in mixmatchd', (done) => {
+        helper.createSubmission('mixmatchd', {
+          a: 'a',
+          b: 'b',
+          c: 'c'
+        }, 'user2', done);
+      });
+
+      it('Should allow anonymous to read the created submission.', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, null, done);
+      });
+
+      it('Should also allow user2 to read the created submission.', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, 'user2', done);
+      });
+
+      it('Should also allow admin1 to read the created submission.', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, 'admin1', done);
+      });
+
+      it('Should NOT allow user1 to read the created submission', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, 'user1', [/text\/plain/, 401], done);
+      });
+      
+      it('Should allow user2 to create a submission and assign it to user1', (done) => {
+        helper.createSubmission('mixmatchd', {
+          owner: helper.template.users.user1._id.toString(),
+          data: {
+            a: 'a',
+            b: 'b',
+            c: 'c'
+          }
+        }, 'user2', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(submission.owner, helper.template.users.user1._id.toString());
+          done();
+        });
+      });
+
+      it('Should not allow user2 to read the created submission.', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user1 to read the created submission.', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, 'user1', done);
+      });
+
+      it('Should allow anonymous user to read the created submission.', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, null, done);
+      });
+
+      it('Should NOT allow user1 to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow user2 to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow an anonymous user to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, null, done);
       });
     });
 
