@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.33.0
+### Changed
+ - Fixed dependency deprecation and vulnerabilities.
+ - Fixed the permission handler to work as expected with "owner" permissions.
+ - Upgraded dependencies.
+
 ## 1.32.0
 ### Changed
  - Upgraded colors@1.3.1, mongoose@5.2.4, nodemon@1.18.3, mysql@2.16.0, eslint@5.2.0, fs-extra@7.0.0, method-override@3.0.0
