@@ -1,0 +1,130 @@
+{
+  "title": "waterfallResources",
+  "name": "waterfallResources",
+  "version": "2.0.0",
+  "description": "waterfallResources tests",
+  "roles": {
+    "administrator": {
+      "title": "Administrator",
+      "description": "A role for Administrative Users.",
+      "admin": true,
+      "default": false
+    },
+    "authenticated": {
+      "title": "Authenticated",
+      "description": "A role for Authenticated Users.",
+      "admin": false,
+      "default": false
+    },
+    "anonymous": {
+      "title": "Anonymous",
+      "description": "A role for Anonymous Users.",
+      "admin": false,
+      "default": true
+    }
+  },
+  "resources": {
+    "a": {
+      "title": "a",
+      "type": "resource",
+      "name": "a",
+      "path": "a",
+      "tags": [],
+      "submissionAccess": [
+        {
+          "type": "create_all",
+          "roles": ["anonymous", "everyone"]
+        },
+        {
+          "type": "read_all",
+          "roles": ["everyone"]
+        }
+      ],
+      "access": [],
+      "components": []
+    },
+    "b": {
+      "title": "b",
+      "type": "resource",
+      "name": "b",
+      "path": "b",
+      "tags": [],
+      "submissionAccess": [],
+      "access": [
+        {
+          "type": "read_own",
+          "roles": ["authenticated", "anonymous"]
+        },
+        {
+          "type": "update_all",
+          "roles": ["everyone"]
+        }
+      ],
+      "components": [{
+        "conditional": {
+          "eq": "",
+          "when": null,
+          "show": ""
+        },
+        "tags": [],
+        "type": "resource",
+        "defaultPermission": "",
+        "validate": {
+          "required": false
+        },
+        "clearOnHide": true,
+        "persistent": true,
+        "protected": false,
+        "multiple": false,
+        "searchFields": "",
+        "selectFields": "",
+        "template": "<span>{{ item.data }}</span>",
+        "defaultValue": "",
+        "resource": "a",
+        "placeholder": "",
+        "key": "a",
+        "label": "a",
+        "tableView": true,
+        "input": true
+      }]
+    },
+    "c": {
+      "title": "c",
+      "type": "resource",
+      "name": "c",
+      "path": "c",
+      "tags": [],
+      "submissionAccess": [],
+      "access": [],
+      "components": [{
+        "conditional": {
+          "eq": "",
+          "when": null,
+          "show": ""
+        },
+        "tags": [],
+        "type": "resource",
+        "defaultPermission": "",
+        "validate": {
+          "required": false
+        },
+        "clearOnHide": true,
+        "persistent": true,
+        "protected": false,
+        "multiple": false,
+        "searchFields": "",
+        "selectFields": "",
+        "template": "<span>{{ item.data }}</span>",
+        "defaultValue": "",
+        "resource": "b",
+        "placeholder": "",
+        "key": "b",
+        "label": "b",
+        "tableView": true,
+        "input": true
+      }]
+    }
+  },
+  "forms": {},
+  "actions": {}
+}

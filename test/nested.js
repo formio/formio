@@ -3,8 +3,11 @@
 
 var request = require('supertest');
 var assert = require('assert');
+var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
+  var Helper = require('./helper')(app);
+
   describe('Nested Resources', function() {
     var customerResource = null;
     it('A Project Owner should be able to Create a Customer Resource', function(done) {
@@ -326,6 +329,252 @@ module.exports = function(app, template, hook) {
 
           done();
         });
+    });
+  });
+
+  describe('Nested Resource Permissions', () => {
+    var helper = null;
+    var savedSubmission = null;
+    it('Create the project with a new user account.', (done) => {
+      var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper.project().user('user', 'user1').execute(done);
+    });
+
+    it('Create the resource', function(done) {
+      helper
+        .resource('resourcea', [
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'a',
+            label: 'a',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          },
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'b',
+            label: 'b',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          },
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'c',
+            label: 'c',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          }
+        ], {
+          submissionAccess: [
+            {
+              type: 'create_own',
+              roles: [helper.template.roles.authenticated._id.toString()]
+            },
+            {
+              type: 'read_own',
+              roles: [helper.template.roles.authenticated._id.toString()]
+            },
+            {
+              type: 'update_own',
+              roles: [helper.template.roles.authenticated._id.toString()]
+            }
+          ]
+        }).execute(done);
+    });
+
+    it('Create the form', (done) => {
+      helper
+        .form('savetoa', [
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'a',
+            label: 'a',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          },
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'b',
+            label: 'b',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          },
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'c',
+            label: 'c',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          }
+        ], {
+          submissionAccess: [
+            {
+              type: 'create_own',
+              roles: [helper.template.roles.authenticated._id.toString()]
+            },
+            {
+              type: 'read_own',
+              roles: [helper.template.roles.authenticated._id.toString()]
+            },
+            {
+              type: 'update_own',
+              roles: [helper.template.roles.authenticated._id.toString()]
+            }
+          ]
+        })
+        .action({
+          title: 'Save to A',
+          name: 'save',
+          handler: ['before'],
+          method: ['create', 'update'],
+          priority: 11,
+          settings: {
+            resource: helper.template.forms.resourcea._id.toString(),
+            fields: {
+              a: 'a',
+              b: 'b',
+              c: 'c'
+            }
+          }
+        }).execute(done);
+    });
+
+    it('Create a new submission in "savetoa" form as Authenticated user.', (done) => {
+      helper.createSubmission('savetoa', {
+        data: {
+          a: 'one',
+          b: 'two',
+          c: 'three'
+        }
+      }, 'user1', (err, submission) => {
+        if (err) {
+          return done(err);
+        }
+
+        assert(submission, 'There must be a submission');
+        assert.equal(submission.owner, helper.template.users.user1._id);
+        done();
+      });
+    });
+
+    it('Should be able retrieve the first submission from resource as an admin user.', (done) => {
+      helper.getSubmission('resourcea', 0, (err, submission) => {
+        if (err) {
+          return done(err);
+        }
+        assert(submission._id, 'The submission must have an id.');
+        // The owner should be set to the original users id.
+        assert.equal(submission.owner, helper.template.users.user1._id);
+        assert.deepEqual(submission.data, {
+          a: 'one',
+          b: 'two',
+          c: 'three'
+        });
+        done();
+      });
+    });
+
+    it('Should be able to retrieve the first submission as user1 user', (done) => {
+      helper.getSubmission('resourcea', 0, 'user1', (err, submission) => {
+        if (err) {
+          return done(err);
+        }
+        assert(submission._id, 'The submission must have an id.');
+        // The owner should be set to the original users id.
+        assert.equal(submission.owner, helper.template.users.user1._id);
+        assert.deepEqual(submission.data, {
+          a: 'one',
+          b: 'two',
+          c: 'three'
+        });
+        savedSubmission = submission;
+        done();
+      });
+    });
+
+    it('Should be able to update the submission as user1', (done) => {
+      savedSubmission.data.a = 'one updated';
+      savedSubmission.data.b = 'two updated';
+      savedSubmission.data.c = 'three updated';
+      helper.updateSubmission(savedSubmission, 'user1', (err, updated) => {
+        if (err) {
+          return done(err);
+        }
+
+        assert.deepEqual(savedSubmission.data, updated.data);
+        done();
+      });
+    });
+
+    it('An admin should also be able to update the submission', (done) => {
+      savedSubmission.data.a = 'one updated again';
+      savedSubmission.data.b = 'two updated again';
+      savedSubmission.data.c = 'three updated again';
+      helper.updateSubmission(savedSubmission, (err, updated) => {
+        if (err) {
+          return done(err);
+        }
+
+        assert.deepEqual(savedSubmission.data, updated.data);
+        done();
+      });
+    });
+
+    it('Should NOT be able to delete the submission as user1 since they don\'t have permission', (done) => {
+      helper.deleteSubmission(savedSubmission, 'user1', [/text\/plain/, 401], done);
+    });
+
+    it('Should be able to delete the submission as admin.', (done) => {
+      helper.deleteSubmission(savedSubmission, done);
     });
   });
 

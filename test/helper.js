@@ -15,14 +15,29 @@ module.exports = function(app) {
     this.lastResponse = null;
     this.owner = owner;
     this.series = [];
+    this.expects = [];
     this.template = template || {
       project: null,
       forms: {},
       actions: {},
       submissions: {},
-      roles: {}
+      roles: {},
+      users: {}
     };
     this.hook = hook;
+  };
+
+  Helper.prototype.perms = function(permissions) {
+    const permsConfig = [];
+    _.each(permissions, (roles, name) => {
+      permsConfig.push({
+        type: name,
+        roles: _.map(roles, (roleName) => {
+          return this.template.roles[roleName]._id.toString()
+        })
+      });
+    });
+    return permsConfig;
   };
 
   Helper.prototype.getTemplate = function() {
@@ -45,18 +60,18 @@ module.exports = function(app) {
       .set('x-jwt-token', this.owner.token)
       .expect('Content-Type', /json/)
       .expect(200)
-      .end(function(err, res) {
+      .end((err, res) => {
         if (err) {
           return done(err);
         }
 
-        _.each(res.body, function(form) {
+        _.each(res.body, (form) => {
           this.template.forms[form.name] = form;
-        }.bind(this));
+        });
         this.lastResponse = res;
         this.owner.token = res.headers['x-jwt-token'];
         done(null, this.template.forms);
-      }.bind(this));
+      });
   };
 
   Helper.prototype.getForm = function(name) {
@@ -112,14 +127,14 @@ module.exports = function(app) {
       .set('x-jwt-token', this.owner.token)
       .expect('Content-Type', /json/)
       .expect(200)
-      .end(function(err, res) {
+      .end((err, res) => {
         if (err) {
           return done(err);
         }
 
         // Assign the roles.
         assert.equal(res.body.length, 3);
-        _.each(res.body, function(role) {
+        _.each(res.body, (role) => {
           if (role.admin) {
             this.template.roles.administrator = role;
           }
@@ -129,12 +144,12 @@ module.exports = function(app) {
           else {
             this.template.roles.authenticated = role;
           }
-        }.bind(this));
+        });
         assert.equal(Object.keys(this.template.roles).length, 3);
         this.owner.token = res.headers['x-jwt-token'];
         this.lastResponse = res;
         done(null, this.template.roles);
-      }.bind(this));
+      });
   };
 
   /**
@@ -152,12 +167,12 @@ module.exports = function(app) {
     async.series([
       async.apply(this.getForms.bind(this)),
       async.apply(this.getRoles.bind(this))
-    ], function(err) {
+    ], (err) => {
       if (err) {
         return done(err);
       }
       done(null, this.template);
-    }.bind(this));
+    });
   };
 
   Helper.prototype.getProject = function(done) {
@@ -173,14 +188,14 @@ module.exports = function(app) {
       .set('x-jwt-token', this.owner.token)
       .expect('Content-Type', /json/)
       .expect(200)
-      .end(function(err, res) {
+      .end((err, res) => {
         if (err) {
           return done(err);
         }
         this.lastResponse = res;
         this.template.project = res.body;
         return done(null, res.body);
-      }.bind(this));
+      });
   };
 
   Helper.prototype.createProject = function(settings, done) {
@@ -196,28 +211,28 @@ module.exports = function(app) {
         .set('x-jwt-token', this.owner.token)
         .expect('Content-Type', /json/)
         .expect(201)
-        .end(function(err, res) {
+        .end((err, res) => {
           if (err) {
             return done(err);
           }
 
           this.lastResponse = res;
           this.template.project = res.body;
-          this.getRolesAndForms(function(err) {
+          this.getRolesAndForms((err) => {
             if (err) {
               return done(err);
             }
             return done(null, res.body);
           });
-        }.bind(this));
+        });
     }
     else {
-      this.getRolesAndForms(function(err) {
+      this.getRolesAndForms((err) => {
         if (err) {
           return done(err);
         }
         return done(null, this.template);
-      }.bind(this));
+      });
     }
   };
 
@@ -260,15 +275,15 @@ module.exports = function(app) {
     }
 
     // Convert the role names to role ids.
-    ['access', 'submissionAccess'].forEach(function(accessName) {
-      _.each(form[accessName], function(perm, i) {
-        _.each(perm.roles, function(permRole, j) {
+    ['access', 'submissionAccess'].forEach(accessName =>
+      _.each(form[accessName], (perm, i) =>
+        _.each(perm.roles, (permRole, j) => {
           if (this.template.roles.hasOwnProperty(permRole)) {
             form[accessName][i].roles[j] = this.template.roles[permRole]._id;
           }
-        }.bind(this));
-      }.bind(this));
-    }.bind(this));
+        })
+      )
+    );
 
     var method = 'post';
     var status = 201;
@@ -432,7 +447,7 @@ module.exports = function(app) {
       .set('x-jwt-token', this.owner.token)
       .expect('Content-Type', /json/)
       .expect(200)
-      .end(function(err, res) {
+      .end((err, res) => {
         if (err) {
           return done(err, res);
         }
@@ -453,7 +468,7 @@ module.exports = function(app) {
         }
 
         done(null, res.body);
-      }.bind(this));
+      });
   };
 
   Helper.prototype.createAction = function(form, action, done) {
@@ -474,11 +489,11 @@ module.exports = function(app) {
     if (action.settings) {
       if (action.settings.resources) {
         var resources = [];
-        _.each(action.settings.resources, function(resource) {
+        _.each(action.settings.resources, resource => {
           if (this.template.forms.hasOwnProperty(resource)) {
             resources.push(this.template.forms[resource]._id);
           }
-        }.bind(this));
+        });
         action.settings.resources = resources;
       }
 
@@ -499,7 +514,7 @@ module.exports = function(app) {
       .set('x-jwt-token', this.owner.token)
       .expect('Content-Type', /json/)
       .expect(201)
-      .end(function(err, res) {
+      .end((err, res) => {
         if (err) {
           return done(err);
         }
@@ -511,7 +526,7 @@ module.exports = function(app) {
         }
         this.template.actions[form].push(res.body);
         done(null, res.body);
-      }.bind(this));
+      });
   };
 
   Helper.prototype.action = function(form, action) {
@@ -519,38 +534,92 @@ module.exports = function(app) {
     return this;
   };
 
-  Helper.prototype.updateSubmission = function(submission, done) {
+  Helper.prototype.updateSubmission = function(submission, user, expect, done) {
+    if (typeof user === 'function') {
+      done = user;
+      user = this.owner;
+    }
+
+    if (typeof expect === 'function') {
+      done = expect;
+      expect = [];
+    }
+
+    expect = expect || [];
+    if (typeof user === 'string') {
+      user = this.template.users[user];
+    }
+
+    if (user === undefined) {
+      user = this.owner;
+    }
+
     var url = '';
     if (this.template.project && this.template.project._id) {
       url += '/project/' + this.template.project._id;
     }
     url += '/form/' + submission.form + '/submission/' + submission._id;
-    request(app)
-      .put(url)
-      .send(submission)
-      .set('x-jwt-token', this.owner.token)
-      .expect('Content-Type', /json/)
-      .end(function(err, res) {
-        if (err) {
-          return done(err);
-        }
 
-        this.owner.token = res.headers['x-jwt-token'];
-        this.lastSubmission = res.body;
-        this.lastResponse = res;
-        _.each(this.template.submissions, function(sub, form) {
-          if (sub._id === submission._id) {
-            this.template.submissions[form] = res.body;
-          }
-        }.bind(this));
-        done(null, res.body);
-      }.bind(this));
+    let currentRequest = request(app).put(url).send(submission);
+    if (user) {
+      currentRequest = currentRequest.set('x-jwt-token', user.token);
+    }
+    if (expect.length) {
+      currentRequest = currentRequest.expect('Content-Type', expect[0]).expect(expect[1]);
+    }
+    else {
+      currentRequest = currentRequest.expect('Content-Type', /json/).expect(200);
+    }
+    currentRequest.end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      this.lastResponse = res;
+      if (expect.length && expect[1] > 299) {
+        return done(null, res.body);
+      }
+
+      user.token = res.headers['x-jwt-token'];
+      this.lastSubmission = res.body;
+      _.each(this.template.submissions, (sub, form) => {
+        if (sub._id === submission._id) {
+          this.template.submissions[form] = res.body;
+        }
+      });
+      done(null, res.body);
+    });
   };
 
-  Helper.prototype.createSubmission = function(form, data, done) {
+  Helper.prototype.createSubmission = function(form, data, user, expect, done) {
+    // Two arguments.
     if (typeof form === 'object') {
+      if (typeof data === 'function') {
+        done = data;
+      }
       data = form;
       form = this.contextName;
+    }
+
+    // Three arguments.
+    if (typeof user === 'function') {
+      done = user;
+      user = this.owner;
+    }
+
+    // Four arguments
+    if (typeof expect === 'function') {
+      done = expect;
+      expect = [];
+    }
+
+    expect = expect || [];
+    if (typeof user === 'string') {
+      user = this.template.users[user];
+    }
+
+    if (user === undefined) {
+      user = this.owner;
     }
 
     if (!this.template.forms.hasOwnProperty(form)) {
@@ -568,33 +637,83 @@ module.exports = function(app) {
       data = {data};
     }
 
-    request(app)
-      .post(url)
-      .send(data)
-      .set('x-jwt-token', this.owner.token)
-      //.expect('Content-Type', /json/)
-      .end(function(err, res) {
-        if (err) {
-          return done(err);
-        }
+    let currentRequest = request(app).post(url).send(data);
+    if (user) {
+      currentRequest = currentRequest.set('x-jwt-token', user.token);
+    }
+    if (expect.length) {
+      currentRequest = currentRequest.expect('Content-Type', expect[0]).expect(expect[1]);
+    }
+    else {
+      if (this.expects.length) {
+        _.each(this.expects, (expect) => {
+          currentRequest = currentRequest.expect(...expect);
+        });
+      }
+      else {
+        currentRequest = currentRequest.expect('Content-Type', /json/).expect(201);
+      }
+    }
+    currentRequest.end((err, res) => {
+      this.nextExpect = false;
+      if (err) {
+        return done(err);
+      }
 
-        this.owner.token = res.headers['x-jwt-token'];
-        this.template.submissions = this.template.submissions || {};
-        if (!this.template.submissions[form]) {
-          this.template.submissions[form] = [];
-        }
+      this.lastResponse = res;
+      if (expect.length && expect[1] > 299) {
+        return done(null, res.body);
+      }
 
-        this.lastSubmission = res.body;
-        this.lastResponse = res;
-        this.template.submissions[form].push(res.body);
-        done(null, res.body);
-      }.bind(this));
+      if (user && res.headers['x-jwt-token']) {
+        user.token = res.headers['x-jwt-token'];
+      }
+      this.template.submissions = this.template.submissions || {};
+      if (!this.template.submissions[form]) {
+        this.template.submissions[form] = [];
+      }
+
+      this.lastSubmission = res.body;
+      this.template.submissions[form].push(res.body);
+      done(null, res.body);
+    });
   };
 
-  Helper.prototype.getSubmission = function(form, id, done) {
+  /**
+   * Get a submission either by ID or by Index.
+   *
+   * @param form
+   * @param id - (string) for Submission ID, (number) for Index.
+   * @param user
+   * @param done
+   * @return {*}
+   */
+  Helper.prototype.getSubmission = function(form, id, user, expect, done) {
     if (typeof form === 'object') {
-      data = form;
+      if (typeof id === 'function') {
+        done = id;
+      }
+      id = form;
       form = this.contextName;
+    }
+
+    if (typeof user === 'function') {
+      done = user;
+      user = this.owner;
+    }
+
+    if (typeof expect === 'function') {
+      done = expect;
+      expect = [];
+    }
+
+    expect = expect || [];
+    if (typeof user === 'string') {
+      user = this.template.users[user];
+    }
+
+    if (user === undefined) {
+      user = this.owner;
     }
 
     if (!this.template.forms.hasOwnProperty(form)) {
@@ -602,37 +721,114 @@ module.exports = function(app) {
     }
 
     var url = '';
+    var subIndex = true;
     if (this.template.project && this.template.project._id) {
       url += '/project/' + this.template.project._id;
     }
-    url += '/form/' + this.template.forms[form]._id + '/submission/' + id;
+    url += '/form/' + this.template.forms[form]._id + '/submission';
+    if (typeof id === 'string') {
+      subIndex = false;
+      url += '/' + id;
+    }
 
-    request(app)
-      .get(url)
-      .send()
-      .set('x-jwt-token', this.owner.token)
-      .end(function(err, res) {
+    let currentRequest = request(app).get(url).send();
+    if (user) {
+      currentRequest = currentRequest.set('x-jwt-token', user.token);
+    }
+    if (expect.length) {
+      currentRequest = currentRequest.expect('Content-Type', expect[0]).expect(expect[1]);
+    }
+    else {
+      currentRequest = currentRequest.expect('Content-Type', /json/).expect(200);
+    }
+    currentRequest.end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      this.lastResponse = res;
+      if (expect.length && expect[1] > 299) {
+        return done();
+      }
+
+      if (user && res.headers['x-jwt-token']) {
+        user.token = res.headers['x-jwt-token'];
+      }
+      this.template.submissions = this.template.submissions || {};
+      if (subIndex) {
+        this.template.submissions[form] = res.body;
+      }
+      else if (!this.template.submissions[form]) {
+        this.template.submissions[form] = [];
+      }
+
+      const submission = subIndex ? res.body[id] : res.body;
+      this.lastSubmission = submission;
+      if (!subIndex) {
+        const index = _.findIndex(this.template.submissions[form], {_id: submission._id});
+        if (index === -1) {
+          this.template.submissions[form].push(submission);
+        }
+        else {
+          this.template.submissions[form][index] = submission;
+        }
+      }
+      done(null, submission);
+    });
+  };
+
+  Helper.prototype.deleteSubmission = function(submission, user, expect, done) {
+    if (typeof user === 'function') {
+      done = user;
+      user = this.owner;
+    }
+
+    if (typeof expect === 'function') {
+      done = expect;
+      expect = [];
+    }
+
+    expect = expect || [];
+    if (typeof user === 'string') {
+      user = this.template.users[user];
+    }
+
+    if (user === undefined) {
+      user = this.owner;
+    }
+
+    var url = '';
+    if (this.template.project && this.template.project._id) {
+      url += '/project/' + this.template.project._id;
+    }
+    url += '/form/' + submission.form + '/submission/' + submission._id;
+
+    let currentRequest = request(app).delete(url).send(submission);
+    if (user) {
+      currentRequest = currentRequest.set('x-jwt-token', user.token);
+    }
+    if (expect.length) {
+      currentRequest = currentRequest.expect('Content-Type', expect[0]).expect(expect[1]);
+    }
+    else {
+      currentRequest = currentRequest.expect('Content-Type', /json/).expect(200);
+    }
+    currentRequest.end((err, res) => {
         if (err) {
           return done(err);
         }
 
-        this.owner.token = res.headers['x-jwt-token'];
-        this.template.submissions = this.template.submissions || {};
-        if (!this.template.submissions[form]) {
-          this.template.submissions[form] = [];
+        this.lastResponse = res;
+        if (expect.length && expect[1] > 299) {
+          return done();
         }
 
-        this.lastSubmission = res.body;
-        this.lastResponse = res;
-        const index = _.findIndex(this.template.submissions[form], {_id: res.body._id});
-        if (index === -1) {
-          this.template.submissions[form].push(res.body);
+        if (user && res.headers['x-jwt-token']) {
+          user.token = res.headers['x-jwt-token'];
         }
-        else {
-          this.template.submissions[form][index] = res.body;
-        }
-        done(null, res.body);
-      }.bind(this));
+        _.remove(this.template.submissions, {_id: submission._id});
+        done();
+      });
   };
 
   /**
@@ -666,7 +862,7 @@ module.exports = function(app) {
         .set('x-jwt-token', this.owner.token)
         .expect('Content-Type', /json/)
         .expect(200)
-        .end(function(err, res) {
+        .end((err, res) => {
           if (err) {
             return done(err, res);
           }
@@ -677,7 +873,7 @@ module.exports = function(app) {
           this.template.roles = this.template.roles || {};
           this.template.roles[response.title] = response;
           done(null, response);
-        }.bind(this));
+        });
     }
     else {
       request(app)
@@ -686,7 +882,7 @@ module.exports = function(app) {
         .set('x-jwt-token', this.owner.token)
         .expect('Content-Type', /json/)
         .expect(201)
-        .end(function(err, res) {
+        .end((err, res) => {
           if (err) {
             return done(err);
           }
@@ -697,7 +893,7 @@ module.exports = function(app) {
           this.template.roles = this.template.roles || {};
           this.template.roles[response.title] = response;
           done(null, response);
-        }.bind(this));
+        });
     }
   };
 
@@ -723,7 +919,7 @@ module.exports = function(app) {
       .delete(url)
       .set('x-jwt-token', this.owner.token)
       .expect(200)
-      .end(function(err, res) {
+      .end((err, res) => {
         if (err) {
           return done(err);
         }
@@ -734,22 +930,62 @@ module.exports = function(app) {
         this.template.roles = this.template.roles || {};
         delete this.template.roles[response.title];
         done(null, response);
-      }.bind(this));
+      });
   };
 
-  Helper.prototype.submission = function(form, data) {
-    this.series.push(async.apply(this.createSubmission.bind(this), form, data));
+  Helper.prototype.submission = function(form, data, user, expects) {
+    this.series.push(async.apply(this.createSubmission.bind(this), form, data, user, expects));
+    return this;
+  };
+
+  Helper.prototype.expect = function(...args) {
+    this.expects.push(args);
+    return this;
+  };
+
+  Helper.prototype.user = function(form, user, data) {
+    data = data || {};
+    data.email = chance.email();
+    data.password = chance.word();
+    this.series.push((done) => {
+      this.createSubmission(form, {data}, (err, submission) => {
+        if (err) {
+          return done(err);
+        }
+
+        assert(submission, 'Must have a user object');
+        assert(submission._id, 'Must have created a new user');
+        this.template.users[user] = submission;
+        this.template.users[user].data.password = data.password;
+
+        // Now authenticate as this user to get JWT token.
+        this.createSubmission(form + 'Login', {data: {
+          email: this.template.users[user].data.email,
+          password: this.template.users[user].data.password
+        }}, null, [/application\/json/, 200], (err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const res = this.lastResponse.res;
+          assert(res.headers['x-jwt-token'], 'Authentication must return x-jwt-token');
+          this.template.users[user].token = res.headers['x-jwt-token'];
+          done(null, this.template.users[user]);
+        });
+      });
+    });
     return this;
   };
 
   Helper.prototype.execute = function(done) {
-    return async.series(this.series, function(err, res) {
+    return async.series(this.series, (err, res) => {
       this.series = [];
+      this.expects = [];
       if (err) {
         return done(err, res);
       }
       done(null, this);
-    }.bind(this));
+    });
   };
 
   Helper.assert = {

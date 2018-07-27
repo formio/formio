@@ -133,7 +133,7 @@ module.exports = function(app, template, hook) {
       it('Updating signatures with empty string invalidates.', function(done) {
         var updateSub = _.cloneDeep(signatureSubmission);
         updateSub.data.signature2 = '';
-        helper.updateSubmission(updateSub, function(err, updated) {
+        helper.updateSubmission(updateSub, helper.owner, [/application\/json/, 400], function(err, updated) {
           // It should fail validation.
           assert.equal(updated.name, 'ValidationError');
           assert.equal(updated.details.length, 1);
@@ -150,6 +150,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', test.components)
           .submission(test.submission)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -171,6 +172,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', test.components)
           .submission(test.submission)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -1544,6 +1546,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -1909,6 +1912,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2510,6 +2514,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2573,6 +2578,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2639,7 +2645,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
-          .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2695,7 +2701,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
-          .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2767,6 +2773,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission({textField: ['Bar', 'Foo']})
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2826,6 +2833,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('cond', test.components)
           .submission(fail)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2892,6 +2900,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('for213', test.components)
           .submission(test.submission)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2962,6 +2971,7 @@ module.exports = function(app, template, hook) {
               test: chance.sentence({words: 31})
             }
           })
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -3002,6 +3012,7 @@ module.exports = function(app, template, hook) {
               test: chance.sentence({words: 3})
             }
           })
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -3196,7 +3207,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Should throw an error when providing a value that is not available.', (done) => {
-        helper.submission('fruitSelect', {fruit: 'Foo'}).execute(() => {
+        helper.submission('fruitSelect', {fruit: 'Foo'}).expect(400).execute(() => {
           assert.equal(helper.lastResponse.statusCode, 400);
           assert.equal(helper.lastResponse.body.name, 'ValidationError');
           assert.equal(helper.lastResponse.body.details.length, 1);
@@ -3400,6 +3411,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('advancedCond', components)
           .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);

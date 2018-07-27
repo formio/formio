@@ -3,6 +3,7 @@
 const async = require(`async`);
 const _ = require(`lodash`);
 const util = require(`../util/util`);
+const EVERYONE = '000000000000000000000000';
 const debug = {
   template: require(`debug`)(`formio:template:template`),
   items: require(`debug`)(`formio:template:items`),
@@ -51,9 +52,15 @@ module.exports = (router) => {
     }
 
     if (!(entity instanceof Array)) {
-      if (entity.hasOwnProperty(`role`) && template.roles.hasOwnProperty(entity.role)) {
-        entity.role = template.roles[entity.role]._id.toString();
-        return true;
+      if (entity.hasOwnProperty('role')) {
+        if (entity.role === 'everyone') {
+          entity.role = EVERYONE;
+          return true;
+        }
+        else if (template.roles.hasOwnProperty(entity.role)) {
+          entity.role = template.roles[entity.role]._id.toString();
+          return true;
+        }
       }
 
       return false;
@@ -64,7 +71,11 @@ module.exports = (router) => {
     // Used for permissions arrays.
     _.each(entity, (access) => {
       _.each(access.roles, (role, i) => {
-        if (template.roles.hasOwnProperty(role) && template.roles[role]._id) {
+        if (role === 'everyone') {
+          access.roles[i] = EVERYONE;
+          changes = true;
+        }
+        else if (template.roles.hasOwnProperty(role) && template.roles[role]._id) {
           access.roles[i] = template.roles[role]._id.toString();
           changes = true;
         }
