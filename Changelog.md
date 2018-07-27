@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ## 1.33.0
+### Added
+ - Introduced an "Everyone" permission which applies to Anonymous + all Roles.
+
 ### Changed
  - Fixed dependency deprecation and vulnerabilities.
  - Fixed the permission handler to work as expected with "owner" permissions.
