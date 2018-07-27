@@ -15,7 +15,7 @@ const config = require('config');
 const async = require('async');
 const mongodb = require('mongodb');
 const MongoClient = mongodb.MongoClient;
-MongoClient.connect(config.mongo, (err, client) => {
+MongoClient.connect(config.mongo, {useNewUrlParser: true}, (err, client) => {
   if (err) {
     /* eslint-disable no-console */
     return console.log(`Could not connect to database ${config.mongo}`);
