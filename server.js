@@ -97,7 +97,7 @@ module.exports = function(options) {
     }
 
     // See if they have any forms available.
-    formio.db.collection('forms').count(function(err, numForms) {
+    formio.db.collection('forms').estimatedDocumentCount(function(err, numForms) {
       // If there are forms, then go ahead and start the server.
       if ((!err && numForms > 0) || test) {
         if (!install.download && !install.extract) {

@@ -15,7 +15,7 @@ const ProgressBar = require('progress');
 module.exports = function(db, config, tools, done) {
   done();
   const submissions = db.collection('submissions');
-  submissions.count({deleted: {$eq: null}}, (err, count) => {
+  submissions.countDocuments({deleted: {$eq: null}}, (err, count) => {
     const progress = new ProgressBar('Fixing IDs [:bar] :current/:total', { total: count });
     submissions.find({deleted: {$eq: null}}).batchSize(1000).each((err, submission) => {
       progress.tick();
