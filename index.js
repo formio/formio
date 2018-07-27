@@ -151,7 +151,8 @@ module.exports = function(config) {
 
       let mongoUrl = config.mongo;
       const mongoOptions = {
-        keepAlive: 120
+        keepAlive: 120,
+        useNewUrlParser: true
       };
 
       if (process.env.MONGO_HIGH_AVAILABILITY) {
