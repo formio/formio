@@ -21,7 +21,7 @@ module.exports = function(db, config, tools, done) {
 
   async.series([
     function checkDefaultRole(callback) {
-      roleCollection.count({deleted: {$eq: null}, default: true}, function(err, count) {
+      roleCollection.countDocuments({deleted: {$eq: null}, default: true}, function(err, count) {
         if (err) {
           return callback(err);
         }
@@ -53,7 +53,7 @@ module.exports = function(db, config, tools, done) {
       });
     },
     function checkAdminRole(callback) {
-      roleCollection.count({deleted: {$eq: null}, admin: true}, function(err, count) {
+      roleCollection.countDocuments({deleted: {$eq: null}, admin: true}, function(err, count) {
         if (err) {
           return callback(err);
         }

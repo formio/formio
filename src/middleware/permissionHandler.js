@@ -287,7 +287,7 @@ module.exports = function(router) {
             };
 
             const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-            submissionModel.count(query, function(err, count) {
+            submissionModel.countDocuments(query, function(err, count) {
               if (err) {
                 return callback();
               }
