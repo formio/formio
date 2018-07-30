@@ -1,6 +1,10 @@
 FROM node:8
 
-RUN npm install
-RUN npm start
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY . /var/www
+
+RUN apt-get update && apt-get install nc -y
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 EXPOSE 3001
