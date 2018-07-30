@@ -111,20 +111,20 @@ module.exports = function(router) {
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
       // Query the submissions for this submission.
-      submissionModel.findOne(query, function(err, submission) {
+      submissionModel.find(query, function(err, submissions) {
         if (err) {
           return next(err);
         }
 
         // Return not found.
-        if (!submission || !submission._id) {
+        if (!submissions || submissions.length<=0 ) {
           return res.status(404).send('Not found');
         }
 
         // Send only the id as a response if the submission exists.
-        return res.status(200).json({
-          _id: submission._id.toString()
-        });
+        return res.status(200).json(
+          submissions.map(s =>  s._id)
+        );
       });
     });
   });
