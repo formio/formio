@@ -122,6 +122,9 @@ module.exports = (router) => {
           return next(err);
         }
         _.each(forms, function(form) {
+          if (!form || !form._id) {
+            return;
+          }
           assignRoles(_map, form.access);
           assignRoles(_map, form.submissionAccess);
           const machineName = form.machineName = hook.alter('machineNameExport', form.machineName);
@@ -173,6 +176,9 @@ module.exports = (router) => {
           return next(err);
         }
         _.each(roles, function(role) {
+          if (!role || !role._id) {
+            return;
+          }
           const machineName = role.machineName = hook.alter('machineNameExport', role.machineName);
           _export.roles[machineName] = _.pick(role,
             'title',
