@@ -1,0 +1,31 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:latest
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build the docker image
+          command: docker build -t formio:latest .
+      - deploy:
+          name: Push to docker dev repository if MASTER
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ];
+              then
+                sudo pip install awscli --upgrade
+                aws ecr get-login --region ca-central-1 --no-include-email | bash -
+                docker tag formio:latest 197509012559.dkr.ecr.ca-central-1.amazonaws.com/form-io:dev
+                docker push 197509012559.dkr.ecr.ca-central-1.amazonaws.com/form-io:dev
+            fi
+      - deploy:
+          name: Push to docker dev repository if STAGE branch
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "stage" ];
+              then
+                sudo pip install awscli --upgrade
+                aws ecr get-login --region ca-central-1 --no-include-email | bash -
+                docker tag formio:latest 197509012559.dkr.ecr.ca-central-1.amazonaws.com/form-io:stage
+                docker push 197509012559.dkr.ecr.ca-central-1.amazonaws.com/form-io:stage
+            fi

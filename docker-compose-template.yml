@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  formio:
+    build: ./
+    environment:
+      DATABASE_HOST: "mongodb"
+      DATABASE_NAME: "formioapp"
+      DATABASE_PORT: 27017
+      FORMIO_USERNAME: "hello@iamgaurav.com"
+      FORMIO_PASSWORD: "testing123"
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
