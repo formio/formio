@@ -3,6 +3,7 @@
 const util = require('../util/util');
 const async = require('async');
 const _ = require('lodash');
+const EVERYONE = '000000000000000000000000';
 
 module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
@@ -286,7 +287,7 @@ module.exports = function(router) {
             };
 
             const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-            submissionModel.count(query, function(err, count) {
+            submissionModel.countDocuments(query, function(err, count) {
               if (err) {
                 return callback();
               }
@@ -363,9 +364,7 @@ module.exports = function(router) {
     /* eslint-disable max-statements */
     hasAccess(req, access, entity, res) {
       const method = req.method.toUpperCase();
-
-      // Determine the roles and user based on the available token.
-      let roles = [access.defaultRole];
+      let roles = [access.defaultRole, EVERYONE];
       let user = null;
       if (req.user) {
         user = util.idToString(req.user._id);
@@ -378,6 +377,9 @@ module.exports = function(router) {
           // Add the users id to the roles to check for submission resource access.
           req.user.roles.push(user);
 
+          // Add the everyone role.
+          req.user.roles.push(EVERYONE);
+
           // Ensure that all roles are strings to be compatible for comparison.
           roles = _(req.user.roles)
             .filter()
@@ -389,48 +391,14 @@ module.exports = function(router) {
 
       // Setup some flags for other handlers.
       req.isAdmin = false;
-      req.ownerAssign = false;
-
-      // Check to see if this user has an admin role.
-      const hasAdminRole = access.adminRole ? (_.indexOf(roles, access.adminRole) !== -1) : false;
-      if (hasAdminRole || hook.alter('isAdmin', req.isAdmin, req)) {
-        req.isAdmin = true;
-        return true;
-      }
-
-      // See if we have an anonymous user with the default role included in the create_all access.
-      if (
-        access.submission.hasOwnProperty('create_all') &&
-        (_.intersection(access.submission.create_all, roles).length > 0)
-      ) {
-        req.ownerAssign = true;
-      }
-
-      // There should be an entity at this point.
-      if (!entity) {
-        return false;
-      }
-
-      // The return value of user access.
-      let _hasAccess = false;
 
       // Determine access based on the given access method.
       const methods = {
-        'POST': ['create_all', 'create_own'],
-        'GET': ['read_all', 'read_own'],
-        'PUT': ['update_all', 'update_own'],
-        'DELETE': ['delete_all', 'delete_own']
+        'POST': {all: 'create_all', own: 'create_own'},
+        'GET': {all: 'read_all', own: 'read_own'},
+        'PUT': {all: 'update_all', own: 'update_own'},
+        'DELETE': {all: 'delete_all', own: 'delete_own'}
       };
-
-      // Check if the user making the request owns the entity being requested.
-      if (
-        user
-        && access.hasOwnProperty(entity.type)
-        && access[entity.type].hasOwnProperty('owner')
-        && req.token.user._id === access[entity.type].owner
-      ) {
-        _hasAccess = true;
-      }
 
       // Using the given method, iterate the 8 available entity access. Compare the given roles with the roles
       // defined by the entity to have access. If this roleId is found within the defined roles, grant access.
@@ -450,71 +418,73 @@ module.exports = function(router) {
         return false;
       }
 
-      search.forEach(function(type) {
-        // Check if the given roles are contained within the allowed roles for our
-        roles.forEach(function(role) {
-          // Grant access if the role was found in the access for this resource.
-          if (
-            access.hasOwnProperty(entity.type)
-            && access[entity.type].hasOwnProperty(type)
-            &&
-            (
-              (access[entity.type][type] === true) ||
-              (access[entity.type][type] instanceof Array && access[entity.type][type].indexOf(role) !== -1)
-            )
-          ) {
-            // Allow anonymous users to create a submission for themselves if defined.
-            if (type === 'create_own') {
-              _hasAccess = true;
-            }
-            else if (type.toString().indexOf('_own') !== -1) {
-              // Entity has an owner, Request is from a User, and the User is the Owner.
-              // OR, selfAccess was flagged, and the user is the entity.
-              /* eslint-disable max-len */
-              if (
-                (access[entity.type].hasOwnProperty('owner') && user && access[entity.type].owner === user)
-                || (req.selfAccess && user && access[entity.type].hasOwnProperty('_id') && user.toString() === access[entity.type]._id.toString())
-              ) {
-                _hasAccess = true;
-              }
-              // Exception for Index endpoint, the
-              else if (type === 'read_own' && entity.hasOwnProperty('id') && entity.id === '') {
-                // The user has access to this endpoint, however the results will need to be filtered by the
-                // ownerFilter middleware.
-                _hasAccess = true;
-              }
-              /* eslint-enable max-len */
-            }
-            else {
-              // If the current request has been flagged for submission resource access (admin permissions).
-              const submissionResourceAdmin = (_.get(req, 'submissionResourceAccessAdminBlock') || []);
+      // Check to see if this user has an admin role.
+      const hasAdminRole = access.adminRole ? (_.indexOf(roles, access.adminRole) !== -1) : false;
+      if (hasAdminRole || hook.alter('isAdmin', req.isAdmin, req)) {
+        req.isAdmin = true;
+        return true;
+      }
 
-              // Only allow certain users to edit the owner and submission access property.
-              // (~A | B) logic for submission access, to not affect old permissions.
-              if (
-                (type === 'create_all' || type === 'update_all')
-                && submissionResourceAdmin.indexOf(util.idToString(role)) === -1
-              ) {
-                // Only allow the the bootstrapEntityOwner middleware to assign an owner if defined in the payload.
-                if (_.has(req, 'body.owner')) {
-                  req.assignOwner = true;
-                }
+      // There should be an entity at this point.
+      if (!entity || !access.hasOwnProperty(entity.type)) {
+        return false;
+      }
 
-                // Only allow the the bootstrapSubmissionAccess middleware to assign access if defined in the payload.
-                if (entity.type === 'submission' && _.has(req, 'body.access')) {
-                  req.assignSubmissionAccess = true;
-                }
-              }
+      // Determine the typed access.
+      var typedAccess = function(type) {
+        return access[entity.type][type] &&
+          (
+            (access[entity.type][type] === true) ||
+            (access[entity.type][type].length && _.intersection(access[entity.type][type], roles).length)
+          );
+      };
 
-              // No ownership requirements here.
-              req.skipOwnerFilter = true;
-              _hasAccess = true;
-            }
+      // See if the user is the owner.
+      const isOwner = user && (user === access[entity.type].owner);
+      const isIndex = (method === 'GET') && entity.hasOwnProperty('id') && (entity.id === '');
+      const isPost = (method === 'POST') && entity.hasOwnProperty('id') && (entity.id === '');
+      const hasOwnAccess = typedAccess(search.own);
+      const hasAllAccess = typedAccess(search.all);
+      let _hasAccess = false;
+
+      // Check for self access.
+      if (
+        user &&
+        (
+          (req.selfAccess && (user === access[entity.type]._id) && hasOwnAccess) ||
+          (isOwner && (user === entity.id))
+        )
+      ) {
+        _hasAccess = true;
+      }
+
+      // Check for all access.
+      if (hasAllAccess) {
+        const submissionResourceAdmin = (_.get(req, 'submissionResourceAccessAdminBlock') || []);
+        if (
+          (req.method === 'POST' || req.method === 'PUT') &&
+          !_.intersection(submissionResourceAdmin, roles).length
+        ) {
+          // Allow them to assign the owner.
+          req.assignOwner = true;
+
+          // Only allow the the bootstrapSubmissionAccess middleware to assign access if defined in the payload.
+          if (entity.type === 'submission' && _.has(req, 'body.access')) {
+            req.assignSubmissionAccess = true;
           }
-        });
-      });
+        }
 
-      // No prior access was granted, the given role does not have access to this resource using the given method.
+        // Skip the owner filter if they have all access.
+        req.skipOwnerFilter = true;
+        _hasAccess = true;
+      }
+
+      // Check for own access.
+      if (hasOwnAccess && (isOwner || isIndex || isPost)) {
+        _hasAccess = true;
+      }
+
+      // Return if they have access.
       return _hasAccess;
     }
     /* eslint-enable max-statements */

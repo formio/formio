@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const util = require('../util/util');
+const moment = require('moment');
 
 /**
  * Middleware function to coerce filter queries for a submission Index
@@ -19,31 +20,40 @@ module.exports = function(router) {
         return next();
       }
 
-      router.formio.cache.loadCurrentForm(req, function(err, currentForm) {
+      router.formio.cache.loadCurrentForm(req, (err, currentForm) => {
         if (err) {
           return next(err);
         }
 
+        const prefix = 'data.';
+        const prefixLength = prefix.length;
         _.assign(req.query, _(req.query)
-          .omit('limit', 'skip', 'select', 'sort')
-          .mapValues(function(value, name) {
+          .omit('limit', 'skip', 'select', 'sort', 'populate')
+          .mapValues((value, name) => {
             // Skip filters not looking at component data
-            if (name.indexOf('data.') !== 0) {
+            if (!name.startsWith(prefix)) {
               return value;
             }
 
             // Get the filter object.
-            const filter = _.zipObject(['name', 'selector'], _.words(name, /[^,_ ]+/g));
+            const filter = _.zipObject(['name', 'selector'], name.split('__'));
             // Convert to component key
-            const key = util.getFormComponentKey(filter.name).substring(5);
+            const key = util.getFormComponentKey(filter.name).substring(prefixLength);
             const component = util.getComponent(currentForm.components, key);
             // Coerce these queries to proper data type
             if (component) {
-              if (component.type === 'number') {
-                return Number(value);
-              }
-              if (component.type === 'checkbox') {
-                return value !== 'false';
+              switch (component.type) {
+                case 'number':
+                  return Number(value);
+                case 'checkbox':
+                  return value !== 'false';
+                case 'datetime': {
+                  const date = moment.utc(value, ['YYYY-MM-DD', 'YYYY-MM', 'YYYY', 'x', moment.ISO_8601], true);
+
+                  if (date.isValid()) {
+                    return date.toDate();
+                  }
+                }
               }
             }
             return value;

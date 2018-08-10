@@ -1,6 +1,8 @@
 /* eslint-env mocha */
 var request = require('supertest');
 var assert = require('assert');
+var Chance = require('chance');
+var chance = new Chance();
 var _ = require('lodash');
 var docker = process.env.DOCKER;
 
@@ -131,7 +133,7 @@ module.exports = function(app, template, hook) {
       it('Updating signatures with empty string invalidates.', function(done) {
         var updateSub = _.cloneDeep(signatureSubmission);
         updateSub.data.signature2 = '';
-        helper.updateSubmission(updateSub, function(err, updated) {
+        helper.updateSubmission(updateSub, helper.owner, [/application\/json/, 400], function(err, updated) {
           // It should fail validation.
           assert.equal(updated.name, 'ValidationError');
           assert.equal(updated.details.length, 1);
@@ -148,6 +150,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', test.components)
           .submission(test.submission)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -169,6 +172,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', test.components)
           .submission(test.submission)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -1542,6 +1546,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -1907,6 +1912,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2508,6 +2514,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2571,6 +2578,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2637,7 +2645,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
-          .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2693,7 +2701,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
-          .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2765,6 +2773,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission({textField: ['Bar', 'Foo']})
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2824,6 +2833,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('cond', test.components)
           .submission(fail)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2890,6 +2900,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('for213', test.components)
           .submission(test.submission)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -2900,6 +2911,138 @@ module.exports = function(app, template, hook) {
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, '"address" must be unique.');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['for213']);
+            done();
+          });
+      });
+    });
+
+    describe('Max Words Validation', () => {
+      it('Should throw an error if the maximum words has been exceeded', function(done) {
+        helper
+          .form('maxwords', [{
+            tags: [],
+            type: 'textarea',
+            conditional: {
+              eq: '',
+              when: null,
+              show: ''
+            },
+            validate: {
+              customPrivate: false,
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              maxWords: 30,
+              minWords: 5,
+              required: false
+            },
+            persistent: true,
+            unique: true,
+            protected: false,
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'test',
+            label: 'test',
+            inputMask: '',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          }, {
+            isNew: false,
+            input: true,
+            label: 'Submit',
+            tableView: false,
+            key: 'submit',
+            size: 'md',
+            leftIcon: '',
+            rightIcon: '',
+            block: false,
+            action: 'submit',
+            disableOnInvalid: false,
+            theme: 'primary',
+            type: 'button'
+          }])
+          .submission({
+            data: {
+              test: chance.sentence({words: 31})
+            }
+          })
+          .expect(400)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(helper.lastResponse.status, 400);
+            assert.equal(submission.name, 'ValidationError');
+            assert.equal(submission.details[0].type, 'string.maxWords');
+            assert.equal(submission.details[0].message, '"test" exceeded maximum words.');
+            done();
+          });
+      });
+
+      it('Should allow up to the maximum words', (done) => {
+        const sentence = chance.sentence({words: 30});
+        helper.submission('maxwords', {
+            data: {
+              test: sentence
+            }
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(helper.lastResponse.status, 201);
+            assert(!!submission._id, 'A submission was not created');
+            assert.equal(submission.data.test, sentence);
+            done();
+          });
+      });
+
+      it('Should throw an error when minimum words has not been met.', (done) => {
+          helper.submission('maxwords', {
+            data: {
+              test: chance.sentence({words: 3})
+            }
+          })
+          .expect(400)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(helper.lastResponse.status, 400);
+            assert.equal(submission.name, 'ValidationError');
+            assert.equal(submission.details[0].type, 'string.minWords');
+            assert.equal(submission.details[0].message, '"test" does not have enough words.');
+            done();
+          });
+      });
+
+      it('Should allow at the minimum words', (done) => {
+        const sentence = chance.sentence({words: 5});
+        helper.submission('maxwords', {
+          data: {
+            test: sentence
+          }
+        })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.equal(helper.lastResponse.status, 201);
+            assert(!!submission._id, 'A submission was not created');
+            assert.equal(submission.data.test, sentence);
             done();
           });
       });
@@ -3064,7 +3207,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Should throw an error when providing a value that is not available.', (done) => {
-        helper.submission('fruitSelect', {fruit: 'Foo'}).execute(() => {
+        helper.submission('fruitSelect', {fruit: 'Foo'}).expect(400).execute(() => {
           assert.equal(helper.lastResponse.statusCode, 400);
           assert.equal(helper.lastResponse.body.name, 'ValidationError');
           assert.equal(helper.lastResponse.body.details.length, 1);
@@ -3268,6 +3411,7 @@ module.exports = function(app, template, hook) {
         helper
           .form('advancedCond', components)
           .submission(values)
+          .expect(400)
           .execute(function(err) {
             if (err) {
               return done(err);

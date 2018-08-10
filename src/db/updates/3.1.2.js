@@ -1,7 +1,7 @@
 'use strict';
 const _ = require('lodash');
 const ObjectID = require('mongodb').ObjectID;
-const utils = require('formiojs/utils');
+const utils = require('formiojs/utils').default;
 
 /**
  * Update 3.1.2

@@ -1,7 +1,5 @@
 'use strict';
 
-const mongoose = require('mongoose');
-
 module.exports = function(formio) {
   const hook = require('../util/hook')(formio);
 
@@ -50,7 +48,7 @@ module.exports = function(formio) {
    *
    * @type {mongoose.Schema}
    */
-  Action.schema = new mongoose.Schema({
+  Action.schema = new formio.mongoose.Schema({
     title: {
       type: String,
       required: true
@@ -68,7 +66,7 @@ module.exports = function(formio) {
       require: true
     }],
     condition: {
-      type: mongoose.Schema.Types.Mixed,
+      type: formio.mongoose.Schema.Types.Mixed,
       required: false
     },
     priority: {
@@ -77,11 +75,11 @@ module.exports = function(formio) {
       default: 0
     },
     settings: {
-      type: mongoose.Schema.Types.Mixed,
+      type: formio.mongoose.Schema.Types.Mixed,
       required: false
     },
     form: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: formio.mongoose.Schema.Types.ObjectId,
       ref: 'form',
       index: true,
       required: true
@@ -94,10 +92,10 @@ module.exports = function(formio) {
   });
 
   // Add machineName to the schema.
-  Action.schema.plugin(require('../plugins/machineName')('action'));
+  Action.schema.plugin(require('../plugins/machineName')('action', formio));
 
   Action.schema.machineName = function(document, done) {
-    mongoose.model('form').findOne({_id: document.form, deleted: {$eq: null}})
+    formio.mongoose.model('form').findOne({_id: document.form, deleted: {$eq: null}})
       .exec((err, form) => {
         if (err) {
           return done(err);

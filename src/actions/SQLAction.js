@@ -274,11 +274,8 @@ module.exports = function(router) {
           }
         }.bind(this);
 
-        if (method === 'post' && req.body) {
-          onSubmission(req.body);
-        }
-        else if (method === 'delete') {
-          onSubmission(currentResource.item);
+        if (method !== 'get' && req.body) {
+          onSubmission(method === 'delete' ? currentResource.item : req.body);
         }
         else {
           router.formio.cache.loadCurrentSubmission(req, function(err, submission) {

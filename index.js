@@ -16,6 +16,9 @@ const util = require('./src/util/util');
 // Keep track of the formio interface.
 router.formio = {};
 
+// Allow libraries to use a single instance of mongoose.
+router.formio.mongoose = mongoose;
+
 // Use custom template delimiters.
 _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
 
@@ -146,12 +149,10 @@ module.exports = function(config) {
         router.use(router.formio.middleware.permissionHandler);
       }
 
-      // Allow libraries to use a single instance of mongoose.
-      router.formio.mongoose = mongoose;
-
       let mongoUrl = config.mongo;
       const mongoOptions = {
-        keepAlive: 120
+        keepAlive: 120,
+        useNewUrlParser: true
       };
 
       if (process.env.MONGO_HIGH_AVAILABILITY) {

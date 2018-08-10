@@ -4,6 +4,71 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.33.0
+### Added
+ - Introduced an "Everyone" permission which applies to Anonymous + all Roles.
+
+### Changed
+ - Fixed dependency deprecation and vulnerabilities.
+ - Fixed the permission handler to work as expected with "owner" permissions.
+ - Upgraded dependencies.
+
+## 1.32.0
+### Changed
+ - Upgraded colors@1.3.1, mongoose@5.2.4, nodemon@1.18.3, mysql@2.16.0, eslint@5.2.0, fs-extra@7.0.0, method-override@3.0.0
+
+### Fixed
+ - Issue with SQL Action for update commands.
+
+### Added
+ - maxWords and minWords validation.
+
+## 1.31.4
+### Fixed
+ - Fixed the machine names to be performant and without special chars.
+ - Allow admins the ability to see all anonymous submissions
+ - Issues where the validator would crash for certain JSON form structures.
+
+### Changed
+ - formiojs@2.32.3, mongodb@3.1.1, mongoose@5.2.3, eslint@5.1.0, nodemon@1.18.1, bcrypt@3.0.0
+
+### Added
+ - Date converting for filter.
+
+## 1.31.2
+### Added
+ - The original message type of an email to the message payload.
+
+## 1.31.1
+### Changed
+ - Moved all instances of mongoose to use a single entity provided within the formio object.
+
+## 1.31.0
+### Fixed
+ - Make select query validation use caching to limit requests being made.
+ - CSV export of wysiwyg
+ - Webhook improvements
+
+### Changed
+ - Upgrade mongoose@5.1.7, nodemailer@4.6.7, jsonwebtoken@8.3.0, eslint@5.0.1
+
+## 1.30.2
+### Fixed
+ - Problems with the machine name generation where numbers in the project name would mess it up.
+
+## 1.30.1
+### Fixed
+ - Issues with the machine name generation for names with more than 10 instances.
+
+## 1.30.0
+### Added
+ - Ability for email templates to execute from workers library.
+ - Validation changes for multi-mask fields
+ - Ability to configure email transports via hooks.
+
+### Changed
+ - Upgraded JSONStream@1.3.3, async@2.6.1, body-parser@1.18.3, mongodb@3.0.8, nodemailer@4.6.5, vanilla-text-mask@5.1.1, nodemon@1.17.5, colors@1.3.0, csv@3.1.0, formiojs@2.32.2, joi@13.3.0, mongoose@5.1.3, nodemailer-mailgun-transport@1.4.0, request@2.87.0, mocha@5.2.0, supertest@3.1.0, fs-extra@6.0.1, adm-zip@0.4.11
+
 ## 1.29.2
 ### Fixed
  - Potential crash when merging forms when one row was empty or missing.

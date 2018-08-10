@@ -1,7 +1,6 @@
 'use strict';
 
 const Resource = require('resourcejs');
-const mongoose = require('mongoose');
 const _ = require('lodash');
 
 module.exports = function(router) {
@@ -48,7 +47,7 @@ module.exports = function(router) {
   // If the last argument is a function, hook.alter assumes it is a callback function.
   const FormResource = hook.alter('FormResource', Resource, null);
 
-  return FormResource(router, '', 'form', mongoose.model('form'))
+  return FormResource(router, '', 'form', router.formio.mongoose.model('form'))
     .rest(hook.alter('formRoutes', {
       before: [
         (req, res, next) => {
@@ -60,7 +59,7 @@ module.exports = function(router) {
           next();
         },
         router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-        router.formio.middleware.bootstrapEntityOwner(false),
+        router.formio.middleware.bootstrapEntityOwner,
         router.formio.middleware.formHandler,
         router.formio.middleware.formActionHandler('before'),
         router.formio.middleware.condensePermissionTypes,

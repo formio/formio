@@ -14,7 +14,6 @@ const rest = require('restler');
 const util = require('./util');
 const _ = require('lodash');
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
-const Thread = require('../worker/Thread');
 
 /**
  * The email sender for emails.
@@ -23,6 +22,7 @@ const Thread = require('../worker/Thread');
  */
 module.exports = (formio) => {
   const hook = require('./hook')(formio);
+  const Worker = require('../worker/Worker')(formio);
 
   /**
    * Get the list of available email transports.
@@ -86,8 +86,11 @@ module.exports = (formio) => {
         });
       }
 
-      availableTransports = hook.alter('emailTransports', availableTransports, settings);
-      next(null, availableTransports);
+      availableTransports = hook.alter('emailTransports', availableTransports, settings, req, next);
+      // Make it reverse compatible. Should be asyncronous now.
+      if (availableTransports) {
+        return next(null, availableTransports);
+      }
     });
   };
 
@@ -144,19 +147,17 @@ module.exports = (formio) => {
       params.components[component.key] = component;
       if (component.type === 'resource' && params.data[component.key]) {
         params.data[`${component.key}Obj`] = params.data[component.key];
-
-        const thread = new Thread(Thread.Tasks.nunjucks).start({
+        replacements.push((new Worker('nunjucks')).start({
+          form: form,
+          submission: submission,
           template: component.template,
           context: {
             item: params.data[component.key]
           }
-        })
-        .then(response => {
+        }).then(response => {
           params.data[component.key] = response.output;
           return response;
-        });
-
-        replacements.push(thread);
+        }));
       }
     });
 
@@ -193,8 +194,8 @@ module.exports = (formio) => {
     params.mail = mail;
 
     // Compile the email with nunjucks in a separate thread.
-    return new Thread(Thread.Tasks.nunjucks)
-    .start({
+    return new Worker('nunjucks').start({
+      options: options,
       render: mail,
       context: params
     })
@@ -402,7 +403,9 @@ module.exports = (formio) => {
         from: message.from ? message.from : 'no-reply@form.io',
         to: (typeof message.emails === 'string') ? message.emails : message.emails.join(', '),
         subject: message.subject,
-        html: message.message
+        html: message.message,
+        msgTransport: message.transport,
+        transport: emailType
       };
       const options = {
         params

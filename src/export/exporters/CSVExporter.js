@@ -5,7 +5,7 @@ const util = require('../../util/util');
 const {
   getInputMask,
   convertFormatToMoment,
-} = require('formiojs/utils');
+} = require('formiojs/utils').default;
 const through = require('through');
 const csv = require('csv');
 const _ = require('lodash');
@@ -273,7 +273,7 @@ class CSVExporter extends Exporter {
 
           this.fields.push(finalItem);
         });
-      });
+      }, true);
     }
     catch (err) {
       res.status(500).send(err.message || err);

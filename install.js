@@ -407,8 +407,8 @@ module.exports = function(formio, items, done) {
               }
               util.log('Creating root user account...'.green);
               util.log('Encrypting password');
-              var password = process.env.PASSWORD;
-              var username = process.env.USERNAME;
+              var password = 'test';
+              var username = 'admin@admin.com';
               formio.encrypt(password, function(err, hash) {
                   if (err) {
                       return done(err);
