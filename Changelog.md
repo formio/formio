@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.33.2
+### Changed
+ - Upgraded JSONStream@1.3.4, mongodb@3.1.3, mongoose@5.2.8
+
 ## 1.33.0
 ### Added
  - Introduced an "Everyone" permission which applies to Anonymous + all Roles.
