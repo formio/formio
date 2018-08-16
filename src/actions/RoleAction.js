@@ -272,11 +272,13 @@ module.exports = function(router) {
 
         // The given role does not exist in the resource.
         let compare = [];
-        submission.roles.forEach(function(element) {
-          if (element) {
-            compare.push(util.idToString(element));
-          }
-        });
+        if (Array.isArray(submission.roles)) {
+          submission.roles.forEach(function(element) {
+            if (element) {
+              compare.push(util.idToString(element));
+            }
+          });
+        }
 
         if (compare.indexOf(role) === -1) {
           debug.removeRole('The given role to remove was not found.');
