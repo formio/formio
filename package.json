@@ -33,7 +33,7 @@
     "event-chain": "^0.0.1",
     "express": "^4.16.3",
     "formio-workers": "^1.6.0",
-    "formiojs": "^3.3.3",
+    "formiojs": "^3.3.4",
     "fs-extra": "^7.0.0",
     "html-entities": "^1.2.1",
     "joi": "^13.6.0",
