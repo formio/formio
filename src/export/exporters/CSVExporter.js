@@ -10,7 +10,7 @@ const through = require('through');
 const csv = require('csv');
 const _ = require('lodash');
 const Entities = require('html-entities').AllHtmlEntities;
-const moment = require('moment');
+const moment = require('moment-timezone');
 const {conformToMask} = require('vanilla-text-mask');
 
 const interpolate = (string, data) => string.replace(/{{\s*(\S*)\s*}}/g, (match, path) => {
@@ -32,7 +32,8 @@ const interpolate = (string, data) => string.replace(/{{\s*(\S*)\s*}}/g, (match,
 class CSVExporter extends Exporter {
   constructor(form, req, res) {
     super(form, req, res);
-
+    this.timezone = _.get(form, 'settings.components.datetime.timezone', '');
+    this.dateFormat = convertFormatToMoment('yyyy-MM-dd hh:mm a');
     this.extension = 'csv';
     this.contentType = 'text/csv';
     this.stringifier = csv.stringify({
@@ -75,7 +76,7 @@ class CSVExporter extends Exporter {
         }
         else if (component.type === 'radio') {
           items.push({
-            preprocessor(value) {
+            preprocessor: (value) => {
               if (_.isObject(value)) {
                 return value;
               }
@@ -101,7 +102,7 @@ class CSVExporter extends Exporter {
           }
 
           items.push({
-            preprocessor(value) {
+            preprocessor: (value) => {
               if (_.isObject(value)) {
                 return value;
               }
@@ -118,7 +119,7 @@ class CSVExporter extends Exporter {
             items.push({
               label: [path, question.value].join('.'),
               subpath: question.value,
-              preprocessor(value) {
+              preprocessor: (value) => {
                 if (_.isObject(value)) {
                   return value;
                 }
@@ -197,7 +198,7 @@ class CSVExporter extends Exporter {
           };
 
           items.push({
-            preprocessor(value) {
+            preprocessor: (value) => {
               return _.isObject(value)
                 ? valuesExtractor(value)
                 : primitiveValueHandler(value);
@@ -205,8 +206,29 @@ class CSVExporter extends Exporter {
           });
         }
         else if (component.type === 'datetime') {
+          if (component.displayInTimezone === 'location' && component.timezone) {
+            this.timezone = component.timezone;
+          }
+
+          // If we are configured to display in timezone of viewer, then look for a query string of the timezone.
+          if (component.displayInTimezone === 'viewer' && req.query.timezone) {
+            this.timezone = decodeURIComponent(req.query.timezone);
+          }
+
+          // If we want to display in timezone of utc, then reset timezone.
+          if (component.displayInTimezone === 'utc') {
+            this.timezone = '';
+          }
           items.push({
-            preprocessor(value) {
+            preprocessor: (value, submission) => {
+              // If we wish to display in submission timezone, and there is submission timezone metadata.
+              if (
+                (component.displayInTimezone === 'submission') &&
+                submission.metadata &&
+                submission.metadata.timezone
+              ) {
+                this.timezone = submission.metadata.timezone;
+              }
               if (_.isObject(value) && !_.isDate(value)) {
                 return value;
               }
@@ -216,7 +238,9 @@ class CSVExporter extends Exporter {
               }
 
               if (value) {
-                const result = moment(value).format(convertFormatToMoment(component.format));
+                const dateMoment = this.timezone ? moment(value).tz(this.timezone) : moment(value);
+                this.dateFormat = convertFormatToMoment(component.format);
+                const result = dateMoment.format(this.timezone ? `${this.dateFormat} z` : this.dateFormat);
                 return result;
               }
 
@@ -226,7 +250,7 @@ class CSVExporter extends Exporter {
         }
         else if (component.type === 'signature') {
           items.push({
-            preprocessor(value) {
+            preprocessor: (value) => {
               if (_.isObject(value)) {
                 return value;
               }
@@ -238,7 +262,7 @@ class CSVExporter extends Exporter {
         else if (formattedView && component.inputMask) {
           const mask = getInputMask(component.inputMask);
           items.push({
-            preprocessor(value) {
+            preprocessor: (value) => {
               return conformToMask(value, mask).conformedValue;
             }
           });
@@ -327,12 +351,6 @@ class CSVExporter extends Exporter {
   stream(stream) {
     const self = this;
     const write = function(submission) {
-      const data = [
-        submission._id.toString(),
-        submission.created.toISOString(),
-        submission.modified.toISOString()
-      ];
-
       /**
        * Util function to unwrap an unknown data payload into a string.
        *
@@ -340,7 +358,7 @@ class CSVExporter extends Exporter {
        * @returns {string}
        */
       const coerceToString = (data, column) => {
-        data = (column.preprocessor || _.identity)(data);
+        data = (column.preprocessor || _.identity)(data, submission);
 
         if (_.isArray(data) && data.length > 0) {
           const fullPath = column.subpath
@@ -366,6 +384,19 @@ class CSVExporter extends Exporter {
         return JSON.stringify(data);
       };
 
+      const formatDate = (value) => {
+        if (self.timezone) {
+          return moment(value).tz(self.timezone).format(`${self.dateFormat} z`);
+        }
+        return moment(value).format(self.dateFormat);
+      };
+
+      const data = [
+        submission._id.toString(),
+        submission.created,
+        submission.modified
+      ];
+
       self.fields.forEach((column) => {
         const componentData = _.get(submission.data, column.path);
 
@@ -388,6 +419,9 @@ class CSVExporter extends Exporter {
         data.push(coerceToString(componentData, column));
       });
 
+      // Perform this after the field data since they may set the timezone and format.
+      data[1] = formatDate(data[1]);
+      data[2] = formatDate(data[2]);
       this.queue(data);
     };
 
