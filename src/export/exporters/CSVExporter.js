@@ -238,7 +238,7 @@ class CSVExporter extends Exporter {
               }
 
               if (value) {
-                const dateMoment = this.timezone ? moment(value).tz(this.timezone) : moment(value);
+                const dateMoment = this.timezone ? moment(value).tz(this.timezone) : moment(value).utc();
                 this.dateFormat = convertFormatToMoment(component.format);
                 const result = dateMoment.format(this.timezone ? `${this.dateFormat} z` : this.dateFormat);
                 return result;

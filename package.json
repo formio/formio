@@ -44,7 +44,7 @@
     "moment": "^2.22.2",
     "moment-timezone": "^0.5.21",
     "mongodb": "^3.1.3",
-    "mongoose": "^5.2.9",
+    "mongoose": "5.2.8",
     "mssql": "^4.1.0",
     "mysql": "^2.16.0",
     "nodemailer": "^4.6.8",
