@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.33.4
+### Changed
+ - Upgrade formiojs@3.3.6 resourcejs@1.25.2
+ - Allow usage of Unauthorized certificates for SMTP servers.
+
 ## 1.33.3
 ### Changed
  - FOR-1533: Improved conditional Actions.
