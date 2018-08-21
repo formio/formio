@@ -355,8 +355,7 @@ module.exports = (formio) => {
               };
             }
             if (
-              _.has(settings, 'email.smtp.tls') &&
-              _.get(settings, 'email.smtp.tls.rejectUnauthorized') == false
+              _.get(settings, 'email.smtp.allowUnauthorizedCerts', false)
             ) {
               _settings['tls'] = {
                 rejectUnauthorized: false
