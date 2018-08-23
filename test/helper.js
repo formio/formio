@@ -1,15 +1,15 @@
 'use strict';
 
-var request = require('supertest');
-var chance = new (require('chance'))();
-var assert = require('assert');
-var _ = require('lodash');
-var async = require('async');
-var docker = process.env.DOCKER;
+const request = require('supertest');
+const chance = new (require('chance'))();
+const assert = require('assert');
+const _ = require('lodash');
+const async = require('async');
+const docker = process.env.DOCKER;
 
 module.exports = function(app) {
   // The Helper class.
-  var Helper = function(owner, template, hook) {
+  const Helper = function(owner, template, hook) {
     this.contextName = '';
     this.lastSubmission = null;
     this.lastResponse = null;
@@ -33,7 +33,7 @@ module.exports = function(app) {
       permsConfig.push({
         type: name,
         roles: _.map(roles, (roleName) => {
-          return this.template.roles[roleName]._id.toString()
+          return this.template.roles[roleName]._id.toString();
         })
       });
     });
@@ -50,9 +50,9 @@ module.exports = function(app) {
   };
 
   Helper.prototype.getForms = function(done) {
-    var url = '';
+    let url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${this.template.project._id}`;
     }
     url += '/form?limit=9999';
     request(app)
@@ -97,7 +97,7 @@ module.exports = function(app) {
       return undefined;
     }
 
-    var _action;
+    let _action;
     this.template.actions[form] = this.template.actions[form] || [];
     this.template.actions[form].forEach(function(a) {
       if (_action) {
@@ -115,9 +115,9 @@ module.exports = function(app) {
   };
 
   Helper.prototype.getRoles = function(done) {
-    var url = '';
+    let url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${this.template.project._id}`;
     }
     url += '/role?limit=9999';
 
@@ -184,7 +184,7 @@ module.exports = function(app) {
     }
 
     request(app)
-      .get('/project/' + this.template.project._id)
+      .get(`/project/${this.template.project._id}`)
       .set('x-jwt-token', this.owner.token)
       .expect('Content-Type', /json/)
       .expect(200)
@@ -244,9 +244,9 @@ module.exports = function(app) {
   Helper.prototype.updateForm = function(form, done) {
     let url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${this.template.project._id}`;
     }
-    url += '/form/' + form._id;
+    url += `/form/${form._id}`;
 
     request(app).put(url)
       .send(form)
@@ -261,7 +261,7 @@ module.exports = function(app) {
         this.template.forms[form.name] = res.body;
         done(null, res.body);
       });
-  }
+  };
 
   Helper.prototype.upsertForm = function(form, done) {
     this.contextName = form.name;
@@ -285,14 +285,14 @@ module.exports = function(app) {
       )
     );
 
-    var method = 'post';
-    var status = 201;
-    var url = '';
+    let method = 'post';
+    let status = 201;
+    let url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${this.template.project._id}`;
     }
     url += '/form';
-    var data = {
+    let data = {
       title: form.name,
       name: form.name,
       path: form.name,
@@ -304,7 +304,7 @@ module.exports = function(app) {
     if (this.template.forms.hasOwnProperty(form.name)) {
       method = 'put';
       status = 200;
-      url += '/' + this.template.forms[form.name]._id;
+      url += `/${this.template.forms[form.name]._id}`;
       data = {
         components: form.components
       };
@@ -331,7 +331,7 @@ module.exports = function(app) {
   };
 
   Helper.prototype.form = function(name, components, access) {
-    var form;
+    let form;
     if (typeof name !== 'string') {
       // If the first param is an array, its components.
       if (name instanceof Array) {
@@ -378,21 +378,21 @@ module.exports = function(app) {
 
   Helper.prototype._deleteForm = function(_id, done) {
     request(app)
-      .delete(this.hook.alter('url', '/form/' + _id, this.template))
+      .delete(this.hook.alter('url', `/form/${_id}`, this.template))
       .set('x-jwt-token', this.owner.token)
       .expect(200)
       .end(done);
   };
 
   Helper.prototype.deleteForm = function(form) {
-    var _id = form._id || form;
+    const _id = form._id || form;
 
     this.series.push(async.apply(this._deleteForm.bind(this), _id));
     return this;
   };
 
   Helper.prototype.resource = function(name, components, access) {
-    var resource = {
+    const resource = {
       type: 'resource'
     };
 
@@ -427,7 +427,7 @@ module.exports = function(app) {
       return done('No actions exist for the given form.');
     }
 
-    var _action = this.getAction.call(this, form, action);
+    const _action = this.getAction.call(this, form, action);
     if (!_action) {
       return done('No action could be found.');
     }
@@ -435,11 +435,11 @@ module.exports = function(app) {
       return done('Could not determine which action to modify.');
     }
 
-    var url = '';
+    let url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${this.template.project._id}`;
     }
-    url += '/form/' + this.template.forms[form]._id + '/action/' + _action._id;
+    url += `/form/${this.template.forms[form]._id}/action/${_action._id}`;
 
     request(app)
       .put(url)
@@ -452,12 +452,12 @@ module.exports = function(app) {
           return done(err, res);
         }
         if (!res.body) {
-          return done('No response', res)
+          return done('No response', res);
         }
 
         this.lastResponse = res;
         this.owner.token = res.headers['x-jwt-token'];
-        for (var a = 0; a < this.template.actions[form].length; a++) {
+        for (let a = 0; a < this.template.actions[form].length; a++) {
           if (
             this.template.actions[form][a]._id === _action._id
             || this.template.actions[form][a].name === _action.name
@@ -481,14 +481,14 @@ module.exports = function(app) {
       return done('Form not found');
     }
 
-    var _action = this.getAction(form, {_id: action._id});
+    const _action = this.getAction(form, {_id: action._id});
     if (_action) {
       return this.updateAction(form, action, done);
     }
 
     if (action.settings) {
       if (action.settings.resources) {
-        var resources = [];
+        const resources = [];
         _.each(action.settings.resources, resource => {
           if (this.template.forms.hasOwnProperty(resource)) {
             resources.push(this.template.forms[resource]._id);
@@ -502,11 +502,11 @@ module.exports = function(app) {
       }
     }
 
-    var url = '';
+    let url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${this.template.project._id}`;
     }
-    url += '/form/' + this.template.forms[form]._id + '/action';
+    url += `/form/${this.template.forms[form]._id}/action`;
 
     request(app)
       .post(url)
@@ -554,11 +554,11 @@ module.exports = function(app) {
       user = this.owner;
     }
 
-    var url = '';
+    let url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${this.template.project._id}`;
     }
-    url += '/form/' + submission.form + '/submission/' + submission._id;
+    url += `/form/${submission.form}/submission/${submission._id}`;
 
     let currentRequest = request(app).put(url).send(submission);
     if (user) {
@@ -626,11 +626,11 @@ module.exports = function(app) {
       return done('Form not found');
     }
 
-    var url = '';
+    let url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${this.template.project._id}`;
     }
-    url += '/form/' + this.template.forms[form]._id + '/submission';
+    url += `/form/${this.template.forms[form]._id}/submission`;
 
     // Allow passing in the submission as well
     if (!data.hasOwnProperty('data')) {
@@ -720,15 +720,15 @@ module.exports = function(app) {
       return done('Form not found');
     }
 
-    var url = '';
-    var subIndex = true;
+    let url = '';
+    let subIndex = true;
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${this.template.project._id}`;
     }
-    url += '/form/' + this.template.forms[form]._id + '/submission';
+    url += `/form/${this.template.forms[form]._id}/submission`;
     if (typeof id === 'string') {
       subIndex = false;
-      url += '/' + id;
+      url += `/${id}`;
     }
 
     let currentRequest = request(app).get(url).send();
@@ -797,11 +797,11 @@ module.exports = function(app) {
       user = this.owner;
     }
 
-    var url = '';
+    let url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${this.template.project._id}`;
     }
-    url += '/form/' + submission.form + '/submission/' + submission._id;
+    url += `/form/${submission.form}/submission/${submission._id}`;
 
     let currentRequest = request(app).delete(url).send(submission);
     if (user) {
@@ -843,19 +843,19 @@ module.exports = function(app) {
       update = undefined;
     }
 
-    var url = '';
+    let url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${this.template.project._id}`;
     }
     url += '/role';
 
     if (update) {
-      var _role;
+      let _role;
       if (!role._id) {
         _role = this.getRole(role.title || role);
       }
 
-      url += '/' + _role._id;
+      url += `/${_role._id}`;
       request(app)
         .put(url)
         .send(update)
@@ -867,7 +867,7 @@ module.exports = function(app) {
             return done(err, res);
           }
 
-          var response = res.body;
+          const response = res.body;
           this.lastResponse = res;
           this.owner.token = res.headers['x-jwt-token'];
           this.template.roles = this.template.roles || {};
@@ -887,7 +887,7 @@ module.exports = function(app) {
             return done(err);
           }
 
-          var response = res.body;
+          const response = res.body;
           this.lastResponse = res;
           this.owner.token = res.headers['x-jwt-token'];
           this.template.roles = this.template.roles || {};
@@ -904,16 +904,16 @@ module.exports = function(app) {
    * @param done
    */
   Helper.prototype.deleteRole = function(role, done) {
-    var _role;
+    let _role;
     if (!role._id) {
       _role = this.getRole(role.title || role);
     }
 
-    var url = '';
+    let url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${this.template.project._id}`;
     }
-    url += '/role/' + _role._id;
+    url += `/role/${_role._id}`;
 
     request(app)
       .delete(url)
@@ -924,7 +924,7 @@ module.exports = function(app) {
           return done(err);
         }
 
-        var response = res.body;
+        const response = res.body;
         this.lastResponse = res;
         this.owner.token = res.headers['x-jwt-token'];
         this.template.roles = this.template.roles || {};
@@ -959,7 +959,7 @@ module.exports = function(app) {
         this.template.users[user].data.password = data.password;
 
         // Now authenticate as this user to get JWT token.
-        this.createSubmission(form + 'Login', {data: {
+        this.createSubmission(`${form}Login`, {data: {
           email: this.template.users[user].data.email,
           password: this.template.users[user].data.password
         }}, null, [/application\/json/, 200], (err) => {

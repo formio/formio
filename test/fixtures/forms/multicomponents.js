@@ -393,4 +393,4 @@ module.exports = {
       }
     ]
   }
-}
+};

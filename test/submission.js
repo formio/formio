@@ -1,25 +1,24 @@
-/* eslint-env mocha */
-var request = require('supertest');
-var assert = require('assert');
-var Chance = require('chance');
-var chance = new Chance();
-var _ = require('lodash');
-var docker = process.env.DOCKER;
+const request = require('supertest');
+const assert = require('assert');
+const Chance = require('chance');
+const chance = new Chance();
+const _ = require('lodash');
+const docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
-  var Helper = require('./helper')(app);
-  var helper = null;
+  const Helper = require('./helper')(app);
+  let helper = null;
 
   describe('Form Submissions', function() {
     it('Sets up a default project', function(done) {
-      var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper.project().execute(done);
     });
 
     describe('Unnested Submissions', function() {
       it('Saves values for each single value component type1', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
+        const test = require('./fixtures/forms/singlecomponents1.js');
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -28,14 +27,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
       });
 
+      let signatureSubmission1 = null;
       it('Saves values for each single value component type2', function(done) {
-        var test = require('./fixtures/forms/singlecomponents2.js');
+        const test = require('./fixtures/forms/singlecomponents2.js');
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -50,9 +50,8 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      var signatureSubmission1 = null;
       it('Saves submission with a null signature.', function(done) {
-        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents2.js'));
+        const test = _.cloneDeep(require('./fixtures/forms/singlecomponents2.js'));
         test.submission.signature2 = null;
         helper
           .form('test', test.components)
@@ -71,8 +70,8 @@ module.exports = function(app, template, hook) {
       });
 
       it('Updates the submission with a null signature', function(done) {
-        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents2.js'));
-        var updateSub = _.cloneDeep(signatureSubmission1);
+        const test = _.cloneDeep(require('./fixtures/forms/singlecomponents2.js'));
+        const updateSub = _.cloneDeep(signatureSubmission1);
         updateSub.data.signature2 = null;
         helper.updateSubmission(updateSub, function(err, updated) {
           // Should coerse the value to an empty string.
@@ -82,9 +81,9 @@ module.exports = function(app, template, hook) {
         });
       });
 
-      var signatureSubmission = null;
+      let signatureSubmission = null;
       it('Saves values with required signature', function(done) {
-        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
+        const test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -100,8 +99,8 @@ module.exports = function(app, template, hook) {
       });
 
       it('Updating signatures does not wipe out the signature.', function(done) {
-        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
-        var updateSub = _.cloneDeep(signatureSubmission);
+        const test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
+        const updateSub = _.cloneDeep(signatureSubmission);
         helper.updateSubmission(updateSub, function(err, updated) {
           assert.deepEqual(test.submission, updated.data);
           done();
@@ -109,8 +108,8 @@ module.exports = function(app, template, hook) {
       });
 
       it('Saving signatures with Bad string does not wipe out the signature.', function(done) {
-        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
-        var updateSub = _.cloneDeep(signatureSubmission);
+        const test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
+        const updateSub = _.cloneDeep(signatureSubmission);
         updateSub.data.signature2 = 'YES';
         helper.updateSubmission(updateSub, function(err, updated) {
           // Ensure that it does not erase the signature.
@@ -120,8 +119,8 @@ module.exports = function(app, template, hook) {
       });
 
       it('Saving signatures with Any other string does not wipe out the signature.', function(done) {
-        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
-        var updateSub = _.cloneDeep(signatureSubmission);
+        const test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
+        const updateSub = _.cloneDeep(signatureSubmission);
         updateSub.data.signature2 = 'sdfsfsdfsdf';
         helper.updateSubmission(updateSub, function(err, updated) {
           // Ensure that it does not erase the signature.
@@ -131,7 +130,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Updating signatures with empty string invalidates.', function(done) {
-        var updateSub = _.cloneDeep(signatureSubmission);
+        const updateSub = _.cloneDeep(signatureSubmission);
         updateSub.data.signature2 = '';
         helper.updateSubmission(updateSub, helper.owner, [/application\/json/, 400], function(err, updated) {
           // It should fail validation.
@@ -145,7 +144,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Gives an error with an empty signature.', function(done) {
-        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
+        const test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
         test.submission.signature2 = '';
         helper
           .form('test', test.components)
@@ -156,7 +155,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.equal(submission.name, 'ValidationError');
             assert.equal(submission.details.length, 1);
             assert.equal(submission.details[0].message, '"signature2" is not allowed to be empty');
@@ -167,7 +166,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Gives an error with a signature not present.', function(done) {
-        var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
+        const test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
         delete test.submission.signature2;
         helper
           .form('test', test.components)
@@ -178,7 +177,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.equal(submission.name, 'ValidationError');
             assert.equal(submission.details.length, 1);
             assert.equal(submission.details[0].message, '"signature2" is not allowed to be empty');
@@ -189,8 +188,8 @@ module.exports = function(app, template, hook) {
       });
 
       it('Throws away extra values', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var values = Object.assign({}, test.submission, {
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const values = Object.assign({}, test.submission, {
           extra: true,
           more: 'stuff',
           objectval: {
@@ -208,14 +207,14 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
       });
 
       it('Saves values for each multiple value component', function(done) {
-        var test = require('./fixtures/forms/multicomponents.js');
+        const test = require('./fixtures/forms/multicomponents.js');
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -224,7 +223,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
@@ -233,8 +232,8 @@ module.exports = function(app, template, hook) {
 
     describe('Fieldset nesting', function() {
       it('Nests single value components in a fieldset', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "key": "fieldset1",
           "input": false,
           "tableView": true,
@@ -256,15 +255,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
       });
 
       it('Nests multiple value components in a fieldset', function(done) {
-        var test = require('./fixtures/forms/multicomponents.js');
-        var components = [{
+        const test = require('./fixtures/forms/multicomponents.js');
+        const components = [{
           "key": "fieldset1",
           "input": false,
           "tableView": true,
@@ -286,18 +285,18 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
-      })
+      });
     });
 
     describe('Column nesting', function() {
       it('Nests single value components in a column', function(done) {
-        var test1 = require('./fixtures/forms/singlecomponents1.js');
-        var test2 = require('./fixtures/forms/singlecomponents2.js');
-        var components = [{
+        const test1 = require('./fixtures/forms/singlecomponents1.js');
+        const test2 = require('./fixtures/forms/singlecomponents2.js');
+        const components = [{
           "key": "columns1",
           "input": false,
           "columns": [
@@ -316,7 +315,7 @@ module.exports = function(app, template, hook) {
           }
         }];
 
-        var combined = Object.assign({}, test1.submission, test2.submission);
+        const combined = Object.assign({}, test1.submission, test2.submission);
         helper
           .form('test', components)
           .submission(combined)
@@ -325,16 +324,16 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(combined, submission.data);
             done();
           });
       });
 
       it('Nests multiple value components in a column', function(done) {
-        var test1 = require('./fixtures/forms/singlecomponents1.js');
-        var test2 = require('./fixtures/forms/multicomponents.js');
-        var components = [{
+        const test1 = require('./fixtures/forms/singlecomponents1.js');
+        const test2 = require('./fixtures/forms/multicomponents.js');
+        const components = [{
           "key": "columns1",
           "input": false,
           "columns": [
@@ -353,7 +352,7 @@ module.exports = function(app, template, hook) {
           }
         }];
 
-        var combined = Object.assign({}, test1.submission, test2.submission);
+        const combined = Object.assign({}, test1.submission, test2.submission);
         helper
           .form('test', components)
           .submission(combined)
@@ -362,7 +361,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(combined, submission.data);
             done();
           });
@@ -371,8 +370,8 @@ module.exports = function(app, template, hook) {
 
     describe('Panel nesting', function() {
       it('Nests single value components in a panel', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "key": "panel1",
           "input": false,
           "title": "Panel",
@@ -394,15 +393,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
       });
 
       it('Nests multiple value components in a panel', function(done) {
-        var test = require('./fixtures/forms/multicomponents.js');
-        var components = [{
+        const test = require('./fixtures/forms/multicomponents.js');
+        const components = [{
           "key": "panel1",
           "input": false,
           "title": "Panel",
@@ -424,17 +423,17 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
-      })
+      });
     });
 
     describe('Well nesting', function() {
       it('Nests single value components in a well', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "key": "well1",
           "input": false,
           "components": test.components,
@@ -454,15 +453,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
       });
 
       it('Nests multiple value components in a well', function(done) {
-        var test = require('./fixtures/forms/multicomponents.js');
-        var components = [{
+        const test = require('./fixtures/forms/multicomponents.js');
+        const components = [{
           "key": "well1",
           "input": false,
           "components": test.components,
@@ -482,19 +481,19 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
-      })
+      });
     });
 
     describe('Table nesting', function() {
       it('Nests components in a table', function(done) {
-        var test1 = require('./fixtures/forms/singlecomponents1.js');
-        var test2 = require('./fixtures/forms/singlecomponents2.js');
-        var test3 = require('./fixtures/forms/multicomponents.js');
-        var components = [{
+        const test1 = require('./fixtures/forms/singlecomponents1.js');
+        const test2 = require('./fixtures/forms/singlecomponents2.js');
+        const test3 = require('./fixtures/forms/multicomponents.js');
+        const components = [{
           "key": "table1",
           "conditional": {
             "eq": "",
@@ -548,7 +547,7 @@ module.exports = function(app, template, hook) {
           "input": false
         }];
 
-        var values = Object.assign({}, test1.submission, test2.submission, test3.submission);
+        const values = Object.assign({}, test1.submission, test2.submission, test3.submission);
         helper
           .form('test', components)
           .submission(values)
@@ -557,7 +556,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
@@ -566,7 +565,7 @@ module.exports = function(app, template, hook) {
 
     describe('Custom components', function() {
       it('Saves custom components', function(done) {
-        var test = require('./fixtures/forms/custom.js');
+        const test = require('./fixtures/forms/custom.js');
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -575,15 +574,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
       });
 
       it('Nests single value components in a custom component', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "key": "custom1",
           "input": false,
           "tableView": true,
@@ -600,15 +599,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
       });
 
       //it('Nests single value components in a custom tree component', function(done) {
-      //  var test = require('./fixtures/forms/singlecomponents1.js');
-      //  var components = [{
+      //  let test = require('./fixtures/forms/singlecomponents1.js');
+      //  let components = [{
       //    "key": "custom1",
       //    "input": false,
       //    "tableView": true,
@@ -618,7 +617,7 @@ module.exports = function(app, template, hook) {
       //    "type": "mycustomtype"
       //  }];
       //
-      //  var submissionData = { custom1: test.submission };
+      //  let submissionData = { custom1: test.submission };
       //
       //  helper
       //    .form('customform', components)
@@ -628,18 +627,17 @@ module.exports = function(app, template, hook) {
       //        return done(err);
       //      }
       //
-      //      var submission = helper.getLastSubmission();
+      //      let submission = helper.getLastSubmission();
       //      assert.deepEqual(submissionData, submission.data);
       //      done();
       //    });
       //});
-
     });
 
     describe('Container nesting', function() {
       it('Nests single value components in a container', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "input": true,
           "tree": true,
           "components": test.components,
@@ -656,7 +654,7 @@ module.exports = function(app, template, hook) {
           }
         }];
 
-        var values = {
+        const values = {
           container1: test.submission
         };
 
@@ -668,15 +666,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
       });
 
       it('Removes extra values in a container', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "input": true,
           "tree": true,
           "components": test.components,
@@ -694,10 +692,10 @@ module.exports = function(app, template, hook) {
 
         }];
 
-        var sub = {
+        const sub = {
           container1: test.submission
-        }
-        var values = {
+        };
+        const values = {
           container1: Object.assign({}, test.submission, {
             extra: true,
             stuff: 'bad',
@@ -713,15 +711,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(sub, submission.data);
             done();
           });
       });
 
       it('Nests a container in a container', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "input": true,
           "tree": true,
           "components": [{
@@ -754,7 +752,7 @@ module.exports = function(app, template, hook) {
 
         }];
 
-        var values = {
+        const values = {
           container1: {
             container2: test.submission
           }
@@ -768,15 +766,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
       });
 
       it('Nests a container in a datagrid', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "conditional": {
             "eq": "",
             "when": null,
@@ -808,7 +806,7 @@ module.exports = function(app, template, hook) {
           }]
         }];
 
-        var values = {
+        const values = {
           datagrid1: [{
             container2: test.submission
           }]
@@ -822,7 +820,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
@@ -831,8 +829,8 @@ module.exports = function(app, template, hook) {
 
     describe('Datagrid nesting', function() {
       it('Nests single value components in a datagrid', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "conditional": {
             "eq": "",
             "when": null,
@@ -849,9 +847,9 @@ module.exports = function(app, template, hook) {
           "input": true
         }];
 
-        var values = {
+        const values = {
           datagrid1: [test.submission, test.submission]
-        }
+        };
 
         helper
           .form('test', components)
@@ -861,15 +859,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
       });
 
       //it('Removes extra values in a datagrid', function(done) {
-      //  var test = require('./fixtures/forms/singlecomponents1.js');
-      //  var components = [{
+      //  let test = require('./fixtures/forms/singlecomponents1.js');
+      //  let components = [{
       //    "conditional": {
       //      "eq": "",
       //      "when": null,
@@ -886,10 +884,10 @@ module.exports = function(app, template, hook) {
       //    "input": true
       //  }];
       //
-      //  var sub = {
+      //  let sub = {
       //    datagrid1: [test.submission, test.submission]
       //  }
-      //  var values = {
+      //  let values = {
       //    datagrid1: [Object.assign({}, test.submission, {
       //      extra: true,
       //      stuff: 'bad',
@@ -905,15 +903,15 @@ module.exports = function(app, template, hook) {
       //        return done(err);
       //      }
       //
-      //      var submission = helper.getLastSubmission();
+      //      let submission = helper.getLastSubmission();
       //      assert.deepEqual(sub, submission.data);
       //      done();
       //    });
       //});
 
       it('Nests a datagrid in a datagrid', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "conditional": {
             "eq": "",
             "when": null,
@@ -947,7 +945,7 @@ module.exports = function(app, template, hook) {
           "input": true
         }];
 
-        var values = {
+        const values = {
           datagrid1: [{
             datagrid2: [test.submission]
           }]
@@ -961,15 +959,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
       });
 
       it('Nests a datagrid in a container', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "input": true,
           "tree": true,
           "tableView": true,
@@ -1003,7 +1001,7 @@ module.exports = function(app, template, hook) {
           ]
         }];
 
-        var values = {
+        const values = {
           container1: {
             datagrid2: [test.submission]
           }
@@ -1017,7 +1015,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
@@ -1026,8 +1024,8 @@ module.exports = function(app, template, hook) {
 
     describe('Deep nesting', function() {
       it('Nests deeply in layout components', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "key": "fieldset1",
           "input": false,
           "tableView": true,
@@ -1106,15 +1104,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
       });
 
       it('Nests a datagrid deeply in layout components', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "key": "fieldset1",
           "input": false,
           "tableView": true,
@@ -1202,7 +1200,7 @@ module.exports = function(app, template, hook) {
           }
         }];
 
-        var values = {
+        const values = {
           datagrid1: [test.submission]
         };
 
@@ -1214,15 +1212,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
       });
 
       it('Nests a container deeply in layout components', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
-        var components = [{
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const components = [{
           "key": "fieldset1",
           "input": false,
           "tableView": true,
@@ -1310,7 +1308,7 @@ module.exports = function(app, template, hook) {
           }
         }];
 
-        var values = {
+        const values = {
           container1: test.submission
         };
 
@@ -1322,7 +1320,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
@@ -1331,7 +1329,7 @@ module.exports = function(app, template, hook) {
 
     describe('Protected fields are protected', function() {
       it('Does not return a protected password field', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -1381,7 +1379,7 @@ module.exports = function(app, template, hook) {
             }
           }
         ];
-        var values = {
+        const values = {
           textField: 'My Value',
           password: 'password'
         };
@@ -1394,15 +1392,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
-            var submission = helper.getLastSubmission();
+            const result = {textField: 'My Value'};
+            const submission = helper.getLastSubmission();
             assert.deepEqual(result, submission.data);
             done();
           });
       });
 
       it('Does not return a protected text field', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -1452,7 +1450,7 @@ module.exports = function(app, template, hook) {
             }
           }
         ];
-        var values = {
+        const values = {
           textField: 'My Value',
           password: 'password'
         };
@@ -1465,7 +1463,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             // Password is a hash so can't use old value.
             assert(submission.data.hasOwnProperty('password'), 'Should return the password hash');
             done();
@@ -1475,7 +1473,7 @@ module.exports = function(app, template, hook) {
 
     describe('Conditional Fields', function() {
       it('Requires a conditionally visible field', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -1539,7 +1537,7 @@ module.exports = function(app, template, hook) {
           }
         ];
 
-        var values = {
+        const values = {
           selector: 'two'
         };
 
@@ -1552,8 +1550,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.isJoi);
             assert.equal(submission.name, 'ValidationError');
             assert.deepEqual(submission.details, [
@@ -1569,11 +1566,10 @@ module.exports = function(app, template, hook) {
             ]);
             done();
           });
-
       });
 
       it('Doesn\'t require a conditionally hidden field', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -1637,7 +1633,7 @@ module.exports = function(app, template, hook) {
           }
         ];
 
-        var values = {
+        const values = {
           selector: 'one'
         };
 
@@ -1649,14 +1645,14 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
       });
 
       it('Allows a conditionally required field', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -1720,7 +1716,7 @@ module.exports = function(app, template, hook) {
           }
         ];
 
-        var values = {
+        const values = {
           selector: 'two',
           requiredField: 'Has a value'
         };
@@ -1733,16 +1729,14 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
-
       });
 
       it('Ignores conditionally hidden fields', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -1806,7 +1800,7 @@ module.exports = function(app, template, hook) {
           }
         ];
 
-        var values = {
+        const values = {
           selector: 'one',
           requiredField: 'Has a value'
         };
@@ -1819,15 +1813,14 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual({selector: 'one'}, submission.data);
             done();
           });
       });
 
       it('Requires a conditionally visible field in a panel', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -1905,7 +1898,7 @@ module.exports = function(app, template, hook) {
           }
         ];
 
-        var values = {
+        const values = {
           selector: 'two'
         };
 
@@ -1918,8 +1911,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.isJoi);
             assert.equal(submission.name, 'ValidationError');
             assert.deepEqual(submission.details, [
@@ -1935,11 +1927,10 @@ module.exports = function(app, template, hook) {
             ]);
             done();
           });
-
       });
 
       it('Doesn\'t require a conditionally hidden field in a panel', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -2017,7 +2008,7 @@ module.exports = function(app, template, hook) {
           }
         ];
 
-        var values = {
+        const values = {
           selector: 'one'
         };
 
@@ -2029,16 +2020,14 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
-
       });
 
       it('Allows a conditionally required field in a panel', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -2116,7 +2105,7 @@ module.exports = function(app, template, hook) {
           }
         ];
 
-        var values = {
+        const values = {
           selector: 'two',
           requiredField: 'Has a value'
         };
@@ -2129,16 +2118,14 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
           });
-
       });
 
       it('Ignores conditionally hidden fields in a panel', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -2216,7 +2203,7 @@ module.exports = function(app, template, hook) {
           }
         ];
 
-        var values = {
+        const values = {
           selector: 'one',
           requiredField: 'Has a value'
         };
@@ -2229,15 +2216,14 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual({selector: 'one'}, submission.data);
             done();
           });
       });
 
       it('Should not clearOnHide when set to false', (done) => {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -2327,14 +2313,14 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual({selector: 'one', noClear: 'testing'}, submission.data);
             done();
           });
       });
 
       it('Should clearOnHide when set to true', (done) => {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -2424,7 +2410,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual({selector: 'one'}, submission.data);
             done();
           });
@@ -2433,7 +2419,7 @@ module.exports = function(app, template, hook) {
 
     describe('Non Persistent fields dont persist', function() {
       it('Doesn\'t save non-persistent single fields', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
+        const test = require('./fixtures/forms/singlecomponents1.js');
         test.components.forEach(function(component) {
           component.persistent = false;
         });
@@ -2446,14 +2432,14 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual({}, submission.data);
             done();
           });
       });
 
       it('Doesn\'t save non-persistent multi fields', function(done) {
-        var test = require('./fixtures/forms/multicomponents.js');
+        const test = require('./fixtures/forms/multicomponents.js');
         test.components.forEach(function(component) {
           component.persistent = false;
         });
@@ -2466,7 +2452,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual({}, submission.data);
             done();
           });
@@ -2475,7 +2461,7 @@ module.exports = function(app, template, hook) {
 
     describe('Verify multiple values are multiple', function() {
       it('Forces multi value fields to be an array', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -2507,7 +2493,7 @@ module.exports = function(app, template, hook) {
             "type": "textfield"
           }
         ];
-        var values = {
+        const values = {
           textField: 'My Value'
         };
 
@@ -2520,7 +2506,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.isJoi);
             assert.equal(submission.name, 'ValidationError');
             assert.deepEqual(submission.details, [
@@ -2539,7 +2525,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Forces single value fields to not be an array', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -2571,7 +2557,7 @@ module.exports = function(app, template, hook) {
             "type": "textfield"
           }
         ];
-        var values = {
+        const values = {
           textField: ['Never', 'gonna', 'give', 'you', 'up']
         };
 
@@ -2584,7 +2570,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.isJoi);
             assert.equal(submission.name, 'ValidationError');
             assert.deepEqual(submission.details, [
@@ -2606,7 +2592,7 @@ module.exports = function(app, template, hook) {
 
     describe('Unique Fields', function() {
       it('Returns an error when non-unique', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -2638,7 +2624,7 @@ module.exports = function(app, template, hook) {
             "type": "textfield"
           }
         ];
-        var values = {
+        const values = {
           textField: 'My Value'
         };
 
@@ -2651,7 +2637,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            helper.getLastSubmission();
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
@@ -2664,7 +2650,7 @@ module.exports = function(app, template, hook) {
 
     describe('Required multivalue fields', function() {
       it('Returns an error when required multivalue fields are missing', function(done) {
-        var components = [
+        const components = [
           {
             "input": true,
             "tableView": true,
@@ -2696,7 +2682,7 @@ module.exports = function(app, template, hook) {
             "type": "textfield"
           }
         ];
-        var values = {};
+        const values = {};
 
         helper
           .form('test', components)
@@ -2707,7 +2693,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            helper.getLastSubmission();
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
@@ -2719,7 +2705,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Unique Fields with multiple', function() {
-      var components = [
+      const components = [
         {
           "input": true,
           "tableView": true,
@@ -2762,7 +2748,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.hasOwnProperty('data'));
             assert.deepEqual(submission.data, {textField: ['Bar', 'Baz']});
             done();
@@ -2791,7 +2777,7 @@ module.exports = function(app, template, hook) {
 
     describe('Complex form with hidden fields and embedded datagrids', function() {
       it('Saves a complex form correctly', function(done) {
-        var test = require('./fixtures/forms/complex.js');
+        const test = require('./fixtures/forms/complex.js');
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -2800,7 +2786,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
             done();
           });
@@ -2808,11 +2794,11 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Conditionally hidden required fields do not trigger validation', function() {
-      var test = require('./fixtures/forms/conditional');
-      var pass = {show: 'no'};
-      var fail = {show: 'yes'};
-      var full = {show: 'yes', req: 'foo'};
-      var pruned = {show: 'no', req: 'foo'};
+      const test = require('./fixtures/forms/conditional');
+      const pass = {show: 'no'};
+      const fail = {show: 'yes'};
+      const full = {show: 'yes', req: 'foo'};
+      const pruned = {show: 'no', req: 'foo'};
 
       it('A submission without a hidden field should ignore validation', function(done) {
         helper
@@ -2823,7 +2809,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(submission.data, pass);
             done();
           });
@@ -2839,9 +2825,9 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(submission.name, 'ValidationError');
-            var error = submission.details.pop();
+            const error = submission.details.pop();
             assert.equal(error.message, '"req" is required');
             done();
           });
@@ -2856,7 +2842,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(submission.data, full);
             done();
           });
@@ -2871,7 +2857,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(submission.data, pass);
             done();
           });
@@ -2879,7 +2865,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Address Fields', function() {
-      var test = require('./fixtures/forms/for213.js');
+      const test = require('./fixtures/forms/for213.js');
 
       it('A single unique address will submit without issues', function(done) {
         helper
@@ -2890,7 +2876,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(submission.data, test.submission);
             done();
           });
@@ -2977,7 +2963,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.status, 400);
             assert.equal(submission.name, 'ValidationError');
             assert.equal(submission.details[0].type, 'string.maxWords');
@@ -2998,7 +2984,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.status, 201);
             assert(!!submission._id, 'A submission was not created');
             assert.equal(submission.data.test, sentence);
@@ -3018,7 +3004,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.status, 400);
             assert.equal(submission.name, 'ValidationError');
             assert.equal(submission.details[0].type, 'string.minWords');
@@ -3039,7 +3025,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.status, 201);
             assert(!!submission._id, 'A submission was not created');
             assert.equal(submission.data.test, sentence);
@@ -3097,7 +3083,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.deepEqual(submission.data, {name: 'testing'});
             assert.deepEqual(submission.metadata, {testing: 'hello'});
             done();
@@ -3105,200 +3091,201 @@ module.exports = function(app, template, hook) {
       });
     });
 
-    if (!docker)
-    describe('Select validation', () => {
-      before((done) => {
-        // Create a resource to keep records.
-        helper
-          .form('fruits', [
-            {
-              "input": true,
-              "tableView": true,
-              "inputType": "text",
-              "inputMask": "",
-              "label": "Name",
-              "key": "name",
-              "placeholder": "",
-              "prefix": "",
-              "suffix": "",
-              "multiple": false,
-              "defaultValue": "",
-              "protected": false,
-              "unique": false,
-              "persistent": true,
-              "validate": {
-                "required": false,
-                "minLength": "",
-                "maxLength": "",
-                "pattern": "",
-                "custom": "",
-                "customPrivate": false
-              },
-              "conditional": {
-                "show": null,
-                "when": null,
-                "eq": ""
-              },
-              "type": "textfield"
-            }
-          ])
-          .submission('fruits', {name: 'Apple'})
-          .submission('fruits', {name: 'Pear'})
-          .submission('fruits', {name: 'Banana'})
-          .submission('fruits', {name: 'Orange'})
-          .execute(function(err) {
+    if (!docker) {
+      describe('Select validation', () => {
+        before((done) => {
+          // Create a resource to keep records.
+          helper
+            .form('fruits', [
+              {
+                "input": true,
+                "tableView": true,
+                "inputType": "text",
+                "inputMask": "",
+                "label": "Name",
+                "key": "name",
+                "placeholder": "",
+                "prefix": "",
+                "suffix": "",
+                "multiple": false,
+                "defaultValue": "",
+                "protected": false,
+                "unique": false,
+                "persistent": true,
+                "validate": {
+                  "required": false,
+                  "minLength": "",
+                  "maxLength": "",
+                  "pattern": "",
+                  "custom": "",
+                  "customPrivate": false
+                },
+                "conditional": {
+                  "show": null,
+                  "when": null,
+                  "eq": ""
+                },
+                "type": "textfield"
+              }
+            ])
+            .submission('fruits', {name: 'Apple'})
+            .submission('fruits', {name: 'Pear'})
+            .submission('fruits', {name: 'Banana'})
+            .submission('fruits', {name: 'Orange'})
+            .execute(function(err) {
+              if (err) {
+                return done(err);
+              }
+
+              let apiUrl = `http://localhost:${template.config.port}`;
+              apiUrl += hook.alter('url', `/form/${helper.template.forms['fruits']._id}/submission`, helper.template);
+
+              helper
+                .form('fruitSelect', [
+                  {
+                    type: 'select',
+                    key: 'fruit',
+                    label: 'Select a fruit',
+                    dataSrc: 'url',
+                    searchField: 'data.name',
+                    authenticate: true,
+                    persistent: true,
+                    data: {
+                      url: apiUrl
+                    },
+                    validate: {
+                      select: true
+                    }
+                  }
+                ])
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  done();
+                });
+            });
+        });
+
+        it('Should perform a backend validation of the selected value', (done) => {
+          helper.submission('fruitSelect', {fruit: 'Apple'}).execute((err) => {
             if (err) {
               return done(err);
             }
 
-            let apiUrl = 'http://localhost:' + template.config.port;
-            apiUrl += hook.alter('url', '/form/' + helper.template.forms['fruits']._id + '/submission', helper.template);
+            const submission = helper.getLastSubmission();
+            assert.deepEqual({fruit: 'Apple'}, submission.data);
+            done();
+          });
+        });
 
-            helper
-              .form('fruitSelect', [
+        it('Should allow empty values', (done) => {
+          helper.submission('fruitSelect', {}).execute((err) => {
+            if (err) {
+              return done(err);
+            }
+
+            const submission = helper.getLastSubmission();
+            assert.deepEqual({}, submission.data);
+            done();
+          });
+        });
+
+        it('Should throw an error when providing a value that is not available.', (done) => {
+          helper.submission('fruitSelect', {fruit: 'Foo'}).expect(400).execute(() => {
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details[0].message, '"Foo" for "Select a fruit" is not a valid selection.');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
+            done();
+          });
+        });
+
+        it('Should allow saving select resource by reference', done => {
+          const submission = helper.template.submissions['fruits'][0];
+          helper
+            .form('myFruit', [{
+              input: true,
+              label: "Fruit",
+              key: "fruit",
+              data: {
+                resource: helper.template.forms['fruits']._id,
+                project: helper.template.project ? helper.template.project._id : ''
+              },
+              dataSrc: "resource",
+              reference: true,
+              valueProperty: "",
+              defaultValue: "",
+              template: "<span>{{ item.data.name }}</span>",
+              multiple: false,
+              persistent: true,
+              type: "select"
+            }], {
+              submissionAccess: [
                 {
-                  type: 'select',
-                  key: 'fruit',
-                  label: 'Select a fruit',
-                  dataSrc: 'url',
-                  searchField: 'data.name',
-                  authenticate: true,
-                  persistent: true,
-                  data: {
-                    url: apiUrl
-                  },
-                  validate: {
-                    select: true
-                  }
+                  type: 'read_all',
+                  roles: [template.roles.authenticated._id.toString()]
                 }
-              ])
-              .execute((err) => {
+              ]
+            })
+            .submission('myFruit', {fruit: {_id: submission._id, form: helper.template.forms['fruits']._id}})
+            .execute(err => {
+              if (err) {
+                return done(err);
+              }
+              helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
                 if (err) {
                   return done(err);
                 }
-
+                assert.equal(submission._id, fromsub.data.fruit._id);
+                assert.equal(submission.data.name, fromsub.data.fruit.data.name);
                 done();
               });
-          });
-      });
-
-      it('Should perform a backend validation of the selected value', (done) => {
-        helper.submission('fruitSelect', {fruit: 'Apple'}).execute((err) => {
-          if (err) {
-            return done(err);
-          }
-
-          var submission = helper.getLastSubmission();
-          assert.deepEqual({fruit: 'Apple'}, submission.data);
-          done();
+            });
         });
-      });
 
-      it('Should allow empty values', (done) => {
-        helper.submission('fruitSelect', {}).execute((err) => {
-          if (err) {
-            return done(err);
-          }
-
-          var submission = helper.getLastSubmission();
-          assert.deepEqual({}, submission.data);
-          done();
-        });
-      });
-
-      it('Should throw an error when providing a value that is not available.', (done) => {
-        helper.submission('fruitSelect', {fruit: 'Foo'}).expect(400).execute(() => {
-          assert.equal(helper.lastResponse.statusCode, 400);
-          assert.equal(helper.lastResponse.body.name, 'ValidationError');
-          assert.equal(helper.lastResponse.body.details.length, 1);
-          assert.equal(helper.lastResponse.body.details[0].message, '"Foo" for "Select a fruit" is not a valid selection.');
-          assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
-          done();
-        });
-      });
-
-      it('Should allow saving select resource by reference', done => {
-        const submission = helper.template.submissions['fruits'][0];
-        helper
-          .form('myFruit', [{
-            input: true,
-            label: "Fruit",
-            key: "fruit",
-            data: {
-              resource: helper.template.forms['fruits']._id,
-              project: helper.template.project ? helper.template.project._id : ''
-            },
-            dataSrc: "resource",
-            reference: true,
-            valueProperty: "",
-            defaultValue: "",
-            template: "<span>{{ item.data.name }}</span>",
-            multiple: false,
-            persistent: true,
-            type: "select"
-          }], {
-            submissionAccess: [
-              {
-                type: 'read_all',
-                roles: [template.roles.authenticated._id.toString()]
-              }
-            ]
-          })
-          .submission('myFruit', {fruit: {_id: submission._id, form: helper.template.forms['fruits']._id}})
-          .execute(err => {
-            if (err) {
-              return done(err);
-            }
-            helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+        it('Should allow saving select resource with whole object by reference', done => {
+          const submission = helper.template.submissions['fruits'][0];
+          helper
+            .submission('myFruit', {fruit: submission})
+            .execute(err => {
               if (err) {
                 return done(err);
               }
-              assert.equal(submission._id, fromsub.data.fruit._id);
-              assert.equal(submission.data.name, fromsub.data.fruit.data.name);
-              done();
+              helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(submission._id, fromsub.data.fruit._id);
+                assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+                done();
+              });
             });
-          });
-      });
+        });
 
-      it('Should allow saving select resource with whole object by reference', done => {
-        const submission = helper.template.submissions['fruits'][0];
-        helper
-          .submission('myFruit', {fruit: submission})
-          .execute(err => {
-            if (err) {
-              return done(err);
-            }
-            helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+        it('Should check permissions when loading from reference', done => {
+          request(app)
+            .get(hook.alter('url', `/form/${helper.template.forms['myFruit']._id}/submission/${helper.lastSubmission._id}`, helper.template))
+            .set('x-jwt-token', template.users.user1.token)
+            .send()
+            // .expect(200)
+            .end(function(err, res) {
               if (err) {
                 return done(err);
               }
-              assert.equal(submission._id, fromsub.data.fruit._id);
-              assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+              assert(res.body.data.fruit.hasOwnProperty('_id'), 'Must contain the _id.');
+              assert.equal(1, Object.keys(res.body.data.fruit).length);
               done();
             });
-          });
+        });
       });
-
-      it('Should check permissions when loading from reference', done => {
-        request(app)
-          .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission/' + helper.lastSubmission._id, helper.template))
-          .set('x-jwt-token', template.users.user1.token)
-          .send()
-          // .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
-            assert(res.body.data.fruit.hasOwnProperty('_id'), 'Must contain the _id.');
-            assert.equal(1, Object.keys(res.body.data.fruit).length);
-            done();
-          });
-      });
-    });
+    }
 
     describe('Advanced Conditions', () => {
       it('Requires a conditionally required field from advanced conditions', function(done) {
-        var components = [
+        const components = [
           {
             "properties": {},
             "tags": [],
@@ -3404,7 +3391,7 @@ module.exports = function(app, template, hook) {
           }
         ];
 
-        var values = {
+        const values = {
           test: '2'
         };
 
@@ -3417,7 +3404,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.isJoi);
             assert.equal(submission.name, 'ValidationError');
             assert.deepEqual(submission.details, [
@@ -3436,7 +3423,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Sets a value based on advanced conditions', function(done) {
-        var components = [
+        const components = [
           {
             "properties": {},
             "tags": [],
@@ -3527,7 +3514,7 @@ module.exports = function(app, template, hook) {
           }
         ];
 
-        var values = {
+        const values = {
           test: '1'
         };
 
@@ -3539,7 +3526,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert.equal(submission.data.test, '1');
             assert.equal(submission.data.changeme, 'Foo');
             done();

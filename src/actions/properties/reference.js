@@ -239,7 +239,7 @@ module.exports = router => {
           }
 
           // Build the pipeline for the subdata.
-          var queues = [];
+          const queues = [];
           FormioUtils.eachComponent(form.components, (subcomp, subpath) => {
             if (subcomp.reference) {
               queues.push(buildPipeline(subcomp, `${path}.data.${subpath}`, req, res).then((subpipe) => {

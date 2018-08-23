@@ -1,9 +1,9 @@
 'use strict';
 
-let assert = require('assert');
-let _ = require('lodash');
-let formioUtils = require('formiojs/utils').default;
-var docker = process.env.DOCKER;
+const assert = require('assert');
+const _ = require('lodash');
+const formioUtils = require('formiojs/utils').default;
+const docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
   describe('Template Imports', function() {
@@ -11,8 +11,8 @@ module.exports = (app, template, hook) => {
       return;
     }
 
-    let formio = hook.alter('formio', app.formio);
-    let importer = formio.template;
+    const formio = hook.alter('formio', app.formio);
+    const importer = formio.template;
 
     /**
      * Util function to get the resource name, given an id.
@@ -21,7 +21,7 @@ module.exports = (app, template, hook) => {
      * @param id
      * @returns {*}
      */
-    let getResourceFromId = (project, id) => {
+    const getResourceFromId = (project, id) => {
       project = project || {};
       project.forms = project.forms || {};
       project.resources = project.resources || {};
@@ -34,7 +34,7 @@ module.exports = (app, template, hook) => {
         resourceName = project.resources[id].machineName;
       }
       else if (project.roles[id]) {
-        resourceName = project.roles[id].machineName
+        resourceName = project.roles[id].machineName;
       }
 
       return resourceName;
@@ -47,7 +47,7 @@ module.exports = (app, template, hook) => {
      * @param input
      * @param done
      */
-    let checkTemplateRoles = (project, input, done) => {
+    const checkTemplateRoles = (project, input, done) => {
       input = input || {};
 
       formio.resources.role.model.find({deleted: {$eq: null}}).then(roles => {
@@ -60,13 +60,13 @@ module.exports = (app, template, hook) => {
 
         // Check that the template data doesnt contain any _id's or machineNames
         Object.keys(input).forEach(machineName => {
-          let role = input[machineName];
+          const role = input[machineName];
 
           assert.equal(role.hasOwnProperty('_id'), false);
           assert.equal(role.hasOwnProperty('machineName'), false);
         });
 
-        let given = {};
+        const given = {};
 
         // Memoize the roles.
         project.roles = {};
@@ -78,7 +78,7 @@ module.exports = (app, template, hook) => {
           assert.equal(role.hasOwnProperty('machineName'), true);
 
           // Prepare the stored roles for comparison.
-          let machineName = role.machineName;
+          const machineName = role.machineName;
           given[machineName] = _.omit(role, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName']);
 
           project.roles[machineName] = project.roles[role._id] = role;
@@ -98,25 +98,25 @@ module.exports = (app, template, hook) => {
      * @param input
      * @param done
      */
-    let checkTemplateFormsAndResources = (project, type, input, done) => {
+    const checkTemplateFormsAndResources = (project, type, input, done) => {
       input = input || {};
 
       formio.resources.form.model.find({type, deleted: {$eq: null}}).then(forms => {
         assert.equal(forms.length, Object.keys(input).length);
 
         if (Object.keys(input).length === 0) {
-          return done()
+          return done();
         }
 
         // Check that the template data doesnt contain any _id's or machineNames
         Object.keys(input).forEach(machineName => {
-          let form = input[machineName];
+          const form = input[machineName];
 
           assert.equal(form.hasOwnProperty('_id'), false);
           assert.equal(form.hasOwnProperty('machineName'), false);
         });
 
-        let given = {};
+        const given = {};
 
         // Memoize the forms.
         project[`${type}s`] = {};
@@ -127,8 +127,8 @@ module.exports = (app, template, hook) => {
           assert.equal(form.hasOwnProperty('_id'), true);
           assert.equal(form.hasOwnProperty('machineName'), true);
 
-          let machineName = form.machineName;
-          let tempForm = _.omit(form, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner', '_vid', 'revisions']);
+          const machineName = form.machineName;
+          const tempForm = _.omit(form, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner', '_vid', 'revisions']);
 
           tempForm.access = tempForm.access.map(access => {
             access.roles = access.roles.map(role => {
@@ -152,7 +152,7 @@ module.exports = (app, template, hook) => {
 
         // Reassign the resources after the forms have been memoized.
         Object.keys(given).forEach(machineName => {
-          let tempForm = given[machineName];
+          const tempForm = given[machineName];
           // Convert all resources to point to the resource name;
           formioUtils.eachComponent(tempForm.components, (component) => {
             hook.alter('exportComponent', component);
@@ -176,25 +176,25 @@ module.exports = (app, template, hook) => {
      * @param input
      * @param done
      */
-    let checkTemplateActions = (project, input, done) => {
+    const checkTemplateActions = (project, input, done) => {
       input = input || {};
 
       formio.actions.model.find({deleted: {$eq: null}}).then(actions => {
         assert.equal(actions.length, Object.keys(input).length);
 
         if (Object.keys(input).length === 0) {
-          return done()
+          return done();
         }
 
         // Check that the template data doesnt contain any _id's or machineNames
         Object.keys(input).forEach(machineName => {
-          let action = input[machineName];
+          const action = input[machineName];
 
           assert.equal(action.hasOwnProperty('_id'), false);
           assert.equal(action.hasOwnProperty('machineName'), false);
         });
 
-        let given = {};
+        const given = {};
 
         // Memoize the forms.
         project.actions = {};
@@ -206,8 +206,8 @@ module.exports = (app, template, hook) => {
           assert.equal(action.hasOwnProperty('machineName'), true);
 
           // Prepare the stored actions for comparison.
-          let machineName = action.machineName;
-          let tempAction = _.omit(action, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName']);
+          const machineName = action.machineName;
+          const tempAction = _.omit(action, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName']);
           tempAction.form = getResourceFromId(project, tempAction.form);
           if (_.has(tempAction, 'settings.resource')) {
             tempAction.settings.resource = getResourceFromId(project, tempAction.settings.resource);
@@ -231,14 +231,14 @@ module.exports = (app, template, hook) => {
       .catch(done);
     };
 
-    let alters = hook.alter(`templateAlters`, {});
+    const alters = hook.alter(`templateAlters`, {});
 
     describe('Empty Template', function() {
-      let testTemplate = require('../src/templates/empty.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('../src/templates/empty.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the empty template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -270,7 +270,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -345,11 +345,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('Default Template', function() {
-      let testTemplate = require('../src/templates/default.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('../src/templates/default.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err, template) => {
@@ -381,7 +381,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -464,11 +464,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('cyclicalResources Template', function() {
-      let testTemplate = require('./fixtures/templates/cyclicalResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/cyclicalResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -500,7 +500,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -586,11 +586,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('waterfallResources Template', function() {
-      let testTemplate = require('./fixtures/templates/waterfallResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/waterfallResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -622,7 +622,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -708,11 +708,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('waterfallResourcesReverse Template', function() {
-      let testTemplate = require('./fixtures/templates/waterfallResourcesReverse.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/waterfallResourcesReverse.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -744,7 +744,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -830,11 +830,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('unknownResources Template', function() {
-      let testTemplate = require('./fixtures/templates/unknownResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/unknownResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -866,7 +866,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -952,11 +952,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('unknownFormResources Template', function() {
-      let testTemplate = require('./fixtures/templates/unknownFormResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/unknownFormResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -988,7 +988,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -1074,11 +1074,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('waterfallFormResources Template', function() {
-      let testTemplate = require('./fixtures/templates/waterfallFormResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/waterfallFormResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1110,7 +1110,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -1196,11 +1196,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('waterfallFormResourcesReverse Template', function() {
-      let testTemplate = require('./fixtures/templates/waterfallFormResourcesReverse.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/waterfallFormResourcesReverse.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1232,7 +1232,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -1318,11 +1318,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('emptyResources Template', function() {
-      let testTemplate = require('./fixtures/templates/emptyResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/emptyResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1354,7 +1354,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -1440,11 +1440,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('selfReferencingResources Template', function() {
-      let testTemplate = require('./fixtures/templates/selfReferencingResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/selfReferencingResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1476,7 +1476,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -1562,11 +1562,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('unknownActionResources Template', function() {
-      let testTemplate = require('./fixtures/templates/unknownActionResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/unknownActionResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1598,7 +1598,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -1688,11 +1688,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('emptyActionResources Template', function() {
-      let testTemplate = require('./fixtures/templates/emptyActionResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/emptyActionResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1724,7 +1724,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -1814,11 +1814,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('unknownRoleResources Template', function() {
-      let testTemplate = require('./fixtures/templates/unknownRoleResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/unknownRoleResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1853,7 +1853,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -1938,11 +1938,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('missingRoleResources Template', function() {
-      let testTemplate = require('./fixtures/templates/missingRoleResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/missingRoleResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1975,7 +1975,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -2062,11 +2062,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('missingResourceResources Template', function() {
-      let testTemplate = require('./fixtures/templates/missingResourceResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/missingResourceResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2098,7 +2098,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -2185,11 +2185,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('missingFormResources Template', function() {
-      let testTemplate = require('./fixtures/templates/missingFormResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/missingFormResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2221,7 +2221,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -2308,11 +2308,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('missingActionResources Template', function() {
-      let testTemplate = require('./fixtures/templates/missingActionResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/missingActionResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2345,7 +2345,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -2432,11 +2432,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('missingTitle Template', function() {
-      let testTemplate = require('./fixtures/templates/missingTitle.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/missingTitle.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2468,7 +2468,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -2555,11 +2555,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('missingName Template', function() {
-      let testTemplate = require('./fixtures/templates/missingName.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/missingName.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2591,7 +2591,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -2677,11 +2677,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('missingDescription Template', function() {
-      let testTemplate = require('./fixtures/templates/missingDescription.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/missingDescription.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2713,7 +2713,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -2799,11 +2799,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('missingVersion Template', function() {
-      let testTemplate = require('./fixtures/templates/missingVersion.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/missingVersion.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2835,7 +2835,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -2921,11 +2921,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('extraData Template', function() {
-      let testTemplate = require('./fixtures/templates/extraData.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/extraData.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2957,7 +2957,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -3047,11 +3047,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('malformedRoles Template', function() {
-      let testTemplate = require('./fixtures/templates/malformedRoles.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/malformedRoles.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -3084,7 +3084,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -3170,11 +3170,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('malformedResources Template', function() {
-      let testTemplate = require('./fixtures/templates/malformedResources.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/malformedResources.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -3206,7 +3206,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -3292,11 +3292,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('malformedForms Template', function() {
-      let testTemplate = require('./fixtures/templates/malformedForms.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/malformedForms.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -3328,7 +3328,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -3414,11 +3414,11 @@ module.exports = (app, template, hook) => {
     });
 
     describe('malformedActions Template', function() {
-      let testTemplate = require('./fixtures/templates/malformedActions.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/malformedActions.json');
+      const _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+        const project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -3451,7 +3451,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let project = {};
+        const project = {};
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -3536,8 +3536,8 @@ module.exports = (app, template, hook) => {
     });
 
     describe('Everyone Roles Template', function() {
-      let testTemplate = require('./fixtures/templates/everyoneRoles.json');
-      let _template = _.cloneDeep(testTemplate);
+      const testTemplate = require('./fixtures/templates/everyoneRoles.json');
+      const _template = _.cloneDeep(testTemplate);
       const EVERYONE = '000000000000000000000000';
 
       it('Should translate all "everyone" roles into 000000000000000000000000', function(done) {

@@ -1,15 +1,15 @@
 /* eslint-env mocha */
 'use strict';
 
-var request = require('supertest');
-var assert = require('assert');
-var docker = process.env.DOCKER;
+const request = require('supertest');
+const assert = require('assert');
+const docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
-  var Helper = require('./helper')(app);
+  const Helper = require('./helper')(app);
 
   describe('Nested Resources', function() {
-    var customerResource = null;
+    let customerResource = null;
     it('A Project Owner should be able to Create a Customer Resource', function(done) {
       request(app)
         .post(hook.alter('url', '/form', template))
@@ -102,7 +102,7 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    var customerForm = null;
+    let customerForm = null;
     it('Should be able to create a Customer Survey form', function(done) {
       request(app)
         .post(hook.alter('url', '/form', template))
@@ -196,7 +196,7 @@ module.exports = function(app, template, hook) {
     });
 
     it('Should be able to create the save resource to another field action', function(done) {
-      var saveResourceAction = {
+      let saveResourceAction = {
         title: 'Save Submission',
         name: 'save',
         handler: ['before'],
@@ -213,7 +213,7 @@ module.exports = function(app, template, hook) {
       };
 
       request(app)
-        .post(hook.alter('url', '/form/' + customerForm._id + '/action', template))
+        .post(hook.alter('url', `/form/${customerForm._id}/action`, template))
         .set('x-jwt-token', template.users.admin.token)
         .send(saveResourceAction)
         .expect('Content-Type', /json/)
@@ -223,7 +223,7 @@ module.exports = function(app, template, hook) {
             return done(err);
           }
 
-          var response = res.body;
+          const response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
           assert.equal(response.title, saveResourceAction.title);
           assert.equal(response.name, saveResourceAction.name);
@@ -241,10 +241,10 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    var survey = null;
+    let survey = null;
     it('Should be able to create a submission in the survey', function(done) {
       request(app)
-        .post(hook.alter('url', '/form/' + template.forms.surveyForm._id + '/submission', template))
+        .post(hook.alter('url', `/form/${template.forms.surveyForm._id}/submission`, template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
           data: {
@@ -255,11 +255,11 @@ module.exports = function(app, template, hook) {
         .expect('Content-Type', /json/)
         .expect(201)
         .end(function(err, res) {
-          if(err) {
+          if (err) {
             return done(err);
           }
 
-          var response = res.body;
+          const response = res.body;
           assert(response.hasOwnProperty('data'), 'The response body should have data.');
           assert(response.hasOwnProperty('created'), 'The submission should have a created date');
           assert(response.hasOwnProperty('modified'), 'The submission should have a modified date');
@@ -282,7 +282,7 @@ module.exports = function(app, template, hook) {
 
     it('Should be able to get the customer', function(done) {
       request(app)
-        .get(hook.alter('url', '/form/' + template.forms.customerForm._id + '/submission/' + survey.data.customer._id, template))
+        .get(hook.alter('url', `/form/${template.forms.customerForm._id}/submission/${survey.data.customer._id}`, template))
         .set('x-jwt-token', template.users.admin.token)
         .expect('Content-Type', /json/)
         .expect(200)
@@ -291,7 +291,7 @@ module.exports = function(app, template, hook) {
             return done(err);
           }
 
-          var response = res.body;
+          const response = res.body;
 
           assert(response.hasOwnProperty('data'), 'The response should have data.');
           assert.equal(response.form, template.forms.customerForm._id);
@@ -307,7 +307,7 @@ module.exports = function(app, template, hook) {
 
     it('Should be able to query the survey submission', function(done) {
       request(app)
-        .get(hook.alter('url', '/form/' + template.forms.surveyForm._id + '/submission/' + survey._id, template))
+        .get(hook.alter('url', `/form/${template.forms.surveyForm._id}/submission/${survey._id}`, template))
         .set('x-jwt-token', template.users.admin.token)
         .expect('Content-Type', /json/)
         .expect(200)
@@ -316,7 +316,7 @@ module.exports = function(app, template, hook) {
             return done(err);
           }
 
-          var response = res.body;
+          const response = res.body;
           assert(response.hasOwnProperty('data'), 'The response should have data.');
           assert.equal(response.form, template.forms.surveyForm._id);
           assert(response.data.hasOwnProperty('customer'), 'Customer object was not found');
@@ -333,10 +333,10 @@ module.exports = function(app, template, hook) {
   });
 
   describe('Nested Resource Permissions', () => {
-    var helper = null;
-    var savedSubmission = null;
+    let helper = null;
+    let savedSubmission = null;
     it('Create the project with a new user account.', (done) => {
-      var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper.project().user('user', 'user1').execute(done);
     });
@@ -651,10 +651,10 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    var submission;
+    let submission;
     it('Should be able to create a submission in the form, and not get the password in response', function(done) {
       request(app)
-        .post(hook.alter('url', '/form/' + template.forms.nestedPasswordForm._id + '/submission', template))
+        .post(hook.alter('url', `/form/${template.forms.nestedPasswordForm._id}/submission`, template))
         .set('x-jwt-token', template.users.admin.token)
         .send({
           data: {
@@ -664,11 +664,11 @@ module.exports = function(app, template, hook) {
         .expect('Content-Type', /json/)
         .expect(201)
         .end(function(err, res) {
-          if(err) {
+          if (err) {
             return done(err);
           }
 
-          var response = res.body;
+          const response = res.body;
           assert(response.hasOwnProperty('data'), 'The response body should have data.');
           assert(response.hasOwnProperty('created'), 'The submission should have a created date');
           assert(response.hasOwnProperty('modified'), 'The submission should have a modified date');
@@ -686,16 +686,16 @@ module.exports = function(app, template, hook) {
 
     it('Should be able to get a submission in the form, and not get the password in response', function(done) {
       request(app)
-        .get(hook.alter('url', '/form/' + template.forms.nestedPasswordForm._id + '/submission/' + submission._id, template))
+        .get(hook.alter('url', `/form/${template.forms.nestedPasswordForm._id}/submission/${submission._id}`, template))
         .set('x-jwt-token', template.users.admin.token)
         .send()
         .expect('Content-Type', /json/)
         .expect(200)
         .end(function(err, res) {
-          if(err) {
+          if (err) {
             return done(err);
           }
-          var response = res.body;
+          const response = res.body;
           assert(response.hasOwnProperty('data'), 'The response body should have data.');
           assert(response.hasOwnProperty('created'), 'The submission should have a created date');
           assert(response.hasOwnProperty('modified'), 'The submission should have a modified date');

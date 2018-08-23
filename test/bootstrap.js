@@ -1,9 +1,9 @@
 'use strict';
 
-let assert = require('assert');
-let formioUtils = require('formiojs/utils').default;
-let _ = require('lodash');
-var comparison = null;
+const assert = require('assert');
+const formioUtils = require('formiojs/utils').default;
+const _ = require('lodash');
+let comparison = null;
 
 module.exports = (app, template, hook) => {
   describe('Bootstrap test data', function() {
@@ -19,10 +19,10 @@ module.exports = (app, template, hook) => {
           return done(err);
         }
 
-        var resourceA = template.resources.a;
-        var resourceB = template.resources.b;
-        var resourceComponentA = formioUtils.getComponent(resourceB.components, 'a');
-        var resourceComponentB = formioUtils.getComponent(resourceA.components, 'b');
+        const resourceA = template.resources.a;
+        const resourceB = template.resources.b;
+        const resourceComponentA = formioUtils.getComponent(resourceB.components, 'a');
+        const resourceComponentB = formioUtils.getComponent(resourceA.components, 'b');
         assert.equal(resourceA._id, resourceComponentA.resource, `Resource B's resource component for A should have the correct resource id. (Got ${resourceComponentA.resource}, expected ${resourceA._id})`);
         assert.equal(resourceB._id, resourceComponentB.resource, `Resource A's resource component for B should have the correct resource id. (Got ${resourceComponentB.resource}, expected ${resourceB._id})`);
         done();

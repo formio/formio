@@ -591,7 +591,7 @@ const Utils = {
    * @return {*}
    */
   uniqueMachineName(document, model, next) {
-    var query = {
+    const query = {
       machineName: {$regex: `^${document.machineName}[0-9]*$`},
       deleted: {$eq: null}
     };

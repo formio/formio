@@ -1,16 +1,16 @@
 /* eslint-env mocha */
 'use strict';
 
-var async = require('async');
+const async = require('async');
 
 // Bootstrap the test environment.
-var app = null;
-var template = require('./fixtures/template')();
-var hook = null;
+let app = null;
+const template = require('./fixtures/template')();
+let hook = null;
 
 describe('Initialization', function() {
   it('Initialize the test server', function(done) {
-    var hooks = require('./hooks');
+    const hooks = require('./hooks');
     require('../server')({
       hooks: hooks
     })
@@ -41,7 +41,7 @@ describe('Initialization', function() {
          * @param next
          *   The callback to execute.
          */
-        var dropDocuments = function(model, next) {
+        const dropDocuments = function(model, next) {
           model.remove({}, next);
         };
 

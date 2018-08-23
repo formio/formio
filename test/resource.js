@@ -1,14 +1,14 @@
 /* eslint-env mocha */
 'use strict';
 
-var request = require('supertest');
-var assert = require('assert');
-var _ = require('lodash');
+const request = require('supertest');
+const assert = require('assert');
+const _ = require('lodash');
 
 module.exports = function(app, template, hook) {
   describe('Resources', function() {
     // Store the temp resource for this test suite.
-    var tempResource = {
+    const tempResource = {
       title: 'tempResource',
       name: 'tempResource',
       path: 'temp',
@@ -52,7 +52,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
             assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
             assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -72,7 +72,7 @@ module.exports = function(app, template, hook) {
 
       it('A Project Owner should be able to Read a Resource', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.resources.tempResource._id, template))
+          .get(hook.alter('url', `/form/${template.resources.tempResource._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -81,7 +81,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, template.resources.tempResource);
 
             // Store the JWT for future API calls.
@@ -92,11 +92,11 @@ module.exports = function(app, template, hook) {
       });
 
       it('A Project Owner should be able to Update a Resource', function(done) {
-        var updatedResource = _.clone(template.resources.tempResource);
+        const updatedResource = _.clone(template.resources.tempResource);
         updatedResource.title = 'Updated';
 
         request(app)
-          .put(hook.alter('url', '/form/' + template.resources.tempResource._id, template))
+          .put(hook.alter('url', `/form/${template.resources.tempResource._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({title: updatedResource.title})
           .expect('Content-Type', /json/)
@@ -106,7 +106,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             // Update the modified timestamp, before comparison.
             updatedResource.modified = response.modified;
             assert.deepEqual(response, updatedResource);
@@ -132,7 +132,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.length, _.size(template.resources));
             _.each(response, function(resource) {
               assert(template.resources.hasOwnProperty(resource.name), 'Resource not found.');
@@ -147,7 +147,7 @@ module.exports = function(app, template, hook) {
 
       it('A Project Owner should be able to Read a Resource using its alias', function(done) {
         request(app)
-          .get(hook.alter('url', '/' + template.resources.tempResource.path, template))
+          .get(hook.alter('url', `/${template.resources.tempResource.path}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -156,7 +156,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, template.resources.tempResource);
 
             // Store the JWT for future API calls.
@@ -167,11 +167,11 @@ module.exports = function(app, template, hook) {
       });
 
       it('A Project Owner should be able to Update a Resource using its alias', function(done) {
-        var updatedResource = _.clone(template.resources.tempResource);
+        const updatedResource = _.clone(template.resources.tempResource);
         updatedResource.title = 'Updated2';
 
         request(app)
-          .put(hook.alter('url', '/' + template.resources.tempResource.path, template))
+          .put(hook.alter('url', `/${template.resources.tempResource.path}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({title: updatedResource.title})
           .expect('Content-Type', /json/)
@@ -181,7 +181,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             // Update the modified timestamp, before comparison.
             updatedResource.modified = response.modified;
             assert.deepEqual(response, updatedResource);
@@ -210,7 +210,7 @@ module.exports = function(app, template, hook) {
 
       it('A user should be able to Read a Resource for a User-Created Project', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.resources.tempResource._id, template))
+          .get(hook.alter('url', `/form/${template.resources.tempResource._id}`, template))
           .set('x-jwt-token', template.users.user1.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -219,7 +219,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, template.resources.tempResource);
 
             done();
@@ -227,11 +227,11 @@ module.exports = function(app, template, hook) {
       });
 
       it('A user should not be able to Update a Resource for a User-Created Project', function(done) {
-        var updatedResource = _.clone(template.resources.tempResource);
+        const updatedResource = _.clone(template.resources.tempResource);
         updatedResource.title = 'Updated';
 
         request(app)
-          .put(hook.alter('url', '/form/' + template.resources.tempResource._id, template))
+          .put(hook.alter('url', `/form/${template.resources.tempResource._id}`, template))
           .set('x-jwt-token', template.users.user1.token)
           .send({title: updatedResource.title})
           .expect('Content-Type', /text\/plain/)
@@ -250,7 +250,7 @@ module.exports = function(app, template, hook) {
 
       it('A user should not be able to Read a Resource for a User-Created Project using it alias', function(done) {
         request(app)
-          .get(hook.alter('url', '/' + template.resources.tempResource.path, template))
+          .get(hook.alter('url', `/${template.resources.tempResource.path}`, template))
           .set('x-jwt-token', template.users.user1.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -259,7 +259,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, template.resources.tempResource);
 
             done();
@@ -267,11 +267,11 @@ module.exports = function(app, template, hook) {
       });
 
       it('A user should not be able to Update a Resource for a User-Created Project using it alias', function(done) {
-        var updatedResource = _.clone(template.resources.tempResource);
+        const updatedResource = _.clone(template.resources.tempResource);
         updatedResource.title = 'Updated2';
 
         request(app)
-          .put(hook.alter('url', '/' + template.resources.tempResource.path, template))
+          .put(hook.alter('url', `/${template.resources.tempResource.path}`, template))
           .set('x-jwt-token', template.users.user1.token)
           .expect('Content-Type', /text\/plain/)
           .expect(401)
@@ -291,7 +291,7 @@ module.exports = function(app, template, hook) {
 
       it('An Anonymous user should be able to Read a Resource for a User-Created Project', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.resources.tempResource._id, template))
+          .get(hook.alter('url', `/form/${template.resources.tempResource._id}`, template))
           .expect('Content-Type', /json/)
           .expect(200)
           .end(function(err, res) {
@@ -299,7 +299,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, template.resources.tempResource);
 
             done();
@@ -307,11 +307,11 @@ module.exports = function(app, template, hook) {
       });
 
       it('An Anonymous user should not be able to Update a Resource for a User-Created Project', function(done) {
-        var updatedResource = _.clone(template.resources.tempResource);
+        const updatedResource = _.clone(template.resources.tempResource);
         updatedResource.title = 'Updated';
 
         request(app)
-          .put(hook.alter('url', '/form/' + template.resources.tempResource._id, template))
+          .put(hook.alter('url', `/form/${template.resources.tempResource._id}`, template))
           .send({title: updatedResource.title})
           .expect('Content-Type', /text\/plain/)
           .expect(401)
@@ -328,7 +328,7 @@ module.exports = function(app, template, hook) {
 
       it('An Anonymous user should not be able to Read a Resource for a User-Created Project using it alias', function(done) {
         request(app)
-          .get(hook.alter('url', '/' + template.resources.tempResource.path, template))
+          .get(hook.alter('url', `/${template.resources.tempResource.path}`, template))
           .expect('Content-Type', /json/)
           .expect(200)
           .end(function(err, res) {
@@ -336,7 +336,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, template.resources.tempResource);
 
             done();
@@ -344,11 +344,11 @@ module.exports = function(app, template, hook) {
       });
 
       it('An Anonymous user should not be able to Update a Resource for a User-Created Project using it alias', function(done) {
-        var updatedResource = _.clone(template.resources.tempResource);
+        const updatedResource = _.clone(template.resources.tempResource);
         updatedResource.title = 'Updated2';
 
         request(app)
-          .put(hook.alter('url', '/' + template.resources.tempResource.path, template))
+          .put(hook.alter('url', `/${template.resources.tempResource.path}`, template))
           .expect('Content-Type', /text\/plain/)
           .expect(401)
           .end(done);
@@ -358,7 +358,7 @@ module.exports = function(app, template, hook) {
     describe('Resource Normalization', function() {
       it('A Project Owner should be able to Delete a Resource', function(done) {
         request(app)
-          .delete(hook.alter('url', '/form/' + template.resources.tempResource._id, template))
+          .delete(hook.alter('url', `/form/${template.resources.tempResource._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect(200)
           .end(function(err, res) {
@@ -366,7 +366,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, {});
 
             // Store the JWT for future API calls.
@@ -377,7 +377,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('A Project Owner should be able to Create a User Resource', function(done) {
-        var userResource = {
+        const userResource = {
           title: 'Users',
           name: 'user2',
           path: 'user2',
@@ -442,7 +442,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
             assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
             assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');

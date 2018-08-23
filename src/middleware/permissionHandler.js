@@ -431,13 +431,13 @@ module.exports = function(router) {
       }
 
       // Determine the typed access.
-      var typedAccess = function(type) {
+      function typedAccess(type) {
         return access[entity.type][type] &&
           (
             (access[entity.type][type] === true) ||
             (access[entity.type][type].length && _.intersection(access[entity.type][type], roles).length)
           );
-      };
+      }
 
       // See if the user is the owner.
       const isOwner = user && (user === access[entity.type].owner);

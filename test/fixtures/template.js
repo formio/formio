@@ -1,10 +1,10 @@
 'use strict';
 
-let _ = require('lodash');
+const _ = require('lodash');
 
 module.exports = () => {
   // The default project template.
-  let template = _.cloneDeep(require('../../src/templates/default.json'));
+  const template = _.cloneDeep(require('../../src/templates/default.json'));
 
   // Change the login timeouts for testing
   template.actions['adminLogin:login'].settings.lockWait = 2;
@@ -159,7 +159,7 @@ module.exports = () => {
     access: [],
     submissionAccess: []
   };
-  
+
   template.resources.b = {
     title: 'B',
     type: 'resource',

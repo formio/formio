@@ -1,22 +1,22 @@
 /* eslint-env mocha */
 'use strict';
 
-var request = require('supertest');
-var assert = require('assert');
-var _ = require('lodash');
-var chance = new (require('chance'))();
-var formioUtils = require('formiojs/utils').default;
-var async = require('async');
-var docker = process.env.DOCKER;
-var customer = process.env.CUSTOMER;
+const request = require('supertest');
+const assert = require('assert');
+const _ = require('lodash');
+const chance = new (require('chance'))();
+const formioUtils = require('formiojs/utils').default;
+const async = require('async');
+const docker = process.env.DOCKER;
+const customer = process.env.CUSTOMER;
 
 module.exports = function(app, template, hook) {
-  var formio = hook.alter('formio', app.formio);
-  var Helper = require('./helper')(app);
+  const formio = hook.alter('formio', app.formio);
+  const Helper = require('./helper')(app);
 
   describe('Forms', function() {
     // Store the temp form for this test suite.
-    var tempForm = {
+    const tempForm = {
       title: 'Temp Form',
       name: 'tempForm',
       path: 'temp/tempform',
@@ -92,7 +92,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Form components with invalid keys, are filtered', function(done) {
-        var temp = {
+        const temp = {
           title: chance.word(),
           name: chance.word(),
           path: chance.word(),
@@ -146,7 +146,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var badCharacters = /^[^A-Za-z]+|[^A-Za-z0-9\-\.]+/g;
+            const badCharacters = /^[^A-Za-z]+|[^A-Za-z0-9\-.]+/g;
             formioUtils.eachComponent(res.body.components, function(component) {
               if (component.hasOwnProperty('key')) {
                 assert.equal(badCharacters.test(component.key), false);
@@ -155,7 +155,7 @@ module.exports = function(app, template, hook) {
 
             // Delete this temp form.
             request(app)
-              .delete(hook.alter('url', '/form/' + res.body._id, template))
+              .delete(hook.alter('url', `/form/${res.body._id}`, template))
               .set('x-jwt-token', template.users.admin.token)
               .expect('Content-Type', /text/)
               .expect(200)
@@ -181,7 +181,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
             assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
             assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -229,7 +229,7 @@ module.exports = function(app, template, hook) {
 
       it('An administrator should be able to Read their Form', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .get(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -238,7 +238,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, template.forms.tempForm);
 
             // Store the JWT for future API calls.
@@ -250,7 +250,7 @@ module.exports = function(app, template, hook) {
 
       it('A user should be able to read the form', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .get(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.user1.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -259,7 +259,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, template.forms.tempForm);
 
             // Store the JWT for future API calls.
@@ -281,7 +281,7 @@ module.exports = function(app, template, hook) {
               }
 
               if (!template.project) {
-                var response = res.body;
+                const response = res.body;
                 assert.equal(response.length, 9);
                 template.users.user1.token = res.headers['x-jwt-token'];
               }
@@ -301,7 +301,7 @@ module.exports = function(app, template, hook) {
               }
 
               if (!template.project) {
-                var response = res.body;
+                const response = res.body;
                 assert.equal(response.length, 9);
                 response.forEach(form => {
                   assert(!form.hasOwnProperty('components'));
@@ -313,11 +313,11 @@ module.exports = function(app, template, hook) {
       });
 
       it('An administrator should be able to Update their Form', function(done) {
-        var updatedForm = _.cloneDeep(template.forms.tempForm);
+        const updatedForm = _.cloneDeep(template.forms.tempForm);
         updatedForm.title = 'Updated';
 
         request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .put(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({title: updatedForm.title})
           .expect('Content-Type', /json/)
@@ -327,7 +327,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             // Update the modified timestamp, before comparison.
             updatedForm.modified = response.modified;
 
@@ -345,7 +345,7 @@ module.exports = function(app, template, hook) {
 
       it('A user should NOT be able to Update the Form', function(done) {
         request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .put(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.user1.token)
           .send({title: 'SHOULD NOT WORK!!!'})
           .expect(401)
@@ -354,7 +354,7 @@ module.exports = function(app, template, hook) {
 
       it('Should have the correct form title.', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .get(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -363,7 +363,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.notEqual(response.title, 'SHOULD NOT WORK!!!');
             assert.equal(response.title, 'Updated');
 
@@ -385,7 +385,9 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var ids = function(item) { return item._id.toString(); };
+            const ids = function(item) {
+              return item._id.toString();
+            };
             assert.equal(res.body.length, _.size(template.forms));
             assert.equal(_.difference(_.map(res.body, ids), _.map(template.forms, ids)).length, 0);
 
@@ -407,7 +409,9 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var ids = function(item) { return item._id.toString(); };
+            const ids = function(item) {
+              return item._id.toString();
+            };
             assert.equal(res.body.length, _.size(template.resources));
             assert.equal(_.difference(_.map(res.body, ids), _.map(template.resources, ids)).length, 0);
 
@@ -429,7 +433,9 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var ids = function(item) { return item._id.toString(); };
+            const ids = function(item) {
+              return item._id.toString();
+            };
             assert.equal(res.body.length, _.size(template.resources) + _.size(template.forms));
             assert.equal(_.difference(
               _.map(res.body, ids),
@@ -454,7 +460,7 @@ module.exports = function(app, template, hook) {
 
       it('An administrator should be able to Read their Form using an alias', function(done) {
         request(app)
-          .get(hook.alter('url', '/' + template.forms.tempForm.path, template))
+          .get(hook.alter('url', `/${template.forms.tempForm.path}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -463,7 +469,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, template.forms.tempForm);
 
             // Store the JWT for future API calls.
@@ -474,11 +480,11 @@ module.exports = function(app, template, hook) {
       });
 
       it('An administrator should be able to Update their Form using an alias', function(done) {
-        var updatedForm = _.cloneDeep(template.forms.tempForm);
+        const updatedForm = _.cloneDeep(template.forms.tempForm);
         updatedForm.title = 'Updated2';
 
         request(app)
-          .put(hook.alter('url', '/' + template.forms.tempForm.path, template))
+          .put(hook.alter('url', `/${template.forms.tempForm.path}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({title: updatedForm.title})
           .expect('Content-Type', /json/)
@@ -488,7 +494,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             // Update the modified timestamp, before comparison.
             updatedForm.modified = response.modified;
             assert.deepEqual(response, updatedForm);
@@ -505,7 +511,7 @@ module.exports = function(app, template, hook) {
 
       it('A user should NOT be able to Update their Form using an alias', function(done) {
         request(app)
-          .put(hook.alter('url', '/' + template.forms.tempForm.path, template))
+          .put(hook.alter('url', `/${template.forms.tempForm.path}`, template))
           .set('x-jwt-token', template.users.user1.token)
           .send({title: 'SHOULD NOT WORK!!!'})
           .expect(401)
@@ -514,7 +520,7 @@ module.exports = function(app, template, hook) {
 
       it('Should not have updated the form', function(done) {
         request(app)
-          .get(hook.alter('url', '/' + template.forms.tempForm.path, template))
+          .get(hook.alter('url', `/${template.forms.tempForm.path}`, template))
           .set('x-jwt-token', template.users.user1.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -539,7 +545,7 @@ module.exports = function(app, template, hook) {
           .send({})
           .expect(400)
           .end(function(err, res) {
-            if(err) {
+            if (err) {
               return done(err);
             }
 
@@ -557,7 +563,7 @@ module.exports = function(app, template, hook) {
           .send(_.omit(tempForm, 'path'))
           .expect(400)
           .end(function(err, res) {
-            if(err) {
+            if (err) {
               return done(err);
             }
 
@@ -574,7 +580,7 @@ module.exports = function(app, template, hook) {
           .set('x-jwt-token', template.users.admin.token)
           .expect(400)
           .end(function(err, res) {
-            if(err) {
+            if (err) {
               return done(err);
             }
 
@@ -593,7 +599,7 @@ module.exports = function(app, template, hook) {
           'â', 'ä', 'æ', 'ã', 'å', 'ā', 'ß', 'ś', 'š', 'ł',
           'ž', 'ź', 'ż', 'ç', 'ć', 'č', 'ñ', 'ń', ' '
         ], function(_bad, callback) {
-          var temp = _.cloneDeep(tempForm);
+          const temp = _.cloneDeep(tempForm);
           temp.name = chance.word({length: 15});
           temp.path = chance.word({length: 15});
           temp.components[0].key = _bad;
@@ -633,7 +639,7 @@ module.exports = function(app, template, hook) {
           'a|', 'a\\', 'a{', 'a}', 'a;', 'a:'
 
         ], function(_bad, callback) {
-          var temp = _.cloneDeep(tempForm);
+          const temp = _.cloneDeep(tempForm);
           temp.name = chance.word({length: 15});
           temp.path = chance.word({length: 15});
           temp.components[0].key = _bad;
@@ -679,7 +685,7 @@ module.exports = function(app, template, hook) {
 
       it('An Anonymous user should be able to Read a Form for a User-Created Project', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .get(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .expect('Content-Type', /json/)
           .expect(200)
           .end(function(err, res) {
@@ -687,7 +693,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, template.forms.tempForm);
             done();
           });
@@ -695,7 +701,7 @@ module.exports = function(app, template, hook) {
 
       it('An Anonymous user should not be able to Update a Form for a User-Created Project', function(done) {
         request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .put(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .send({title: 'Updated'})
           .expect(401)
           .end(done);
@@ -717,7 +723,7 @@ module.exports = function(app, template, hook) {
 
       it('An Anonymous user should not be able to Read a Form for a User-Created Project using it alias', function(done) {
         request(app)
-          .get(hook.alter('url', '/' + template.forms.tempForm.path, template))
+          .get(hook.alter('url', `/${template.forms.tempForm.path}`, template))
           .expect('Content-Type', /json/)
           .expect(200)
           .end(function(err, res) {
@@ -725,7 +731,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, template.forms.tempForm);
 
             done();
@@ -734,7 +740,7 @@ module.exports = function(app, template, hook) {
 
       it('An Anonymous user should not be able to Update a Form for a User-Created Project using it alias', function(done) {
         request(app)
-          .put(hook.alter('url', '/' + template.forms.tempForm.path, template))
+          .put(hook.alter('url', `/${template.forms.tempForm.path}`, template))
           .send({title: 'Updated2'})
           .expect('Content-Type', /text\/plain/)
           .expect(401)
@@ -744,12 +750,12 @@ module.exports = function(app, template, hook) {
 
     describe('Form Normalization', function() {
       it('Updating a Form with duplicate access permission types will condense the access permissions', function(done) {
-        var roleAccess = [
+        const roleAccess = [
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString()
         ];
         request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .put(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({access: [
             {
@@ -768,7 +774,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.access[0].type, 'read_all');
             assert.equal(response.access[0].roles.length, 2);
             assert.deepEqual(response.access[0].roles, roleAccess);
@@ -784,17 +790,17 @@ module.exports = function(app, template, hook) {
       });
 
       it('Updating a Form with duplicate access permission roles will condense the access permissions', function(done) {
-        var roleAccess = [
+        const roleAccess = [
           template.roles.authenticated._id.toString(),
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString()
         ];
-        var expected = [
+        const expected = [
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString()
         ];
         request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .put(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({access: [
             {
@@ -809,7 +815,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.access[0].type, 'read_all');
             assert.equal(response.access[0].roles.length, 2);
             assert.deepEqual(response.access[0].roles, expected);
@@ -826,12 +832,12 @@ module.exports = function(app, template, hook) {
 
       // FA-892
       it('Updating a Form with a malformed access permission type will condense the access permissions', function(done) {
-        var roleAccess = [
+        const roleAccess = [
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString()
         ];
         request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .put(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({access: [
             {
@@ -858,7 +864,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.access.length, 1);
             assert.equal(response.access[0].type, 'read_all');
             assert.equal(response.access[0].roles.length, 2);
@@ -876,7 +882,7 @@ module.exports = function(app, template, hook) {
 
       // FA-892
       it('Updating a Form with a malformed access permission role will condense the access permissions', function(done) {
-        var roleAccess = [
+        const roleAccess = [
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString(),
           null,
@@ -886,12 +892,12 @@ module.exports = function(app, template, hook) {
           '{}',
           'undefined'
         ];
-        var expected = [
+        const expected = [
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString()
         ];
         request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .put(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({access: [
             {
@@ -906,7 +912,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.access[0].type, 'read_all');
             assert.equal(response.access[0].roles.length, 2);
             assert.deepEqual(response.access[0].roles, expected);
@@ -922,13 +928,13 @@ module.exports = function(app, template, hook) {
       });
 
       it('Updating a Form with duplicate submissionAccess permission types will condense the submissionAccess permissions', function(done) {
-        var updatedSubmissionAccess  = [
+        const updatedSubmissionAccess  = [
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString()
         ];
 
         request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .put(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({submissionAccess: [
             {
@@ -947,7 +953,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.submissionAccess[0].type, 'read_all');
             assert.equal(response.submissionAccess[0].roles.length, 2);
             assert.deepEqual(response.submissionAccess[0].roles, updatedSubmissionAccess);
@@ -963,18 +969,18 @@ module.exports = function(app, template, hook) {
       });
 
       it('Updating a Form with duplicate submissionAccess permission roles will condense the submissionAccess permissions', function(done) {
-        var updatedSubmissionAccess  = [
+        const updatedSubmissionAccess  = [
           template.roles.authenticated._id.toString(),
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString()
         ];
-        var expected = [
+        const expected = [
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString()
         ];
 
         request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .put(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({submissionAccess: [
             {
@@ -989,7 +995,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.submissionAccess[0].type, 'read_all');
             assert.equal(response.submissionAccess[0].roles.length, 2);
             assert.deepEqual(response.submissionAccess[0].roles, expected);
@@ -1006,13 +1012,13 @@ module.exports = function(app, template, hook) {
 
       // FA-892
       it('Updating a Form with a malformed submissionAccess permission type will condense the submissionAccess permissions', function(done) {
-        var updatedSubmissionAccess  = [
+        const updatedSubmissionAccess  = [
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString()
         ];
 
         request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .put(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({submissionAccess: [
             {
@@ -1039,7 +1045,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.submissionAccess.length, 1);
             assert.equal(response.submissionAccess[0].type, 'read_all');
             assert.equal(response.submissionAccess[0].roles.length, 2);
@@ -1057,7 +1063,7 @@ module.exports = function(app, template, hook) {
 
       // FA-892
       it('Updating a Form with a malformed submissionAccess permission role will condense the submissionAccess permissions', function(done) {
-        var updatedSubmissionAccess  = [
+        const updatedSubmissionAccess  = [
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString(),
           null,
@@ -1067,13 +1073,13 @@ module.exports = function(app, template, hook) {
           '{}',
           'undefined'
         ];
-        var expected = [
+        const expected = [
           template.roles.authenticated._id.toString(),
           template.roles.anonymous._id.toString()
         ];
 
         request(app)
-          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .put(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({submissionAccess: [
             {
@@ -1088,7 +1094,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.submissionAccess[0].type, 'read_all');
             assert.equal(response.submissionAccess[0].roles.length, 2);
             assert.deepEqual(response.submissionAccess[0].roles, expected);
@@ -1105,7 +1111,7 @@ module.exports = function(app, template, hook) {
 
       it('A Project Owner should be able to Delete their Form', function(done) {
         request(app)
-          .delete(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .delete(hook.alter('url', `/form/${template.forms.tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect(200)
           .end(function(err, res) {
@@ -1113,7 +1119,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, {});
 
             // Store the JWT for future API calls.
@@ -1123,23 +1129,24 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      if (!docker)
-      it('A deleted Form should remain in the database', function(done) {
-        var formio = hook.alter('formio', app.formio);
-        formio.resources.form.model.findOne({_id: template.forms.tempForm._id})
-          .exec(function(err, form) {
-            if (err) {
-              return done(err);
-            }
-            if (!form) {
-              return done('No Form w/ _id: ' + template.forms.tempForm._id + ' found, expected 1.');
-            }
+      if (!docker) {
+        it('A deleted Form should remain in the database', function(done) {
+          const formio = hook.alter('formio', app.formio);
+          formio.resources.form.model.findOne({_id: template.forms.tempForm._id})
+            .exec(function(err, form) {
+              if (err) {
+                return done(err);
+              }
+              if (!form) {
+                return done(`No Form w/ _id: ${template.forms.tempForm._id} found, expected 1.`);
+              }
 
-            form = form.toObject();
-            assert.notEqual(form.deleted, null);
-            done();
-          });
-      });
+              form = form.toObject();
+              assert.notEqual(form.deleted, null);
+              done();
+            });
+        });
+      }
 
       it('An administrator should be able to Create a Register Form', function(done) {
         template.forms.userRegister2 = {
@@ -1198,7 +1205,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
             assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
             assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -1280,7 +1287,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
             assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
             assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -1392,7 +1399,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.type, 'form');
             new Helper(template.users.admin, template, hook)
               .deleteForm(res.body)
@@ -1403,7 +1410,7 @@ module.exports = function(app, template, hook) {
 
     describe('Form Components Endpoint', function() {
       it('Bootstrap', function(done) {
-        var testComponentForm = {
+        const testComponentForm = {
           title: 'Test Component Form',
           name: 'testComponentForm',
           path: 'temp/testcomponentform',
@@ -1465,10 +1472,9 @@ module.exports = function(app, template, hook) {
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
 
-
             // Update the access rights to only let admins read_all
             request(app)
-              .put(hook.alter('url', '/form/' + res.body._id , template))
+              .put(hook.alter('url', `/form/${res.body._id}` , template))
               .set('x-jwt-token', template.users.admin.token)
               .send({access: [{
                 type: 'read_all',
@@ -1477,11 +1483,11 @@ module.exports = function(app, template, hook) {
               .expect('Content-Type', /json/)
               .expect(200)
               .end(function(err, res) {
-                if(err) {
+                if (err) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
                 assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
                 assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -1499,21 +1505,20 @@ module.exports = function(app, template, hook) {
                 assert.deepEqual(response.components, testComponentForm.components);
                 template.forms.testComponentForm = response;
                 done();
-
               });
           });
       });
 
       it('An Anonymous user should not be able to Read their Form\'s components', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components', template))
+          .get(hook.alter('url', `/form/${template.forms.testComponentForm._id}/components`, template))
           .expect(401)
           .end(done);
       });
 
       it('An Administrator should be able to Read their Form\'s components', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components', template))
+          .get(hook.alter('url', `/form/${template.forms.testComponentForm._id}/components`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -1522,7 +1527,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, template.forms.testComponentForm.components);
 
             // Store the JWT for future API calls.
@@ -1534,7 +1539,7 @@ module.exports = function(app, template, hook) {
 
       it('An Administrator should be able to Read and filter their Form\'s components with a string', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?type=email', template))
+          .get(hook.alter('url', `/form/${template.forms.testComponentForm._id}/components?type=email`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -1543,7 +1548,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.length, 1, 'Response should only return one component');
             assert.deepEqual(response[0], _.find(template.forms.testComponentForm.components, {type: 'email'}));
 
@@ -1556,7 +1561,7 @@ module.exports = function(app, template, hook) {
 
       it('An Administrator should be able to Read and filter their Form\'s components by existence', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?validate.step', template))
+          .get(hook.alter('url', `/form/${template.forms.testComponentForm._id}/components?validate.step`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -1565,7 +1570,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.length, 1, 'Response should only return one component');
             assert.deepEqual(response[0], _.find(template.forms.testComponentForm.components, {validate: {step: 23}}));
 
@@ -1578,7 +1583,7 @@ module.exports = function(app, template, hook) {
 
       it('An Administrator should be able to Read and filter their Form\'s components with a number', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?validate.step=23', template))
+          .get(hook.alter('url', `/form/${template.forms.testComponentForm._id}/components?validate.step=23`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -1587,7 +1592,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.length, 1, 'Response should only return one component');
             assert.deepEqual(response[0], _.find(template.forms.testComponentForm.components, {validate: {step: 23}}));
 
@@ -1600,7 +1605,7 @@ module.exports = function(app, template, hook) {
 
       it('An Administrator should be able to Read and filter their Form\'s components with the boolean `true`', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?protected=true', template))
+          .get(hook.alter('url', `/form/${template.forms.testComponentForm._id}/components?protected=true`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -1609,7 +1614,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.length, 1, 'Response should only return one component');
             assert.deepEqual(response[0], _.find(template.forms.testComponentForm.components, {protected: true}));
 
@@ -1622,7 +1627,7 @@ module.exports = function(app, template, hook) {
 
       it('An Administrator should be able to Read and filter their Form\'s components with the boolean `false`', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?protected=false', template))
+          .get(hook.alter('url', `/form/${template.forms.testComponentForm._id}/components?protected=false`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -1631,7 +1636,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.length, 2, 'Response should only return two components');
             assert.deepEqual(response[0], _.find(template.forms.testComponentForm.components, {protected: false}));
             assert.deepEqual(response[1], _.findLast(template.forms.testComponentForm.components, {protected: false}));
@@ -1645,7 +1650,7 @@ module.exports = function(app, template, hook) {
 
       it('An Administrator should be able to Read and filter their Form\'s components with multiple criteria', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?protected=false&validate.step=23&type=number', template))
+          .get(hook.alter('url', `/form/${template.forms.testComponentForm._id}/components?protected=false&validate.step=23&type=number`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -1654,7 +1659,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.length, 1, 'Response should only return one component');
             assert.deepEqual(response[0], _.find(template.forms.testComponentForm.components, {protected: false, type: 'number', validate: {step: 23}}));
 
@@ -1667,7 +1672,7 @@ module.exports = function(app, template, hook) {
 
       it('An Administrator should receive empty array when Reading their Form with filter that has no results', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?type=💩', template))
+          .get(hook.alter('url', `/form/${template.forms.testComponentForm._id}/components?type=💩`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -1676,7 +1681,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, [], 'Response should return empty array.');
 
             // Store the JWT for future API calls.
@@ -1685,13 +1690,12 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
-
     });
 
     describe('Form Validation', function() {
       // FA-566
       describe('Negative Min Length', function() {
-        var form = _.cloneDeep(tempForm);
+        let form = _.cloneDeep(tempForm);
         form.title = 'validationform';
         form.name = 'validationform';
         form.path = 'validationform';
@@ -1710,7 +1714,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
               assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
               assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -1732,14 +1736,14 @@ module.exports = function(app, template, hook) {
         });
 
         it('Negative Min Length validation wont crash the server on submission', function(done) {
-          var submission = {
+          const submission = {
             data: {
               foo: 'bar'
             }
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .post(hook.alter('url', `/form/${form._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(submission)
             .expect('Content-Type', /json/)
@@ -1749,7 +1753,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.data, submission.data);
               done();
             });
@@ -1757,7 +1761,7 @@ module.exports = function(app, template, hook) {
 
         it('Form cleanup', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + form._id, template))
+            .delete(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
@@ -1765,7 +1769,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               done();
             });
@@ -1774,7 +1778,7 @@ module.exports = function(app, template, hook) {
 
       // FA-566
       describe('Negative Max Length', function() {
-        var form = _.cloneDeep(tempForm);
+        let form = _.cloneDeep(tempForm);
         form.title = 'validationform';
         form.name = 'validationform';
         form.path = 'validationform';
@@ -1793,7 +1797,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
               assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
               assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -1815,14 +1819,14 @@ module.exports = function(app, template, hook) {
         });
 
         it('Negative Max Length validation wont crash the server on submission', function(done) {
-          var submission = {
+          const submission = {
             data: {
               foo: 'bar'
             }
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .post(hook.alter('url', `/form/${form._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(submission)
             .expect('Content-Type', /json/)
@@ -1832,7 +1836,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.data, submission.data);
               done();
             });
@@ -1840,7 +1844,7 @@ module.exports = function(app, template, hook) {
 
         it('Form cleanup', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + form._id, template))
+            .delete(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
@@ -1848,7 +1852,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               done();
             });
@@ -1857,7 +1861,7 @@ module.exports = function(app, template, hook) {
 
       // FOR-272
       describe('Min value', function() {
-        var form = _.cloneDeep(tempForm);
+        let form = _.cloneDeep(tempForm);
         form.title = chance.word();
         form.name = chance.word();
         form.path = chance.word();
@@ -1919,7 +1923,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               form = response;
 
               // Store the JWT for future API calls.
@@ -1931,7 +1935,7 @@ module.exports = function(app, template, hook) {
 
         it('Min value 0 will correctly stop submissions with a negative value', function(done) {
           request(app)
-            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .post(hook.alter('url', `/form/${form._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({data: {test: -1}})
             .expect('Content-Type', /json/)
@@ -1941,7 +1945,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.name, 'ValidationError');
               assert.equal(response.details.length, 1);
               assert.equal(response.details[0].message, '"test" must be larger than or equal to 0');
@@ -1951,7 +1955,7 @@ module.exports = function(app, template, hook) {
 
         it('Form cleanup', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + form._id, template))
+            .delete(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
@@ -1959,7 +1963,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               done();
             });
@@ -1968,7 +1972,7 @@ module.exports = function(app, template, hook) {
 
       // FOR-290
       describe('Number Component - Decimal values will not be truncated when step=any', function() {
-        var form = _.cloneDeep(tempForm);
+        let form = _.cloneDeep(tempForm);
         form.title = chance.word();
         form.name = chance.word();
         form.path = chance.word();
@@ -2017,7 +2021,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               form = response;
 
               // Store the JWT for future API calls.
@@ -2029,7 +2033,7 @@ module.exports = function(app, template, hook) {
 
         it('Decimal values will correctly persist without validation issues with the default step', function(done) {
           request(app)
-            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .post(hook.alter('url', `/form/${form._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -2043,7 +2047,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.data, {test: 1.23});
               done();
             });
@@ -2051,7 +2055,7 @@ module.exports = function(app, template, hook) {
 
         it('Form cleanup', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + form._id, template))
+            .delete(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
@@ -2059,7 +2063,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               done();
             });
@@ -2068,8 +2072,8 @@ module.exports = function(app, template, hook) {
 
       // FOR-278
       describe('Adding a min value to an existing component will persist the changes', function() {
-        var for278 = require('./fixtures/forms/for278');
-        var form = _.cloneDeep(tempForm);
+        const for278 = require('./fixtures/forms/for278');
+        let form = _.cloneDeep(tempForm);
         form.title = chance.word();
         form.name = chance.word();
         form.path = chance.word();
@@ -2088,7 +2092,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               form = response;
 
               // Store the JWT for future API calls.
@@ -2102,7 +2106,7 @@ module.exports = function(app, template, hook) {
           form.components = for278.update;
 
           request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
+            .put(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(form)
             .expect('Content-Type', /json/)
@@ -2112,7 +2116,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.components, form.components);
               form = response;
 
@@ -2127,7 +2131,7 @@ module.exports = function(app, template, hook) {
           form.components = for278.update;
 
           request(app)
-            .get(hook.alter('url', '/form/' + form._id, template))
+            .get(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect('Content-Type', /json/)
             .expect(200)
@@ -2136,7 +2140,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.equal(response.components.length, 1);
               assert(response.components[0].validate.min === for278.update[0].validate.min);
               form = response;
@@ -2150,7 +2154,7 @@ module.exports = function(app, template, hook) {
 
         it('Test invalid submission', function(done) {
           request(app)
-            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .post(hook.alter('url', `/form/${form._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(for278.fail)
             .expect('Content-Type', /json/)
@@ -2160,7 +2164,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.equal(_.get(response, 'name'), 'ValidationError');
               assert.equal(response.details.length, 1);
               assert.equal(_.get(response, 'details[0].message'), '"number" must be larger than or equal to 0');
@@ -2174,7 +2178,7 @@ module.exports = function(app, template, hook) {
 
         it('Test valid submission', function(done) {
           request(app)
-            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .post(hook.alter('url', `/form/${form._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(for278.pass)
             .expect('Content-Type', /json/)
@@ -2184,7 +2188,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.data, for278.pass.data);
 
               // Store the JWT for future API calls.
@@ -2197,7 +2201,7 @@ module.exports = function(app, template, hook) {
 
       // FOR-128
       describe('Duplicate form component keys', function() {
-        var form = _.cloneDeep(tempForm);
+        let form = _.cloneDeep(tempForm);
         form.title = 'componenttest';
         form.name = 'componenttest';
         form.path = 'componenttest';
@@ -2277,8 +2281,8 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              var msg = _.get(response, 'errors.components.message');
+              const response = res.body;
+              const msg = _.get(response, 'errors.components.message');
               assert.equal(msg, 'Component keys must be unique: foo');
 
               // Store the JWT for future API calls.
@@ -2364,7 +2368,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
               assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
               assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -2386,7 +2390,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('A form cannot be updated with duplicate component api keys', function(done) {
-          var components = [
+          const components = [
             {
               type: 'textfield',
               validate: {
@@ -2491,7 +2495,7 @@ module.exports = function(app, template, hook) {
 
           // Create the test form
           request(app)
-            .put(hook.alter('url', '/form', template) + '/' + form._id)
+            .put(`${hook.alter('url', '/form', template)}/${form._id}`)
             .set('x-jwt-token', template.users.admin.token)
             .send({
               components: components
@@ -2503,8 +2507,8 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
-              var msg = _.get(response, 'errors.components.message');
+              const response = res.body;
+              const msg = _.get(response, 'errors.components.message');
               assert.equal(msg, 'Component keys must be unique: foo, bar');
 
               // Store the JWT for future API calls.
@@ -2516,7 +2520,7 @@ module.exports = function(app, template, hook) {
 
         it('Form cleanup', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + form._id, template))
+            .delete(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
@@ -2524,117 +2528,118 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               done();
             });
         });
       });
 
-      if (!docker && !customer)
-      describe('Invalid Form paths', function() {
-        var form;
-        it('Bootstrap', function(done) {
-          form = _.cloneDeep(tempForm);
-          form.title = chance.word();
-          form.name = chance.word();
-          form.path = chance.word();
+      if (!docker && !customer) {
+        describe('Invalid Form paths', function() {
+          let form;
+          it('Bootstrap', function(done) {
+            form = _.cloneDeep(tempForm);
+            form.title = chance.word();
+            form.name = chance.word();
+            form.path = chance.word();
 
-          request(app)
-            .post(hook.alter('url', '/form', template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(form)
-            .expect('Content-Type', /json/)
-            .expect(201)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-
-              var response = res.body;
-              form = response;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-        });
-
-        // FOR-155
-        it('None of the reserved form names should be allowed as form paths for new forms', function(done) {
-          async.each(formio.config.reservedForms, function(path, callback) {
-            var form = _.cloneDeep(tempForm);
-            form.path = path;
-
-            // Create the test form
             request(app)
               .post(hook.alter('url', '/form', template))
               .set('x-jwt-token', template.users.admin.token)
               .send(form)
-              .expect('Content-Type', /text/)
-              .expect(400)
+              .expect('Content-Type', /json/)
+              .expect(201)
               .end(function(err, res) {
                 if (err) {
-                  return callback(err);
+                  return done(err);
                 }
 
-                var response = res.text;
-                assert.equal(response, 'Form path cannot contain one of the following names: ' + formio.config.reservedForms.join(', '));
+                const response = res.body;
+                form = response;
 
                 // Store the JWT for future API calls.
                 template.users.admin.token = res.headers['x-jwt-token'];
 
-                callback();
+                done();
               });
-          }, function(err) {
-            if (err) {
-              return done(err);
-            }
+          });
 
-            return done();
+          // FOR-155
+          it('None of the reserved form names should be allowed as form paths for new forms', function(done) {
+            async.each(formio.config.reservedForms, function(path, callback) {
+              const form = _.cloneDeep(tempForm);
+              form.path = path;
+
+              // Create the test form
+              request(app)
+                .post(hook.alter('url', '/form', template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send(form)
+                .expect('Content-Type', /text/)
+                .expect(400)
+                .end(function(err, res) {
+                  if (err) {
+                    return callback(err);
+                  }
+
+                  const response = res.text;
+                  assert.equal(response, `Form path cannot contain one of the following names: ${formio.config.reservedForms.join(', ')}`);
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  callback();
+                });
+            }, function(err) {
+              if (err) {
+                return done(err);
+              }
+
+              return done();
+            });
+          });
+
+          // FOR-156
+          it('None of the reserved form names should be allowed as form paths for existing forms', function(done) {
+            async.each(formio.config.reservedForms, function(path, callback) {
+              // update the test form
+              request(app)
+                .put(`${hook.alter('url', '/form', template)}/${form._id}`)
+                .set('x-jwt-token', template.users.admin.token)
+                .send({
+                  path: path
+                })
+                .expect('Content-Type', /text/)
+                .expect(400)
+                .end(function(err, res) {
+                  if (err) {
+                    return callback(err);
+                  }
+
+                  const response = res.text;
+                  assert.equal(response, `Form path cannot contain one of the following names: ${formio.config.reservedForms.join(', ')}`);
+
+                  // Store the JWT for future API calls.
+                  template.users.admin.token = res.headers['x-jwt-token'];
+
+                  callback();
+                });
+            }, function(err) {
+              if (err) {
+                return done(err);
+              }
+
+              return done();
+            });
           });
         });
-
-        // FOR-156
-        it('None of the reserved form names should be allowed as form paths for existing forms', function(done) {
-          async.each(formio.config.reservedForms, function(path, callback) {
-            // update the test form
-            request(app)
-              .put(hook.alter('url', '/form', template) + '/' + form._id)
-              .set('x-jwt-token', template.users.admin.token)
-              .send({
-                path: path
-              })
-              .expect('Content-Type', /text/)
-              .expect(400)
-              .end(function(err, res) {
-                if (err) {
-                  return callback(err);
-                }
-
-                var response = res.text;
-                assert.equal(response, 'Form path cannot contain one of the following names: ' + formio.config.reservedForms.join(', '));
-
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
-
-                callback();
-              });
-          }, function(err) {
-            if (err) {
-              return done(err);
-            }
-
-            return done();
-          });
-        });
-      });
+      }
 
       // FOR-132 && FOR-182
       describe('Unique fields are case insensitive', function() {
-        var testEmailForm;
-        var email = chance.email().toLowerCase();
+        let testEmailForm;
+        const email = chance.email().toLowerCase();
 
         before(function() {
           testEmailForm = {
@@ -2691,7 +2696,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
               assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
               assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -2712,16 +2717,16 @@ module.exports = function(app, template, hook) {
             });
         });
 
-        var sub;
+        let sub;
         it('A unique submission can be made', function(done) {
-          var submission = {
+          const submission = {
             data: {
               email: email
             }
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + testEmailForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${testEmailForm._id}/submission`, template))
             .send(submission)
             .expect('Content-Type', /json/)
             .expect(201)
@@ -2730,7 +2735,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               sub = response;
               assert.deepEqual(response.data, submission.data);
               done();
@@ -2738,14 +2743,14 @@ module.exports = function(app, template, hook) {
         });
 
         it('A duplicate submission can not be made', function(done) {
-          var submission = {
+          const submission = {
             data: {
               email: email.toString().toUpperCase()
             }
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + testEmailForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${testEmailForm._id}/submission`, template))
             .send(submission)
             .expect('Content-Type', /json/)
             .expect(400)
@@ -2754,7 +2759,6 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
               done();
             });
         });
@@ -2762,7 +2766,7 @@ module.exports = function(app, template, hook) {
         // FOR-182
         it('Unique field data is stored in its original submission state', function(done) {
           request(app)
-            .get(hook.alter('url', '/form/' + testEmailForm._id + '/submission', template) + '/' + sub._id)
+            .get(`${hook.alter('url', `/form/${testEmailForm._id}/submission`, template)  }/${sub._id}`)
             .set('x-jwt-token', template.users.admin.token)
             .expect('Content-Type', /json/)
             .expect(200)
@@ -2771,7 +2775,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.equal(response.data.email, email);
               done();
             });
@@ -2779,14 +2783,14 @@ module.exports = function(app, template, hook) {
 
         // FOR-182
         it('Unique field data regex is not triggered by similar submissions (before)', function(done) {
-          var submission = {
+          const submission = {
             data: {
-              email: email + '1'
+              email: `${email}1`
             }
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + testEmailForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${testEmailForm._id}/submission`, template))
             .send(submission)
             .expect('Content-Type', /json/)
             .expect(201)
@@ -2795,7 +2799,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.data, submission.data);
               done();
             });
@@ -2803,14 +2807,14 @@ module.exports = function(app, template, hook) {
 
         // FOR-182
         it('Unique field data regex is not triggered by similar submissions (after)', function(done) {
-          var submission = {
+          const submission = {
             data: {
-              email: '1' + email
+              email: `1${email}`
             }
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + testEmailForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${testEmailForm._id}/submission`, template))
             .send(submission)
             .expect('Content-Type', /json/)
             .expect(201)
@@ -2819,7 +2823,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.data, submission.data);
               done();
             });
@@ -2827,7 +2831,7 @@ module.exports = function(app, template, hook) {
 
         it('Form cleanup', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + testEmailForm._id, template))
+            .delete(hook.alter('url', `/form/${testEmailForm._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
@@ -2835,7 +2839,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               testEmailForm = response;
               assert.deepEqual(response, {});
               done();
@@ -2845,8 +2849,8 @@ module.exports = function(app, template, hook) {
 
       // FOR-136 && FOR-182
       describe('Unique fields work inside layout components', function() {
-        var testUniqueField;
-        var data = chance.word().toUpperCase();
+        let testUniqueField;
+        const data = chance.word().toUpperCase();
 
         before(function() {
           testUniqueField = {
@@ -2927,7 +2931,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
               assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
               assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -2948,9 +2952,9 @@ module.exports = function(app, template, hook) {
             });
         });
 
-        var sub;
+        let sub;
         it('A unique submission can be made', function(done) {
-          var submission = {
+          const submission = {
             data: {
               container1: {
                 unique: data
@@ -2959,7 +2963,7 @@ module.exports = function(app, template, hook) {
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + testUniqueField._id + '/submission', template))
+            .post(hook.alter('url', `/form/${testUniqueField._id}/submission`, template))
             .send(submission)
             .expect('Content-Type', /json/)
             .expect(201)
@@ -2968,7 +2972,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               sub = response;
               assert.deepEqual(response.data, submission.data);
               done();
@@ -2976,7 +2980,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('A duplicate submission can not be made', function(done) {
-          var submission = {
+          const submission = {
             data: {
               container1: {
                 unique: data.toLowerCase()
@@ -2985,7 +2989,7 @@ module.exports = function(app, template, hook) {
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + testUniqueField._id + '/submission', template))
+            .post(hook.alter('url', `/form/${testUniqueField._id}/submission`, template))
             .send(submission)
             .expect('Content-Type', /json/)
             .expect(400)
@@ -2994,7 +2998,6 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
               done();
             });
         });
@@ -3002,7 +3005,7 @@ module.exports = function(app, template, hook) {
         // FOR-182
         it('Unique field data is stored in its original submission state', function(done) {
           request(app)
-            .get(hook.alter('url', '/form/' + testUniqueField._id + '/submission', template) + '/' + sub._id)
+            .get(`${hook.alter('url', `/form/${testUniqueField._id}/submission`, template)  }/${sub._id}`)
             .set('x-jwt-token', template.users.admin.token)
             .expect('Content-Type', /json/)
             .expect(200)
@@ -3011,7 +3014,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.equal(response.data.container1.unique, data);
               done();
             });
@@ -3019,16 +3022,16 @@ module.exports = function(app, template, hook) {
 
         // FOR-182
         it('Unique field data regex is not triggered by similar submissions (before)', function(done) {
-          var submission = {
+          const submission = {
             data: {
               container1: {
-                unique: data + '1'
+                unique: `${data}1`
               }
             }
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + testUniqueField._id + '/submission', template))
+            .post(hook.alter('url', `/form/${testUniqueField._id}/submission`, template))
             .send(submission)
             .expect('Content-Type', /json/)
             .expect(201)
@@ -3037,7 +3040,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.data, submission.data);
               done();
             });
@@ -3045,16 +3048,16 @@ module.exports = function(app, template, hook) {
 
         // FOR-182
         it('Unique field data regex is not triggered by similar submissions (after)', function(done) {
-          var submission = {
+          const submission = {
             data: {
               container1: {
-                unique: '1' + data
+                unique: `1${data}`
               }
             }
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + testUniqueField._id + '/submission', template))
+            .post(hook.alter('url', `/form/${testUniqueField._id}/submission`, template))
             .send(submission)
             .expect('Content-Type', /json/)
             .expect(201)
@@ -3063,7 +3066,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.data, submission.data);
               done();
             });
@@ -3071,7 +3074,7 @@ module.exports = function(app, template, hook) {
 
         it('Form cleanup', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + testUniqueField._id, template))
+            .delete(hook.alter('url', `/form/${testUniqueField._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
@@ -3079,7 +3082,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               testUniqueField = response;
               assert.deepEqual(response, {});
               done();
@@ -3089,7 +3092,7 @@ module.exports = function(app, template, hook) {
 
       // FOR-272
       describe('Old layout components without API keys, still submit data for all child components', function() {
-        var form = _.cloneDeep(tempForm);
+        let form = _.cloneDeep(tempForm);
         form.title = chance.word();
         form.name = chance.word();
         form.path = chance.word();
@@ -3108,7 +3111,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
               assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
               assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -3130,7 +3133,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('Child components will be validated and contain data', function(done) {
-          var submission = {
+          const submission = {
             data: {
               foo: '1',
               bar: '2'
@@ -3138,7 +3141,7 @@ module.exports = function(app, template, hook) {
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .post(hook.alter('url', `/form/${form._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(submission)
             .expect('Content-Type', /json/)
@@ -3148,7 +3151,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.data, submission.data);
               done();
             });
@@ -3156,7 +3159,7 @@ module.exports = function(app, template, hook) {
 
         it('Form cleanup', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + form._id, template))
+            .delete(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
@@ -3164,7 +3167,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               done();
             });
@@ -3173,16 +3176,16 @@ module.exports = function(app, template, hook) {
 
       // FOR-255
       describe('Custom validation', function() {
-        var templates = require('./fixtures/forms/customValidation');
-        var form = _.cloneDeep(tempForm);
+        const templates = require('./fixtures/forms/customValidation');
+        let form = _.cloneDeep(tempForm);
         form.title = 'customvalidation';
         form.name = 'customvalidation';
         form.path = 'customvalidation';
         form.components = [];
 
-        var updatePrimary = function(done) {
+        const updatePrimary = function(done) {
           request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
+            .put(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({components: form.components})
             .expect('Content-Type', /json/)
@@ -3192,21 +3195,21 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               form = response;
               done();
             });
         };
-        var attemptSubmission = function(submission, done) {
+        const attemptSubmission = function(submission, done) {
           request(app)
-            .post(hook.alter('url', '/form/' + form._id + '/submission', template))
+            .post(hook.alter('url', `/form/${form._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(submission)
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function(err, res) {
               if (err) {
-                var error = res.text;
+                let error = res.text;
 
                 try {
                   error = JSON.parse(error);
@@ -3218,11 +3221,11 @@ module.exports = function(app, template, hook) {
                 return done(error);
               }
 
-              var response = res.body;
+              const response = res.body;
               done(null, response);
             });
         };
-        var getForm = (token, done) => {
+        const getForm = (token, done) => {
           if (typeof token === 'function') {
             done = token;
             token = undefined;
@@ -3257,7 +3260,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 form = response;
                 done();
               });
@@ -3983,10 +3986,10 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                let response = res.body;
+                const response = res.body;
                 assert(response.hasOwnProperty('components'));
                 assert.equal(response.components.length, 1);
-                let component = response.components[0];
+                const component = response.components[0];
                 assert.deepEqual(component.validate, templates.customPrivate.root.admin.pass);
                 return done();
               });
@@ -3998,10 +4001,10 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                let response = res.body;
+                const response = res.body;
                 assert(response.hasOwnProperty('components'));
                 assert.equal(response.components.length, 1);
-                let component = response.components[0];
+                const component = response.components[0];
                 assert.deepEqual(component.validate, templates.customPrivate.root.user.pass);
                 return done();
               });
@@ -4020,12 +4023,12 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                let response = res.body;
+                const response = res.body;
                 assert(response.hasOwnProperty('components'));
                 assert.equal(response.components.length, 1);
                 assert(response.components[0].hasOwnProperty('components'));
                 assert.equal(response.components[0].components.length, 1);
-                let component = response.components[0].components[0];
+                const component = response.components[0].components[0];
                 assert.deepEqual(component.validate, templates.customPrivate.nested.admin.pass);
                 return done();
               });
@@ -4037,12 +4040,12 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                let response = res.body;
+                const response = res.body;
                 assert(response.hasOwnProperty('components'));
                 assert.equal(response.components.length, 1);
                 assert(response.components[0].hasOwnProperty('components'));
                 assert.equal(response.components[0].components.length, 1);
-                let component = response.components[0].components[0];
+                const component = response.components[0].components[0];
                 assert.deepEqual(component.validate, templates.customPrivate.nested.user.pass);
                 return done();
               });
@@ -4072,7 +4075,7 @@ module.exports = function(app, template, hook) {
 
     describe('Form Settings', function() {
       it('Sets additional form settings', function(done) {
-        var form = {
+        const form = {
           title: 'Settings Form',
           name: 'settingsForm',
           path: 'settingsform',
@@ -4100,7 +4103,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response.settings, form.settings);
 
             // Store the JWT for future API calls.
@@ -4112,13 +4115,13 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Form MachineNames', function() {
-      var helper;
+      let helper;
       before(function() {
-        helper = new Helper(template.users.admin, template)
+        helper = new Helper(template.users.admin, template);
       });
 
       it('Forms expose their machineNames through the api', function(done) {
-        var name = chance.word();
+        const name = chance.word();
         helper
           .form({name: name})
           .execute(function(err, results) {
@@ -4126,15 +4129,15 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var form = results.getForm(name);
+            const form = results.getForm(name);
             assert(form.hasOwnProperty('machineName'));
             done();
           });
       });
 
       it('A user can modify their form machineNames', function(done) {
-        var name = chance.word();
-        var newMachineName = chance.word();
+        const name = chance.word();
+        const newMachineName = chance.word();
 
         helper
           .form({name: name})
@@ -4143,7 +4146,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var form = results.getForm(name);
+            const form = results.getForm(name);
             form.machineName = newMachineName;
 
             helper
@@ -4153,7 +4156,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = results.getForm(name);
+                const response = results.getForm(name);
                 assert(response.hasOwnProperty('machineName'));
                 assert.equal(response.machineName, newMachineName);
                 done();
@@ -4163,7 +4166,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Form Merging', function() {
-      var form = _.cloneDeep(tempForm);
+      let form = _.cloneDeep(tempForm);
       form.title = 'form-merge-a';
       form.name = 'form-merge-a';
       form.path = 'form-merge-a';
@@ -4181,7 +4184,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.components, form.components);
 
               form = response;
@@ -4195,7 +4198,7 @@ module.exports = function(app, template, hook) {
       });
 
       describe('Component Merge', function() {
-        var componentsA = [
+        const componentsA = [
           {
             type: 'textfield',
             validate: {
@@ -4217,7 +4220,7 @@ module.exports = function(app, template, hook) {
             input: true
           }
         ];
-        var componentsB = [
+        const componentsB = [
           {
             type: 'textfield',
             validate: {
@@ -4239,7 +4242,7 @@ module.exports = function(app, template, hook) {
             input: true
           }
         ];
-        var componentsC = [
+        const componentsC = [
           {
             type: 'textfield',
             validate: {
@@ -4261,7 +4264,7 @@ module.exports = function(app, template, hook) {
             input: true
           }
         ];
-        var componentsD = [
+        const componentsD = [
           {
             type: 'textfield',
             validate: {
@@ -4284,13 +4287,13 @@ module.exports = function(app, template, hook) {
           }
         ];
 
-        var initialForm;
+        let initialForm;
         it('Update test form', function(done) {
           // Set the initial form components.
           form.components = componentsA;
 
           request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
+            .put(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({components: form.components})
             .expect('Content-Type', /json/)
@@ -4300,7 +4303,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.components, form.components);
 
               form = response;
@@ -4317,7 +4320,7 @@ module.exports = function(app, template, hook) {
           form.components = componentsB;
 
           request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
+            .put(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(form)
             .expect('Content-Type', /json/)
@@ -4327,7 +4330,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.components, form.components);
 
               form = response;
@@ -4343,7 +4346,7 @@ module.exports = function(app, template, hook) {
           initialForm.components = componentsC;
 
           request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
+            .put(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(initialForm)
             .expect('Content-Type', /json/)
@@ -4353,7 +4356,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.components, componentsD);
 
               form = response;
@@ -4374,7 +4377,7 @@ module.exports = function(app, template, hook) {
 
       describe('Skip Merge', function() {
         it('Add an initial component with settings', function(done) {
-          var update = {
+          const update = {
             type: 'textfield',
             validate: {
               custom: '',
@@ -4396,7 +4399,7 @@ module.exports = function(app, template, hook) {
           };
 
           request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
+            .put(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({components: [update]})
             .expect('Content-Type', /json/)
@@ -4406,7 +4409,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.components, [update]);
 
               form = response;
@@ -4419,7 +4422,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('Updating the form components, without the modified time, will skip the merge process', function(done) {
-          var update = {
+          const update = {
             type: 'number',
             validate: {
               custom: '',
@@ -4441,7 +4444,7 @@ module.exports = function(app, template, hook) {
           };
 
           request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
+            .put(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({components: [update]})
             .expect('Content-Type', /json/)
@@ -4451,7 +4454,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.components, [update]);
 
               form = response;
@@ -4465,7 +4468,7 @@ module.exports = function(app, template, hook) {
       });
 
       describe('Duplicate modified components', function() {
-        var componentsA = [
+        const componentsA = [
           {
             type: 'textfield',
             validate: {
@@ -4487,7 +4490,7 @@ module.exports = function(app, template, hook) {
             input: true
           }
         ];
-        var componentsB = [
+        const componentsB = [
           {
             type: 'textfield',
             validate: {
@@ -4509,7 +4512,7 @@ module.exports = function(app, template, hook) {
             input: true
           }
         ];
-        var componentsC = [
+        const componentsC = [
           {
             type: 'textfield',
             validate: {
@@ -4551,7 +4554,7 @@ module.exports = function(app, template, hook) {
             input: true
           }
         ];
-        var componentsD = [
+        const componentsD = [
           {
             type: 'textfield',
             validate: {
@@ -4614,13 +4617,13 @@ module.exports = function(app, template, hook) {
           }
         ];
 
-        var initialForm;
+        let initialForm;
         it('Update test form', function(done) {
           // Set the initial form components.
           form.components = componentsA;
 
           request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
+            .put(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(form)
             .expect('Content-Type', /json/)
@@ -4630,7 +4633,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.components, form.components);
 
               form = response;
@@ -4647,7 +4650,7 @@ module.exports = function(app, template, hook) {
           form.components = componentsB;
 
           request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
+            .put(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(form)
             .expect('Content-Type', /json/)
@@ -4657,7 +4660,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.components, form.components);
 
               form = response;
@@ -4673,7 +4676,7 @@ module.exports = function(app, template, hook) {
           initialForm.components = componentsC;
 
           request(app)
-            .put(hook.alter('url', '/form/' + form._id, template))
+            .put(hook.alter('url', `/form/${form._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(initialForm)
             .expect('Content-Type', /json/)
@@ -4683,7 +4686,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response.components, componentsD);
 
               form = response;
@@ -4697,7 +4700,7 @@ module.exports = function(app, template, hook) {
       });
 
       describe('Uniquify api keys', function() {
-        var componentsA = [
+        const componentsA = [
           {
             type: 'textfield',
             validate: {
@@ -4721,7 +4724,7 @@ module.exports = function(app, template, hook) {
         ];
 
         describe('Different component types that share api keys will get new, unique, keys', function() {
-          var componentsB = [
+          const componentsB = [
             {
               type: 'textfield',
               validate: {
@@ -4763,7 +4766,7 @@ module.exports = function(app, template, hook) {
               input: true
             }
           ];
-          var componentsC = [
+          const componentsC = [
             {
               type: 'textfield',
               validate: {
@@ -4805,7 +4808,7 @@ module.exports = function(app, template, hook) {
               input: true
             }
           ];
-          var componentsD = [
+          const componentsD = [
             {
               type: 'textfield',
               validate: {
@@ -4868,13 +4871,13 @@ module.exports = function(app, template, hook) {
             }
           ];
 
-          var initialForm;
+          let initialForm;
           it('Update test form', function(done) {
             // Set the initial form components.
             form.components = componentsA;
 
             request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
+              .put(hook.alter('url', `/form/${form._id}`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(form)
               .expect('Content-Type', /json/)
@@ -4884,7 +4887,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert.deepEqual(response.components, form.components);
 
                 form = response;
@@ -4901,7 +4904,7 @@ module.exports = function(app, template, hook) {
             form.components = componentsB;
 
             request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
+              .put(hook.alter('url', `/form/${form._id}`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(form)
               .expect('Content-Type', /json/)
@@ -4911,7 +4914,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert.deepEqual(response.components, form.components);
 
                 form = response;
@@ -4927,7 +4930,7 @@ module.exports = function(app, template, hook) {
             initialForm.components = componentsC;
 
             request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
+              .put(hook.alter('url', `/form/${form._id}`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(initialForm)
               .expect('Content-Type', /json/)
@@ -4937,7 +4940,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert.deepEqual(response.components, componentsD);
 
                 form = response;
@@ -4952,7 +4955,7 @@ module.exports = function(app, template, hook) {
       });
 
       describe('Flat form with components', function() {
-        var componentsA = [
+        const componentsA = [
           {
             type: 'textfield',
             validate: {
@@ -4976,7 +4979,7 @@ module.exports = function(app, template, hook) {
         ];
 
         describe('Inserting new components at the beginning', function() {
-          var componentsB = [
+          const componentsB = [
             {
               type: 'textfield',
               validate: {
@@ -5018,7 +5021,7 @@ module.exports = function(app, template, hook) {
               input: true
             }
           ];
-          var componentsC = [
+          const componentsC = [
             {
               type: 'textfield',
               validate: {
@@ -5060,7 +5063,7 @@ module.exports = function(app, template, hook) {
               input: true
             }
           ];
-          var componentsD = [
+          const componentsD = [
             {
               type: 'textfield',
               validate: {
@@ -5123,13 +5126,13 @@ module.exports = function(app, template, hook) {
             }
           ];
 
-          var initialForm;
+          let initialForm;
           it('Update test form', function(done) {
             // Set the initial form components.
             form.components = componentsA;
 
             request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
+              .put(hook.alter('url', `/form/${form._id}`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(form)
               .expect('Content-Type', /json/)
@@ -5139,7 +5142,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert.deepEqual(response.components, form.components);
 
                 form = response;
@@ -5156,7 +5159,7 @@ module.exports = function(app, template, hook) {
             form.components = componentsB;
 
             request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
+              .put(hook.alter('url', `/form/${form._id}`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(form)
               .expect('Content-Type', /json/)
@@ -5166,7 +5169,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert.deepEqual(response.components, form.components);
 
                 form = response;
@@ -5182,7 +5185,7 @@ module.exports = function(app, template, hook) {
             initialForm.components = componentsC;
 
             request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
+              .put(hook.alter('url', `/form/${form._id}`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(initialForm)
               .expect('Content-Type', /json/)
@@ -5192,7 +5195,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert.deepEqual(response.components, componentsD);
 
                 form = response;
@@ -5206,7 +5209,7 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Inserting new components at the end', function() {
-          var componentsB = [
+          const componentsB = [
             {
               type: 'textfield',
               validate: {
@@ -5248,7 +5251,7 @@ module.exports = function(app, template, hook) {
               input: true
             }
           ];
-          var componentsC = [
+          const componentsC = [
             {
               type: 'textfield',
               validate: {
@@ -5290,7 +5293,7 @@ module.exports = function(app, template, hook) {
               input: true
             }
           ];
-          var componentsD = [
+          const componentsD = [
             {
               type: 'textfield',
               validate: {
@@ -5353,13 +5356,13 @@ module.exports = function(app, template, hook) {
             }
           ];
 
-          var initialForm;
+          let initialForm;
           it('Update test form', function(done) {
             // Set the initial form components.
             form.components = componentsA;
 
             request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
+              .put(hook.alter('url', `/form/${form._id}`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(form)
               .expect('Content-Type', /json/)
@@ -5369,7 +5372,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert.deepEqual(response.components, form.components);
 
                 form = response;
@@ -5386,7 +5389,7 @@ module.exports = function(app, template, hook) {
             form.components = componentsB;
 
             request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
+              .put(hook.alter('url', `/form/${form._id}`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(form)
               .expect('Content-Type', /json/)
@@ -5396,7 +5399,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert.deepEqual(response.components, form.components);
 
                 form = response;
@@ -5412,7 +5415,7 @@ module.exports = function(app, template, hook) {
             initialForm.components = componentsC;
 
             request(app)
-              .put(hook.alter('url', '/form/' + form._id, template))
+              .put(hook.alter('url', `/form/${form._id}`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(initialForm)
               .expect('Content-Type', /json/)
@@ -5422,7 +5425,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert.deepEqual(response.components, componentsD);
 
                 form = response;
@@ -5438,7 +5441,7 @@ module.exports = function(app, template, hook) {
 
       describe('Single level nested components', function() {
         describe('Form with Panel', function() {
-          var componentsA = [
+          const componentsA = [
             {
               key: 'foo',
               title: 'foo',
@@ -5470,7 +5473,7 @@ module.exports = function(app, template, hook) {
           ];
 
           describe('Inserting new components at the beginning', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 key: 'foo',
                 title: 'foo',
@@ -5520,7 +5523,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 key: 'foo',
                 title: 'foo',
@@ -5570,7 +5573,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 key: 'foo',
                 title: 'foo',
@@ -5641,13 +5644,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -5657,7 +5660,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -5674,7 +5677,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -5684,7 +5687,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -5700,7 +5703,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -5710,7 +5713,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -5724,7 +5727,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Inserting new components at the end', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 key: 'foo',
                 title: 'foo',
@@ -5774,7 +5777,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 key: 'foo',
                 title: 'foo',
@@ -5824,7 +5827,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 key: 'foo',
                 title: 'foo',
@@ -5895,13 +5898,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -5911,7 +5914,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -5928,7 +5931,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -5938,7 +5941,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -5954,7 +5957,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -5964,7 +5967,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -5979,7 +5982,7 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Form with Columns', function() {
-          var componentsA = [
+          const componentsA = [
             {
               input: false,
               key: 'columns1',
@@ -6026,7 +6029,7 @@ module.exports = function(app, template, hook) {
           ];
 
           describe('Inserting new components at the beginning', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'columns1',
@@ -6112,7 +6115,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'columns1',
@@ -6198,7 +6201,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'columns1',
@@ -6325,13 +6328,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -6341,7 +6344,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -6358,7 +6361,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -6368,7 +6371,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -6384,7 +6387,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -6394,7 +6397,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -6408,7 +6411,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Inserting new components at the end', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'columns1',
@@ -6494,7 +6497,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'columns1',
@@ -6580,7 +6583,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'columns1',
@@ -6707,13 +6710,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -6723,7 +6726,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -6740,7 +6743,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -6750,7 +6753,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -6766,7 +6769,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -6776,7 +6779,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -6790,7 +6793,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Updating a component, which has been moved in front of the column component', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 type: 'textfield',
                 validate: {
@@ -6834,7 +6837,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'columns1',
@@ -6879,7 +6882,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 type: 'textfield',
                 validate: {
@@ -6924,13 +6927,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -6940,7 +6943,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -6957,7 +6960,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -6967,7 +6970,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -6983,7 +6986,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -6993,7 +6996,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -7007,7 +7010,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Updating a component, which has been moved behind of the column component', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'columns1',
@@ -7051,7 +7054,7 @@ module.exports = function(app, template, hook) {
                 input: true
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'columns1',
@@ -7096,7 +7099,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'columns1',
@@ -7142,13 +7145,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -7158,7 +7161,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -7175,7 +7178,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -7185,7 +7188,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -7201,7 +7204,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -7211,7 +7214,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -7225,7 +7228,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Updating a component, which has been moved from col1 to col2', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'columns1',
@@ -7270,7 +7273,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'columns1',
@@ -7315,7 +7318,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'columns1',
@@ -7361,13 +7364,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -7377,7 +7380,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -7394,7 +7397,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -7404,7 +7407,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -7420,7 +7423,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -7430,7 +7433,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -7444,7 +7447,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Updating a component, which has been moved from col2 to col1', function() {
-            var componentsA2 = [
+            const componentsA2 = [
               {
                 input: false,
                 key: 'columns1',
@@ -7489,7 +7492,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'columns1',
@@ -7534,7 +7537,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'columns1',
@@ -7579,7 +7582,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'columns1',
@@ -7625,13 +7628,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA2;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -7641,7 +7644,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -7658,7 +7661,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -7668,7 +7671,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -7684,7 +7687,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -7694,7 +7697,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -7709,7 +7712,7 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Form with Field Set', function() {
-          var componentsA = [
+          const componentsA = [
             {
               input: false,
               key: 'fieldset',
@@ -7741,7 +7744,7 @@ module.exports = function(app, template, hook) {
           ];
 
           describe('Inserting new components at the beginning', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'fieldset',
@@ -7791,7 +7794,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'fieldset',
@@ -7841,7 +7844,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'fieldset',
@@ -7912,13 +7915,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -7928,7 +7931,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -7945,7 +7948,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -7955,7 +7958,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -7971,7 +7974,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -7981,7 +7984,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -7995,7 +7998,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Inserting new components at the end', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'fieldset',
@@ -8045,7 +8048,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'fieldset',
@@ -8095,7 +8098,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'fieldset',
@@ -8166,13 +8169,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -8182,7 +8185,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -8199,7 +8202,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -8209,7 +8212,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -8225,7 +8228,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -8235,7 +8238,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -8250,7 +8253,7 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Form with Table', function() {
-          var componentsA = [
+          const componentsA = [
             {
               input: false,
               key: 'table',
@@ -8300,7 +8303,7 @@ module.exports = function(app, template, hook) {
           ];
 
           describe('Inserting new components at the beginning', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'table',
@@ -8414,7 +8417,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'table',
@@ -8528,7 +8531,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'table',
@@ -8703,13 +8706,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -8719,7 +8722,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -8736,7 +8739,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -8746,7 +8749,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -8762,7 +8765,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -8772,7 +8775,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -8786,7 +8789,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Inserting new components at the end', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'table',
@@ -8900,7 +8903,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'table',
@@ -9014,7 +9017,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'table',
@@ -9189,13 +9192,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -9205,7 +9208,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -9222,7 +9225,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -9232,7 +9235,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -9248,7 +9251,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -9258,7 +9261,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -9272,7 +9275,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Updating a component, which has been moved in front of the table component', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 type: 'textfield',
                 validate: {
@@ -9317,7 +9320,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'table',
@@ -9365,7 +9368,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 type: 'textfield',
                 validate: {
@@ -9411,13 +9414,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -9427,7 +9430,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -9444,7 +9447,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -9454,7 +9457,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -9470,7 +9473,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -9480,7 +9483,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -9494,7 +9497,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Updating a component, which has been moved behind of the table component', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'table',
@@ -9539,7 +9542,7 @@ module.exports = function(app, template, hook) {
                 input: true
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'table',
@@ -9587,7 +9590,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'table',
@@ -9636,13 +9639,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -9652,7 +9655,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -9669,7 +9672,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -9679,7 +9682,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -9695,7 +9698,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -9705,7 +9708,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -9719,7 +9722,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Updating a component, which has been moved from row2 to row3', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'table',
@@ -9767,7 +9770,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'table',
@@ -9815,7 +9818,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'table',
@@ -9864,13 +9867,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -9880,7 +9883,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -9897,7 +9900,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -9907,7 +9910,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -9923,7 +9926,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -9933,7 +9936,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -9947,7 +9950,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Updating a component, which has been moved from row2 to row1', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'table',
@@ -9995,7 +9998,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'table',
@@ -10043,7 +10046,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'table',
@@ -10092,13 +10095,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -10108,7 +10111,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -10125,7 +10128,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -10135,7 +10138,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -10151,7 +10154,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -10161,7 +10164,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -10175,7 +10178,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Updating a component, which has been moved from col2 to col3', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'table',
@@ -10223,7 +10226,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'table',
@@ -10271,7 +10274,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'table',
@@ -10320,13 +10323,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -10336,7 +10339,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -10353,7 +10356,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -10363,7 +10366,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -10379,7 +10382,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -10389,7 +10392,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -10403,7 +10406,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Updating a component, which has been moved from col2 to col1', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 input: false,
                 key: 'table',
@@ -10451,7 +10454,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 input: false,
                 key: 'table',
@@ -10499,7 +10502,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 input: false,
                 key: 'table',
@@ -10548,13 +10551,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -10564,7 +10567,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -10581,7 +10584,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -10591,7 +10594,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -10607,7 +10610,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -10617,7 +10620,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -10632,7 +10635,7 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Form with Well', function() {
-          var componentsA = [
+          const componentsA = [
             {
               key: 'well',
               input: false,
@@ -10663,7 +10666,7 @@ module.exports = function(app, template, hook) {
           ];
 
           describe('Inserting new components at the beginning', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 key: 'well',
                 input: false,
@@ -10712,7 +10715,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 key: 'well',
                 input: false,
@@ -10761,7 +10764,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 key: 'well',
                 input: false,
@@ -10831,13 +10834,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -10847,7 +10850,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -10864,7 +10867,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -10874,7 +10877,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -10890,7 +10893,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -10900,7 +10903,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -10914,7 +10917,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Inserting new components at the end', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 key: 'well',
                 input: false,
@@ -10963,7 +10966,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 key: 'well',
                 input: false,
@@ -11012,7 +11015,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 key: 'well',
                 input: false,
@@ -11082,13 +11085,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -11098,7 +11101,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -11115,7 +11118,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -11125,7 +11128,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -11141,7 +11144,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -11151,7 +11154,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -11166,7 +11169,7 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Form with Container', function() {
-          var componentsA = [
+          const componentsA = [
             {
               key: 'container',
               input: false,
@@ -11197,7 +11200,7 @@ module.exports = function(app, template, hook) {
           ];
 
           describe('Inserting new components at the beginning', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 key: 'container',
                 input: false,
@@ -11246,7 +11249,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 key: 'container',
                 input: false,
@@ -11295,7 +11298,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 key: 'container',
                 input: false,
@@ -11365,13 +11368,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -11381,7 +11384,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -11398,7 +11401,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -11408,7 +11411,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -11424,7 +11427,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -11434,7 +11437,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -11448,7 +11451,7 @@ module.exports = function(app, template, hook) {
           });
 
           describe('Inserting new components at the end', function() {
-            var componentsB = [
+            const componentsB = [
               {
                 key: 'container',
                 input: false,
@@ -11497,7 +11500,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsC = [
+            const componentsC = [
               {
                 key: 'container',
                 input: false,
@@ -11546,7 +11549,7 @@ module.exports = function(app, template, hook) {
                 ]
               }
             ];
-            var componentsD = [
+            const componentsD = [
               {
                 key: 'container',
                 input: false,
@@ -11616,13 +11619,13 @@ module.exports = function(app, template, hook) {
               }
             ];
 
-            var initialForm;
+            let initialForm;
             it('Update test form', function(done) {
               // Set the initial form components.
               form.components = componentsA;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -11632,7 +11635,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -11649,7 +11652,7 @@ module.exports = function(app, template, hook) {
               form.components = componentsB;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(form)
                 .expect('Content-Type', /json/)
@@ -11659,7 +11662,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, form.components);
 
                   form = response;
@@ -11675,7 +11678,7 @@ module.exports = function(app, template, hook) {
               initialForm.components = componentsC;
 
               request(app)
-                .put(hook.alter('url', '/form/' + form._id, template))
+                .put(hook.alter('url', `/form/${form._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send(initialForm)
                 .expect('Content-Type', /json/)
@@ -11685,7 +11688,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.deepEqual(response.components, componentsD);
 
                   form = response;
@@ -11702,7 +11705,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Reference Components', function() {
-      var resourceForm = {
+      let resourceForm = {
         title: chance.word(),
         name: chance.word(),
         path: chance.word(),
@@ -11750,7 +11753,7 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      var resources = [];
+      let resources = [];
       it('Should create a few resources', (done) => {
         resources = [
           {data: {
@@ -11781,7 +11784,7 @@ module.exports = function(app, template, hook) {
         ];
         async.eachOf(resources, (resource, index, next) => {
           request(app)
-            .post(hook.alter('url', '/form/' + resourceForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${resourceForm._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(resource)
             .expect('Content-Type', /json/)
@@ -11796,7 +11799,7 @@ module.exports = function(app, template, hook) {
         }, done);
       });
 
-      var referenceForm = null;
+      let referenceForm = null;
       it('Should create a new form with reference component', function(done) {
         referenceForm = {
           title: chance.word(),
@@ -11849,11 +11852,11 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      var references = [];
+      const references = [];
       it('Should create a new submission in that form.', (done) => {
         async.eachOf(resources, (resource, index, next) => {
           request(app)
-            .post(hook.alter('url', '/form/' + referenceForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${referenceForm._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -11874,7 +11877,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Should be able to filter the list of references', (done) => {
-        let url = '/form/' + referenceForm._id + '/submission';
+        let url = `/form/${referenceForm._id}/submission`;
         url += '?data.user.data.firstName=Joe';
         request(app)
           .get(hook.alter('url', url, template))
@@ -11895,7 +11898,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Should be able to filter and sort the list of references', (done) => {
-        let url = '/form/' + referenceForm._id + '/submission';
+        let url = `/form/${referenceForm._id}/submission`;
         url += '?data.user.data.firstName=Joe&sort=data.user.data.lastName';
         request(app)
           .get(hook.alter('url', url, template))
@@ -11918,7 +11921,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Should be able to filter and descend sort the list of references', (done) => {
-        let url = '/form/' + referenceForm._id + '/submission';
+        let url = `/form/${referenceForm._id}/submission`;
         url += '?data.user.data.firstName=Joe&sort=-data.user.data.lastName';
         request(app)
           .get(hook.alter('url', url, template))
@@ -11942,7 +11945,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Should be able to filter and sort and pick certain fields of the list of references', (done) => {
-        let url = '/form/' + referenceForm._id + '/submission';
+        let url = `/form/${referenceForm._id}/submission`;
         url += '?data.user.data.firstName=Joe&sort=data.user.data.lastName&select=data.user.data.firstName,data.user.data.lastName';
         request(app)
           .get(hook.alter('url', url, template))
@@ -11967,7 +11970,7 @@ module.exports = function(app, template, hook) {
 
       it('Should be able to load the full data when a GET routine is retrieved.', (done) => {
         request(app)
-          .get(hook.alter('url', '/form/' + referenceForm._id + '/submission/' + references[0]._id, template))
+          .get(hook.alter('url', `/form/${referenceForm._id}/submission/${references[0]._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -11983,9 +11986,9 @@ module.exports = function(app, template, hook) {
 
       it('Should be able to alter some of the resources', (done) => {
         async.eachOf(resources, (resource, index, next) => {
-          if (index % 2 === 0) {
-            request(app)
-              .put(hook.alter('url', '/form/' + resourceForm._id + '/submission/' + resource._id, template))
+          return (index % 2 === 0)
+            ? request(app)
+              .put(hook.alter('url', `/form/${resourceForm._id}/submission/${resource._id}`, template))
               .send({
                 data: {
                   email: chance.email()
@@ -12000,18 +12003,15 @@ module.exports = function(app, template, hook) {
                 }
                 resources[index] = res.body;
                 next();
-              });
-          }
-          else {
-            next();
-          }
+              })
+            : next();
         }, done);
       });
 
       it('Should be able to refer to the correct resource references', (done) => {
         async.eachOf(references, (reference, index, next) => {
           request(app)
-            .get(hook.alter('url', '/form/' + referenceForm._id + '/submission/' + reference._id, template))
+            .get(hook.alter('url', `/form/${referenceForm._id}/submission/${reference._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect('Content-Type', /json/)
             .expect(200)
@@ -12027,7 +12027,7 @@ module.exports = function(app, template, hook) {
 
       it('Should pull in the references even with index queries.', (done) => {
         request(app)
-          .get(hook.alter('url', '/form/' + referenceForm._id + '/submission', template))
+          .get(hook.alter('url', `/form/${referenceForm._id}/submission`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -12036,8 +12036,8 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
             _.each(res.body, (item, index) => {
-              let reference = _.find(references, {_id: item._id});
-              let resource = _.find(resources, {_id: item.data.user._id});
+              const reference = _.find(references, {_id: item._id});
+              const resource = _.find(resources, {_id: item.data.user._id});
               assert(!!reference, 'No reference found.');
               Helper.assert.propertiesEqual(item.data.user, resource);
             });

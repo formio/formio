@@ -1,29 +1,30 @@
 'use strict';
 
-let _ = require('lodash');
+const _ = require('lodash');
 let emails = [];
-let events = null;
-let Emailer = {
-  addEmitter: (eventEmitter) => {
+const Emailer = {
+  addEmitter(eventEmitter) {
     this.events = eventEmitter;
   },
-  getEmitter: () => this.events,
-  reset: () => {
+  getEmitter() {
+    return this.events;
+  },
+  reset() {
     emails = [];
   },
-  getLastEmail: () => {
-    let email = _.cloneDeep(emails.pop()) || {};
-    Emailer.reset();
+  getLastEmail() {
+    const email = _.cloneDeep(emails.pop()) || {};
+    this.reset();
     return email;
   },
-  getEmails: () => {
-    let _emails = _.cloneDeep(emails) || [];
-    Emailer.reset();
+  getEmails() {
+    const _emails = _.cloneDeep(emails) || [];
+    this.reset();
     return _emails;
   },
   on: {},
   alter: {
-    emailSend: (send, mail, cb) => {
+    emailSend(send, mail, cb) {
       // Only cache 10 emails.
       if (emails.length > 9) {
         emails.shift();
@@ -31,8 +32,8 @@ let Emailer = {
       emails.push(mail);
 
       // If events are enabled
-      if (this.events) {
-        this.events.emit('newMail', mail);
+      if (Emailer.events) {
+        Emailer.events.emit('newMail', mail);
       }
       else {
         console.error(`No event emitter is available`);

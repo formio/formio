@@ -1,19 +1,19 @@
 /* eslint-env mocha */
 'use strict';
 
-var request = require('supertest');
-var assert = require('assert');
-var _ = require('lodash');
-var chance = new (require('chance'))();
-var http = require('http');
-var url = require('url');
-var docker = process.env.DOCKER;
+const request = require('supertest');
+const assert = require('assert');
+const _ = require('lodash');
+const chance = new (require('chance'))();
+const http = require('http');
+const url = require('url');
+const docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
-  var Helper = require('./helper')(app);
+  const Helper = require('./helper')(app);
   describe('Actions', function() {
     // Store the temp form for this test suite.
-    var tempForm = {
+    let tempForm = {
       title: 'Temp Form',
       name: 'tempForm',
       path: 'temp',
@@ -45,7 +45,7 @@ module.exports = function(app, template, hook) {
     };
 
     // Store the temp action for this test suite.
-    var tempAction = {};
+    let tempAction = {};
     describe('Bootstrap', function() {
       it('Create a Form for Action tests', function(done) {
         request(app)
@@ -59,7 +59,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
             assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
             assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -101,7 +101,7 @@ module.exports = function(app, template, hook) {
     describe('Permissions - Project Level - Project Owner', function() {
       it('A Project Owner should be able to Create an Action', function(done) {
         request(app)
-          .post(hook.alter('url', '/form/' + tempForm._id + '/action', template))
+          .post(hook.alter('url', `/form/${tempForm._id}/action`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send(tempAction)
           .expect('Content-Type', /json/)
@@ -111,7 +111,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
             assert.equal(response.title, tempAction.title);
             assert.equal(response.name, tempAction.name);
@@ -131,7 +131,7 @@ module.exports = function(app, template, hook) {
 
       it('A Project Owner should be able to Read an Action', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
+          .get(hook.alter('url', `/form/${tempForm._id}/action/${tempAction._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -140,7 +140,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, tempAction);
 
             // Store the JWT for future API calls.
@@ -151,11 +151,11 @@ module.exports = function(app, template, hook) {
       });
 
       it('A Project Owner should be able to Update an Action', function(done) {
-        var updatedAction = _.clone(tempAction);
+        const updatedAction = _.clone(tempAction);
         updatedAction.title = 'Updated';
 
         request(app)
-          .put(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
+          .put(hook.alter('url', `/form/${tempForm._id}/action/${tempAction._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({title: updatedAction.title})
           .expect('Content-Type', /json/)
@@ -165,7 +165,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, updatedAction);
 
             tempAction = response;
@@ -179,7 +179,7 @@ module.exports = function(app, template, hook) {
 
       it('A Project Owner should be able to Read the Index of Actions', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/action', template))
+          .get(hook.alter('url', `/form/${tempForm._id}/action`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -188,7 +188,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.length, 2);
             _.each(response, function(action) {
               if (action.name === 'login') {
@@ -209,7 +209,7 @@ module.exports = function(app, template, hook) {
 
       it('Cant access an Action without a valid Action Id', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/action/💩', template))
+          .get(hook.alter('url', `/form/${tempForm._id}/action/💩`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(500)
@@ -229,7 +229,7 @@ module.exports = function(app, template, hook) {
     describe('Permissions - Project Level - Authenticated User', function() {
       it('A user should not be able to Create an Action for a User-Created Project Form', function(done) {
         request(app)
-          .post(hook.alter('url', '/form/' + tempForm._id + '/action', template))
+          .post(hook.alter('url', `/form/${tempForm._id}/action`, template))
           .set('x-jwt-token', template.users.user1.token)
           .send(tempAction)
           .expect('Content-Type', /text\/plain/)
@@ -239,7 +239,7 @@ module.exports = function(app, template, hook) {
 
       it('A user should not be able to Read an Action for a User-Created Project Form', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
+          .get(hook.alter('url', `/form/${tempForm._id}/action/${tempAction._id}`, template))
           .set('x-jwt-token', template.users.user1.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -248,7 +248,7 @@ module.exports = function(app, template, hook) {
 
       it('A user should not be able to Update an Action for a User-Created Project Form', function(done) {
         request(app)
-          .put(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
+          .put(hook.alter('url', `/form/${tempForm._id}/action/${tempAction._id}`, template))
           .set('x-jwt-token', template.users.user1.token)
           .send({foo: 'bar'})
           .expect('Content-Type', /text\/plain/)
@@ -258,7 +258,7 @@ module.exports = function(app, template, hook) {
 
       it('A user should be able to Read the Index of Actions for a User-Created Project Form', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/action', template))
+          .get(hook.alter('url', `/form/${tempForm._id}/action`, template))
           .set('x-jwt-token', template.users.user1.token)
           .expect('Content-Type', /json/)
           .expect(200)
@@ -267,7 +267,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.length, 2);
             _.each(response, function(action) {
               if (action.name === 'login') {
@@ -284,7 +284,7 @@ module.exports = function(app, template, hook) {
 
       it('A user should not be able to Delete an Action for a User-Created Project Form', function(done) {
         request(app)
-          .delete(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
+          .delete(hook.alter('url', `/form/${tempForm._id}/action/${tempAction._id}`, template))
           .set('x-jwt-token', template.users.user1.token)
           .expect('Content-Type', /text\/plain/)
           .expect(401)
@@ -295,7 +295,7 @@ module.exports = function(app, template, hook) {
     describe('Permissions - Project Level - Anonymous User', function() {
       it('An Anonymous user should not be able to Create an Action for a User-Created Project Form', function(done) {
         request(app)
-          .post(hook.alter('url', '/form/' + tempForm._id + '/action', template))
+          .post(hook.alter('url', `/form/${tempForm._id}/action`, template))
           .send(tempAction)
           .expect('Content-Type', /text\/plain/)
           .expect(401)
@@ -304,7 +304,7 @@ module.exports = function(app, template, hook) {
 
       it('An Anonymous user should not be able to Read an Action for a User-Created Project Form', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
+          .get(hook.alter('url', `/form/${tempForm._id}/action/${tempAction._id}`, template))
           .expect('Content-Type', /json/)
           .expect(200)
           .end(done);
@@ -312,7 +312,7 @@ module.exports = function(app, template, hook) {
 
       it('An Anonymous user should not be able to Update an Action for a User-Created Project Form', function(done) {
         request(app)
-          .put(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
+          .put(hook.alter('url', `/form/${tempForm._id}/action/${tempAction._id}`, template))
           .send({foo: 'bar'})
           .expect('Content-Type', /text\/plain/)
           .expect(401)
@@ -321,7 +321,7 @@ module.exports = function(app, template, hook) {
 
       it('An Anonymous user should be able to Read the Index of Actions for a User-Created Project Form', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/action', template))
+          .get(hook.alter('url', `/form/${tempForm._id}/action`, template))
           .expect('Content-Type', /json/)
           .expect(200)
           .end(function(err, res) {
@@ -329,7 +329,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.equal(response.length, 2);
             _.each(response, function(action) {
               if (action.name === 'login') {
@@ -346,7 +346,7 @@ module.exports = function(app, template, hook) {
 
       it('An Anonymous user should not be able to Delete an Action for a User-Created Project Form', function(done) {
         request(app)
-          .delete(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
+          .delete(hook.alter('url', `/form/${tempForm._id}/action/${tempAction._id}`, template))
           .expect('Content-Type', /text\/plain/)
           .expect(401)
           .end(done);
@@ -354,10 +354,10 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Action MachineNames', function() {
-      var _action;
-      var name = chance.word();
-      var helper;
-      
+      let _action;
+      const name = chance.word();
+      let helper;
+
       before(function() {
         helper = new Helper(template.users.admin, template);
       });
@@ -382,7 +382,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var action = result.getAction('Webhook');
+            const action = result.getAction('Webhook');
             assert(action.hasOwnProperty('machineName'));
             _action = action;
             done();
@@ -390,7 +390,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('A user can modify their action machineNames', function(done) {
-        var newMachineName = chance.word();
+        const newMachineName = chance.word();
 
         helper
           .action(name, {
@@ -402,7 +402,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var action = result.getAction('Webhook');
+            const action = result.getAction('Webhook');
             assert(action.hasOwnProperty('machineName'));
             assert.equal(action.machineName, newMachineName);
             done();
@@ -416,7 +416,7 @@ module.exports = function(app, template, hook) {
       }
 
       // The temp form with the add RoleAction for existing submissions.
-      var webhookForm = {
+      let webhookForm = {
         title: 'Webhook Form',
         name: 'webhookform',
         path: 'webhookform',
@@ -497,14 +497,14 @@ module.exports = function(app, template, hook) {
         ]
       };
 
-      var port = 4002;
-      var webhookSubmission = null;
-      var webhookHandler = function(body) {};
+      let port = 4002;
+      let webhookSubmission = null;
+      let webhookHandler = function(body) {};
 
       // Create a new server.
-      var newServer = function(ready) {
-        var server = http.createServer(function(request) {
-          var body = [];
+      const newServer = function(ready) {
+        const server = http.createServer(function(request) {
+          let body = [];
           request.on('data', function(chunk) {
             body.push(chunk);
           }).on('end', function() {
@@ -513,7 +513,7 @@ module.exports = function(app, template, hook) {
           });
         });
         server.port = port++;
-        server.url = 'http://localhost:'+ server.port;
+        server.url = `http://localhost:${server.port}`;
         server.listen(server.port, function(err) {
           hook.alter('webhookServer', server, app, template, function(err, server) {
             ready(err, server);
@@ -540,7 +540,7 @@ module.exports = function(app, template, hook) {
               webhookForm = res.body;
               template.users.admin.token = res.headers['x-jwt-token'];
               request(app)
-                .post(hook.alter('url', '/form/' + webhookForm._id + '/action', template))
+                .post(hook.alter('url', `/form/${webhookForm._id}/action`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .send({
                   title: 'Webhook',
@@ -582,7 +582,7 @@ module.exports = function(app, template, hook) {
           done();
         };
         request(app)
-          .post(hook.alter('url', '/form/' + webhookForm._id + '/submission', template))
+          .post(hook.alter('url', `/form/${webhookForm._id}/submission`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({
             data: {
@@ -594,7 +594,7 @@ module.exports = function(app, template, hook) {
           })
           .expect(201)
           .expect('Content-Type', /json/)
-          .end(function (err, res) {
+          .end(function(err, res) {
             if (err) {
               return done(err);
             }
@@ -605,11 +605,11 @@ module.exports = function(app, template, hook) {
 
       it('Should be able to get the data from the webhook action.', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + webhookForm._id + '/submission/' + webhookSubmission._id, template))
+          .get(hook.alter('url', `/form/${webhookForm._id}/submission/${webhookSubmission._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect(200)
           .expect('Content-Type', /json/)
-          .end(function (err, res) {
+          .end(function(err, res) {
             if (err) {
               return done(err);
             }
@@ -634,7 +634,7 @@ module.exports = function(app, template, hook) {
           done();
         };
         request(app)
-          .put(hook.alter('url', '/form/' + webhookForm._id + '/submission/' + webhookSubmission._id, template))
+          .put(hook.alter('url', `/form/${webhookForm._id}/submission/${webhookSubmission._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send({
             data: {
@@ -645,7 +645,7 @@ module.exports = function(app, template, hook) {
           })
           .expect(200)
           .expect('Content-Type', /json/)
-          .end(function (err, res) {
+          .end(function(err, res) {
             if (err) {
               return done(err);
             }
@@ -664,11 +664,11 @@ module.exports = function(app, template, hook) {
           done();
         };
         request(app)
-          .delete(hook.alter('url', '/form/' + webhookForm._id + '/submission/' + webhookSubmission._id, template))
+          .delete(hook.alter('url', `/form/${webhookForm._id}/submission/${webhookSubmission._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect(200)
           .expect('Content-Type', /json/)
-          .end(function (err, res) {
+          .end(function(err, res) {
             if (err) {
               return done(err);
             }
@@ -682,7 +682,7 @@ module.exports = function(app, template, hook) {
       }
 
       // The temp form with the add RoleAction for existing submissions.
-      var emailForm = {
+      const emailForm = {
         title: 'Email Form',
         name: 'emailform',
         path: 'emailform',
@@ -749,7 +749,7 @@ module.exports = function(app, template, hook) {
       };
 
       // The temp role add action for existing submissions.
-      var emailAction = {
+      const emailAction = {
         title: 'Email',
         name: 'email',
         handler: ['after'],
@@ -758,16 +758,16 @@ module.exports = function(app, template, hook) {
         settings: {}
       };
 
-      var numTests = 0;
-      var newEmailTest = function(settings, done) {
+      let numTests = 0;
+      const newEmailTest = function(settings, done) {
         numTests++;
         settings.transport = 'test';
-        var testForm = _.assign(_.cloneDeep(emailForm), {
+        let testForm = _.assign(_.cloneDeep(emailForm), {
           title: (emailForm.title + numTests),
           name: (emailForm.name + numTests),
           path: (emailForm.path + numTests)
         });
-        var testAction = _.assign(_.cloneDeep(emailAction), {
+        let testAction = _.assign(_.cloneDeep(emailAction), {
           settings: settings
         });
 
@@ -789,7 +789,7 @@ module.exports = function(app, template, hook) {
 
             // Add the action to the form.
             request(app)
-              .post(hook.alter('url', '/form/' + testForm._id + '/action', template))
+              .post(hook.alter('url', `/form/${testForm._id}/action`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(testAction)
               .expect('Content-Type', /json/)
@@ -819,17 +819,17 @@ module.exports = function(app, template, hook) {
           }
 
           // Check for an email.
-          let event = template.hooks.getEmitter();
+          const event = template.hooks.getEmitter();
           event.once('newMail', (email) => {
             assert.equal(email.from, 'travis@form.io');
             assert.equal(email.to, 'test@example.com');
-            assert.equal(email.html.indexOf('Howdy, '), 0);
+            assert.equal(email.html.startsWith('Howdy, '));
             assert.equal(email.subject, 'Hello there Test Person');
             done();
           });
 
           request(app)
-            .post(hook.alter('url', '/form/' + testForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -840,7 +840,7 @@ module.exports = function(app, template, hook) {
             })
             .expect(201)
             .expect('Content-Type', /json/)
-            .end(function (err, res) {
+            .end(function(err, res) {
               if (err) {
                 return done(err);
               }
@@ -860,17 +860,17 @@ module.exports = function(app, template, hook) {
           }
 
           // Check for an email.
-          let event = template.hooks.getEmitter();
+          const event = template.hooks.getEmitter();
           event.once('newMail', (email) => {
             assert.equal(email.from, 'joe@example.com');
             assert.equal(email.to, 'joe@example.com, gary@form.io');
-            assert.equal(email.html.indexOf('Howdy, '), 0);
+            assert.equal(email.html.startsWith('Howdy, '));
             assert.equal(email.subject, 'Hello there Joe Smith');
             done();
           });
 
           request(app)
-            .post(hook.alter('url', '/form/' + testForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -881,7 +881,7 @@ module.exports = function(app, template, hook) {
             })
             .expect(201)
             .expect('Content-Type', /json/)
-            .end(function (err, res) {
+            .end(function(err, res) {
               if (err) {
                 return done(err);
               }
@@ -902,22 +902,22 @@ module.exports = function(app, template, hook) {
           }
 
           // Check for an email.
-          let event = template.hooks.getEmitter();
-          let email1 = new Promise((resolve, reject) => {
+          const event = template.hooks.getEmitter();
+          const email1 = new Promise((resolve, reject) => {
             event.once('newMail', (email) => {
               assert.equal(email.from, 'travis@form.io');
               assert.equal(email.to, 'gary@form.io');
-              assert.equal(email.html.indexOf('Howdy, '), 0);
+              assert.equal(email.html.startsWith('Howdy, '));
               assert.equal(email.subject, 'Hello there Test Person');
               resolve();
             });
           });
 
-          let email2 = new Promise((resolve, reject) => {
+          const email2 = new Promise((resolve, reject) => {
             event.once('newMail', (email) => {
               assert.equal(email.from, 'travis@form.io');
               assert.equal(email.to, 'test@example.com');
-              assert.equal(email.html.indexOf('Howdy, '), 0);
+              assert.equal(email.html.startsWith('Howdy, '));
               assert.equal(email.subject, 'Hello there Test Person');
               resolve();
             });
@@ -927,7 +927,7 @@ module.exports = function(app, template, hook) {
             .catch(done);
 
           request(app)
-            .post(hook.alter('url', '/form/' + testForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -945,7 +945,7 @@ module.exports = function(app, template, hook) {
 
     describe('RoleAction Functionality tests', function() {
       // The temp form with the add RoleAction for existing submissions.
-      var addForm = {
+      let addForm = {
         title: 'Add Form',
         name: 'addform',
         path: 'addform',
@@ -955,7 +955,7 @@ module.exports = function(app, template, hook) {
       };
 
       // The temp form with the remove RoleAction for existing submissions.
-      var removeForm = {
+      let removeForm = {
         title: 'Remove Form',
         name: 'removeform',
         path: 'removeform',
@@ -966,7 +966,7 @@ module.exports = function(app, template, hook) {
       };
 
       // The temp form with the add RoleAction for new submissions.
-      var submissionForm = {
+      let submissionForm = {
         title: 'Submission Form',
         name: 'submissionform',
         path: 'submissionform',
@@ -998,7 +998,7 @@ module.exports = function(app, template, hook) {
       };
 
       // The temp role add action for existing submissions.
-      var addAction = {
+      let addAction = {
         title: 'Add Role',
         name: 'role',
         handler: ['before'],
@@ -1011,7 +1011,7 @@ module.exports = function(app, template, hook) {
       };
 
       // The temp role remove action for existing submissions.
-      var removeAction = {
+      let removeAction = {
         title: 'Remove Role',
         name: 'role',
         handler: ['before'],
@@ -1024,7 +1024,7 @@ module.exports = function(app, template, hook) {
       };
 
       // The temp role add action for new submissions.
-      var submissionAction = {
+      let submissionAction = {
         title: 'Add Role',
         name: 'role',
         handler: ['after'],
@@ -1038,10 +1038,10 @@ module.exports = function(app, template, hook) {
       };
 
       // The temp submission.
-      var submission = {};
+      let submission = {};
 
       // The dummy role for this test suite.
-      var dummyRole = {
+      let dummyRole = {
         title: 'dummyRole',
         description: 'A dummy role.'
       };
@@ -1059,7 +1059,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'Each role in the response should contain an `_id`.');
               assert(response.hasOwnProperty('modified'), 'Each role in the response should contain a `modified` timestamp.');
               assert(response.hasOwnProperty('created'), 'Each role in the response should contain a `created` timestamp.');
@@ -1105,7 +1105,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
                 assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
                 assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -1131,7 +1131,7 @@ module.exports = function(app, template, hook) {
 
           it('Attach the addAction (RoleAction) to its Form', function(done) {
             request(app)
-              .post(hook.alter('url', '/form/' + addForm._id + '/action', template))
+              .post(hook.alter('url', `/form/${addForm._id}/action`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(addAction)
               .expect('Content-Type', /json/)
@@ -1141,7 +1141,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
                 assert.equal(response.title, addAction.title);
                 assert.equal(response.name, addAction.name);
@@ -1171,7 +1171,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
                 assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
                 assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -1200,7 +1200,7 @@ module.exports = function(app, template, hook) {
 
           it('Attach the removeAction (RoleAction) to its Form', function(done) {
             request(app)
-              .post(hook.alter('url', '/form/' + removeForm._id + '/action', template))
+              .post(hook.alter('url', `/form/${removeForm._id}/action`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(removeAction)
               .expect('Content-Type', /json/)
@@ -1210,7 +1210,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
                 assert.equal(response.title, removeAction.title);
                 assert.equal(response.name, removeAction.name);
@@ -1240,7 +1240,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
                 assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
                 assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -1267,7 +1267,7 @@ module.exports = function(app, template, hook) {
 
           it('Attach the submissionAction (RoleAction) to its Form', function(done) {
             request(app)
-              .post(hook.alter('url', '/form/' + submissionForm._id + '/action', template))
+              .post(hook.alter('url', `/form/${submissionForm._id}/action`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(submissionAction)
               .expect('Content-Type', /json/)
@@ -1277,7 +1277,7 @@ module.exports = function(app, template, hook) {
                   return done(err);
                 }
 
-                var response = res.body;
+                const response = res.body;
                 assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
                 assert.equal(response.title, submissionAction.title);
                 assert.equal(response.name, submissionAction.name);
@@ -1300,17 +1300,17 @@ module.exports = function(app, template, hook) {
       describe('RoleAction Functionality tests for Existing Submissions', function() {
         it('The user should not have the dummy Role assigned', function(done) {
           request(app)
-            .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
+            .get(hook.alter('url', `/form/${template.resources.admin._id}/submission/${template.users.admin._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect('Content-Type', /json/)
             .expect(200)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
               // Confirm the response does not contain the dummy role.
-              var response = res.body;
+              const response = res.body;
               assert.equal(response.roles.indexOf(dummyRole._id), -1);
 
               // Store the JWT for future API calls.
@@ -1322,7 +1322,7 @@ module.exports = function(app, template, hook) {
 
         it('A submission to the addForm Form should archive the role addition and update the Submission with the dummy Role added', function(done) {
           request(app)
-            .post(hook.alter('url', '/form/' + addForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${addForm._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -1333,7 +1333,7 @@ module.exports = function(app, template, hook) {
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
@@ -1342,7 +1342,7 @@ module.exports = function(app, template, hook) {
 
               // Confirm that the user was updated to include the new role.
               request(app)
-                .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
+                .get(hook.alter('url', `/form/${template.resources.admin._id}/submission/${template.users.admin._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .expect('Content-Type', /json/)
                 .expect(200)
@@ -1351,7 +1351,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.notEqual(response.roles.indexOf(dummyRole._id), -1);
 
                   // Store the JWT for future API calls.
@@ -1364,7 +1364,7 @@ module.exports = function(app, template, hook) {
 
         it('A submission to the removeForm Form should archive the role removal and update the Submission with the dummy Role removed', function(done) {
           request(app)
-            .post(hook.alter('url', '/form/' + removeForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${removeForm._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -1375,7 +1375,7 @@ module.exports = function(app, template, hook) {
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
@@ -1384,7 +1384,7 @@ module.exports = function(app, template, hook) {
 
               // Confirm that the user was updated to not include the dummy role.
               request(app)
-                .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
+                .get(hook.alter('url', `/form/${template.resources.admin._id}/submission/${template.users.admin._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .expect('Content-Type', /json/)
                 .expect(200)
@@ -1393,7 +1393,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.equal(response.roles.indexOf(dummyRole._id), -1);
 
                   // Store the JWT for future API calls.
@@ -1406,7 +1406,7 @@ module.exports = function(app, template, hook) {
 
         it('A submission to the addForm Form using the Form alias should return the updated Submission with the dummy Role added', function(done) {
           request(app)
-            .post(hook.alter('url', '/' + addForm.path, template))
+            .post(hook.alter('url', `/${addForm.path}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -1417,7 +1417,7 @@ module.exports = function(app, template, hook) {
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
@@ -1426,7 +1426,7 @@ module.exports = function(app, template, hook) {
 
               // Confirm that the user was updated to include the new role.
               request(app)
-                .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
+                .get(hook.alter('url', `/form/${template.resources.admin._id}/submission/${template.users.admin._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .expect('Content-Type', /json/)
                 .expect(200)
@@ -1435,7 +1435,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.notEqual(response.roles.indexOf(dummyRole._id), -1);
 
                   // Store the JWT for future API calls.
@@ -1448,7 +1448,7 @@ module.exports = function(app, template, hook) {
 
         it('A submission to the removeForm Form using the Form alias should return the updated Submission with the dummy Role removed', function(done) {
           request(app)
-            .post(hook.alter('url', '/' + removeForm.path, template))
+            .post(hook.alter('url', `/${removeForm.path}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -1459,7 +1459,7 @@ module.exports = function(app, template, hook) {
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
@@ -1468,7 +1468,7 @@ module.exports = function(app, template, hook) {
 
               // Confirm that the user was updated to not include the dummy role.
               request(app)
-                .get(hook.alter('url', '/form/' + template.resources.admin._id + '/submission/' + template.users.admin._id, template))
+                .get(hook.alter('url', `/form/${template.resources.admin._id}/submission/${template.users.admin._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
                 .expect('Content-Type', /json/)
                 .expect(200)
@@ -1477,7 +1477,7 @@ module.exports = function(app, template, hook) {
                     return done(err);
                   }
 
-                  var response = res.body;
+                  const response = res.body;
                   assert.equal(response.roles.indexOf(dummyRole._id), -1);
 
                   // Store the JWT for future API calls.
@@ -1490,7 +1490,7 @@ module.exports = function(app, template, hook) {
 
         it('The user should not be able to assign a role that they do not have access to (including invalid roles)', function(done) {
           request(app)
-            .post(hook.alter('url', '/' + addForm.path, template))
+            .post(hook.alter('url', `/${addForm.path}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -1500,7 +1500,7 @@ module.exports = function(app, template, hook) {
             })
             .expect(400)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
@@ -1515,7 +1515,7 @@ module.exports = function(app, template, hook) {
       describe('RoleAction Functionality tests for New Submissions', function() {
         it('A new Submission to the submissionForm should create a new Submission and contain the dummyRole Role', function(done) {
           request(app)
-            .post(hook.alter('url', '/form/' + submissionForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${submissionForm._id}/submission`, template))
             .send({
               data: {
                 foo: 'bar'
@@ -1524,11 +1524,11 @@ module.exports = function(app, template, hook) {
             .expect('Content-Type', /json/)
             .expect(201)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.notEqual(response.roles.indexOf(dummyRole._id), -1);
               submission = response;
 
@@ -1540,15 +1540,15 @@ module.exports = function(app, template, hook) {
       describe('RoleAction Normalization', function() {
         it('Remove the temp submission', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + submissionForm._id + '/submission/' + submission._id, template))
+            .delete(hook.alter('url', `/form/${submissionForm._id}/submission/${submission._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               submission = response;
 
@@ -1561,15 +1561,15 @@ module.exports = function(app, template, hook) {
 
         it('Remove the dummy role', function(done) {
           request(app)
-            .delete(hook.alter('url', '/role/' + dummyRole._id, template))
+            .delete(hook.alter('url', `/role/${dummyRole._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               dummyRole = response;
 
@@ -1582,15 +1582,15 @@ module.exports = function(app, template, hook) {
 
         it('Remove the submissionAction', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + submissionForm._id + '/action/' + submissionAction._id, template))
+            .delete(hook.alter('url', `/form/${submissionForm._id}/action/${submissionAction._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               submissionAction = response;
 
@@ -1603,15 +1603,15 @@ module.exports = function(app, template, hook) {
 
         it('Remove the removeAction', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + removeForm._id + '/action/' + removeAction._id, template))
+            .delete(hook.alter('url', `/form/${removeForm._id}/action/${removeAction._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               removeAction = response;
 
@@ -1624,15 +1624,15 @@ module.exports = function(app, template, hook) {
 
         it('Remove the addAction', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + addForm._id + '/action/' + addAction._id, template))
+            .delete(hook.alter('url', `/form/${addForm._id}/action/${addAction._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               addAction = response;
 
@@ -1645,15 +1645,15 @@ module.exports = function(app, template, hook) {
 
         it('Remove the submissionForm', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + submissionForm._id, template))
+            .delete(hook.alter('url', `/form/${submissionForm._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               submissionForm = response;
 
@@ -1666,15 +1666,15 @@ module.exports = function(app, template, hook) {
 
         it('Remove the removeForm', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + removeForm._id, template))
+            .delete(hook.alter('url', `/form/${removeForm._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               removeForm = response;
 
@@ -1687,15 +1687,15 @@ module.exports = function(app, template, hook) {
 
         it('Remove the addForm', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + addForm._id, template))
+            .delete(hook.alter('url', `/form/${addForm._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               addForm = response;
 
@@ -1709,7 +1709,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('AuthAction Functionality tests', function() {
-      var dummyResource = {
+      let dummyResource = {
         title: 'dummy',
         name: 'dummy',
         path: 'dummy',
@@ -1750,7 +1750,7 @@ module.exports = function(app, template, hook) {
         ]
       };
 
-      var authForm = {
+      let authForm = {
         title: 'Auth Form',
         name: 'authform',
         path: 'authform',
@@ -1805,7 +1805,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
               assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
               assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -1832,7 +1832,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('Create the dummy role assignment action', function(done) {
-          var roleAction = {
+          let roleAction = {
             title: 'Role Assignment',
             name: 'role',
             priority: 1,
@@ -1846,7 +1846,7 @@ module.exports = function(app, template, hook) {
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + dummyResource._id + '/action', template))
+            .post(hook.alter('url', `/form/${dummyResource._id}/action`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(roleAction)
             .expect('Content-Type', /json/)
@@ -1856,7 +1856,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
               assert.equal(response.title, roleAction.title);
               assert.equal(response.name, roleAction.name);
@@ -1886,7 +1886,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
               assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
               assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -1913,7 +1913,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('Create the dummy save submission action', function(done) {
-          var authAction = {
+          let authAction = {
             title: 'Save Submission',
             name: 'save',
             handler: ['before'],
@@ -1929,7 +1929,7 @@ module.exports = function(app, template, hook) {
           };
 
           request(app)
-            .post(hook.alter('url', '/form/' + authForm._id + '/action', template))
+            .post(hook.alter('url', `/form/${authForm._id}/action`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(authAction)
             .expect('Content-Type', /json/)
@@ -1939,7 +1939,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
               assert.equal(response.title, authAction.title);
               assert.equal(response.name, authAction.name);
@@ -1957,7 +1957,7 @@ module.exports = function(app, template, hook) {
             });
         });
         it('Create the dummy auth login action', function(done) {
-          var authLoginAction = {
+          let authLoginAction = {
             title: 'Login',
             name: 'login',
             handler: ['before'],
@@ -1971,10 +1971,10 @@ module.exports = function(app, template, hook) {
               attemptWindow: 10,
               lockWait: 10
             }
-          }
+          };
 
           request(app)
-            .post(hook.alter('url', '/form/' + authForm._id + '/action', template))
+            .post(hook.alter('url', `/form/${authForm._id}/action`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(authLoginAction)
             .expect('Content-Type', /json/)
@@ -1984,7 +1984,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
               assert.equal(response.title, authLoginAction.title);
               assert.equal(response.name, authLoginAction.name);
@@ -2006,7 +2006,7 @@ module.exports = function(app, template, hook) {
       describe('AuthAction Functionality tests for New Submissions', function() {
         it('A AuthAction should not be able to assign a role that is not accessible (including invalid roles)', function(done) {
           request(app)
-            .post(hook.alter('url', '/form/' + authForm._id + '/submission', template))
+            .post(hook.alter('url', `/form/${authForm._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -2016,7 +2016,7 @@ module.exports = function(app, template, hook) {
             })
             .expect(400)
             .end(function(err, res) {
-              if(err) {
+              if (err) {
                 return done(err);
               }
 
@@ -2031,7 +2031,7 @@ module.exports = function(app, template, hook) {
       describe('AuthAction Normalization', function() {
         it('Should delete the dummy resource', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + dummyResource._id, template))
+            .delete(hook.alter('url', `/form/${dummyResource._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
@@ -2039,7 +2039,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               dummyResource = response;
 
@@ -2052,7 +2052,7 @@ module.exports = function(app, template, hook) {
 
         it('Should delete the authForm', function(done) {
           request(app)
-            .delete(hook.alter('url', '/form/' + authForm._id, template))
+            .delete(hook.alter('url', `/form/${authForm._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect(200)
             .end(function(err, res) {
@@ -2060,7 +2060,7 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
 
-              var response = res.body;
+              const response = res.body;
               assert.deepEqual(response, {});
               authForm = response;
 
@@ -2070,13 +2070,13 @@ module.exports = function(app, template, hook) {
               done();
             });
         });
-      })
+      });
     });
 
     describe('Action Normalization', function() {
       it('A Project Owner should be able to Delete an Action', function(done) {
         request(app)
-          .delete(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
+          .delete(hook.alter('url', `/form/${tempForm._id}/action/${tempAction._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect(200)
           .end(function(err, res) {
@@ -2084,7 +2084,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, {});
 
             // Store the JWT for future API calls.
@@ -2094,27 +2094,28 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      if (!docker)
-      it('A deleted Action should remain in the database', function(done) {
-        var formio = hook.alter('formio', app.formio);
-        formio.actions.model.findOne({_id: tempAction._id})
-          .exec(function(err, action) {
-            if (err) {
-              return done(err);
-            }
-            if (!action) {
-              return done('No Action found, expected 1.');
-            }
+      if (!docker) {
+        it('A deleted Action should remain in the database', function(done) {
+          const formio = hook.alter('formio', app.formio);
+          formio.actions.model.findOne({_id: tempAction._id})
+            .exec(function(err, action) {
+              if (err) {
+                return done(err);
+              }
+              if (!action) {
+                return done('No Action found, expected 1.');
+              }
 
-            action = action.toObject();
-            assert.notEqual(action.deleted, null);
-            done();
-          });
-      });
+              action = action.toObject();
+              assert.notEqual(action.deleted, null);
+              done();
+            });
+        });
+      }
 
       it('Delete the Form used for Action tests', function(done) {
         request(app)
-          .delete(hook.alter('url', '/form/' + tempForm._id, template))
+          .delete(hook.alter('url', `/form/${tempForm._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect(200)
           .end(function(err, res) {
@@ -2122,7 +2123,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert.deepEqual(response, {});
 
             // Store the JWT for future API calls.
@@ -2132,23 +2133,24 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      if (!docker)
-      it('A deleted Form should not have active actions in the database', function(done) {
-        var formio = hook.alter('formio', app.formio);
-        formio.actions.model.find({form: tempForm._id, deleted: {$eq: null}})
-          .exec(function(err, action) {
-            if (err) {
-              return done(err);
-            }
-            if (action && action.length !== 0) {
-              return done('Active actions found w/ form: ' + tempForm._id + ', expected 0.');
-            }
+      if (!docker) {
+        it('A deleted Form should not have active actions in the database', function(done) {
+          const formio = hook.alter('formio', app.formio);
+          formio.actions.model.find({form: tempForm._id, deleted: {$eq: null}})
+            .exec(function(err, action) {
+              if (err) {
+                return done(err);
+              }
+              if (action && action.length !== 0) {
+                return done(`Active actions found w/ form: ${tempForm._id}, expected 0.`);
+              }
 
-            done();
-          });
-      });
+              done();
+            });
+        });
+      }
 
-      var actionLogin = null;
+      let actionLogin = null;
       it('A Project Owner should be able to Create an Authentication Action (Login Form)', function(done) {
         actionLogin = {
           title: 'Login',
@@ -2167,9 +2169,9 @@ module.exports = function(app, template, hook) {
         };
 
         request(app)
-          .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/action', template))
+          .post(hook.alter('url', `/form/${template.forms.userLogin._id}/action`, template))
           .set('x-jwt-token', template.users.admin.token)
-          .send({ data: actionLogin })
+          .send({data: actionLogin})
           .expect('Content-Type', /json/)
           .expect(201)
           .end(function(err, res) {
@@ -2177,7 +2179,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
             assert.equal(response.title, actionLogin.title);
             assert.equal(response.name, actionLogin.name);
@@ -2197,13 +2199,13 @@ module.exports = function(app, template, hook) {
 
       it('Delete the login action', function(done) {
         request(app)
-          .delete(hook.alter('url', '/form/' + template.forms.userLogin._id + '/action/' + actionLogin._id, template))
+          .delete(hook.alter('url', `/form/${template.forms.userLogin._id}/action/${actionLogin._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect(200)
           .end(done);
       });
 
-      var actionRegister = null;
+      let actionRegister = null;
       it('A Project Owner should be able to Create an Authentication Action (Registration Form)', function(done) {
         actionRegister = {
           title: 'Login',
@@ -2222,9 +2224,9 @@ module.exports = function(app, template, hook) {
         };
 
         request(app)
-          .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/action', template))
+          .post(hook.alter('url', `/form/${template.forms.userRegister._id}/action`, template))
           .set('x-jwt-token', template.users.admin.token)
-          .send({ data: actionRegister })
+          .send({data: actionRegister})
           .expect('Content-Type', /json/)
           .expect(201)
           .end(function(err, res) {
@@ -2232,7 +2234,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
             assert.equal(response.title, actionRegister.title);
             assert.equal(response.name, actionRegister.name);
@@ -2252,13 +2254,13 @@ module.exports = function(app, template, hook) {
 
       it('Delete the register action', function(done) {
         request(app)
-          .delete(hook.alter('url', '/form/' + template.forms.userRegister._id + '/action/' + actionRegister._id, template))
+          .delete(hook.alter('url', `/form/${template.forms.userRegister._id}/action/${actionRegister._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect(200)
           .end(done);
       });
 
-      var actionRole = null;
+      let actionRole = null;
       it('A Project Owner should be able to Create a Role Assignment Action (Registration Form)', function(done) {
         actionRole = {
           title: 'Role Assignment',
@@ -2274,9 +2276,9 @@ module.exports = function(app, template, hook) {
         };
 
         request(app)
-          .post(hook.alter('url', '/form/' + template.forms.userRegister._id + '/action', template))
+          .post(hook.alter('url', `/form/${template.forms.userRegister._id}/action`, template))
           .set('x-jwt-token', template.users.admin.token)
-          .send({ data: actionRole })
+          .send({data: actionRole})
           .expect('Content-Type', /json/)
           .expect(201)
           .end(function(err, res) {
@@ -2284,7 +2286,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var response = res.body;
+            const response = res.body;
             assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
             assert.equal(response.title, actionRole.title);
             assert.equal(response.name, actionRole.name);
@@ -2304,7 +2306,7 @@ module.exports = function(app, template, hook) {
 
       it('Delete the role action', function(done) {
         request(app)
-          .delete(hook.alter('url', '/form/' + template.forms.userRegister._id + '/action/' + actionRole._id, template))
+          .delete(hook.alter('url', `/form/${template.forms.userRegister._id}/action/${actionRole._id}`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect(200)
           .end(done);
@@ -2312,9 +2314,9 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Conditional Actions', function() {
-      var helper = null;
+      let helper = null;
       it('Create the forms', function(done) {
-        var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+        const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
         helper = new Helper(owner);
         helper
           .project()
@@ -2429,11 +2431,11 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.roles.indexOf(helper.template.roles.administrator._id) !== -1);
             assert(submission.roles.indexOf(helper.template.roles.authenticated._id) === -1);
             done();
-          })
+          });
       });
 
       it('Should conditionally execute the add role action.', function(done) {
@@ -2447,11 +2449,11 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
             assert(submission.roles.indexOf(helper.template.roles.authenticated._id) !== -1);
             done();
-          })
+          });
       });
 
       it('Should conditionally execute the add role action.', function(done) {
@@ -2464,11 +2466,11 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.roles.indexOf(helper.template.roles.administrator._id) !== -1);
             assert(submission.roles.indexOf(helper.template.roles.authenticated._id) === -1);
             done();
-          })
+          });
       });
 
       it('Should conditionally execute the add role action.', function(done) {
@@ -2481,11 +2483,11 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
             assert(submission.roles.indexOf(helper.template.roles.authenticated._id) !== -1);
             done();
-          })
+          });
       });
 
       it('Should execute ALL role actions.', function(done) {
@@ -2499,11 +2501,11 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.roles.indexOf(helper.template.roles.administrator._id) !== -1);
             assert(submission.roles.indexOf(helper.template.roles.authenticated._id) !== -1);
             done();
-          })
+          });
       });
 
       it('Should NOT execute any role actions.', function(done) {
@@ -2517,7 +2519,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
             assert(submission.roles.indexOf(helper.template.roles.authenticated._id) === -1);
             done();
@@ -2525,7 +2527,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Executes a does not equal action when not equal', function(done) {
-        var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+        const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
         helper = new Helper(owner);
         helper
           .project()
@@ -2587,7 +2589,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
             assert(submission.roles.indexOf(helper.template.roles.authenticated._id) !== -1);
             done();
@@ -2604,7 +2606,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
             assert(submission.roles.indexOf(helper.template.roles.authenticated._id) === -1);
             done();
@@ -2612,7 +2614,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Executes a equal action when equal', function(done) {
-        var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+        const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
         helper = new Helper(owner);
         helper
           .project()
@@ -2674,7 +2676,7 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
             assert(submission.roles.indexOf(helper.template.roles.authenticated._id) !== -1);
             done();
@@ -2691,13 +2693,12 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var submission = helper.getLastSubmission();
+            const submission = helper.getLastSubmission();
             assert(submission.roles.indexOf(helper.template.roles.administrator._id) === -1);
             assert(submission.roles.indexOf(helper.template.roles.authenticated._id) === -1);
             done();
           });
       });
-
     });
   });
 };

@@ -1,13 +1,13 @@
 /* eslint-env mocha */
 'use strict';
 
-let assert = require('assert');
-let fs = require('fs');
-let docker = process.env.DOCKER;
-var request = require('supertest');
+const assert = require('assert');
+const fs = require('fs');
+const docker = process.env.DOCKER;
+const request = require('supertest');
 
 module.exports = function(app, template, hook) {
-  let Thread = require('formio-workers/Thread');
+  const Thread = require('formio-workers/Thread');
 
   /**
    * Unit tests for various parts of the platform.
@@ -24,9 +24,9 @@ module.exports = function(app, template, hook) {
         },
         filters: {
           test: function(string, param) {
-            var retVal = this.env.params.form + ' : ' + string;
+            let retVal = `${this.env.params.form} : ${string}`;
             if (param) {
-              retVal += ' : ' + param;
+              retVal += ` : ${param}`;
             }
             return retVal;
           }
@@ -43,9 +43,9 @@ module.exports = function(app, template, hook) {
       new Thread(Thread.Tasks.nunjucks).start({
         render: '{{ callme() }}',
         context: {
-          callme: function() {
+          callme: () => {
             // Loop forever!!!!
-            while (true) {}
+            while (true) {} // eslint-disable-line
           }
         }
       })
@@ -58,13 +58,13 @@ module.exports = function(app, template, hook) {
     });
 
     it('email template threads wont block eachother', function(done) {
-      let request1 = new Promise((resolve, reject) => {
+      const request1 = new Promise((resolve, reject) => {
         new Thread(Thread.Tasks.nunjucks).start({
           render: '{{ callme() }}',
           context: {
-            callme: function() {
+            callme: () => {
               // Loop forever!!!!
-              while (true) {}
+              while (true) {} // eslint-disable-line
             }
           }
         })
@@ -75,7 +75,7 @@ module.exports = function(app, template, hook) {
         })
         .catch(reject);
       });
-      let request2 = new Promise((resolve, reject) => {
+      const request2 = new Promise((resolve, reject) => {
         setTimeout(() => {
           new Thread(Thread.Tasks.nunjucks).start({
             render: '{{ callme2() }}',
@@ -102,16 +102,16 @@ module.exports = function(app, template, hook) {
     });
 
     it('email template threads wont block other api requests', function(done) {
-      let started = [];
-      let finished = [];
-      let request1 = new Promise((resolve, reject) => {
+      const started = [];
+      const finished = [];
+      const request1 = new Promise((resolve, reject) => {
         started.push('request1');
         new Thread(Thread.Tasks.nunjucks).start({
           render: '{{ callme() }}',
           context: {
-            callme: function() {
+            callme: () => {
               // Loop forever!!!!
-              while (true) {}
+              while (true) {} // eslint-disable-line
             }
           }
         })
@@ -123,11 +123,11 @@ module.exports = function(app, template, hook) {
         })
         .catch(reject);
       });
-      let request2 = new Promise((resolve, reject) => {
+      const request2 = new Promise((resolve, reject) => {
         setTimeout(() => {
           started.push('request2');
           request(app)
-            .post(hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template))
+            .post(hook.alter('url', `/form/${template.forms.adminRegister._id}/submission`, template))
             .send({
               data: {
                 'email': template.users.admin.data.email,
@@ -142,7 +142,7 @@ module.exports = function(app, template, hook) {
               }
               finished.push('request2');
 
-              let response = res.body;
+              const response = res.body;
               assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
               assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
               assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
@@ -160,7 +160,7 @@ module.exports = function(app, template, hook) {
               assert.equal(response.roles[0].toString(), template.roles.administrator._id.toString());
 
               // Update our testProject.owners data.
-              let tempPassword = template.users.admin.data.password;
+              const tempPassword = template.users.admin.data.password;
               template.users.admin = response;
               template.users.admin.data.password = tempPassword;
 
@@ -197,7 +197,7 @@ module.exports = function(app, template, hook) {
         },
         filters: {
           test1: function(string) {
-            return this.env.params.form + ' : ' + string;
+            return `${this.env.params.form} : ${string}`;
           }.toString()
         }
       })
@@ -223,9 +223,9 @@ module.exports = function(app, template, hook) {
         },
         filters: {
           test: function(string, param) {
-            var retVal = this.env.params.form + ' : ' + string;
+            let retVal = `${this.env.params.form} : ${string}`;
             if (param) {
-              retVal += ' : ' + param;
+              retVal += ` : ${param}`;
             }
             return retVal;
           }
@@ -270,20 +270,20 @@ module.exports = function(app, template, hook) {
       return;
     }
 
-    var formio = hook.alter('formio', app.formio);
-    var email = require('../src/util/email')(formio);
-    var macros = require('../src/actions/macros/macros');
-    var sendMessage = function(to, from, message, content, cb) {
-      var dirName = 'fixtures/email/' + message + '/';
-      var submission = require('./' + dirName + 'submission.json');
-      var form = require('./' + dirName + 'form.json');
-      var res = {
+    const formio = hook.alter('formio', app.formio);
+    const email = require('../src/util/email')(formio);
+    const macros = require('../src/actions/macros/macros');
+    const sendMessage = function(to, from, message, content, cb) {
+      const dirName = `fixtures/email/${message}/`;
+      const submission = require(`./${dirName}submission.json`);
+      const form = require(`./${dirName}form.json`);
+      const res = {
         token: '098098098098',
         resource: {
           item: submission
         }
       };
-      var req = {
+      const req = {
         params: {
           formId: form._id
         },
@@ -298,9 +298,9 @@ module.exports = function(app, template, hook) {
           }
         }
       };
-      var messageText = macros;
-      messageText += (fs.readFileSync(__dirname + '/' + dirName + 'message.html')).toString();
-      var message = {
+      let messageText = macros;
+      messageText += (fs.readFileSync(`${__dirname}/${dirName}message.html`)).toString();
+      message = {
         transport: 'test',
         from: from,
         emails: to,
@@ -321,23 +321,23 @@ module.exports = function(app, template, hook) {
           return cb(null, response);
         });
       })
-      .catch(cb)
+      .catch(cb);
     };
 
-    var getProp = function(type, name, message) {
-      var regExp = new RegExp('---' + name + type + ':(.*?)---');
-      var matches = message.match(regExp);
+    const getProp = function(type, name, message) {
+      const regExp = new RegExp(`---${name}${type}:(.*?)---`);
+      const matches = message.match(regExp);
       if (matches.length > 1) {
         return matches[1];
       }
       return '';
     };
 
-    var getValue = function(name, message) {
+    const getValue = function(name, message) {
       return getProp('Value', name, message);
     };
 
-    var getLabel = function(name, message) {
+    const getLabel = function(name, message) {
       return getProp('Label', name, message);
     };
 
@@ -348,7 +348,7 @@ module.exports = function(app, template, hook) {
           return done(err);
         }
 
-        let email = emails[0];
+        const email = emails[0];
         assert.equal(email.subject, 'New submission for Test Form.');
         assert.equal(getLabel('firstName', email.html), 'First Name');
         assert.equal(getValue('firstName', email.html), 'Joe');
@@ -369,7 +369,7 @@ module.exports = function(app, template, hook) {
           return done(err);
         }
 
-        let email = emails[0];
+        const email = emails[0];
         assert.equal(email.subject, 'New submission for Test Form.');
         assert(email.html.indexOf('<div><p>Hello Joe Smith</p></div>') !== -1, 'Email content rendering failed.');
         done();
