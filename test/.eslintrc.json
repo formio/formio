@@ -4,7 +4,6 @@
   },
   "rules": {
     "max-len": "off",
-    "max-statements": "off",
-    "no-console": "off"
+    "max-statements": "off"
   }
 }

@@ -36,7 +36,7 @@ const Emailer = {
         Emailer.events.emit('newMail', mail);
       }
       else {
-        console.error(`No event emitter is available`);
+        console.error(`No event emitter is available`); // eslint-disable-line
       }
 
       return cb(null, false);

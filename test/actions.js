@@ -1,4 +1,3 @@
-/* eslint-env mocha */
 'use strict';
 
 const request = require('supertest');
@@ -823,7 +822,7 @@ module.exports = function(app, template, hook) {
           event.once('newMail', (email) => {
             assert.equal(email.from, 'travis@form.io');
             assert.equal(email.to, 'test@example.com');
-            assert.equal(email.html.startsWith('Howdy, '));
+            assert(email.html.startsWith('Howdy, '));
             assert.equal(email.subject, 'Hello there Test Person');
             done();
           });
