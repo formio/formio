@@ -212,6 +212,7 @@ module.exports = (router) => {
             jsonLogic: FormioUtils.jsonLogic,
             data: req.body.data,
             form: req.form,
+            query: req.query,
             util: FormioUtils,
             execute: false,
             _
