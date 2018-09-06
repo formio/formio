@@ -554,6 +554,9 @@ class Validator {
    *   The submission data corresponding to this component.
    */
   buildSchema(schema, components, componentData, submission) {
+    if (!Array.isArray(components)) {
+      return schema;
+    }
     // Add a validator for each component in the form, with its componentData.
     /* eslint-disable max-statements */
     components.forEach((component) => {
@@ -625,13 +628,22 @@ class Validator {
           this.buildSchema(schema, component.components, componentData, submission);
           break;
         case 'table':
+          if (!Array.isArray(component.rows)) {
+            break;
+          }
           component.rows.forEach((row) => {
+            if (!Array.isArray(row)) {
+              return;
+            }
             row.forEach((column) => {
               this.buildSchema(schema, column.components, componentData, submission);
             });
           });
           break;
         case 'columns':
+          if (!Array.isArray(component.columns)) {
+            break;
+          }
           component.columns.forEach((column) => {
             this.buildSchema(schema, column.components, componentData, submission);
           });
@@ -784,7 +796,7 @@ class Validator {
   }
 
   applyLogic(component, row, data) {
-    if (!component.logic || !Array.isArray(component.logic)) {
+    if (!Array.isArray(component.logic)) {
       return;
     }
 
@@ -792,6 +804,9 @@ class Validator {
       const result = FormioUtils.checkTrigger(component, logic.trigger, row, data);
 
       if (result) {
+        if (!Array.isArray(logic.actions)) {
+          return;
+        }
         logic.actions.forEach(action => {
           switch (action.type) {
             case 'property':
