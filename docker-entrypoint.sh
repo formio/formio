@@ -26,7 +26,7 @@ repeatCMD nc -w 2 ${DATABASE_HOST} ${DATABASE_PORT}
 echo "Database is up! Starting FormIO..."
 
 echo "Prepare MongoDB String"
-mongodb="mongodb://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}"
+mongodb="mongodb://${DATABASE_USER}:${DATABASE_PASS}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}"
 export mongo=$mongodb
 export USERNAME=${FORMIO_USERNAME}
 export PASSWORD=${FORMIO_PASSWORD}
