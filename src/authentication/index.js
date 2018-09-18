@@ -28,7 +28,9 @@ module.exports = function(router) {
    * @return {String|Boolean}
    *   The JWT from the given payload, or false if the jwt payload is still valid.
    */
-  const getToken = function(payload) {
+  const getToken = function(tokenInfo) {
+    // Clone to make sure we don't change original.
+    const payload = Object.assign({}, tokenInfo);
     delete payload.iat;
     delete payload.exp;
 
