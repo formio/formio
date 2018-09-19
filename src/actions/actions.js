@@ -230,7 +230,7 @@ module.exports = (router) => {
         }
       }
       else {
-        if (!(condition.field && condition.eq)) {
+        if (_.isEmpty(condition.field) || _.isEmpty(condition.eq)) {
           return true;
         }
 
