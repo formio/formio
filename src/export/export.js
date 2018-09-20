@@ -1,6 +1,6 @@
 'use strict';
 
-const exporters = require('./index');
+const exporters = require('.');
 const _ = require('lodash');
 const through = require('through');
 const _url = require('url');
