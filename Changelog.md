@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ## 1.34.0
 ### Updated
- - Upgrade lodash@4.17.11, mongodb@3.1.6, mongoose@5.2.16, formiojs@3.5.3, mssql@4.2.1, eslint@5.6.0
+ - Upgrade lodash@4.17.11, mongodb@3.1.6, mongoose@5.2.16, formiojs@3.5.3, mssql@4.2.1, eslint@5.6.0, resourcejs@1.26.0, and debug@4.0.1
 
 ### Fixed
  - Fixed the action condition checks to ensure it will not work for any empty conditionals.
