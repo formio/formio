@@ -662,6 +662,20 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
   const methods = ['Post', 'Get', 'Put', 'Index', 'Delete'];
   methods.forEach((method) => {
     handlers[`before${method}`] = [
+      (req, res, next) => {
+        if (req.method === 'GET') {
+          // Perform an extra permission check for action GET requests.
+          req.method = 'PUT';
+          req.permissionsChecked = false;
+          router.formio.middleware.permissionHandler(req, res, () => {
+            req.method = 'GET';
+            next();
+          });
+        }
+        else {
+          return next();
+        }
+      },
       router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
       actionPayload
     ];

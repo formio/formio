@@ -241,8 +241,8 @@ module.exports = function(app, template, hook) {
         request(app)
           .get(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect('Content-Type', /json/)
-          .expect(200)
+          .expect('Content-Type', /text\/plain/)
+          .expect(401)
           .end(done);
       });
 
@@ -256,30 +256,13 @@ module.exports = function(app, template, hook) {
           .end(done);
       });
 
-      it('A user should be able to Read the Index of Actions for a User-Created Project Form', function(done) {
+      it('A user should not be able to Read the Index of Actions for a User-Created Project Form', function(done) {
         request(app)
           .get(hook.alter('url', '/form/' + tempForm._id + '/action', template))
           .set('x-jwt-token', template.users.user1.token)
-          .expect('Content-Type', /json/)
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
-
-            var response = res.body;
-            assert.equal(response.length, 2);
-            _.each(response, function(action) {
-              if (action.name === 'login') {
-                assert.deepEqual(action, tempAction);
-              }
-              else {
-                assert.equal(action.name, 'save');
-              }
-            });
-
-            done();
-          });
+          .expect('Content-Type', /text\/plain/)
+          .expect(401)
+          .end(done);
       });
 
       it('A user should not be able to Delete an Action for a User-Created Project Form', function(done) {
@@ -305,8 +288,8 @@ module.exports = function(app, template, hook) {
       it('An Anonymous user should not be able to Read an Action for a User-Created Project Form', function(done) {
         request(app)
           .get(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
-          .expect('Content-Type', /json/)
-          .expect(200)
+          .expect('Content-Type', /text\/plain/)
+          .expect(401)
           .end(done);
       });
 
@@ -319,29 +302,12 @@ module.exports = function(app, template, hook) {
           .end(done);
       });
 
-      it('An Anonymous user should be able to Read the Index of Actions for a User-Created Project Form', function(done) {
+      it('An Anonymous user should not be able to Read the Index of Actions for a User-Created Project Form', function(done) {
         request(app)
           .get(hook.alter('url', '/form/' + tempForm._id + '/action', template))
-          .expect('Content-Type', /json/)
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
-
-            var response = res.body;
-            assert.equal(response.length, 2);
-            _.each(response, function(action) {
-              if (action.name === 'login') {
-                assert.deepEqual(action, tempAction);
-              }
-              else {
-                assert.equal(action.name, 'save');
-              }
-            });
-
-            done();
-          });
+          .expect('Content-Type', /text\/plain/)
+          .expect(401)
+          .end(done);
       });
 
       it('An Anonymous user should not be able to Delete an Action for a User-Created Project Form', function(done) {
@@ -357,7 +323,7 @@ module.exports = function(app, template, hook) {
       var _action;
       var name = chance.word();
       var helper;
-      
+
       before(function() {
         helper = new Helper(template.users.admin, template);
       });
