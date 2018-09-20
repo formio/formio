@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.34.0
+### Updated
+ - Upgrade lodash@4.17.11, mongodb@3.1.6, mongoose@5.2.16, formiojs@3.5.3, mssql@4.2.1, eslint@5.6.0
+
+### Fixed
+ - Fixed the action condition checks to ensure it will not work for any empty conditionals.
+
+### Changed
+ - FOR-1603,FOR-1639: Improved Google CSV export
+ - Add option to mark template imports to create only.
+ - Expire all tokens when a password is reset.
+ - Apply form update permissions when fetching actions.
+
 ## 1.33.6
 ### Fixed
  - A potential crash within the Validator.
