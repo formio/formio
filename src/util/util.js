@@ -520,7 +520,7 @@ const Utils = {
   },
 
   removeProtectedFields(form, action, submissions) {
-    if (!(submissions instanceof Array)) {
+    if (!Array.isArray(submissions)) {
       submissions = [submissions];
     }
 
@@ -528,30 +528,24 @@ const Utils = {
     const modifyFields = [];
 
     // Iterate through all components.
-    this.eachComponent(form.components, function(component, path) {
+    this.eachComponent(form.components, (component, path) => {
       path = `data.${path}`;
       if (component.protected) {
         debug.removeProtectedFields('Removing protected field:', component.key);
         modifyFields.push(deleteProp(path));
       }
       else if ((component.type === 'signature') && (action === 'index')) {
-        modifyFields.push((function(fieldPath) {
-          return function(sub) {
-            const data = _.get(sub, fieldPath);
-            _.set(sub, fieldPath, (!data || (data.length < 25)) ? '' : 'YES');
-          };
-        })(path));
+        modifyFields.push(((submission) => {
+          const data = _.get(submission, path);
+          _.set(submission, path, (!data || (data.length < 25)) ? '' : 'YES');
+        }));
       }
-    }.bind(this), true);
+    }, true);
 
     // Iterate through each submission once.
-    if (modifyFields.length > 0) {
-      _.each(submissions, function(submission) {
-        _.each(modifyFields, function(modifyField) {
-          modifyField(submission);
-        });
-      });
-    }
+    submissions.forEach((submission) =>
+      modifyFields.forEach((modifyField) => modifyField(submission))
+    );
   },
 
   base64: {
