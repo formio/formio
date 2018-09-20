@@ -390,6 +390,7 @@ module.exports = (router) => {
     const valid = entity.valid;
     const transform = entity.transform;
     const cleanUp = entity.cleanUp;
+    const createOnly = entity.createOnly;
 
     return (template, items, alter, done) => {
       // Normalize arguments.
@@ -468,11 +469,16 @@ module.exports = (router) => {
               return saveDoc(new model(document));
               /* eslint-enable new-cap */
             }
-            else {
+            else if (!createOnly) {
               debug.install(`Existing found`);
               doc = _.assign(doc, document);
               debug.install(doc);
               return saveDoc(doc);
+            }
+            else {
+              debug.install(`Skipping existing entity`);
+              items[machineName] = doc.toObject();
+              return next();
             }
           });
         });
