@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.34.1
+### Changed
+ - Upgraded the formio-workers library to v1.18.0
+ - Upgraded formiojs library to v3.5.5
+
 ## 1.34.0
 ### Updated
  - Upgrade lodash@4.17.11, mongodb@3.1.6, mongoose@5.2.16, formiojs@3.5.3, mssql@4.2.1, eslint@5.6.0, resourcejs@1.26.0, and debug@4.0.1
