@@ -945,7 +945,7 @@ module.exports = function(app, template, hook) {
             .get(hook.alter('url', '/current', template))
             .set('x-jwt-token', tempToken)
             .expect(440)
-            .expect('Login Timeout')
+            .expect('Token Expired')
             .end(done);
         }, 2000);
       });
