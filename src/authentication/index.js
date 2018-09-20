@@ -28,18 +28,11 @@ module.exports = function(router) {
    * @return {String|Boolean}
    *   The JWT from the given payload, or false if the jwt payload is still valid.
    */
-  const getToken = function(payload) {
-    // Ensure that we do not do multiple re-issues consecutively.
-    // Re-issue at the maximum rate of 1/min.
-    if (payload.iat) {
-      const now = Math.floor(Date.now() / 1000);
-      if ((now - payload.iat) < 60) {
-        return false;
-      }
-
-      delete payload.iat;
-      delete payload.exp;
-    }
+  const getToken = function(tokenInfo) {
+    // Clone to make sure we don't change original.
+    const payload = Object.assign({}, tokenInfo);
+    delete payload.iat;
+    delete payload.exp;
 
     return jwt.sign(payload, router.formio.config.jwt.secret, {
       expiresIn: router.formio.config.jwt.expireTime * 60

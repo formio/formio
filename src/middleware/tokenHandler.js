@@ -41,6 +41,7 @@ module.exports = function(router) {
   };
 
   return function tokenHandler(req, res, next) {
+    /* eslint-disable max-statements */
     // If someone else provided then skip.
     if (req.user && req.token && res.token) {
       return next();
@@ -71,7 +72,7 @@ module.exports = function(router) {
           return res.status(400).send('Bad Token');
         }
         else if (err && (err.name === 'TokenExpiredError')) {
-          return res.status(440).send('Login Timeout');
+          return res.status(440).send('Token Expired');
         }
         else {
           return noToken();
@@ -100,6 +101,7 @@ module.exports = function(router) {
       if (!hook.alter('external', decoded, req)) {
         req.user = decoded.user;
         req.token = decoded;
+        req.tokenIssued = parseInt(Date.now() / 1000);
         generateToken(token, decoded, res);
         return next();
       }
@@ -110,6 +112,7 @@ module.exports = function(router) {
         req.token = decoded;
         req.userProject = decoded.project;
         req.remotePermission = decoded.permission;
+        req.tokenIssued = parseInt(Date.now() / 1000);
         generateToken(token, decoded, res);
         return next();
       }
@@ -146,6 +149,12 @@ module.exports = function(router) {
 
         // Allow anyone to alter the user.
         debug.handler(user);
+
+        // Check if the user has reset the password since the token was issued.
+        if (user.metadata && user.metadata.jwtIssuedAfter && decoded.iat < user.metadata.jwtIssuedAfter) {
+          return res.status(440).send('Token No Longer Valid');
+        }
+
         hook.alter('user', user, function(err, user) {
           if (err) {
             return next();
@@ -158,6 +167,7 @@ module.exports = function(router) {
           req.token = decoded;
 
           // Refresh the token that is sent back to the user when appropriate.
+          req.tokenIssued = parseInt(Date.now() / 1000);
           generateToken(token, decoded, res);
 
           next();
