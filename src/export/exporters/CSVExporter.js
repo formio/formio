@@ -139,9 +139,9 @@ class CSVExporter extends Exporter {
 
           const valuesExtractor = (value) => {
             // Check if this is within a datagrid.
-            if (_.isArray(value) && value[0] && value[0][component.key]) {
+            if (Array.isArray(value) && value[0] && value[0][component.key]) {
               const rowValues = [];
-              _.each(value, (row) => {
+              value.forEach((row) => {
                 if (!row) {
                   return;
                 }
@@ -157,7 +157,7 @@ class CSVExporter extends Exporter {
               if (component.multiple) {
                 if (component.type === 'resource') {
                   const tempVal = [];
-                  _.each(value, (eachItem) => {
+                  value.forEach((eachItem) => {
                     let result = '';
                     try {
                       result = templateExtractor(eachItem);
@@ -276,7 +276,8 @@ class CSVExporter extends Exporter {
           const finalItem = {
             path,
             key: component.key,
-            label: item.label || path
+            label: item.label || path,
+            title: component.label,
           };
 
           if (item.hasOwnProperty('subpath')) {
@@ -351,80 +352,91 @@ class CSVExporter extends Exporter {
   stream(stream) {
     const self = this;
     const write = function(submission) {
-      /**
-       * Util function to unwrap an unknown data payload into a string.
-       *
-       * @param data
-       * @returns {string}
-       */
-      const coerceToString = (data, column) => {
-        data = (column.preprocessor || _.identity)(data, submission);
-
-        if (_.isArray(data) && data.length > 0) {
-          const fullPath = column.subpath
-            ? `${column.key}.${column.subpath}`
-            : column.key;
-
-          return data.map((item) => `"${coerceToString(_.get(item, fullPath, item), column)}"`).join(',');
-        }
-        if (_.isString(data)) {
-          if (column.type === 'boolean') {
-            return Boolean(data).toString();
-          }
-
-          return data.toString();
-        }
-        if (_.isNumber(data)) {
-          return data.toString();
-        }
-        if (_.isObject(data)) {
-          return coerceToString(_.get(data, column.subpath, ''), column);
-        }
-
-        return JSON.stringify(data);
-      };
-
       const formatDate = (value) => {
         return moment(value).tz(self.timezone || 'Etc/UTC').format(`${self.dateFormat} z`);
       };
 
       const data = [
         submission._id.toString(),
-        submission.created,
-        submission.modified
+        // Perform this after the field data since they may set the timezone and format.
+        formatDate(submission.created),
+        formatDate(submission.modified),
+        ...self.getSubmissionData(submission),
       ];
 
-      self.fields.forEach((column) => {
-        const componentData = _.get(submission.data, column.path);
-
-        // If the path had no results and the component specifies a path, check for a datagrid component
-        if (_.isUndefined(componentData) && column.path.includes('.')) {
-          const parts = column.path.split('.');
-          const container = parts.shift();
-          const containerData = _.get(submission.data, container);
-
-          // If the subdata is an array, coerce it to a displayable string.
-          if (_.isArray(containerData)) {
-            // Update the column component path, since we removed part of it.
-            column.path = parts.join('.');
-
-            data.push(coerceToString(containerData, column));
-            return;
-          }
-        }
-
-        data.push(coerceToString(componentData, column));
-      });
-
-      // Perform this after the field data since they may set the timezone and format.
-      data[1] = formatDate(data[1]);
-      data[2] = formatDate(data[2]);
       this.queue(data);
     };
 
     return stream
       .pipe(through(write, () => this.res.end()))
       .pipe(this.stringifier);
+  }
+
+  getSubmissionData(submission) {
+    const updatedSubmission = {};
+    const result = this.fields.map((column) => {
+      const componentData = _.get(submission.data, column.path);
+
+      // If the path had no results and the component specifies a path, check for a datagrid component
+      if (_.isUndefined(componentData) && column.path.includes('.')) {
+        const parts = column.path.split('.');
+        const container = parts.shift();
+        const containerData = _.get(submission.data, container);
+
+        // If the subdata is an array, coerce it to a displayable string.
+        if (Array.isArray(containerData)) {
+          // Update the column component path, since we removed part of it.
+          const subcolumn = {
+            ...column,
+            path: parts.join('.'),
+          };
+
+          const result = this.coerceToString(containerData, subcolumn, submission);
+          _.set(updatedSubmission, column.label, result);
+          return result;
+        }
+      }
+
+      const result = this.coerceToString(componentData, column, submission);
+      _.set(updatedSubmission, column.label, result);
+      return result;
+    });
+
+    result.updatedSubmission = updatedSubmission;
+    return result;
+  }
+
+  /**
+   * Util function to unwrap an unknown data payload into a string.
+   *
+   * @param data
+   * @returns {string}
+   */
+  coerceToString(data, column, submission) {
+    data = (column.preprocessor || _.identity)(data, submission);
+
+    if (Array.isArray(data) && data.length > 0) {
+      const fullPath = column.subpath
+        ? `${column.key}.${column.subpath}`
+        : column.key;
+
+      return data.map((item) => `"${this.coerceToString(_.get(item, fullPath, item), column)}"`).join(',');
+    }
+    if (_.isString(data)) {
+      if (column.type === 'boolean') {
+        return Boolean(data).toString();
+      }
+
+      return data.toString();
+    }
+    if (_.isNumber(data)) {
+      return data.toString();
+    }
+    if (_.isObject(data)) {
+      return this.coerceToString(_.get(data, column.subpath, ''), column);
+    }
+
+    return JSON.stringify(data);
   }
 }
 
