@@ -406,6 +406,9 @@ module.exports = (formio) => {
         return next();
       }
 
+      // Add the mailSettings to the request object.
+      req.mailSettings = message;
+
       const mail = {
         from: message.from ? message.from : 'no-reply@form.io',
         to: (typeof message.emails === 'string') ? message.emails : message.emails.join(', '),
