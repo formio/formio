@@ -46,6 +46,12 @@ module.exports = function(router) {
    * @return {boolean}
    */
   const isTokenAllowed = function(req, decoded) {
+    // If this is an admin token, then we can skip permission checks and set the isAdmin flag.
+    if (decoded.isAdmin) {
+      req.permissionsChecked = true;
+      req.isAdmin = true;
+    }
+
     if (!decoded.allow) {
       return true;
     }
@@ -74,6 +80,17 @@ module.exports = function(router) {
         debug.authenticate('Bad token allow string.');
       }
     });
+
+    // If no project is provided, then provide it from the token.
+    if (decoded.isAdmin && allowed.length) {
+      /* eslint-disable no-useless-escape */
+      const ids = allowed[0].match(/\/project\/([^\/]+)/);
+      /* eslint-enable no-useless-escape */
+      if (ids && !decoded.project && ids[1]) {
+        decoded.project = {_id: ids[1]};
+      }
+    }
+
     return isAllowed;
   };
 
@@ -85,23 +102,27 @@ module.exports = function(router) {
    * @param expire
    * @param cb
    */
-  const getTempToken = function(req, res, allow, expire, cb) {
-    if (!req.token) {
-      return cb('No authentication token provided.');
+  const getTempToken = function(req, res, allow, expire, admin, cb) {
+    let tempToken = {};
+    if (!admin) {
+      if (!req.token) {
+        return cb('No authentication token provided.');
+      }
+
+      tempToken = _.cloneDeep(req.token);
+
+      // Check to see if this path is allowed.
+      if (!isTokenAllowed(req, tempToken)) {
+        return res.status(401).send('Token path not allowed.');
+      }
+
+      // Do not allow regeneration of temp tokens from other temp tokens.
+      if (tempToken.tempToken) {
+        return cb('Cannot issue a temporary token using another temporary token.');
+      }
     }
 
-    const tempToken = _.cloneDeep(req.token);
-
-    // Check to see if this path is allowed.
-    if (!isTokenAllowed(req, tempToken)) {
-      return res.status(401).send('Token path not allowed.');
-    }
-
-    // Do not allow regeneration of temp tokens from other temp tokens.
-    if (tempToken.tempToken) {
-      return cb('Cannot issue a temporary token using another temporary token.');
-    }
-
+    // Check the expiration.
     const now = Math.round((new Date()).getTime() / 1000);
     expire = expire || 3600;
     expire = parseInt(expire, 10);
@@ -118,6 +139,7 @@ module.exports = function(router) {
     }
 
     tempToken.tempToken = true;
+    tempToken.isAdmin = admin;
 
     // Delete the previous expiration so we can generate a new one.
     delete tempToken.exp;
@@ -125,7 +147,22 @@ module.exports = function(router) {
     // Sign the token.
     jwt.sign(tempToken, router.formio.config.jwt.secret, {
       expiresIn: expire
-    }, (err, token) => cb(err, token));
+    }, (err, token) => {
+      if (err) {
+        return cb(err);
+      }
+      const tokenResponse = {
+        token
+      };
+
+      // Allow other libraries to hook into the response.
+      hook.alter('tempToken', req, res, allow, expire, tokenResponse, (err) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, tokenResponse);
+      });
+    });
   };
 
   const tempToken = function(req, res, next) {
@@ -133,7 +170,11 @@ module.exports = function(router) {
       return res.status(400).send('No headers provided.');
     }
 
-    if (!req.token) {
+    let adminKey = false;
+    if (process.env.ADMIN_KEY && process.env.ADMIN_KEY === req.headers['x-admin-key']) {
+      adminKey = true;
+    }
+    else if (!req.token) {
       return res.status(400).send('No authentication token provided.');
     }
 
@@ -143,19 +184,11 @@ module.exports = function(router) {
     expire = parseInt(expire, 10);
 
     // get a temporary token.
-    getTempToken(req, res, allow, expire, function(err, tempToken) {
+    getTempToken(req, res, allow, expire, adminKey, function(err, tempToken) {
       if (err) {
         return res.status(400).send(err);
       }
-
-      const tokenResponse = {
-        token: tempToken
-      };
-
-      // Allow other libraries to hook into the response.
-      hook.alter('tempToken', req, res, allow, expire, tokenResponse, (err) => {
-        return res.json(tokenResponse);
-      });
+      return res.json(tempToken);
     });
   };
 
