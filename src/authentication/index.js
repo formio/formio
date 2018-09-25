@@ -336,7 +336,7 @@ module.exports = function(router) {
     childReq.skipResource = false;
 
     // If this request is not directly accessing /current, allow the response to be sent.
-    if (req.url !== '/current') {
+    if (req.url.split('?').shift() !== '/current') {
       childReq.noResponse = true;
     }
 
