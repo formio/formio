@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.34.4
+### Fixed
+ - Issues where an admin token generated with no logged in user would fail.
+ - Issue with Email configurations overriding other emails with different settings.
+
 ## 1.34.3
 ### Fixed
  - Problem with the "current" user endpoint where it would not work if query parameters are provided.
