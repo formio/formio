@@ -236,6 +236,9 @@ module.exports = (formio) => {
       token: res.token
     };
 
+    // Add the settings to the parameters.
+    params.settings = message;
+
     // Get the transport for this context.
     let emailType = message.transport
       ? message.transport
@@ -405,9 +408,6 @@ module.exports = (formio) => {
         debug.error(`Could not determine which email transport to use for ${emailType}`);
         return next();
       }
-
-      // Add the mailSettings to the request object.
-      req.mailSettings = message;
 
       const mail = {
         from: message.from ? message.from : 'no-reply@form.io',
