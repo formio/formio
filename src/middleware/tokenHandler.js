@@ -118,7 +118,8 @@ module.exports = function(router) {
       }
 
       if (decoded.isAdmin) {
-        req.user = decoded.user;
+        req.permissionsChecked = true;
+        req.isAdmin = true;
         req.token = decoded;
         return next();
       }

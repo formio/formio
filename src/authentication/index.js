@@ -46,12 +46,6 @@ module.exports = function(router) {
    * @return {boolean}
    */
   const isTokenAllowed = function(req, decoded) {
-    // If this is an admin token, then we can skip permission checks and set the isAdmin flag.
-    if (decoded.isAdmin) {
-      req.permissionsChecked = true;
-      req.isAdmin = true;
-    }
-
     if (!decoded.allow) {
       return true;
     }
