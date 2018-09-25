@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.34.3
+### Fixed
+ - Problem with the "current" user endpoint where it would not work if query parameters are provided.
+
 ## 1.34.1
 ### Changed
  - Upgraded the formio-workers library to v1.18.0
