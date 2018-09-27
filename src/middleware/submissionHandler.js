@@ -102,12 +102,10 @@ module.exports = (router, resourceName, resourceId) => {
         }
 
         req.currentForm = hook.alter('currentForm', form, req.body);
-        req.originalForm = _.clone(req.currentForm);
 
         // Load all subforms as well.
         router.formio.cache.loadSubForms(req.currentForm, req, () => {
           req.flattenedComponents = util.flattenComponents(form.components, true);
-          // req.originalFlattenComponents = util.flattenComponents(req.originalForm);
           return done();
         });
       }, true);
