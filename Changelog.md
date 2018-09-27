@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.34.6
+### Changed
+ - Syntax for including files using __dirname. This is maintenance only.
+
 ## 1.34.5
 ### Fixed
  - FOR-1719 Nested form SAR feature.
