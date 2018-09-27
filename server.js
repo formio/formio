@@ -6,6 +6,7 @@
 const express = require('express');
 const nunjucks = require('nunjucks');
 const fs = require('fs-extra');
+const path = require('path');
 const util = require('./src/util/util');
 require('colors');
 const Q = require('q');
@@ -49,7 +50,7 @@ module.exports = function(options) {
   });
 
   // Mount the client application.
-  app.use('/', express.static(`${__dirname}/client/dist`));
+  app.use('/', express.static(path.join(__dirname, '/client/dist')));
 
   // Load the form.io server.
   const server = options.server || require('./index')(config);
@@ -62,7 +63,7 @@ module.exports = function(options) {
       // Start the application.
       if (fs.existsSync('app')) {
         const application = express();
-        application.use('/', express.static(`${__dirname}/app/dist`));
+        application.use('/', express.static(path.join(__dirname, '/app/dist')));
         config.appPort = config.appPort || 8080;
         application.listen(config.appPort);
         const appHost = `http://localhost:${config.appPort}`;
