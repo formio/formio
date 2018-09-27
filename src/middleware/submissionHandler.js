@@ -5,7 +5,7 @@ const async = require('async');
 const util = require('../util/util');
 const Validator = require('../resources/Validator');
 
-module.exports = function(router, resourceName, resourceId) {
+module.exports = (router, resourceName, resourceId) => {
   const hook = require('../util/hook')(router.formio);
   const fieldActions = require('../actions/fields/index')(router);
   const propertyActions = require('../actions/properties/index')(router);
@@ -93,7 +93,7 @@ module.exports = function(router, resourceName, resourceId) {
      * @param done
      */
     function loadCurrentForm(req, done) {
-      router.formio.cache.loadCurrentForm(req, function(err, form) {
+      router.formio.cache.loadCurrentForm(req, (err, form) => {
         if (err) {
           return done(err);
         }
@@ -102,10 +102,12 @@ module.exports = function(router, resourceName, resourceId) {
         }
 
         req.currentForm = hook.alter('currentForm', form, req.body);
+        req.originalForm = _.clone(req.currentForm);
 
         // Load all subforms as well.
-        router.formio.cache.loadSubForms(req.currentForm, req, function() {
-          req.flattenedComponents = util.flattenComponents(form.components);
+        router.formio.cache.loadSubForms(req.currentForm, req, () => {
+          req.flattenedComponents = util.flattenComponents(form.components, true);
+          // req.originalFlattenComponents = util.flattenComponents(req.originalForm);
           return done();
         });
       }, true);
@@ -185,7 +187,7 @@ module.exports = function(router, resourceName, resourceId) {
      */
     function validateSubmission(req, res, done) {
       // No need to validate on GET requests.
-      if (!((req.method === 'POST' || req.method === 'PUT') && req.body && !req.noValidate)) {
+      if (!(['POST', 'PUT'].includes(req.method) && req.body && !req.noValidate)) {
         return done();
       }
 
@@ -198,7 +200,7 @@ module.exports = function(router, resourceName, resourceId) {
       // Clone the submission to the real value of the request body.
       req.submission = _.cloneDeep(req.body);
 
-      hook.alter('validateSubmissionForm', req.currentForm, req.body, function(form) {
+      hook.alter('validateSubmissionForm', req.currentForm, req.body, (form) => {
         // Get the submission model.
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
@@ -207,7 +209,7 @@ module.exports = function(router, resourceName, resourceId) {
         const validator = new Validator(req.currentForm, submissionModel, token);
 
         // Validate the request.
-        validator.validate(req.body, function(err, submission) {
+        validator.validate(req.body, (err, submission) => {
           if (err) {
             return res.status(400).json(err);
           }
@@ -227,7 +229,7 @@ module.exports = function(router, resourceName, resourceId) {
      * @param done
      */
     function executeActions(handler) {
-      return function(req, res, done) {
+      return (req, res, done) => {
         // If they wish to disable actions, then just skip.
         if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
           return done();
@@ -260,7 +262,7 @@ module.exports = function(router, resourceName, resourceId) {
         return done();
       }
 
-      async.eachOfSeries(req.flattenedComponents, function(component, path, cb) {
+      async.eachOfSeries(req.flattenedComponents, (component, path, cb) => {
         if (
           req.body &&
           component.hasOwnProperty('persistent') &&
@@ -293,7 +295,7 @@ module.exports = function(router, resourceName, resourceId) {
 
     // Add before handlers.
     const before = `before${method.method}`;
-    handlers[before] = function(req, res, next) {
+    handlers[before] = (req, res, next) => {
       req.handlerName = before;
       async.series([
         async.apply(loadCurrentForm, req),
@@ -309,7 +311,7 @@ module.exports = function(router, resourceName, resourceId) {
 
     // Add after handlers.
     const after = `after${method.method}`;
-    handlers[after] = function(req, res, next) {
+    handlers[after] = (req, res, next) => {
       req.handlerName = after;
       async.series([
         async.apply(executeActions('after'), req, res),
