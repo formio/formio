@@ -157,7 +157,7 @@ module.exports = function(formio) {
       // 3 is an arbitrary length. We just want a general idea that things have been installed.
       if (collections.length < 3) {
         formio.util.log(' > No install found. Starting new install.');
-        require(`${__dirname}/install`)(db, config, function() {
+        require(path.join(__dirname, '/install'))(db, config, function() {
           formio.util.log(' > Install complete.\n');
           next();
         });
@@ -511,7 +511,7 @@ module.exports = function(formio) {
         debug.db(_update);
         if (typeof _update !== 'function') {
           try {
-            _update = require(`${__dirname}/updates/${pending}`);
+            _update = require(path.join(__dirname, `/updates/${pending}`));
           }
           catch (e) {
             debug.error(e);
