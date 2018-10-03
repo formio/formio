@@ -13,6 +13,7 @@ const events = require('events');
 const Q = require('q');
 const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
+const log = require('debug')('formio:log');
 // Keep track of the formio interface.
 router.formio = {};
 
@@ -38,6 +39,14 @@ module.exports = function(config) {
   // Allow events to be triggered.
   router.formio.events = new events.EventEmitter();
   router.formio.config.schema = require('./package.json').schema;
+
+  router.formio.log = (event, req, ...info) => {
+    const result = router.formio.hook.alter('log', event, req, ...info);
+
+    if (result) {
+      log(event, ...info);
+    }
+  };
 
   /**
    * Initialize the formio server.
