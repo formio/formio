@@ -236,6 +236,9 @@ module.exports = (formio) => {
       token: res.token
     };
 
+    // Add the settings to the parameters.
+    params.settings = message;
+
     // Get the transport for this context.
     let emailType = message.transport
       ? message.transport

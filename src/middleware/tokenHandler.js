@@ -117,6 +117,13 @@ module.exports = function(router) {
         return next();
       }
 
+      if (decoded.isAdmin) {
+        req.permissionsChecked = true;
+        req.isAdmin = true;
+        req.token = decoded;
+        return next();
+      }
+
       if (!decoded.form || !decoded.form._id) {
         return noToken();
       }
