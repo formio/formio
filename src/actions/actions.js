@@ -177,6 +177,7 @@ module.exports = (router) => {
           }
 
           // Resolve the action.
+          router.formio.log('Action', req, handler, method, action.name, action.title);
           action.resolve(handler, method, req, res, cb);
         }, (err) => {
           if (err) {
