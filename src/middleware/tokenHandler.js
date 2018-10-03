@@ -49,6 +49,7 @@ module.exports = function(router) {
 
     const token = util.getRequestValue(req, 'x-jwt-token');
     const noToken = function() {
+      router.formio.log('Token', req, 'No token found');
       // Try the request with no tokens.
       delete req.headers['x-jwt-token'];
       req.user = null;
@@ -66,12 +67,15 @@ module.exports = function(router) {
     jwt.verify(token, router.formio.config.jwt.secret, function(err, decoded) {
       if (err || !decoded) {
         debug.handler(err || `Token could not decoded: ${token}`);
+        router.formio.log('Token', req, 'Token could not be decoded');
 
         // If the token has expired, send a 440 error (Login Timeout)
         if (err && (err.name === 'JsonWebTokenError')) {
+          router.formio.log('Token', req, 'Bad Token');
           return res.status(400).send('Bad Token');
         }
         else if (err && (err.name === 'TokenExpiredError')) {
+          router.formio.log('Token', req, 'Token Expired');
           return res.status(440).send('Token Expired');
         }
         else {
@@ -86,6 +90,7 @@ module.exports = function(router) {
 
       // If this is a temporary token, then decode it and set it in the request.
       if (decoded.temp) {
+        router.formio.log('Token', req, 'Using temp token');
         debug.handler('Temp token');
         req.tempToken = decoded;
         req.user = null;
@@ -99,7 +104,9 @@ module.exports = function(router) {
 
       // Allow external tokens.
       if (!hook.alter('external', decoded, req)) {
+        router.formio.log('Token', req, 'Using external token');
         req.user = decoded.user;
+        router.formio.log('User', req, req.user._id);
         req.token = decoded;
         req.tokenIssued = parseInt(Date.now() / 1000);
         generateToken(token, decoded, res);
@@ -108,7 +115,9 @@ module.exports = function(router) {
 
       // See if this is a remote token.
       if (decoded.project && decoded.permission) {
+        router.formio.log('Token', req, 'Using remote token');
         req.user = decoded.user;
+        router.formio.log('User', req, req.user._id);
         req.token = decoded;
         req.userProject = decoded.project;
         req.remotePermission = decoded.permission;
@@ -118,6 +127,8 @@ module.exports = function(router) {
       }
 
       if (decoded.isAdmin) {
+        router.formio.log('Token', req, 'User is admin');
+        router.formio.log('User', req, req.user._id);
         req.permissionsChecked = true;
         req.isAdmin = true;
         req.token = decoded;
@@ -159,6 +170,7 @@ module.exports = function(router) {
 
         // Check if the user has reset the password since the token was issued.
         if (user.metadata && user.metadata.jwtIssuedAfter && decoded.iat < user.metadata.jwtIssuedAfter) {
+          router.formio.log('Token', req, 'Token No Longer Valid');
           return res.status(440).send('Token No Longer Valid');
         }
 
@@ -177,6 +189,8 @@ module.exports = function(router) {
           req.tokenIssued = parseInt(Date.now() / 1000);
           generateToken(token, decoded, res);
 
+          router.formio.log('Token', req, 'Using normal token');
+          router.formio.log('User', req, req.user._id);
           next();
         });
       });
