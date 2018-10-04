@@ -533,6 +533,8 @@ module.exports = function(router) {
 
     // Determine if we are trying to access and entity of the form or submission.
     router.formio.access.getAccess(req, res, function(err, access) {
+      router.formio.log(`Request ${req.uuid}: Permissions: %o`, req, _.pick(access, ['form', 'submission', 'role']));
+
       if (err) {
         if (_.isNumber(err)) {
           return (typeof res.sendStatus === 'function') ? res.sendStatus(err) : next('Invalid Request');

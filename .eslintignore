@@ -3,4 +3,9 @@ app/*
 client/*
 src/db/updates/*
 node_modules/*
+# for macos 10.11.6
+node_modules/
 bower_components/*
+# for macos 10.11.6
+bower_components/
+

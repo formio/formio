@@ -92,6 +92,9 @@ module.exports = function(config) {
         router.use(router.formio.middleware.params);
       }
 
+      // Add request logging feature.
+      router.use(router.formio.middleware.requestLog);
+
       // Add the db schema sanity check to each request.
       router.use(router.formio.update.sanityCheck);
 

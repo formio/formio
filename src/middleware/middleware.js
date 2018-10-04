@@ -31,6 +31,7 @@ module.exports = function(router) {
     tokenHandler: require('./tokenHandler')(router),
     restrictRequestTypes: require('./restrictRequestTypes')(router),
     mergeFormHandler: require('./mergeFormHandler')(router),
-    filterIndex: require('./filterIndex')(router)
+    filterIndex: require('./filterIndex')(router),
+    requestLog: require('./requestLog')(router),
   };
 };
