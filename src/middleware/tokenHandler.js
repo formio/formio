@@ -106,7 +106,9 @@ module.exports = function(router) {
       if (!hook.alter('external', decoded, req)) {
         router.formio.log('Token', req, 'Using external token');
         req.user = decoded.user;
-        router.formio.log('User', req, req.user._id);
+        if (req.user) {
+          router.formio.log('User', req, req.user._id);
+        }
         req.token = decoded;
         req.tokenIssued = parseInt(Date.now() / 1000);
         generateToken(token, decoded, res);
@@ -117,7 +119,9 @@ module.exports = function(router) {
       if (decoded.project && decoded.permission) {
         router.formio.log('Token', req, 'Using remote token');
         req.user = decoded.user;
-        router.formio.log('User', req, req.user._id);
+        if (req.user) {
+          router.formio.log('User', req, req.user._id);
+        }
         req.token = decoded;
         req.userProject = decoded.project;
         req.remotePermission = decoded.permission;
@@ -128,7 +132,9 @@ module.exports = function(router) {
 
       if (decoded.isAdmin) {
         router.formio.log('Token', req, 'User is admin');
-        router.formio.log('User', req, req.user._id);
+        if (req.user) {
+          router.formio.log('User', req, req.user._id);
+        }
         req.permissionsChecked = true;
         req.isAdmin = true;
         req.token = decoded;
@@ -190,7 +196,9 @@ module.exports = function(router) {
           generateToken(token, decoded, res);
 
           router.formio.log('Token', req, 'Using normal token');
-          router.formio.log('User', req, req.user._id);
+          if (req.user) {
+            router.formio.log('User', req, req.user._id);
+          }
           next();
         });
       });
