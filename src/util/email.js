@@ -161,7 +161,7 @@ module.exports = (formio) => {
       }
     });
 
-    Promise.all(replacements).then(results => {
+    Promise.all(replacements).then(() => {
       // Get the parameters for the email.
       params.form = form;
       return resolve(params);
@@ -195,11 +195,11 @@ module.exports = (formio) => {
 
     // Compile the email with nunjucks in a separate thread.
     return new Worker('nunjucks').start({
-      options: options,
       render: mail,
-      context: params
+      context: params,
+      options,
     })
-    .then(injectedEmail => {
+    .then((injectedEmail) => {
       debug.nunjucksInjector(injectedEmail);
       if (!injectedEmail) {
         return reject(`An error occurred while processing the Email.`);
@@ -422,33 +422,30 @@ module.exports = (formio) => {
       };
 
       nunjucksInjector(mail, options)
-      .then(email => {
-        const queue = [];
-        const emails = [];
+      .then((email) => {
+        let emails = [];
 
         debug.send(`message.sendEach: ${message.sendEach}`);
         debug.send(`email: ${JSON.stringify(email)}`);
         if (message.sendEach === true) {
-          const addresses = _.uniq(_.map(email.to.split(','), _.trim));
+          const addresses = _.uniq(email.to.split(',').map(_.trim));
           debug.send(`addresses: ${JSON.stringify(addresses)}`);
-          addresses.forEach(address => {
-            // Make a copy of the email for each recipient.
-            emails.push(_.assign({}, email, {to: address}));
-          });
+          // Make a copy of the email for each recipient.
+          emails = addresses.map((address) => Object.assign({}, email, {to: address}));
         }
         else {
-          emails.push(email);
+          emails = [email];
         }
 
         debug.send(`emails: ${JSON.stringify(emails)}`);
         // Send each mail using the transporter.
-        emails.forEach(email => {
+        return Promise.all(emails.map((email) => {
           // Replace all newline chars with empty strings, to fix newline support in html emails.
           if (email.html && (typeof email.html === 'string')) {
             email.html = email.html.replace(/\n/g, '');
           }
 
-          const pending = new Promise((resolve, reject) => {
+          return new Promise((resolve, reject) => {
             // Allow anyone to hook the final email before sending.
             return hook.alter('email', email, req, res, params, (err, email) => {
               if (err) {
@@ -474,14 +471,10 @@ module.exports = (formio) => {
               });
             });
           });
-
-          queue.push(pending);
-        });
-
-        return Promise.all(queue);
+        }));
       })
-      .then(response => next(null, response))
-      .catch(err => {
+      .then((response) => next(null, response))
+      .catch((err) => {
         debug.error(err);
         return next(err);
       });
