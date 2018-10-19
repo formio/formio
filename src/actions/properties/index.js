@@ -1,5 +1,5 @@
 'use strict';
 
 module.exports = (router) => ({
-  reference: require('./reference')(router)
+  reference: require('./reference')(router),
 });
