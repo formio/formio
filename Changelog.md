@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## UNRELEASED
+### Removed
+ - Merge form handler
+
 ## 1.35.0
 ### Added
  - basic request logging with DEBUG=formio:log.
