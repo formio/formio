@@ -4,9 +4,24 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [UNRELEASED]
+## 1.35.2
 ### Changed
+ - Code cleanup
  - API key regex.
+ - Upgraded
+   - JSONStream@1.3.5
+   - bcrypt@3.0.2
+   - express@4.16.4
+   - formiojs@3.6.12
+   - mongodb@3.1.8
+   - mongoose@5.3.7
+   - mssql@4.2.2
+   - progress@2.0.1
+   - nodemon@1.18.5
+   - debug@4.1.0
+   - resourcejs@1.28.0
+   - semver@5.6.0
+   - eslint@5.8.0
 
 ## 1.35.1
 ### Fixed
