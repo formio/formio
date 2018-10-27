@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - API key regex.
 
+## 1.35.1
+### Fixed
+ - Issue where logging would sometimes crash when tokens do not contain user objects.
+
+### Changed
+ - Upgraded eslint@5.6.1, formiojs@3.6.4, joi@13.7.0, mongoose@5.3.2
+
 ## 1.35.0
 ### Added
  - basic request logging with DEBUG=formio:log.
