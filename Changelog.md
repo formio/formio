@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [UNRELEASED]
+### Changed
+ - API key regex.
+
 ## 1.35.1
 ### Fixed
  - Issue where logging would sometimes crash when tokens do not contain user objects.
