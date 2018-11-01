@@ -74,7 +74,8 @@ const checkConditional = (component, row, data, recurse = false) => {
   }
 };
 
-const getRules = (type) => [
+const getRules = (type) => {
+  const commonRules = [
   {
     name: 'custom',
     params: {
@@ -437,7 +438,29 @@ const getRules = (type) => [
       return value; // Everything is OK
     }
   }
-];
+  ];
+
+  const jsonSerializable = {
+    name: 'jsonSerializable',
+    params: {},
+    validate(params, value, state, options) {
+      try {
+        JSON.stringify(value);
+      }
+      catch (err) {
+        return this.createError('object.jsonSerializable', {message: 'caon\'t be converted to JSON'}, state, options);
+      }
+
+      return value;
+    }
+  };
+
+  if (type === 'object') {
+    return [...commonRules, jsonSerializable];
+  }
+
+  return commonRules;
+};
 
 const JoiX = Joi.extend([
   {
@@ -485,7 +508,8 @@ const JoiX = Joi.extend([
       json: '{{message}}',
       hidden: '{{message}}',
       select: '{{message}}',
-      distinct: '{{message}}'
+      distinct: '{{message}}',
+      jsonSerializable: '{{message}}'
     },
     rules: getRules('object')
   },
@@ -651,16 +675,21 @@ class Validator {
         case 'textfield':
         case 'textarea':
         case 'phonenumber':
-          fieldValidator = JoiX.string().allow('');
-          for (const name in stringValidators) {
-            const funcName = stringValidators[name];
-            if (
-              component.validate &&
-              component.validate.hasOwnProperty(name) &&
-              _.isNumber(component.validate[name]) &&
-              component.validate[name] >= 0
-            ) {
-              fieldValidator = fieldValidator[funcName](component.validate[name]);
+          if (component.as === 'json') {
+            fieldValidator = JoiX.object().jsonSerializable();
+          }
+          else {
+            fieldValidator = JoiX.string().allow('');
+            for (const name in stringValidators) {
+              const funcName = stringValidators[name];
+              if (
+                component.validate &&
+                  component.validate.hasOwnProperty(name) &&
+                  _.isNumber(component.validate[name]) &&
+                  component.validate[name] >= 0
+              ) {
+                fieldValidator = fieldValidator[funcName](component.validate[name]);
+              }
             }
           }
           break;
