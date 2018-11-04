@@ -651,16 +651,21 @@ class Validator {
         case 'textfield':
         case 'textarea':
         case 'phonenumber':
-          fieldValidator = JoiX.string().allow('');
-          for (const name in stringValidators) {
-            const funcName = stringValidators[name];
-            if (
-              component.validate &&
-              component.validate.hasOwnProperty(name) &&
-              _.isNumber(component.validate[name]) &&
-              component.validate[name] >= 0
-            ) {
-              fieldValidator = fieldValidator[funcName](component.validate[name]);
+          if (component.as === 'json') {
+            fieldValidator = JoiX.object();
+          }
+          else {
+            fieldValidator = JoiX.string().allow('');
+            for (const name in stringValidators) {
+              const funcName = stringValidators[name];
+              if (
+                component.validate &&
+                component.validate.hasOwnProperty(name) &&
+                _.isNumber(component.validate[name]) &&
+                component.validate[name] >= 0
+              ) {
+                fieldValidator = fieldValidator[funcName](component.validate[name]);
+              }
             }
           }
           break;
