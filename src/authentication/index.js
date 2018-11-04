@@ -52,6 +52,7 @@ module.exports = function(router) {
 
     let isAllowed = false;
     const allowed = decoded.allow.split(',');
+    const urlParts = req.url.split('?');
     _.each(allowed, function(allow) {
       const parts = allow.split(':');
       if (parts.length < 2) {
@@ -65,7 +66,7 @@ module.exports = function(router) {
 
       try {
         const regex = new RegExp(parts[1]);
-        if (regex.test(req.baseUrl + req.url)) {
+        if (regex.test(req.baseUrl + urlParts[0])) {
           isAllowed = true;
           return false;
         }
