@@ -20,6 +20,7 @@ module.exports = function(router) {
     deleteFormHandler: require('./deleteFormHandler')(router),
     deleteRoleHandler: require('./deleteRoleHandler')(router),
     deleteSubmissionHandler: require('./deleteSubmissionHandler')(router),
+    formId: require('./formId')(router),
     formHandler: require('./formHandler')(router),
     formActionHandler: require('./formActionHandler')(router),
     ownerFilter: require('./ownerFilter')(router),
