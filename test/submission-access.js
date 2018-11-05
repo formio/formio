@@ -3773,7 +3773,7 @@ module.exports = function(app, template, hook) {
             request(app)
               .put(hook.alter('url', '/' + tempForm.path, template))
               .set('x-jwt-token', template.users.admin.token)
-              .send(tempForm)
+              .send(_.omit(tempForm, 'modified'))
               .expect(200)
               .expect('Content-Type', /json/)
               .end(function(err, res) {
@@ -3837,7 +3837,7 @@ module.exports = function(app, template, hook) {
             request(app)
               .put(hook.alter('url', '/' + tempForm.path, template))
               .set('x-jwt-token', template.users.admin.token)
-              .send(tempForm)
+              .send(_.omit(tempForm, 'modified'))
               .expect(200)
               .expect('Content-Type', /json/)
               .end(function(err, res) {
@@ -3893,7 +3893,7 @@ module.exports = function(app, template, hook) {
             request(app)
               .put(hook.alter('url', '/' + tempForm.path, template))
               .set('x-jwt-token', template.users.admin.token)
-              .send(tempForm)
+              .send(_.omit(tempForm, 'modified'))
               .expect(200)
               .expect('Content-Type', /json/)
               .end(function(err, res) {
@@ -3950,7 +3950,7 @@ module.exports = function(app, template, hook) {
             request(app)
               .put(hook.alter('url', '/' + tempForm.path, template))
               .set('x-jwt-token', template.users.admin.token)
-              .send(tempForm)
+              .send(_.omit(tempForm, 'modified'))
               .expect(200)
               .expect('Content-Type', /json/)
               .end(done);
