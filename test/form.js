@@ -2104,7 +2104,7 @@ module.exports = function(app, template, hook) {
           request(app)
             .put(hook.alter('url', '/form/' + form._id, template))
             .set('x-jwt-token', template.users.admin.token)
-            .send(form)
+            .send(_.omit(form, 'modified'))
             .expect('Content-Type', /json/)
             .expect(200)
             .end(function(err, res) {

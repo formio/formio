@@ -249,7 +249,7 @@ module.exports = function(app) {
     url += '/form/' + form._id;
 
     request(app).put(url)
-      .send(form)
+      .send(_.omit(form, 'modified'))
       .set('x-jwt-token', this.owner.token)
       .expect('Content-Type', /json/)
       .expect(200)
