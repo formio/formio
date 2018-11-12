@@ -608,7 +608,7 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
       }
       catch (e) {
         debug.error(e);
-        return res.sendStatus(500);
+        return res.sendStatus(400);
       }
     });
   });
