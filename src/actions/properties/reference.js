@@ -18,9 +18,9 @@ module.exports = router => {
     // Here we will clone the request, and then change the request body
     // and parameters to make it seem like a separate request to get
     // the reference submission.
-    sub.req = util.createSubRequest(req);
+    sub.req = util.createSubRequest(req, formId);
     if (!sub.req) {
-      return Promise.reject('Too many recursive requests.');
+      throw new Error('Too many recursive requests.');
     }
     sub.req.noResponse = true;
     sub.req.skipOwnerFilter = false;
@@ -37,7 +37,7 @@ module.exports = router => {
     sub.req.url = '/form/:formId/submission';
     sub.req.query = subQuery || {};
     sub.req.method = 'GET';
-    sub.res = util.createSubResponse(response);
+    sub.res = util.createSubResponse(response, formId);
     return sub;
   };
 
@@ -53,7 +53,12 @@ module.exports = router => {
           return reject();
         }
       };
-      sub = getSubRequest(component, null, req, res, respond);
+      try {
+          sub = getSubRequest(component, null, req, res, respond);
+      }
+      catch (err) {
+        return reject(err);
+      }
       async.applyEachSeries(router.formio.resources.submission.handlers.beforeIndex, sub.req, sub.res, (err) => {
         if (err) {
           return reject(err);
@@ -76,7 +81,12 @@ module.exports = router => {
           return reject(sub.res.statusMessage);
         }
       };
-      sub = getSubRequest(component, query, req, res, respond);
+      try {
+          sub = getSubRequest(component, query, req, res, respond);
+      }
+      catch (err) {
+        return reject(err);
+      }
       if (router.resourcejs.hasOwnProperty(sub.req.url) && router.resourcejs[sub.req.url].hasOwnProperty('get')) {
         router.resourcejs[sub.req.url].get.call(this, sub.req, sub.res, respond);
       }

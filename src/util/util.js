@@ -136,9 +136,16 @@ const Utils = {
    *
    * @param req
    */
-  createSubRequest(req) {
+  createSubRequest(req, formId) {
     // Determine how many child requests have been made.
     let childRequests = req.childRequests || 0;
+
+    // Don't allow recursive forms.
+    req.parentForms = req.parentForms || [];
+    req.parentForms.push(req.formId);
+    if (req.parentForms.indexOf(formId) !== -1) {
+      return null;
+    }
 
     // Break recursive child requests.
     if (childRequests > 5) {
