@@ -21,12 +21,12 @@ module.exports = function(router) {
 
     // Should never get here without a form id present..
     if (!req.formId) {
-      return res.sendStatus(500);
+      return res.sendStatus(400);
     }
 
     // Should never get here with a submission id present..
     if (req.subId) {
-      return res.sendStatus(500);
+      return res.sendStatus(400);
     }
 
     // Cant determine submission resource access for not authenticated users.
