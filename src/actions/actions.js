@@ -166,6 +166,13 @@ module.exports = (router) => {
       // Find the available actions.
       this.search(handler, method, req, res, (err, actions) => {
         if (err) {
+          router.formio.log(
+            'Actions search fail',
+            req,
+            handler,
+            method,
+            err
+          );
           return next(err);
         }
 
@@ -182,6 +189,7 @@ module.exports = (router) => {
           action.resolve(handler, method, req, res, cb);
         }, (err) => {
           if (err) {
+            router.formio.log('Actions execution fail', req, handler, method, err);
             return next(err);
           }
 
@@ -227,6 +235,11 @@ module.exports = (router) => {
           return sandbox.execute;
         }
         catch (err) {
+          router.formio.log(
+            'Error during executing action custom logic',
+            req,
+            err
+          );
           debug.error(err);
           return false;
         }
@@ -544,6 +557,7 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
     async.eachSeries(_.values(ActionIndex.actions), (action, callback) => {
       action.info(req, res, (err, info) => {
         if (err) {
+          router.formio.log('Error, can\'t get action info', req, err);
           return callback(err);
         }
         if (!info || (info.name === 'default')) {
@@ -555,6 +569,7 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
       });
     }, (err) => {
       if (err) {
+        router.formio.log('Error during actions info parsing', req, err);
         return next(err);
       }
 
@@ -571,6 +586,7 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
 
     action.info(req, res, (err, info) => {
       if (err) {
+        router.formio.log('Error, can\'t get action info', req, err);
         return next(err);
       }
 
@@ -584,11 +600,13 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
       try {
         getSettingsForm(action, req, (err, settings) => {
           if (err) {
+            router.formio.log('Error, can\'t get action settings', req, err);
             return res.status(400).send(err);
           }
 
           action.settingsForm(req, res, (err, settingsForm) => {
             if (err) {
+              router.formio.log('Error, can\'t get form settings', req, err);
               return next(err);
             }
 
@@ -609,7 +627,7 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
       }
       catch (e) {
         debug.error(e);
-        return res.sendStatus(500);
+        return res.sendStatus(400);
       }
     });
   });

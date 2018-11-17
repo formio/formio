@@ -4,7 +4,17 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## UNRELEASED
+## 1.37.0
+### Added
+ - Logging for action failures
+
+### Changed
+ - Respond with 400 errors instead of 500 when an error occurs.
+ 
+### Updated
+ - resourcejs 1.30.0
+
+## 1.36.0
 ### Removed
  - Merge form handler
 
