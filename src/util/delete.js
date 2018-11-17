@@ -245,7 +245,7 @@ module.exports = (router) => {
     // Build the search query and allow anyone to hook it.
     const query = hook.alter('formQuery', {deleted: {$eq: null}}, req);
 
-    return router.formio.resources.form.model.find(query).select('_id').exec()
+    return router.formio.resources.form.model.find(query).select('_id').lean().exec()
       .then((forms) => {
         if (!forms) {
           return Promise.resolve();

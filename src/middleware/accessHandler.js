@@ -1,8 +1,6 @@
 'use strict';
 /*eslint max-statements: 0*/
 
-const _ = require('lodash');
-
 /**
  * The Access handler returns all the access information for the forms and roles within the project.
  *
@@ -18,15 +16,16 @@ module.exports = function(router) {
         admin: 1,
         default: 1
       })
+      .lean()
       .exec(function(err, roleResult) {
         if (err || !roleResult) {
           return res.status(400).send('Could not load the Roles.');
         }
 
         const roles = {};
-        _.each(roleResult, function(role) {
+        roleResult.forEach((role) => {
           if (role.title) {
-            roles[role.title.replace(/\s/g, '').toLowerCase()] = role.toObject();
+            roles[role.title.replace(/\s/g, '').toLowerCase()] = role;
           }
         });
 
@@ -39,14 +38,15 @@ module.exports = function(router) {
             access: 1,
             submissionAccess: 1
           })
+          .lean()
           .exec(function(err, formResult) {
             if (err || !formResult) {
               return res.status(400).send('Could not load the Forms.');
             }
 
             const forms = {};
-            _.each(formResult, function(form) {
-              forms[form.name] = form.toObject();
+            formResult.forEach(form => {
+              forms[form.name] = form;
             });
 
             // Allow other systems to add to the access information.

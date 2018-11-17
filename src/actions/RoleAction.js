@@ -42,6 +42,7 @@ module.exports = function(router) {
     static settingsForm(req, res, next) {
       router.formio.resources.role.model.find(hook.alter('roleQuery', {deleted: {$eq: null}}, req))
         .sort({title: 1})
+        .lean()
         .exec(function(err, roles) {
           if (err || !roles) {
             return res.status(400).send('Could not load the Roles.');
@@ -175,7 +176,7 @@ module.exports = function(router) {
       const loadUser = function(submission, callback) {
         debug.loadUser(submission);
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-        submissionModel.findById(submission, function(err, user) {
+        submissionModel.findById(submission).exec((err, user) => {
           if (err) {
             return res.status(400).send(err.message || err);
           }
@@ -306,12 +307,12 @@ module.exports = function(router) {
 
         // Confirm that the given/configured role is actually accessible.
         const query = hook.alter('roleQuery', {_id: role, deleted: {$eq: null}}, req);
-        router.formio.resources.role.model.findOne(query, function(err, role) {
+        router.formio.resources.role.model.findOne(query).lean().exec((err, role) => {
           if (err || !role) {
             return res.status(400).send('The given role was not found.');
           }
 
-          role = role.toObject()._id.toString();
+          role = role._id.toString();
           debug.roleManipulation(role);
           if (type === 'add') {
             addRole(role, resource, association);
@@ -333,10 +334,10 @@ module.exports = function(router) {
        * Resolve the action.
        */
       if (typeof resource === 'string') {
-        loadUser(resource, function(user) {
+        loadUser(resource, (user) => {
           resource = user;
           roleManipulation(this.settings.type, this.settings.association);
-        }.bind(this));
+        });
       }
       else {
         roleManipulation(this.settings.type, this.settings.association);

@@ -73,6 +73,7 @@ module.exports = (router) => {
         deleted: {$eq: null}
       })
       .sort('-priority')
+      .lean()
       .exec((err, result) => {
         if (err) {
           return next(err);
