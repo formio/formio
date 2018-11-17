@@ -230,7 +230,7 @@ module.exports = function(router) {
 
     // Find the user object.
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-    submissionModel.findOne(query, function(err, user) {
+    submissionModel.findOne(query).lean().exec((err, user) => {
       if (err) {
         return next(err);
       }
@@ -238,7 +238,6 @@ module.exports = function(router) {
         return next('User or password was incorrect');
       }
 
-      user = user.toObject();
       if (!_.get(user.data, passField)) {
         return next('Your account does not have a password. You must reset your password to login.');
       }
@@ -256,15 +255,13 @@ module.exports = function(router) {
         router.formio.resources.form.model.findOne({
           _id: user.form,
           deleted: {$eq: null}
-        }, function(err, form) {
+        }).lean().exec((err, form) => {
           if (err) {
             return next(err);
           }
           if (!form) {
             return next('User form not found.');
           }
-
-          form = form.toObject();
 
           // Allow anyone to hook and modify the user.
           hook.alter('user', user, function hookUserCallback(err, _user) {

@@ -87,11 +87,9 @@ module.exports = (router) => {
 
             // Create the query stream.
             const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-            const stream = submissionModel.find(query)
+            const stream = submissionModel.find(query).lean()
               .cursor()
-              .pipe(through(function(doc) {
-                const row = doc.toObject({getters: true, virtuals: false});
-
+              .pipe(through(function(row) {
                 addUrl(row.data);
                 router.formio.util.removeProtectedFields(form, 'export', row);
 

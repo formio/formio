@@ -317,16 +317,18 @@ module.exports = function(req, router, cb) {
     });
   }
   else {
-    router.formio.resources.form.model.find(hook.alter('formQuery', {deleted: {$eq: null}}, req), function(err, forms) {
-      if (err) {
-        throw err;
-      }
+    router.formio.resources.form.model.find(hook.alter('formQuery', {deleted: {$eq: null}}, req))
+      .lean()
+      .exec((err, forms) => {
+        if (err) {
+          throw err;
+        }
 
-      const specs = [];
-      forms.forEach(function(form) {
-        specs.push(submissionSwagger(form));
+        const specs = [];
+        forms.forEach(function(form) {
+          specs.push(submissionSwagger(form));
+        });
+        cb(swaggerSpec(specs, options));
       });
-      cb(swaggerSpec(specs, options));
-    });
   }
 };
