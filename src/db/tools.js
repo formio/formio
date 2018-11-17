@@ -19,16 +19,15 @@ module.exports = function(db, schema) {
     updateLockVersion(version, callback) {
       schema.findOneAndUpdate(
         {key: 'formio'},
-        {$set: {version: version}},
-        function(err, document) {
-          if (err) {
-            throw err;
-          }
-
-          util.log(` > Upgrading MongoDB Schema lock to v${version}`);
-          callback();
+        {$set: {version: version}}
+      ).lean().exec((err, document) => {
+        if (err) {
+          throw err;
         }
-      );
+
+        util.log(` > Upgrading MongoDB Schema lock to v${version}`);
+        callback();
+      });
     },
     /**
      * Encrypt some text
