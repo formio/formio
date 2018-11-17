@@ -81,23 +81,21 @@ module.exports = function(router) {
       }
 
       router.formio.resources.form.model.findOne(
-        hook.alter('formQuery', query, req),
-        function(err, result) {
-          if (err) {
-            debug.loadForm(err);
-            return cb(err);
-          }
-          if (!result) {
-            debug.loadForm('Resource not found for the query');
-            return cb('Resource not found');
-          }
+        hook.alter('formQuery', query, req)
+      ).lean().exec((err, result) => {
+        if (err) {
+          debug.loadForm(err);
+          return cb(err);
+        }
+        if (!result) {
+          debug.loadForm('Resource not found for the query');
+          return cb('Resource not found');
+        }
 
-          result = result.toObject();
-          this.updateCache(req, cache, result);
-          debug.loadForm('Caching result');
-          cb(null, result);
-        }.bind(this)
-      );
+        this.updateCache(req, cache, result);
+        debug.loadForm('Caching result');
+        cb(null, result);
+      });
     },
 
     getCurrentFormId(req) {
@@ -166,21 +164,19 @@ module.exports = function(router) {
       const query = {_id: subId, form: formId, deleted: {$eq: null}};
       debug.loadSubmission(query);
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.findOne(query)
-        .exec(function(err, submission) {
-          if (err) {
-            debug.loadSubmission(err);
-            return cb(err);
-          }
-          if (!submission) {
-            debug.loadSubmission('No submission found for the given query.');
-            return cb(null, null);
-          }
+      submissionModel.findOne(query).lean().exec((err, submission) => {
+        if (err) {
+          debug.loadSubmission(err);
+          return cb(err);
+        }
+        if (!submission) {
+          debug.loadSubmission('No submission found for the given query.');
+          return cb(null, null);
+        }
 
-          submission = submission.toObject();
-          cache.submissions[subId] = submission;
-          cb(null, submission);
-        });
+        cache.submissions[subId] = submission;
+        cb(null, submission);
+      });
     },
 
     /**
@@ -221,7 +217,7 @@ module.exports = function(router) {
           deleted: {$eq: null}
         }, req);
 
-        router.formio.resources.form.model.findOne(query).exec(function(err, result) {
+        router.formio.resources.form.model.findOne(query).lean().exec((err, result) => {
           if (err) {
             debug.loadFormByName(err);
             return cb(err);
@@ -230,10 +226,9 @@ module.exports = function(router) {
             return cb('Resource not found');
           }
 
-          result = result.toObject();
           this.updateCache(req, cache, result);
           cb(null, result);
-        }.bind(this));
+        });
       }
     },
 
@@ -252,7 +247,7 @@ module.exports = function(router) {
           deleted: {$eq: null}
         }, req);
 
-        router.formio.resources.form.model.findOne(query).exec(function(err, result) {
+        router.formio.resources.form.model.findOne(query).lean().exec((err, result) => {
           if (err) {
             debug.loadFormByAlias(err);
             return cb(err);
@@ -261,10 +256,9 @@ module.exports = function(router) {
             return cb('Resource not found');
           }
 
-          result = result.toObject();
           this.updateCache(req, cache, result);
           cb(null, result);
-        }.bind(this));
+        });
       }
     },
 

@@ -161,15 +161,6 @@ module.exports = function(router) {
           res.token = null;
           return next();
         }
-        else {
-          try {
-            // Ensure that the user is a js object and not a mongoose document.
-            user = user.toObject();
-          }
-          catch (e) {
-            //debug.error(e);
-          }
-        }
 
         // Allow anyone to alter the user.
         debug.handler(user);

@@ -34,11 +34,10 @@ module.exports = (router) => {
     }
 
     // Load the role in question.
-    router.formio.resources.role.model.findById(roleId).exec(function(err, role) {
+    router.formio.resources.role.model.findById(roleId).lean().exec(function(err, role) {
       if (err || !role) {
         return res.status(404).send('Unknown Role.');
       }
-      role = role.toObject();
 
       // Do not allow default roles to be deleted.
       if (role.default || role.admin) {

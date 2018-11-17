@@ -280,20 +280,19 @@ module.exports = (router) => {
           model.findOneAndUpdate(
             {_id: resource._id, deleted: {$eq: null}},
             {components: resource.components},
-            {new: true},
-            (err, doc) => {
-              if (err) {
-                return next(err);
-              }
-              if (!doc) {
-                return next();
-              }
-
-              resources[machineName] = doc.toObject();
-              debug.cleanUp(`Updated resource component _ids for`, machineName);
-              next();
+            {new: true}
+          ).lean().exec((err, doc) => {
+            if (err) {
+              return next(err);
             }
-          );
+            if (!doc) {
+              return next();
+            }
+
+            resources[machineName] = doc;
+            debug.cleanUp(`Updated resource component _ids for`, machineName);
+            next();
+          });
         }, done);
       },
       query(document, template) {
@@ -328,20 +327,19 @@ module.exports = (router) => {
           model.findOneAndUpdate(
             {_id: form._id, deleted: {$eq: null}},
             {components: form.components},
-            {new: true},
-            (err, doc) => {
-              if (err) {
-                return next(err);
-              }
-              if (!doc) {
-                return next();
-              }
-
-              forms[machineName] = doc.toObject();
-              debug.cleanUp(`Updated form component _ids for`, machineName);
-              next();
+            {new: true}
+          ).lean().exec((err, doc) => {
+            if (err) {
+              return next(err);
             }
-          );
+            if (!doc) {
+              return next();
+            }
+
+            forms[machineName] = doc;
+            debug.cleanUp(`Updated form component _ids for`, machineName);
+            next();
+          });
         }, done);
       },
       query(document, template) {
@@ -443,7 +441,7 @@ module.exports = (router) => {
             deleted: {$eq: null}
           };
 
-          model.findOne(query, (err, doc) => {
+          model.findOne(query).exec((err, doc) => {
             if (err) {
               debug.install(err);
               return next(err);

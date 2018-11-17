@@ -593,7 +593,7 @@ const Utils = {
       query._id = {$ne: document._id};
     }
 
-    model.find(query, (err, records) => {
+    model.find(query).lean().exec((err, records) => {
       if (err) {
         return next(err);
       }
