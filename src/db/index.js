@@ -80,16 +80,17 @@ module.exports = function(formio) {
     schema.findOneAndUpdate(
       {key: 'formio'},
       {$set: {isLocked: currentLock.isLocked}},
-      {returnOriginal: false}
-    ).lean().exec((err, result) => {
-      if (err) {
-        return next(err);
-      }
+      {returnOriginal: false},
+      (err, result) => {
+        if (err) {
+          return next(err);
+        }
 
-      currentLock = result.value;
-      debug.db('Lock unlocked');
-      next();
-    });
+        currentLock = result.value;
+        debug.db('Lock unlocked');
+        next();
+      }
+    );
   };
 
   /**
@@ -282,7 +283,7 @@ module.exports = function(formio) {
 
       debug.sanity('Checking formio schema');
       // A cached response was not viable here, query and update the cache.
-      schema.findOne({key: 'formio'}).lean().exec((err, document) => {
+      schema.findOne({key: 'formio'}, (err, document) => {
         if (err || !document) {
           cache.full.isValid = false;
           cache.partial.isValid = false;
@@ -397,16 +398,17 @@ module.exports = function(formio) {
           schema.findOneAndUpdate(
             {key: 'formio'},
             {$set: {isLocked: (new Date()).getTime()}},
-            {returnOriginal: false}
-          ).lean().exec((err, result) => {
-            if (err) {
-              throw err;
-            }
+            {returnOriginal: false},
+            (err, result) => {
+              if (err) {
+                throw err;
+              }
 
-            currentLock = result.value;
-            debug.db('Lock engaged');
-            next();
-          });
+              currentLock = result.value;
+              debug.db('Lock engaged');
+              next();
+            }
+          );
         }
       }
     });
