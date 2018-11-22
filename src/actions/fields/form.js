@@ -31,12 +31,12 @@ module.exports = router => {
           });
         }
 
-        return res.status(childRes.statusCode).json(err);
+        return res.headersSent ? next() : res.status(childRes.statusCode).json(err);
       }
     });
     const childReq = router.formio.util.createSubRequest(req);
     if (!childReq) {
-      return res.status(400).json('Too many recursive requests.');
+      return res.headersSent ? next() : res.status(400).json('Too many recursive requests.');
     }
     childReq.body = subSubmission;
     childReq.params.formId = component.form;
