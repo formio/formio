@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.37.3
+### Fixed
+ - Potential crash with the subform responses.
+ - Upgraded config@3.0.0, csv@5.0.0, mongoose@5.3.13, formiojs@3.9.0, joi@14.1.0, nodemailer@4.7.0
+
 ## 1.37.0
 ### Added
  - Logging for action failures
