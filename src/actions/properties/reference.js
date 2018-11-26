@@ -18,7 +18,7 @@ module.exports = router => {
     // Here we will clone the request, and then change the request body
     // and parameters to make it seem like a separate request to get
     // the reference submission.
-    sub.req = util.createSubRequest(req, formId);
+    sub.req = util.createSubRequest(req);
     if (!sub.req) {
       throw new Error('Too many recursive requests.');
     }
@@ -37,7 +37,7 @@ module.exports = router => {
     sub.req.url = '/form/:formId/submission';
     sub.req.query = subQuery || {};
     sub.req.method = 'GET';
-    sub.res = util.createSubResponse(response, formId);
+    sub.res = util.createSubResponse(response);
     return sub;
   };
 
