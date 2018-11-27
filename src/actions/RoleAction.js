@@ -1,7 +1,9 @@
 'use strict';
 
 const _ = require('lodash');
+const emsg = require('../util/error-messages');
 const debug = {
+  role: require('debug')('formio:action:role'),
   loadUser: require('debug')('formio:action:role#loadUser'),
   addRole: require('debug')('formio:action:role#addRole'),
   removeRole: require('debug')('formio:action:role#removeRole'),
@@ -45,7 +47,8 @@ module.exports = function(router) {
         .lean()
         .exec(function(err, roles) {
           if (err || !roles) {
-            return res.status(400).send('Could not load the Roles.');
+            debug.role(emsg.role.EROLESLOAD, req, err);
+            return res.status(400).send(emsg.role.EROLESLOAD);
           }
 
           next(null, [
@@ -178,9 +181,11 @@ module.exports = function(router) {
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         submissionModel.findById(submission).exec((err, user) => {
           if (err) {
+            debug.loadUser(emsg.submission.ESUBLOAD, req, err);
             return res.status(400).send(err.message || err);
           }
           if (!user) {
+            debug.loadUser(emsg.submission.ENOSUB, req, err);
             return res.status(400).send('No Submission was found with the given setting `submission`.');
           }
 
@@ -214,7 +219,7 @@ module.exports = function(router) {
         if (typeof submission.save === 'function') {
           submission.save(function(err) {
             if (err) {
-              debug.updateModel(err);
+              debug.updateModel(emsg.submission.ESUBSAVE, req, err);
               return next(err);
             }
 
@@ -244,7 +249,10 @@ module.exports = function(router) {
         });
 
         if (compare.indexOf(role) !== -1) {
-          debug.addRole('The given role to add was found in the current list of roles already.');
+          debug.addRole(
+            emsg.role.EROLEEXIST,
+            'The given role to add was found in the current list of roles already.'
+          );
           return next();
         }
 
@@ -282,7 +290,7 @@ module.exports = function(router) {
         }
 
         if (compare.indexOf(role) === -1) {
-          debug.removeRole('The given role to remove was not found.');
+          debug.removeRole(emsg.role.ENOROLE, 'The given role to remove was not found.', role);
           return next();
         }
 
@@ -308,8 +316,13 @@ module.exports = function(router) {
         // Confirm that the given/configured role is actually accessible.
         const query = hook.alter('roleQuery', {_id: role, deleted: {$eq: null}}, req);
         router.formio.resources.role.model.findOne(query).lean().exec((err, role) => {
-          if (err || !role) {
-            return res.status(400).send('The given role was not found.');
+          if (err) {
+            debug.roleManipulation(emsg.role.EROLELOAD, req, err);
+            return res.status(400).send(emsg.role.EROLELOAD);
+          }
+          if (!role) {
+            debug.roleManipulation(emsg.role.ENOROLE);
+            return res.status(400).send(emsg.role.ENOROLE);
           }
 
           role = role._id.toString();
