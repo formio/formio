@@ -1,4 +1,5 @@
 'use strict';
+const emsg = require('../util/error-messages');
 const request = require('request');
 
 module.exports = function(router) {
@@ -40,6 +41,7 @@ module.exports = function(router) {
       // Get the available transports.
       emailer.availableTransports(req, function(err, availableTransports) {
         if (err) {
+          debug(emsg.emailer.ENOTRANSP, req, err);
           return next(err);
         }
         const settingsForm = [
@@ -148,10 +150,13 @@ module.exports = function(router) {
       // Load the form for this request.
       router.formio.cache.loadCurrentForm(req, (err, form) => {
         if (err) {
+          debug(emsg.cache.EFORMLOAD, req, err);
           return next(err);
         }
         if (!form) {
-          return next(new Error('Form not found.'));
+          const err = new Error(emsg.form.ENOFORM);
+          debug(emsg.cache.EFORMLOAD, req, err);
+          return next(err);
         }
 
         // Dont block on sending emails.
@@ -201,14 +206,12 @@ module.exports = function(router) {
             // Send the email.
             emailer.send(req, res, this.settings, params, (err) => {
               if (err) {
-                debug(`[error]: ${JSON.stringify(err)}`);
+                debug(emsg.emailer.ESENDMAIL, req, JSON.stringify(err));
               }
             });
           });
         })
-        .catch(err => {
-          debug(err);
-        });
+        .catch(err => debug(emsg.emailer.ESUBPARAMS, req, err));
       });
     }
   }

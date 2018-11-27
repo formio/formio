@@ -1,5 +1,6 @@
 'use strict';
 
+const emsg = require('../util/error-messages');
 const util = require('../util/util');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
@@ -8,6 +9,7 @@ module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router.formio);
+  const debug = require('debug')('formio:action:passrest');
 
   /**
    * ResetPasswordAction class.
@@ -38,6 +40,7 @@ module.exports = function(router) {
       // Get the available email transports.
       emailer.availableTransports(req, function(err, availableTransports) {
         if (err) {
+          debug(emsg.emailer.ENOTRANSP, req, err);
           return next(err);
         }
 
@@ -199,7 +202,8 @@ module.exports = function(router) {
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
       submissionModel.findOne(query, function(err, submission) {
         if (err || !submission) {
-          return next.call(this, 'Submission not found.');
+          debug(emsg.submission.ENOSUB, req, err);
+          return next.call(this, emsg.submission.ENOSUB);
         }
 
         // Submission found.
@@ -220,18 +224,21 @@ module.exports = function(router) {
       this.getSubmission(req, token, function(err, submission) {
         // Make sure we found the user.
         if (err || !submission) {
-          return next.call(this, 'User not found.');
+          debug(emsg.user.ENOUSER, req, err);
+          return next.call(this, emsg.user.ENOUSER);
         }
 
         // Get the name of the password field.
         if (!this.settings.password) {
-          return next.call(this, 'Invalid password field');
+          debug(emsg.auth.EPASSFIELD, req, new Error(emsg.auth.EPASSFIELD));
+          return next.call(this, emsg.auth.EPASSFIELD);
         }
 
         // Manually encrypt and update the password.
         router.formio.encrypt(password, function(err, hash) {
           if (err) {
-            return next.call(this, 'Unable to change password.');
+            debug(emsg.auth.EPASSRESET, req, new Error(emsg.auth.EPASSRESET));
+            return next.call(this, emsg.auth.EPASSRESET);
           }
 
           const setValue = {};
@@ -244,7 +251,8 @@ module.exports = function(router) {
             {$set: setValue},
             function(err, newSub) {
               if (err) {
-                return next.call(this, 'Unable to reset password.');
+                debug(emsg.auth.EPASSRESET, req, new Error(emsg.auth.EPASSRESET));
+                return next.call(this, emsg.auth.EPASSRESET);
               }
 
               // The submission was saved!
@@ -267,6 +275,7 @@ module.exports = function(router) {
 
         // Make sure they have a username.
         if (!username) {
+          debug(emsg.user.ENONAMEP, req, new Error(emsg.user.ENONAMEP));
           return res.status(400).send('You must provide a username to reset your password.');
         }
 
@@ -282,7 +291,8 @@ module.exports = function(router) {
         // Look up the user.
         this.getSubmission(req, token, function(err, submission) {
           if (err || !submission) {
-            return res.status(400).send('User not found.');
+            debug(emsg.user.ENOUSER, req, err);
+            return res.status(400).send(emsg.user.ENOUSER);
           }
 
           // Generate a temporary token for resetting their password.
@@ -302,7 +312,10 @@ module.exports = function(router) {
             emails: username,
             subject: this.settings.subject,
             message: this.settings.message
-          }, _.assign(params, req.body), function() {
+          }, _.assign(params, req.body), function(err) {
+            if (err) {
+              debug(emsg.emailer.ESENDMAIL, req, JSON.stringify(err));
+            }
             // Let them know an email is on its way.
             res.status(200).json({
               message: 'Password reset email was sent.'
@@ -380,18 +393,21 @@ module.exports = function(router) {
           !req.tempToken.username ||
           !req.tempToken.form
         ) {
-          return res.status(400).send('Invalid reset password token');
+          debug(emsg.auth.ERESETTOKEN, req);
+          return res.status(400).send(emsg.auth.ERESETTOKEN);
         }
 
         // Get the password
         const password = _.get(req.submission.data, this.settings.password);
         if (!password) {
-          return next.call(this, 'No password provided.');
+          debug(emsg.auth.ENOPASSP);
+          return next.call(this, emsg.auth.ENOPASSP);
         }
 
         // Update the password.
         this.updatePassword(req, req.tempToken, password, function(err) {
           if (err) {
+            debug(emsg.auth.EPASSRESET, req, new Error(emsg.auth.EPASSRESET));
             return res.status(400).send('Unable to update the password. Please try again.');
           }
           res.status(200).send({

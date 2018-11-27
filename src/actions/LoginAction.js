@@ -1,10 +1,12 @@
 'use strict';
 
+const emsg = require('../util/error-messages');
 const _ = require('lodash');
 
 module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
+  const debug = require('debug')('formio:action:login');
 
   /**
    * AuthAction class.
@@ -273,12 +275,14 @@ module.exports = function(router) {
         _.get(req.submission.data, this.settings.password),
         function(err, response) {
           if (err && !response) {
+            debug(emsg.auth.EAUTH, err);
             return res.status(401).send(err);
           }
 
           // Check the amount of attempts made by this user.
           this.checkAttempts(err, req, response.user, function(error) {
             if (error) {
+              debug(emsg.auth.EAUTH, error);
               return res.status(401).send(error);
             }
 
@@ -289,6 +293,7 @@ module.exports = function(router) {
             req['x-jwt-token'] = response.token.token;
             router.formio.auth.currentUser(req, res, function(err) {
               if (err) {
+                debug(emsg.auth.EAUTH, err);
                 return res.status(401).send(err.message);
               }
 
