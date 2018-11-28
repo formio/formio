@@ -212,7 +212,7 @@ module.exports = function(app, template, hook) {
           .get(hook.alter('url', '/form/' + tempForm._id + '/action/💩', template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
-          .expect(500)
+          .expect(400)
           .end(function(err, res) {
             if (err) {
               return done(err);

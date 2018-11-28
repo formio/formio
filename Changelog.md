@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ## 1.37.4
+### Changed
+ - Updated to resourcejs v1.33.0 which changes more 500 errors to 400s.
+
+## 1.37.4
 ### Fixed
  - Potential issues with the recursive forms not loading correctly.
 
