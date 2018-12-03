@@ -8,7 +8,7 @@ module.exports = {
   },
   db: {
     EINVQUERY:     'Invalid query.',
-    EDBCONN:       'Connection errro.',
+    EDBCONN:       'Connection error.',
     EQUERY:        'Query request error.',
   },
   emailer: {
@@ -28,6 +28,7 @@ module.exports = {
     EPASSRESET:    'Unable to change password.',
     ERESETTOKEN:   'Invalid reset password token.',
     ENOPASSP:      'No password provided.',
+    ELOGINCOUNT:   'Unable to update login count.',
   },
   submission: {
     ENOSUB:        'Submission not found.',
@@ -43,5 +44,12 @@ module.exports = {
     ENOROLE:       'Role not found.',
     EROLELOAD:     'Cannot load role.',
     EROLEEXIST:    'Provided role already exists.',
+  },
+  request: {
+    EREQRECUR:     'Too many recursive requests.',
+  },
+  resource: {
+    ENOIDP:        'Resource id is misssing.',
+    ENOHANDLER:    'Resource handler not found.'
   }
 };

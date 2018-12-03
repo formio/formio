@@ -5,11 +5,15 @@ const util = require('../util/util');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 
+const LOG_EVENT = 'Reset Password Action';
+
 module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router.formio);
   const debug = require('debug')('formio:action:passrest');
+  const logOutput = router.formio.log || debug;
+  const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**
    * ResetPasswordAction class.
@@ -40,7 +44,7 @@ module.exports = function(router) {
       // Get the available email transports.
       emailer.availableTransports(req, function(err, availableTransports) {
         if (err) {
-          debug(emsg.emailer.ENOTRANSP, req, err);
+          log(req, emsg.emailer.ENOTRANSP, err);
           return next(err);
         }
 
@@ -202,7 +206,7 @@ module.exports = function(router) {
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
       submissionModel.findOne(query, function(err, submission) {
         if (err || !submission) {
-          debug(emsg.submission.ENOSUB, req, err);
+          log(req, emsg.submission.ENOSUB, err);
           return next.call(this, emsg.submission.ENOSUB);
         }
 
@@ -224,20 +228,20 @@ module.exports = function(router) {
       this.getSubmission(req, token, function(err, submission) {
         // Make sure we found the user.
         if (err || !submission) {
-          debug(emsg.user.ENOUSER, req, err);
+          log(req, emsg.user.ENOUSER, err);
           return next.call(this, emsg.user.ENOUSER);
         }
 
         // Get the name of the password field.
         if (!this.settings.password) {
-          debug(emsg.auth.EPASSFIELD, req, new Error(emsg.auth.EPASSFIELD));
+          log(req, emsg.auth.EPASSFIELD, new Error(emsg.auth.EPASSFIELD));
           return next.call(this, emsg.auth.EPASSFIELD);
         }
 
         // Manually encrypt and update the password.
         router.formio.encrypt(password, function(err, hash) {
           if (err) {
-            debug(emsg.auth.EPASSRESET, req, new Error(emsg.auth.EPASSRESET));
+            log(req, emsg.auth.EPASSRESET, err);
             return next.call(this, emsg.auth.EPASSRESET);
           }
 
@@ -251,7 +255,7 @@ module.exports = function(router) {
             {$set: setValue},
             function(err, newSub) {
               if (err) {
-                debug(emsg.auth.EPASSRESET, req, new Error(emsg.auth.EPASSRESET));
+                log(req, emsg.auth.EPASSRESET, err);
                 return next.call(this, emsg.auth.EPASSRESET);
               }
 
@@ -275,7 +279,7 @@ module.exports = function(router) {
 
         // Make sure they have a username.
         if (!username) {
-          debug(emsg.user.ENONAMEP, req, new Error(emsg.user.ENONAMEP));
+          log(req, emsg.user.ENONAMEP, new Error(emsg.user.ENONAMEP));
           return res.status(400).send('You must provide a username to reset your password.');
         }
 
@@ -291,7 +295,7 @@ module.exports = function(router) {
         // Look up the user.
         this.getSubmission(req, token, function(err, submission) {
           if (err || !submission) {
-            debug(emsg.user.ENOUSER, req, err);
+            log(req, emsg.user.ENOUSER, err);
             return res.status(400).send(emsg.user.ENOUSER);
           }
 
@@ -314,7 +318,7 @@ module.exports = function(router) {
             message: this.settings.message
           }, _.assign(params, req.body), function(err) {
             if (err) {
-              debug(emsg.emailer.ESENDMAIL, req, JSON.stringify(err));
+              log(req, emsg.emailer.ESENDMAIL, err);
             }
             // Let them know an email is on its way.
             res.status(200).json({
@@ -407,7 +411,7 @@ module.exports = function(router) {
         // Update the password.
         this.updatePassword(req, req.tempToken, password, function(err) {
           if (err) {
-            debug(emsg.auth.EPASSRESET, req, new Error(emsg.auth.EPASSRESET));
+            log(req, emsg.auth.EPASSRESET, new Error(emsg.auth.EPASSRESET));
             return res.status(400).send('Unable to update the password. Please try again.');
           }
           res.status(200).send({

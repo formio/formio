@@ -3,10 +3,16 @@
 const _ = require('lodash');
 const async = require('async');
 const util = require('../util/util');
+const emsg = require('../util/error-messages');
+
+const LOG_EVENT = 'Save Submission Action';
 
 module.exports = function(router) {
   const Action = router.formio.Action;
+  const debug = require('debug')('formio:action:saveSubmission');
   const hook = require('../util/hook')(router.formio);
+  const logOutput = router.formio.log || debug.role;
+  const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   // Execute a pre-save method for the SaveSubmission action.
   Action.schema.pre('save', function(next) {
@@ -92,7 +98,13 @@ module.exports = function(router) {
         // the child submissions.
         const childReq = util.createSubRequest(req);
         if (!childReq) {
-          return done('Too many recursive requests.');
+          log(
+            req,
+            emsg.request.EREQRECUR,
+            new Error(emsg.request.EREQRECUR),
+            '#resolve'
+          );
+          return done(emsg.request.EREQRECUR);
         }
 
         // Don't recheck permissions against the new resource.
@@ -109,7 +121,13 @@ module.exports = function(router) {
             url += '/:submissionId';
           }
           else {
-            return done('Unknown resource'); // Return an error.
+            log(
+              req,
+              emsg.resource.ENOIDP,
+              new Error(emsg.resource.ENOIDP),
+              '#resolve'
+            );
+            return done(emsg.resource.ENOIDP); // Return an error.
           }
         }
 
@@ -119,7 +137,16 @@ module.exports = function(router) {
           router.resourcejs[url][method].call(this, childReq, res, done);
         }
         else {
-          done('Unknown resource handler.');
+          log(
+            req,
+            emsg.resource.ENOHANDLER,
+            new Error(emsg.resource.ENOHANDLER),
+            '#resolve',
+            url,
+            method
+          );
+
+          done(emsg.resource.ENOHANDLER);
         }
       }.bind(this);
 
@@ -130,6 +157,7 @@ module.exports = function(router) {
       const loadResource = function(cache, then) {
         router.formio.cache.loadForm(req, 'resource', this.settings.resource, function(err, resource) {
           if (err) {
+            log(req, emsg.cache.EFORMLOAD, err, '#resolve');
             return then(err);
           }
 
@@ -235,6 +263,7 @@ module.exports = function(router) {
           req.body._id,
           function(err, currentSubmission) {
             if (err) {
+              log(req, emsg.submission.ESUBLOAD, err, '#resolve');
               return then(err);
             }
 
@@ -254,6 +283,7 @@ module.exports = function(router) {
               external.id,
               function(err, submission) {
                 if (err) {
+                  log(req, emsg.submission.ESUBLOAD, err, '#resolve');
                   return then();
                 }
 
@@ -271,6 +301,7 @@ module.exports = function(router) {
         async.apply(loadSubmission, cache)
       ], function(err) {
         if (err) {
+          log(req, err);
           return next(err);
         }
 

@@ -6,9 +6,13 @@ const _ = require('lodash');
 const debug = require('debug')('formio:action:sql');
 const emsg = require('../util/error-messages');
 
+const LOG_EVENT = 'SQL Action';
+
 module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
+  const logOutput = router.formio.log || debug.role;
+  const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**
    * SQLAction class.
@@ -31,10 +35,11 @@ module.exports = function(router) {
         }
       });
     }
+
     static settingsForm(req, res, next) {
       hook.settings(req, function(err, settings) {
         if (err) {
-          debug('settingsForm', emsg.app.ESETTINGSLOAD, req, err);
+          log(req, emsg.app.ESETTINGSLOAD, err, '#settingsForm');
           return next(null, {});
         }
 
@@ -132,7 +137,7 @@ module.exports = function(router) {
       // Load the settings.
       hook.settings(req, function(err, settings) {
         if (err) {
-          debug('settingsForm', emsg.app.ESETTINGSLOAD, req, err);
+          log(req, emsg.app.ESETTINGSLOAD, err, '#resolve');
           return next(err);
         }
 
@@ -145,18 +150,18 @@ module.exports = function(router) {
         });
 
         if (missingSetting) {
-          debug(emsg.app.EDBCONFIG, missingSetting);
+          log(req, emsg.app.EDBCONFIG, new Error(emsg.app.EDBCONFIG), '#resolve', missingSetting);
           return res.status(400).send(`Database settings is missing \`${missingSetting}\``);
         }
 
         // Make sure they cannot connect to localhost.
         if (settings.host.search(/localhost|127\.0\.0\.1/) !== -1) {
-          debug(emsg.app.EDBHOST, settings.host);
+          log(req, emsg.app.EDBHOST, new Error(emsg.app.EDBHOST), '#resolve', settings.host);
           return res.status(400).send('Invalid SQL Host');
         }
 
         const method = req.method.toLowerCase();
-        let wait   = method === 'get' && this.settings.type === 'mssql';
+        let wait = method === 'get' && this.settings.type === 'mssql';
 
         // Called when the submission is loaded.
         const onSubmission = function(submission) {
@@ -198,8 +203,8 @@ module.exports = function(router) {
           // Make sure our query is still valid.
           if (!query) {
             wait = false;
-            debug(emsg.db.EINVQUERY);
-            return res.status(400).send('Invalid Query');
+            log(req, emsg.db.EINVQUERY, new Error(emsg.db.EINVQUERY), '#resolve');
+            return res.status(400).send(emsg.db.EINVQUERY);
           }
 
           // Perform a post execution.
@@ -209,22 +214,24 @@ module.exports = function(router) {
             submissionModel.findOne(
               {_id: currentResource.item._id, deleted: {$eq: null}}
             ).exec(function(err, submission) {
-                if (err) {
-                  return router.formio.util.log(err);
-                }
+              if (err) {
+                log(req, emsg.submission.ESUBLOAD, err, '#resolve');
+                return;
+              }
 
-                // Update the submissions externalIds.
-                submission.externalIds = submission.externalIds || [];
-                submission.externalIds.push({
-                  type: 'SQLQuery',
-                  id: result.id
-                });
-                submission.save(function(err, submission) {
-                  if (err) {
-                    return router.formio.util.log(err);
-                  }
-                });
+              // Update the submissions externalIds.
+              submission.externalIds = submission.externalIds || [];
+              submission.externalIds.push({
+                type: 'SQLQuery',
+                id: result.id
               });
+              submission.save(function(err, submission) {
+                if (err) {
+                  log(req, emsg.submission.ESUBSAVE, err, '#resolve');
+                  return;
+                }
+              });
+            });
           };
 
           // Execute the query.
@@ -241,7 +248,7 @@ module.exports = function(router) {
             const pool = new mssql.ConnectionPool(config);
             pool.connect(function(err) {
               if (err) {
-                debug('MSSQL connection pool', emsg.db.EDBCONN, err);
+                log(req, emsg.db.EDBCONN, err, '#resolve', 'MSSQL connection pool');
                 if (wait) {
                   return next();
                 }
@@ -251,7 +258,7 @@ module.exports = function(router) {
               const request = new mssql.Request(pool);
               request.query(`${query}; SELECT SCOPE_IDENTITY() as id;`, function(err, result) {
                 if (err) {
-                  debug('MSQUL Request err', emsg.db.EQUERY, err);
+                  debug(req, emsg.db.EQUERY, err, '#resolve', 'MSSQL Request err');
                 }
                 if ((method === 'post') && !err) {
                   postExecute.call(this, result.recordset[0]);
@@ -277,7 +284,7 @@ module.exports = function(router) {
             });
             connection.query(query, function(err, result) {
               if (err) {
-                debug('MySQL query error.', emsg.db.EQUERY, err);
+                log(req, emsg.db.EQUERY, err, '#resolve', 'MySQL query error.');
               }
               if ((method === 'post') && !err) {
                 postExecute.call(this, {
@@ -295,7 +302,7 @@ module.exports = function(router) {
         else {
           router.formio.cache.loadCurrentSubmission(req, function(err, submission) {
             if (err) {
-              debug('Load current submission', emsg.submission.ESUBLOAD, err);
+              log(req, emsg.submission.ESUBLOAD, err, '#resolve', 'Load current submission');
             }
             if (!err && submission) {
               onSubmission(submission);
