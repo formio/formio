@@ -3,7 +3,6 @@
 const _ = require('lodash');
 const async = require('async');
 const util = require('../util/util');
-const emsg = require('../util/error-messages');
 
 const LOG_EVENT = 'Save Submission Action';
 
@@ -11,7 +10,8 @@ module.exports = function(router) {
   const Action = router.formio.Action;
   const debug = require('debug')('formio:action:saveSubmission');
   const hook = require('../util/hook')(router.formio);
-  const logOutput = router.formio.log || debug.role;
+  const ecode = router.formio.util.errorCodes;
+  const logOutput = router.formio.log || debug;
   const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   // Execute a pre-save method for the SaveSubmission action.
@@ -100,11 +100,11 @@ module.exports = function(router) {
         if (!childReq) {
           log(
             req,
-            emsg.request.EREQRECUR,
-            new Error(emsg.request.EREQRECUR),
+            ecode.request.EREQRECUR,
+            new Error(ecode.request.EREQRECUR),
             '#resolve'
           );
-          return done(emsg.request.EREQRECUR);
+          return done(ecode.request.EREQRECUR);
         }
 
         // Don't recheck permissions against the new resource.
@@ -123,11 +123,11 @@ module.exports = function(router) {
           else {
             log(
               req,
-              emsg.resource.ENOIDP,
-              new Error(emsg.resource.ENOIDP),
+              ecode.resource.ENOIDP,
+              new Error(ecode.resource.ENOIDP),
               '#resolve'
             );
-            return done(emsg.resource.ENOIDP); // Return an error.
+            return done(ecode.resource.ENOIDP); // Return an error.
           }
         }
 
@@ -139,14 +139,14 @@ module.exports = function(router) {
         else {
           log(
             req,
-            emsg.resource.ENOHANDLER,
-            new Error(emsg.resource.ENOHANDLER),
+            ecode.resource.ENOHANDLER,
+            new Error(ecode.resource.ENOHANDLER),
             '#resolve',
             url,
             method
           );
 
-          done(emsg.resource.ENOHANDLER);
+          done(ecode.resource.ENOHANDLER);
         }
       }.bind(this);
 
@@ -157,7 +157,7 @@ module.exports = function(router) {
       const loadResource = function(cache, then) {
         router.formio.cache.loadForm(req, 'resource', this.settings.resource, function(err, resource) {
           if (err) {
-            log(req, emsg.cache.EFORMLOAD, err, '#resolve');
+            log(req, ecode.cache.EFORMLOAD, err, '#resolve');
             return then(err);
           }
 
@@ -263,7 +263,7 @@ module.exports = function(router) {
           req.body._id,
           function(err, currentSubmission) {
             if (err) {
-              log(req, emsg.submission.ESUBLOAD, err, '#resolve');
+              log(req, ecode.submission.ESUBLOAD, err, '#resolve');
               return then(err);
             }
 
@@ -283,7 +283,7 @@ module.exports = function(router) {
               external.id,
               function(err, submission) {
                 if (err) {
-                  log(req, emsg.submission.ESUBLOAD, err, '#resolve');
+                  log(req, ecode.submission.ESUBLOAD, err, '#resolve');
                   return then();
                 }
 
