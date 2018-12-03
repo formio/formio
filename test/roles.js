@@ -10,7 +10,7 @@ var chance = new (require('chance'))();
 
 module.exports = function(app, template, hook) {
   var Helper = require('./helper')(app);
-  
+
   describe('Roles', function() {
     // Store the temp role for this test suite.
     var tempRole = {
@@ -172,7 +172,7 @@ module.exports = function(app, template, hook) {
           .get(hook.alter('url', '/role/💩', template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
-          .expect(500)
+          .expect(400)
           .end(function(err, res) {
             if (err) {
               return done(err);
