@@ -11,10 +11,14 @@ const debug = {
   updateModel: require('debug')('formio:action:role#updateModel')
 };
 
+const LOG_EVENT = 'Role Action';
+
 module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const util = router.formio.util;
+  const logOutput = router.formio.log || debug.role;
+  const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**
    * RoleAction class.
@@ -47,7 +51,7 @@ module.exports = function(router) {
         .lean()
         .exec(function(err, roles) {
           if (err || !roles) {
-            debug.role(emsg.role.EROLESLOAD, req, err);
+            log(req, emsg.role.EROLESLOAD, err);
             return res.status(400).send(emsg.role.EROLESLOAD);
           }
 
@@ -181,11 +185,11 @@ module.exports = function(router) {
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         submissionModel.findById(submission).exec((err, user) => {
           if (err) {
-            debug.loadUser(emsg.submission.ESUBLOAD, req, err);
+            log(req, emsg.submission.ESUBLOAD, err);
             return res.status(400).send(err.message || err);
           }
           if (!user) {
-            debug.loadUser(emsg.submission.ENOSUB, req, err);
+            log(req, emsg.submission.ENOSUB, err);
             return res.status(400).send('No Submission was found with the given setting `submission`.');
           }
 
@@ -219,7 +223,7 @@ module.exports = function(router) {
         if (typeof submission.save === 'function') {
           submission.save(function(err) {
             if (err) {
-              debug.updateModel(emsg.submission.ESUBSAVE, req, err);
+              log(req, emsg.submission.ESUBSAVE, err);
               return next(err);
             }
 
@@ -249,10 +253,7 @@ module.exports = function(router) {
         });
 
         if (compare.indexOf(role) !== -1) {
-          debug.addRole(
-            emsg.role.EROLEEXIST,
-            'The given role to add was found in the current list of roles already.'
-          );
+          log(req, emsg.role.EROLEEXIST);
           return next();
         }
 
@@ -317,11 +318,11 @@ module.exports = function(router) {
         const query = hook.alter('roleQuery', {_id: role, deleted: {$eq: null}}, req);
         router.formio.resources.role.model.findOne(query).lean().exec((err, role) => {
           if (err) {
-            debug.roleManipulation(emsg.role.EROLELOAD, req, err);
+            log(req, emsg.role.EROLELOAD, err, '#roleManipulation');
             return res.status(400).send(emsg.role.EROLELOAD);
           }
           if (!role) {
-            debug.roleManipulation(emsg.role.ENOROLE);
+            log(req, emsg.role.ENOROLE, new Error(emsg.role.ENOROLE), '#roleManipulation');
             return res.status(400).send(emsg.role.ENOROLE);
           }
 

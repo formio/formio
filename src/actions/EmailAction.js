@@ -2,11 +2,15 @@
 const emsg = require('../util/error-messages');
 const request = require('request');
 
+const LOG_EVENT = 'Email Action';
+
 module.exports = function(router) {
   const Action = router.formio.Action;
   const emailer = require('../util/email')(router.formio);
   const debug = require('debug')('formio:action:email');
   const macros = require('./macros/macros');
+  const logOutput = router.formio.log || debug;
+  const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**
    * EmailAction class.
@@ -41,7 +45,7 @@ module.exports = function(router) {
       // Get the available transports.
       emailer.availableTransports(req, function(err, availableTransports) {
         if (err) {
-          debug(emsg.emailer.ENOTRANSP, req, err);
+          log(req, emsg.emailer.ENOTRANSP, err);
           return next(err);
         }
         const settingsForm = [
@@ -150,12 +154,12 @@ module.exports = function(router) {
       // Load the form for this request.
       router.formio.cache.loadCurrentForm(req, (err, form) => {
         if (err) {
-          debug(emsg.cache.EFORMLOAD, req, err);
+          log(req, emsg.cache.EFORMLOAD, err);
           return next(err);
         }
         if (!form) {
           const err = new Error(emsg.form.ENOFORM);
-          debug(emsg.cache.EFORMLOAD, req, err);
+          log(req, emsg.cache.EFORMLOAD, err);
           return next(err);
         }
 
@@ -206,12 +210,12 @@ module.exports = function(router) {
             // Send the email.
             emailer.send(req, res, this.settings, params, (err) => {
               if (err) {
-                debug(emsg.emailer.ESENDMAIL, req, JSON.stringify(err));
+                log(req, emsg.emailer.ESENDMAIL, JSON.stringify(err));
               }
             });
           });
         })
-        .catch(err => debug(emsg.emailer.ESUBPARAMS, req, err));
+        .catch(err => log(req, emsg.emailer.ESUBPARAMS, err));
       });
     }
   }

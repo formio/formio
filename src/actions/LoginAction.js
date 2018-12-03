@@ -3,10 +3,14 @@
 const emsg = require('../util/error-messages');
 const _ = require('lodash');
 
+const LOG_EVENT = 'Login Action';
+
 module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const debug = require('debug')('formio:action:login');
+  const logOutput = router.formio.log || debug;
+  const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**
    * AuthAction class.
@@ -223,7 +227,8 @@ module.exports = function(router) {
         {$set: {metadata: user.metadata}},
         function(err) {
           if (err) {
-            return next.call(this, 'Unable to update login count.');
+            log(req, emsg.auth.ELOGINCOUNT, err);
+            return next.call(this, emsg.auth.ELOGINCOUNT);
           }
           next.call(this, error);
         }.bind(this)
@@ -275,14 +280,14 @@ module.exports = function(router) {
         _.get(req.submission.data, this.settings.password),
         function(err, response) {
           if (err && !response) {
-            debug(emsg.auth.EAUTH, err);
+            log(req, emsg.auth.EAUTH, err);
             return res.status(401).send(err);
           }
 
           // Check the amount of attempts made by this user.
           this.checkAttempts(err, req, response.user, function(error) {
             if (error) {
-              debug(emsg.auth.EAUTH, error);
+              log(req, emsg.auth.EAUTH, error);
               return res.status(401).send(error);
             }
 
@@ -293,7 +298,7 @@ module.exports = function(router) {
             req['x-jwt-token'] = response.token.token;
             router.formio.auth.currentUser(req, res, function(err) {
               if (err) {
-                debug(emsg.auth.EAUTH, err);
+                log(req, emsg.auth.EAUTH, err);
                 return res.status(401).send(err.message);
               }
 
