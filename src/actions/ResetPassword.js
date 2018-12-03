@@ -1,6 +1,5 @@
 'use strict';
 
-const emsg = require('../util/error-messages');
 const util = require('../util/util');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
@@ -12,6 +11,7 @@ module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router.formio);
   const debug = require('debug')('formio:action:passrest');
+  const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug;
   const log = (...args) => logOutput(LOG_EVENT, ...args);
 
@@ -44,7 +44,7 @@ module.exports = function(router) {
       // Get the available email transports.
       emailer.availableTransports(req, function(err, availableTransports) {
         if (err) {
-          log(req, emsg.emailer.ENOTRANSP, err);
+          log(req, ecode.emailer.ENOTRANSP, err);
           return next(err);
         }
 
@@ -206,8 +206,8 @@ module.exports = function(router) {
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
       submissionModel.findOne(query, function(err, submission) {
         if (err || !submission) {
-          log(req, emsg.submission.ENOSUB, err);
-          return next.call(this, emsg.submission.ENOSUB);
+          log(req, ecode.submission.ENOSUB, err);
+          return next.call(this, ecode.submission.ENOSUB);
         }
 
         // Submission found.
@@ -228,21 +228,21 @@ module.exports = function(router) {
       this.getSubmission(req, token, function(err, submission) {
         // Make sure we found the user.
         if (err || !submission) {
-          log(req, emsg.user.ENOUSER, err);
-          return next.call(this, emsg.user.ENOUSER);
+          log(req, ecode.user.ENOUSER, err);
+          return next.call(this, ecode.user.ENOUSER);
         }
 
         // Get the name of the password field.
         if (!this.settings.password) {
-          log(req, emsg.auth.EPASSFIELD, new Error(emsg.auth.EPASSFIELD));
-          return next.call(this, emsg.auth.EPASSFIELD);
+          log(req, ecode.auth.EPASSFIELD, new Error(ecode.auth.EPASSFIELD));
+          return next.call(this, ecode.auth.EPASSFIELD);
         }
 
         // Manually encrypt and update the password.
         router.formio.encrypt(password, function(err, hash) {
           if (err) {
-            log(req, emsg.auth.EPASSRESET, err);
-            return next.call(this, emsg.auth.EPASSRESET);
+            log(req, ecode.auth.EPASSRESET, err);
+            return next.call(this, ecode.auth.EPASSRESET);
           }
 
           const setValue = {};
@@ -255,8 +255,8 @@ module.exports = function(router) {
             {$set: setValue},
             function(err, newSub) {
               if (err) {
-                log(req, emsg.auth.EPASSRESET, err);
-                return next.call(this, emsg.auth.EPASSRESET);
+                log(req, ecode.auth.EPASSRESET, err);
+                return next.call(this, ecode.auth.EPASSRESET);
               }
 
               // The submission was saved!
@@ -279,7 +279,7 @@ module.exports = function(router) {
 
         // Make sure they have a username.
         if (!username) {
-          log(req, emsg.user.ENONAMEP, new Error(emsg.user.ENONAMEP));
+          log(req, ecode.user.ENONAMEP, new Error(ecode.user.ENONAMEP));
           return res.status(400).send('You must provide a username to reset your password.');
         }
 
@@ -295,8 +295,8 @@ module.exports = function(router) {
         // Look up the user.
         this.getSubmission(req, token, function(err, submission) {
           if (err || !submission) {
-            log(req, emsg.user.ENOUSER, err);
-            return res.status(400).send(emsg.user.ENOUSER);
+            log(req, ecode.user.ENOUSER, err);
+            return res.status(400).send(ecode.user.ENOUSER);
           }
 
           // Generate a temporary token for resetting their password.
@@ -318,7 +318,7 @@ module.exports = function(router) {
             message: this.settings.message
           }, _.assign(params, req.body), function(err) {
             if (err) {
-              log(req, emsg.emailer.ESENDMAIL, err);
+              log(req, ecode.emailer.ESENDMAIL, err);
             }
             // Let them know an email is on its way.
             res.status(200).json({
@@ -397,21 +397,21 @@ module.exports = function(router) {
           !req.tempToken.username ||
           !req.tempToken.form
         ) {
-          debug(emsg.auth.ERESETTOKEN, req);
-          return res.status(400).send(emsg.auth.ERESETTOKEN);
+          debug(ecode.auth.ERESETTOKEN, req);
+          return res.status(400).send(ecode.auth.ERESETTOKEN);
         }
 
         // Get the password
         const password = _.get(req.submission.data, this.settings.password);
         if (!password) {
-          debug(emsg.auth.ENOPASSP);
-          return next.call(this, emsg.auth.ENOPASSP);
+          debug(ecode.auth.ENOPASSP);
+          return next.call(this, ecode.auth.ENOPASSP);
         }
 
         // Update the password.
         this.updatePassword(req, req.tempToken, password, function(err) {
           if (err) {
-            log(req, emsg.auth.EPASSRESET, new Error(emsg.auth.EPASSRESET));
+            log(req, ecode.auth.EPASSRESET, new Error(ecode.auth.EPASSRESET));
             return res.status(400).send('Unable to update the password. Please try again.');
           }
           res.status(200).send({

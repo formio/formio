@@ -8,6 +8,7 @@ const Q = require('q');
 const formioUtils = require('formiojs/utils').default;
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/util');
+const errorCodes = require('./error-codes.js');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
@@ -613,7 +614,12 @@ const Utils = {
       document.machineName += ++i;
       next();
     });
-  }
+  },
+
+  /**
+   * Application error codes.
+   */
+  errorCodes,
 };
 
 module.exports = Utils;

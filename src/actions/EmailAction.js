@@ -1,5 +1,4 @@
 'use strict';
-const emsg = require('../util/error-messages');
 const request = require('request');
 
 const LOG_EVENT = 'Email Action';
@@ -8,6 +7,7 @@ module.exports = function(router) {
   const Action = router.formio.Action;
   const emailer = require('../util/email')(router.formio);
   const debug = require('debug')('formio:action:email');
+  const ecode = router.formio.util.errorCodes;
   const macros = require('./macros/macros');
   const logOutput = router.formio.log || debug;
   const log = (...args) => logOutput(LOG_EVENT, ...args);
@@ -45,7 +45,7 @@ module.exports = function(router) {
       // Get the available transports.
       emailer.availableTransports(req, function(err, availableTransports) {
         if (err) {
-          log(req, emsg.emailer.ENOTRANSP, err);
+          log(req, ecode.emailer.ENOTRANSP, err);
           return next(err);
         }
         const settingsForm = [
@@ -154,12 +154,12 @@ module.exports = function(router) {
       // Load the form for this request.
       router.formio.cache.loadCurrentForm(req, (err, form) => {
         if (err) {
-          log(req, emsg.cache.EFORMLOAD, err);
+          log(req, ecode.cache.EFORMLOAD, err);
           return next(err);
         }
         if (!form) {
-          const err = new Error(emsg.form.ENOFORM);
-          log(req, emsg.cache.EFORMLOAD, err);
+          const err = new Error(ecode.form.ENOFORM);
+          log(req, ecode.cache.EFORMLOAD, err);
           return next(err);
         }
 
@@ -210,12 +210,12 @@ module.exports = function(router) {
             // Send the email.
             emailer.send(req, res, this.settings, params, (err) => {
               if (err) {
-                log(req, emsg.emailer.ESENDMAIL, JSON.stringify(err));
+                log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
               }
             });
           });
         })
-        .catch(err => log(req, emsg.emailer.ESUBPARAMS, err));
+        .catch(err => log(req, ecode.emailer.ESUBPARAMS, err));
       });
     }
   }
