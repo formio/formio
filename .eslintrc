@@ -12,6 +12,7 @@
     "max-statements": [2, 35],
     "quotes": [0],
     "prefer-const": "error",
+    "max-len": 0,
     "prefer-template": "error"
   }
 }
