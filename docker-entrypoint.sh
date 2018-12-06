@@ -30,4 +30,5 @@ mongodb="mongodb://${DATABASE_USER}:${DATABASE_PASS}@${DATABASE_HOST}:${DATABASE
 export mongo=$mongodb
 export USERNAME=${FORMIO_USERNAME}
 export PASSWORD=${FORMIO_PASSWORD}
+export clientBasePath=${CLIENT_BASE_PATH}
 sh -c 'cd /var/www && npm start'
