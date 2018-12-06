@@ -981,7 +981,11 @@ class Validator {
           }
         }
 
-        submission.data = Object.assign({}, value, {uid: submission.data.uid});
+        submission.data = Object.assign({}, value, {
+            uid: submission.data.uid,
+            unitId: submission.data.unitId,
+            orgId: submission.data.orgId,
+        });
         next(null, value);
       });
     });
