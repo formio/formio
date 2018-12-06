@@ -5,6 +5,7 @@
   "protocol": "http",
   "domain": "http://localhost:3001",
   "basePath": "",
+  "clientBasePath": "/",
   "mongo": "mongodb://localhost:27017/formioapp",
   "mongoSecret": "--- change me now ---",
   "reservedForms": [

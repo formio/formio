@@ -50,7 +50,7 @@ module.exports = function(options) {
   });
 
   // Mount the client application.
-  app.use('/', express.static(`${__dirname}/client/dist`));
+  app.use(config.clientBasePath || '/', express.static(`${__dirname}/client/dist`));
 
   // Load the form.io server.
   const server = options.server || require('./index')(config);
