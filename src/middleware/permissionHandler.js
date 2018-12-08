@@ -372,21 +372,18 @@ module.exports = function(router) {
         // Get the roles for the permission checks.
         req.user.roles = req.user.roles || [];
 
-        // If the user actually has roles, remove the default role and check their access using their roles.
-        if (req.user.roles.length > 0) {
-          // Add the users id to the roles to check for submission resource access.
-          req.user.roles.push(user);
+        // Add the users id to the roles to check for submission resource access.
+        req.user.roles.push(user);
 
-          // Add the everyone role.
-          req.user.roles.push(EVERYONE);
+        // Add the everyone role.
+        req.user.roles.push(EVERYONE);
 
-          // Ensure that all roles are strings to be compatible for comparison.
-          roles = _(req.user.roles)
-            .filter()
-            .map(util.idToString)
-            .uniq()
-            .value();
-        }
+        // Ensure that all roles are strings to be compatible for comparison.
+        roles = _(req.user.roles)
+          .filter()
+          .map(util.idToString)
+          .uniq()
+          .value();
       }
 
       // Setup some flags for other handlers.
