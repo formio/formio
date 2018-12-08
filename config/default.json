@@ -36,7 +36,7 @@
       "cert": "",
       "thumbprint": ""
     },
-    "database": {
+    "databases": {
       "mysql": {
         "host": "",
         "port": "",
