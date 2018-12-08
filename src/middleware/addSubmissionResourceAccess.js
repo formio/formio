@@ -32,58 +32,44 @@ module.exports = function(router) {
       return next();
     }
 
-    const defaultPermissions = {};
     req.body.access = [];
     router.formio.cache.loadForm(req, undefined, req.params.formId, function(err, form) {
       if (err || !form) {
         return next(`Cannot load form ${req.params.formId}`);
       }
 
-      util.eachComponent(form.components, function(component) {
-        if (component.key && component.defaultPermission) {
-          defaultPermissions[component.key] = component.defaultPermission;
-        }
-      }, true);
-
-      // Only proceed if a field has a resource permission.
-      const defaultPermissionsKeys = Object.keys(defaultPermissions);
-      if (req.body.data && defaultPermissionsKeys.length) {
-        _.each(defaultPermissionsKeys, key => {
-          // Setup the submission access.
-          const perm = defaultPermissions[key];
-          let value = req.body.data[key];
-
-          // Coerce value into an array for plucking.
-          if (!(value instanceof Array)) {
-            value = [value];
-          }
-
-          const ids = grabIds(value);
-          if (ids.length) {
-            // Try to find and update an existing permission.
-            let found = false;
-            req.body.access.forEach(function(permission) {
-              if (permission.type === perm) {
-                found = true;
-                permission.resources = permission.resources || [];
-                permission.resources.concat(ids);
-              }
-            });
-
-            // Add a permission, because one was not found.
-            if (!found) {
-              req.body.access.push({
-                type: perm,
-                resources: ids
+      /* eslint-disable max-depth */
+      util.eachComponent(form.components, (component, path) => {
+        if (component && component.key && component.defaultPermission) {
+          let value = _.get(req.body.data, path);
+          if (value) {
+            if (!(value instanceof Array)) {
+              value = [value];
+            }
+            const ids = grabIds(value);
+            if (ids.length) {
+              const perm = _.find(req.body.access, {
+                type: component.defaultPermission
               });
+              if (perm) {
+                if (!perm.resources) {
+                  perm.resources = [];
+                }
+                perm.resources = perm.resources.concat(ids);
+              }
+              else {
+                req.body.access.push({
+                  type: component.defaultPermission,
+                  resources: ids
+                });
+              }
             }
           }
-        });
-        return next();
-      }
-      else {
-        return next();
-      }
+        }
+      });
+      /* eslint-enable max-depth */
+
+      return next();
     });
   };
 };

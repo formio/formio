@@ -82,6 +82,36 @@ module.exports = function(app) {
     return null;
   };
 
+  Helper.prototype.getActions = function(form, done) {
+    var url = '';
+    if (this.template.project && this.template.project._id) {
+      url += '/project/' + this.template.project._id;
+    }
+    url += '/form/' + this.template.forms[form]._id + '/action';
+    request(app)
+      .get(url)
+      .set('x-jwt-token', this.owner.token)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        if (err) {
+          return done(err, res);
+        }
+        if (!res.body) {
+          return done('No response', res)
+        }
+
+        this.lastResponse = res;
+        this.owner.token = res.headers['x-jwt-token'];
+        this.template.actions[form] = [];
+        for (var i = 0; i < res.body.length; i++) {
+          this.template.actions[form].push(res.body[i]);
+        }
+
+        done(null, res.body);
+      });
+  };
+
   Helper.prototype.getAction = function(form, action) {
     if (!action && form) {
       if (typeof form ==='string') {
@@ -112,6 +142,50 @@ module.exports = function(app) {
     });
 
     return _action;
+  };
+
+  Helper.prototype.deleteAction = function(form, action, done) {
+    this.getActions(form, (err, actions) => {
+      if (err) {
+        return done(err);
+      }
+
+      let _action;
+      actions.forEach((a) => {
+        if (a.title === action.title || a._id === action._id) {
+          _action = a;
+          return;
+        }
+      });
+      if (_action) {
+        var url = '';
+        if (this.template.project && this.template.project._id) {
+          url += '/project/' + this.template.project._id;
+        }
+        url += '/form/' + this.template.forms[form]._id + '/action/' + _action._id;
+
+        request(app)
+          .delete(url)
+          .set('x-jwt-token', this.owner.token)
+          .expect(200)
+          .end((err, res) => {
+            if (err) {
+              return done(err, res);
+            }
+            if (!res.body) {
+              return done('No response', res)
+            }
+
+            this.lastResponse = res;
+            this.owner.token = res.headers['x-jwt-token'];
+            _.remove(this.template.actions[form], {_id: _action._id});
+            done();
+          });
+      }
+      else {
+        return done('Action not found');
+      }
+    });
   };
 
   Helper.prototype.getRoles = function(done) {
@@ -531,6 +605,11 @@ module.exports = function(app) {
 
   Helper.prototype.action = function(form, action) {
     this.series.push(async.apply(this.createAction.bind(this), form, action));
+    return this;
+  };
+
+  Helper.prototype.removeAction = function(form, action) {
+    this.series.push(async.apply(this.deleteAction.bind(this), form, action));
     return this;
   };
 
