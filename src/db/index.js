@@ -150,20 +150,20 @@ module.exports = function(formio) {
   /**
    * Test to see if the application has been installed. Install if not.
    */
-  const checkInstall = function(next) {
-    formio.util.log('Checking for db install.');
+  const checkSetup = function(next) {
+    formio.util.log('Checking for db setup.');
     db.listCollections().toArray().then(function(collections) {
       debug.db(`Collections found: ${collections.length}`);
       // 3 is an arbitrary length. We just want a general idea that things have been installed.
       if (collections.length < 3) {
-        formio.util.log(' > No install found. Starting new install.');
+        formio.util.log(' > No collections found. Starting new setup.');
         require(path.join(__dirname, '/install'))(db, config, function() {
-          formio.util.log(' > Install complete.\n');
+          formio.util.log(' > Setup complete.\n');
           next();
         });
       }
       else {
-        formio.util.log(' > Install found. No install necessary.\n');
+        formio.util.log(' > Setup complete.\n');
         return next();
       }
     });
@@ -577,7 +577,7 @@ module.exports = function(formio) {
 
     async.series([
       connection,
-      checkInstall,
+      checkSetup,
       checkEncryption,
       getUpdates,
       lock,
