@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## Unreleased
+### Added
+ - Minimal support for running entire stack in docker-compose
+
 ## 1.37.5
 ### Changed
  - Updated to resourcejs v1.33.0 which changes more 500 errors to 400s.
