@@ -4,10 +4,14 @@
 #       in the local directory...
 #
 # ##### Usage:
+# *0. Create a broken symlink: `ln -sf "/.npm-packages/node_modules/" node_modules`
 # 1. Start the database: `docker-compose up -d mongo`
 # 2. Start the application:  `docker-compose run formio`
 # [3]. Stop the database: `docker-compose down` (add --volumes to clear data)
 # [4]. Remove lingering docker images: `docker-compose down -v --rmi all`
+#
+# *TODO: Step 0 is for the bcrypt binary compiled on alpine, which is required...
+#        but this step feels like an anti-pattern and a better approach should be found
 
 version: '3.7'
 services:
