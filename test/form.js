@@ -568,6 +568,81 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('An administrator should not be able to set the form id when creating a form', function(done) {
+        const form = _.cloneDeep(tempForm);
+
+        form._id = '000000000000000000000000';
+        form.path = 'badid';
+        form.name = 'badid';
+
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(form)
+          // .expect(400)
+          .end(function(err, res) {
+            if(err) {
+              return done(err);
+            }
+
+            assert.notEqual(res.body._id, form._id);
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('An administrator should not be able to set the form id to null when creating a form', function(done) {
+        const form = _.cloneDeep(tempForm);
+
+        form._id = 'null';
+        form.path = 'badidnull';
+        form.name = 'badidnull';
+
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(form)
+          // .expect(400)
+          .end(function(err, res) {
+            if(err) {
+              return done(err);
+            }
+
+            assert.notEqual(res.body._id, form._id);
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('An administrator should not be able to set the form id to null when creating a form', function(done) {
+        const form = _.cloneDeep(tempForm);
+
+        form._id = null;
+        form.path = 'badidnull1';
+        form.name = 'badidnull1';
+
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(form)
+          // .expect(400)
+          .end(function(err, res) {
+            if(err) {
+              return done(err);
+            }
+
+            assert.notEqual(res.body._id, form._id);
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
       it('Cant access a Form without a valid Form ID', function(done) {
         request(app)
           .get(hook.alter('url', '/form/💩', template))

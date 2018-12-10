@@ -6,6 +6,7 @@ module.exports = function(router) {
   const handlers = {};
 
   handlers.before = [
+    router.formio.middleware.filterIdCreate,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.deleteRoleHandler,
     router.formio.middleware.sortMongooseQuery({title: 1})
