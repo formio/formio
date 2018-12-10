@@ -10,6 +10,7 @@ module.exports = function(router) {
 
   // Manually update the handlers, to add additional middleware.
   handlers.beforePost = [
+    router.formio.middleware.filterIdCreate,
     router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.bootstrapEntityOwner,
