@@ -984,6 +984,7 @@ class Validator {
         submission.data = Object.assign({}, value, {
             uid: submission.data.uid,
             unitId: submission.data.unitId,
+            regionId: submission.data.regionId,
             orgId: submission.data.orgId,
             formRef: submission.data.formRef,
         });
