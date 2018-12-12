@@ -988,6 +988,7 @@ class Validator {
             orgId: submission.data.orgId,
             issueType: submission.data.issueType,
             formRef: submission.data.formRef,
+            formType: submission.data.formType
         });
         next(null, value);
       });
