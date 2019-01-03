@@ -29,32 +29,44 @@ module.exports = function(router) {
       return res.sendStatus(400);
     }
 
-    // Cant determine submission resource access for not authenticated users.
-    if (!req.user || !_.has(req, 'user._id') || !req.user._id) {
+    // Cant determine submission resource access if no roles are provided.
+    const userRoles = _.get(req, 'user.roles', []);
+    if (!userRoles.length) {
       return res.sendStatus(401);
     }
 
-    const user = req.user._id;
-    const search = [util.idToString(user), util.idToBson(user)];
+    const userId = _.get(req, 'user._id');
+    const search = userId ? [util.idToString(userId), util.idToBson(userId)] : [];
     hook.alter('resourceAccessFilter', search, req, function(err, search) {
       // Try to recover if the hook fails.
       if (err) {
         debug(err);
       }
 
-      const query = {
-        form: util.idToBson(req.formId),
-        deleted: {$eq: null},
-        $or: [
-          {
-            'access.type': {$in: ['read', 'write', 'admin']},
-            'access.resources': {$in: search}
-          },
-          {
-            owner: req.token.user._id
-          }
-        ]
-      };
+      let query = null;
+      if (userId) {
+        query = {
+          form: util.idToBson(req.formId),
+          deleted: {$eq: null},
+          $or: [
+            {
+              'access.type': {$in: ['read', 'write', 'admin']},
+              'access.resources': {$in: search}
+            },
+            {
+              owner: util.idToBson(userId)
+            }
+          ]
+        };
+      }
+      else {
+        query = {
+          form: util.idToBson(req.formId),
+          deleted: {$eq: null},
+          'access.type': {$in: ['read', 'write', 'admin']},
+          'access.resources': {$in: search}
+        };
+      }
 
       req.modelQuery = req.modelQuery || req.model || this.model;
       req.modelQuery = req.modelQuery.find(query);
