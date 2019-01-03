@@ -8293,14 +8293,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .get(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
             .set('x-jwt-token', template.users.user1.token)
-            .expect(401)
+            .expect(200)
             .end(function(err, res) {
               if (err) {
                 return done(err);
               }
 
               var response = res.body;
-              assert.deepEqual(response, {});
+              assert.equal(response.length, 0);
 
               // Store the JWT for future API calls.
               template.users.user1.token = res.headers['x-jwt-token'];
