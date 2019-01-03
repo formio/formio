@@ -8,6 +8,7 @@ const nunjucks = require('nunjucks');
 const fs = require('fs-extra');
 const util = require('./src/util/util');
 require('colors');
+
 const Q = require('q');
 const test = process.env.TEST_SUITE;
 
@@ -48,9 +49,9 @@ module.exports = function(options) {
     autoescape: true,
     express: app
   });
-
+  const path = require('path');
   // Mount the client application.
-  app.use(config.clientBasePath || '/', express.static(`${__dirname}/client/dist`));
+  app.use('/', express.static( path.join(__dirname, 'client/dist')));
 
   // Load the form.io server.
   const server = options.server || require('./index')(config);
