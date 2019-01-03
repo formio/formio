@@ -4,9 +4,18 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## Unreleased
+## 1.38.0
 ### Added
  - Minimal support for running entire stack in docker-compose
+ - FOR-644: Adding logging for form actions to help tracking execution and errors.
+
+### Fixed
+ - FOR-1908: Fixed problem where ID's could be set when creating records.
+ - FOR-1977: Issues with the resource access permissions where indexes were not performant and giving 401 errors.
+
+### Changed
+ - Upgraded bcrypt@3.0.3, debug@4.1.1, formiojs@3.10.2, joi@14.3.1, mongoose@5.4.2, csv@5.1.0, eslint@5.11.1
+ - Upgraded nodemailer to version 5: From their CHANGELOG - Start using dns.resolve() instead of dns.lookup() for resolving SMTP hostnames. Might be breaking change on some environments so upgrade with care
 
 ## 1.37.7
 ### Fixed
