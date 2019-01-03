@@ -24,6 +24,7 @@ To get started you will first need the following installed on your machine.
   - MongoDB - http://docs.mongodb.org/manual/installation/
     - On Mac I recomment using Homebrew ```brew install mongodb```
     - On Windows, download and install the MSI package @ https://www.mongodb.org/downloads
+    - On Docker, deploy everything, including MongoDB, using `docker-compose up`
   - You must then make sure you have MongoDB running by typing ```mongod``` in your terminal.
 
 Running
