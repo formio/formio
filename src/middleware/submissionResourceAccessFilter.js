@@ -36,7 +36,10 @@ module.exports = function(router) {
     }
 
     const userId = _.get(req, 'user._id');
-    const search = userId ? [util.idToString(userId), util.idToBson(userId)] : [];
+    const search = userRoles.map(util.idToBson.bind(util));
+    if (userId) {
+      search.push(util.idToBson(userId));
+    }
     hook.alter('resourceAccessFilter', search, req, function(err, search) {
       // Try to recover if the hook fails.
       if (err) {
