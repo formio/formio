@@ -163,11 +163,8 @@ module.exports = function(router) {
               return callback(`No Form found with formId: ${req.formId}`);
             }
 
-            // If this a Resource, search for the presence of Self Access Permissions.
-            if (item.type === 'resource') {
-              // Attempt to load the Self Access Permissions.
-              getSelfAccessPermissions(req, item, access);
-            }
+            // Attempt to load the Self Access Permissions.
+            getSelfAccessPermissions(req, item, access);
 
             // Add the defined access types for the form.
             if (item.access) {
@@ -255,7 +252,7 @@ module.exports = function(router) {
 
         // Determine if this is a possible index request against submissions.
         function flagRequestAsSubmissionResourceAccess(callback) {
-          if (req.method !== 'GET') {
+          if (req.method.toUpperCase() !== 'GET') {
             return callback();
           }
 
@@ -263,45 +260,33 @@ module.exports = function(router) {
             return callback();
           }
 
-          if (!_.has(req, 'user._id')) {
+          // Does not apply if the user doesn't have any roles.
+          const userRoles = _.get(req, 'user.roles', []);
+          if (!userRoles.length) {
             return callback();
           }
 
-          const user = req.user._id;
-          const search = [util.idToBson(user)];
-          hook.alter('resourceAccessFilter', search, req, function(err, search) {
-            // Try to recover if the hook fails.
+          // Load the form, and get its roles/permissions data.
+          router.formio.cache.loadForm(req, null, req.formId, function(err, item) {
             if (err) {
-              return callback();
+              return callback(err);
+            }
+            if (!item) {
+              return callback(`No Form found with formId: ${req.formId}`);
             }
 
-            const query = {
-              form: util.idToBson(req.formId),
-              deleted: {$eq: null},
-              $or: [
-                {
-                  'access.type': {$in: ['read', 'write', 'admin']},
-                  'access.resources': {$in: search}
-                }
-              ]
-            };
-
-            const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-            submissionModel.countDocuments(query, function(err, count) {
-              if (err) {
-                return callback();
-              }
-
-              if (count > 0) {
-                req.submissionResourceAccessFilter = true;
-
+            // See if any of our components have "defaultPermission" established.
+            util.eachComponent(item.components, (component) => {
+              if (component.defaultPermission) {
                 // Since the access is now determined by the submission resource access, we
                 // can skip the owner filter.
                 req.skipOwnerFilter = true;
+                req.submissionResourceAccessFilter = true;
+                return true;
               }
-
-              callback();
             });
+
+            return callback();
           });
         }
       ], req, res, access), function(err) {
@@ -372,21 +357,18 @@ module.exports = function(router) {
         // Get the roles for the permission checks.
         req.user.roles = req.user.roles || [];
 
-        // If the user actually has roles, remove the default role and check their access using their roles.
-        if (req.user.roles.length > 0) {
-          // Add the users id to the roles to check for submission resource access.
-          req.user.roles.push(user);
+        // Add the users id to the roles to check for submission resource access.
+        req.user.roles.push(user);
 
-          // Add the everyone role.
-          req.user.roles.push(EVERYONE);
+        // Add the everyone role.
+        req.user.roles.push(EVERYONE);
 
-          // Ensure that all roles are strings to be compatible for comparison.
-          roles = _(req.user.roles)
-            .filter()
-            .map(util.idToString)
-            .uniq()
-            .value();
-        }
+        // Ensure that all roles are strings to be compatible for comparison.
+        roles = _(req.user.roles)
+          .filter()
+          .map(util.idToString)
+          .uniq()
+          .value();
       }
 
       // Setup some flags for other handlers.
@@ -476,6 +458,11 @@ module.exports = function(router) {
 
         // Skip the owner filter if they have all access.
         req.skipOwnerFilter = true;
+        _hasAccess = true;
+      }
+
+      // If resource access applies, then allow for that to be in the query.
+      if (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter) {
         _hasAccess = true;
       }
 

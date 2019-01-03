@@ -8293,14 +8293,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .get(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
             .set('x-jwt-token', template.users.user1.token)
-            .expect(401)
+            .expect(200)
             .end(function(err, res) {
               if (err) {
                 return done(err);
               }
 
               var response = res.body;
-              assert.deepEqual(response, {});
+              assert.equal(response.length, 0);
 
               // Store the JWT for future API calls.
               template.users.user1.token = res.headers['x-jwt-token'];
@@ -9195,6 +9195,246 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('Submission Resource Access - Multiple Users', () => {
+      var helper = null;
+      var submission = null;
+      it('Should create a project with multiple resource users', (done) => {
+        var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+        helper = new Helper(owner);
+        helper
+          .project()
+          .resource('client', [
+            {
+              type: 'email',
+              label: 'Email',
+              key: 'email'
+            },
+            {
+              type: 'password',
+              label: 'Password',
+              key: 'password'
+            }
+          ])
+          .form('clientLogin', [
+            {
+              type: 'email',
+              label: 'Email',
+              key: 'email'
+            },
+            {
+              type: 'password',
+              label: 'Password',
+              key: 'password'
+            }
+          ], {
+            submissionAccess: [
+              {
+                type: 'create_own',
+                roles: ['anonymous']
+              }
+            ]
+          })
+          .removeAction('clientLogin', {
+            title: 'Save Submission'
+          })
+          .action('clientLogin', {
+            title: 'Client Login',
+            name: 'login',
+            handler: ['before'],
+            method: ['create'],
+            priority: 0,
+            settings: {
+              resources: ['client'],
+              username: 'email',
+              password: 'password'
+            }
+          })
+          .resource('manager', [
+            {
+              type: 'email',
+              label: 'Email',
+              key: 'email'
+            },
+            {
+              type: 'password',
+              label: 'Password',
+              key: 'password'
+            }
+          ])
+          .form('managerLogin', [
+            {
+              type: 'email',
+              label: 'Email',
+              key: 'email'
+            },
+            {
+              type: 'password',
+              label: 'Password',
+              key: 'password'
+            }
+          ], {
+            submissionAccess: [
+              {
+                type: 'create_own',
+                roles: ['anonymous']
+              }
+            ]
+          })
+          .removeAction('managerLogin', {
+            title: 'Save Submission'
+          })
+          .action('managerLogin', {
+            title: 'Manager Login',
+            name: 'login',
+            handler: ['before'],
+            method: ['create'],
+            priority: 0,
+            settings: {
+              resources: ['manager'],
+              username: 'email',
+              password: 'password'
+            }
+          })
+          .form('clientreg', [
+            {
+              type: 'resource',
+              label: 'User',
+              key: 'user',
+              resource: 'user',
+              template: '<span>{{ item.data.email }}</span>',
+              defaultPermission: 'read'
+            },
+            {
+              type: 'resource',
+              label: 'Client',
+              key: 'client',
+              resource: 'client',
+              template: '<span>{{ item.data.email }}</span>',
+              defaultPermission: 'read'
+            },
+            {
+              type: 'resource',
+              label: 'Manager',
+              key: 'manager',
+              resource: 'manager',
+              template: '<span>{{ item.data.email }}</span>',
+              defaultPermission: 'admin'
+            }
+          ])
+          .user('user', 'clientuser')
+          .user('client', 'client')
+          .user('manager', 'manager')
+          .execute(done);
+      });
+
+      it('Should NOT allow an anonymous user to create a submission', (done) => {
+        helper.createSubmission('clientreg', {
+          data: {
+            user: helper.template.users.clientuser,
+            client: helper.template.users.client,
+            manager: helper.template.users.manager
+          }
+        }, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow a clientuser to create a submission', (done) => {
+        helper.createSubmission('clientreg', {
+          data: {
+            user: helper.template.users.clientuser,
+            client: helper.template.users.client,
+            manager: helper.template.users.manager
+          }
+        }, 'clientuser', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow a client to create a submission', (done) => {
+        helper.createSubmission('clientreg', {
+          data: {
+            user: helper.template.users.clientuser,
+            client: helper.template.users.client,
+            manager: helper.template.users.manager
+          }
+        }, 'client', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow a manager user to create a submission', (done) => {
+        helper.createSubmission('clientreg', {
+          data: {
+            user: helper.template.users.clientuser,
+            client: helper.template.users.client,
+            manager: helper.template.users.manager
+          }
+        }, 'manager', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow admin to create a registration submission with the client and manager set', (done) => {
+        helper.createSubmission('clientreg', {
+          data: {
+            user: helper.template.users.clientuser,
+            client: helper.template.users.client,
+            manager: helper.template.users.manager
+          }
+        }, (err, response) => {
+          if (err) {
+            return done(err);
+          }
+          submission = response;
+          done();
+        });
+      });
+
+      it('Should NOT allow an anonymous user to see the submission', (done) => {
+        helper.getSubmission('clientreg', submission._id, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow an anonymous user to update the submission', (done) => {
+        helper.updateSubmission(submission, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow an anonymous user to delete the submission', (done) => {
+        helper.deleteSubmission(submission, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should allow the clientuser to see this submission', (done) => {
+        helper.getSubmission('clientreg', submission._id, 'clientuser', [/json/, 200], done);
+      });
+
+      it('Should NOT allow the clientuser to update the submission', (done) => {
+        submission.data.testing = 'hello';
+        helper.updateSubmission(submission, 'clientuser', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow the clientuser to delete the submission', (done) => {
+        helper.deleteSubmission(submission, 'clientuser', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow the client to see this submission', (done) => {
+        helper.getSubmission('clientreg', submission._id, 'client', [/json/, 200], done);
+      });
+
+      it('Should NOT allow the client to update the submission', (done) => {
+        submission.data.testing = 'hello';
+        helper.updateSubmission(submission, 'client', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow the client to delete the submission', (done) => {
+        helper.deleteSubmission(submission, 'client', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow the manager to see this submission', (done) => {
+        helper.getSubmission('clientreg', submission._id, 'manager', [/json/, 200], done);
+      });
+
+      it('Should allow allow the manager to update the submission', (done) => {
+        submission.data.testing = 'hello';
+        helper.updateSubmission(submission, 'manager', [/json/, 200], done);
+      });
+
+      it('Should allow the manager to delete the submission', (done) => {
+        helper.deleteSubmission(submission, 'manager', [/json/, 200], done);
+      });
+    });
+
     describe('Mix and Match Permissions', () => {
       var helper = null;
       it('Create the project with a new users.', (done) => {
@@ -9695,7 +9935,7 @@ module.exports = function(app, template, hook) {
       it('Should NOT allow user1 to read the created submission', (done) => {
         helper.getSubmission('mixmatchd', helper.lastSubmission._id, 'user1', [/text\/plain/, 401], done);
       });
-      
+
       it('Should allow user2 to create a submission and assign it to user1', (done) => {
         helper.createSubmission('mixmatchd', {
           owner: helper.template.users.user1._id.toString(),

@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Added
  - Minimal support for running entire stack in docker-compose
 
+## 1.37.7
+### Fixed
+ - The formio-workers dependency from using dynamic require paths which messes up certain builds.
+
+## 1.37.6
+### Fixed
+ - Issues with the resource permissions where it would only allow one resource per type.
+ - The default.json configuration to point to the correct "databases" config.
+
+### Changed
+ - Changed the installation to say "setup" instead of "install".
+ - Upgrade formiojs@3.9.3, mongoose@5.3.15, progress@2.0.3, chance@1.0.18, eslint@5.10.0
+
 ## 1.37.5
 ### Changed
  - Updated to resourcejs v1.33.0 which changes more 500 errors to 400s.
