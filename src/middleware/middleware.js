@@ -12,6 +12,7 @@ module.exports = function(router) {
     bootstrapSubmissionAccess: require('./bootstrapSubmissionAccess')(router),
     condensePermissionTypes: require('./condensePermissionTypes')(router),
     condenseSubmissionPermissionTypes: require('./condenseSubmissionPermissionTypes')(router),
+    filterIdCreate: require('./filterIdCreate')(router),
     filterMongooseExists: require('./filterMongooseExists')(router),
     filterResourcejsResponse: require('./filterResourcejsResponse')(router),
     filterProtectedFields: require('./filterProtectedFields')(router),
