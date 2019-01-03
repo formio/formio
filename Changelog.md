@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.37.7
+### Fixed
+ - The formio-workers dependency from using dynamic require paths which messes up certain builds.
+
 ## 1.37.6
 ### Fixed
  - Issues with the resource permissions where it would only allow one resource per type.
