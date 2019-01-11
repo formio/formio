@@ -278,6 +278,8 @@ module.exports = function(config) {
           });
         });
 
+        require('./src/middleware/recaptcha')(router);
+
         // Say we are done.
         deferred.resolve(router.formio);
       });
