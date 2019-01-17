@@ -249,7 +249,18 @@ module.exports = (router) => {
       },
       transform: (template, role) => role,
       query(document, template) {
-        const query = {machineName: document.machineName, deleted: {$eq: null}};
+        const query = {
+          $or: [
+            {
+              machineName: document.machineName,
+              deleted: {$eq: null}
+            },
+            {
+              title: document.title,
+              deleted: {$eq: null}
+            }
+          ]
+        };
         return hook.alter(`importRoleQuery`, query, document, template);
       }
     },
@@ -296,7 +307,22 @@ module.exports = (router) => {
         }, done);
       },
       query(document, template) {
-        const query = {machineName: document.machineName, deleted: {$eq: null}};
+        const query = {
+          $or: [
+            {
+              machineName: document.machineName,
+              deleted: {$eq: null}
+            },
+            {
+              name: document.name,
+              deleted: {$eq: null}
+            },
+            {
+              path: document.path,
+              deleted: {$eq: null}
+            }
+          ]
+        };
         return hook.alter(`importFormQuery`, query, document, template);
       }
     },
@@ -343,7 +369,22 @@ module.exports = (router) => {
         }, done);
       },
       query(document, template) {
-        const query = {machineName: document.machineName, deleted: {$eq: null}};
+        const query = {
+          $or: [
+            {
+              machineName: document.machineName,
+              deleted: {$eq: null}
+            },
+            {
+              name: document.name,
+              deleted: {$eq: null}
+            },
+            {
+              path: document.path,
+              deleted: {$eq: null}
+            }
+          ]
+        };
         return hook.alter(`importFormQuery`, query, document, template);
       }
     },
@@ -368,7 +409,14 @@ module.exports = (router) => {
         return action;
       },
       query(document, template) {
-        const query = {machineName: document.machineName, deleted: {$eq: null}};
+        const query = {
+          $or: [
+            {
+              machineName: document.machineName,
+              deleted: {$eq: null}
+            }
+          ]
+        };
         return hook.alter(`importActionQuery`, query, document, template);
       }
     }
