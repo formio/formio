@@ -645,7 +645,7 @@ module.exports = function(app, template, hook) {
 
       it('Cant access a Form without a valid Form ID', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/💩', template))
+          .get(hook.alter('url', '/form/2342342344234', template))
           .set('x-jwt-token', template.users.admin.token)
           .expect(400)
           .end(function(err, res) {
@@ -1742,7 +1742,7 @@ module.exports = function(app, template, hook) {
 
       it('An Administrator should receive empty array when Reading their Form with filter that has no results', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?type=💩', template))
+          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?type=2342342344234', template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(200)
