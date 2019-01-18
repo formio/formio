@@ -60,6 +60,7 @@ describe('Initialization', function() {
   after(function() {
     require('./templates')(app, template, hook);
     require('./bootstrap')(app, template, hook);
+    require('./unit')(app, template, hook);
     require('./auth')(app, template, hook);
     require('./roles')(app, template, hook);
     require('./form')(app, template, hook);
@@ -68,6 +69,5 @@ describe('Initialization', function() {
     require('./actions')(app, template, hook);
     require('./submission-access')(app, template, hook);
     require('./submission')(app, template, hook);
-    require('./unit')(app, template, hook);
   });
 });
