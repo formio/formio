@@ -169,7 +169,7 @@ module.exports = function(app, template, hook) {
 
       it('Cant access a Role without a valid Role Id', function(done) {
         request(app)
-          .get(hook.alter('url', '/role/💩', template))
+          .get(hook.alter('url', '/role/2342342344234', template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(400)
