@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.39.2
+### Fixed
+ - The tests to work with extended systems.
+
 ## 1.39.1
 ### Fixed
  - Issue where read all permissions are ignored when resource submission access is established.

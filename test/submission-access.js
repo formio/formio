@@ -6989,7 +6989,7 @@ module.exports = function(app, template, hook) {
         });
         it('Register a new manager', (done) => {
           request(app)
-            .post(hook.alter('url', '/manager/register/submission'))
+            .post(hook.alter('url', '/manager/register/submission', template))
             .send({
               data: {
                 email: 'manager@example.com',
