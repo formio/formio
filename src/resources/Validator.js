@@ -988,7 +988,8 @@ class Validator {
             orgId: submission.data.orgId,
             issueType: submission.data.issueType,
             formRef: submission.data.formRef,
-            formType: submission.data.formType
+            formType: submission.data.formType,
+            dateCreated: submission.data.dateCreated
         });
         next(null, value);
       });
