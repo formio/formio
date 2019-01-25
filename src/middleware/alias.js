@@ -20,7 +20,8 @@ module.exports = function(router) {
       'logout',
       'form',
       'access',
-      'token'
+      'token',
+      'recaptcha'
     ];
     /* eslint-enable max-len */
   }

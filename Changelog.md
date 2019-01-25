@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased]
+### Added
+ - reCAPTCHA API Endpoint
+
 ## 1.39.2
 ### Fixed
  - The tests to work with extended systems.
