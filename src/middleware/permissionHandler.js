@@ -458,6 +458,9 @@ module.exports = function(router) {
 
         // Skip the owner filter if they have all access.
         req.skipOwnerFilter = true;
+
+        // Do not include the submission resource access filter if they have "all" access.
+        req.submissionResourceAccessFilter = false;
         _hasAccess = true;
       }
 

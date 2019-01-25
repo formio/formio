@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Added
  - reCAPTCHA API Endpoint
 
+## 1.39.2
+### Fixed
+ - The tests to work with extended systems.
+
+## 1.39.1
+### Fixed
+ - Issue where read all permissions are ignored when resource submission access is established.
+ 
+### Changed
+ - Upgraded csv@5.1.1, mongodb@3.1.12, mongoose@5.4.5, formiojs@3.12.2, nodemailer@5.1.1, eslint@5.12.1, supertest@3.4.1
+
+## 1.39.0
+### Changed 
+ - Added more permissions form matching during import process to resolve conflicts.
+
 ## 1.38.0
 ### Added
  - Minimal support for running entire stack in docker-compose
