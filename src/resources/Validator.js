@@ -24,6 +24,7 @@ const debug = {
  * @param {Object} data
  *   The full submission data.
  */
+
 const checkConditional = (component, row, data, recurse = false) => {
   let isVisible = true;
 
