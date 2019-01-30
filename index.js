@@ -3,7 +3,7 @@
 require('dotenv').load({silent: true});
 const express = require('express');
 const bodyParser = require('body-parser');
-const FormServer = require('./src/FormServer');
+const Formio = require('./src/Formio');
 const config = require('./src/config');
 const cors = require('cors');
 
@@ -16,7 +16,7 @@ if (db) {
   app.use(bodyParser.urlencoded({extended: true}));
   app.use(bodyParser.json({limit: '16mb'}));
 
-  const formio = new FormServer(app, db);
+  const formio = new Formio(app, db);
 
   app.listen(config.port);
   db.ready

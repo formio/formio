@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
-const FormManager = require('form-manager').FormManager;
-const log = require('form-manager').log;
+const FormApi = require('form-api').FormApi;
+const log = require('form-api').log;
 const config = require('./config');
 const resources = require('./resources');
 
-module.exports = class FormServer extends FormManager {
+module.exports = class Formio extends FormApi {
   constructor(router, db) {
     super(router, db);
     this.config = Object.assign({}, this.config, config);
