@@ -1,5 +1,0 @@
-Welcome to the Form.io application server!
-
-  - Help: https://help.form.io
-  - Code: https://github.com/formio
-  - Love: https://form.io
