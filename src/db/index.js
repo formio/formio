@@ -3,6 +3,7 @@
 const async = require('async');
 const MongoClient = require('mongodb').MongoClient;
 const semver = require('semver');
+const request = require('request');
 const _ = require('lodash');
 const fs = require('fs');
 const debug = {
@@ -94,6 +95,38 @@ module.exports = function(formio) {
   };
 
   /**
+   * Fetch the SA certificate.
+   *
+   * @param next
+   * @return {*}
+   */
+  const getSA = function(next) {
+    if (!config.mongoSA) {
+      return next();
+    }
+
+    // If they provide the SA url, then fetch it from there.
+    if (config.mongoSA.indexOf('http') === 0) {
+      debug.db(`Fetching SA Certificate ${config.mongoSA}`);
+      request.get(config.mongoSA, (err, response, body) => {
+        if (err || !body) {
+          debug.db(`Unable to fetch SA Certificate: ${err}`);
+          unlock(function() {
+            throw new Error(`Unable to fetch the SA Certificate: ${config.mongoSA}.`);
+          });
+        }
+
+        debug.db('Fetched SA Certificate');
+        config.mongoSA = body;
+        return next();
+      });
+    }
+    else {
+      return next();
+    }
+  };
+
+  /**
    * Initialize the Mongo Connections for queries.
    *
    * @param next
@@ -114,13 +147,23 @@ module.exports = function(formio) {
       : config.mongo[0];
 
     debug.db(`Opening new connection to ${dbUrl}`);
+    const mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
+    if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
+      mongoConfig.connectTimeoutMS = 300000;
+    }
+    if (!mongoConfig.hasOwnProperty('socketTimeoutMS')) {
+      mongoConfig.socketTimeoutMS = 300000;
+    }
+    if (!mongoConfig.hasOwnProperty('useNewUrlParser')) {
+      mongoConfig.useNewUrlParser = true;
+    }
+    if (config.mongoSA) {
+      mongoConfig.sslValidate = true;
+      mongoConfig.sslCA = config.mongoSA;
+    }
 
     // Establish a connection and continue with execution.
-    MongoClient.connect(dbUrl, {
-      connectTimeoutMS: 300000,
-      socketTimeoutMS: 300000,
-      useNewUrlParser: true
-    }, function(err, client) {
+    MongoClient.connect(dbUrl, mongoConfig, function(err, client) {
       if (err) {
         debug.db(`Connection Error: ${err}`);
         unlock(function() {
@@ -576,6 +619,7 @@ module.exports = function(formio) {
     }
 
     async.series([
+      getSA,
       connection,
       checkSetup,
       checkEncryption,
