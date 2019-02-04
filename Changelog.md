@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.40.1
+### Added
+ - Ability to connect to SA enabled mongodb instances.
+ 
+### Changed
+ - Updated formiojs@3.13.9, mongoose@5.4.9, mssql@4.3.1, supertest@3.4.2, moment@2.24.0, eslint@5.13.0
+  
 ## 1.40.0
 ### Added
  - reCAPTCHA API Endpoint
