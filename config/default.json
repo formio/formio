@@ -6,6 +6,8 @@
   "domain": "http://localhost:3001",
   "basePath": "",
   "mongo": "mongodb://localhost:27017/formioapp",
+  "mongoConfig": "",
+  "mongoSA": "",
   "mongoSecret": "--- change me now ---",
   "reservedForms": [
     "submission",
