@@ -28,6 +28,7 @@ module.exports = function(router) {
     permissionHandler: require('./permissionHandler')(router),
     setFilterQueryTypes: require('./setFilterQueryTypes')(router),
     sortMongooseQuery: require('./sortMongooseQuery')(router),
+    submissionApplyPatch: require('./submissionApplyPatch')(router),
     submissionHandler: require('./submissionHandler')(router),
     submissionResourceAccessFilter: require('./submissionResourceAccessFilter')(router),
     tokenHandler: require('./tokenHandler')(router),

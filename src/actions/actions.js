@@ -703,6 +703,13 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
       router.formio.middleware.filterResourcejsResponse(['deleted', '__v', 'externalTokens'])
     ];
   });
+  handlers['beforePatch'] = (req, res, next) => {
+    // Disable Patch for actions for now.
+    if (req.method === 'PATCH') {
+      return res.sendStatus(405);
+    }
+    return next();
+  };
 
   // Add specific middleware to individual endpoints.
   handlers['beforeDelete'] = handlers['beforeDelete'].concat([router.formio.middleware.deleteActionHandler]);

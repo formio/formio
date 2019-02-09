@@ -379,6 +379,7 @@ module.exports = function(router) {
         'POST': {all: 'create_all', own: 'create_own'},
         'GET': {all: 'read_all', own: 'read_own'},
         'PUT': {all: 'update_all', own: 'update_own'},
+        'PATCH': {all: 'update_all', own: 'update_own'},
         'DELETE': {all: 'delete_all', own: 'delete_own'}
       };
 

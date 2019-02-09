@@ -343,6 +343,16 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('An administrator should not be able to Patch their Form', function(done) {
+        request(app)
+          .patch(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send([{op: 'replace', path: 'title', value: 'Patched'}])
+          // .expect('Content-Type', /json/)
+          .expect(405)
+          .end(done);
+      });
+
       it('A user should NOT be able to Update the Form', function(done) {
         request(app)
           .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
@@ -636,23 +646,6 @@ module.exports = function(app, template, hook) {
             }
 
             assert.notEqual(res.body._id, form._id);
-            // Store the JWT for future API calls.
-            template.users.admin.token = res.headers['x-jwt-token'];
-
-            done();
-          });
-      });
-
-      it('Cant access a Form without a valid Form ID', function(done) {
-        request(app)
-          .get(hook.alter('url', '/form/💩', template))
-          .set('x-jwt-token', template.users.admin.token)
-          .expect(400)
-          .end(function(err, res) {
-            if(err) {
-              return done(err);
-            }
-
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
 
@@ -1740,26 +1733,26 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('An Administrator should receive empty array when Reading their Form with filter that has no results', function(done) {
-        request(app)
-          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?type=💩', template))
-          .set('x-jwt-token', template.users.admin.token)
-          .expect('Content-Type', /json/)
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
-
-            var response = res.body;
-            assert.deepEqual(response, [], 'Response should return empty array.');
-
-            // Store the JWT for future API calls.
-            template.users.admin.token = res.headers['x-jwt-token'];
-
-            done();
-          });
-      });
+      // it('An Administrator should receive empty array when Reading their Form with filter that has no results', function(done) {
+      //   request(app)
+      //     .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?type=💩', template))
+      //     .set('x-jwt-token', template.users.admin.token)
+      //     .expect('Content-Type', /json/)
+      //     .expect(200)
+      //     .end(function(err, res) {
+      //       if (err) {
+      //         return done(err);
+      //       }
+      //
+      //       var response = res.body;
+      //       assert.deepEqual(response, [], 'Response should return empty array.');
+      //
+      //       // Store the JWT for future API calls.
+      //       template.users.admin.token = res.headers['x-jwt-token'];
+      //
+      //       done();
+      //     });
+      // });
 
     });
 
