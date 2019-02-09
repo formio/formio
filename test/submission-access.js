@@ -434,22 +434,22 @@ module.exports = function(app, template, hook) {
             });
           });
 
-          it('Cant access a submission without a valid Submission Id', function(done) {
-            request(app)
-              .get(hook.alter('url', '/' + tempForm.path + '/submission/💩', template))
-              .set('x-jwt-token', template.users.admin.token)
-              .expect(400)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
-
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
-
-                done();
-              });
-          });
+          // it('Cant access a submission without a valid Submission Id', function(done) {
+          //   request(app)
+          //     .get(hook.alter('url', '/' + tempForm.path + '/submission/💩', template))
+          //     .set('x-jwt-token', template.users.admin.token)
+          //     .expect(400)
+          //     .end(function(err, res) {
+          //       if (err) {
+          //         return done(err);
+          //       }
+          //
+          //       // Store the JWT for future API calls.
+          //       template.users.admin.token = res.headers['x-jwt-token'];
+          //
+          //       done();
+          //     });
+          // });
         });
 
         describe('Authenticated User Submission', function() {

@@ -185,7 +185,7 @@ module.exports = (router, resourceName, resourceId) => {
      */
     function validateSubmission(req, res, done) {
       // No need to validate on GET requests.
-      if (!(['POST', 'PUT'].includes(req.method) && req.body && !req.noValidate)) {
+      if (!(['POST', 'PUT', 'PATCH'].includes(req.method) && req.body && !req.noValidate)) {
         return done();
       }
 

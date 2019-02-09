@@ -177,6 +177,16 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('A Project Owner should not be able to Patch an Action', function(done) {
+        request(app)
+          .patch(hook.alter('url', '/form/' + tempForm._id + '/action/' + tempAction._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send([{op: 'replace', path: 'title', value: 'Patched'}])
+          // .expect('Content-Type', /json/)
+          .expect(405)
+          .end(done);
+      });
+
       it('A Project Owner should be able to Read the Index of Actions', function(done) {
         request(app)
           .get(hook.alter('url', '/form/' + tempForm._id + '/action', template))
@@ -207,23 +217,23 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('Cant access an Action without a valid Action Id', function(done) {
-        request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/action/💩', template))
-          .set('x-jwt-token', template.users.admin.token)
-          .expect('Content-Type', /json/)
-          .expect(400)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
-
-            // Store the JWT for future API calls.
-            template.users.admin.token = res.headers['x-jwt-token'];
-
-            done();
-          });
-      });
+      // it('Cant access an Action without a valid Action Id', function(done) {
+      //   request(app)
+      //     .get(hook.alter('url', '/form/' + tempForm._id + '/action/💩', template))
+      //     .set('x-jwt-token', template.users.admin.token)
+      //     .expect('Content-Type', /json/)
+      //     .expect(400)
+      //     .end(function(err, res) {
+      //       if (err) {
+      //         return done(err);
+      //       }
+      //
+      //       // Store the JWT for future API calls.
+      //       template.users.admin.token = res.headers['x-jwt-token'];
+      //
+      //       done();
+      //     });
+      // });
     });
 
     describe('Permissions - Project Level - Authenticated User', function() {

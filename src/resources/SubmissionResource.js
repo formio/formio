@@ -7,6 +7,8 @@ module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
   const handlers = router.formio.middleware.submissionHandler;
   const hiddenFields = ['deleted', '__v', 'machineName'];
+  const beforePut = handlers.beforePut;
+  const afterPut = handlers.afterPut;
 
   // Manually update the handlers, to add additional middleware.
   handlers.beforePost = [
@@ -49,6 +51,23 @@ module.exports = function(router) {
   ];
   handlers.afterPut = [
     handlers.afterPut,
+    router.formio.middleware.filterResourcejsResponse(hiddenFields),
+    router.formio.middleware.filterProtectedFields('update', (req) => {
+      return router.formio.cache.getCurrentFormId(req);
+    })
+  ];
+  handlers.beforePatch = [
+    router.formio.middleware.permissionHandler,
+    router.formio.middleware.submissionApplyPatch,
+    router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
+    router.formio.middleware.bootstrapEntityOwner,
+    router.formio.middleware.bootstrapSubmissionAccess,
+    router.formio.middleware.addSubmissionResourceAccess,
+    router.formio.middleware.condenseSubmissionPermissionTypes,
+    beforePut // Patch mimics Put so keep this beforePut
+  ];
+  handlers.afterPatch = [
+    afterPut, // Patch mimics Put so keep this afterPut
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
     router.formio.middleware.filterProtectedFields('update', (req) => {
       return router.formio.cache.getCurrentFormId(req);
@@ -131,7 +150,17 @@ module.exports = function(router) {
 
   /* eslint-disable new-cap */
   // If the last argument is a function, hook.alter assumes it is a callback function.
+  const tmpResource = (app, route, modelName, model) => {
+    const parent = Resource(app, route, modelName, model);
+
+    // Since we are handling patching before we get to resourcejs, make it work like put.
+    parent.patch = parent.put;
+    return parent;
+  };
+
   const SubmissionResource = hook.alter('SubmissionResource', Resource, null);
+
+  // SubmissionResource.patch = SubmissionResource.put;
 
   const submissionResource = SubmissionResource(
     router,
