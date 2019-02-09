@@ -35,7 +35,7 @@ module.exports = function(formio) {
         this.encryptField(req, component, path, next);
         // Since the password was changed, invalidate all user tokens.
         req.body.metadata = req.body.metadata || {};
-        req.body.metadata.jwtIssuedAfter = req.tokenIssued || Date.now();
+        req.body.metadata.jwtIssuedAfter = req.tokenIssued || (Date.now() / 1000);
       }
       else {
         // If there is no password provided.
