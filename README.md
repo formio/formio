@@ -58,6 +58,27 @@ To start server with auto restart capability for development simply run this com
 npm run start:dev
 ```
 
+Deploy to Hosted Form.io
+--------------------
+If you wish to deploy all of your forms and resources into the Form.io Hosted platform @ https://form.io, you can do this by using the Form.io CLI command line tool.
+
+```
+npm install -g formio-cli
+```
+
+Once you have this tool installed, you will need to follow these steps.
+ - Create a new project within Form.io
+ - Create an API Key within this project by going to the **Project Settings | Stage Settings | API Keys**
+ - Next, you can execute the following command to deploy your local project into Hosted Form.io.
+ 
+```
+formio deploy http://localhost:3001 https://{PROJECTNAME}.form.io --dst-key={APIKEY}
+```
+
+You will need to make sure you replace ```{PROJECTNAME}``` and ```{APIKEY}``` with your new Hosted Form.io project name (found in the API url), as well as the API key that was created in the second step above.
+
+This will then ask you to log into the local Form.io server (which can be provided within the Admin resource), and then after it authenticates, it will export the project and deploy that project to the Form.io hosted form.
+
 Help
 --------------------
 We will be updating the help guides found @ https://help.form.io as questions arise and also to help you get started with Form.io.

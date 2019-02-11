@@ -458,6 +458,9 @@ module.exports = function(router) {
 
         // Skip the owner filter if they have all access.
         req.skipOwnerFilter = true;
+
+        // Do not include the submission resource access filter if they have "all" access.
+        req.submissionResourceAccessFilter = false;
         _hasAccess = true;
       }
 
@@ -498,9 +501,10 @@ module.exports = function(router) {
 
     // Check for whitelisted paths.
     if (req.method === 'GET') {
-      const whitelist = ['/health', '/current', '/logout', '/access', '/token'];
+      const whitelist = ['/health', '/current', '/logout', '/access', '/token', '/recaptcha'];
+      const url = req.url.split('?')[0];
       let skip = _.some(whitelist, function(path) {
-        if ((req.url === path) || (req.url === hook.alter('path', path, req))) {
+        if ((url === path) || (url === hook.alter('path', path, req))) {
           return true;
         }
 

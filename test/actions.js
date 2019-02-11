@@ -209,7 +209,7 @@ module.exports = function(app, template, hook) {
 
       it('Cant access an Action without a valid Action Id', function(done) {
         request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/action/💩', template))
+          .get(hook.alter('url', '/form/' + tempForm._id + '/action/2342342344234', template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
           .expect(400)
