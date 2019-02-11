@@ -5,6 +5,10 @@ module.exports = router => {
   const hook = require('../util/hook')(router.formio);
 
   return (req, res, next) => {
+    if (req.method !== 'PATCH') {
+      return next();
+    }
+
     router.formio.cache.loadSubmission(req, req.formId, req.subId, function(err, submission) {
       if (err) {
         return res.sendStatus(400);
