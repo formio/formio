@@ -159,22 +159,33 @@ module.exports = function(config) {
       }
 
       let mongoUrl = config.mongo;
-      const mongoOptions = {
-        keepAlive: 120,
-        useNewUrlParser: true
-      };
-
-      if (process.env.MONGO_HIGH_AVAILABILITY) {
-        mongoOptions.mongos = true;
+      const mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
+      if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
+        mongoConfig.connectTimeoutMS = 300000;
       }
-
+      if (!mongoConfig.hasOwnProperty('socketTimeoutMS')) {
+        mongoConfig.socketTimeoutMS = 300000;
+      }
+      if (!mongoConfig.hasOwnProperty('useNewUrlParser')) {
+        mongoConfig.useNewUrlParser = true;
+      }
+      if (!mongoConfig.hasOwnProperty('keepAlive')) {
+        mongoConfig.keepAlive = 120;
+      }
+      if (process.env.MONGO_HIGH_AVAILABILITY) {
+        mongoConfig.mongos = true;
+      }
       if (_.isArray(config.mongo)) {
         mongoUrl = config.mongo.join(',');
-        mongoOptions.mongos = true;
+        mongoConfig.mongos = true;
+      }
+      if (config.mongoSA) {
+        mongoConfig.sslValidate = true;
+        mongoConfig.sslCA = config.mongoSA;
       }
 
       // Connect to MongoDB.
-      mongoose.connect(mongoUrl, mongoOptions);
+      mongoose.connect(mongoUrl, mongoConfig);
 
       // Trigger when the connection is made.
       mongoose.connection.on('error', function(err) {
@@ -277,6 +288,8 @@ module.exports = function(config) {
             res.json(spec);
           });
         });
+
+        require('./src/middleware/recaptcha')(router);
 
         // Say we are done.
         deferred.resolve(router.formio);
