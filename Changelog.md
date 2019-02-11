@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.40.2
+### Fixed 
+ - When resetting passwords, jwtIssuedAfter sometimes got set to wrong timestamp resulting in invalid tokens.
+
+## 1.40.1
+### Added
+ - Ability to connect to SA enabled mongodb instances.
+ 
+### Changed
+ - Updated formiojs@3.13.9, mongoose@5.4.9, mssql@4.3.1, supertest@3.4.2, moment@2.24.0, eslint@5.13.0
+  
+## 1.40.0
+### Added
+ - reCAPTCHA API Endpoint
+ 
+### Changed
+ - mongodb@3.1.13, formiojs@3.13.0
+
+## 1.39.2
+### Fixed
+ - The tests to work with extended systems.
+
+## 1.39.1
+### Fixed
+ - Issue where read all permissions are ignored when resource submission access is established.
+ 
+### Changed
+ - Upgraded csv@5.1.1, mongodb@3.1.12, mongoose@5.4.5, formiojs@3.12.2, nodemailer@5.1.1, eslint@5.12.1, supertest@3.4.1
+
 ## 1.39.0
 ### Changed 
  - Added more permissions form matching during import process to resolve conflicts.

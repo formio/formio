@@ -653,6 +653,26 @@ module.exports = function(app, template, hook) {
           });
       });
 
+<<<<<<< HEAD
+=======
+      it('Cant access a Form without a valid Form ID', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/2342342344234', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(400)
+          .end(function(err, res) {
+            if(err) {
+              return done(err);
+            }
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+>>>>>>> origin/master
       it('Cant make a Form with invalid Form component keys', function(done) {
         async.each([
           '', 'è', 'é', 'ê', 'ë', 'ē', 'ė', 'ę', 'ÿ', 'û',
@@ -1733,26 +1753,26 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      // it('An Administrator should receive empty array when Reading their Form with filter that has no results', function(done) {
-      //   request(app)
-      //     .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?type=💩', template))
-      //     .set('x-jwt-token', template.users.admin.token)
-      //     .expect('Content-Type', /json/)
-      //     .expect(200)
-      //     .end(function(err, res) {
-      //       if (err) {
-      //         return done(err);
-      //       }
-      //
-      //       var response = res.body;
-      //       assert.deepEqual(response, [], 'Response should return empty array.');
-      //
-      //       // Store the JWT for future API calls.
-      //       template.users.admin.token = res.headers['x-jwt-token'];
-      //
-      //       done();
-      //     });
-      // });
+      it('An Administrator should receive empty array when Reading their Form with filter that has no results', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.testComponentForm._id + '/components?type=2342342344234', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.deepEqual(response, [], 'Response should return empty array.');
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
 
     });
 
