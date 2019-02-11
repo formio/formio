@@ -434,22 +434,22 @@ module.exports = function(app, template, hook) {
             });
           });
 
-          // it('Cant access a submission without a valid Submission Id', function(done) {
-          //   request(app)
-          //     .get(hook.alter('url', '/' + tempForm.path + '/submission/💩', template))
-          //     .set('x-jwt-token', template.users.admin.token)
-          //     .expect(400)
-          //     .end(function(err, res) {
-          //       if (err) {
-          //         return done(err);
-          //       }
-          //
-          //       // Store the JWT for future API calls.
-          //       template.users.admin.token = res.headers['x-jwt-token'];
-          //
-          //       done();
-          //     });
-          // });
+          it('Cant access a submission without a valid Submission Id', function(done) {
+            request(app)
+              .get(hook.alter('url', '/' + tempForm.path + '/submission/2342342344234', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect(400)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
         });
 
         describe('Authenticated User Submission', function() {
@@ -6741,9 +6741,277 @@ module.exports = function(app, template, hook) {
       };
       var tempSubmission = {};
       var tempSubmissions = [];
-
+      let managerRole = null;
+      let managerResource = null;
+      let managerRegister = null;
+      let manager = null;
       describe('Bootstrap', function() {
+        it('Create a manager role', (done) => {
+          request(app)
+            .post(hook.alter('url', '/role', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              "title": "Manager",
+              "description": "A role for Manager Users.",
+              "admin": false,
+              "default": false
+            })
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              managerRole = res.body;
+              done();
+            });
+        });
+        it('Create a manager resource', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              title: 'Manager',
+              name: 'manager',
+              path: 'manager',
+              type: 'resource',
+              tags: [],
+              "submissionAccess": [],
+              "access": [],
+              components: [
+                {
+                  type: 'email',
+                  persistent: true,
+                  unique: false,
+                  protected: false,
+                  defaultValue: '',
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'Enter your email address',
+                  key: 'email',
+                  label: 'Email',
+                  inputType: 'email',
+                  tableView: true,
+                  input: true
+                },
+                {
+                  type: 'password',
+                  persistent: true,
+                  protected: true,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'Enter your password.',
+                  key: 'password',
+                  label: 'Password',
+                  inputType: 'password',
+                  tableView: false,
+                  input: true
+                },
+                {
+                  theme: 'primary',
+                  disableOnInvalid: true,
+                  action: 'submit',
+                  block: false,
+                  rightIcon: '',
+                  leftIcon: '',
+                  size: 'md',
+                  key: 'submit',
+                  label: 'Submit',
+                  input: true,
+                  type: 'button'
+                }
+              ]
+            })
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              managerResource = res.body;
+              done();
+            });
+        });
+        it('Create a manager role assignment action', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + managerResource._id.toString() + '/action', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              "title": "Role Assignment",
+              "name": "role",
+              "priority": 1,
+              "handler": ["after"],
+              "method": ["create"],
+              "form": managerResource._id.toString(),
+              "settings": {
+                "association": "new",
+                "type": "add",
+                "role": managerRole._id.toString()
+              }
+            })
+            .expect(201)
+            .end(done);
+        });
+        it('Create a manager role save action', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + managerResource._id.toString() + '/action', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              "title": "Save Submission",
+              "name": "save",
+              "form": managerResource._id.toString(),
+              "handler": ["before"],
+              "method": ["create", "update"],
+              "priority": 10
+            })
+            .expect(201)
+            .end(done);
+        });
+        it('Create a manager register form', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              title: 'Manager',
+              name: 'managerRegister',
+              path: 'manager/register',
+              type: 'form',
+              tags: [],
+              "submissionAccess": [
+                {
+                  "type": "create_own",
+                  "roles": [template.roles.anonymous._id.toString()]
+                }
+              ],
+              "access": [
+                {
+                  "type": "read_all",
+                  "roles": [template.roles.anonymous._id.toString()]
+                }
+              ],
+              components: [
+                {
+                  type: 'email',
+                  persistent: true,
+                  unique: false,
+                  protected: false,
+                  defaultValue: '',
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'Enter your email address',
+                  key: 'email',
+                  label: 'Email',
+                  inputType: 'email',
+                  tableView: true,
+                  input: true
+                },
+                {
+                  type: 'password',
+                  persistent: true,
+                  protected: true,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'Enter your password.',
+                  key: 'password',
+                  label: 'Password',
+                  inputType: 'password',
+                  tableView: false,
+                  input: true
+                },
+                {
+                  theme: 'primary',
+                  disableOnInvalid: true,
+                  action: 'submit',
+                  block: false,
+                  rightIcon: '',
+                  leftIcon: '',
+                  size: 'md',
+                  key: 'submit',
+                  label: 'Submit',
+                  input: true,
+                  type: 'button'
+                }
+              ]
+            })
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              managerRegister = res.body;
+              done();
+            });
+        });
+        it('Create a manager register save action', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + managerRegister._id.toString() + '/action', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              name: 'save',
+              title: 'Save Submission',
+              form: managerRegister._id.toString(),
+              priority: 11,
+              method: ['create', 'update'],
+              handler: ['before'],
+              settings: {
+                resource: managerResource._id.toString(),
+                fields: {
+                  email: 'email',
+                  password: 'password'
+                }
+              }
+            })
+            .expect(201)
+            .end(done);
+        });
+        it('Create a manager login action', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + managerRegister._id.toString() + '/action', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              name: 'login',
+              title: 'Login',
+              form: managerRegister._id.toString(),
+              priority: 2,
+              method: ['create'],
+              handler: ['before'],
+              settings: {
+                resources: [managerResource._id.toString()],
+                username: 'email',
+                password: 'password',
+                allowedAttempts: 5,
+                attemptWindow: 10,
+                lockWait: 10
+              }
+            })
+            .expect(201)
+            .end(done);
+        });
+        it('Register a new manager', (done) => {
+          request(app)
+            .post(hook.alter('url', '/manager/register/submission', template))
+            .send({
+              data: {
+                email: 'manager@example.com',
+                password: 'test123'
+              }
+            })
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              manager = res.body;
+              manager.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
         it('Create the form', function(done) {
+          tempForm.submissionAccess = [
+            {
+              type: 'read_all',
+              roles: [managerRole._id.toString()]
+            }
+          ];
           request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
@@ -6766,7 +7034,7 @@ module.exports = function(app, template, hook) {
               assert.equal(response.type, 'form');
               assert.equal(response.access.length, 1);
               assert.equal(response.access[0].type, 'read_all');
-              assert.equal(response.access[0].roles.length, 3);
+              assert.equal(response.access[0].roles.length, 4);
               assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
               assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
               assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
@@ -7158,6 +7426,32 @@ module.exports = function(app, template, hook) {
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
 
+              done();
+            });
+        });
+
+        it('A Manager can read the index of submissions, with explicit resource access', function(done) {
+          request(app)
+            .get(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+            .set('x-jwt-token', manager.token)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response instanceof Array);
+
+              var found = false;
+              _.forEach(response, function(result) {
+                if (_.has(result, '_id') && (_.get(result, '_id') === tempSubmission._id)) {
+                  found = true;
+                  assert.deepEqual(_.omit(result, 'modified'), _.omit(tempSubmission, 'modified'));
+                }
+              });
+              assert(found);
               done();
             });
         });
@@ -9172,6 +9466,63 @@ module.exports = function(app, template, hook) {
       });
 
       describe('Form Normalization', function() {
+        it('Delete the manager resource', (done) => {
+          request(app)
+            .delete(hook.alter('url', '/form/' + managerResource._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response, {});
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+        it('Delete the manager register form', (done) => {
+          request(app)
+            .delete(hook.alter('url', '/form/' + managerRegister._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response, {});
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+        it('Delete the manager role', (done) => {
+          request(app)
+            .delete(hook.alter('url', '/role/' + managerRole._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response, {});
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
         it('Delete the form', function(done) {
           request(app)
             .delete(hook.alter('url', '/form/' + tempForm._id, template))
