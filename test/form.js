@@ -653,8 +653,6 @@ module.exports = function(app, template, hook) {
           });
       });
 
-<<<<<<< HEAD
-=======
       it('Cant access a Form without a valid Form ID', function(done) {
         request(app)
           .get(hook.alter('url', '/form/2342342344234', template))
@@ -672,7 +670,6 @@ module.exports = function(app, template, hook) {
           });
       });
 
->>>>>>> origin/master
       it('Cant make a Form with invalid Form component keys', function(done) {
         async.each([
           '', 'è', 'é', 'ê', 'ë', 'ē', 'ė', 'ę', 'ÿ', 'û',
