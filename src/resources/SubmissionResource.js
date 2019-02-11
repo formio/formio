@@ -8,8 +8,6 @@ module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
   const handlers = router.formio.middleware.submissionHandler;
   const hiddenFields = ['deleted', '__v', 'machineName'];
-  const beforePut = handlers.beforePut;
-  const afterPut = handlers.afterPut;
 
   // Manually update the handlers, to add additional middleware.
   handlers.beforePost = [
