@@ -1,6 +1,7 @@
 'use strict';
 
-const Resource = require('resourcejs');
+const ResourceFactory = require('resourcejs');
+const Resource = ResourceFactory.Resource;
 const _ = require('lodash');
 
 module.exports = function(router) {
@@ -42,6 +43,7 @@ module.exports = function(router) {
   ];
   handlers.beforePut = [
     router.formio.middleware.permissionHandler,
+    router.formio.middleware.submissionApplyPatch,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.bootstrapEntityOwner,
     router.formio.middleware.bootstrapSubmissionAccess,
@@ -51,23 +53,6 @@ module.exports = function(router) {
   ];
   handlers.afterPut = [
     handlers.afterPut,
-    router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields('update', (req) => {
-      return router.formio.cache.getCurrentFormId(req);
-    })
-  ];
-  handlers.beforePatch = [
-    router.formio.middleware.permissionHandler,
-    router.formio.middleware.submissionApplyPatch,
-    router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-    router.formio.middleware.bootstrapEntityOwner,
-    router.formio.middleware.bootstrapSubmissionAccess,
-    router.formio.middleware.addSubmissionResourceAccess,
-    router.formio.middleware.condenseSubmissionPermissionTypes,
-    beforePut // Patch mimics Put so keep this beforePut
-  ];
-  handlers.afterPatch = [
-    afterPut, // Patch mimics Put so keep this afterPut
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
     router.formio.middleware.filterProtectedFields('update', (req) => {
       return router.formio.cache.getCurrentFormId(req);
@@ -151,16 +136,63 @@ module.exports = function(router) {
   /* eslint-disable new-cap */
   // If the last argument is a function, hook.alter assumes it is a callback function.
   const tmpResource = (app, route, modelName, model) => {
-    const parent = Resource(app, route, modelName, model);
+    const parent = ResourceFactory(app, route, modelName, model);
 
     // Since we are handling patching before we get to resourcejs, make it work like put.
-    parent.patch = parent.put;
+    parent.patch = function(options) {
+      options = Resource.getMethodOptions('put', options);
+      this.methods.push('patch');
+      this._register('patch', `${this.route}/:${this.name}Id`, (req, res, next) => {
+        // Store the internal method for response manipulation.
+        req.__rMethod = 'patch';
+
+        if (req.skipResource) {
+          return next();
+        }
+
+        // Remove __v field
+        const update = _.omit(req.body, '__v');
+        const query = req.modelQuery || req.model || this.model;
+
+        query.findOne({_id: req.params[`${this.name}Id`]}, (err, item) => {
+          if (err) {
+            return Resource.setResponse(res, {status: 400, error: err}, next);
+          }
+          if (!item) {
+            return Resource.setResponse(res, {status: 404}, next);
+          }
+
+          item.set(update);
+          options.hooks.put.before.call(
+            this,
+            req,
+            res,
+            item,
+            () => {
+              const writeOptions = req.writeOptions || {};
+              item.save(writeOptions, (err, item) => {
+                if (err) {
+                  return Resource.setResponse(res, {status: 400, error: err}, next);
+                }
+
+                return options.hooks.put.after.call(
+                  this,
+                  req,
+                  res,
+                  item,
+                  Resource.setResponse.bind(Resource, res, {status: 200, item}, next)
+                );
+              });
+            });
+        });
+      }, Resource.respond, options);
+      return this;
+    };
+
     return parent;
   };
 
-  const SubmissionResource = hook.alter('SubmissionResource', Resource, null);
-
-  // SubmissionResource.patch = SubmissionResource.put;
+  const SubmissionResource = hook.alter('SubmissionResource', tmpResource, null);
 
   const submissionResource = SubmissionResource(
     router,

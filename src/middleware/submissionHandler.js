@@ -22,6 +22,10 @@ module.exports = (router, resourceName, resourceId) => {
       method: 'Put'
     },
     {
+      name: 'update',
+      method: 'Patch'
+    },
+    {
       name: 'create',
       method: 'Post'
     },
