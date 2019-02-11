@@ -1572,8 +1572,8 @@ module.exports = function(app, template, hook) {
               });
           });
 
-          it('Test if a submissions exists', function(done) {
-            request(app)
+          it('Test if a submissions exists', function() {
+            return request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=foo&owner=' + template.users.user1._id.toString(), template))
               .expect(200)
               .end(function(err, res) {
@@ -1582,7 +1582,6 @@ module.exports = function(app, template, hook) {
                 }
 
                 assert.equal(res.body._id, tempSubmissionUser1._id.toString());
-                done();
               });
           });
 

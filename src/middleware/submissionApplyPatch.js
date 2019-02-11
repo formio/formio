@@ -19,8 +19,7 @@ module.exports = router => (req, res, next) => {
     const patch = req.body;
 
     try {
-      const result = jsonPatch.applyPatch(submission, patch, true);
-      req.body = result.newDocument;
+      req.body = jsonPatch.applyPatch(submission, patch, true).newDocument;
 
       return next();
     }
