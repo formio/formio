@@ -131,13 +131,8 @@ module.exports = function(router) {
     });
   });
 
-  /* eslint-disable new-cap */
-  // If the last argument is a function, hook.alter assumes it is a callback function.
-  const tmpResource = (app, route, modelName, model) => {
-    const parent = ResourceFactory(app, route, modelName, model);
-
-    // Since we are handling patching before we get to resourcejs, make it work like put.
-    parent.patch = function(options) {
+  class SubmissionResource extends Resource {
+    patch(options) {
       options = Resource.getMethodOptions('put', options);
       this.methods.push('patch');
       this._register('patch', `${this.route}/:${this.name}Id`, (req, res, next) => {
@@ -185,14 +180,14 @@ module.exports = function(router) {
         });
       }, Resource.respond, options);
       return this;
-    };
+    }
+  }
 
-    return parent;
-  };
+  // Since we are handling patching before we get to resourcejs, make it work like put.
 
-  const SubmissionResource = hook.alter('SubmissionResource', tmpResource, null);
+  const MySubmissionResource = hook.alter('SubmissionResource', SubmissionResource, null);
 
-  const submissionResource = SubmissionResource(
+  const submissionResource = new MySubmissionResource(
     router,
     '/form/:formId',
     'submission',
