@@ -72,7 +72,7 @@ module.exports = function(router) {
      */
     resolve(handler, method, req, res, next) {
       // Return if this is not a PUT or POST.
-      if (req.skipSave || !req.body || (req.method !== 'POST' && req.method !== 'PUT')) {
+      if (req.skipSave || !req.body || (req.method !== 'POST' && req.method !== 'PUT' && req.method !== 'PATCH')) {
         return next();
       }
 

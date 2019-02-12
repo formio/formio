@@ -10,13 +10,9 @@ module.exports = function(router) {
    * @returns {*}
    */
   return function(req, res, next) {
-    if (
-      req.method === 'OPTIONS'
-      || req.method === 'GET'
-      || req.method === 'POST'
-      || req.method === 'PUT'
-      || req.method === 'DELETE'
-    ) {
+    const hook = require('../util/hook')(router.formio);
+    const methods = hook.alter('methods', ['OPTIONS', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH']);
+    if (methods.includes(req.method)) {
       return next();
     }
 
