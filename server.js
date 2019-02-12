@@ -11,6 +11,7 @@ const util = require('./src/util/util');
 require('colors');
 const Q = require('q');
 const test = process.env.TEST_SUITE;
+const noInstall = process.env.NO_INSTALL;
 
 module.exports = function(options) {
   options = options || {};
@@ -92,7 +93,7 @@ module.exports = function(options) {
     };
 
     // Check for the client folder.
-    if (!fs.existsSync('client') && !test) {
+    if (!fs.existsSync('client') && !test && !noInstall) {
       install.download = true;
       install.extract = true;
     }
@@ -100,7 +101,7 @@ module.exports = function(options) {
     // See if they have any forms available.
     formio.db.collection('forms').estimatedDocumentCount(function(err, numForms) {
       // If there are forms, then go ahead and start the server.
-      if ((!err && numForms > 0) || test) {
+      if ((!err && numForms > 0) || test || noInstall) {
         if (!install.download && !install.extract) {
           return start();
         }
@@ -113,7 +114,9 @@ module.exports = function(options) {
       // Install.
       require('./install')(formio, install, function(err) {
         if (err) {
-          return util.log(err.message);
+          if (err !== 'Installation canceled.') {
+            return util.log(err.message);
+          }
         }
 
         // Start the server.
