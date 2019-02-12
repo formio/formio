@@ -18,10 +18,11 @@ module.exports = function(router) {
     // See if this request has provided an owner.
     const hasOwner = _.has(req, 'body.owner');
 
-    // Confirm we are only modifying PUT/POST requests.
+    // Confirm we are only modifying PUT/POST/PATCH requests.
     const isPut = (req.method === 'PUT');
+    const isPatch = (req.method === 'PATCH');
     const isPost = (req.method === 'POST');
-    if (!isPut && !isPost) {
+    if (!isPut && !isPost && !isPatch) {
       return next();
     }
 

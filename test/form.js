@@ -343,6 +343,16 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('An administrator should not be able to Patch their Form', function(done) {
+        request(app)
+          .patch(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send([{op: 'replace', path: 'title', value: 'Patched'}])
+          // .expect('Content-Type', /json/)
+          .expect(405)
+          .end(done);
+      });
+
       it('A user should NOT be able to Update the Form', function(done) {
         request(app)
           .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))

@@ -51,6 +51,13 @@ module.exports = function(router) {
     .rest(hook.alter('formRoutes', {
       before: [
         (req, res, next) => {
+          // Disable Patch for forms for now.
+          if (req.method === 'PATCH') {
+            return res.sendStatus(405);
+          }
+          return next();
+        },
+        (req, res, next) => {
           // If we leave list in query it will interfere with the find query.
           if (req.query.list) {
             req.filterIndex = true;

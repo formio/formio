@@ -3546,5 +3546,125 @@ module.exports = function(app, template, hook) {
           });
       });
     });
+
+    describe('Submission patching', () => {
+      var submission = {};
+      it('Creates a form and submission for testing', function(done) {
+        var components = [
+          {
+            "type": "textfield",
+            "persistent": true,
+            "defaultValue": "",
+            "multiple": false,
+            "key": "test",
+            "label": "Test",
+            "inputMask": "",
+            "inputType": "text",
+            "validate": {
+              "required": true,
+              "minLength": "",
+              "maxLength": "",
+              "pattern": "",
+              "custom": "",
+              "customPrivate": false
+            },
+            "tableView": true,
+            "input": true
+          }
+        ];
+
+        var values = {
+          test: 'Original'
+        };
+
+        helper
+          .form('patchtest', components)
+          .submission(values)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            submission = helper.getLastSubmission();
+            done();
+          });
+      });
+
+      it('Allows updating a submission with the PATCH method', (done) => {
+        request(app)
+          .patch(hook.alter('url', '/form/' + helper.template.forms['patchtest']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .send([
+            {
+              op: 'replace',
+              path: '/data/test',
+              value: 'Updated'
+            }
+          ])
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(res.body.data.test, 'Updated');
+            done();
+          });
+      });
+
+      it('validates when updating a submission with the PATCH method', (done) => {
+        request(app)
+          .patch(hook.alter('url', '/form/' + helper.template.forms['patchtest']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .send([
+            {
+              op: 'remove',
+              path: '/data/test'
+            }
+          ])
+          .expect(400)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert(res.body.isJoi);
+            assert.equal(res.body.name, 'ValidationError');
+            assert.deepEqual(res.body.details, [
+              {
+                context: {
+                  key: 'test',
+                  label: 'test'
+                },
+                message: '"test" is required',
+                path: ['test'],
+                type: 'any.required'
+              }
+            ]);
+            done();
+          });
+      });
+
+      it('doesnt allow updating a submission id with the PATCH method', (done) => {
+        request(app)
+          .patch(hook.alter('url', '/form/' + helper.template.forms['patchtest']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .send([
+            {
+              op: 'replace',
+              path: '/_id',
+              value: '000000000000000000000000'
+            }
+          ])
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(res.body._id, helper.lastSubmission._id);
+            done();
+          });
+      });
+
+    });
   });
 };
