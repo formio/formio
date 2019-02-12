@@ -500,26 +500,27 @@ module.exports = function(router) {
     req.permissionsChecked = true;
 
     // Check for whitelisted paths.
+    let skip = false;
     if (req.method === 'GET') {
       const whitelist = ['/health', '/current', '/logout', '/access', '/token', '/recaptcha'];
       const url = req.url.split('?')[0];
-      let skip = _.some(whitelist, function(path) {
+      skip = _.some(whitelist, function(path) {
         if ((url === path) || (url === hook.alter('path', path, req))) {
           return true;
         }
 
         return false;
       });
+    }
 
-      // Allow the private hook of skip to be run, if it didnt already pass the whitelist.
-      if (!skip) {
-        skip = hook.alter('skip', false, req);
-      }
+    // Allow the private hook of skip to be run, if it didnt already pass the whitelist.
+    if (!skip) {
+      skip = hook.alter('skip', false, req);
+    }
 
-      // If there is a whitelist match, then move onto the next middleware.
-      if (skip) {
-        return next();
-      }
+    // If there is a whitelist match, then move onto the next middleware.
+    if (skip) {
+      return next();
     }
 
     // Determine if we are trying to access and entity of the form or submission.
