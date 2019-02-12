@@ -192,6 +192,15 @@ module.exports = function(app, template, hook) {
           .expect(401)
           .end(done);
       });
+
+      it('should not be able to PATCH a role', function(done) {
+        request(app)
+          .patch(hook.alter('url', '/role/' + template.roles.tempRole._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send([{op: 'replace', path: 'default', value: false}])
+          .expect(405)
+          .end(done);
+      });
     });
 
     describe('Permissions - Project Level - Anonymous User', function() {

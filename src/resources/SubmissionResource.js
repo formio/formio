@@ -1,6 +1,7 @@
 'use strict';
 
-const Resource = require('resourcejs');
+const ResourceFactory = require('resourcejs');
+const Resource = ResourceFactory.Resource;
 const _ = require('lodash');
 
 module.exports = function(router) {
@@ -40,6 +41,7 @@ module.exports = function(router) {
   ];
   handlers.beforePut = [
     router.formio.middleware.permissionHandler,
+    router.formio.middleware.submissionApplyPatch,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     router.formio.middleware.bootstrapEntityOwner,
     router.formio.middleware.bootstrapSubmissionAccess,
@@ -129,11 +131,63 @@ module.exports = function(router) {
     });
   });
 
-  /* eslint-disable new-cap */
-  // If the last argument is a function, hook.alter assumes it is a callback function.
-  const SubmissionResource = hook.alter('SubmissionResource', Resource, null);
+  class SubmissionResource extends Resource {
+    patch(options) {
+      options = Resource.getMethodOptions('put', options);
+      this.methods.push('patch');
+      this._register('patch', `${this.route}/:${this.name}Id`, (req, res, next) => {
+        // Store the internal method for response manipulation.
+        req.__rMethod = 'patch';
 
-  const submissionResource = SubmissionResource(
+        if (req.skipResource) {
+          return next();
+        }
+
+        // Remove __v field
+        const update = _.omit(req.body, '__v');
+        const query = req.modelQuery || req.model || this.model;
+
+        query.findOne({_id: req.params[`${this.name}Id`]}, (err, item) => {
+          if (err) {
+            return Resource.setResponse(res, {status: 400, error: err}, next);
+          }
+          if (!item) {
+            return Resource.setResponse(res, {status: 404}, next);
+          }
+
+          item.set(update);
+          options.hooks.put.before.call(
+            this,
+            req,
+            res,
+            item,
+            () => {
+              const writeOptions = req.writeOptions || {};
+              item.save(writeOptions, (err, item) => {
+                if (err) {
+                  return Resource.setResponse(res, {status: 400, error: err}, next);
+                }
+
+                return options.hooks.put.after.call(
+                  this,
+                  req,
+                  res,
+                  item,
+                  Resource.setResponse.bind(Resource, res, {status: 200, item}, next)
+                );
+              });
+            });
+        });
+      }, Resource.respond, options);
+      return this;
+    }
+  }
+
+  // Since we are handling patching before we get to resourcejs, make it work like put.
+
+  const MySubmissionResource = hook.alter('SubmissionResource', SubmissionResource, null);
+
+  const submissionResource = new MySubmissionResource(
     router,
     '/form/:formId',
     'submission',
