@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.41.0
+### Added
+ - PATCH method support for submissions.
+ - Now allow more than GET requests to be skipped for permissions checks.
+ 
+### Changed
+ - Upgraded async@2.6.2, bcrypt@3.0.4, mongoose@5.4.11, nodemon@1.18.10, formiojs@3.14.1
+
 ## 1.40.2
 ### Fixed 
  - When resetting passwords, jwtIssuedAfter sometimes got set to wrong timestamp resulting in invalid tokens.
