@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Now allow more than GET requests to be skipped for permissions checks.
  
 ### Changed
- - Upgraded async@2.6.2, bcrypt@3.0.4, mongoose@5.4.11, nodemon@1.18.10, formiojs@3.14.1
+ - Upgraded async@2.6.2, bcrypt@3.0.4, mongoose@5.4.10, nodemon@1.18.10, formiojs@3.14.1
 
 ## 1.40.2
 ### Fixed 
