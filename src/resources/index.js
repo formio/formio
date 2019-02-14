@@ -1,5 +1,5 @@
-const Submission = require('./Submission');
+const Action = require('./Action');
 
 module.exports = {
-  Submission,
+  Action,
 };

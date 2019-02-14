@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
-const FormApi = require('form-api').FormApi;
-const log = require('form-api').log;
+const {FormApi, log} = require('form-api');
 const config = require('./config');
 const resources = require('./resources');
 

@@ -2,7 +2,7 @@
 
 const ID = require('mongodb').ObjectID;
 const MongoClient = require('mongodb').MongoClient;
-const log = require('form-manager').log;
+const log = require('form-api').log;
 
 module.exports = class MongoDB {
   constructor(connectionString, database) {
