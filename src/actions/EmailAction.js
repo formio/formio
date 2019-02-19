@@ -114,6 +114,7 @@ module.exports = function(router) {
             label: 'Email Template URL',
             key: 'template',
             inputType: 'text',
+            defaultValue: 'https://pro.formview.io/assets/email.html',
             type: 'textfield',
             multiple: false,
             placeholder: 'Enter a URL for your external email template.'
