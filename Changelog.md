@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.41.1
+### Changed
+ - Default the email action to have a default email template.
+ - Upgraded mongoose@5.4.14, mssql@4.3.2, request-promise-native@1.0.7, formiojs@3.15.6, jsonwebtoken@8.5.0, eslint@5.14.1, mocha@6.0.0
+ 
+### Fixed
+ - Issue with subform validation to not include subforms that are conditionally hidden.
+ - Issue with subform validation where it will not process the subform requests if the subform is not present within the data.
+ - A potential crash within the subform validation where if the subform requests fails, it will cause the post request to not find a submission.
+ - The mongoose schema definitions from removing the _id property incorrectly.
+
 ## 1.41.0
 ### Added
  - PATCH method support for submissions.
