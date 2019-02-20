@@ -20,8 +20,7 @@ module.exports = function(formio) {
   available = hook.alter('permissionSchema', available);
 
   // Defines the permissions schema for form permissions.
-  return {
-    _id: false,
+  return new formio.mongoose.Schema({
     type: {
       type: String,
       enum: available,
@@ -31,5 +30,5 @@ module.exports = function(formio) {
       type: [formio.mongoose.Schema.Types.ObjectId],
       ref: 'role'
     }
-  };
+  }, {_id: false});
 };

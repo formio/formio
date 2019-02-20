@@ -9,8 +9,7 @@ module.exports = function(formio) {
   ];
 
   // Defines the permissions schema for submission permissions.
-  return {
-    _id: false,
+  return new formio.mongoose.Schema({
     type: {
       type: String,
       enum: available,
@@ -20,5 +19,5 @@ module.exports = function(formio) {
       type: [formio.mongoose.Schema.Types.ObjectId],
       ref: 'form'
     }
-  };
+  }, {_id: false});
 };
