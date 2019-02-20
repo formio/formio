@@ -1,6 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
+const utils = require('formiojs/utils').default;
 
 module.exports = router => {
   /**
@@ -17,6 +18,10 @@ module.exports = router => {
     // if there isn't a sub-submission or the sub-submission has an _id, don't submit.
     // Should be submitted from the frontend.
     if (!subSubmission || subSubmission._id) {
+      return next();
+    }
+
+    if (!utils.checkCondition(component, {}, req.body.data)) {
       return next();
     }
 
