@@ -12,10 +12,11 @@ module.exports = router => {
       return next();
     }
 
-    const subSubmission = _.get(req.body, `data.${path}`, {});
+    const subSubmission = _.get(req.body, `data.${path}`);
 
-    // if submission has an _id, don't submit. Should be submitted from the frontend.
-    if (subSubmission._id) {
+    // if there isn't a sub-submission or the sub-submission has an _id, don't submit.
+    // Should be submitted from the frontend.
+    if (!subSubmission || subSubmission._id) {
       return next();
     }
 
@@ -68,6 +69,10 @@ module.exports = router => {
         ).exec(function(err, submission) {
           if (err) {
             return router.formio.util.log(err);
+          }
+
+          if (!submission) {
+            return router.formio.util.log('No subform found to update external ids.');
           }
 
           // Update the submission's externalIds.
