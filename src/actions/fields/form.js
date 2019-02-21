@@ -60,6 +60,9 @@ module.exports = router => {
     }
 
     childReq.params.formId = component.form;
+    if (subSubmission._id) {
+      childReq.params.submissionId = subSubmission._id;
+    }
 
     // Make the child request.
     const method = (req.method === 'POST') ? 'post' : 'put';
