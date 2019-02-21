@@ -3667,4 +3667,378 @@ module.exports = function(app, template, hook) {
 
     });
   });
+
+  describe('Nested Submissions', function() {
+    it('Sets up a default project', function(done) {
+      var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper.project().execute(done);
+    });
+
+    it('Create the Child forms', (done) => {
+      helper
+        .form('childA', [
+          {
+            type: 'textfield',
+            label: 'A',
+            key: 'a',
+            validate: {
+              required: true
+            }
+          },
+          {
+            type: 'textfield',
+            label: 'B',
+            key: 'b'
+          }
+        ])
+        .form('childB', [
+          {
+            type: 'textfield',
+            label: 'C',
+            key: 'c',
+            validate: {
+              required: true
+            }
+          },
+          {
+            type: 'textfield',
+            label: 'D',
+            key: 'd'
+          }
+        ])
+        .form('childC', [
+          {
+            type: 'textfield',
+            label: 'E',
+            key: 'e',
+            validate: {
+              required: true
+            }
+          },
+          {
+            type: 'textfield',
+            label: 'F',
+            key: 'f'
+          }
+        ])
+        .execute(done);
+    });
+
+    it('Create the Parent form', (done) => {
+      helper
+        .form('parent', [
+          {
+            type: 'checkbox',
+            label: 'Show A',
+            key: 'showA'
+          },
+          {
+            type: 'checkbox',
+            label: 'Show B',
+            key: 'showB'
+          },
+          {
+            type: 'checkbox',
+            label: 'Show C',
+            key: 'showC'
+          },
+          {
+            type: 'form',
+            form: helper.template.forms.childA._id,
+            label: 'Child A',
+            key: 'childA',
+            conditional: {
+              show: true,
+              when: 'showA',
+              eq: true
+            }
+          },
+          {
+            type: 'form',
+            form: helper.template.forms.childB._id,
+            label: 'Child B',
+            key: 'childB',
+            conditional: {
+              show: true,
+              when: 'showB',
+              eq: true
+            }
+          },
+          {
+            type: 'form',
+            form: helper.template.forms.childC._id,
+            label: 'Child C',
+            key: 'childC',
+            conditional: {
+              show: true,
+              when: 'showC',
+              eq: true
+            }
+          }
+        ])
+        .execute(done);
+    });
+
+    it('Should let you create a complete submission', (done) => {
+      helper
+        .submission('parent', {
+          showA: true,
+          showB: true,
+          showC: true,
+          childA: {
+            data: {
+              a: 'One',
+              b: 'Two'
+            }
+          },
+          childB: {
+            data: {
+              c: 'Three',
+              d: 'Four'
+            }
+          },
+          childC: {
+            data: {
+              e: 'Five',
+              f: 'Six'
+            }
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          assert.equal(submission.data.showA, true);
+          assert.equal(submission.data.showB, true);
+          assert.equal(submission.data.showC, true);
+          assert(submission.data.childA.hasOwnProperty('_id'), 'The childA form was not submitted');
+          assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
+          assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
+          assert.deepEqual(submission.data.childA.data, {
+            a: 'One',
+            b: 'Two'
+          });
+          assert.deepEqual(submission.data.childB.data, {
+            c: 'Three',
+            d: 'Four'
+          });
+          assert.deepEqual(submission.data.childC.data, {
+            e: 'Five',
+            f: 'Six'
+          });
+          done();
+        });
+    });
+
+    it('Should allow you to update a submission with sub-submissions.', (done) => {
+      const existing = _.cloneDeep(helper.lastSubmission);
+      existing.data.childA.data.a = 'Seven';
+      existing.data.childB.data.c = 'Eight';
+      existing.data.childC.data.e = 'Nine';
+      helper
+        .submission('parent', existing)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          assert(submission.data.childA.hasOwnProperty('_id'), 'The childA form was not submitted');
+          assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
+          assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
+          assert.deepEqual(submission.data.childA.data, {
+            a: 'Seven',
+            b: 'Two'
+          });
+          assert.deepEqual(submission.data.childB.data, {
+            c: 'Eight',
+            d: 'Four'
+          });
+          assert.deepEqual(submission.data.childC.data, {
+            e: 'Nine',
+            f: 'Six'
+          });
+          done();
+        });
+    });
+
+    it('Should should throw an error if we are missing a child data.', (done) => {
+      helper
+        .submission('parent', {
+          showA: true,
+          showB: true,
+          showC: true,
+          childA: {},
+          childB: {
+            data: {
+              c: 'Three',
+              d: 'Four'
+            }
+          },
+          childC: {
+            data: {
+              e: 'Five',
+              f: 'Six'
+            }
+          }
+        })
+        .expect(400)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(helper.lastResponse.body.details.length, 1);
+          assert.equal(helper.lastResponse.body.details[0].message, '"a" is required');
+          assert.deepEqual(helper.lastResponse.body.details[0].path, [
+            'childA',
+            'data',
+            'a'
+          ]);
+          done();
+        });
+    });
+
+    it('Should allow the submission to go through if the subform is conditionally hidden', (done) => {
+      helper
+        .submission('parent', {
+          showA: false,
+          showB: true,
+          showC: true,
+          childB: {
+            data: {
+              c: 'Three',
+              d: 'Four'
+            }
+          },
+          childC: {
+            data: {
+              e: 'Five',
+              f: 'Six'
+            }
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          assert.equal(submission.data.showA, false);
+          assert.equal(submission.data.showB, true);
+          assert.equal(submission.data.showC, true);
+          assert(!submission.data.hasOwnProperty('childA'), 'The childA form should not be present.');
+          assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
+          assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
+          assert.deepEqual(submission.data.childB.data, {
+            c: 'Three',
+            d: 'Four'
+          });
+          assert.deepEqual(submission.data.childC.data, {
+            e: 'Five',
+            f: 'Six'
+          });
+          done();
+        });
+    });
+
+    if (app.hasProjects || docker)
+    it('Should allow a draft submission where all sub-submissions are also draft.', (done) => {
+      helper
+        .submission('parent', {
+          state: 'draft',
+          data: {
+            showA: true,
+            showB: true,
+            showC: true,
+            childA: {
+              data: {
+                a: 'One',
+                b: 'Two'
+              }
+            },
+            childB: {
+              data: {
+                c: 'Three',
+                d: 'Four'
+              }
+            },
+            childC: {
+              data: {
+                e: 'Five',
+                f: 'Six'
+              }
+            }
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          assert.equal(submission.state, 'draft');
+          assert(submission.data.childA.hasOwnProperty('_id'), 'The childA form was not submitted');
+          assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
+          assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
+          assert.equal(submission.data.childA.state, 'draft');
+          assert.equal(submission.data.childB.state, 'draft');
+          assert.equal(submission.data.childC.state, 'draft');
+          assert.deepEqual(submission.data.childA.data, {
+            a: 'One',
+            b: 'Two'
+          });
+          assert.deepEqual(submission.data.childB.data, {
+            c: 'Three',
+            d: 'Four'
+          });
+          assert.deepEqual(submission.data.childC.data, {
+            e: 'Five',
+            f: 'Six'
+          });
+          done();
+        });
+    });
+
+    if (app.hasProjects || docker)
+    it('Should allow a an update to the submission where all sub-submissions are also updated.', (done) => {
+      const existing = _.cloneDeep(helper.lastSubmission);
+      existing.state = 'submitted';
+      existing.data.childA.data.a = 'Seven';
+      existing.data.childB.data.c = 'Eight';
+      existing.data.childC.data.e = 'Nine';
+      helper
+        .submission('parent', existing)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          assert.equal(submission.state, 'submitted');
+          assert(submission.data.childA.hasOwnProperty('_id'), 'The childA form was not submitted');
+          assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
+          assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
+          assert.equal(submission.data.childA.state, 'submitted');
+          assert.equal(submission.data.childB.state, 'submitted');
+          assert.equal(submission.data.childC.state, 'submitted');
+          assert.deepEqual(submission.data.childA.data, {
+            a: 'Seven',
+            b: 'Two'
+          });
+          assert.deepEqual(submission.data.childB.data, {
+            c: 'Eight',
+            d: 'Four'
+          });
+          assert.deepEqual(submission.data.childC.data, {
+            e: 'Nine',
+            f: 'Six'
+          });
+          done();
+        });
+    });
+  });
 };
