@@ -13,19 +13,27 @@ module.exports = router => {
       return next();
     }
 
-    const subSubmission = _.get(req.body, `data.${path}`);
+    // Get the submission object.
+    const subSubmission = _.get(req.body, `data.${path}`, {});
 
     // if there isn't a sub-submission or the sub-submission has an _id, don't submit.
     // Should be submitted from the frontend.
-    if (!subSubmission || subSubmission._id) {
+    if (
+      (req.method === 'POST' && subSubmission._id) ||
+      (req.method === 'PUT' && !subSubmission._id)
+    ) {
       return next();
     }
 
+    // Only execute if the conditions do not apply.
     if (!utils.checkCondition(component, {}, req.body.data)) {
       return next();
     }
 
-    const url = '/form/:formId/submission';
+    let url = '/form/:formId/submission';
+    if (req.method === 'PUT') {
+      url += '/:submissionId';
+    }
     const childRes = router.formio.util.createSubResponse((err) => {
       if (childRes.statusCode > 299) {
         // Add the parent path to the details path.
@@ -45,8 +53,17 @@ module.exports = router => {
       return res.headersSent ? next() : res.status(400).json('Too many recursive requests.');
     }
     childReq.body = subSubmission;
+
+    // Make sure to pass along the submission state to the subforms.
+    if (req.body.state) {
+      childReq.body.state = req.body.state;
+    }
+
     childReq.params.formId = component.form;
-    router.resourcejs[url].post(childReq, childRes, function(err) {
+
+    // Make the child request.
+    const method = (req.method === 'POST') ? 'post' : 'put';
+    router.resourcejs[url][method](childReq, childRes, function(err) {
       if (err) {
         return next(err);
       }
