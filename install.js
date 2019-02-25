@@ -160,7 +160,7 @@ module.exports = function(formio, items, done) {
      * @param done
      */
     areYouSure: function(done) {
-      if (process.env.UNATTENDED_INSTALL) {
+      if (process.env.ROOT_USER) {
         done();
       }
       prompt.get([
@@ -183,7 +183,7 @@ module.exports = function(formio, items, done) {
 
     // Allow them to select the application.
     whatApp: function(done) {
-      if (process.env.UNATTENDED_INSTALL) {
+      if (process.env.ROOT_USER) {
         done();
       }
       const repos = [
@@ -311,7 +311,7 @@ module.exports = function(formio, items, done) {
         templateFile = 'app';
         return done();
       }
-      if (process.env.UNATTENDED_INSTALL) {
+      if (process.env.ROOT_USER) {
         templateFile = 'client';
         done();
       }
@@ -402,7 +402,7 @@ module.exports = function(formio, items, done) {
      * @param done
      */
     createRootUser: function(done) {
-      if (process.env.UNATTENDED_INSTALL) {
+      if (process.env.ROOT_USER) {
         prompt.override = {
           email: process.env.ROOT_EMAIL,
           password: process.env.ROOT_PASSWORD
