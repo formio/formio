@@ -990,7 +990,9 @@ class Validator {
             issueType: submission.data.issueType,
             formRef: submission.data.formRef,
             formType: submission.data.formType,
-            dateCreated: submission.data.dateCreated
+            dateCreated: submission.data.dateCreated,
+            refId: submission.data.refId,
+            dateModified: submission.data.dateModified
         });
         next(null, value);
       });

@@ -6,8 +6,8 @@
   "domain": "http://localhost:3001",
   "basePath": "",
   "clientBasePath": "/",
-  "mongo": "mongodb://localhost:27017/formioapp",
-  "mongoSecret": "--- change me now ---",
+  "mongo": "mongodb://formio_user:9h4187fRG*Et@52.60.132.94:27017/formio",
+  "mongoSecret": "--- change npm stame now ---",
   "reservedForms": [
     "submission",
     "exists",

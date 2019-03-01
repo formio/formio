@@ -35,7 +35,7 @@
     "event-chain": "^0.0.1",
     "express": "^4.16.3",
     "formio-workers": "^1.6.0",
-    "formiojs": "^3.0.0-rc.26",
+    "formiojs": "^3.0.0",
     "fs-extra": "^7.0.0",
     "html-entities": "^1.2.1",
     "joi": "^13.3.0",
@@ -63,7 +63,8 @@
     "restler": "^3.4.0",
     "semver": "^5.5.0",
     "through": "^2.3.8",
-    "vanilla-text-mask": "^5.1.1"
+    "vanilla-text-mask": "^5.1.1",
+    "whatwg-fetch": "^2.0.4"
   },
   "devDependencies": {
     "chance": "^1.0.11",

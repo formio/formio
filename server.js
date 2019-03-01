@@ -51,7 +51,7 @@ module.exports = function(options) {
   });
   const path = require('path');
   // Mount the client application.
-  app.use('/', express.static( path.join(__dirname, 'client/dist')));
+  app.use('/' , express.static( path.join(__dirname, 'client/dist')));
 
   // Load the form.io server.
   const server = options.server || require('./index')(config);
