@@ -57,6 +57,44 @@ To start server with auto restart capability for development simply run this com
 ```
 npm run start:dev
 ```
+Commercial features
+-------------------
+This "Portal" can be considered as a "Developer Portal" as it provides many many developer features that enable you to build and manage your forms, resources, and submissions all together for each project you have.  This Portal is not available to you in the open source modules.
+
+Additionally, there are many premium features and actions that are not available without the Portal and the commercial platform.  These include PDFs, multi-tenanted platform application ability, branded emails with templates, advanced conditional logic, webhook interfaces, and more.
+<ol>
+<li>Available only in Commercial</li>
+<li>OAuth - OpenID Connect</li>
+<li>LDAP Authentication</li>
+<li>SAML Authentification</li>
+<li>Form Manager: Customizable Form-builder Interface tor non-developer users and groups. </li>
+<li>Advanced Webhooks</li>
+<li>Team management</li>
+<li>Collaboration on Forms</li>
+<li>Audit Logging</li>
+<li>Multi-tenant management</li>
+<li>Email Templates (coming soon)</li>
+<li>Temp tokens & Email based authentication</li>
+<li>Report API (aggregated reports)</li>
+<li>Staging and Deployment (SDLC)s </li>
+<li>Form Submission Collections (saving submissions to different collections for indexing) </li>
+<li>Form Versioning </li>
+<li>PDFs </li>
+<li>Encrypted Fields </li>
+<li>Offline Forms </li>
+<li>File Uploads </li>
+<li>CORS Configuration </li>
+<li>SQL Connectors </li>
+<li>Kickbox integration </li>
+<li>Google Sheets </li>
+<li>Atlassian (JIRA) integration </li>
+<li>Office 365 integration </li>
+<li>Hubspot integration </li>
+<li>CCS templating </li>
+<li>Docker Containers with updates </li>
+<li>External JWT tokens </li>
+<li>Private File Uploads </li>
+</ol>
 
 Deploy to Hosted Form.io
 --------------------
