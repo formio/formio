@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.42.0
+### Removed
+ - Removed the macros from the email action since those are now added to the formio-workers library.
+
+### Changed
+ - Upgraded dependencies.
+
 ## 1.41.3
 ### Fixed
  - Problem with a subform put request.
