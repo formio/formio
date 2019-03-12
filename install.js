@@ -160,6 +160,9 @@ module.exports = function(formio, items, done) {
      * @param done
      */
     areYouSure: function(done) {
+      if (process.env.ROOT_USER) {
+        done();
+      }
       prompt.get([
         {
           name: 'install',
@@ -180,6 +183,9 @@ module.exports = function(formio, items, done) {
 
     // Allow them to select the application.
     whatApp: function(done) {
+      if (process.env.ROOT_USER) {
+        done();
+      }
       const repos = [
         'None',
         'https://github.com/formio/formio-app-humanresources',
@@ -305,6 +311,10 @@ module.exports = function(formio, items, done) {
         templateFile = 'app';
         return done();
       }
+      if (process.env.ROOT_USER) {
+        templateFile = 'client';
+        done();
+      }
 
       let message = '\nWhich project template would you like to install?\n'.green;
       message += '\n   Please provide the local file path of the project.json file.'.yellow;
@@ -392,6 +402,12 @@ module.exports = function(formio, items, done) {
      * @param done
      */
     createRootUser: function(done) {
+      if (process.env.ROOT_USER) {
+        prompt.override = {
+          email: process.env.ROOT_EMAIL,
+          password: process.env.ROOT_PASSWORD
+        }
+      }
       if (!items.user) {
         return done();
       }
