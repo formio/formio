@@ -8,7 +8,6 @@ module.exports = function(router) {
   const emailer = require('../util/email')(router.formio);
   const debug = require('debug')('formio:action:email');
   const ecode = router.formio.util.errorCodes;
-  const macros = require('./macros/macros');
   const logOutput = router.formio.log || debug;
   const log = (...args) => logOutput(LOG_EVENT, ...args);
 
@@ -205,10 +204,7 @@ module.exports = function(router) {
             });
           })
           .then(template => {
-            // Prepend the macros to the message so that they can use them.
-            this.settings.message = macros + template;
-
-            // Send the email.
+            this.settings.message = template;
             emailer.send(req, res, this.settings, params, (err) => {
               if (err) {
                 log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
