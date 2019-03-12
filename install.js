@@ -406,7 +406,7 @@ module.exports = function(formio, items, done) {
         prompt.override = {
           email: process.env.ROOT_EMAIL,
           password: process.env.ROOT_PASSWORD
-        }
+        };
       }
       if (!items.user) {
         return done();
