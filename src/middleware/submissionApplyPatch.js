@@ -24,7 +24,7 @@ module.exports = router => (req, res, next) => {
       return res.status(400).send(err);
     }
 
-    const submission = _.get(childReq, 'resource.item', false);
+    const submission = _.get(childRes, 'resource.item', false);
     // No submission exists.
     if (!submission) {
       return res.sendStatus(404);
