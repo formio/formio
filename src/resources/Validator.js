@@ -982,6 +982,9 @@ class Validator {
           }
         }
 
+        // These are reserved keys (that will bypass formio's validation),
+        // it will allow these keys to be submitted regardless
+        // of whether it corresponds to an input in the form
         submission.data = Object.assign({}, value, {
             uid: submission.data.uid,
             unitId: submission.data.unitId,
@@ -992,7 +995,8 @@ class Validator {
             formType: submission.data.formType,
             dateCreated: submission.data.dateCreated,
             refId: submission.data.refId,
-            dateModified: submission.data.dateModified
+            dateModified: submission.data.dateModified,
+            primaryRegionId: submission.data.primaryRegionId
         });
         next(null, value);
       });
