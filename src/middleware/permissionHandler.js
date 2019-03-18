@@ -250,6 +250,45 @@ module.exports = function(router) {
           });
         },
 
+        // Get a list of all roles associated with this access check.
+        function getAccessRoles(callback) {
+          // Load all the roles.
+          router.formio.resources.role.model.find(hook.alter('roleQuery', {
+            deleted: {$eq: null}
+          }, req), function(err, roles) {
+            if (err) {
+              return callback(400);
+            }
+
+            // Get a list of all valid roles this user can have.
+            const validRoles = (roles && roles.length) ? roles.map((role) => {
+              const roleId = role._id.toString();
+              if (role.default) {
+                access.defaultRole = roleId;
+              }
+              if (role.admin) {
+                access.adminRole = roleId;
+              }
+              return roleId;
+            }) : [];
+
+            // Default the access roles.
+            access.roles = [access.defaultRole, EVERYONE];
+
+            // Ensure the user only has valid roles.
+            if (req.user) {
+              access.roles = _(req.user.roles || [])
+                .filter()
+                .map(util.idToString)
+                .intersection(validRoles)
+                .concat(req.user._id.toString())
+                .uniq()
+                .value();
+            }
+            callback();
+          });
+        },
+
         // Determine if this is a possible index request against submissions.
         function flagRequestAsSubmissionResourceAccess(callback) {
           if (req.method.toUpperCase() !== 'GET') {
@@ -294,40 +333,7 @@ module.exports = function(router) {
           return done(err);
         }
 
-        // Load a specific role.
-        const loadRole = function(name, query, done) {
-          // Load the default role.
-          access[name] = hook.alter(name, null, access);
-          if (access[name]) {
-            done(null, access);
-          }
-          else {
-            // Load the default role.
-            router.formio.resources.role.model.findOne(hook.alter('roleQuery', query, req), function(err, role) {
-              if (err) {
-                return done(err);
-              }
-
-              if (role) {
-                access[name] = role._id.toString();
-              }
-
-              done(null, access);
-            });
-          }
-        };
-
-        // Load all of the applicable roles.
-        async.series([
-          async.apply(loadRole, 'defaultRole', {default: true}),
-          async.apply(loadRole, 'adminRole', {admin: true})
-        ], function(err) {
-          if (err) {
-            return done(err);
-          }
-
-          done(null, access);
-        });
+        done(null, access);
       });
     },
 
@@ -349,27 +355,7 @@ module.exports = function(router) {
     /* eslint-disable max-statements */
     hasAccess(req, access, entity, res) {
       const method = req.method.toUpperCase();
-      let roles = [access.defaultRole, EVERYONE];
-      let user = null;
-      if (req.user) {
-        user = util.idToString(req.user._id);
-
-        // Get the roles for the permission checks.
-        req.user.roles = req.user.roles || [];
-
-        // Add the users id to the roles to check for submission resource access.
-        req.user.roles.push(user);
-
-        // Add the everyone role.
-        req.user.roles.push(EVERYONE);
-
-        // Ensure that all roles are strings to be compatible for comparison.
-        roles = _(req.user.roles)
-          .filter()
-          .map(util.idToString)
-          .uniq()
-          .value();
-      }
+      const user = req.user ? util.idToString(req.user._id) : null;
 
       // Setup some flags for other handlers.
       req.isAdmin = false;
@@ -402,7 +388,7 @@ module.exports = function(router) {
       }
 
       // Check to see if this user has an admin role.
-      const hasAdminRole = access.adminRole ? (_.indexOf(roles, access.adminRole) !== -1) : false;
+      const hasAdminRole = access.adminRole ? (_.indexOf(access.roles, access.adminRole) !== -1) : false;
       if (hasAdminRole || hook.alter('isAdmin', req.isAdmin, req)) {
         req.isAdmin = true;
         return true;
@@ -418,7 +404,7 @@ module.exports = function(router) {
         return access[entity.type][type] &&
           (
             (access[entity.type][type] === true) ||
-            (access[entity.type][type].length && _.intersection(access[entity.type][type], roles).length)
+            (access[entity.type][type].length && _.intersection(access[entity.type][type], access.roles).length)
           );
       };
 
@@ -446,7 +432,7 @@ module.exports = function(router) {
         const submissionResourceAdmin = (_.get(req, 'submissionResourceAccessAdminBlock') || []);
         if (
           (req.method === 'POST' || req.method === 'PUT') &&
-          !_.intersection(submissionResourceAdmin, roles).length
+          !_.intersection(submissionResourceAdmin, access.roles).length
         ) {
           // Allow them to assign the owner.
           req.assignOwner = true;
