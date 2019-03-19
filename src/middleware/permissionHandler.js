@@ -273,7 +273,7 @@ module.exports = function(router) {
             }) : [];
 
             // Default the access roles.
-            access.roles = [access.defaultRole, EVERYONE];
+            access.roles = [access.defaultRole];
 
             // Ensure the user only has valid roles.
             if (req.user) {
@@ -281,10 +281,13 @@ module.exports = function(router) {
                 .filter()
                 .map(util.idToString)
                 .intersection(validRoles)
-                .concat([req.user._id.toString(), EVERYONE])
+                .concat(req.user._id.toString())
                 .uniq()
                 .value();
             }
+
+            // Add the EVERYONE role.
+            access.roles.push(EVERYONE);
             callback();
           });
         },
