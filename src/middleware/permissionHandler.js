@@ -277,12 +277,11 @@ module.exports = function(router) {
 
             // Ensure the user only has valid roles.
             if (req.user) {
-              access.roles.push(req.user._id.toString());
               access.roles = _(req.user.roles || [])
                 .filter()
                 .map(util.idToString)
                 .intersection(validRoles)
-                .concat(access.roles)
+                .concat([req.user._id.toString(), EVERYONE])
                 .uniq()
                 .value();
             }
