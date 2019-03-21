@@ -281,9 +281,12 @@ module.exports = function(router) {
                 .filter()
                 .map(util.idToString)
                 .intersection(validRoles)
-                .concat(req.user._id.toString())
                 .uniq()
                 .value();
+
+              if (req.user._id && (req.user._id !== 'external')) {
+                access.roles.push(req.user._id.toString());
+              }
             }
 
             // Add the EVERYONE role.
