@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "1.42.1",
+  "version": "1.43.0",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
@@ -20,7 +20,7 @@
     "JSONStream": "^1.3.5",
     "adm-zip": "^0.4.13",
     "async": "^2.6.2",
-    "bcrypt": "^3.0.4",
+    "bcrypt": "^3.0.5",
     "body-parser": "^1.18.3",
     "clone": "^2.1.2",
     "colors": "^1.3.3",
@@ -34,11 +34,11 @@
     "express": "^4.16.4",
     "fast-json-patch": "^2.0.7",
     "formio-workers": "^1.11.0",
-    "formiojs": "^3.16.3",
+    "formiojs": "^3.17.4",
     "fs-extra": "^7.0.1",
     "html-entities": "^1.2.1",
     "joi": "^14.3.1",
-    "jsonwebtoken": "^8.5.0",
+    "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.11",
     "memory-cache": "^0.2.0",
     "method-override": "^3.0.0",
@@ -46,7 +46,7 @@
     "moment-timezone": "^0.5.23",
     "mongodb": "^3.1.13",
     "mongoose": "^5.4.19",
-    "mssql": "^5.0.2",
+    "mssql": "^5.0.3",
     "mysql": "^2.16.0",
     "nodemailer": "^5.1.1",
     "nodemailer-mailgun-transport": "^1.4.0",
@@ -65,11 +65,11 @@
   },
   "devDependencies": {
     "chance": "^1.0.18",
-    "eslint": "^5.15.1",
+    "eslint": "^5.15.3",
     "mocha": "^6.0.2",
     "nodemon": "^1.18.10",
     "pre-commit": "^1.2.2",
-    "supertest": "^4.0.0"
+    "supertest": "^4.0.2"
   },
   "directories": {
     "test": "test"
