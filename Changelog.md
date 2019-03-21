@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.43.0
+### Fixed
+ - Added a more efficient and complete role checking mechanism for permission handling.
+
+### Changed
+ - Updated bcrypt@3.0.5, jsonwebtoken@8.5.1, mssql@5.0.3, eslint@5.15.3, supertest@4.0.2, formiojs@3.17.4 
+
 ## 1.42.1
 ### Fixed
  - Patch requests incorrectly patching files with encrypted fields.
