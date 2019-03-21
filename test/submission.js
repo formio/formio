@@ -14,7 +14,7 @@ module.exports = function(app, template, hook) {
     it('Sets up a default project', function(done) {
       var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
-      helper.project().execute(done);
+      helper.project().user('user', 'user1').execute(done);
     });
 
     describe('Unnested Submissions', function() {
@@ -3240,7 +3240,7 @@ module.exports = function(app, template, hook) {
             submissionAccess: [
               {
                 type: 'read_all',
-                roles: [template.roles.authenticated._id.toString()]
+                roles: [helper.template.roles.authenticated._id.toString()]
               }
             ]
           })
@@ -3282,7 +3282,7 @@ module.exports = function(app, template, hook) {
       it('Should check permissions when loading from reference', done => {
         request(app)
           .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission/' + helper.lastSubmission._id, helper.template))
-          .set('x-jwt-token', template.users.user1.token)
+          .set('x-jwt-token', helper.template.users.user1.token)
           .send()
           // .expect(200)
           .end(function(err, res) {
