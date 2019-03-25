@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.43.1
+### Fixed
+ - The token handler to also call the user hooks for other kinds of tokens.
+
+### Changed
+ - Upgraded formiojs@3.18.0, mongodb@3.2.2
+
 ## 1.43.0
 ### Fixed
  - Added a more efficient and complete role checking mechanism for permission handling.
