@@ -19,6 +19,10 @@ const debug = {
  *   The middleware for an Express endpoint.
  */
 module.exports = function(router) {
+  // Load the form.io hooks.
+  const hook = require('../util/hook')(router.formio);
+  const formioCache = require('../cache/cache')(router);
+
   /**
    * Util function to update the jwt in the response.
    *
@@ -38,6 +42,38 @@ module.exports = function(router) {
       res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
       res.setHeader('x-jwt-token', res.token);
     }
+  };
+
+  /**
+   * Handle the user.
+   *
+   * @param req
+   * @param res
+   * @param decoded
+   * @param user
+   * @param next
+   */
+  const userHandler = (req, res, decoded, token, user, next) => {
+    hook.alter('user', user, function(err, user) {
+      if (err) {
+        return next();
+      }
+
+      // Store the user for future use.
+      req.user = user;
+
+      // Store the jwt token sent by the user.
+      req.token = decoded;
+
+      // Refresh the token that is sent back to the user when appropriate.
+      req.tokenIssued = parseInt(Date.now() / 1000);
+      generateToken(token, decoded, res);
+      router.formio.log('Token', req, 'Using normal token');
+      if (req.user) {
+        router.formio.log('User', req, req.user._id);
+      }
+      next();
+    });
   };
 
   return function tokenHandler(req, res, next) {
@@ -99,35 +135,17 @@ module.exports = function(router) {
         return next();
       }
 
-      // Load the formio hooks.
-      const hook = require('../util/hook')(router.formio);
-
       // Allow external tokens.
       if (!hook.alter('external', decoded, req)) {
-        router.formio.log('Token', req, 'Using external token');
-        req.user = decoded.user;
-        if (req.user) {
-          router.formio.log('User', req, req.user._id);
-        }
-        req.token = decoded;
-        req.tokenIssued = parseInt(Date.now() / 1000);
-        generateToken(token, decoded, res);
-        return next();
+        decoded.user.project = decoded.project._id;
+        return userHandler(req, res, decoded, token, decoded.user, next);
       }
 
       // See if this is a remote token.
       if (decoded.project && decoded.permission) {
-        router.formio.log('Token', req, 'Using remote token');
-        req.user = decoded.user;
-        if (req.user) {
-          router.formio.log('User', req, req.user._id);
-        }
-        req.token = decoded;
         req.userProject = decoded.project;
         req.remotePermission = decoded.permission;
-        req.tokenIssued = parseInt(Date.now() / 1000);
-        generateToken(token, decoded, res);
-        return next();
+        return userHandler(req, res, decoded, token, decoded.user, next);
       }
 
       if (decoded.isAdmin) {
@@ -149,7 +167,7 @@ module.exports = function(router) {
       }
 
       // Load the user submission.
-      const cache = router.formio.cache || require('../cache/cache')(router);
+      const cache = router.formio.cache || formioCache;
       cache.loadSubmission(req, decoded.form._id, decoded.user._id, function(err, user) {
         if (err) {
           // Couldn't load the use, try to fail safely.
@@ -171,27 +189,8 @@ module.exports = function(router) {
           return res.status(440).send('Token No Longer Valid');
         }
 
-        hook.alter('user', user, function(err, user) {
-          if (err) {
-            return next();
-          }
-
-          // Store the user for future use.
-          req.user = user;
-
-          // Store the jwt token sent by the user.
-          req.token = decoded;
-
-          // Refresh the token that is sent back to the user when appropriate.
-          req.tokenIssued = parseInt(Date.now() / 1000);
-          generateToken(token, decoded, res);
-
-          router.formio.log('Token', req, 'Using normal token');
-          if (req.user) {
-            router.formio.log('User', req, req.user._id);
-          }
-          next();
-        });
+        // Call the user handler.
+        userHandler(req, res, decoded, token, user, next);
       });
     });
   };
