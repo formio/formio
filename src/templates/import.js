@@ -107,12 +107,19 @@ module.exports = (router) => {
     if (!entity.hasOwnProperty(`form`)) {
       return false;
     }
+    const formName = entity.form;
     if (template.hasOwnProperty(`forms`) && template.forms.hasOwnProperty(entity.form)) {
-      entity.form = template.forms[entity.form]._id.toString();
+      entity.form = template.forms[formName]._id.toString();
+      if (template.forms[formName].hasOwnProperty('_vid') && template.forms[formName]._vid) {
+        entity.formRevision = template.forms[formName]._vid.toString();
+      }
       return true;
     }
     if (template.hasOwnProperty(`resources`) && template.resources.hasOwnProperty(entity.form)) {
-      entity.form = template.resources[entity.form]._id.toString();
+      entity.form = template.resources[formName]._id.toString();
+      if (template.resources[formName].hasOwnProperty('_vid') && template.resources[formName]._vid) {
+        entity.formRevision = template.resources[formName]._vid.toString();
+      }
       return true;
     }
 
@@ -130,15 +137,22 @@ module.exports = (router) => {
 
     let changes = false;
 
+    const formName = entity.form;
     // Attempt to add a form.
     if (template.forms && template.forms[entity.form] && template.forms[entity.form]._id) {
-      entity.form = template.forms[entity.form]._id.toString();
+      entity.form = template.forms[formName]._id.toString();
+      if (template.forms[formName].hasOwnProperty('_vid') && template.forms[formName]._vid) {
+        entity.formRevision = template.forms[formName]._vid.toString();
+      }
       changes = true;
     }
 
     // Attempt to add a resource
     if (!changes && template.resources && template.resources[entity.form] && template.resources[entity.form]._id) {
       entity.form = template.resources[entity.form]._id.toString();
+      if (template.resources[formName].hasOwnProperty('_vid') && template.resources[formName]._vid) {
+        entity.formRevision = template.resources[formName]._vid.toString();
+      }
       changes = true;
     }
 
