@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.43.2
+### Fixed
+ - Fix permissions check on patch submission.
+ - Fix issue with deploying projects with forms configured with nested forms attached to specific versions.
+
+### Changed
+ - formiojs@3.18.1, mongoose@5.4.20
+
 ## 1.43.1
 ### Fixed
  - The token handler to also call the user hooks for other kinds of tokens.
