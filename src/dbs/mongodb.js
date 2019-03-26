@@ -5,10 +5,10 @@ const MongoClient = require('mongodb').MongoClient;
 const log = require('form-api').log;
 
 module.exports = class MongoDB {
-  constructor(connectionString, database) {
+  constructor(config) {
     this.ID = ID;
-    this.connectionString = connectionString;
-    this.database = database;
+    this.connectionString = config.connectionString;
+    this.database = config.database;
 
     // Cache collection names
     this.dbs = {};

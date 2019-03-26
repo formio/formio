@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  
 ### Removed
  - External dependencies like mongoose.js and resource.js
+ - websockets integration
+ - populate option for queries
+ - /exists and /components endpoints
 
 ## 1.39.0
 ### Changed 

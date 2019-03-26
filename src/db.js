@@ -1,14 +1,20 @@
 'use strict'
 
+const dbs = require('./dbs');
 const MongoWrapper = require('./dbs/mongodb');
 
 module.exports = config => {
-  console.log('Connecting to database');
-  if (config.mongo) {
-    return new MongoWrapper(config.mongo, config.mongoDatabase);
+  let connection = false;
+  // Find which database has a configuration and instantiate it.
+  Object.keys(dbs).forEach(dbName => {
+    if (!connection && config[dbName]) {
+      console.log(`Connecting to ${dbName} database`);
+      connection = new dbs[dbName](config[dbName]);
+    }
+  });
+  if (connection) {
+    return connection;
   }
-  else {
-    console.log('Error: No database configured');
-    return false;
-  }
+  console.log('Error: No database configured');
+  return false;
 };
