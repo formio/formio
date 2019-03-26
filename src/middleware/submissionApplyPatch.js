@@ -8,6 +8,8 @@ module.exports = router => (req, res, next) => {
   }
 
   const childReq = router.formio.util.createSubRequest(req);
+  childReq.permissionsChecked = true;
+
   if (!childReq) {
     return res.headersSent ? next() : res.status(400).json('Too many recursive requests.');
   }
