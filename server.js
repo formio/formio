@@ -1,30 +1,57 @@
-'use strict';
+const readline = require('readline');
+const fs = require('fs');
+require('colors');
+const install = require('./install');
 
-require('dotenv').load({silent: true});
-const express = require('express');
-const bodyParser = require('body-parser');
-const Formio = require('./src/Formio');
-const config = require('./src/config');
-const cors = require('cors');
+const welcome = new Promise((resolve) => {
+  // Print Welcome message.
+  const rl = readline.createInterface({
+    input: fs.createReadStream('text/logo.txt')
+  });
 
-const app = express();
-const db = require('./src/db')(config);
+  rl.on('line', function(line) {
+    console.log(
+      line.substring(0,4) +
+      line.substring(4, 30).cyan.bold +
+      line.substring(30, 33) +
+      line.substring(33, 42).green.bold +
+      line.substring(42)
+    );
+  });
 
-// Only continue if the DB is initializing.
-if (db) {
-  app.use(cors());
-  app.use(bodyParser.urlencoded({extended: true}));
-  app.use(bodyParser.json({limit: '16mb'}));
+  rl.on('close', function() {
+    // Print the welcome screen.
+    console.log('');
+    console.log(fs.readFileSync('text/welcome.txt').toString().green);
+    resolve();
+  });
+});
 
-  const formio = new Formio(app, db);
+welcome.then(() => {
+  require('./main')
+    .then(App => {
+      const installSteps = {
+        download: false,
+        extract: false,
+        import: false,
+        user: false,
+      };
 
-  app.listen(config.port);
-  db.ready
-    .then(() => {
-      console.log('Listening on port ' + config.port);
+      // Check for the client folder.
+      if (!fs.existsSync('client')) {
+        installSteps.download = true;
+        installSteps.extract = true;
+      }
+
+      return App.models.Form.count()
+        .then(count => {
+          if (count === 0) {
+            installSteps.import = true;
+            installSteps.user = true;
+          }
+
+          install(App, installSteps, () => {});
+        });
     })
-    .catch(err => {
-      console.error(err);
-    });
-}
-
+    .catch(console.error);
+});

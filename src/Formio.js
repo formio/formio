@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const info = require('../package.json');
 const {FormApi, log} = require('form-api');
 const config = require('./config');
+const actions = require('./actions');
 const resources = require('./resources');
 
 module.exports = class Formio extends FormApi {
@@ -15,6 +16,13 @@ module.exports = class Formio extends FormApi {
       ...super.resourceClasses,
       ...resources,
     };
+  }
+
+  get actions() {
+    return {
+      ...super.actions,
+      ...actions
+    }
   }
 
   getStatus(status = {}) {

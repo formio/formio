@@ -20,7 +20,7 @@ module.exports = class MongoDB {
           return reject(err);
         }
         else {
-          console.log('Successfully connected to mongodb');
+          console.log(' > Successfully connected to mongodb');
           return resolve(client);
         }
       });
