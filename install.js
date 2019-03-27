@@ -299,15 +299,9 @@ module.exports = function(formio, items, done) {
 
       // Get the form.io service.
       console.log('Importing template...'.green);
-      const importer = require('./src/templates/import')({formio: formio});
-      importer.template(template, function(err, template) {
-        if (err) {
-          return done(err);
-        }
-
-        project = template;
-        done(null, template);
-      });
+      formio.importTemplate(template)
+        .then(done)
+        .catch(done);
     },
 
     /**
@@ -346,30 +340,23 @@ module.exports = function(formio, items, done) {
         }
 
         console.log('Encrypting password');
-        formio.encrypt(result.password, function(err, hash) {
-          if (err) {
-            return done(err);
-          }
-
-          // Create the root user submission.
-          console.log('Creating root user account');
-          formio.resources.submission.model.create({
-            form: project.resources.admin._id,
-            data: {
-              email: result.email,
-              password: hash
-            },
-            roles: [
-              project.roles.administrator._id
-            ]
-          }, function(err, item) {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
-        });
+        formio.util.encrypt(result.password)
+          .then((hash) => {
+            // Create the root user submission.
+            console.log('Creating root user account');
+            return formio.models.Submission.create({
+              form: project.resources.admin._id,
+              data: {
+                email: result.email,
+                password: hash
+              },
+              roles: [
+                project.roles.administrator._id
+              ]
+            });
+          })
+          .then(done)
+          .catch(done);
       });
     }
   };
