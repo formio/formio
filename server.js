@@ -1,5 +1,7 @@
 const readline = require('readline');
+const express = require('express');
 const fs = require('fs');
+const path = require('path');
 require('colors');
 const install = require('./install');
 
@@ -50,7 +52,9 @@ welcome.then(() => {
             installSteps.user = true;
           }
 
-          install(App, installSteps, () => {});
+          if (installSteps.download || installSteps.extract || installSteps.import || installSteps.user) {
+            install(App, installSteps, () => {});
+          }
         });
     })
     .catch(console.error);

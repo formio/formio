@@ -5,6 +5,7 @@
  */
 require('dotenv').load({silent: true});
 const express = require('express');
+const path = require('path');
 const bodyParser = require('body-parser');
 const Formio = require('./src/Formio');
 const config = require('./src/config');
@@ -20,6 +21,8 @@ module.exports = new Promise((resolve, reject) => {
   }
 
   resolve(db.ready.then(() => {
+    // Serve client app if it exists.
+    app.use('/', express.static(path.join(__dirname, '/client/dist')));
     app.use(cors());
     app.use(bodyParser.urlencoded({extended: true}));
     app.use(bodyParser.json({limit: '16mb'}));

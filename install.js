@@ -297,6 +297,9 @@ module.exports = function(formio, items, done) {
         return done(err);
       }
 
+      // Save template for later.
+      project = template;
+
       // Get the form.io service.
       console.log('Importing template...'.green);
       formio.importTemplate(template)
@@ -355,7 +358,7 @@ module.exports = function(formio, items, done) {
               ]
             });
           })
-          .then(done)
+          .then(() => done())
           .catch(done);
       });
     }
