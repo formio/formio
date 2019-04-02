@@ -1,6 +1,5 @@
 'use strict';
 const async = require('async');
-const cloneDeep = require('lodash/cloneDeep');
 
 const debug = {
   form: require('debug')('formio:cache:form'),
@@ -8,6 +7,7 @@ const debug = {
   loadFormByName: require('debug')('formio:cache:loadFormByName'),
   loadFormByAlias: require('debug')('formio:cache:loadFormByAlias'),
   loadSubmission: require('debug')('formio:cache:loadSubmission'),
+  loadSubmissions: require('debug')('formio:cache:loadSubmissions'),
   error: require('debug')('formio:error')
 };
 
@@ -98,6 +98,32 @@ module.exports = function(router) {
       });
     },
 
+    /**
+     * Loads an array of form ids.
+     *
+     * @param req
+     * @param ids
+     * @param cb
+     */
+    loadForms(req, ids, cb) {
+      router.formio.resources.form.model.findOne(
+        hook.alter('formQuery', {
+          _id: {$in: ids},
+          deleted: {$eq: null}
+        }, req)
+      ).lean().exec((err, result) => {
+        if (err) {
+          debug.loadForms(err);
+          return cb(err);
+        }
+        if (!result || !result.length) {
+          return cb(null, []);
+        }
+
+        cb(null, result);
+      });
+    },
+
     getCurrentFormId(req) {
       let formId = req.formId;
       if (req.params.formId) {
@@ -176,6 +202,38 @@ module.exports = function(router) {
 
         cache.submissions[subId] = submission;
         cb(null, submission);
+      });
+    },
+
+    /**
+     * Load an array of submissions.
+     *
+     * @param formId
+     * @param subs
+     * @param cb
+     */
+    loadSubmissions(req, subs, cb) {
+      if (!subs || !subs.length) {
+        // Shortcut if no subs are provided.
+        return cb(null, []);
+      }
+
+      const query = {
+        _id: {$in: subs.map((subId) => util.idToBson(subId))},
+        deleted: {$eq: null}
+      };
+      debug.loadSubmissions(query);
+      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+      submissionModel.find(hook.alter('submissionQuery', query, req)).lean().exec((err, submissions) => {
+        if (err) {
+          debug.loadSubmissions(err);
+          return cb(err);
+        }
+        if (!submissions) {
+          return cb(null, []);
+        }
+
+        cb(null, submissions);
       });
     },
 
@@ -281,36 +339,44 @@ module.exports = function(router) {
       }
 
       // Get all of the form components.
-      const comps = [];
+      const comps = {};
       util.eachComponent(form.components, function(component) {
-        if (component.type === 'form') {
-          comps.push(component);
+        if ((component.type === 'form') && component.form) {
+          const formId = component.form.toString();
+          if (!comps[formId]) {
+            comps[formId] = [];
+          }
+          comps[formId].push(component);
         }
       }, true);
 
+      // Get all the form ids.
+      const formIds = Object.keys(comps);
+
       // Only proceed if we have form components.
-      if (!comps || !comps.length) {
+      if (!formIds.length) {
         return next();
       }
 
-      // Load each of the forms independent.
-      async.each(comps, (comp, done) => {
-        this.loadForm(req, null, comp.form, (err, subform) => {
-          subform = cloneDeep(subform);
-          if (!err) {
-            // Protect against recursion.
-            if (forms[comp.form.toString()]) {
-              return done();
-            }
-            forms[comp.form.toString()] = true;
-            comp.components = subform.components;
-            this.loadSubForms(subform, req, done, depth + 1, forms);
+      // Load all subforms in this form.
+      this.loadForms(req, formIds.map((formId) => {
+        return util.idToBson(formId);
+      }), (err, result) => {
+        if (err) {
+          return next();
+        }
+
+        // Iterate through all subforms.
+        async.each(result, (subForm, done) => {
+          const formId = subForm._id.toString();
+          if (forms[formId] || !comps[formId]) {
+            return done();
           }
-          else {
-            done();
-          }
-        });
-      }, next);
+          forms[formId] = true;
+          comps[formId].forEach((comp) => (comp.components = subForm.components));
+          this.loadSubForms(subForm, req, done, depth + 1, forms);
+        }, next);
+      });
     }
   };
 };
