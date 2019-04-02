@@ -230,7 +230,7 @@ module.exports = function(router) {
 
     // Find the user object.
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-    submissionModel.findOne(query).lean().exec((err, user) => {
+    submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec((err, user) => {
       if (err) {
         return next(err);
       }
