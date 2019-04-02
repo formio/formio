@@ -571,6 +571,12 @@ module.exports = function(app) {
         action.settings.resources = resources;
       }
 
+      if (action.settings.resource) {
+        if (this.template.forms.hasOwnProperty(action.settings.resource)) {
+          action.settings.resource = this.template.forms[action.settings.resource]._id;
+        }
+      }
+
       if (action.settings.role && this.template.roles.hasOwnProperty(action.settings.role)) {
         action.settings.role = this.template.roles[action.settings.role]._id;
       }
@@ -1013,7 +1019,12 @@ module.exports = function(app) {
   };
 
   Helper.prototype.submission = function(form, data, user, expects) {
-    this.series.push(async.apply(this.createSubmission.bind(this), form, data, user, expects));
+    if (data._id && data.form) {
+      this.series.push(async.apply(this.updateSubmission.bind(this), data, user, expects));
+    }
+    else {
+      this.series.push(async.apply(this.createSubmission.bind(this), form, data, user, expects));
+    }
     return this;
   };
 
