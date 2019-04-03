@@ -204,7 +204,7 @@ module.exports = function(router) {
 
       // Perform a mongo query to find the submission.
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.findOne(query, function(err, submission) {
+      submissionModel.findOne(hook.alter('submissionQuery', query, req), function(err, submission) {
         if (err || !submission) {
           log(req, ecode.submission.ENOSUB, err);
           return next.call(this, ecode.submission.ENOSUB);
