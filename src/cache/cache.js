@@ -106,9 +106,9 @@ module.exports = function(router) {
      * @param cb
      */
     loadForms(req, ids, cb) {
-      router.formio.resources.form.model.findOne(
+      router.formio.resources.form.model.find(
         hook.alter('formQuery', {
-          _id: {$in: ids},
+          _id: {$in: ids.map((formId) => util.idToBson(formId))},
           deleted: {$eq: null}
         }, req)
       ).lean().exec((err, result) => {
@@ -208,7 +208,7 @@ module.exports = function(router) {
     /**
      * Load an array of submissions.
      *
-     * @param formId
+     * @param req
      * @param subs
      * @param cb
      */
@@ -359,9 +359,7 @@ module.exports = function(router) {
       }
 
       // Load all subforms in this form.
-      this.loadForms(req, formIds.map((formId) => {
-        return util.idToBson(formId);
-      }), (err, result) => {
+      this.loadForms(req, formIds, (err, result) => {
         if (err) {
           return next();
         }
