@@ -1,6 +1,6 @@
 'use strict';
 const async = require('async');
-
+const _ = require('lodash');
 const debug = {
   form: require('debug')('formio:cache:form'),
   loadForm: require('debug')('formio:cache:loadForm'),
@@ -371,12 +371,67 @@ module.exports = function(router) {
         // Iterate through all subforms.
         async.each(result, (subForm, done) => {
           const formId = subForm._id.toString();
-          if (forms[formId] || !comps[formId]) {
+          if (!comps[formId]) {
+            return done();
+          }
+          comps[formId].forEach((comp) => (comp.components = subForm.components));
+          if (forms[formId]) {
             return done();
           }
           forms[formId] = true;
-          comps[formId].forEach((comp) => (comp.components = subForm.components));
           this.loadSubForms(subForm, req, done, depth + 1, forms);
+        }, next);
+      });
+    },
+
+    /**
+     * Loads sub submissions from a nested subform hierarchy.
+     *
+     * @param form
+     * @param submission
+     * @param req
+     * @param next
+     * @param depth
+     * @return {*}
+     */
+    loadSubSubmissions(form, submission, req, next, depth) {
+      depth = depth || 0;
+
+      // Only allow 5 deep.
+      if (depth >= 5) {
+        return next();
+      }
+
+      // Get all the subform data.
+      const subs = {};
+      util.eachComponent(form.components, function(component, path) {
+        if (component.type === 'form') {
+          const subData = _.get(submission.data, path);
+          if (subData && subData._id) {
+            subs[subData._id.toString()] = {component, path, data: subData.data};
+          }
+        }
+      }, true);
+
+      // Load all the submissions within this submission.
+      this.loadSubmissions(req, Object.keys(subs), (err, submissions) => {
+        if (err || !submissions || !submissions.length) {
+          return next();
+        }
+        async.eachSeries(submissions, (sub, nextSubmission) => {
+          if (!sub || !sub._id) {
+            return;
+          }
+          const subId = sub._id.toString();
+          if (subs[subId]) {
+            // Set the subform data if it contains more data... legacy renderers don't fare well with sub-data.
+            if (!subs[subId].data || (Object.keys(sub.data).length > Object.keys(subs[subId].data).length)) {
+              _.set(submission.data, subs[subId].path, sub);
+            }
+
+            // Load all subdata within this submission.
+            this.loadSubSubmissions(subs[subId].component, sub, req, nextSubmission, depth + 1);
+          }
         }, next);
       });
     }
