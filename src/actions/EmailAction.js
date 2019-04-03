@@ -5,6 +5,7 @@ const LOG_EVENT = 'Email Action';
 
 module.exports = function(router) {
   const Action = router.formio.Action;
+  const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router.formio);
   const debug = require('debug')('formio:action:email');
   const ecode = router.formio.util.errorCodes;
@@ -175,7 +176,7 @@ module.exports = function(router) {
           };
 
           const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-          return submissionModel.findOne(query)
+          return submissionModel.findOne(hook.alter('submissionQuery', query, req))
           .then(owner => {
             return owner.toObject();
           })

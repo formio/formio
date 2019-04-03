@@ -113,7 +113,7 @@ module.exports = function(router) {
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
       // Query the submissions for this submission.
-      submissionModel.findOne(query, function(err, submission) {
+      submissionModel.findOne(hook.alter('submissionQuery', query, req), function(err, submission) {
         if (err) {
           return next(err);
         }

@@ -142,6 +142,7 @@ module.exports = (router, resourceName, resourceId) => {
 
         // Only allow the data to go through.
         const properties = hook.alter('submissionParams', ['data', 'owner', 'access', 'metadata']);
+        req.rolesUpdate = req.body.roles;
         req.body = _.pick(req.body, properties);
 
         // Ensure there is always data provided on POST.
@@ -159,9 +160,29 @@ module.exports = (router, resourceName, resourceId) => {
 
         // Allow them to alter the body.
         req.body = hook.alter('submissionRequest', req.body);
-      }
 
-      done();
+        // See if they provided an update to the roles.
+        if (req.method === 'PUT' && req.params.submissionId && req.rolesUpdate && req.rolesUpdate.length) {
+          router.formio.cache.loadCurrentSubmission(req, (err, current) => {
+            if (current.roles && current.roles.length) {
+              const newRoles = _.intersection(
+                current.roles.map((role) => role.toString()),
+                req.rolesUpdate
+              );
+              if (newRoles.length !== req.rolesUpdate.length) {
+                req.body.roles = newRoles.map((roleId) => util.idToBson(roleId));
+              }
+            }
+            done();
+          });
+        }
+        else {
+          done();
+        }
+      }
+      else {
+        done();
+      }
     }
 
     /**
@@ -292,7 +313,32 @@ module.exports = (router, resourceName, resourceId) => {
     }
 
     function alterSubmission(req, res, done) {
-      hook.alter('submission', req, res, done);
+      hook.alter('submission', req, res, () => {
+        if (
+          (req.handlerName === 'afterPost') ||
+          (req.handlerName === 'afterPut')
+        ) {
+          // Update the owner of the submission if roles are provided, and there is no owner.
+          if (
+            res.resource &&
+            res.resource.item &&
+            !res.resource.item.owner &&
+            res.resource.item.roles.length
+          ) {
+            res.resource.item.owner = res.resource.item._id;
+            const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+            submissionModel.update({
+              _id: res.resource.item._id
+            }, {'$set': {owner: res.resource.item._id}}, done);
+          }
+          else {
+            done();
+          }
+        }
+        else {
+          done();
+        }
+      });
     }
 
     // Add before handlers.

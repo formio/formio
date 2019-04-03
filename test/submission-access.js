@@ -115,6 +115,8 @@ module.exports = function(app, template, hook) {
 
         describe('Project Owner Submission', function() {
           it('The Project Owner should be able to Create a submission without explicit permissions', function(done) {
+            // Test that roles can not be added on creation.
+            tempSubmission.roles = [template.roles.administrator._id.toString()];
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
               .set('x-jwt-token', template.users.admin.token)
@@ -188,6 +190,37 @@ module.exports = function(app, template, hook) {
                 var response = res.body;
                 // Update the modified timestamp for response comparison.
                 updatedSubmission.modified = response.modified;
+                assert.deepEqual(response, updatedSubmission);
+
+                // Update the submission data.
+                tempSubmission = updatedSubmission;
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
+          it('The Project Owner should not be able to add roles to a submission', (done) => {
+            var updatedSubmission = _.clone(tempSubmission);
+            updatedSubmission.data.value = 'bar';
+            updatedSubmission.roles = [template.roles.administrator._id.toString()];
+            request(app)
+              .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(updatedSubmission)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                // Update the modified timestamp for response comparison.
+                updatedSubmission.modified = response.modified;
+                updatedSubmission.roles = [];
                 assert.deepEqual(response, updatedSubmission);
 
                 // Update the submission data.
@@ -1196,6 +1229,8 @@ module.exports = function(app, template, hook) {
           });
 
           it('A Registered user should be able to Create a submission with explicit Own permissions', function(done) {
+            // Try to create a submission with elevated permissions.
+            templateSubmission.roles = [template.roles.administrator._id.toString()];
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
               .set('x-jwt-token', template.users.user1.token)
@@ -1257,6 +1292,8 @@ module.exports = function(app, template, hook) {
           it('A Registered user should be able to Update a submission with explicit Own permissions', function(done) {
             var updatedSubmission = _.cloneDeep(tempSubmissionUser1);
             updatedSubmission.data.value = 'bar';
+            // Attempt to elevate permissions.
+            updatedSubmission.roles = [template.roles.administrator._id.toString()];
 
             request(app)
               .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmissionUser1._id, template))
@@ -1272,6 +1309,7 @@ module.exports = function(app, template, hook) {
                 var response = res.body;
                 // Update the modified timestamp for response comparison.
                 updatedSubmission.modified = response.modified;
+                updatedSubmission.roles = [];
                 assert.deepEqual(response, updatedSubmission);
 
                 // Update the submission data.

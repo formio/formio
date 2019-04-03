@@ -167,28 +167,6 @@ module.exports = function(router) {
       }.bind(this);
 
       /**
-       * Update the owner of a resource.
-       */
-      const updateOwner = function(then) {
-        // Assign the owner if there is no owner set and the resource has roles established.
-        if (
-          !res.resource.item.owner &&
-          res.resource &&
-          res.resource.item &&
-          res.resource.item.roles.length
-        ) {
-          res.resource.item.owner = res.resource.item._id;
-          const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-          submissionModel.update({
-            _id: res.resource.item._id
-          }, {'$set': {owner: res.resource.item._id}}, then);
-        }
-        else {
-          then();
-        }
-      }.bind(this);
-
-      /**
        * Assign a resource to the request object for the next submission.
        *
        * @param then
@@ -311,7 +289,6 @@ module.exports = function(router) {
 
         async.series([
           async.apply(saveToResource, cache.resource, cache.submission),
-          updateOwner,
           assignResource
         ], next);
       }.bind(this));

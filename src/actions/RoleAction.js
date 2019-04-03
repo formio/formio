@@ -183,7 +183,10 @@ module.exports = function(router) {
       const loadUser = function(submission, callback) {
         debug.loadUser(submission);
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-        submissionModel.findById(submission).exec((err, user) => {
+        submissionModel.findOne(hook.alter('submissionQuery', {
+          _id: util.idToBson(submission),
+          deleted: {$eq: null}
+        }, req)).exec((err, user) => {
           if (err) {
             log(req, ecode.submission.ESUBLOAD, err);
             return res.status(400).send(err.message || err);
