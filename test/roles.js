@@ -836,8 +836,8 @@ module.exports = function(app, template, hook) {
 
         // Make sure that the owner is set for the manager.
         assert.equal(manager._id, manager.owner);
-        assert.equal(_.intersection(
-          manager.roles, [accessHelper.template.roles['access-manager']._id.toString(),
+        assert.equal(_.intersection(manager.roles, [
+          accessHelper.template.roles['access-manager']._id.toString(),
           accessHelper.template.roles['access-employee']._id.toString()]
         ).length, 2);
         done();
