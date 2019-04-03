@@ -345,18 +345,17 @@ module.exports = function(router) {
 
       // Get all of the form components.
       const comps = {};
+      const formIds = [];
       util.eachComponent(form.components, function(component) {
         if ((component.type === 'form') && component.form) {
           const formId = component.form.toString();
           if (!comps[formId]) {
             comps[formId] = [];
+            formIds.push(formId);
           }
           comps[formId].push(component);
         }
       }, true);
-
-      // Get all the form ids.
-      const formIds = Object.keys(comps);
 
       // Only proceed if we have form components.
       if (!formIds.length) {
