@@ -1,7 +1,6 @@
 'use strict';
 const async = require('async');
-const cloneDeep = require('lodash/cloneDeep');
-
+const _ = require('lodash');
 const debug = {
   form: require('debug')('formio:cache:form'),
   loadForm: require('debug')('formio:cache:loadForm'),
@@ -98,6 +97,37 @@ module.exports = function(router) {
       });
     },
 
+    /**
+     * Loads an array of form ids.
+     *
+     * @param req
+     * @param ids
+     * @param cb
+     */
+    loadForms(req, ids, cb) {
+      if (!ids || !ids.length) {
+        // Shortcut if no ids are provided.
+        return cb(null, []);
+      }
+
+      router.formio.resources.form.model.find(
+        hook.alter('formQuery', {
+          _id: {$in: ids.map((formId) => util.idToBson(formId))},
+          deleted: {$eq: null}
+        }, req)
+      ).lean().exec((err, result) => {
+        if (err) {
+          debug.loadForms(err);
+          return cb(err);
+        }
+        if (!result || !result.length) {
+          return cb(null, []);
+        }
+
+        cb(null, result);
+      });
+    },
+
     getCurrentFormId(req) {
       let formId = req.formId;
       if (req.params.formId) {
@@ -176,6 +206,38 @@ module.exports = function(router) {
 
         cache.submissions[subId] = submission;
         cb(null, submission);
+      });
+    },
+
+    /**
+     * Load an array of submissions.
+     *
+     * @param req
+     * @param subs
+     * @param cb
+     */
+    loadSubmissions(req, subs, cb) {
+      if (!subs || !subs.length) {
+        // Shortcut if no subs are provided.
+        return cb(null, []);
+      }
+
+      const query = {
+        _id: {$in: subs.map((subId) => util.idToBson(subId))},
+        deleted: {$eq: null}
+      };
+      debug.loadSubmissions(query);
+      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+      submissionModel.find(hook.alter('submissionQuery', query, req)).lean().exec((err, submissions) => {
+        if (err) {
+          debug.loadSubmissions(err);
+          return cb(err);
+        }
+        if (!submissions) {
+          return cb(null, []);
+        }
+
+        cb(null, submissions);
       });
     },
 
@@ -281,36 +343,96 @@ module.exports = function(router) {
       }
 
       // Get all of the form components.
-      const comps = [];
+      const comps = {};
+      const formIds = [];
       util.eachComponent(form.components, function(component) {
-        if (component.type === 'form') {
-          comps.push(component);
+        if ((component.type === 'form') && component.form) {
+          const formId = component.form.toString();
+          if (!comps[formId]) {
+            comps[formId] = [];
+            formIds.push(formId);
+          }
+          comps[formId].push(component);
         }
       }, true);
 
       // Only proceed if we have form components.
-      if (!comps || !comps.length) {
+      if (!formIds.length) {
         return next();
       }
 
-      // Load each of the forms independent.
-      async.each(comps, (comp, done) => {
-        this.loadForm(req, null, comp.form, (err, subform) => {
-          subform = cloneDeep(subform);
-          if (!err) {
-            // Protect against recursion.
-            if (forms[comp.form.toString()]) {
-              return done();
+      // Load all subforms in this form.
+      this.loadForms(req, formIds, (err, result) => {
+        if (err) {
+          return next();
+        }
+
+        // Iterate through all subforms.
+        async.each(result, (subForm, done) => {
+          const formId = subForm._id.toString();
+          if (!comps[formId]) {
+            return done();
+          }
+          comps[formId].forEach((comp) => (comp.components = subForm.components));
+          if (forms[formId]) {
+            return done();
+          }
+          forms[formId] = true;
+          this.loadSubForms(subForm, req, done, depth + 1, forms);
+        }, next);
+      });
+    },
+
+    /**
+     * Loads sub submissions from a nested subform hierarchy.
+     *
+     * @param form
+     * @param submission
+     * @param req
+     * @param next
+     * @param depth
+     * @return {*}
+     */
+    loadSubSubmissions(form, submission, req, next, depth) {
+      depth = depth || 0;
+
+      // Only allow 5 deep.
+      if (depth >= 5) {
+        return next();
+      }
+
+      // Get all the subform data.
+      const subs = {};
+      util.eachComponent(form.components, function(component, path) {
+        if (component.type === 'form') {
+          const subData = _.get(submission.data, path);
+          if (subData && subData._id) {
+            subs[subData._id.toString()] = {component, path, data: subData.data};
+          }
+        }
+      }, true);
+
+      // Load all the submissions within this submission.
+      this.loadSubmissions(req, Object.keys(subs), (err, submissions) => {
+        if (err || !submissions || !submissions.length) {
+          return next();
+        }
+        async.eachSeries(submissions, (sub, nextSubmission) => {
+          if (!sub || !sub._id) {
+            return;
+          }
+          const subId = sub._id.toString();
+          if (subs[subId]) {
+            // Set the subform data if it contains more data... legacy renderers don't fare well with sub-data.
+            if (!subs[subId].data || (Object.keys(sub.data).length > Object.keys(subs[subId].data).length)) {
+              _.set(submission.data, subs[subId].path, sub);
             }
-            forms[comp.form.toString()] = true;
-            comp.components = subform.components;
-            this.loadSubForms(subform, req, done, depth + 1, forms);
+
+            // Load all subdata within this submission.
+            this.loadSubSubmissions(subs[subId].component, sub, req, nextSubmission, depth + 1);
           }
-          else {
-            done();
-          }
-        });
-      }, next);
+        }, next);
+      });
     }
   };
 };
