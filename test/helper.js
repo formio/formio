@@ -451,8 +451,15 @@ module.exports = function(app) {
   };
 
   Helper.prototype._deleteForm = function(_id, done) {
+    if (this.template.forms.hasOwnProperty(_id)) {
+      _id = this.template.forms[_id]._id.toString();
+    }
+    let url = '/form/' + _id;
+    if (this.hook) {
+      url = this.hook.alter('url', url, this.template);
+    }
     request(app)
-      .delete(this.hook.alter('url', '/form/' + _id, this.template))
+      .delete(url)
       .set('x-jwt-token', this.owner.token)
       .expect(200)
       .end(done);
@@ -1019,7 +1026,7 @@ module.exports = function(app) {
   };
 
   Helper.prototype.submission = function(form, data, user, expects) {
-    if (data._id && data.form) {
+    if (data && data._id && data.form) {
       this.series.push(async.apply(this.updateSubmission.bind(this), data, user, expects));
     }
     else {

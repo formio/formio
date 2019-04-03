@@ -980,5 +980,31 @@ module.exports = function(app, template, hook) {
         done();
       });
     });
+
+    it('Cleanup', (done) => {
+      accessHelper
+        .deleteForm('access-manager')
+        .deleteForm('access-employee')
+        .deleteForm('access-login')
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          async.series(
+            [
+              (next) => accessHelper.deleteRole('access-manager', next),
+              (next) => accessHelper.deleteRole('access-employee', next)
+            ],
+            (err) => {
+              if (err) {
+                return done(err);
+              }
+
+              done();
+            }
+          );
+        });
+    });
   });
 };
