@@ -43,7 +43,7 @@ module.exports = (router) => {
     }
 
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-    return submissionModel.find(query).exec()
+    return submissionModel.find(hook.alter('submissionQuery', query, req)).exec()
       .then((submissions) => {
         if (!submissions || submissions.length === 0) {
           return Promise.resolve();
@@ -222,7 +222,7 @@ module.exports = (router) => {
       };
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
-      return submissionModel.find(query).exec()
+      return submissionModel.find(hook.alter('submissionQuery', query, req)).exec()
         .then((submissions) => {
           if (!submissions || submissions.length === 0) {
             return Promise.resolve();

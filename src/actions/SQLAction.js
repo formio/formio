@@ -212,7 +212,7 @@ module.exports = function(router) {
             // Update the resource with the external Id.
             const submissionModel = req.submissionModel || router.formio.resources.submission.model;
             submissionModel.findOne(
-              {_id: currentResource.item._id, deleted: {$eq: null}}
+              hook.alter('submissionQuery', {_id: currentResource.item._id, deleted: {$eq: null}}, req)
             ).exec(function(err, submission) {
               if (err) {
                 log(req, ecode.submission.ESUBLOAD, err, '#resolve');

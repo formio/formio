@@ -164,7 +164,7 @@ module.exports = function(router) {
       const query = {_id: subId, form: formId, deleted: {$eq: null}};
       debug.loadSubmission(query);
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.findOne(query).lean().exec((err, submission) => {
+      submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec((err, submission) => {
         if (err) {
           debug.loadSubmission(err);
           return cb(err);
