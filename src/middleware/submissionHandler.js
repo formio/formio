@@ -313,7 +313,32 @@ module.exports = (router, resourceName, resourceId) => {
     }
 
     function alterSubmission(req, res, done) {
-      hook.alter('submission', req, res, done);
+      hook.alter('submission', req, res, () => {
+        if (
+          (req.handlerName === 'afterPost') ||
+          (req.handlerName === 'afterPut')
+        ) {
+          // Update the owner of the submission if roles are provided, and there is no owner.
+          if (
+            res.resource &&
+            res.resource.item &&
+            !res.resource.item.owner &&
+            res.resource.item.roles.length
+          ) {
+            res.resource.item.owner = res.resource.item._id;
+            const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+            submissionModel.update({
+              _id: res.resource.item._id
+            }, {'$set': {owner: res.resource.item._id}}, done);
+          }
+          else {
+            done();
+          }
+        }
+        else {
+          done();
+        }
+      });
     }
 
     // Add before handlers.
