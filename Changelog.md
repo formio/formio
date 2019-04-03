@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.44.0
+### Added
+ - Adding loading nested forms sub-submissions to cache methods.
+ - Allowing the deletion of roles from a submission (but not adding)
+ - Adding submissionQuery hooks for all submission queries being made.
+
+### Changed
+ - Making loadSubForms more performant and also adding a way to bulk load forms and submissions.
+ - Upgraded nodemailer@6.0.0, semver@6.0.0, formiojs@3.18.3, mongoose@5.4.21, mssql@5.0.5, fast-json-patch@2.1.0, eslint@5.16.0
+ - Moving the owner setting to submission handler so it works on all submissions.
+ - Replace bcrypt with bcryptjs.
+
 ## 1.43.2
 ### Fixed
  - Fix permissions check on patch submission.
