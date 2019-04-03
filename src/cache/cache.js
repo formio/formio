@@ -106,6 +106,11 @@ module.exports = function(router) {
      * @param cb
      */
     loadForms(req, ids, cb) {
+      if (!ids || !ids.length) {
+        // Shortcut if no ids are provided.
+        return cb(null, []);
+      }
+
       router.formio.resources.form.model.find(
         hook.alter('formQuery', {
           _id: {$in: ids.map((formId) => util.idToBson(formId))},
