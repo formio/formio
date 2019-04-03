@@ -836,10 +836,10 @@ module.exports = function(app, template, hook) {
 
         // Make sure that the owner is set for the manager.
         assert.equal(manager._id, manager.owner);
-        assert.deepEqual(manager.roles, [
-          accessHelper.template.roles['access-manager']._id.toString(),
-          accessHelper.template.roles['access-employee']._id.toString()
-        ]);
+        assert.equal(_.intersection(
+          manager.roles, [accessHelper.template.roles['access-manager']._id.toString(),
+          accessHelper.template.roles['access-employee']._id.toString()]
+        ).length, 2);
         done();
       });
     });
@@ -910,10 +910,10 @@ module.exports = function(app, template, hook) {
           // Make sure they cannot add roles.
           const updated = accessHelper.getLastSubmission();
           assert.equal(updated.data.email, 'manager2@example.com');
-          assert.deepEqual(updated.roles, [
+          assert.equal(_.intersection(updated.roles, [
             accessHelper.template.roles['access-manager']._id.toString(),
-            accessHelper.template.roles['access-employee']._id.toString()
-          ]);
+            accessHelper.template.roles['access-employee']._id.toString()]
+          ).length, 2);
           _.assign(manager, updated);
           done();
         });
