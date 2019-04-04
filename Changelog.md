@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 1.44.1
 ### Fixed
  - Submission role tests for the enterprise server.
+ 
+### Changed
+ - Upgraded formiojs@3.18.4
 
 ## 1.44.0
 ### Added
