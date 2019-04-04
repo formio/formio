@@ -677,7 +677,7 @@ module.exports = function(app, template, hook) {
     let employee = null;
     it('Bootstrap', (done) => {
       const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
-      accessHelper = new Helper(owner);
+      accessHelper = new Helper(owner, null, hook);
       accessHelper
         .project()
         .role({
