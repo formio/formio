@@ -85,7 +85,12 @@ module.exports = router => {
    * Set parent submission id in externalIds of child form component's submission
    */
   const setChildFormParenthood = function(component, path, validation, req, res, next) {
-    if (res.resource && res.resource.item && res.resource.item.data) {
+    if (
+      res.resource &&
+      res.resource.item &&
+      res.resource.item.data &&
+      (!component.hasOwnProperty('reference') || component.reference)
+    ) {
       // Get child form component's value
       const compValue = _.get(res.resource.item.data, path);
 
