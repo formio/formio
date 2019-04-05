@@ -321,6 +321,21 @@ module.exports = router => {
         req.countQuery.pipeline = req.modelQuery.pipeline = pipeline;
       });
     },
+    afterIndex(component, path, req, res) {
+      const formId = component.form || component.resource || component.data.resource;
+
+      return new Promise((resolve, reject) => {
+        router.formio.cache.loadForm(req, null, formId, function(err, form) {
+          if (err) {
+            return reject(err);
+          }
+          util.removeProtectedFields(form, 'index', res.resource.item.map(submission => {
+            return _.get(submission, `data.${path}`);
+          }));
+          resolve();
+        });
+      });
+    },
     afterPost: getResource,
     afterPut: getResource,
     beforePost: setResource,
