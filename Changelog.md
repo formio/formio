@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.41.4
+### Fixed
+ - Problems where sub-forms are submitting when "reference" is disabled on the component.
+
 ## 1.41.3
 ### Fixed
  - Problem with a subform put request.
