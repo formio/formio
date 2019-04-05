@@ -25,8 +25,11 @@ module.exports = router => {
       return next();
     }
 
-    // Only execute if the conditions do not apply.
-    if (!utils.checkCondition(component, {}, req.body.data)) {
+    // Only execute if the component should save reference and conditions do not apply.
+    if (
+      (component.hasOwnProperty('reference') && !component.reference) ||
+      !utils.checkCondition(component, {}, req.body.data)
+    ) {
       return next();
     }
 
