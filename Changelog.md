@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+##[Unreleased]
+### Fixed
+ - FOR-2143: Protected fields being exposed for SAR select resources
+
 ## 1.44.1
 ### Fixed
  - Submission role tests for the enterprise server.
