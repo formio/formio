@@ -4,9 +4,11 @@ const _ = require('lodash');
 const debug = {
   form: require('debug')('formio:cache:form'),
   loadForm: require('debug')('formio:cache:loadForm'),
+  loadForms: require('debug')('formio:cache:loadForms'),
   loadFormByName: require('debug')('formio:cache:loadFormByName'),
   loadFormByAlias: require('debug')('formio:cache:loadFormByAlias'),
   loadSubmission: require('debug')('formio:cache:loadSubmission'),
+  loadSubmissions: require('debug')('formio:cache:loadSubmissions'),
   error: require('debug')('formio:error')
 };
 
