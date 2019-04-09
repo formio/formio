@@ -133,8 +133,8 @@ module.exports = class Formio extends FormApi {
     }
 
     this.models.Submission.read({
-      _id: this.db.ID(payload.user._id),
-      form: this.db.ID(payload.form._id),
+      _id: new this.db.ID(payload.user._id),
+      form: new this.db.ID(payload.form._id),
     })
       .then(user => {
         req.user = user;
