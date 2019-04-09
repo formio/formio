@@ -228,7 +228,8 @@ module.exports = (formio) => {
       user: req.user,
       token: req.token,
       params: req.params,
-      query: req.query
+      query: req.query,
+      body: req.body
     };
 
     // Add the response parameters.
@@ -273,6 +274,13 @@ module.exports = (formio) => {
           emailType = 'custom';
         }
       }
+
+      // For components with encryption enabled, use raw values instead in the email
+      Object.keys(params.data).forEach(componentKey => {
+        if (params.components[componentKey].encrypted && params.data[componentKey]) {
+          params.data[componentKey] = req.body.data[componentKey];
+        }
+      });
 
       switch (emailType) {
         case 'default':
