@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.44.4
+### Fixed
+ - An issue where a debug method was undefined.
+
+### Changed
+ - Upgraded mongodb@3.2.3, nodemon@1.18.11, config@3.1.0, formiojs@3.19.3, mongoose@5.5.0, nodemailer@6.1.0, mocha@6.1.2
+
 ## 1.44.3
 ### Fixed
  - Problems where sub-forms are submitting when "reference" is disabled on the component.
