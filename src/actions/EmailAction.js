@@ -168,7 +168,7 @@ module.exports = function(router) {
         next(); // eslint-disable-line callback-return
 
         // Get the email parameters.
-        emailer.getParams(res, form, req.body)
+        emailer.getParams(req, res, form, req.body)
         .then(params => {
           const query = {
             _id: params.owner,

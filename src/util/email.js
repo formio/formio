@@ -125,7 +125,7 @@ module.exports = (formio) => {
    * @returns {Promise}
    *   The available substitution values.
    */
-  const getParams = (res, form, submission) => new Promise((resolve, reject) => {
+  const getParams = (req, res, form, submission) => new Promise((resolve, reject) => {
     let params = _.cloneDeep(submission);
     if (res && res.resource && res.resource.item) {
       if (typeof res.resource.item.toObject === 'function') {
@@ -164,6 +164,8 @@ module.exports = (formio) => {
     Promise.all(replacements).then(() => {
       // Get the parameters for the email.
       params.form = form;
+      // Allow hooks to alter params.
+      params = hook.alter('actionContext', req, params);
       return resolve(params);
     })
     .catch(reject);
