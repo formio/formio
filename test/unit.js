@@ -308,7 +308,7 @@ module.exports = function(app, template, hook) {
         message: messageText
       };
 
-      email.getParams(res, form, submission)
+      email.getParams(req, res, form, submission)
       .then(params => {
         params.content = content;
         email.send(req, res, message, params, (err, response) => {
