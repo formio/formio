@@ -218,7 +218,7 @@ module.exports = (router) => {
             ? `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })`
             : condition.custom);
 
-          const sandbox = hook.alter('actionContext', req, {
+          const sandbox = hook.alter('actionContext', {
             jsonLogic: FormioUtils.jsonLogic,
             data: req.body.data,
             form: req.form,
@@ -226,7 +226,7 @@ module.exports = (router) => {
             util: FormioUtils,
             execute: false,
             _
-          });
+          }, req);
 
           script.runInContext(vm.createContext(sandbox), {
             timeout: 500
