@@ -278,11 +278,11 @@ module.exports = (formio) => {
       }
 
       // For components with encryption enabled, use raw values instead in the email
-      Object.keys(params.data).forEach(componentKey => {
-        if (params.components[componentKey].encrypted && params.data[componentKey]) {
-          params.data[componentKey] = req.body.data[componentKey];
-        }
-      });
+      // Object.keys(params.data).forEach(componentKey => {
+      //   if (params.components[componentKey].encrypted && params.data[componentKey]) {
+      //     params.data[componentKey] = req.body.data[componentKey];
+      //   }
+      // });
 
       switch (emailType) {
         case 'default':

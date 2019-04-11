@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.44.6
+### Reverted
+ - Encrypted values not available in emails. (Caused crashes with implementation)
+
 ## 1.44.5
 ### Fixed
  - Encrypted values not available in emails.
