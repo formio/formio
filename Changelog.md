@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.44.5
+### Fixed
+ - Encrypted values not available in emails.
+ 
+### Added
+ - Ability to hook into email/webhook params.
+
 ## 1.44.4
 ### Fixed
  - An issue where a debug method was undefined.
