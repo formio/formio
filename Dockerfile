@@ -11,9 +11,9 @@ WORKDIR /app
 # (note: using pinned versions to ensure immutable build environment)
 RUN apk update && \
     apk upgrade && \
-    apk add python=2.7.15-r1 && \
+    apk add python=2.7.15-r3 && \
     apk add make=4.2.1-r2 && \
-    apk add g++=6.4.0-r9
+    apk add g++=8.3.0-r0
 
 # Using an alternative package install location
 # to allow overwriting the /app folder at runtime
