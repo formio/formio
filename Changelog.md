@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 1.44.7
 ### Fixed
  - Dockerfile to correctly run.
+ - Installation process to be able to run without prompts.
+ - Docker-compose file to allow for complete bootup easily.
 
 ### Changed
  - Upgraded formiojs@3.19.9, mongoose@5.5.2, mocha@6.1.3, mssql@5.1.0
