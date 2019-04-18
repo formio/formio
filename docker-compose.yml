@@ -16,14 +16,10 @@
 version: '3.7'
 services:
   mongo:
-    image: mongo:4.1.5
+    image: mongo:4.1
     restart: always
-    ports:
-      - 27017:27017
     volumes:
       - mdb-data:/data/db
-    # The application assumes passwordless access, which it will use to
-    # create its own users/databases
     environment:
       MONGO_INITDB_ROOT_USERNAME:
       MONGO_INITDB_ROOT_PASSWORD:
@@ -32,20 +28,19 @@ services:
     build: ./
     # The app will restart until Mongo is listening
     restart: always
-    # (currently) Must use host to access database via localhost
-    network_mode: host
+    links:
+      - mongo
     ports:
-      - 3001:3001
+      - "3001:3001"
     # The application wants to download things to the local directory
     # TODO: really wish I could mount this as read-only
     volumes:
       - ./:/app:rw
     environment:
-      DEBUG:
-      # DEBUG: formio:*
-    # The application will prompt us to answer some questions
-    # before the application will start...
-    # (maybe there is a config somewhere to automate it?)
+      DEBUG: formio:*
+      NODE_CONFIG: '{"mongo": "mongodb://mongo:27017/formio"}'
+      ROOT_EMAIL: admin@example.com
+      ROOT_PASSWORD: CHANGEME
     stdin_open: true  # -i
     tty: true         # -t
 

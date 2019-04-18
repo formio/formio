@@ -16,7 +16,36 @@ Here is a link to a demo of the Form Building and Form Rendering capability that
 
 http://codepen.io/travist/full/xVyMjo/
 
-Installation
+Run with Docker Compose
+------------------
+The fastest way to run this library locally is to use [Docker](https://docker.com).
+
+ - [Install Docker](https://docs.docker.com/v17.12/install/)
+ - Download and unzip this package to a local directory on your machine.
+ - Open up your terminal and navigate to the unzipped folder of this library.
+ - Type the following in your terminal
+    ```
+    docker-compose up
+    ```
+ - Go to the following URL in your browser.
+    ```
+    http://localhost:3001
+    ```
+ - Use the following credentials to login.
+    - **email**: admin@example.com
+    - **password**: CHANGEME
+ - To change the admin password.
+    - Once you login, click on the **Admin** resource
+    - Click **View Data**
+    - Click on the **admin@example.com** row
+    - Click **Edit Submission**
+    - Set the password field
+    - Click **Save Submission**
+    - Logout
+    
+ - Have fun!
+
+Manual Installation (Node + MongoDB)
 -------------------
 To get started you will first need the following installed on your machine.
 
@@ -24,10 +53,9 @@ To get started you will first need the following installed on your machine.
   - MongoDB - http://docs.mongodb.org/manual/installation/
     - On Mac I recomment using Homebrew ```brew install mongodb```
     - On Windows, download and install the MSI package @ https://www.mongodb.org/downloads
-    - On Docker, deploy everything, including MongoDB, using `docker-compose up`
   - You must then make sure you have MongoDB running by typing ```mongod``` in your terminal.
 
-Running
+Running with Node.js
 -------------------
 You can then download this repository, navigate to the folder in your Terminal, and then type the following.
 
