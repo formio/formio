@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.44.7
+### Fixed
+ - Dockerfile to correctly run.
+
+### Changed
+ - Upgraded formiojs@3.19.9, mongoose@5.5.2, mocha@6.1.3, mssql@5.1.0
+
 ## 1.44.6
 ### Reverted
  - Encrypted values not available in emails. (Caused crashes with implementation)
