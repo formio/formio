@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.45.0
+Added
+ - Added more permissions hooks.
+
+Changes
+ - Altered the interface for permissionSchema hook. Now it provides the full permission schema.
+
 ## 1.44.7
 ### Fixed
  - Dockerfile to correctly run.
