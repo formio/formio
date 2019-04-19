@@ -318,18 +318,25 @@ module.exports = (router, resourceName, resourceId) => {
           (req.handlerName === 'afterPost') ||
           (req.handlerName === 'afterPut')
         ) {
-          // Update the owner of the submission if roles are provided, and there is no owner.
-          if (
-            res.resource &&
-            res.resource.item &&
-            !res.resource.item.owner &&
-            res.resource.item.roles.length
-          ) {
-            res.resource.item.owner = res.resource.item._id;
-            const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-            submissionModel.update({
-              _id: res.resource.item._id
-            }, {'$set': {owner: res.resource.item._id}}, done);
+          // Perform a post submission update.
+          if (res.resource && res.resource.item && res.resource.item._id) {
+            const submissionUpdate = {};
+            if (!res.resource.item.owner && res.resource.item.roles.length) {
+              res.resource.item.owner = res.resource.item._id;
+              submissionUpdate.owner = res.resource.item._id;
+            }
+            hook.alter('postSubmissionUpdate', req, res, submissionUpdate);
+
+            // If an update exists.
+            if (Object.keys(submissionUpdate).length) {
+              const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+              submissionModel.update({
+                _id: res.resource.item._id
+              }, {'$set': submissionUpdate}, done);
+            }
+            else {
+              done();
+            }
           }
           else {
             done();
