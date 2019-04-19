@@ -84,17 +84,24 @@ module.exports = function(router) {
         });
 
         if (_.isString(permission.type)) {
-          condensed[permission.type] = condensed[permission.type] || [];
-          condensed[permission.type] = condensed[permission.type].concat(permission.roles);
-          condensed[permission.type] = _.compact(_.uniq(condensed[permission.type]));
+          condensed[permission.type] = condensed[permission.type] || {roles: []};
+          condensed[permission.type].roles = condensed[permission.type].roles.concat(permission.roles);
+          condensed[permission.type].roles = _.compact(_.uniq(condensed[permission.type].roles));
+          if (permission.permission) {
+            condensed[permission.type].permission = permission.permission;
+          }
         }
       });
 
       Object.keys(condensed).forEach(function(key) {
-        final.push({
+        const access = {
           type: key,
-          roles: condensed[key]
-        });
+          roles: condensed[key].roles
+        };
+        if (condensed[key].permission) {
+          access.permission = condensed[key].permission;
+        }
+        final.push(access);
       });
 
       // Modify the payload.
