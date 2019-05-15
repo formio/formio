@@ -130,6 +130,39 @@ module.exports = function(router) {
       });
     },
 
+    loadFormRevisions(req, revs, cb) {
+      if (!revs || !revs.length || !router.formio.resources.formrevision) {
+        return cb();
+      }
+
+      async.each(revs, (rev, next) => {
+        router.formio.resources.formrevision.model.findOne(
+          hook.alter('formQuery', {
+            _rid: util.idToBson(rev.form),
+            _vid: rev.formRevision,
+            deleted: {$eq: null}
+          }, req)
+        ).lean().exec((err, result) => {
+          if (err) {
+            return next(err);
+          }
+          if (!result) {
+            return next();
+          }
+
+          rev.components = result.components;
+          next();
+        });
+      }, (err) => {
+        if (err) {
+          debug.loadFormRevisions(err);
+          return cb(err);
+        }
+
+        cb();
+      });
+    },
+
     getCurrentFormId(req) {
       let formId = req.formId;
       if (req.params.formId) {
@@ -347,12 +380,16 @@ module.exports = function(router) {
       // Get all of the form components.
       const comps = {};
       const formIds = [];
+      const formRevs = [];
       util.eachComponent(form.components, function(component) {
         if ((component.type === 'form') && component.form) {
           const formId = component.form.toString();
           if (!comps[formId]) {
             comps[formId] = [];
             formIds.push(formId);
+            if (component.formRevision) {
+              formRevs.push(component);
+            }
           }
           comps[formId].push(component);
         }
@@ -369,19 +406,26 @@ module.exports = function(router) {
           return next();
         }
 
-        // Iterate through all subforms.
-        async.each(result, (subForm, done) => {
-          const formId = subForm._id.toString();
-          if (!comps[formId]) {
-            return done();
-          }
-          comps[formId].forEach((comp) => (comp.components = subForm.components));
-          if (forms[formId]) {
-            return done();
-          }
-          forms[formId] = true;
-          this.loadSubForms(subForm, req, done, depth + 1, forms);
-        }, next);
+        // Load all form revisions.
+        this.loadFormRevisions(req, formRevs, () => {
+          // Iterate through all subforms.
+          async.each(result, (subForm, done) => {
+            const formId = subForm._id.toString();
+            if (!comps[formId]) {
+              return done();
+            }
+            comps[formId].forEach((comp) => {
+              if (!comp.components || !comp.components.length) {
+                comp.components = subForm.components;
+              }
+            });
+            if (forms[formId]) {
+              return done();
+            }
+            forms[formId] = true;
+            this.loadSubForms(subForm, req, done, depth + 1, forms);
+          }, next);
+        });
       });
     },
 
