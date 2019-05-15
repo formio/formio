@@ -4,11 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [UNRELEASED]
+### Fixed
+ - Form properties in export.
+
 ## 1.45.0
-Added
+### Added
  - Added more permissions hooks.
 
-Changes
+### Changes
  - Altered the interface for permissionSchema hook. Now it provides the full permission schema.
 
 ## 1.44.7
