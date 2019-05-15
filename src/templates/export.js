@@ -139,7 +139,8 @@ module.exports = (router) => {
             'settings',
             'components',
             'access',
-            'submissionAccess'
+            'submissionAccess',
+            'properties',
           );
           _map.forms[form._id.toString()] = machineName;
         });
