@@ -25,6 +25,7 @@ The fastest way to run this library locally is to use [Docker](https://docker.co
  - Open up your terminal and navigate to the unzipped folder of this library.
  - Type the following in your terminal
     ```
+    npm install
     docker-compose up
     ```
  - Go to the following URL in your browser.
