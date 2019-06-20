@@ -186,7 +186,53 @@ module.exports = (router) => {
 
           // Resolve the action.
           router.formio.log('Action', req, handler, method, action.name, action.title);
-          action.resolve(handler, method, req, res, cb);
+
+          // Instantiate ActionItem here.
+          router.formio.mongoose.models.actionItem.create(hook.alter('actionItem', {
+            title: action.title,
+            form: req.formId,
+            action: action.name,
+            handler,
+            method,
+            state: 'inprogress',
+            messages: [
+              {
+                datetime: new Date(),
+                info: 'Starting Action',
+                data: {}
+              }
+            ]
+          }, req), (err, actionItem) => {
+            const setActionItemMessage = (message, data = {}, state = null) => {
+              actionItem.messages.push({
+                datetime: new Date(),
+                info: message,
+                data
+              });
+
+              if (state) {
+                actionItem.state = state;
+              }
+
+              actionItem.save();
+            };
+
+            action.resolve(handler, method, req, res, (err) => {
+              if (err) {
+                // Error has occurred.
+                setActionItemMessage('Error Occurred', err, 'error');
+                return cb(err);
+              }
+
+              // Action has completed successfully
+              setActionItemMessage(
+                'Action Resolved (no longer blocking)',
+                null,
+                actionItem.state === 'inprogress' ? 'complete' : actionItem.state,
+              );
+              return cb();
+            }, setActionItemMessage);
+          });
         }, (err) => {
           if (err) {
             router.formio.log('Actions execution fail', req, handler, method, err);
