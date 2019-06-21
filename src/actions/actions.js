@@ -191,6 +191,7 @@ module.exports = (router) => {
           router.formio.mongoose.models.actionItem.create(hook.alter('actionItem', {
             title: action.title,
             form: req.formId,
+            submission: res.resource ? res.resource.item._id : req.body._id,
             action: action.name,
             handler,
             method,
@@ -227,7 +228,7 @@ module.exports = (router) => {
               // Action has completed successfully
               setActionItemMessage(
                 'Action Resolved (no longer blocking)',
-                null,
+                {},
                 actionItem.state === 'inprogress' ? 'complete' : actionItem.state,
               );
               return cb();
