@@ -12,7 +12,7 @@ const util = require('../util/util');
 module.exports = function(router) {
   return function(action, getForm) {
     return function(req, res, next) {
-      if (!res || !res.resource || !res.resource.item) {
+      if (!res || !res.resource || !res.resource.item || res.resource.filtered) {
         return next();
       }
 
@@ -22,6 +22,7 @@ module.exports = function(router) {
         }
 
         util.removeProtectedFields(form, action, res.resource.item);
+        res.resource.filtered = true;
         next();
       });
     };
