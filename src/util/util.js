@@ -531,7 +531,7 @@ const Utils = {
     // Iterate through all components.
     this.eachComponent(form.components, (component, path) => {
       path = `data.${path}`;
-      if (component.protected) {
+      if (component.protected || (component.type === 'password')) {
         debug.removeProtectedFields('Removing protected field:', component.key);
         modifyFields.push(deleteProp(path));
       }
