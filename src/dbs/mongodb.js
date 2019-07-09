@@ -6,7 +6,7 @@ const log = require('form-api').log;
 
 module.exports = class MongoDB {
   constructor(config) {
-    this.ID = ID;
+    this.ID = value => new ID(value);
     this.connectionString = config.connectionString;
     this.database = config.database;
 

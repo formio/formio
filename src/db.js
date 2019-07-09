@@ -1,7 +1,6 @@
 'use strict'
 
 const dbs = require('./dbs');
-const MongoWrapper = require('./dbs/mongodb');
 
 module.exports = config => {
   let connection = false;
@@ -16,5 +15,6 @@ module.exports = config => {
   if (connection) {
     return connection;
   }
+  console.log('Error: No database configured');
   return false;
 };
