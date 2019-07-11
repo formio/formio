@@ -2,7 +2,7 @@
   "name": "formio",
   "version": "2.0.0",
   "description": "Form server for form.io",
-  "license": "SSPL",
+  "license": "Unlicensed",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
