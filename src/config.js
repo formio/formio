@@ -5,7 +5,8 @@ const config = {
   jwt: {
     secret: process.env.JWT_SECRET,
     expireTime: process.env.JWT_EXPIRETIME || 240,
-  }
+  },
+  cronTime: process.env.CRON_TIME || '* * * * *',
 };
 
 if (process.env.MONGO) {

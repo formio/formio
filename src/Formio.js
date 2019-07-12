@@ -4,11 +4,16 @@ const {FormApi, log} = require('form-api');
 const config = require('./config');
 const actions = require('./actions');
 const resources = require('./resources');
+const cronTasks = require('./cron/index');
+const cron = require('./cron');
 
 module.exports = class Formio extends FormApi {
   constructor(router, db) {
     super(router, db);
     this.config = Object.assign({}, this.config, config);
+
+    // Initiate cron tasks.
+    cron(this, this.cronTasks);
   }
 
   get resourceClasses() {
@@ -23,6 +28,10 @@ module.exports = class Formio extends FormApi {
       ...super.actions,
       ...actions
     }
+  }
+
+  get cronTasks() {
+    return cronTasks;
   }
 
   getStatus(status = {}) {
