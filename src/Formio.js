@@ -2,8 +2,8 @@ const jwt = require('jsonwebtoken');
 const info = require('../package.json');
 const {FormApi, log} = require('form-api');
 const config = require('./config');
-const actions = require('./actions');
 const resources = require('./resources');
+const actions = require('./actions/index');
 const cronTasks = require('./cron/index');
 const cron = require('./cron');
 

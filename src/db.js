@@ -1,5 +1,3 @@
-'use strict'
-
 const dbs = require('./dbs');
 
 module.exports = config => {
@@ -13,8 +11,8 @@ module.exports = config => {
     }
   });
   if (connection) {
-    return connection;
+    return connection.ready.then(() => connection);
   }
-  console.log('Error: No database configured');
-  return false;
+
+  return Promise.reject('Error: No database configured');
 };
