@@ -13,7 +13,7 @@ module.exports = class Formio extends FormApi {
     this.config = Object.assign({}, this.config, config);
 
     // Initiate cron tasks.
-    cron(this, this.cronTasks);
+    this.cronjob = cron(this, this.cronTasks);
   }
 
   get resourceClasses() {

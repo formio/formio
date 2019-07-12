@@ -1,9 +1,7 @@
 const { CronJob } = require('cron');
-const config = require('./config');
-
 
 module.exports = (app, cronTasks) => {
-  new CronJob(config.cronTime, () => {
+  return new CronJob(app.config.cronTime, () => {
     Object.keys(cronTasks).forEach(task => cronTasks[task](app));
   }, null, true);
 };

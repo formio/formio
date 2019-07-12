@@ -6,7 +6,7 @@ const config = {
     secret: process.env.JWT_SECRET,
     expireTime: process.env.JWT_EXPIRETIME || 240,
   },
-  cronTime: process.env.CRON_TIME || '* * * * *',
+  cronTime: process.env.CRON_TIME || '*/15 * * * *',
 };
 
 if (process.env.MONGO) {
