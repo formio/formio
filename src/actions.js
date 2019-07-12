@@ -1,4 +1,12 @@
+const request = require('request-promise-native');
+
 module.exports = config => {
-  // TODO: Need to request actions from external url.
-  return Promise.resolve('actions');
+  if (!config.actionsUrl) {
+    return Promise.resolve({});
+  }
+
+  return request({
+    uri: config.actionsUrl,
+    json: true,
+  });
 };
