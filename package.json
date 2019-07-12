@@ -27,7 +27,7 @@
     "form-api": "file:../form-api",
     "fs-extra": "^7.0.1",
     "jsonwebtoken": "^8.3.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.14",
     "mongodb": "^3.0.7",
     "nunjucks": "^3.2.0",
     "progress": "^2.0.3",
