@@ -6,7 +6,6 @@ const _ = require('lodash');
 const nodeUrl = require('url');
 const Q = require('q');
 const formioUtils = require('formiojs/utils').default;
-const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/util');
 const errorCodes = require('./error-codes.js');
 const debug = {
@@ -16,7 +15,9 @@ const debug = {
 };
 
 const Utils = {
-  deleteProp: deleteProp,
+  deleteProp: (path) => {
+    return (submission) => _.unset(submission, path);
+  },
 
   /**
    * A wrapper around console.log that gets ignored by eslint.
@@ -531,14 +532,22 @@ const Utils = {
     // Iterate through all components.
     this.eachComponent(form.components, (component, path) => {
       path = `data.${path}`;
-      if (component.protected) {
+      if (component.protected || (component.type === 'password')) {
         debug.removeProtectedFields('Removing protected field:', component.key);
-        modifyFields.push(deleteProp(path));
+        modifyFields.push((submission) => {
+          _.unset(submission, path);
+        });
       }
       else if ((component.type === 'signature') && (action === 'index')) {
         modifyFields.push(((submission) => {
           const data = _.get(submission, path);
           _.set(submission, path, (!data || (data.length < 25)) ? '' : 'YES');
+        }));
+      }
+      else if (component.type === 'file' && action === 'index') {
+        modifyFields.push(((submission) => {
+          const data = _.get(submission, path);
+          _.set(submission, path, (!data || !data.length) ? '' : 'YES');
         }));
       }
     }, true);

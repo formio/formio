@@ -9,6 +9,7 @@ module.exports = function(router) {
   // Define our schemas.
   const models = hook.alter('models', {
     action: require('./Action')(router.formio),
+    actionItem: require('./ActionItem')(router.formio),
     form: require('./Form')(router.formio),
     schema: require('./Schema')(router.formio),
     submission: require('./Submission')(router.formio),

@@ -21,7 +21,10 @@ module.exports = function(router) {
       'form',
       'access',
       'token',
-      'recaptcha'
+      'recaptcha',
+      'action',
+      'actionItem',
+      'tag'
     ];
     /* eslint-enable max-len */
   }
