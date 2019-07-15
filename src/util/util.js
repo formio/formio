@@ -541,6 +541,12 @@ const Utils = {
           _.set(submission, path, (!data || (data.length < 25)) ? '' : 'YES');
         }));
       }
+      else if (component.type === 'file' && action === 'index') {
+        modifyFields.push(((submission) => {
+          const data = _.get(submission, path);
+          _.set(submission, path, (!data || !data.length) ? '' : 'YES');
+        }));
+      }
     }, true);
 
     // Iterate through each submission once.
