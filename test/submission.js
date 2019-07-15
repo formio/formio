@@ -1466,8 +1466,8 @@ module.exports = function(app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert(!submission.data.hasOwnProperty('textField'), 'Should not return the text field.');
-            assert(!submission.data.hasOwnProperty('password'), 'Should not return the password hash');
+            // Password is a hash so can't use old value.
+            assert(submission.data.hasOwnProperty('password'), 'Should return the password hash');
             done();
           });
       });
