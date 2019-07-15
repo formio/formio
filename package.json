@@ -28,6 +28,7 @@
     "cors": "^2.8.5",
     "csv": "^5.1.1",
     "debug": "^4.1.1",
+    "delete-property": "0.0.4",
     "eslint-config-formio": "^1.1.2",
     "event-chain": "^0.0.1",
     "express": "^4.17.1",
