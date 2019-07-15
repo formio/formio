@@ -9,7 +9,6 @@ const LOG_EVENT = 'Webhook Action';
 module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = router.formio.hook;
-  const filterProtected = require('../middleware/filterProtectedFields')(router);
   const debug = require('debug')('formio:action:webhook');
   const logOutput = router.formio.log || debug;
   const log = (...args) => logOutput(LOG_EVENT, ...args);
@@ -162,72 +161,63 @@ module.exports = function(router) {
           next(); // eslint-disable-line callback-return
         }
 
-        // Ensure we filter protected fields.
-        filterProtected('create', (req) => {
-          return router.formio.cache.getCurrentFormId(req);
-        })(req, res, (err) => {
-          if (err) {
-            return handleError(err.message || err);
-          }
+        const options = {};
 
-          const options = {};
+        // Get the settings
+        if (_.has(settings, 'username')) {
+          options.username = _.get(settings, 'username');
+        }
+        if (_.has(settings, 'password')) {
+          options.password = _.get(settings, 'password');
+        }
 
-          // Get the settings
-          if (_.has(settings, 'username')) {
-            options.username = _.get(settings, 'username');
-          }
-          if (_.has(settings, 'password')) {
-            options.password = _.get(settings, 'password');
-          }
+        // Cant send a webhook if the url isn't set.
+        if (!_.has(settings, 'url')) {
+          return handleError('No url given in the settings');
+        }
 
-          // Cant send a webhook if the url isn't set.
-          if (!_.has(settings, 'url')) {
-            return handleError('No url given in the settings');
-          }
+        let url = this.settings.url;
+        const submission = _.get(res, 'resource.item');
+        const payload = {
+          request: _.get(req, 'body'),
+          response: _.get(req, 'response'),
+          submission: (submission && submission.toObject) ? submission.toObject() : {},
+          params: _.get(req, 'params')
+        };
 
-          let url = this.settings.url;
-          const submission = _.get(res, 'resource.item');
-          const payload = {
-            request: _.get(req, 'body'),
-            response: _.get(req, 'response'),
-            submission: (submission && submission.toObject) ? submission.toObject() : {},
-            params: _.get(req, 'params')
-          };
+        // Interpolate URL if possible
+        if (res && res.resource && res.resource.item && res.resource.item.data) {
+          url = FormioUtils.interpolate(url, res.resource.item.data);
+        }
 
-          // Interpolate URL if possible
-          if (res && res.resource && res.resource.item && res.resource.item.data) {
-            url = FormioUtils.interpolate(url, res.resource.item.data);
-          }
+        // Fall back if interpolation failed
+        if (!url) {
+          url = this.settings.url;
+        }
 
-          setActionItemMessage('Making request', {
-            method: req.method,
-            url,
-            options
-          });
-          // Fall back if interpolation failed
-          if (!url) {
-            url = this.settings.url;
-          }
-
-          // Make the request.
-          switch (req.method.toLowerCase()) {
-            case 'get':
-              rest.get(url, options).on('success', handleSuccess).on('fail', handleError);
-              break;
-            case 'post':
-              rest.postJson(url, payload, options).on('success', handleSuccess).on('fail', handleError);
-              break;
-            case 'put':
-              rest.putJson(url, payload, options).on('success', handleSuccess).on('fail', handleError);
-              break;
-            case 'delete':
-              options.query = req.params;
-              rest.del(url, options).on('success', handleSuccess).on('fail', handleError);
-              break;
-            default:
-              return handleError(`Could not match request method: ${req.method.toLowerCase()}`);
-          }
+        // Make the request.
+        setActionItemMessage('Making request', {
+          method: req.method,
+          url,
+          options
         });
+        switch (req.method.toLowerCase()) {
+          case 'get':
+            rest.get(url, options).on('success', handleSuccess).on('fail', handleError);
+            break;
+          case 'post':
+            rest.postJson(url, payload, options).on('success', handleSuccess).on('fail', handleError);
+            break;
+          case 'put':
+            rest.putJson(url, payload, options).on('success', handleSuccess).on('fail', handleError);
+            break;
+          case 'delete':
+            options.query = req.params;
+            rest.del(url, options).on('success', handleSuccess).on('fail', handleError);
+            break;
+          default:
+            return handleError(`Could not match request method: ${req.method.toLowerCase()}`);
+        }
       }
       catch (e) {
         setActionItemMessage('Error occurred', e, 'error');
