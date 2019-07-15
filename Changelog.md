@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.48.0
+### Added
+ - ActionItem resource for logging action information.
+ 
+### Fixed
+ - Fix some issues with protecting password fields.
+ - On index, only return if a file is uploaded for base64 files.
+ 
+### Changed
+ - Update dependencies.
+
 ## 1.46.0
 ### Changed
  - Upgraded mongodb@3.2.4, mongoose@5.5.8, nodemailer@6.1.1, body-parser@1.19.0, formiojs@3.20.14, nodemon@1.19.0
