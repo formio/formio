@@ -107,7 +107,7 @@ module.exports = function(router) {
      * @param next
      *   The callback function to execute upon completion.
      */
-    resolve(handler, method, req, res, next) {
+    resolve(handler, method, req, res, next, setActionItemMessage) {
       const settings = this.settings;
       const logerr = (...args) => log(req, ...args, '#resolve');
 
@@ -119,6 +119,7 @@ module.exports = function(router) {
        * @returns {*}
        */
       const handleSuccess = (data, response) => {
+        setActionItemMessage('Webhook succeeded', response);
         if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
           return;
         }
@@ -140,6 +141,7 @@ module.exports = function(router) {
        * @returns {*}
        */
       const handleError = (data, response) => {
+        setActionItemMessage('Webhook failed', response);
         logerr(data.message || data || response.statusMessage);
 
         if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
@@ -151,6 +153,7 @@ module.exports = function(router) {
 
       try {
         if (!hook.alter('resolve', true, this, handler, method, req, res)) {
+          setActionItemMessage('Alter to resolve');
           return next();
         }
 
@@ -196,6 +199,11 @@ module.exports = function(router) {
             url = FormioUtils.interpolate(url, res.resource.item.data);
           }
 
+          setActionItemMessage('Making request', {
+            method: req.method,
+            url,
+            options
+          });
           // Fall back if interpolation failed
           if (!url) {
             url = this.settings.url;
@@ -222,6 +230,7 @@ module.exports = function(router) {
         });
       }
       catch (e) {
+        setActionItemMessage('Error occurred', e, 'error');
         handleError(e);
       }
     }
