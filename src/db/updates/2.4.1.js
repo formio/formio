@@ -1,7 +1,6 @@
 'use strict';
 let Q = require('q');
 let util = require('../../util/util');
-let deleteProp = require('delete-property').default;
 let ObjectID = require('mongodb').ObjectID;
 let _ = require('lodash');
 /**
@@ -27,7 +26,7 @@ module.exports = function(db, config, tools, done) {
       })
       .map(function(component, path) {
         return function(obj) {
-          deleteProp('data.' + path)(obj);
+          _.unset(obj, 'data.' + path);
         }
       })
       .value();
