@@ -147,19 +147,22 @@ module.exports = function(router) {
      * @param cb
      *   The callback function to execute upon completion.
      */
-    resolve(handler, method, req, res, next) {
+    resolve(handler, method, req, res, next, setActionItemMessage) {
       if (!this.settings.emails || this.settings.emails.length === 0) {
+        setActionItemMessage('No email addresses configured', this.settings, 'error');
         return next();
       }
 
       // Load the form for this request.
       router.formio.cache.loadCurrentForm(req, (err, form) => {
         if (err) {
+          setActionItemMessage('Error loading form', err, 'error');
           log(req, ecode.cache.EFORMLOAD, err);
           return next(err);
         }
         if (!form) {
           const err = new Error(ecode.form.ENOFORM);
+          setActionItemMessage('Error no form', err, 'error');
           log(req, ecode.cache.EFORMLOAD, err);
           return next(err);
         }
@@ -206,14 +209,22 @@ module.exports = function(router) {
           })
           .then(template => {
             this.settings.message = template;
+            setActionItemMessage('Sending message', this.message);
             emailer.send(req, res, this.settings, params, (err) => {
               if (err) {
+                setActionItemMessage('Error sending message', err, 'error');
                 log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
+              }
+              else {
+                setActionItemMessage('Message Sent');
               }
             });
           });
         })
-        .catch(err => log(req, ecode.emailer.ESUBPARAMS, err));
+        .catch(err => {
+          setActionItemMessage('Emailer error2', err, 'error');
+          log(req, ecode.emailer.ESUBPARAMS, err);
+        });
       });
     }
   }
