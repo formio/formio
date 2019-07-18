@@ -3,3 +3,4 @@ app/*
 client/*
 src/db/updates/*
 node_modules/*
+*.spec.js

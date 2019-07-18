@@ -1,6 +1,8 @@
+'use strict';
+
 const jwt = require('jsonwebtoken');
 const info = require('../package.json');
-const {FormApi, log} = require('form-api');
+const {FormApi} = require('form-api');
 const config = require('./config');
 const resources = require('./resources');
 const actions = require('./actions/index');
@@ -32,7 +34,7 @@ module.exports = class Formio extends FormApi {
       ...super.actions,
       ...actions,
       ...this.actionsInfo.actions,
-    }
+    };
   }
 
   get cronTasks() {
@@ -52,7 +54,7 @@ module.exports = class Formio extends FormApi {
 
     return jwt.sign(payload, this.config.jwt.secret, {
       expiresIn: this.config.jwt.expireTime * 60
-    })
+    });
   }
 
   tokenPayload(user, form) {
@@ -72,7 +74,7 @@ module.exports = class Formio extends FormApi {
       return next();
     }
 
-    const noToken = function () {
+    const noToken = function() {
       // Try the request with no tokens.
       delete req.headers['x-jwt-token'];
       req.user = null;
@@ -147,8 +149,8 @@ module.exports = class Formio extends FormApi {
     }
 
     this.models.Submission.read({
-      _id: this.db.ID(payload.user._id),
-      form: this.db.ID(payload.form._id),
+      _id: this.db.toID(payload.user._id),
+      form: this.db.toID(payload.form._id),
     })
       .then(user => {
         req.user = user;

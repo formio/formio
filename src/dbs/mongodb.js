@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const ID = require('mongodb').ObjectID;
 const MongoClient = require('mongodb').MongoClient;
@@ -6,7 +6,7 @@ const log = require('form-api').log;
 
 module.exports = class MongoDB {
   constructor(config) {
-    this.ID = value => new ID(value);
+    this.toID = value => new ID(value);
     this.connectionString = config.connectionString;
     this.database = config.database;
 
@@ -53,7 +53,7 @@ module.exports = class MongoDB {
           }
           this.collections = collections.map(collection => collection.name);
           return resolve(this.collections);
-        })
+        });
       });
     });
   }

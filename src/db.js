@@ -1,3 +1,5 @@
+'use strict';
+
 const dbs = require('./dbs');
 
 module.exports = config => {

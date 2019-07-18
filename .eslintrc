@@ -15,6 +15,7 @@
     "max-statements": [2, 35],
     "quotes": [0],
     "prefer-const": "error",
-    "prefer-template": "error"
+    "prefer-template": "error",
+    "no-prototype-builtins": "off"
   }
 }

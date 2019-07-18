@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const config = {
   port: process.env.PORT || 3000,
@@ -15,7 +15,7 @@ if (process.env.MONGO) {
   config.mongodb = {
     connectionString: process.env.MONGO,
     database: process.env.MONGO_DATABASE || 'formio',
-  }
+  };
 }
 
 module.exports = config;

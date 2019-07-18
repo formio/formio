@@ -5,7 +5,9 @@
   "license": "Unlicensed",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:coverage": "nyc --reporter=text mocha --reporter spec './{,!(node_modules)/**/}*.spec.js'",
+    "test": "mocha --reporter spec './{,!(node_modules),!(client)/**/}*.spec.js'",
+    "lint": "eslint src"
   },
   "keywords": [
     "Form.io",
@@ -45,5 +47,16 @@
   "bugs": {
     "url": "https://github.com/formio/formio/issues"
   },
-  "homepage": "https://github.com/formio/formio#readme"
+  "homepage": "https://github.com/formio/formio#readme",
+  "devDependencies": {
+    "eslint": "^6.0.1",
+    "eslint-config-formio": "^1.1.4",
+    "mocha": "^6.1.4",
+    "nyc": "^14.1.1",
+    "pre-commit": "^1.2.2"
+  },
+  "pre-commit": [
+    "lint",
+    "test"
+  ]
 }
