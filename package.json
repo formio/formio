@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test:coverage": "nyc --reporter=text mocha --reporter spec './{,!(node_modules)/**/}*.spec.js'",
-    "test": "mocha --reporter spec './{,!(node_modules),!(client)/**/}*.spec.js'",
+    "test": "mocha --reporter spec './src/**/*.spec.js'",
     "lint": "eslint src"
   },
   "keywords": [
@@ -49,11 +49,13 @@
   },
   "homepage": "https://github.com/formio/formio#readme",
   "devDependencies": {
+    "chai": "^4.2.0",
     "eslint": "^6.0.1",
     "eslint-config-formio": "^1.1.4",
     "mocha": "^6.1.4",
     "nyc": "^14.1.1",
-    "pre-commit": "^1.2.2"
+    "pre-commit": "^1.2.2",
+    "sinon": "^7.3.2"
   },
   "pre-commit": [
     "lint",
