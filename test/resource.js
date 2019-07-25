@@ -6,6 +6,8 @@ var assert = require('assert');
 var _ = require('lodash');
 
 module.exports = function(app, template, hook) {
+  var ignoreFields = ['config'];
+
   describe('Resources', function() {
     // Store the temp resource for this test suite.
     var tempResource = {
@@ -82,7 +84,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.deepEqual(response, template.resources.tempResource);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.resources.tempResource, ignoreFields));
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
@@ -109,7 +111,7 @@ module.exports = function(app, template, hook) {
             var response = res.body;
             // Update the modified timestamp, before comparison.
             updatedResource.modified = response.modified;
-            assert.deepEqual(response, updatedResource);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(updatedResource, ignoreFields));
 
             // Save this resource for later use.
             template.resources.tempResource = response;
@@ -157,7 +159,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.deepEqual(response, template.resources.tempResource);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.resources.tempResource, ignoreFields));
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
@@ -184,7 +186,7 @@ module.exports = function(app, template, hook) {
             var response = res.body;
             // Update the modified timestamp, before comparison.
             updatedResource.modified = response.modified;
-            assert.deepEqual(response, updatedResource);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(updatedResource, ignoreFields));
 
             // Save this resource for later use.
             template.resources.tempResource = response;
@@ -220,7 +222,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.deepEqual(response, template.resources.tempResource);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.resources.tempResource, ignoreFields));
 
             done();
           });
@@ -260,7 +262,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.deepEqual(response, template.resources.tempResource);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.resources.tempResource, ignoreFields));
 
             done();
           });
@@ -300,7 +302,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.deepEqual(response, template.resources.tempResource);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.resources.tempResource, ignoreFields));
 
             done();
           });
@@ -337,7 +339,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.deepEqual(response, template.resources.tempResource);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.resources.tempResource, ignoreFields));
 
             done();
           });

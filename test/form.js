@@ -14,6 +14,8 @@ module.exports = function(app, template, hook) {
   var formio = hook.alter('formio', app.formio);
   var Helper = require('./helper')(app);
 
+  var ignoreFields = ['config'];
+
   describe('Forms', function() {
     // Store the temp form for this test suite.
     var tempForm = {
@@ -239,7 +241,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.deepEqual(response, template.forms.tempForm);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.forms.tempForm, ignoreFields));
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
@@ -260,7 +262,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.deepEqual(response, template.forms.tempForm);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.forms.tempForm, ignoreFields));
 
             // Store the JWT for future API calls.
             template.users.user1.token = res.headers['x-jwt-token'];
@@ -331,7 +333,7 @@ module.exports = function(app, template, hook) {
             // Update the modified timestamp, before comparison.
             updatedForm.modified = response.modified;
 
-            assert.deepEqual(response, updatedForm);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(updatedForm, ignoreFields));
 
             // Save this form for later use.
             template.forms.tempForm = updatedForm;
@@ -474,7 +476,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.deepEqual(response, template.forms.tempForm);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.forms.tempForm, ignoreFields));
 
             // Store the JWT for future API calls.
             template.users.admin.token = res.headers['x-jwt-token'];
@@ -501,7 +503,7 @@ module.exports = function(app, template, hook) {
             var response = res.body;
             // Update the modified timestamp, before comparison.
             updatedForm.modified = response.modified;
-            assert.deepEqual(response, updatedForm);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(updatedForm, ignoreFields));
 
             // Save this form for later use.
             template.forms.tempForm = updatedForm;
@@ -773,7 +775,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.deepEqual(response, template.forms.tempForm);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.forms.tempForm, ignoreFields));
             done();
           });
       });
@@ -811,7 +813,7 @@ module.exports = function(app, template, hook) {
             }
 
             var response = res.body;
-            assert.deepEqual(response, template.forms.tempForm);
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.forms.tempForm, ignoreFields));
 
             done();
           });
