@@ -15,7 +15,7 @@ const app = express();
 const init = require('./src/init')(config);
 
 module.exports = new Promise((resolve, reject) => {
-  init.then(([db, actionsInfo]) => {
+  return init.then(([db, actionsInfo]) => {
     // Only continue if the DB is initializing.
     if (!db) {
       return reject('Error: No database configured');
@@ -31,10 +31,9 @@ module.exports = new Promise((resolve, reject) => {
 
     app.listen(config.port);
     console.log('');
-    console.log('Listening on port ' + config.port);
+    console.log(`Listening on port ${  config.port}`);
 
-    return formio;
+    return resolve(formio);
   });
 });
-
 

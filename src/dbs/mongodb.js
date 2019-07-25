@@ -72,7 +72,8 @@ module.exports = class MongoDB {
 
   createIndex(collection, def, options, {database} = {}) {
     return this.getDb(database || this.database).then(db => {
-      return db.collection(collection).createIndex(def, options);
+      return db.collection(collection).createIndex(def, options)
+        .catch(() => {/* Swallow errors.*/});
     });
   }
 

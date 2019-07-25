@@ -342,24 +342,32 @@ module.exports = function(formio, items, done) {
           return done(err);
         }
 
-        console.log('Encrypting password');
-        formio.util.encrypt(result.password)
-          .then((hash) => {
-            // Create the root user submission.
-            console.log('Creating root user account');
-            return formio.models.Submission.create({
-              form: project.resources.admin._id,
-              data: {
-                email: result.email,
-                password: hash
-              },
-              roles: [
-                project.roles.administrator._id
-              ]
-            });
-          })
-          .then(() => done())
-          .catch(done);
+        // Find admin resource
+        console.log('Finding admin resource');
+        formio.models.Form.findOne({
+          name: 'admin',
+          type: 'resource',
+        })
+          .then(adminForm => {
+            console.log('Encrypting password');
+            formio.util.encrypt(result.password)
+              .then((hash) => {
+                // Create the root user submission.
+                console.log('Creating root user account');
+                return formio.models.Submission.create({
+                  form: formio.db.toID(adminForm._id),
+                  data: {
+                    email: result.email,
+                    password: hash
+                  },
+                  roles: [
+                    project.roles.administrator._id
+                  ]
+                });
+              })
+              .then(() => done())
+              .catch(done);
+          });
       });
     }
   };
