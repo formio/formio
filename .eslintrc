@@ -10,6 +10,7 @@
   },
   "rules": {
     "curly": [2, "all"],
+    "object-curly-spacing": [2, "always"],
     "no-unused-vars": [1, {"args": "none"}],
     "strict": [2, "global"],
     "max-statements": [2, 35],

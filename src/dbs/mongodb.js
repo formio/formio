@@ -38,13 +38,13 @@ module.exports = class MongoDB {
     });
   }
 
-  collection(name, {database} = {}) {
+  collection(name, { database } = {}) {
     return this.getDb(database || this.database).then(db => {
       return db.collection(name);
     });
   }
 
-  getCollections({database} = {}) {
+  getCollections({ database } = {}) {
     return this.getDb(database || this.database).then(db => {
       return new Promise((resolve, reject) => {
         db.listCollections().toArray((err, collections) => {
@@ -58,19 +58,19 @@ module.exports = class MongoDB {
     });
   }
 
-  getIndexes(collection, {database} = {}) {
+  getIndexes(collection, { database } = {}) {
     return this.getDb(database || this.database).then(db => {
       return db.collection(collection).indexes();
     });
   }
 
-  createCollection(name, options, {database} = {}) {
+  createCollection(name, options, { database } = {}) {
     return this.getDb(database || this.database).then(db => {
       return db.createCollection(name, options);
     });
   }
 
-  createIndex(collection, def, options, {database} = {}) {
+  createIndex(collection, def, options, { database } = {}) {
     return this.getDb(database || this.database).then(db => {
       return db.collection(collection).createIndex(def, options)
         .catch(() => {/* Swallow errors.*/});
@@ -104,11 +104,11 @@ module.exports = class MongoDB {
 
   update(collection, doc, info) {
     return this.collection(collection, info)
-      .then(collection => collection.findOneAndUpdate({_id: doc._id}, doc, {returnOriginal: false}))
+      .then(collection => collection.findOneAndUpdate({ _id: doc._id }, doc, { returnOriginal: false }))
       .then(result => result.value);
   }
 
   delete(collection, _id, info) {
-    return this.collection(collection, info).then(collection => collection.deleteOne({_id}));
+    return this.collection(collection, info).then(collection => collection.deleteOne({ _id }));
   }
 };

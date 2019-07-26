@@ -2,12 +2,11 @@
 
 const jwt = require('jsonwebtoken');
 const info = require('../package.json');
-const {FormApi} = require('form-api');
+const { FormApi } = require('form-api');
 const config = require('./config');
-const resources = require('./resources');
-const actions = require('./actions/index');
 const cronTasks = require('./cron/index');
 const cron = require('./cron');
+const PreserveModel = require('form-api/src/libraries/PreserveModel');
 
 module.exports = class Formio extends FormApi {
   constructor(router, db, actionsInfo) {
@@ -22,23 +21,19 @@ module.exports = class Formio extends FormApi {
     this.cronjob = cron(this, this.cronTasks);
   }
 
-  get resourceClasses() {
-    return {
-      ...super.resourceClasses,
-      ...resources,
-    };
-  }
-
   get actions() {
     return {
       ...super.actions,
-      ...actions,
       ...this.actionsInfo.actions,
     };
   }
 
   get cronTasks() {
     return cronTasks;
+  }
+
+  getModelClass() {
+    return PreserveModel;
   }
 
   getStatus(status = {}) {

@@ -1,6 +1,6 @@
 'use strict';
 
-const {CronJob} = require('cron');
+const { CronJob } = require('cron');
 
 module.exports = (app, cronTasks) => {
   return new CronJob(app.config.cronTime, () => {
