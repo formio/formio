@@ -34,7 +34,7 @@ module.exports = class Formio extends FormApi {
       submission: {
         ...defaultActions.submission,
         ...actions.submission,
-        ...this.externalActions,
+        ...this.externalActions.actions,
       }
     };
   }

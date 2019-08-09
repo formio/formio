@@ -1,4 +1,6 @@
 'use strict';
+
+const request = require('request-promise-native');
 const { classes } = require('form-api');
 
 module.exports = config => class RemoteAction extends classes.Action {

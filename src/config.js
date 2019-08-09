@@ -8,7 +8,7 @@ const config = {
     expireTime: process.env.JWT_EXPIRETIME || 240,
   },
   cronTime: process.env.CRON_TIME || '*/15 * * * *',
-  actionsUrl: '',
+  actionsServer: process.env.ACTIONS_SERVER,
 };
 
 if (process.env.MONGO) {

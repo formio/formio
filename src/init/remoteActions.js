@@ -4,24 +4,36 @@ const request = require('request-promise-native');
 const remoteActionFactory = require('../classes/RemoteAction');
 
 module.exports = async config => {
-  if (!config.actionsUrl) {
-    return {};
+  const response = {
+    actions: {},
+    groups: {},
+  };
+
+  if (!config.actionsServer) {
+    return response;
   }
+  console.log('Fetching actions from action server', config.actionsServer);
 
-  const { actions } = await request({
-    uri: config.actionsUrl,
-    json: true,
-  });
+  try {
+    const { actions } = await request({
+      uri: `${config.actionsServer}`,
+      json: true,
+    });
 
-  // Create remote action classes for the actions.
-  const response = {};
-  for (const name in actions) {
-    // If they don't provide a URL, set it to the config url plus action name.
-    if (!actions[name].url) {
-      actions[name].url = `${config.actionsUrl}/${name}`;
+    // Create remote action classes for the actions.
+    for (const name in actions) {
+      const action = actions[name];
+      // If they don't provide a URL, set it to the config url plus action name.
+      if (!action.url) {
+        action.url = `${config.actionsUrl}/actions/${name}`;
+      }
+      response.actions[name] = remoteActionFactory(action);
     }
-    response[name] = remoteActionFactory(actions[name]);
+    console.log(` > Fetched ${Object.keys(actions).length} actions`);
+  }
+  catch (err) {
+    console.log(' > Failed to fetch actions', err);
   }
 
-  return actions;
+  return response;
 };
