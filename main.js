@@ -3,7 +3,7 @@
 /**
  * Run the server directly without an install process or welcome message.
  */
-require('dotenv').load({silent: true});
+require('dotenv').load({ silent: true });
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
@@ -24,10 +24,10 @@ module.exports = new Promise((resolve, reject) => {
     // Serve client app if it exists.
     app.use('/', express.static(path.join(__dirname, '/client/dist')));
     app.use(cors());
-    app.use(bodyParser.urlencoded({extended: true, limit: config.maxBodySize}));
-    app.use(bodyParser.json({limit: config.maxBodySize}));
+    app.use(bodyParser.urlencoded({ extended: true, limit: config.maxBodySize }));
+    app.use(bodyParser.json({ limit: config.maxBodySize }));
 
-    const formio = new Formio(app, db, actionsInfo);
+    const formio = new Formio(app, db, actionsInfo.actions || {});
 
     app.listen(config.port);
     console.log('');

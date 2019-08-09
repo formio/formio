@@ -7,24 +7,35 @@ const config = require('./config');
 const cronTasks = require('./cron/index');
 const cron = require('./cron');
 const PreserveModel = require('form-api/src/libraries/PreserveModel');
+const actions = require('./actions');
 
 module.exports = class Formio extends FormApi {
-  constructor(router, db, actionsInfo) {
+  constructor(router, db, externalActions) {
     super(router, db);
     this.config = Object.assign({}, this.config, config);
 
-    this.actionsInfo = actionsInfo;
-    // Ensure actions are set on actionsInfo.
-    this.actionsInfo.actions = this.actionsInfo.actions || {};
+    this.externalActions = externalActions;
 
     // Initiate cron tasks.
     this.cronjob = cron(this, this.cronTasks);
   }
 
   get actions() {
+    const defaultActions = super.actions;
     return {
-      ...super.actions,
-      ...this.actionsInfo.actions,
+      field: {
+        ...defaultActions.field,
+        ...actions.field,
+      },
+      property: {
+        ...defaultActions.property,
+        ...actions.property,
+      },
+      submission: {
+        ...defaultActions.submission,
+        ...actions.submission,
+        ...this.externalActions,
+      }
     };
   }
 
@@ -37,7 +48,7 @@ module.exports = class Formio extends FormApi {
   }
 
   getStatus(status = {}) {
-    status.formioVersion = info.version;
+    status.formio = info.version;
     return super.getStatus(status);
   }
 
