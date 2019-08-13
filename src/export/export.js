@@ -87,14 +87,17 @@ module.exports = (router) => {
 
             // Create the query stream.
             const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-            const stream = submissionModel.find(hook.alter('submissionQuery', query, req)).lean()
-              .cursor()
-              .pipe(through(function(row) {
-                addUrl(row.data);
-                router.formio.util.removeProtectedFields(form, 'export', row);
+            const cursor = submissionModel.find(hook.alter('submissionQuery', query, req)).lean().cursor();
+            const stream = cursor.pipe(through(function(row) {
+              addUrl(row.data);
+              router.formio.util.removeProtectedFields(form, 'export', row);
 
-                this.queue(row);
-              }));
+              this.queue(row);
+            }), {end: false});
+
+            // When the DB cursor ends, allow the output stream a tick to perform the last write,
+            // then manually end it by pushing a null item to the output stream's queue
+            cursor.on('end', () => process.nextTick(() => stream.queue(null)));
 
             // Create the stream.
             return exporter.stream(stream);
