@@ -973,7 +973,7 @@ class Validator {
                 if (component) {
                   result.hidden = result.hidden ||
                     !checkConditional(component,
-                      _.get(value, result.path.slice(0, result.path.length - 1)), result.submission, true);
+                      _.get(value, result.path.slice(0, result.path.length - 1), value), result.submission, true);
 
                   const clearOnHide = util.isBoolean(_.get(component, 'clearOnHide')) ?
                     util.boolean(_.get(component, 'clearOnHide')) : true;
