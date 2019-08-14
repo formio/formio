@@ -13,7 +13,8 @@ module.exports = function(router) {
     form: require('./Form')(router.formio),
     schema: require('./Schema')(router.formio),
     submission: require('./Submission')(router.formio),
-    role: require('./Role')(router.formio)
+    role: require('./Role')(router.formio),
+    token: require('./Token')(router.formio)
   });
 
   const defs = {
