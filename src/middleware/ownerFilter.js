@@ -37,6 +37,9 @@ module.exports = function(router) {
       };
     }
 
+    req.countQuery = req.countQuery || req.model || this.model;
+    req.countQuery = req.countQuery.find(query);
+
     req.modelQuery = req.modelQuery || req.model || this.model;
     req.modelQuery = req.modelQuery.find(query);
     next();
