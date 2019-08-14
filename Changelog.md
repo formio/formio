@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.50.0
+### Added
+ - Token schema
+ 
+## Fixed
+ - Issue with CSV export crashing server when timing is off
+ - Add own filter to count query
+ - Fix issue where row is not defined on custom conditional
+
 ## 1.49.0
 ### Changed
  - Upgrade lodash@4.17.15, mongodb@3.2.7, config@3.2.2, formiojs@3.24.0, mongoose@5.6.7, nodemailer@6.3.0, semver@6.3.0, mocha@6.2.0, fs-extra@8.1.0, eslint@6.1.0, moment-timezone@0.5.26
