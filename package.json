@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "1.49.0",
+  "version": "1.50.0",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
