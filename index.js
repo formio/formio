@@ -8,6 +8,9 @@
 const FormApi = require('form-api');
 const Formio = require('./src/Formio');
 const dbs = require('./src/dbs');
+const db = require('./src/init/db');
+const remoteActions = require('./src/init/remoteActions');
+const config = require('./src/config');
 
 module.exports = {
   ...FormApi,
@@ -16,4 +19,9 @@ module.exports = {
     ...FormApi.dbs,
     ...dbs
   },
+  init: {
+    db,
+    remoteActions
+  },
+  config,
 };

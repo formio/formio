@@ -27,7 +27,7 @@ module.exports = new Promise((resolve, reject) => {
     app.use(bodyParser.urlencoded({ extended: true, limit: config.maxBodySize }));
     app.use(bodyParser.json({ limit: config.maxBodySize }));
 
-    const formio = new Formio(app, db, remoteActions || {});
+    const formio = new Formio(app, db, config, remoteActions || {});
 
     app.listen(config.port);
     console.log('');

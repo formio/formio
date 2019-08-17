@@ -3,16 +3,14 @@
 const jwt = require('jsonwebtoken');
 const info = require('../package.json');
 const { FormApi } = require('form-api');
-const config = require('./config');
 const cronTasks = require('./cron/index');
 const cron = require('./cron');
 const PreserveModel = require('form-api/src/libraries/PreserveModel');
 const actions = require('./actions');
 
 module.exports = class Formio extends FormApi {
-  constructor(router, db, externalActions) {
-    super(router, db);
-    this.config = Object.assign({}, this.config, config);
+  constructor(router, db, config, externalActions) {
+    super(router, db, config);
 
     this.externalActions = externalActions;
 
@@ -108,7 +106,7 @@ module.exports = class Formio extends FormApi {
     }
 
     // Decode/refresh the token and store for later middleware.
-    jwt.verify(token, config.jwt.secret, (err, payload) => {
+    jwt.verify(token, this.config.jwt.secret, (err, payload) => {
       if (err || !payload) {
         // log('error', err || `Token could not be payload: ${token}`);
 
