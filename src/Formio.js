@@ -14,8 +14,25 @@ module.exports = class Formio extends FormApi {
 
     this.externalActions = externalActions;
 
+    // Ensure that required environment variables are set.
+    if (this.requiredEnvVars.reduce((prev, variable) => {
+      const missing = !process.env[variable];
+      if (missing) {
+        console.error('Missing Environment Variable', variable);
+      }
+      return prev || missing;
+    }, false)) {
+      process.exit(1);
+    }
+
     // Initiate cron tasks.
     this.cronjob = cron(this, this.cronTasks);
+  }
+
+  get requiredEnvVars() {
+    return [
+      'JWT_SECRET',
+    ];
   }
 
   get actions() {
