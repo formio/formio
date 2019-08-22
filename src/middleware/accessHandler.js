@@ -18,7 +18,7 @@ module.exports = function(router) {
     const userAccess = await promisify(router.formio.access.getAccess)(req, res);
 
     // Bail if the requester's roles don't have any overlap with general project-level read access
-    if (!_.intersection(userAccess.project.read_all, userAccess.roles).length) {
+    if (userAccess.project && !_.intersection(userAccess.project.read_all, userAccess.roles).length) {
       return res.status(200).json({roles: {}, forms: {}});
     }
 
