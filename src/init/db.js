@@ -7,9 +7,9 @@ module.exports = config => {
   console.log('Initializing DB Connection');
   // Find which database has a configuration and instantiate it.
   Object.keys(dbs).forEach(dbName => {
-    if (!connection && config[dbName]) {
+    if (!connection && config[dbName.toLowerCase()]) {
       console.log(` > Connecting to ${dbName} database`);
-      connection = new dbs[dbName](config[dbName]);
+      connection = new dbs[dbName](config[dbName.toLowerCase()]);
     }
   });
   if (connection) {

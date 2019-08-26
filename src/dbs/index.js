@@ -1,7 +1,7 @@
 'use strict';
 
-const mongodb = require('./mongodb');
+const MongoDB = require('./MongoDB');
 
 module.exports = {
-  mongodb,
+  MongoDB,
 };

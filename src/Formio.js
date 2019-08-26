@@ -5,7 +5,6 @@ const info = require('../package.json');
 const { FormApi } = require('form-api');
 const cronTasks = require('./cron/index');
 const cron = require('./cron');
-const PreserveModel = require('form-api/src/libraries/PreserveModel');
 const actions = require('./actions');
 
 module.exports = class Formio extends FormApi {
@@ -56,10 +55,6 @@ module.exports = class Formio extends FormApi {
 
   get cronTasks() {
     return cronTasks;
-  }
-
-  getModelClass() {
-    return PreserveModel;
   }
 
   getStatus(status = {}) {

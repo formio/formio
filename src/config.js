@@ -14,7 +14,7 @@ const config = {
 if (process.env.MONGO) {
   config.mongodb = {
     connectionString: process.env.MONGO,
-    database: process.env.MONGO_DATABASE || 'formio',
+    database: process.env.DEFAULT_DATABASE || process.env.MONGO_DATABASE || 'formio',
   };
 }
 

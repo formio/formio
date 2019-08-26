@@ -1,13 +1,18 @@
 'use strict';
 
-const ID = require('mongodb').ObjectID;
-const MongoClient = require('mongodb').MongoClient;
-const log = require('form-api').log;
+const { ObjectID } = require('mongodb');
+const { MongoClient } = require('mongodb');
+const { dbs, log } = require('form-api');
+const PreserveModel = require('./PreserveModel');
 
-module.exports = class MongoDB {
+module.exports = class MongoDB extends dbs.Database {
   constructor(config) {
-    this.toID = value => new ID(value);
+    super(config);
+    this.toID = value => new ObjectID(value);
     this.config = config;
+
+    // TODO: Change this to class property.
+    this.Model = PreserveModel;
 
     // Cache collection names
     this.dbs = {};
