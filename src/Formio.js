@@ -146,6 +146,13 @@ module.exports = class Formio extends FormApi {
     });
   }
 
+  userQuery(payload) {
+    return {
+      _id: this.db.toID(payload.user._id),
+      form: this.db.toID(payload.form._id),
+    };
+  }
+
   handleToken(payload, req, res, next) {
     // If this is a temporary token, then decode it and set it in the request.
     if (payload.temp) {
@@ -164,10 +171,7 @@ module.exports = class Formio extends FormApi {
       return next();
     }
 
-    this.models.Submission.read({
-      _id: this.db.toID(payload.user._id),
-      form: this.db.toID(payload.form._id),
-    })
+    this.models.Submission.read(this.userQuery(payload))
       .then(user => {
         req.user = user;
         res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token, Authorization');
