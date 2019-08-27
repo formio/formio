@@ -121,9 +121,9 @@ module.exports = class MongoDB extends dbs.Database {
     return result.value;
   }
 
-  async delete(collectionName, _id) {
-    const database = this.getDatabaseName(collectionName, { _id });
+  async delete(collectionName, query) {
+    const database = this.getDatabaseName(collectionName, query);
     const collection = await this.collection(collectionName, database);
-    return await collection.deleteOne({ _id });
+    return await collection.deleteOne(query);
   }
 };
