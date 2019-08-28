@@ -1,6 +1,6 @@
 'use strict';
 
-const { classes } = require('form-api');
+const { classes } = require('@formio/form-api');
 
 module.exports = class Example extends classes.Action {
   /**

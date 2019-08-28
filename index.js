@@ -5,7 +5,7 @@
  *
  * @type {{Action, FormApi, log, actions, dbs, resources, schemas}|*}
  */
-const FormApi = require('form-api');
+const FormApi = require('@formio/form-api');
 const Formio = require('./src/Formio');
 const dbs = require('./src/dbs');
 const db = require('./src/init/db');

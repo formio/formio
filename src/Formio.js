@@ -2,7 +2,7 @@
 
 const jwt = require('jsonwebtoken');
 const info = require('../package.json');
-const { FormApi } = require('form-api');
+const { FormApi } = require('@formio/form-api');
 const cronTasks = require('./cron/index');
 const cron = require('./cron');
 const actions = require('./actions');

@@ -1,7 +1,7 @@
 'use strict';
 
 const request = require('request-promise-native');
-const { classes } = require('form-api');
+const { classes } = require('@formio/form-api');
 
 module.exports = config => class RemoteAction extends classes.Action {
   static info() {

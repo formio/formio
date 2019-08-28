@@ -2,7 +2,7 @@
 
 const { ObjectID } = require('mongodb');
 const { MongoClient } = require('mongodb');
-const { dbs, log } = require('form-api');
+const { dbs, log } = require('@formio/form-api');
 const PreserveModel = require('./PreserveModel');
 
 module.exports = class MongoDB extends dbs.Database {

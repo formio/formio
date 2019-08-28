@@ -1,6 +1,6 @@
 'use strict';
 
-const { dbs } = require('form-api');
+const { dbs } = require('@formio/form-api');
 
 module.exports = class PreserveModel extends dbs.Model {
   constructor(schema, db) {
