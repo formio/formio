@@ -1,5 +1,5 @@
 {
-  "name": "formio",
+  "name": "@formio/core",
   "version": "2.0.0",
   "description": "Form server for form.io",
   "license": "Unlicensed",
