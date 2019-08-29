@@ -117,7 +117,7 @@ module.exports = class MongoDB extends dbs.Database {
   async update(collectionName, doc) {
     const database = this.getDatabaseName(collectionName, doc);
     const collection = await this.collection(collectionName, database);
-    const result = await collection.findOneAndUpdate({ _id: doc._id }, doc, { returnOriginal: false });
+    const result = await collection.findOneAndReplace({ _id: doc._id }, doc, { returnNewDocument: true });
     return result.value;
   }
 
