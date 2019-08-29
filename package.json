@@ -38,7 +38,6 @@
     "formiojs": "^3.24.0",
     "fs-extra": "^8.1.0",
     "html-entities": "^1.2.1",
-    "joi": "^14.3.1",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",
     "memory-cache": "^0.2.0",

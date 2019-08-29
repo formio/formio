@@ -230,6 +230,95 @@ const Utils = {
   getValue: formioUtils.getValue.bind(formioUtils),
 
   /**
+   * This function will iterate over each value for each component. This means that for each row of a datagrid it will
+   * call the callback once for each row's component.
+   *
+   * @param components
+   * @param data
+   * @param fn
+   * @param context
+   * @param path
+   * @returns {Promise<any[]>}
+   */
+  eachValue(components, data, fn, context, path = '') {
+    const promises = [];
+
+    components.forEach(component => {
+      if (component.hasOwnProperty('components') && Array.isArray(component.components)) {
+        // If tree type is an array of objects like datagrid and editgrid.
+        if (['datagrid', 'editgrid'].includes(component.type) || component.arrayTree) {
+          _.get(data, component.key, []).forEach((row, index) => {
+            promises.push(this.eachValue(
+              component.components,
+              row,
+              fn,
+              context,
+              path ? `${path}.` : '' + `${component.key}[${index}]`
+            ));
+          });
+        }
+        // If it is a form
+        else if (['form'].includes(component.type)) {
+          promises.push(this.eachValue(
+            component.components,
+            _.get(data, `${component.key}.data`, {}),
+            fn,
+            context,
+            path ? `${path}.` : '' + `${component.key}.data`
+          ));
+        }
+        // If tree type is an object like container.
+        else if (
+          ['container'].includes(component.type) ||
+          (
+            component.tree &&
+            !['panel', 'table', 'well', 'columns', 'fieldset', 'tabs', 'form'].includes(component.type)
+          )
+        ) {
+          promises.push(this.eachValue(
+            component.components,
+            _.get(data, component.key),
+            fn,
+            context,
+            path ? `${path}.` : '' + `${component.key}`
+          ));
+        }
+        // If this is just a layout component.
+        else {
+          promises.push(this.eachValue(component.components, data, fn, context, path));
+        }
+      }
+      else if (component.hasOwnProperty('columns') && Array.isArray(component.columns)) {
+        // Handle column like layout components.
+        component.columns.forEach((column) => {
+          promises.push(this.eachValue(column.components, data, fn, context, path));
+        });
+      }
+      else if (component.hasOwnProperty('rows') && Array.isArray(component.rows)) {
+        // Handle table like layout components.
+        component.rows.forEach((row) => {
+          if (Array.isArray(row)) {
+            row.forEach((column) => {
+              promises.push(this.eachValue(column.components, data, fn, context, path));
+            });
+          }
+        });
+      }
+      else {
+        // If this is just a regular component, call the callback.
+        promises.push(fn({
+          ...context,
+          data,
+          component,
+          path
+        }));
+      }
+    });
+
+    return Promise.all(promises);
+  },
+
+  /**
    * Determine if a component is a layout component or not.
    *
    * @param {Object} component

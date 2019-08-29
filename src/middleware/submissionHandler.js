@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const async = require('async');
 const util = require('../util/util');
-const Validator = require('../resources/Validator');
+const Validator = require('formiojs/components/Validator').ValidationChecker;
 
 module.exports = (router, resourceName, resourceId) => {
   const hook = require('../util/hook')(router.formio);
@@ -223,24 +223,37 @@ module.exports = (router, resourceName, resourceId) => {
       // Clone the submission to the real value of the request body.
       req.submission = _.cloneDeep(req.body);
 
-      hook.alter('validateSubmissionForm', req.currentForm, req.body, (form) => {
-        // Get the submission model.
-        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+      // Next we need to validate the input.
+      hook.alter('validateSubmissionForm', req.currentForm, req.body, async form => {
+        // Define a few global noop placeholder shims and import the component classes
+        global.document          = {createElement: () => {}, cookie: ''};
+        global.HTMLCanvasElement = {prototype: {}};
+        global.navigator         = {userAgent: ''};
+        global.window            = {addEventListener: () => {}, Event: {}, navigator: global.navigator};
 
-        // Next we need to validate the input.
-        const token = util.getRequestValue(req, 'x-jwt-token');
-        const validator = new Validator(req.currentForm, submissionModel, token);
+        const ComponentClasses = require('formiojs/components').default;
 
-        // Validate the request.
-        validator.validate(req.body, (err, submission) => {
-          if (err) {
-            return res.status(400).json(err);
-          }
+        // Instantiate a Webform to grab an initialized i18next object from it
+        const Webform = require('formiojs/Webform').default;
+        const i18next = (new Webform()).i18next;
 
-          res.submission = {data: submission};
+        // Use eachValue to apply validator to all components
+        const validator = new Validator();
 
-          done();
+        const results = await util.eachValue(req.currentForm.components, req.submission.data, context => {
+          const componentInstance = new ComponentClasses[context.component.type](context.component, {i18n: i18next});
+          return validator.check(componentInstance, context.data);
         });
+
+        const errors = _.chain(results).flatten().compact().value();
+
+        if (errors.length) {
+          return res.status(400).json(errors);
+        }
+
+        res.submission = {data: req.submission};
+
+        done();
       });
     }
 
