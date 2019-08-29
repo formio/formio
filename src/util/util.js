@@ -543,8 +543,11 @@ const Utils = {
       }
       else if (component.type === 'file' && action === 'index') {
         modifyFields.push(((submission) => {
-          const data = _.get(submission, path);
-          _.set(submission, path, (!data || !data.length) ? '' : 'YES');
+          const data = _.map(
+            _.get(submission, path),
+            file => file.url.startsWith('data:') ? _.omit(file, 'url') : file
+          );
+          _.set(submission, path, data);
         }));
       }
     }, true);
