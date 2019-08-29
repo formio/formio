@@ -5,7 +5,7 @@ const info = require('../package.json');
 const { FormApi } = require('@formio/form-api');
 const cronTasks = require('./cron/index');
 const cron = require('./cron');
-const actions = require('./actions');
+const actions = require('./entities/Submission/actions');
 
 module.exports = class Formio extends FormApi {
   constructor(router, db, config, externalActions) {
@@ -37,19 +37,9 @@ module.exports = class Formio extends FormApi {
   get actions() {
     const defaultActions = super.actions;
     return {
-      field: {
-        ...defaultActions.field,
-        ...actions.field,
-      },
-      property: {
-        ...defaultActions.property,
-        ...actions.property,
-      },
-      submission: {
-        ...defaultActions.submission,
-        ...actions.submission,
-        ...this.externalActions.actions,
-      }
+      ...super.actions,
+      ...actions,
+      ...this.externalActions.actions,
     };
   }
 
