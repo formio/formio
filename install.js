@@ -354,7 +354,7 @@ module.exports = function(formio, items, done) {
             })
               .then(adminRole => {
                 console.log('Encrypting password');
-                formio.util.encrypt(result.password)
+                formio.encrypt(result.password)
                   .then((hash) => {
                     // Create the root user submission.
                     console.log('Creating root user account');
