@@ -26,14 +26,21 @@ module.exports = function(router) {
         return next();
       }
 
-      // Set the exist modifier.
-      const exists = settings.isNull
-        ? {$eq: null}
-        : {$ne: null};
-
       // Build the dynamic mongoose query.
       const query = {};
-      query[settings.field] = exists;
+
+      const findQuery = settings.resource
+        ? router.formio.resources[settings.resource].getFindQuery(req)
+        : {};
+
+      if (!findQuery.hasOwnProperty(settings.field)) {
+        // Set the exist modifier.
+        const exists = settings.isNull
+          ? {$eq: null}
+          : {$ne: null};
+
+        query[settings.field] = exists;
+      }
 
       req.modelQuery = req.modelQuery || req.model || this.model;
       req.modelQuery = req.modelQuery.find(query);
