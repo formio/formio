@@ -226,7 +226,7 @@ module.exports = (router, resourceName, resourceId) => {
       // Next we need to validate the input.
       hook.alter('validateSubmissionForm', req.currentForm, req.body, async form => {
         // Define a few global noop placeholder shims and import the component classes
-        global.document          = {createElement: () => {}, cookie: ''};
+        global.document          = {createElement: () => ({}), cookie: '', getElementsByTagName: () => []};
         global.HTMLCanvasElement = {prototype: {}};
         global.navigator         = {userAgent: ''};
         global.window            = {addEventListener: () => {}, Event: {}, navigator: global.navigator};
@@ -241,14 +241,19 @@ module.exports = (router, resourceName, resourceId) => {
         const validator = new Validator();
 
         const results = await util.eachValue(req.currentForm.components, req.submission.data, context => {
-          const componentInstance = new ComponentClasses[context.component.type](context.component, {i18n: i18next});
-          return validator.check(componentInstance, context.data);
+          if (ComponentClasses[context.component.type]) {
+            const componentInstance = new ComponentClasses[context.component.type](context.component, {i18n: i18next});
+            return validator.check(componentInstance, context.data);
+          }
         });
 
         const errors = _.chain(results).flatten().compact().value();
 
         if (errors.length) {
-          return res.status(400).json(errors);
+          return res.status(400).json({
+            name: 'ValidationError',
+            details: errors
+          });
         }
 
         res.submission = {data: req.submission};
