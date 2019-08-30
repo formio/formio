@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.52.0
+### Added
+ - The ability to query deleted submissions by providing the filter parameter "?deleted__ne=null" in the submission index query.
+
+### Fixed
+ - The access endpoint to work with authentication to ensure that it only provides information that the user has access to.
+
+### Changed
+ - Upgraded formiojs@3.27.1, formio-workers@1.12.0
+
+## 1.51.0
+### Fixed
+ - The submission index query to provide more meta-data for file uploads. Just remove any base64 data.
+
 ## 1.50.0
 ### Added
  - Token schema
