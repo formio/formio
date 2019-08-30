@@ -2,10 +2,10 @@ const { assert } = require('chai');
 const sinon = require('sinon');
 
 // A fake db wrapper for stubbing.
-const db = require('form-api/test/mocks/db');
+const db = require('@formio/api/test/mocks/db');
 const sandbox = sinon.createSandbox();
 
-const Schema = require('form-api/src/dbs/Schema');
+const Schema = require('@formio/api/src/dbs/Schema');
 const Model = require('./PreserveModel');
 
 describe('PreserveModel.js', () => {
