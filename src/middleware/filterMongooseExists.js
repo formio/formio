@@ -28,7 +28,10 @@ module.exports = function(router) {
 
       // Build the dynamic mongoose query.
       const query = {};
-      const findQuery = router.formio.resources.submission.getFindQuery(req);
+
+      const findQuery = settings.resource
+        ? router.formio.resources[settings.resource].getFindQuery(req)
+        : {};
 
       if (!findQuery.hasOwnProperty(settings.field)) {
         // Set the exist modifier.
