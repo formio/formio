@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.53.0
+### Fixed
+ - The filter queries to allow for string 'false', 'true', and 'null' as well as hard values using "__eq" and "__ne" selectors.
+
+### Changed
+ - Upgraded formiojs@3.27.3, mongoose@5.6.12, nodemon@1.19.2, chance@1.1.0, resourcejs@1.36.0
+
 ## 1.52.0
 ### Added
  - The ability to query deleted submissions by providing the filter parameter "?deleted__ne=null" in the submission index query.
