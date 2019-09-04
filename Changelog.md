@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.54.0
+### Changed
+ - Reverted commit that alters access endpoints.
+
 ## 1.53.0
 ### Fixed
  - The filter queries to allow for string 'false', 'true', and 'null' as well as hard values using "__eq" and "__ne" selectors.
