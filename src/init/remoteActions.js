@@ -13,11 +13,16 @@ module.exports = async config => {
     return response;
   }
   console.log('Fetching actions from action server', config.actionsServer);
+  const headers = {};
+  if (config.actionsServerKey) {
+    headers.authorization = `Bearer: ${config.actionsServerKey}`;
+  }
 
   try {
     const { actions } = await request({
       uri: `${config.actionsServer}`,
       json: true,
+      headers,
     });
 
     // Create remote action classes for the actions.
