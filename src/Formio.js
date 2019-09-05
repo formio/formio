@@ -48,7 +48,7 @@ module.exports = class Formio extends FormApi {
   }
 
   getStatus(status = {}) {
-    status.formio = info.version;
+    status.ce = info.version;
     return super.getStatus(status);
   }
 
