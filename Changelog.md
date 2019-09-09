@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.56.0
+### Fixed
+ - FOR-2493: Added configurable access endpoints.
+ - FOR-2500: Added empty subsubmission data check before updating.
+ - FOR-2493: Fix issue with files in submission index endpoint when URL is undefined
+
+### Changed
+ - Upgraded formio-workers to 1.13.0 to resolve email issue with empty file uploads.
+ - Upgrade mongoose to 5.7.0 
+
 ## 1.55.0
 ### Added
  - Configurable access endpoint.
