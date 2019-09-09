@@ -4167,8 +4167,14 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            assert.equal(Object.keys(res.body.roles).length, 3);
-            assert.equal(res.body.forms.testComponentForm, undefined);
+            if (process.env.FILTER_ACCESS === true || process.env.FILTER_ACCESS === 'true') {
+              assert.equal(Object.keys(res.body.roles).length, 0);
+              assert.equal(res.body.forms.testComponentForm, undefined);
+            }
+            else {
+              assert.equal(Object.keys(res.body.roles).length, 3);
+              assert.notEqual(res.body.forms.testComponentForm, undefined);
+            }
             done();
           });
       });
