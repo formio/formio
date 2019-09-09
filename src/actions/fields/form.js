@@ -20,7 +20,8 @@ module.exports = router => {
     // Should be submitted from the frontend.
     if (
       (req.method === 'POST' && subSubmission._id) ||
-      (req.method === 'PUT' && !subSubmission._id)
+      (req.method === 'PUT' && !subSubmission._id) ||
+      (req.method === 'PUT' && subSubmission._id && _.isEmpty(subSubmission.data))
     ) {
       return next();
     }
