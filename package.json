@@ -34,7 +34,7 @@
     "event-chain": "^0.0.1",
     "express": "^4.17.1",
     "fast-json-patch": "^2.2.1",
-    "formio-workers": "^1.12.0",
+    "formio-workers": "^1.13.0",
     "formiojs": "^3.27.3",
     "fs-extra": "^8.1.0",
     "html-entities": "^1.2.1",
