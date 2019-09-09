@@ -2,7 +2,7 @@
 /*eslint max-statements: 0*/
 
 /**
- * The Access handler returns access information for the forms and roles within the project.
+ * The Access handler returns access information for forms and roles.
  *
  * Results are limited according to the requesting user's access level.
  *
@@ -14,14 +14,6 @@ module.exports = function(router) {
   const _ = require('lodash');
 
   return async function accessHandler(req, res, next) {
-    // Fetch current user's access
-    const userAccess = await promisify(router.formio.access.getAccess)(req, res);
-
-    // Bail if the requester's roles don't have any overlap with general project-level read access
-    if (userAccess.project && !_.intersection(userAccess.project.read_all, userAccess.roles).length) {
-      return res.status(200).json({roles: {}, forms: {}});
-    }
-
     // Load all the roles.
     const roles = {};
 
@@ -60,24 +52,31 @@ module.exports = function(router) {
         return res.status(400).send('Could not load the Forms.');
       }
 
-      formResult.forEach(form => {
-        // Only include the form if the requester's roles have overlap with form definition read access roles
-        const formDefinitionAccess = form.access.find(perm => perm.type === 'read_all') || {};
-        const formDefinitionAccessRoles = (formDefinitionAccess.roles || []).map(id => id.toString());
-
-        if (_.intersection(userAccess.roles, formDefinitionAccessRoles).length) {
-          forms[form.name] = form;
-        }
-      });
+      formResult.forEach(form => forms[form.name] = form);
     }
     catch (err) {
       return res.status(400).send('Could not load the Forms.');
     }
 
-    // Allow other systems to add to the access information.
     try {
-      const accessInfo = await promisify(hook.alter)('accessInfo', {roles: roles, forms: forms});
-      res.status(200).json(accessInfo);
+      // Fetch current user's access
+      req.userAccess = await promisify(router.formio.access.getAccess)(req, res);
+
+      // Allow other systems to add to the access information or disable filtering
+      const accessInfo = await promisify(hook.alter)('accessInfo', {roles, forms, req, filterEnabled: true});
+
+      // Perform access filtering if still enabled
+      if (accessInfo.filterEnabled) {
+        // Only include forms where the requester's roles have overlap with form definition read access roles
+        accessInfo.forms = _.pickBy(accessInfo.forms, form => {
+          const formDefinitionAccess = form.access.find(perm => perm.type === 'read_all') || {};
+          const formDefinitionAccessRoles = (formDefinitionAccess.roles || []).map(id => id.toString());
+
+          return _.intersection(req.userAccess.roles, formDefinitionAccessRoles).length > 0;
+        });
+      }
+
+      res.status(200).json({roles: accessInfo.roles, forms: accessInfo.forms});
     }
     catch (err) {
       return res.status(400).send(err.toString());
