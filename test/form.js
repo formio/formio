@@ -4167,8 +4167,31 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            assert.equal(Object.keys(res.body.roles).length, 3);
-            assert.equal(res.body.forms.testComponentForm, undefined);
+            // console.log(JSON.stringify(res.body, null, 4));
+            console.log('process.env.FILTER_ACCESS', process.env.FILTER_ACCESS);
+
+            let filter = true;
+            let projectFilter = false;
+
+            try {
+              filter = require(process.cwd() + '/config').filterAccess;
+              projectFilter = true;
+            } catch (err) {
+              console.log(err);
+            }
+
+            console.log('filter', filter);
+            console.log('projectFilter', projectFilter);
+
+            if (filter && projectFilter) {
+              assert.equal(Object.keys(res.body.roles).length, 0);
+              assert.equal(Object.keys(res.body.forms).length, 0);
+            }
+            else {
+              assert.notEqual(Object.keys(res.body.roles).length, 0);
+              assert.notEqual(Object.keys(res.body.forms).length, 0);
+            }
+
             done();
           });
       });
