@@ -165,8 +165,7 @@ module.exports = (formio) => {
       // Get the parameters for the email.
       params.form = form;
       // Allow hooks to alter params.
-      params = hook.alter('actionContext', params, req, );
-      return resolve(params);
+      hook.alter('actionContext', params, req, (err, params) => err ? reject(err) : resolve(params));
     })
     .catch(reject);
   });
@@ -276,13 +275,6 @@ module.exports = (formio) => {
           emailType = 'custom';
         }
       }
-
-      // For components with encryption enabled, use raw values instead in the email
-      // Object.keys(params.data).forEach(componentKey => {
-      //   if (params.components[componentKey].encrypted && params.data[componentKey]) {
-      //     params.data[componentKey] = req.body.data[componentKey];
-      //   }
-      // });
 
       switch (emailType) {
         case 'default':
