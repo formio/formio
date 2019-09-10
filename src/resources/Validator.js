@@ -838,7 +838,7 @@ class Validator {
                   timeout: 250
                 });
 
-                _.set(row, component.key, sandbox.value.toString());
+                _.set(row, component.key, sandbox.value);
               }
               catch (e) {
                 debug.validator('Custom Logic Error: ');
