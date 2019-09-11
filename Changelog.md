@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.58.0
+### Changed
+ - FOR-2499: Always treat actionContext alter hook as Promise-returning
+
 ## 1.57.0
 ### Fixed
  - Fix issue where field logic value settings were forced to a string
