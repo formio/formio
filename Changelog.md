@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.57.0
+### Fixed
+ - Fix issue where field logic value settings were forced to a string
+
+### Changed
+ - FOR-2499: Make actionContext hook async
+
 ## 1.56.0
 ### Fixed
  - FOR-2493: Added configurable access endpoints.
