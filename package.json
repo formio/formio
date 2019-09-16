@@ -68,7 +68,9 @@
     "mocha": "^6.2.0",
     "nodemon": "^1.19.1",
     "pre-commit": "^1.2.2",
-    "supertest": "^4.0.2"
+    "superagent-use": "^0.1.0",
+    "supertest": "^4.0.2",
+    "supertest-capture-error": "^1.0.0"
   },
   "directories": {
     "test": "test"

@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 'use strict';
 
-var request = require('supertest');
+const request = require('./formio-supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var async = require('async');
@@ -105,6 +105,7 @@ module.exports = function(app, template, hook) {
     });
 
     it('A Form.io User should be able to login as administrator', function(done) {
+      // debugger;
       request(app)
         .post(hook.alter('url', '/form/' + template.forms.adminLogin._id + '/submission', template))
         .send({

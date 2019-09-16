@@ -253,7 +253,7 @@ const Utils = {
               row,
               fn,
               context,
-              path ? `${path}.` : '' + `${component.key}[${index}]`
+              `${(path ? `${path}.` : '')}${component.key}[${index}]`
             ));
           });
         }
@@ -264,7 +264,7 @@ const Utils = {
             _.get(data, `${component.key}.data`, {}),
             fn,
             context,
-            path ? `${path}.` : '' + `${component.key}.data`
+            `${(path ? `${path}.` : '')}${component.key}.data`
           ));
         }
         // If tree type is an object like container.
@@ -280,7 +280,7 @@ const Utils = {
             _.get(data, component.key),
             fn,
             context,
-            path ? `${path}.` : '' + `${component.key}`
+            `${(path ? `${path}.` : '')}${component.key}`
           ));
         }
         // If this is just a layout component.
@@ -316,6 +316,24 @@ const Utils = {
     });
 
     return Promise.all(promises);
+  },
+
+  buildHierarchy(components) {
+    return _.map(components, component => {
+      const item = {key: component.key, component, children: []};
+
+      if (Array.isArray(component.components)) {
+        item.children = this.buildHierarchy(component.components);
+      }
+      else if (Array.isArray(component.columns)) {
+        item.children = this.buildHierarchy(component.columns);
+      }
+      else if (Array.isArray(component.rows)) {
+        item.children = this.buildHierarchy(component.rows);
+      }
+
+      return item;
+    });
   },
 
   /**

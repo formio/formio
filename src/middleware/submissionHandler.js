@@ -233,21 +233,83 @@ module.exports = (router, resourceName, resourceId) => {
 
         const ComponentClasses = require('formiojs/components').default;
 
+        // Assign .parent to each component for quickly traversing up the hierarchy
+        const assignParentsRecursive = (children, parent) => {
+          _.each(children, child => {
+            child.component.parent = parent ? parent.component : null;
+            assignParentsRecursive(child.children || [], child);
+          });
+        };
+
+        assignParentsRecursive(util.buildHierarchy(req.currentForm.components));
+
+        // Build flat lookup of components (including layout components)
+        const componentSchemas = util.flattenComponents(req.currentForm.components, true);
+        const components = {};
+
+        _.each(componentSchemas, (schema, key) => {
+          components[key] = components[schema.key] = {schema};
+        });
+
+        // Define helper function to recursively test conditional visibility up the chain
+        const conditionallyVisibleRecursive = component => {
+          if (!component.instance && ComponentClasses[component.schema.type]) {
+            component.instance = new ComponentClasses[component.schema.type](component.schema, {}, req.submission.data);
+          }
+
+          if (component.instance && !component.instance.conditionallyVisible()) {
+            return false;
+          }
+
+          if (component.schema.parent) {
+            let parent = component.schema.parent;
+
+            while (parent && !parent.key) {
+              parent = parent.parent;
+            }
+
+            if (parent) {
+              return conditionallyVisibleRecursive(components[parent.key]);
+            }
+          }
+
+          return true;
+        };
+
         // Instantiate a Webform to grab an initialized i18next object from it
         const Webform = require('formiojs/Webform').default;
         const i18next = (new Webform()).i18next;
 
         // Use eachValue to apply validator to all components
-        const validator = new Validator();
+        const validator = new Validator({form: req.currentForm, submission: req.submission, db: router.formio.mongoose});
+        const paths = {};
 
-        const results = await util.eachValue(req.currentForm.components, req.submission.data, context => {
-          if (ComponentClasses[context.component.type]) {
-            const componentInstance = new ComponentClasses[context.component.type](context.component, {i18n: i18next});
-            return validator.check(componentInstance, context.data);
+        const resultPromises = _.flattenDeep(await util.eachValue(req.currentForm.components, req.submission.data, context => {
+          // Mark this as being a valid path for values in the submission object
+          const path = _.compact([context.path, context.component.key]).join('.');
+          paths[path] = true;
+
+          // Skip validation if it's a custom component
+          if (!ComponentClasses[context.component.type]) {
+            return false;
           }
-        });
 
-        const errors = _.chain(results).flatten().compact().value();
+          // Instantiate the component
+          const component = components[context.component.key];
+          component.instance = new ComponentClasses[context.component.type](context.component, {i18n: i18next}, context.data);
+          component.instance.path = _.compact([context.path, context.component.key]).join('.');
+
+          // Skip validation if it's conditionally hidden
+          if (!conditionallyVisibleRecursive(component)) {
+            paths[path] = false;
+            return false;
+          }
+
+          // Run validation checks
+          return validator.check(component.instance, context.data);
+        }));
+
+        const errors = _.chain(await Promise.all(resultPromises)).flattenDeep().compact().value();
 
         if (errors.length) {
           return res.status(400).json({
@@ -256,6 +318,29 @@ module.exports = (router, resourceName, resourceId) => {
           });
         }
 
+        // Build new submission data object that only includes data at valid paths
+        const newData = {};
+
+        _.forEach(paths, (visible, path) => {
+          const dataAtPath = _.get(req.body.data, path);
+
+          if (visible && dataAtPath !== undefined) {
+            _.set(newData, path, dataAtPath);
+          }
+        });
+
+        if ((JSON.stringify(newData) !== JSON.stringify(req.body.data)) ||
+            (JSON.stringify(newData) !== JSON.stringify(req.submission.data))) {
+          // console.log('NOT EQUAL');
+          // console.log('req.body.data before', JSON.stringify(req.body.data, null, 4));
+          // console.log('req.submission.data before', JSON.stringify(req.submission.data, null, 4));
+          // console.log('newData', JSON.stringify(newData, null, 4));
+
+          // debugger;
+        }
+
+        req.body.data = newData;
+        req.submission.data = _.cloneDeep(newData);
         res.submission = {data: req.submission};
 
         done();

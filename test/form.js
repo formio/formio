@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 'use strict';
 
-var request = require('supertest');
+const request = require('./formio-supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var chance = new (require('chance'))();
@@ -1818,7 +1818,7 @@ module.exports = function(app, template, hook) {
             });
         });
 
-        it('Negative Min Length validation wont crash the server on submission', function(done) {
+        it("Negative Min Length validation won't crash the server on submission", function(done) {
           var submission = {
             data: {
               foo: 'bar'
@@ -1901,7 +1901,7 @@ module.exports = function(app, template, hook) {
             });
         });
 
-        it('Negative Max Length validation wont crash the server on submission', function(done) {
+        it("Negative Max Length validation will correctly reject submission", function(done) {
           var submission = {
             data: {
               foo: 'bar'
@@ -1913,14 +1913,16 @@ module.exports = function(app, template, hook) {
             .set('x-jwt-token', template.users.admin.token)
             .send(submission)
             .expect('Content-Type', /json/)
-            .expect(201)
+            .expect(400)
             .end(function(err, res) {
               if (err) {
                 return done(err);
               }
 
               var response = res.body;
-              assert.deepEqual(response.data, submission.data);
+              assert.deepEqual(response.name, 'ValidationError');
+              assert.equal(response.details.length, 1);
+              assert.equal(response.details[0].message, 'foo must be shorter than 0 characters.');
               done();
             });
         });
@@ -2031,7 +2033,7 @@ module.exports = function(app, template, hook) {
               var response = res.body;
               assert.deepEqual(response.name, 'ValidationError');
               assert.equal(response.details.length, 1);
-              assert.equal(response.details[0].message, '"test" must be larger than or equal to 0');
+              assert.equal(response.details[0].message, 'test cannot be less than 0.');
               done();
             });
         });
@@ -2250,7 +2252,7 @@ module.exports = function(app, template, hook) {
               var response = res.body;
               assert.equal(_.get(response, 'name'), 'ValidationError');
               assert.equal(response.details.length, 1);
-              assert.equal(_.get(response, 'details[0].message'), '"number" must be larger than or equal to 0');
+              assert.equal(_.get(response, 'details[0].message'), 'number cannot be less than 0.');
 
               // Store the JWT for future API calls.
               template.users.admin.token = res.headers['x-jwt-token'];
@@ -2824,7 +2826,7 @@ module.exports = function(app, template, hook) {
             });
         });
 
-        it('A duplicate submission can not be made', function(done) {
+        it('A duplicate submission cannot be made', function(done) {
           var submission = {
             data: {
               email: email.toString().toUpperCase()
@@ -2868,7 +2870,7 @@ module.exports = function(app, template, hook) {
         it('Unique field data regex is not triggered by similar submissions (before)', function(done) {
           var submission = {
             data: {
-              email: email + '1'
+              email: email + 'a'
             }
           };
 
@@ -2892,7 +2894,7 @@ module.exports = function(app, template, hook) {
         it('Unique field data regex is not triggered by similar submissions (after)', function(done) {
           var submission = {
             data: {
-              email: '1' + email
+              email: 'a' + email
             }
           };
 
@@ -3062,7 +3064,7 @@ module.exports = function(app, template, hook) {
             });
         });
 
-        it('A duplicate submission can not be made', function(done) {
+        it('A duplicate submission cannot be made', function(done) {
           var submission = {
             data: {
               container1: {
@@ -3363,7 +3365,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'string.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3389,7 +3391,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'string.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3415,7 +3417,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'number.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3441,7 +3443,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'number.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3467,7 +3469,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3494,7 +3496,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3521,7 +3523,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'string.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3547,7 +3549,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'string.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3573,7 +3575,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3599,7 +3601,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3625,7 +3627,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3651,7 +3653,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3677,7 +3679,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3703,7 +3705,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3729,7 +3731,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'string.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3755,7 +3757,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'string.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3781,7 +3783,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3807,7 +3809,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3833,7 +3835,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3859,7 +3861,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3885,7 +3887,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3911,7 +3913,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3937,7 +3939,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3963,7 +3965,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'any.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
@@ -3989,9 +3991,9 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 2);
               assert.equal(err.details[0].path, 'foo');
-              assert.equal(err.details[0].type, 'string.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
               assert.equal(err.details[1].path, 'bar');
-              assert.equal(err.details[1].type, 'string.custom');
+              assert.equal(err.details[1].context.validator, 'custom');
               return done();
             });
           });
@@ -4016,7 +4018,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.deepEqual(err.details[0].path, ['mydg', 0, 'foo']);
-              assert.equal(err.details[0].type, 'string.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
               return done();
             });
           });
@@ -4042,7 +4044,7 @@ module.exports = function(app, template, hook) {
               assert(err.details instanceof Array);
               assert.equal(err.details.length, 1);
               assert.deepEqual(err.details[0].path, ['foo']);
-              assert.equal(err.details[0].type, 'string.custom');
+              assert.equal(err.details[0].context.validator, 'custom');
 
               return done();
             });
