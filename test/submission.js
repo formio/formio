@@ -2025,7 +2025,6 @@ module.exports = function(app, template, hook) {
           selector: 'one'
         };
 
-        debugger;
         helper
           .form('test', components)
           .submission(values)
@@ -2531,11 +2530,14 @@ module.exports = function(app, template, hook) {
               {
                 context: {
                   key: 'textField',
-                  label: 'textField'
+                  label: 'Text Field',
+                  setting: true,
+                  validator: 'multiple',
+                  value: 'My Value'
                 },
-                message: '"textField" must be an array',
+                message: 'Text Field must be an array',
                 path: ['textField'],
-                type: 'array.base'
+                level: 'error'
               }
             ]);
             done();
@@ -2594,12 +2596,14 @@ module.exports = function(app, template, hook) {
               {
                 context: {
                   key: 'textField',
-                  label: 'textField',
+                  label: 'Text Field',
+                  setting: false,
+                  validator: 'multiple',
                   value: ['Never', 'gonna', 'give', 'you', 'up']
                 },
-                message: '"textField" must be a string',
+                message: 'Text Field must not be an array',
                 path: ['textField'],
-                type: 'string.base'
+                level: 'error'
               }
             ]);
             done();
@@ -2714,7 +2718,7 @@ module.exports = function(app, template, hook) {
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
-            assert.equal(helper.lastResponse.body.details[0].message, 'textField is required');
+            assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be a non-empty array');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
             done();
           });
@@ -2786,7 +2790,7 @@ module.exports = function(app, template, hook) {
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be unique');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField', 0]);
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
             done();
           });
       });
@@ -3214,7 +3218,7 @@ module.exports = function(app, template, hook) {
           assert.equal(helper.lastResponse.statusCode, 400);
           assert.equal(helper.lastResponse.body.name, 'ValidationError');
           assert.equal(helper.lastResponse.body.details.length, 1);
-          assert.equal(helper.lastResponse.body.details[0].message, '"Foo" for "Select a fruit" is not a valid selection.');
+          assert.equal(helper.lastResponse.body.details[0].message, 'Select a fruit contains an invalid selection');
           assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
           done();
         });
@@ -3426,11 +3430,14 @@ module.exports = function(app, template, hook) {
               {
                 context: {
                   key: 'changeme',
-                  label: 'changeme'
+                  label: 'Two',
+                  setting: true,
+                  validator: 'required',
+                  value: ''
                 },
-                message: '"changeme" is required',
-                path: ['changeme'],
-                type: 'any.required'
+                level: 'error',
+                message: 'Two is required',
+                path: ['changeme']
               }
             ]);
             done();
@@ -3842,6 +3849,7 @@ module.exports = function(app, template, hook) {
       existing.data.childA.data.a = 'Seven';
       existing.data.childB.data.c = 'Eight';
       existing.data.childC.data.e = 'Nine';
+      debugger
       helper.updateSubmission(existing, (err) => {
         if (err) {
           return done(err);

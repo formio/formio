@@ -222,7 +222,7 @@ module.exports = {
       "inputMask": "",
       "inputType": "text",
       "tableView": true,
-      "mutiple": true,
+      "multiple": true,
       "input": true
     },
     {
