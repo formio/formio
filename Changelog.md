@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.59.0
+### Fixed
+ - FOR-2498: Added final cleanup after project import.
+ - Upgrade formio-workers to 1.14.0 https://github.com/formio/formio-workers/blob/master/Changelog.md#v1140
+
+### Changed
+ - Upgraded mongoose@5.7.1 
+
 ## 1.58.0
 ### Changed
  - FOR-2499: Always treat actionContext alter hook as Promise-returning
