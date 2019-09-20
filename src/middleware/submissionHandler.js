@@ -225,7 +225,14 @@ module.exports = (router, resourceName, resourceId) => {
 
       // Next we need to validate the input.
       hook.alter('validateSubmissionForm', req.currentForm, req.body, async form => { // eslint-disable-line max-statements
-        if (process.env.LEGACY_VALIDATOR) {
+        // Allow use of the legacy validator
+        const useLegacyValidator = (
+          process.env.LEGACY_VALIDATOR ||
+          req.headers['legacy-validator'] ||
+          req.query.legacy_validator
+        );
+
+        if (useLegacyValidator) {
           const LegacyValidator = require('../resources/LegacyValidator');
 
           // Get the submission model.
