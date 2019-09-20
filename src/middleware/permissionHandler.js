@@ -231,8 +231,6 @@ module.exports = function(router) {
 
             // No submission exists.
             if (!submission) {
-              // debugger;
-              // console.log('sending 404!');
               return callback(404);
             }
 
@@ -390,8 +388,6 @@ module.exports = function(router) {
       // Unsupported request method.
       if (search === undefined) {
         if (res) {
-          // debugger;
-          // console.log('sending 404!');
           res.sendStatus(404);
         }
         return false;
