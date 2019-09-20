@@ -4,6 +4,52 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.57.0
+### Fixed
+ - Fix issue where field logic value settings were forced to a string
+
+### Changed
+ - FOR-2499: Make actionContext hook async
+
+## 1.56.0
+### Fixed
+ - FOR-2493: Added configurable access endpoints.
+ - FOR-2500: Added empty subsubmission data check before updating.
+ - FOR-2493: Fix issue with files in submission index endpoint when URL is undefined
+
+### Changed
+ - Upgraded formio-workers to 1.13.0 to resolve email issue with empty file uploads.
+ - Upgrade mongoose to 5.7.0 
+
+## 1.55.0
+### Added
+ - Configurable access endpoint.
+
+## 1.54.0
+### Changed
+ - Reverted commit that alters access endpoints.
+
+## 1.53.0
+### Fixed
+ - The filter queries to allow for string 'false', 'true', and 'null' as well as hard values using "__eq" and "__ne" selectors.
+
+### Changed
+ - Upgraded formiojs@3.27.3, mongoose@5.6.12, nodemon@1.19.2, chance@1.1.0, resourcejs@1.36.0
+
+## 1.52.0
+### Added
+ - The ability to query deleted submissions by providing the filter parameter "?deleted__ne=null" in the submission index query.
+
+### Fixed
+ - The access endpoint to work with authentication to ensure that it only provides information that the user has access to.
+
+### Changed
+ - Upgraded formiojs@3.27.1, formio-workers@1.12.0
+
+## 1.51.0
+### Fixed
+ - The submission index query to provide more meta-data for file uploads. Just remove any base64 data.
+
 ## 1.50.0
 ### Added
  - Token schema

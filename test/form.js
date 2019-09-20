@@ -4142,7 +4142,24 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Access Information', function() {
-      it('Should be able to see the access for the forms and roles.', function(done) {
+      it('Authenticated users have appropriate form/role access visibility', function(done) {
+        request(app)
+          .get(hook.alter('url', '/access', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            assert.equal(Object.keys(res.body.roles).length, 3);
+            assert.notEqual(res.body.forms.testComponentForm, undefined);
+            done();
+          });
+      });
+
+      it('Anonymous users have appropriate form/role access visibility', function(done) {
         request(app)
           .get(hook.alter('url', '/access', template))
           .expect('Content-Type', /json/)
@@ -4152,8 +4169,31 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            assert.equal(Object.keys(res.body.roles).length, 3);
-            assert(Object.keys(res.body.forms).length > 3);
+            // console.log(JSON.stringify(res.body, null, 4));
+            console.log('process.env.FILTER_ACCESS', process.env.FILTER_ACCESS);
+
+            let filter = true;
+            let projectFilter = false;
+
+            try {
+              filter = require(process.cwd() + '/config').filterAccess;
+              projectFilter = true;
+            } catch (err) {
+              console.log(err);
+            }
+
+            console.log('filter', filter);
+            console.log('projectFilter', projectFilter);
+
+            if (filter && projectFilter) {
+              assert.equal(Object.keys(res.body.roles).length, 0);
+              assert.equal(Object.keys(res.body.forms).length, 0);
+            }
+            else {
+              assert.notEqual(Object.keys(res.body.roles).length, 0);
+              assert.notEqual(Object.keys(res.body.forms).length, 0);
+            }
+
             done();
           });
       });
