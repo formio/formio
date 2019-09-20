@@ -3849,7 +3849,6 @@ module.exports = function(app, template, hook) {
       existing.data.childA.data.a = 'Seven';
       existing.data.childB.data.c = 'Eight';
       existing.data.childC.data.e = 'Nine';
-      debugger
       helper.updateSubmission(existing, (err) => {
         if (err) {
           return done(err);
