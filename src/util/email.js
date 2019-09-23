@@ -165,10 +165,9 @@ module.exports = (formio) => {
       // Get the parameters for the email.
       params.form = form;
       // Allow hooks to alter params.
-      params = hook.alter('actionContext', params, req, );
-      return resolve(params);
+      hook.alter('actionContext', params, req).then(params => resolve(params), err => reject(err));
     })
-    .catch(reject);
+    .catch(err => reject);
   });
 
   /**
