@@ -177,67 +177,67 @@ module.exports = (router) => {
         }
 
         async.eachSeries(actions, (action, cb) => {
-          const execute = this.shouldExecute(action, req);
+          this.shouldExecute(action, req).then(execute => {
+            debug.action(`execute (${execute}):`, action);
+            if (!execute) {
+              return cb();
+            }
 
-          debug.action(`execute (${execute}):`, action);
-          if (!execute) {
-            return cb();
-          }
+            // Resolve the action.
+            router.formio.log('Action', req, handler, method, action.name, action.title);
 
-          // Resolve the action.
-          router.formio.log('Action', req, handler, method, action.name, action.title);
-
-          // Instantiate ActionItem here.
-          router.formio.mongoose.models.actionItem.create(hook.alter('actionItem', {
-            title: action.title,
-            form: req.formId,
-            submission: res.resource ? res.resource.item._id : req.body._id,
-            action: action.name,
-            handler,
-            method,
-            state: 'inprogress',
-            messages: [
-              {
-                datetime: new Date(),
-                info: 'Starting Action',
-                data: {}
-              }
-            ]
-          }, req), (err, actionItem) => {
-            // Mongoose has issues if you call "save" too frequently on the same item. We need to wait till the previous
-            // save is complete before calling again.
-            let lastSavePromise = Promise.resolve();
-            const setActionItemMessage = (message, data = {}, state = null) => {
-              lastSavePromise.then(() => {
-                actionItem.messages.push({
+            // Instantiate ActionItem here.
+            router.formio.mongoose.models.actionItem.create(hook.alter('actionItem', {
+              title: action.title,
+              form: req.formId,
+              submission: res.resource ? res.resource.item._id : req.body._id,
+              action: action.name,
+              handler,
+              method,
+              state: 'inprogress',
+              messages: [
+                {
                   datetime: new Date(),
-                  info: message,
-                  data
-                });
+                  info: 'Starting Action',
+                  data: {}
+                }
+              ]
+            }, req), (err, actionItem) => {
+              // Mongoose has issues if you call "save" too frequently on the same item. We need to wait till the previous
+              // save is complete before calling again.
+              let lastSavePromise = Promise.resolve();
+              const setActionItemMessage = (message, data = {}, state = null) => {
+                lastSavePromise.then(() => {
+                  actionItem.messages.push({
+                    datetime: new Date(),
+                    info: message,
+                    data
+                  });
 
-                if (state) {
-                  actionItem.state = state;
+                  if (state) {
+                    actionItem.state = state;
+                  }
+
+                  lastSavePromise = actionItem.save();
+                });
+              };
+
+              action.resolve(handler, method, req, res, (err) => {
+                if (err) {
+                  // Error has occurred.
+                  setActionItemMessage('Error Occurred', err, 'error');
+                  return cb(err);
                 }
 
-                lastSavePromise = actionItem.save();
-              });
-            };
-
-            action.resolve(handler, method, req, res, (err) => {
-              if (err) {
-                // Error has occurred.
-                setActionItemMessage('Error Occurred', err, 'error');
-                return cb(err);
-              }
-
-              // Action has completed successfully
-              setActionItemMessage(
-                'Action Resolved (no longer blocking)',
-                {},
-                actionItem.state === 'inprogress' ? 'complete' : actionItem.state,
-              );
-              return cb();
-            }, setActionItemMessage);
+                // Action has completed successfully
+                setActionItemMessage(
+                  'Action Resolved (no longer blocking)',
+                  {},
+                  actionItem.state === 'inprogress' ? 'complete' : actionItem.state,
+                );
+                return cb();
+              }, setActionItemMessage);
+            });
           });
         }, (err) => {
           if (err) {
@@ -250,7 +250,7 @@ module.exports = (router) => {
       });
     },
 
-    shouldExecute(action, req) {
+    async shouldExecute(action, req) {
       const condition = action.condition;
       if (!condition) {
         return true;
@@ -270,7 +270,7 @@ module.exports = (router) => {
             ? `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })`
             : condition.custom);
 
-          const sandbox = hook.alter('actionContext', {
+          const sandbox = await hook.alter('actionContext', {
             jsonLogic: FormioUtils.jsonLogic,
             data: req.body.data,
             form: req.form,

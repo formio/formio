@@ -557,6 +557,31 @@ module.exports = (router) => {
   };
 
   /**
+   * Invoke cleanUp method on passed entities
+   *
+   * @param {Array} data
+   *   Array of maps of entities and form templates
+   * @param {Object} template
+   *   The parsed JSON template to import.
+   * @param {Function} done
+   *   The callback function to invoke after the cleanUp is complete.
+   *
+   * @returns {*}
+   */
+  const cleanUp = (data, template, done) => {
+    return async.series(data.map(({entity, forms}) => {
+      return async.apply(entity.cleanUp, template, forms);
+    }), (err) => {
+      if (err) {
+        debug.template(err);
+        return done(err);
+      }
+
+      done(null, template);
+    });
+  };
+
+  /**
    * Import the formio template.
    *
    * Note: This is all of the core entities, not submission data.
@@ -584,14 +609,17 @@ module.exports = (router) => {
       async.apply(install(entities.role), template, template.roles, alter.role),
       async.apply(install(entities.resource), template, template.resources, alter.form),
       async.apply(install(entities.form), template, template.forms, alter.form),
-      async.apply(install(entities.action), template, template.actions, alter.action)
+      async.apply(install(entities.action), template, template.actions, alter.action),
     ], install, template), (err) => {
       if (err) {
         debug.template(err);
         return done(err);
       }
 
-      done(null, template);
+      cleanUp([
+        {entity: entities.resource, forms: template.resources},
+        {entity: entities.form, forms: template.forms},
+      ], template, done);
     });
   };
 
