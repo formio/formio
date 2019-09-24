@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.60.0
+### Fixed
+ - Crash in the Login Action when no settings were provided.
+
+### Added
+ - Support for bulk emails by breaking up a large amount into chunks.
+
 ## 1.59.0
 ### Fixed
  - FOR-2498: Added final cleanup after project import.
