@@ -14,6 +14,7 @@ const rest = require('restler');
 const util = require('./util');
 const _ = require('lodash');
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
+const EMAIL_CHUNK_SIZE = process.env.EMAIL_OVERRIDE || 100;
 
 /**
  * The email sender for emails.
@@ -441,40 +442,49 @@ module.exports = (formio) => {
         }
 
         debug.send(`emails: ${JSON.stringify(emails)}`);
-        // Send each mail using the transporter.
-        return Promise.all(emails.map((email) => {
-          // Replace all newline chars with empty strings, to fix newline support in html emails.
-          if (email.html && (typeof email.html === 'string')) {
-            email.html = email.html.replace(/\n/g, '');
-          }
 
-          return new Promise((resolve, reject) => {
-            // Allow anyone to hook the final email before sending.
-            return hook.alter('email', email, req, res, params, (err, email) => {
-              if (err) {
-                return reject(err);
-              }
-
-              // Allow anyone to hook the final destination settings before sending.
-              hook.alter('emailSend', true, email, (err, send) => {
-                if (err) {
-                  return reject(err);
-                }
-                if (!send) {
-                  return resolve(email);
+        const chunks = _.chunk(emails, EMAIL_CHUNK_SIZE);
+        return chunks.reduce((result, chunk) => {
+          // Send each mail using the transporter.
+          return result.then(() => new Promise((resolve) => {
+            setImmediate(
+              () => Promise.all(chunk.map((email) => {
+                // Replace all newline chars with empty strings, to fix newline support in html emails.
+                if (email.html && (typeof email.html === 'string')) {
+                  email.html = email.html.replace(/\n/g, '');
                 }
 
-                return transporter.sendMail(email, (err, info) => {
-                  if (err) {
-                    return reject(err);
-                  }
+                return new Promise((resolve, reject) => {
+                  // Allow anyone to hook the final email before sending.
+                  return hook.alter('email', email, req, res, params, (err, email) => {
+                    if (err) {
+                      return reject(err);
+                    }
 
-                  return resolve(info);
+                    // Allow anyone to hook the final destination settings before sending.
+                    hook.alter('emailSend', true, email, (err, send) => {
+                      if (err) {
+                        return reject(err);
+                      }
+                      if (!send) {
+                        return resolve(email);
+                      }
+
+                      return transporter.sendMail(email, (err, info) => {
+                        if (err) {
+                          return reject(err);
+                        }
+
+                        return resolve(info);
+                      });
+                    });
+                  });
                 });
-              });
-            });
-          });
-        }));
+              }))
+                .then(resolve),
+            );
+          }));
+        }, Promise.resolve());
       })
       .then((response) => next(null, response))
       .catch((err) => {
