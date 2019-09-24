@@ -256,6 +256,10 @@ module.exports = function(router) {
         return next();
       }
 
+      if (!this.settings) {
+        return res.status(400).send('Misconfigured Login Action.');
+      }
+
       if (!req.submission || !req.submission.hasOwnProperty('data')) {
         return res.status(401).send('User or password was incorrect.');
       }
