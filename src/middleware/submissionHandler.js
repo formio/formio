@@ -215,7 +215,8 @@ module.exports = (router, resourceName, resourceId) => {
       }
 
       // Assign submission data to the request body.
-      const isSubform = _.get(req, 'body.data.form') && _.get(req, 'body.data.form').toString() !== req.currentForm._id.toString();
+      const formId = _.get(req, 'body.data.form');
+      const isSubform = formId && formId.toString() !== req.currentForm._id.toString();
       req.submission = req.submission || {data: {}};
       if (!_.isEmpty(req.submission.data) && !isSubform) {
         req.body.data = _.assign(req.body.data, req.submission.data);
@@ -287,7 +288,10 @@ module.exports = (router, resourceName, resourceId) => {
           const conditionallyVisibleRecursive = component => {
             // Instantiate the component if it hasn't been already
             if (!component.instance && ComponentClasses[component.schema.type]) {
-              component.instance = new ComponentClasses[component.schema.type](_.cloneDeep(component.schema), {}, req.submission.data);
+              component.instance = new ComponentClasses[component.schema.type](
+                _.cloneDeep(component.schema), {}, req.submission.data
+              );
+
               component.instance.fieldLogic();
             }
 
@@ -327,52 +331,54 @@ module.exports = (router, resourceName, resourceId) => {
 
           let paths = {};
 
-          const resultPromises = _.flattenDeep(await util.eachValue(req.currentForm.components, req.submission.data, context => {
-            // Mark this as being a valid path for values in the submission object
-            const path = _.compact([context.path, context.component.key]).join('.');
-            paths[path] = true;
+          const resultPromises = _.flattenDeep(
+            await util.eachValue(req.currentForm.components, req.submission.data, context => {
+              // Mark this as being a valid path for values in the submission object
+              const path = _.compact([context.path, context.component.key]).join('.');
+              paths[path] = true;
 
-            // Skip validation if it's a custom component
-            if (!ComponentClasses[context.component.type]) {
-              return false;
-            }
+              // Skip validation if it's a custom component
+              if (!ComponentClasses[context.component.type]) {
+                return false;
+              }
 
-            // Skip validation if this is a PUT and this value isn't being updated
-            if (req.method === 'PUT' && context.data === undefined) {
-              return false;
-            }
+              // Skip validation if this is a PUT and this value isn't being updated
+              if (req.method === 'PUT' && context.data === undefined) {
+                return false;
+              }
 
-            // Instantiate the component
-            const component = components[context.component.key];
-            component.instance = new ComponentClasses[context.component.type](context.component, {
-              i18n: i18next,
-              readOnly: true,
-              viewAsHtml: true
-            }, context.data);
+              // Instantiate the component
+              const component = components[context.component.key];
+              component.instance = new ComponentClasses[context.component.type](context.component, {
+                i18n: i18next,
+                readOnly: true,
+                viewAsHtml: true
+              }, context.data);
 
-            // Apply field logic
-            component.changed = component.instance.fieldLogic();
+              // Apply field logic
+              component.changed = component.instance.fieldLogic();
 
-            if (component.changed) {
-              component.schema = component.instance.component;
-            }
+              if (component.changed) {
+                component.schema = component.instance.component;
+              }
 
-            // Make the component aware of its actual path
-            component.instance.path = _.compact([context.path, context.component.key]).join('.');
+              // Make the component aware of its actual path
+              component.instance.path = _.compact([context.path, context.component.key]).join('.');
 
-            // Skip validation if it's conditionally hidden
-            const visible = conditionallyVisibleRecursive(component);
+              // Skip validation if it's conditionally hidden
+              const visible = conditionallyVisibleRecursive(component);
 
-            if (!visible) {
-              // Clear on hide according to property check
-              paths[path] = !_.get(component, 'schema.clearOnHide', true);
+              if (!visible) {
+                // Clear on hide according to property check
+                paths[path] = !_.get(component, 'schema.clearOnHide', true);
 
-              return false;
-            }
+                return false;
+              }
 
-            // Run validation
-            return validator.check(component.instance, context.data);
-          }));
+              // Run validation
+              return validator.check(component.instance, context.data);
+            })
+          );
 
           // Return any validation errors
           const errors = _.chain(await Promise.all(resultPromises)).flattenDeep().compact().value();
