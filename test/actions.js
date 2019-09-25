@@ -2395,7 +2395,6 @@ module.exports = function(app, template, hook) {
       });
 
       it('Should conditionally execute the add role action.', function(done) {
-        debugger;
         helper
           .submission({
             email: 'test@example.com',

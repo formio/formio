@@ -61,6 +61,7 @@
     "resourcejs": "^1.36.0",
     "restler": "^3.4.0",
     "semver": "^6.3.0",
+    "superagent-retry": "^0.6.0",
     "through": "^2.3.8",
     "vanilla-text-mask": "^5.1.1"
   },

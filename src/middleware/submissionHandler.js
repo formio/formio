@@ -215,8 +215,9 @@ module.exports = (router, resourceName, resourceId) => {
       }
 
       // Assign submission data to the request body.
+      const isSubform = _.get(req, 'body.data.form') && _.get(req, 'body.data.form').toString() !== req.currentForm._id.toString();
       req.submission = req.submission || {data: {}};
-      if (!_.isEmpty(req.submission.data)) {
+      if (!_.isEmpty(req.submission.data) && !isSubform) {
         req.body.data = _.assign(req.body.data, req.submission.data);
       }
 
@@ -264,14 +265,6 @@ module.exports = (router, resourceName, resourceId) => {
 
           const ComponentClasses = require('formiojs/components').default;
 
-          // Define the data context we should be working in -
-          // req.submission.data for parent forms, or a subobject if our current form is a child
-          const subformKey = _.findKey(req.submission.data, obj => {
-            return obj.form && obj.form.toString() === req.currentForm._id.toString();
-          });
-
-          const data = subformKey ? req.submission.data[subformKey].data : req.submission.data;
-
           // Assign .parent to each component for quickly traversing up the hierarchy
           const assignParentsRecursive = (children, parent) => {
             _.each(children, child => {
@@ -294,7 +287,7 @@ module.exports = (router, resourceName, resourceId) => {
           const conditionallyVisibleRecursive = component => {
             // Instantiate the component if it hasn't been already
             if (!component.instance && ComponentClasses[component.schema.type]) {
-              component.instance = new ComponentClasses[component.schema.type](component.schema, {}, data);
+              component.instance = new ComponentClasses[component.schema.type](_.cloneDeep(component.schema), {}, req.submission.data);
               component.instance.fieldLogic();
             }
 
@@ -334,7 +327,7 @@ module.exports = (router, resourceName, resourceId) => {
 
           let paths = {};
 
-          const resultPromises = _.flattenDeep(await util.eachValue(req.currentForm.components, data, context => {
+          const resultPromises = _.flattenDeep(await util.eachValue(req.currentForm.components, req.submission.data, context => {
             // Mark this as being a valid path for values in the submission object
             const path = _.compact([context.path, context.component.key]).join('.');
             paths[path] = true;
@@ -411,25 +404,17 @@ module.exports = (router, resourceName, resourceId) => {
             const component = _.find(components, c => _.get(c, 'instance.path') === path && c.changed);
 
             // If so, use the changed data instead of the input data
-            const setPath = subformKey ? `data[${subformKey}].${path}` : path;
-            const dataAtPath = component ? component.instance.dataValue : _.get(req.body.data, setPath);
+            const dataAtPath = component ? component.instance.dataValue : _.get(req.body.data, path);
 
             if (dataAtPath !== undefined) {
-              _.set(newData, setPath, dataAtPath);
+              _.set(newData, path, dataAtPath);
             }
           });
 
           // Update data references
           if (!_.isEmpty(newData)) {
             req.body.data = newData;
-
-            if (subformKey) {
-              req.submission.data[subformKey].data = _.cloneDeep(newData);
-            }
-            else {
-              req.submission.data = _.cloneDeep(newData);
-            }
-
+            req.submission.data = _.cloneDeep(newData);
             res.submission = {data: req.submission};
           }
 

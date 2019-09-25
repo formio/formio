@@ -4012,7 +4012,7 @@ module.exports = function(app, template, hook) {
     });
 
     if (app.hasProjects || docker)
-    it('Should allow a an update to the submission where all sub-submissions are also updated.', (done) => {
+    it('Should allow an update to the submission where all sub-submissions are also updated.', (done) => {
       const existing = _.cloneDeep(helper.lastSubmission);
       existing.state = 'submitted';
       existing.data.childA.data.a = 'Seven';
