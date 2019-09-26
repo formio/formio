@@ -24,7 +24,7 @@ module.exports = (formio) => {
   const componentPaths = (components) => {
     const paths = [];
     util.eachComponent(components, (component, path) => {
-      if (component.input && !_.isUndefined(component.key) && !_.isNull(component.key)) {
+      if (util.isInputComponent(component) && !_.isUndefined(component.key) && !_.isNull(component.key)) {
         paths.push(path);
       }
     }, true);
