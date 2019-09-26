@@ -14,7 +14,7 @@ const rest = require('restler');
 const util = require('./util');
 const _ = require('lodash');
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
-const EMAIL_CHUNK_SIZE = process.env.EMAIL_OVERRIDE || 100;
+const EMAIL_CHUNK_SIZE = process.env.EMAIL_CHUNK_SIZE || 100;
 
 /**
  * The email sender for emails.
