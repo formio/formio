@@ -791,7 +791,8 @@ class Validator {
         // If a multi-value is required, make sure there is at least one.
         if (component.validate && component.validate.required && !component.validate.minItems) {
           fieldValidator = fieldValidator.min(1).required();
-        } else if (component.validate.minItems) {
+        }
+        else if (component.validate.minItems) {
           fieldValidator = fieldValidator.min(component.validate.minItems).required();
         }
         if (component.validate.maxItems) {
