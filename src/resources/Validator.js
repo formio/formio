@@ -788,15 +788,17 @@ class Validator {
         // Allow(null) was added since some text fields have empty strings converted to null when multiple which then
         // throws an error on re-validation. Allowing null fixes the issue.
         fieldValidator = JoiX.array().sparse().items(fieldValidator.allow(null)).options({stripUnknown: false});
-        // If a multi-value is required, make sure there is at least one.
-        if (component.validate && component.validate.required && !component.validate.minItems) {
-          fieldValidator = fieldValidator.min(1).required();
-        }
-        else if (component.validate.minItems) {
-          fieldValidator = fieldValidator.min(component.validate.minItems).required();
-        }
-        if (component.validate.maxItems) {
-          fieldValidator = fieldValidator.max(component.validate.maxItems);
+        if (component.validate) {
+          // If a multi-value is required, make sure there is at least one.
+          if (component.validate.required && !component.validate.minItems) {
+            fieldValidator = fieldValidator.min(1).required();
+          }
+          else if (component.validate.minItems) {
+            fieldValidator = fieldValidator.min(component.validate.minItems).required();
+          }
+          if (component.validate.maxItems) {
+            fieldValidator = fieldValidator.max(component.validate.maxItems);
+          }
         }
       }
 
