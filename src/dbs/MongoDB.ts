@@ -1,15 +1,15 @@
-'use strict';
+import { Database, log } from '@formio/api';
+import { ObjectID } from 'mongodb';
+import { MongoClient } from 'mongodb';
+import { log as consoleLog } from '../log';
+import { PreserveModel } from './PreserveModel';
 
-const { ObjectID } = require('mongodb');
-const { MongoClient } = require('mongodb');
-const { dbs, log } = require('@formio/api');
-const PreserveModel = require('./PreserveModel');
+export class MongoDB extends Database {
+  private dbs: {};
+  private collections: {};
 
-module.exports = class MongoDB extends dbs.Database {
   constructor(config) {
     super(config);
-    this.toID = value => new ObjectID(value);
-    this.config = config;
 
     // TODO: Change this to class property.
     this.Model = PreserveModel;
@@ -24,34 +24,38 @@ module.exports = class MongoDB extends dbs.Database {
           return reject(err);
         }
         else {
-          console.log(' > Successfully connected to mongodb');
+          consoleLog( 'log', ' > Successfully connected to mongodb');
           return resolve(client);
         }
       });
     });
   }
 
-  getDb(name) {
+  public toID(value) {
+    return new ObjectID(value);
+  }
+
+  public getDb(name) {
     // Db connection cache.
     if (this.dbs.hasOwnProperty(name)) {
       return Promise.resolve(this.dbs[name]);
     }
-    return this.ready.then(client => {
+    return this.ready.then((client) => {
       this.dbs[name] = client.db(name);
       return this.dbs[name];
     });
   }
 
-  getDatabaseName() {
+  public getDatabaseName(collectionName, params) {
     return this.config.database;
   }
 
-  async collection(name, database = this.config.database) {
+  public async collection(name, database = this.config.database) {
     const db = await this.getDb(database);
     return await db.collection(name);
   }
 
-  async getCollections(database = this.config.database) {
+  public async getCollections(database = this.config.database) {
     const db = await this.getDb(database);
 
     return new Promise((resolve, reject) => {
@@ -59,29 +63,29 @@ module.exports = class MongoDB extends dbs.Database {
         if (err) {
           return reject(err);
         }
-        this.collections = collections.map(collection => collection.name);
+        this.collections = collections.map((collection) => collection.name);
         return resolve(this.collections);
       });
     });
   }
 
-  async getIndexes(collection, database = this.config.database) {
+  public async getIndexes(collection, database = this.config.database) {
     const db = await this.getDb(database);
     return await db.collection(collection).indexes();
   }
 
-  async createCollection(name, options, database = this.config.database) {
+  public async createCollection(name, options, database = this.config.database) {
     const db = await this.getDb(database);
     return await db.createCollection(name, options);
   }
 
-  async createIndex(collection, def, options, database = this.config.database) {
+  public async createIndex(collection, def, options, database = this.config.database) {
     const db = await this.getDb(database);
     return await db.collection(collection).createIndex(def, options)
       .catch(() => {/* Swallow errors.*/});
   }
 
-  async find(collectionName, query, options) {
+  public async find(collectionName, query, options) {
     const database = this.getDatabaseName(collectionName, query);
     const collection = await this.collection(collectionName, database);
 
@@ -95,35 +99,35 @@ module.exports = class MongoDB extends dbs.Database {
     });
   }
 
-  async count(collectionName, query) {
+  public async count(collectionName, query) {
     const database = this.getDatabaseName(collectionName, query);
     const collection = await this.collection(collectionName, database);
     return collection.count(query);
   }
 
-  async create(collectionName, doc) {
+  public async create(collectionName, doc) {
     const database = this.getDatabaseName(collectionName, doc);
     const collection = await this.collection(collectionName, database);
     const result = await collection.insertOne(doc);
     return result.ops[0];
   }
 
-  async read(collectionName, query, options) {
+  public async read(collectionName, query, options) {
     const database = this.getDatabaseName(collectionName, query);
     const collection = await this.collection(collectionName, database);
     return await collection.findOne(query, options);
   }
 
-  async update(collectionName, doc) {
+  public async update(collectionName, doc) {
     const database = this.getDatabaseName(collectionName, doc);
     const collection = await this.collection(collectionName, database);
     const result = await collection.findOneAndReplace({ _id: doc._id }, doc, { returnNewDocument: true });
     return result.value;
   }
 
-  async delete(collectionName, query) {
+  public async delete(collectionName, query) {
     const database = this.getDatabaseName(collectionName, query);
     const collection = await this.collection(collectionName, database);
     return await collection.deleteOne(query);
   }
-};
+}

@@ -1,8 +1,6 @@
-'use strict';
+import { Action } from '@formio/api';
 
-const { classes } = require('@formio/api');
-
-module.exports = class Example extends classes.Action {
+export class Example extends Action {
   /**
    * Actions can either be triggered immediately or after being synced to a server (if using offline plugin). If this
    * is set to true, it will only be triggered on the server. This is useful for actions like email and webhook which
@@ -20,7 +18,7 @@ module.exports = class Example extends classes.Action {
    *
    * @returns actionInfo
    */
-  static info() {
+  public static info() {
     return {
       name: 'example',
       title: 'Example',
@@ -35,8 +33,8 @@ module.exports = class Example extends classes.Action {
       },
       access: { // Whether to allow modifying the handler and method settings in action configuration.
         handler: true,
-        method: true
-      }
+        method: true,
+      },
     };
   }
 
@@ -50,7 +48,7 @@ module.exports = class Example extends classes.Action {
    * @param options
    * @returns {*}
    */
-  static settingsForm(options) {
+  public static settingsForm(options) {
     return super.settingsForm(options, [
       {
         type: 'textfield',
@@ -58,7 +56,7 @@ module.exports = class Example extends classes.Action {
         input: true,
         label: 'Example Setting',
         description: 'An example setting field that a user can configure when adding an action to a form.',
-      }
+      },
     ]);
   }
 
@@ -70,7 +68,7 @@ module.exports = class Example extends classes.Action {
    * @param res
    * @param setActionInfoMessage
    */
-  resolve({ data, req, res }, setActionInfoMessage) {
+  public resolve({ data, req, res }, setActionInfoMessage) {
     return Promise.resolve();
   }
-};
+}

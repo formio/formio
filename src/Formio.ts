@@ -1,13 +1,18 @@
-'use strict';
+// We can't use import for package.json or it will mess up the lib folder.
+/* tslint:disable */
+const {version} = require('../package.json');
+/* tslint:enable */
+import { Api } from '@formio/api';
+import * as jwt from 'jsonwebtoken';
+import {cron} from './cron';
+import cronTasks from './cronTasks';
+import {actions} from './entities/Submission/actions';
+import {log} from './log';
 
-const jwt = require('jsonwebtoken');
-const info = require('../package.json');
-const { FormApi } = require('@formio/api');
-const cronTasks = require('./cron/index');
-const cron = require('./cron');
-const actions = require('./entities/Submission/actions');
+export class Formio extends Api {
+  protected cronjob;
+  protected externalActions;
 
-module.exports = class Formio extends FormApi {
   constructor(router, db, config, externalActions) {
     super(router, db, config);
 
@@ -17,7 +22,7 @@ module.exports = class Formio extends FormApi {
     if (this.requiredEnvVars.reduce((prev, variable) => {
       const missing = !process.env[variable];
       if (missing) {
-        console.error('Missing Environment Variable', variable);
+        log('error', 'Missing Environment Variable', variable);
       }
       return prev || missing;
     }, false)) {
@@ -47,40 +52,40 @@ module.exports = class Formio extends FormApi {
     return cronTasks;
   }
 
-  getStatus(status = {}) {
-    status.ce = info.version;
+  public getStatus(status: any = {}) {
+    status.ce = version;
     return super.getStatus(status);
   }
 
-  generateToken(payload) {
+  public generateToken(payload) {
     if (payload.iat) {
       delete payload.iat;
       delete payload.exp;
     }
 
     return jwt.sign(payload, this.config.jwt.secret, {
-      expiresIn: this.config.jwt.expireTime * 60
+      expiresIn: this.config.jwt.expireTime * 60,
     });
   }
 
-  tokenPayload(user, form) {
+  public tokenPayload(user, form) {
     return {
       user: {
         _id: user._id,
       },
       form: {
         _id: form._id,
-      }
+      },
     };
   }
 
-  authenticate(req, res, next) {
+  public authenticate(req, res, next) {
     // If someone else provided then skip.
     if (req.user && req.token && res.token) {
       return next();
     }
 
-    const noToken = function() {
+    const noToken = () => {
       // Try the request with no tokens.
       delete req.headers['x-jwt-token'];
       req.user = null;
@@ -90,11 +95,11 @@ module.exports = class Formio extends FormApi {
     };
 
     let token;
-    if (typeof req.headers['authorization'] !== 'undefined') {
-      if (!req.headers['authorization'].startsWith('Bearer: ')) {
+    if (typeof req.headers.authorization !== 'undefined') {
+      if (!req.headers.authorization.startsWith('Bearer: ')) {
         return res.send(401).send('Not using Bearer token');
       }
-      token = req.headers['authorization'].replace(/^Bearer: /, '');
+      token = req.headers.authorization.replace(/^Bearer: /, '');
     }
 
     // Support legacy x-jwt-token location.
@@ -136,14 +141,14 @@ module.exports = class Formio extends FormApi {
     });
   }
 
-  userQuery(payload) {
+  public userQuery(payload) {
     return {
       _id: this.db.toID(payload.user._id),
       form: this.db.toID(payload.form._id),
     };
   }
 
-  handleToken(payload, req, res, next) {
+  public handleToken(payload, req, res, next) {
     // If this is a temporary token, then decode it and set it in the request.
     if (payload.temp) {
       req.tempToken = payload;
@@ -162,15 +167,15 @@ module.exports = class Formio extends FormApi {
     }
 
     this.models.Submission.read(this.userQuery(payload))
-      .then(user => {
+      .then((user) => {
         req.user = user;
         res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token, Authorization');
         res.setHeader('x-jwt-token', this.generateToken(payload));
         res.setHeader('Authorization', `Bearer: ${res.getHeader('x-jwt-token')}`);
         next();
       })
-      .catch(err => {
+      .catch((err) => {
         res.status(400).send('Unable to find user');
       });
   }
-};
+}

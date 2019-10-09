@@ -1,22 +1,20 @@
-'use strict';
+import { Model } from '@formio/api';
 
-const { dbs } = require('@formio/api');
-
-module.exports = class PreserveModel extends dbs.Model {
+export class PreserveModel extends Model {
   constructor(schema, db) {
     // Add delete field to track delete status.
     schema.schema.deleted = schema.schema.deleted || {
       type: 'number',
       index: true,
-      default: null
+      default: null,
     };
 
     super(schema, db);
   }
 
-  afterLoad(doc) {
+  public afterLoad(doc) {
     return super.afterLoad(doc)
-      .then(doc => {
+      .then((doc) => {
         if (doc) {
           delete doc.deleted;
         }
@@ -24,27 +22,27 @@ module.exports = class PreserveModel extends dbs.Model {
       });
   }
 
-  find(query = {}, options = {}) {
+  public find(query: any = {}, options = {}) {
     query.deleted = { $eq: null };
     return super.find(query, options);
   }
 
-  count(query = {}) {
+  public count(query: any = {}) {
     query.deleted = { $eq: null };
     return super.count(query);
   }
 
-  read(query = {}) {
+  public read(query: any = {}) {
     query.deleted = { $eq: null };
     return super.read(query);
   }
 
-  delete(_id) {
+  public delete(_id) {
     return this.initialized.then(() => {
-      return this.read({ _id }).then(doc => {
+      return this.read({ _id }).then((doc) => {
         doc.deleted = Date.now();
         return this.db.update(this.collectionName, doc);
       });
     });
   }
-};
+}

@@ -1,9 +1,8 @@
-const readline = require('readline');
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-require('colors');
-const install = require('./install');
+import * as readline from 'readline';
+import * as fs from 'fs';
+import 'colors';
+import {install} from './install';
+import {main} from './main';
 
 const welcome = new Promise((resolve) => {
   // Print Welcome message.
@@ -11,7 +10,7 @@ const welcome = new Promise((resolve) => {
     input: fs.createReadStream('text/logo.txt')
   });
 
-  rl.on('line', function(line) {
+  rl.on('line', function(line: any) {
     console.log(
       line.substring(0,4) +
       line.substring(4, 30).cyan.bold +
@@ -30,8 +29,8 @@ const welcome = new Promise((resolve) => {
 });
 
 welcome.then(() => {
-  require('./main')
-    .then(App => {
+  main
+    .then((App: any) => {
       const installSteps = {
         download: false,
         extract: false,

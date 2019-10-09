@@ -1,6 +1,4 @@
-'use strict';
-
-const config = {
+const config: any = {
   port: process.env.PORT || 3000,
   maxBodySize: process.env.MAX_BODY_SIZE || '16mb',
   jwt: {

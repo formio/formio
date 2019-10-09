@@ -1,14 +1,18 @@
-const { assert } = require('chai');
-const sinon = require('sinon');
+import {assert} from 'chai';
+import * as sinon from 'sinon';
 
-// A fake db wrapper for stubbing.
-const db = require('@formio/api/test/mocks/db');
+import {Express} from '@formio/api/test/mocks/Express';
+import {Database, Schema, Api} from '@formio/api';
+
+const router: any = new Express();
+const db: any = new Database();
+const app = new Api(router, db, {});
+
 const sandbox = sinon.createSandbox();
 
-const Schema = require('@formio/api/src/dbs/Schema');
 const Model = require('./PreserveModel');
 
-describe('PreserveModel.js', () => {
+describe('PreserveModel', () => {
   afterEach(() => {
     sandbox.restore();
   });
@@ -27,13 +31,13 @@ describe('PreserveModel.js', () => {
             bar: {
               type: 'string',
             },
-          }
+          };
         }
       }
 
-      const model = new Model(new TestSchema(), db);
+      const model = new Model(new TestSchema(app), db);
 
-      return model.read({ _id: 'foo' }).then(doc => {
+      return model.read({ _id: 'foo' }).then((doc) => {
         assert(db.read.calledOnce, 'Should call read');
         assert.deepEqual(db.read.args[0][1], { _id: 'foo', deleted: { $eq: null } });
         assert.deepEqual(doc, { _id: 'foo', bar: 'baz' });
@@ -57,14 +61,14 @@ describe('PreserveModel.js', () => {
           return {
             fiz: {
               type: 'string',
-            }
-          }
+            },
+          };
         }
       }
 
-      const model = new Model(new TestSchema(), db);
+      const model = new Model(new TestSchema(app), db);
 
-      return model.delete('foo').then(doc => {
+      return model.delete('foo').then((doc) => {
         assert(db.delete.notCalled, 'Should not call delete');
         assert(db.update.calledOnce, 'Should call update');
         assert.deepEqual(db.update.args[0][1], { _id: 'foo', fiz: 'buz', deleted: 3 });
@@ -85,15 +89,15 @@ describe('PreserveModel.js', () => {
           return {
             bar: {
               type: 'string',
-            }
-          }
+            },
+          };
         }
       }
 
-      const model = new Model(new TestSchema(), db);
+      const model = new Model(new TestSchema(app), db);
 
       const query = { foo: 'bar' };
-      return model.count(query).then(result => {
+      return model.count(query).then((result) => {
         assert(db.count.calledOnce, 'Should call count');
         assert.deepEqual(db.count.args[0][1], { foo: 'bar', deleted: { $eq: null } });
         assert.equal(result, 4);
@@ -106,7 +110,7 @@ describe('PreserveModel.js', () => {
       sandbox.stub(db, 'find').resolves([
         { _id: 1, foo: 'bar', deleted: null },
         { _id: 2, foo: 'bar', deleted: null },
-        { _id: 3, foo: 'bar', deleted: null }
+        { _id: 3, foo: 'bar', deleted: null },
         ]);
 
       class TestSchema extends Schema {
@@ -117,20 +121,20 @@ describe('PreserveModel.js', () => {
         get schema() {
           return {
             _id: {
-              type: 'id'
+              type: 'id',
             },
             foo: {
               type: 'string',
             },
-          }
+          };
         }
       }
 
-      const model = new Model(new TestSchema(), db);
+      const model = new Model(new TestSchema(app), db);
 
       const query = { foo: 'bar' };
       const options = { sort: 1, limit: 10 };
-      return model.find(query, options).then(result => {
+      return model.find(query, options).then((result) => {
         assert(db.find.calledOnce, 'Should call find');
         assert.deepEqual(db.find.args[0][1], { foo: 'bar', deleted: { $eq: null } });
         assert.deepEqual(db.find.args[0][2], options);

@@ -1,14 +1,12 @@
-'use strict';
+import { Action } from '@formio/api';
+import * as request from 'request-promise-native';
 
-const request = require('request-promise-native');
-const { classes } = require('@formio/api');
-
-module.exports = config => class RemoteAction extends classes.Action {
-  static info() {
+export const remoteActionFactory = (config) => class RemoteAction extends Action {
+  public static info() {
     return config.info;
   }
 
-  static settingsForm(options) {
+  public static settingsForm(options) {
     return super.settingsForm(options, config.settingsForm);
   }
 
@@ -16,10 +14,10 @@ module.exports = config => class RemoteAction extends classes.Action {
     return true;
   }
 
-  async resolve(handler, method, submission, req, res, setActionInfoMessage) {
+  public async resolve({handler, method, data, req, res}, setActionInfoMessage) {
     setActionInfoMessage('Starting remote action');
 
-    const headers = {};
+    const headers: any = {};
     if (config.actionsServerKey) {
       headers.authorization = `Bearer: ${config.actionsServerKey}`;
     }
@@ -33,18 +31,19 @@ module.exports = config => class RemoteAction extends classes.Action {
       data: {
         method,
         handler,
-        submission,
+        submission: data,
         context: {
           params: req.context.params,
           resources: req.context.resources,
-        }
-      }
+        },
+      },
     });
 
     // If response is an array, it is a set of results to apply.
     if (Array.isArray(response)) {
-      response.forEach(item => {
-        console.log(item);
+      response.forEach((item) => {
+        // TODO: What do we do with the response?
+        // console.log(item);
       });
     }
 

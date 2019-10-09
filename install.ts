@@ -12,7 +12,7 @@ const debug = require('debug')('formio:error');
 const ProgressBar = require('progress');
 const AdmZip = require('adm-zip');
 
-module.exports = function(formio, items, done) {
+export const install = (formio, items, done) => {
   // The project that was created.
   let project = {};
 
@@ -120,7 +120,7 @@ module.exports = function(formio, items, done) {
       fs.remove(zipFile);
 
       // Get the package json file.
-      let info = {};
+      let info: any = {};
       try {
         info = JSON.parse(fs.readFileSync(path.join(directories[dir], 'package.json')));
       }
@@ -267,7 +267,7 @@ module.exports = function(formio, items, done) {
       if (!customProject) {
         directoryPath = directories[templateFile];
         // Get the package json file.
-        let info = {};
+        let info: any = {};
         try {
           info = JSON.parse(fs.readFileSync(path.join(directoryPath, 'package.json')));
         }

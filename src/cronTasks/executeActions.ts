@@ -1,16 +1,16 @@
-'use strict';
-
 /**
  * Trigger any actions that were initiated remotely and need to be run.
- **/
-module.exports = async (app) => {
+ *
+ * @param app
+ */
+export default async (app) => {
   const actionItems = await app.models.ActionItem.find({
     state: 'new',
     attempts: { $lt: 3 },
   });
 
   return Promise.all(
-    actionItems.map(async actionItem => {
+    actionItems.map(async (actionItem) => {
       try {
         await app.executeAction(actionItem, { uuid: `cron-${actionItem._id}` }, {});
       }
@@ -24,6 +24,6 @@ module.exports = async (app) => {
 
         await app.models.ActionItem.update(actionItem);
       }
-    })
+    }),
   );
 };
