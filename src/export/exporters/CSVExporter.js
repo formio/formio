@@ -22,6 +22,8 @@ const interpolate = (string, data) => string.replace(/{{\s*(\S*)\s*}}/g, (match,
   return value;
 });
 
+const labelRegexp = /(?:(\.data\.)(?!\.data\.))/g;
+
 /**
  * Create a CSV exporter.
  * @param form
@@ -81,6 +83,10 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
+              if (!value) {
+                return '';
+              }
+
               const componentValue = component.values.find((v) => v.value === value) || '';
                 return componentValue && formattedView
                   ? componentValue.label
@@ -103,6 +109,10 @@ class CSVExporter extends Exporter {
 
           items.push({
             preprocessor: (value) => {
+              if (!value) {
+                return '';
+              }
+
               if (_.isObject(value)) {
                 return value;
               }
@@ -122,6 +132,10 @@ class CSVExporter extends Exporter {
               preprocessor: (value) => {
                 if (_.isObject(value)) {
                   return value;
+                }
+
+                if (!value) {
+                  return '';
                 }
 
                 const componentValue = component.values.find((v) => v.value === value) || '';
@@ -199,6 +213,9 @@ class CSVExporter extends Exporter {
 
           items.push({
             preprocessor: (value) => {
+              if (!value) {
+                return '';
+              }
               return _.isObject(value)
                 ? valuesExtractor(value)
                 : primitiveValueHandler(value);
@@ -263,6 +280,9 @@ class CSVExporter extends Exporter {
           const mask = getInputMask(component.inputMask);
           items.push({
             preprocessor: (value) => {
+              if (!value) {
+                return '';
+              }
               return conformToMask(value, mask).conformedValue;
             }
           });
@@ -276,7 +296,7 @@ class CSVExporter extends Exporter {
           const finalItem = {
             path,
             key: component.key,
-            label: item.label || path,
+            label: (item.label || path).replace(labelRegexp, '.'),
             title: component.label,
           };
 
@@ -379,7 +399,14 @@ class CSVExporter extends Exporter {
 
       // If the path had no results and the component specifies a path, check for a datagrid component
       if (_.isUndefined(componentData) && column.path.includes('.')) {
-        const parts = column.path.split('.');
+        let parts = column.path.split('.');
+
+        // If array in nested form
+        if (parts.length > 2) {
+          let newParts = _.chunk(parts, parts.length - 1);
+          newParts = newParts.map(part => part.join('.'));
+          parts = newParts;
+        }
         const container = parts.shift();
         const containerData = _.get(submission.data, container);
 
