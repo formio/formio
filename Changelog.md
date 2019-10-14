@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.60.3
+### Changed
+ - Upgraded chance@1.1.3, formiojs@4.3.3, mongoose@5.7.4, nodemailer@6.3.1
+
 ## 1.60.2
 ### Added
  - Add minItems and maxItems validation
