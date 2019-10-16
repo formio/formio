@@ -53,23 +53,46 @@ module.exports = (router) => {
         query.deleted = {$eq: null};
       }
 
+      // Function for populate pages in wizard
+      const populateWizardComponents = (components, callback) => {
+        return components.map(page => {
+          return callback(page.components)
+                  .then(result => {
+                    page.components = result;
+
+                    return page;
+                  });
+        });
+      };
+
       // Populate all subform components
       const getSubForms = (components) => {
           const newComponents = components.map(component => {
           if (component.type === 'form' && component.form) {
             const subForm = router.formio.mongoose.models.form.findById(component.form)
-              .select('-_id -owner -_vid -__v').lean();
+                              .select('-_id -owner -_vid -__v').lean();
 
             return subForm.then(resultForm => {
               resultForm.label = component.label;
               resultForm.key = component.key;
 
-              return getSubForms(resultForm.components)
-                      .then(res => {
+              if (resultForm.display === 'wizard') {
+                const subformComponents = populateWizardComponents(resultForm.components, getSubForms);
+
+                return Promise.all(subformComponents)
+                        .then(result => {
+                          resultForm.components = result;
+                          return resultForm;
+                        });
+              }
+              else {
+                return getSubForms(resultForm.components)
+                        .then(res => {
                         resultForm.components = res;
 
                         return resultForm;
                       });
+              }
             });
           }
 
@@ -77,8 +100,15 @@ module.exports = (router) => {
         });
         return Promise.all(newComponents);
       };
+
       // Replace form components to populated subforms
-      form.components = await getSubForms(form.components);
+      if (form.display === 'wizard') {
+        const components = populateWizardComponents(form.components);
+        form.components = await Promise.all(components);
+      }
+      else {
+        form.components = await getSubForms(form.components);
+      }
 
       // Create the exporter.
       const exporter = new exporters[format](form, req, res);
@@ -126,7 +156,7 @@ module.exports = (router) => {
             }
 
             // Create the query stream.
-            const cursor = submissionModel.find(hook.alter('submissionQuery', query, req)).lean().cursor();
+            const cursor = submissionModel.find(hook.alter('submissionQuery', query, req)).sort('modified').lean().cursor();
             const promises = [];
 
             const stream = cursor.pipe(through(function(row) {
