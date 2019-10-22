@@ -7,8 +7,8 @@ const Validator = require('../resources/Validator');
 
 module.exports = (router, resourceName, resourceId) => {
   const hook = require('../util/hook')(router.formio);
-  const fieldActions = require('../actions/fields')(router);
-  const propertyActions = require('../actions/properties')(router);
+  const fieldActions = hook.alter('fieldActions', require('../actions/fields')(router));
+  const propertyActions = hook.alter('propertyActions', require('../actions/properties')(router));
   const handlers = {};
 
   // Iterate through the possible handlers.
