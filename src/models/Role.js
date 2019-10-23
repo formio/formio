@@ -16,9 +16,8 @@ module.exports = function(formio) {
       required: true,
       validate: [
         {
-          isAsync: true,
           message: 'Role title must be unique.',
-          validator(value, done) {
+          async validator(value) {
             const search = hook.alter('roleSearch', {
               title: value,
               deleted: {$eq: null}
@@ -32,13 +31,13 @@ module.exports = function(formio) {
             }
 
             // Search for roles that exist, with the given parameters.
-            formio.mongoose.model('role').findOne(search, function(err, result) {
-              if (err || result) {
-                return done(false);
-              }
-
-              done(true);
-            });
+            try {
+              const result = await formio.mongoose.model('role').findOne(search).lean().exec();
+              return !result;
+            }
+            catch (err) {
+              return false;
+            }
           }
         }
       ]
