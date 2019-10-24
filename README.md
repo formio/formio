@@ -87,6 +87,48 @@ To start server with auto restart capability for development simply run this com
 npm run start:dev
 ```
 
+Commerical Features
+-------------------
+
+There are many premium features and actions that are not available without the Portal and the commercial platform.  These include PDFs, multi-tenanted platform application ability, branded emails with templates, advanced conditional logic, webhook interfaces, and more.
+
+Available only in Commercial:
+
+1. PDF’s
+2. OAuth - OpenID Connect
+3. FormviewPro
+4. LDAP Authentication
+5. SAML Authentication
+6. Form Manager: Customizable Form-builder Interface tor non-developer users and groups. 
+7. Advanced Webhooks
+8. Team management
+9. Collaboration on Forms
+10. Audit Logging
+11. Multi-tenant management
+12. Email Templates (coming soon)
+13. Temp tokens & Email based authentication
+14. Report API (aggregated reports)
+15. Staging and Deployment (SDLC)s
+16. Form Submission Collections (saving submissions to different collections for indexing)
+17. Form Versioning
+18. Encrypted Fields
+19. Offline Forms
+20. File Uploads
+21. CORS Configuration
+22. SQL Connectors
+23. Kickbox integration
+24. Google Sheets
+25. Atlassian (JIRA) integration
+26. Office 365 integration
+27. Hubspot integration
+28. CSS templating 
+29. Docker Containers with updates
+30. External JWT tokens
+31. Private File Uploads
+
+
+
+
 Deploy to Hosted Form.io
 --------------------
 If you wish to deploy all of your forms and resources into the Form.io Hosted platform @ https://form.io, you can do this by using the Form.io CLI command line tool.
