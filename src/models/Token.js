@@ -21,9 +21,8 @@ module.exports = function(formio) {
       }),
       validate: [
         {
-          isAsync: true,
           message: 'Token key must be unique.',
-          validator(key, done) {
+          async validator(key) {
             const search = hook.alter('tokenSearch', {key: key}, this, key);
 
             // Ignore the id of the token, if this is an update.
@@ -32,13 +31,13 @@ module.exports = function(formio) {
             }
 
             // Search for tokens that exist, with the given parameters.
-            formio.mongoose.model('token').findOne(search, function(err, result) {
-              if (err || result) {
-                return done(false);
-              }
-
-              done(true);
-            });
+            try {
+              const result = await formio.mongoose.model('token').findOne(search).lean().exec();
+              return !result;
+            }
+            catch (err) {
+              return false;
+            }
           }
         }
       ]
