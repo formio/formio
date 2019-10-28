@@ -184,6 +184,9 @@ module.exports = function(config) {
         mongoConfig.sslCA = config.mongoSA;
       }
 
+      mongoConfig.useUnifiedTopology = true;
+      mongoConfig.useCreateIndex = true;
+
       // Connect to MongoDB.
       mongoose.connect(mongoUrl, mongoConfig);
 
