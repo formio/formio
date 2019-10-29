@@ -2,7 +2,7 @@
 /* tslint:disable */
 const {version} = require('../package.json');
 /* tslint:enable */
-import { Api } from '@formio/api';
+import { Api } from '@formio/api/lib';
 import * as jwt from 'jsonwebtoken';
 import {cron} from './cron';
 import cronTasks from './cronTasks';
@@ -121,10 +121,10 @@ export class Formio extends Api {
         if (err && (err.name === 'TokenExpiredError')) {
             return res.status(440).send('Login Timeout');
         }
-        // Allowing admin key to pass as toekn means we don't want to fail here.
-        // else if (err && (err.name === 'JsonWebTokenError')) {
-        //   return res.status(400).send('Bad Token');
-        // }
+        // Allowing admin key to pass as token means we don't want to fail here.
+        else if (err && (err.name === 'JsonWebTokenError')) {
+          return res.status(400).send('Bad Token');
+        }
         else {
           return noToken();
         }

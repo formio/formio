@@ -3,7 +3,7 @@
   "version": "2.0.0-m.3",
   "description": "Community Edition of form.io",
   "license": "Unlicensed",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test:coverage": "nyc --reporter=text mocha --reporter spec './{,!(node_modules)/**/}*.spec.js'",
     "test": "mocha --require ts-node/register --reporter spec './{,!(node_modules)/**/}*.spec.ts'",

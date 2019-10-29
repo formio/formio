@@ -1,4 +1,4 @@
-const config: any = {
+export const config: any = {
   port: process.env.PORT || 3000,
   maxBodySize: process.env.MAX_BODY_SIZE || '16mb',
   jwt: {
@@ -16,5 +16,3 @@ if (process.env.MONGO) {
     database: process.env.DEFAULT_DATABASE || process.env.MONGO_DATABASE || 'formio',
   };
 }
-
-module.exports = config;

@@ -3,14 +3,13 @@ import * as sinon from 'sinon';
 
 import {Express} from '@formio/api/test/mocks/Express';
 import {Database, Schema, Api} from '@formio/api';
+import {PreserveModel as Model} from './PreserveModel';
 
 const router: any = new Express();
 const db: any = new Database();
 const app = new Api(router, db, {});
 
 const sandbox = sinon.createSandbox();
-
-const Model = require('./PreserveModel');
 
 describe('PreserveModel', () => {
   afterEach(() => {

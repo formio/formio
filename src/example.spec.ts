@@ -1,8 +1,8 @@
 const assert = require('chai').assert;
-const sinon = require('sinon');
+const Sinon = require('sinon');
 
 // A fake db wrapper for stubbing.
-const sandbox = sinon.createSandbox();
+const sandbox = Sinon.createSandbox();
 
 describe('Example', () => {
   afterEach(() => {
