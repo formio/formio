@@ -10400,7 +10400,7 @@ module.exports = function(app, template, hook) {
           }
         ]
       };
-      var adminValues = ['test1', 'test2', 'test3', 'test4'];
+      var adminValues = ['test1', 'test2', 'test3', 'test4', 'other7', 'other8'];
       var userValues = ['test5', 'test6', 'test7', 'test8'];
 
       before(function() {
@@ -10553,6 +10553,48 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('An admin should be able to export with filters', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export?data.value__regex=/^other/i', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 2);
+            assert(response instanceof Array);
+            assert(['other7', 'other8'].indexOf(response[0].data.value) !== -1, 'Value not found');
+            assert(['other7', 'other8'].indexOf(response[1].data.value) !== -1, 'Value not found');
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      it('An admin should be able to export with filters', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export?data.value__regex=/7$/i', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 2);
+            assert(response instanceof Array);
+            assert(['other7', 'test7'].indexOf(response[0].data.value) !== -1, 'Value not found');
+            assert(['other7', 'test7'].indexOf(response[1].data.value) !== -1, 'Value not found');
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
       it('A user should only be able to see their submissions', function(done) {
         request(app)
           .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
@@ -10585,6 +10627,45 @@ module.exports = function(app, template, hook) {
 
               done();
             });
+          });
+      });
+
+      it('A user should be able to export with filters', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export?data.value__regex=/^other/i', template))
+          .set('x-jwt-token', template.users.user1.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 0);
+            assert(response instanceof Array);
+            template.users.user1.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      it('An admin should be able to export with filters', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export?data.value__regex=/7$/i', template))
+          .set('x-jwt-token', template.users.user1.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 1);
+            assert(response instanceof Array);
+            assert.equal(response[0].data.value, 'test7');
+            template.users.user1.token = res.headers['x-jwt-token'];
+            done();
           });
       });
 

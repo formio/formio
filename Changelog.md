@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.60.5
+### Changed
+ - Upgraded formiojs@4.6.1, resourcejs@1.37.0
+ 
+### Added
+ - Submission filter queries to the export functions.
+
 ## 1.60.4
 ### Fixed
  - Fix Mongoose deprecation warnings

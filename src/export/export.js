@@ -4,10 +4,22 @@ const exporters = require('.');
 const _ = require('lodash');
 const through = require('through');
 const _url = require('url');
+const ResourceFactory = require('resourcejs');
 const debug = require('debug')('formio:error');
 
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
+  /* eslint-disable new-cap */
+  const resource = ResourceFactory(
+    router,
+    '/form/:formId/export',
+    'export',
+    router.formio.mongoose.model('submission'),
+    {
+      convertIds: /(^|\.)(_id|form|owner)$/
+    }
+  );
+  /* eslint-enable new-cap */
 
   // Mount the export endpoint using the url.
   router.get('/form/:formId/export', (req, res, next) => {
@@ -44,6 +56,11 @@ module.exports = (router) => {
           debug(e);
           router.formio.util.log(e);
         }
+      }
+      else {
+        query = resource.getFindQuery(req, {
+          queryFilter: true
+        });
       }
 
       // Enforce the form.
