@@ -10567,8 +10567,8 @@ module.exports = function(app, template, hook) {
             var response = res.body;
             assert.equal(response.length, 2);
             assert(response instanceof Array);
-            assert.equal(response[0].data.value, 'other7');
-            assert.equal(response[1].data.value, 'other8');
+            assert(['other7', 'other8'].indexOf(response[0].data.value) !== -1, 'Value not found');
+            assert(['other7', 'other8'].indexOf(response[1].data.value) !== -1, 'Value not found');
             template.users.admin.token = res.headers['x-jwt-token'];
             done();
           });
