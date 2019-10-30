@@ -22,26 +22,26 @@ export class PreserveModel extends Model {
       });
   }
 
-  public find(query: any = {}, options = {}) {
+  public find(query: any = {}, options = {}, context = {}) {
     query.deleted = { $eq: null };
-    return super.find(query, options);
+    return super.find(query, options, context = {});
   }
 
-  public count(query: any = {}) {
+  public count(query: any = {}, options = {}, context = {}) {
     query.deleted = { $eq: null };
-    return super.count(query);
+    return super.count(query, options, context);
   }
 
-  public read(query: any = {}) {
+  public read(query: any = {}, context?) {
     query.deleted = { $eq: null };
-    return super.read(query);
+    return super.read(query, context);
   }
 
-  public delete(_id) {
+  public delete(query, context?) {
     return this.initialized.then(() => {
-      return this.read({ _id }).then((doc) => {
+      return this.read(query, context).then((doc) => {
         doc.deleted = Date.now();
-        return this.db.update(this.collectionName, doc);
+        return this.db.update(this.collectionName, doc, context);
       });
     });
   }

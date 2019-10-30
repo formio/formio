@@ -1,7 +1,8 @@
 import {db} from './db';
-import {actions} from './remoteActions';
+import {remoteActions} from './remoteActions';
 
+export { db, remoteActions };
 export const init = (config) => Promise.all([
   db(config),
-  actions(config),
+  remoteActions(config),
 ]);

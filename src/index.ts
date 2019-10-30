@@ -3,6 +3,7 @@
  * @type {{Action, FormApi, log, actions, dbs, resources, schemas}|*}
  */
 export * from '@formio/api';
+export * from './Formio';
 export * from './classes';
 export * from './cronTasks';
 export * from './dbs';

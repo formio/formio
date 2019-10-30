@@ -67,7 +67,7 @@ describe('PreserveModel', () => {
 
       const model = new Model(new TestSchema(app), db);
 
-      return model.delete('foo').then((doc) => {
+      return model.delete({ _id: 'foo'}).then((doc) => {
         assert(db.delete.notCalled, 'Should not call delete');
         assert(db.update.calledOnce, 'Should call update');
         assert.deepEqual(db.update.args[0][1], { _id: 'foo', fiz: 'buz', deleted: 3 });

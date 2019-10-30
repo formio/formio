@@ -2,7 +2,7 @@ import * as request from 'request-promise-native';
 import {remoteActionFactory} from '../classes/RemoteAction';
 import {log} from '../log';
 
-export const actions = async (config) => {
+export const remoteActions = async (config) => {
   const response = {
     actions: {},
     groups: {},
