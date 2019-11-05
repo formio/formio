@@ -74,6 +74,19 @@ const checkConditional = (component, row, data, recurse = false) => {
   }
 };
 
+const getRowData = (component, path, data) => {
+  let rowData = data;
+  if (component.parent && (component.parent.type === 'datagrid' || component.parent.type === 'editgrid')) {
+    const flate = path.filter(a => _.isNumber(a));
+    if (flate.length) {
+      rowData = flate.reduce((acc, row) => {
+        return FormioUtils.getDataFromGridComponent(row, acc);
+      }, data);
+    }
+  }
+  return rowData;
+};
+
 const getRules = (type) => [
   {
     name: 'custom',
@@ -86,6 +99,7 @@ const getRules = (type) => [
       const {component, data, form} = params;
 
       let row = state.parent;
+      const path = state.path;
       let valid = true;
 
       if (!_.isArray(row)) {
@@ -95,6 +109,7 @@ const getRules = (type) => [
       // If a component has multiple rows of data, e.g. Datagrids, validate each row of data on the backend.
       for (let b = 0; b < row.length; b++) {
         const _row = row[b];
+        const rowData = getRowData(component, path, data);
 
         // Try a new sandboxed validation.
         try {
@@ -105,9 +120,9 @@ const getRules = (type) => [
           // Create the sandbox.
           const sandbox = vm.createContext({
             input: _.isObject(_row) ? util.getValue({data: _row}, component.key) : _row,
-            data,
+            data:rowData,
             row: _row,
-            scope: {data},
+            scope: {data: rowData},
             component: component,
             valid,
             form,
@@ -189,8 +204,10 @@ const getRules = (type) => [
       const component = params.component;
       const data = params.data;
       const row = state.parent;
+      const path = state.path;
+      const rowData = getRowData(component, path, data);
 
-      const isVisible = checkConditional(component, row, data, true);
+      const isVisible = checkConditional(component, row, rowData, true);
 
       if (isVisible) {
         return value;
