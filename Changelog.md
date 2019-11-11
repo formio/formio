@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.60.7
+### Fixed
+ - Problems where empty datetime components were returning the wrong values.
+
 ## 1.60.6
 ### Fixed
  - Issue with multiple datetime fields erasing the values provided.
