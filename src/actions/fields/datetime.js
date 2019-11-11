@@ -9,13 +9,14 @@ module.exports = formio => {
         return next();
       }
       const value = _.get(req.body, `data.${path}`);
-
-      // Coerse the value into a new Date.
-      if (Array.isArray(value)) {
-        _.set(req.body, `data.${path}`, value.map(val => (new Date(val))));
-      }
-      else {
-        _.set(req.body, `data.${path}`, new Date(value));
+      if (value) {
+        // Coerse the value into a new Date.
+        if (Array.isArray(value)) {
+          _.set(req.body, `data.${path}`, value.map(val => (new Date(val))));
+        }
+        else {
+          _.set(req.body, `data.${path}`, new Date(value));
+        }
       }
       return next();
     }
