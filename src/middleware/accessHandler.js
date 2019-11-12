@@ -60,7 +60,9 @@ module.exports = function(router) {
 
     try {
       // Fetch current user's access
+      /* eslint-disable require-atomic-updates */
       req.userAccess = await promisify(router.formio.access.getAccess)(req, res);
+      /* eslint-enable require-atomic-updates */
 
       // Allow other systems to add to the access information or disable filtering
       const accessInfo = await promisify(hook.alter)('accessInfo', {roles, forms, req, filterEnabled: true});

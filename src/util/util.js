@@ -207,6 +207,17 @@ const Utils = {
   getComponent: formioUtils.getComponent.bind(formioUtils),
 
   /**
+   * Define if component should be considered input component
+   *
+   * @param {Object} componentJson
+   *   JSON of component to check
+   *
+   * @returns {Boolean}
+   *   If component is input or not
+   */
+  isInputComponent: formioUtils.isInputComponent.bind(formioUtils),
+
+  /**
    * Flatten the form components for data manipulation.
    *
    * @param {Object} components
