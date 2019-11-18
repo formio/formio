@@ -51,14 +51,14 @@ module.exports = (formio) => {
 
   const uniqueMessage = 'may only contain letters, numbers, hyphens, and forward slashes ' +
     '(but cannot start or end with a hyphen or forward slash)';
-  const uniqueValidator = (property) => async function (value) {
-    const query = { deleted: { $eq: null } };
+  const uniqueValidator = (property) => async function(value) {
+    const query = {deleted: {$eq: null}};
     query[property] = value;
     const search = hook.alter('formSearch', query, this, value);
 
     // Ignore the id if this is an update.
     if (this._id) {
-      search._id = { $ne: this._id };
+      search._id = {$ne: this._id};
     }
 
     try {
@@ -174,7 +174,7 @@ module.exports = (formio) => {
               .every((shortcut) => shortcut.match(validShortcutRegex))
           },
           {
-            validator: async (components) => {
+            validator: async(components) => {
               const paths = componentPaths(components);
               const msg = 'Component keys must be unique: ';
               const uniq = paths.uniq();
@@ -188,7 +188,7 @@ module.exports = (formio) => {
             }
           },
           {
-            validator: async (components) => {
+            validator: async(components) => {
               const shortcuts = componentShortcuts(components);
               const msg = 'Component shortcuts must be unique: ';
               const uniq = shortcuts.uniq();
@@ -270,12 +270,12 @@ module.exports = (formio) => {
     it: {
       type: formio.mongoose.Schema.Types.Mixed,
     }
-  })
+  });
   // Add a partial index for deleted forms.
   model.schema.index({
     deleted: 1
   }, {
-    partialFilterExpression: { deleted: { $eq: null } }
+    partialFilterExpression: {deleted: {$eq: null}}
   });
 
   // Add machineName to the schema.
