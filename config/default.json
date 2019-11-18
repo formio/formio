@@ -9,7 +9,7 @@
   "mongo": "mongodb://localhost:27017/formioapp",
   "mongoConfig": "",
   "mongoSA": "",
-  "mongoSecret": "--- change me now ---",
+  "mongoSecret": "joohglaaar",
   "reservedForms": [
     "submission",
     "exists",
@@ -24,7 +24,7 @@
     "recaptcha"
   ],
   "jwt": {
-    "secret": "--- change me now ---",
+    "secret": "joohglaaar",
     "expireTime": 240
   },
   "email": {

@@ -120,3 +120,36 @@ Security
 =========
 If you find and/or think you have found a Security issue, please quietly disclose it to security@form.io, and give us
 sufficient time to patch the issue before disclosing it publicly.
+
+
+
+## DB
+
+mongo-db url: mongodb://mongo:27017/formio
+
+
+## How to create dist for client
+
+``` cd client ```
+to install
+```
+npm install -g bower 
+npm install
+bower install
+npm install -g gulp@3.9.1
+# and local
+npm install gulp@3.9.1
+```
+
+install nvm because node 12 is no compatible https://github.com/nvm-sh/nvm
+
+```
+nvm install 10
+nvm use 10
+```
+and then finally
+
+```gulp``` to build the dist
+
+
+
