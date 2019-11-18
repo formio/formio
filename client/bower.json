@@ -17,6 +17,6 @@
     "font-awesome": "^4.7.0",
     "ng-formio-helper": "^1.8.3",
     "ng-formio-grid": "^1.4.2",
-    "ng-formio-builder": "git@github.com:joennlae/ngFormBuilder.git#^2.38.1"
+    "ng-formio-builder": "git@github.com:joennlae/ngFormBuilder.git#^2.38.2"
   }
 }

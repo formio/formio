@@ -6,10 +6,10 @@
   "allowedOrigins": ["*"],
   "domain": "http://localhost:3001",
   "basePath": "",
-  "mongo": "mongodb://localhost:27017/formioapp",
+  "mongo": "mongodb://localhost:27017/formiodb",
   "mongoConfig": "",
   "mongoSA": "",
-  "mongoSecret": "joohglaaar",
+  "mongoSecret": "joohglaar",
   "reservedForms": [
     "submission",
     "exists",
@@ -24,7 +24,7 @@
     "recaptcha"
   ],
   "jwt": {
-    "secret": "joohglaaar",
+    "secret": "joohglaar",
     "expireTime": 240
   },
   "email": {

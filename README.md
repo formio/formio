@@ -152,4 +152,6 @@ and then finally
 ```gulp``` to build the dist
 
 
+### install mongodb on mac
 
+https://github.com/mongodb/homebrew-brew
