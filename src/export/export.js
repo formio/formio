@@ -23,7 +23,7 @@ module.exports = (router) => {
 
   // Mount the export endpoint using the url.
   router.get('/form/:formId/export', (req, res, next) => {
-    if (!_.has(req, 'token') || !_.has(req, 'token.user._id')) {
+    if (!_.get(req, 'token.isAdmin', false) && !_.has(req, 'token.user._id')) {
       return res.sendStatus(400);
     }
 
