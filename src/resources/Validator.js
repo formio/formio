@@ -868,7 +868,7 @@ class Validator {
                 timeout: 250,
               });
 
-              _.merge(component, sandbox.schema);
+              _.assign(component, sandbox.schema);
 
               break;
             }
