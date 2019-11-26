@@ -44,7 +44,7 @@ gulp.task('html', ['inject', 'partials'], function () {
     .pipe($.rev())
     .pipe(jsFilter)
     .pipe($.ngAnnotate())
-    .pipe($.uglify({ preserveComments: $.uglifySaveLicense })).on('error', conf.errorHandler('Uglify'))
+    //.pipe($.uglify({ preserveComments: $.uglifySaveLicense })).on('error', conf.errorHandler('Uglify'))
     .pipe(jsFilter.restore())
     .pipe(cssFilter)
     .pipe($.csso())
@@ -69,7 +69,8 @@ gulp.task('html', ['inject', 'partials'], function () {
 gulp.task('fonts', function () {
   return gulp.src([
     'bower_components/bootstrap-sass/assets/fonts/**/*',
-    'bower_components/font-awesome/fonts/*'
+    'bower_components/font-awesome/fonts/*',
+    'src/assets/fonts/*'
   ])
     .pipe($.filter('**/*.{eot,svg,ttf,woff,woff2}'))
     .pipe(gulp.dest(path.join(conf.paths.dist, '/fonts/')));
