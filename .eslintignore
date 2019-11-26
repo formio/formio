@@ -1,5 +1,5 @@
 test/*
-app/*
+src/app/*
 client/*
 src/db/updates/*
 node_modules/*

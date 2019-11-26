@@ -155,3 +155,17 @@ and then finally
 ### install mongodb on mac
 
 https://github.com/mongodb/homebrew-brew
+
+
+## hot ans steamy fix for gulp f*** ups
+
+go to `client/bower_components/angular-drag-and-drop-lists/angular-drag-and-drop-lists.js` and add semicolon at the beginning
+
+```
+;(function(dndLists) {
+```
+
+do the same thing for `client/bower_components/angular-ui-grid/ui-grid.js`
+```
+;(function() {
+```
