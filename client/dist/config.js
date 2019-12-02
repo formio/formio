@@ -1,5 +1,5 @@
-var APP_URL = 'http://localhost:3001';
-var API_URL = 'http://localhost:3001';
+var APP_URL = 'https://vm-031.s3it.uzh.ch/formio';
+var API_URL = 'https://vm-031.s3it.uzh.ch/formio';
 
 // Parse query string
 var query = {};
