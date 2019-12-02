@@ -9,6 +9,7 @@ const debug = {
   action: require('debug')('formio:action')
 };
 const FormioUtils = require('formiojs/utils').default;
+const moment = require('moment');
 
 /**
  * The ActionIndex export.
@@ -276,6 +277,9 @@ module.exports = (router) => {
             form: req.form,
             query: req.query,
             util: FormioUtils,
+            moment: moment,
+            submission: req.body,
+            previous: req.previousSubmission,
             execute: false,
             _
           }, req);
