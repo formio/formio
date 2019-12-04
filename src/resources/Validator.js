@@ -817,17 +817,17 @@ class Validator {
       return;
     }
 
-    component.logic.forEach(logic => {
-      const result = FormioUtils.checkTrigger(component, logic.trigger, row, data);
+    component.logic.forEach((logic) => {
+      if (!Array.isArray(logic.actions)) {
+        return;
+      }
 
+      const result = FormioUtils.checkTrigger(component, logic.trigger, row, data);
       if (result) {
-        if (!Array.isArray(logic.actions)) {
-          return;
-        }
-        logic.actions.forEach(action => {
+        logic.actions.forEach((action) => {
           switch (action.type) {
             case 'property':
-              FormioUtils.setActionProperty(component, action, row, data, component, result);
+              FormioUtils.setActionProperty(component, action, result, row, data);
               break;
             case 'value':
               try {
@@ -837,13 +837,13 @@ class Validator {
                   data,
                   row,
                   component,
-                  result
+                  result,
                 });
 
                 // Execute the script.
                 const script = new vm.Script(action.value);
                 script.runInContext(sandbox, {
-                  timeout: 250
+                  timeout: 250,
                 });
 
                 _.set(row, component.key, sandbox.value);
@@ -854,6 +854,24 @@ class Validator {
                 debug.error(e);
               }
               break;
+            case 'mergeComponentSchema': {
+              const sandbox = vm.createContext({
+                value: _.get(row, component.key),
+                data,
+                row,
+                component,
+                result,
+              });
+
+              const script = new vm.Script(action.schemaDefinition);
+              script.runInContext(sandbox, {
+                timeout: 250,
+              });
+
+              _.assign(component, sandbox.schema);
+
+              break;
+            }
           }
         });
       }
