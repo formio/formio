@@ -94,6 +94,20 @@ module.exports = function(router) {
       return next();
     };
 
+    if (req.headers['x-token']) {
+      const keys = process.env.API_KEYS
+        ? process.env.API_KEYS.split(',').map(key => key.trim()).filter(key => !!key)
+        : [];
+
+      if (keys.includes(req.headers['x-token'])) {
+        req.isAdmin = true;
+        req.permissionsChecked = true;
+        req.user = null;
+        req.token = null;
+        return next();
+      }
+    }
+
     // Skip the token handling if no token was given.
     if (!token) {
       return noToken();
