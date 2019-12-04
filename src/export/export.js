@@ -38,7 +38,7 @@ module.exports = (router) => {
     }
 
     // Load the form.
-    router.formio.cache.loadCurrentForm(req, (err, form) => {
+    router.formio.cache.loadCurrentForm(req, async(err, form) => {
       if (err) {
         return res.sendStatus(401);
       }
@@ -71,6 +71,63 @@ module.exports = (router) => {
         query.deleted = {$eq: null};
       }
 
+      // Function for populate pages in wizard
+      const populateWizardComponents = (components, callback) => {
+        return components.map(page => {
+          return callback(page.components)
+                  .then(result => {
+                    page.components = result;
+
+                    return page;
+                  });
+        });
+      };
+
+      // Populate all subform components
+      const getSubForms = (components) => {
+          const newComponents = components.map(component => {
+          if (component.type === 'form' && component.form) {
+            const subForm = router.formio.mongoose.models.form.findById(component.form)
+                              .select('-_id -owner -_vid -__v').lean();
+
+            return subForm.then(resultForm => {
+              resultForm.label = component.label;
+              resultForm.key = component.key;
+
+              if (resultForm.display === 'wizard') {
+                const subformComponents = populateWizardComponents(resultForm.components, getSubForms);
+
+                return Promise.all(subformComponents)
+                        .then(result => {
+                          resultForm.components = result;
+                          return resultForm;
+                        });
+              }
+              else {
+                return getSubForms(resultForm.components)
+                        .then(res => {
+                        resultForm.components = res;
+
+                        return resultForm;
+                      });
+              }
+            });
+          }
+
+          return component;
+        });
+        return Promise.all(newComponents);
+      };
+
+      // Replace form components to populated subforms
+      if (form.display === 'wizard') {
+        const components = populateWizardComponents(form.components);
+        form.components = await Promise.all(components);
+      }
+      else {
+        form.components = await getSubForms(form.components);
+      }
+
       // Create the exporter.
       const exporter = new exporters[format](form, req, res);
 
@@ -82,18 +139,32 @@ module.exports = (router) => {
 
         // Initialize the exporter.
         exporter.init()
-          .then(() => {
-            const addUrl = (data) => {
-              _.each(data, (field) => {
+          .then(async() => {
+            const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+            const addSubData = async(data) => {
+              // Create new data
+              const newData = {};
+              // Array for promises
+              const promises = [];
+
+               _.each(data, (field, key) => {
                 if (field && field._id) {
-                  // Add url property for resource fields
-                  const fieldUrl = hook.alter('fieldUrl', `/form/${field.form}/submission/${field._id}`, form, field);
-                  const apiHost = router.formio.config.apiHost || router.formio.config.host;
-                  field.url = _url.resolve(apiHost, fieldUrl);
-                  // Recurse for nested resources
-                  addUrl(field.data);
+                  // Add data property for resource fields
+                  promises.push(
+                    submissionModel.findById(field._id).populate('form').select('form data')
+                      .then(result => {
+                        // Recurse for nested resources
+                        return addSubData(result.data)
+                          .then(res => newData[key] = {data: res});
+                      })
+                  );
+                }
+                else {
+                  newData[key] = field;
                 }
               });
+              await Promise.all(promises);
+              return newData;
             };
 
             // Skip this owner filter, if the user is the admin or owner.
@@ -103,19 +174,26 @@ module.exports = (router) => {
             }
 
             // Create the query stream.
-            const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-            const cursor = submissionModel.find(hook.alter('submissionQuery', query, req)).lean().cursor();
-            const stream = cursor.pipe(through(function(row) {
-              addUrl(row.data);
-              router.formio.util.removeProtectedFields(form, 'export', row);
+            const cursor = submissionModel.find(hook.alter('submissionQuery', query, req)).sort('modified').lean().cursor();
+            const promises = [];
 
-              this.queue(row);
+            const stream = cursor.pipe(through(function(row) {
+              // Doesn`t write to stream before promise resolve
+              this.pause();
+             promises.push(
+              addSubData(row.data).then((data) => {
+                row.data = data;
+                // Resumes writing to stream
+                this.resume();
+                router.formio.util.removeProtectedFields(form, 'export', row);
+                this.queue(row);
+              })
+             );
             }), {end: false});
 
             // When the DB cursor ends, allow the output stream a tick to perform the last write,
             // then manually end it by pushing a null item to the output stream's queue
-            cursor.on('end', () => process.nextTick(() => stream.queue(null)));
-
+            cursor.on('end',() => Promise.all(promises).then(() => process.nextTick(() => stream.queue(null))));
             // Create the stream.
             return exporter.stream(stream);
           })
