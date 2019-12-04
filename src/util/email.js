@@ -349,6 +349,14 @@ module.exports = (formio) => {
 
               _settings['secure'] = _.get(boolean, _.get(settings, 'email.smtp.secure')) || false;
             }
+            if (_.has(settings, 'email.smtp.ignoreTLS')) {
+              const boolean = {
+                'true': true,
+                'false': false
+              };
+
+              _settings['ignoreTLS'] = _.get(boolean, _.get(settings, 'email.smtp.ignoreTLS')) || false;
+            }
             if (_.has(settings, 'email.smtp.host')) {
               _settings['host'] = _.get(settings, 'email.smtp.host');
             }

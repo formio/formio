@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.60.8
+### Addded
+ - ignoreTLS flag for the nodemailer SMTP configurations.
+
+## 1.60.7
+### Fixed
+ - Problems where empty datetime components were returning the wrong values.
+
+## 1.60.6
+### Fixed
+ - Issue with multiple datetime fields erasing the values provided.
+
+## 1.60.5
+### Changed
+ - Upgraded formiojs@4.6.1, resourcejs@1.37.0
+ 
+### Added
+ - Submission filter queries to the export functions.
+
+## 1.60.4
+### Fixed
+ - Fix Mongoose deprecation warnings
+
+### Changed
+ - Upgraded config@3.2.4, mongodb@3.3.3, mongoose@5.7.7, mocha@6.2.2, nodemon@1.19.4, formiojs@4.6.0, eslint@6.6.0, moment-timezone@0.5.27
+
+### Added
+ - Add the ability to alter actions.
+
 ## 1.60.3
 ### Changed
  - Upgraded chance@1.1.3, formiojs@4.3.3, mongoose@5.7.4, nodemailer@6.3.1

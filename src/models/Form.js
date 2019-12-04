@@ -51,7 +51,7 @@ module.exports = (formio) => {
 
   const uniqueMessage = 'may only contain letters, numbers, hyphens, and forward slashes ' +
     '(but cannot start or end with a hyphen or forward slash)';
-  const uniqueValidator = (property) => function(value, done) {
+  const uniqueValidator = (property) => async function(value) {
     const query = {deleted: {$eq: null}};
     query[property] = value;
     const search = hook.alter('formSearch', query, this, value);
@@ -61,17 +61,14 @@ module.exports = (formio) => {
       search._id = {$ne: this._id};
     }
 
-    formio.mongoose.model('form').findOne(search).exec((err, result) => {
-      if (err) {
-        debug(err);
-        return done(false);
-      }
-      if (result) {
-        return done(false);
-      }
-
-      done(true);
-    });
+    try {
+      const result = await formio.mongoose.model('form').findOne(search).lean().exec();
+      return !result;
+    }
+    catch (err) {
+      debug(err);
+      return false;
+    }
   };
 
   const keyError = 'A component on this form has an invalid or missing API key. Keys must only contain alphanumeric ' +
@@ -97,7 +94,6 @@ module.exports = (formio) => {
             validator: (value) => !invalidRegex.test(value)
           },
           {
-            isAsync: true,
             message: 'The Name must be unique per Project.',
             validator: uniqueValidator('name')
           }
@@ -120,7 +116,6 @@ module.exports = (formio) => {
             validator: (path) => !path.match(/(submission|action)\/?$/)
           },
           {
-            isAsync: true,
             message: 'The Path must be unique per Project.',
             validator: uniqueValidator('path')
           }
@@ -179,33 +174,31 @@ module.exports = (formio) => {
               .every((shortcut) => shortcut.match(validShortcutRegex))
           },
           {
-            isAsync: true,
-            validator: (components, valid) => {
+            validator: async(components) => {
               const paths = componentPaths(components);
               const msg = 'Component keys must be unique: ';
               const uniq = paths.uniq();
               const diff = paths.filter((value, index, collection) => _.includes(collection, value, index + 1));
 
               if (_.isEqual(paths.value(), uniq.value())) {
-                return valid(true);
+                return true;
               }
 
-              return valid(false, (msg + diff.value().join(', ')));
+              throw new Error(msg + diff.value().join(', '));
             }
           },
           {
-            isAsync: true,
-            validator: (components, valid) => {
+            validator: async(components) => {
               const shortcuts = componentShortcuts(components);
               const msg = 'Component shortcuts must be unique: ';
               const uniq = shortcuts.uniq();
               const diff = shortcuts.filter((value, index, collection) => _.includes(collection, value, index + 1));
 
               if (_.isEqual(shortcuts.value(), uniq.value())) {
-                return valid(true);
+                return true;
               }
 
-              return valid(false, (msg + diff.value().join(', ')));
+              throw new Error(msg + diff.value().join(', '));
             }
           }
         ]
