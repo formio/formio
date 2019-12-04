@@ -243,7 +243,7 @@ module.exports = function(formio, items, done) {
 
       // Download the app.
       download(
-        `https://nodeload.github.com/${application}/zip/master`,
+        `https://codeload.github.com/${application}/zip/master`,
         'app.zip',
         'app',
         done
@@ -279,7 +279,7 @@ module.exports = function(formio, items, done) {
 
       // Download the client.
       download(
-        'https://nodeload.github.com/formio/formio-app-formio/zip/master',
+        'https://codeload.github.com/formio/formio-app-formio/zip/master',
         'client.zip',
         'client',
         done
