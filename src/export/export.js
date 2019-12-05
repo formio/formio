@@ -3,7 +3,6 @@
 const exporters = require('.');
 const _ = require('lodash');
 const through = require('through');
-const _url = require('url');
 const ResourceFactory = require('resourcejs');
 const debug = require('debug')('formio:error');
 
@@ -120,6 +119,7 @@ module.exports = (router) => {
       };
 
       // Replace form components to populated subforms
+      /* eslint-disable require-atomic-updates */
       if (form.display === 'wizard') {
         const components = populateWizardComponents(form.components);
         form.components = await Promise.all(components);
@@ -127,6 +127,7 @@ module.exports = (router) => {
       else {
         form.components = await getSubForms(form.components);
       }
+      /* eslint-enable require-atomic-updates */
 
       // Create the exporter.
       const exporter = new exporters[format](form, req, res);
