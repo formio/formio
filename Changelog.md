@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased]
+### Added
+ - ```create``` Group Permissions layer
+ 
+### Changed
+ - ```write``` and ```admin``` Group Permissions layers to have ability to create submissions
+
 ## 1.61.0
 ### Changed
  - Upgraded dependencies

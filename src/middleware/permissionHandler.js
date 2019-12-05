@@ -44,17 +44,25 @@ module.exports = function(router) {
       // Ensure the submission access permissions are defined before accessing them.
       access.submission = access.submission || {};
       access.submission.read_all = access.submission.read_all || [];
+      access.submission.create_all = access.submission.create_all || [];
       access.submission.update_all = access.submission.update_all || [];
       access.submission.delete_all = access.submission.delete_all || [];
 
-      // Convert the simplex read/write/admin rules into *_all permissions.
+      // Convert the simplex read/create/write/admin rules into *_all permissions.
       if (permission.type === 'read') {
         _.each(permission.resources, function(id) {
           access.submission.read_all.push(id);
         });
       }
+      else if (permission.type === 'create') {
+        _.each(permission.resources, function(id) {
+          access.submission.create_all.push(id);
+          access.submission.read_all.push(id);
+        });
+      }
       else if (permission.type === 'write') {
         _.each(permission.resources, function(id) {
+          access.submission.create_all.push(id);
           access.submission.read_all.push(id);
           access.submission.update_all.push(id);
 
@@ -65,6 +73,7 @@ module.exports = function(router) {
       }
       else if (permission.type === 'admin') {
         _.each(permission.resources, function(id) {
+          access.submission.create_all.push(id);
           access.submission.read_all.push(id);
           access.submission.update_all.push(id);
           access.submission.delete_all.push(id);
@@ -206,6 +215,29 @@ module.exports = function(router) {
                     access.submission.create_all.push(id.toString()); //eslint-disable-line camelcase
                   }
                 });
+              });
+            }
+
+            // check for group permissions, only if creating submission (POST request)
+            if (req.method === 'POST') {
+              util.eachComponent(item.components, (component, path) => {
+                if (component && component.key && component.defaultPermission) {
+                  let selectValue = _.get(req.body.data, path);
+                  if (selectValue) {
+                    if (!(selectValue instanceof Array)) {
+                      selectValue = [selectValue];
+                    }
+                    /* eslint-disable camelcase */
+                    selectValue.forEach(value => {
+                      if (value && value._id) {
+                        if (['create', 'write', 'admin'].indexOf(component.defaultPermission) > -1) {
+                          access.submission.create_all = access.submission.create_all || [];
+                          access.submission.create_all.push(value._id);
+                        }
+                      }
+                    });
+                  }
+                }
               });
             }
 
