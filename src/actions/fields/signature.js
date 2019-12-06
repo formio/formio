@@ -44,6 +44,7 @@ module.exports = (formio) => {
               }
 
               _.set(data, component.key, _.get(submission.data, path));
+              return resolve();
             });
           });
         }
