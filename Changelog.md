@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.61.0
+### Changed
+ - Upgraded dependencies
+
+### Added
+ - Add submission, previous and moment to action should execute context.
+ - Added Merge Component Schema action type.
+ - Added api token support
+
+### Fixed
+ - Fixed temp token check generated with admin key
+ - Fix URL to download Github archives
+ - Fix nested form submissions export
+
 ## 1.60.8
 ### Addded
  - ignoreTLS flag for the nodemailer SMTP configurations.

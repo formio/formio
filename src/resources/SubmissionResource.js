@@ -47,6 +47,7 @@ module.exports = function(router) {
     router.formio.middleware.bootstrapSubmissionAccess,
     router.formio.middleware.addSubmissionResourceAccess,
     router.formio.middleware.condenseSubmissionPermissionTypes,
+    router.formio.middleware.loadPreviousSubmission,
     handlers.beforePut
   ];
   handlers.afterPut = [
