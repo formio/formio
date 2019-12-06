@@ -2,7 +2,7 @@
 const FormioUtils = require('formiojs/utils').default;
 const _ = require('lodash');
 const util = require('../../util/util');
-const async = require('async');
+const asyncLib = require('async');
 
 module.exports = router => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
@@ -59,7 +59,7 @@ module.exports = router => {
       catch (err) {
         return reject(err);
       }
-      async.applyEachSeries(router.formio.resources.submission.handlers.beforeIndex, sub.req, sub.res, (err) => {
+      asyncLib.applyEachSeries(router.formio.resources.submission.handlers.beforeIndex, sub.req, sub.res, (err) => {
         if (err) {
           return reject(err);
         }
@@ -264,81 +264,84 @@ module.exports = router => {
     });
   };
 
-  return {
-    afterGet(component, path, req, res) {
-      const resource = _.get(res, 'resource.item');
-      if (!resource) {
-        return Promise.resolve();
-      }
-      const compValue = _.get(resource.data, path);
-      if (!compValue) {
-        return Promise.resolve();
-      }
+  return async (component, data, handler, action, {validation, path, req, res}) => {
+    const resource = _.get(res, 'resource.item');
+    const compValue = _.get(resource.data, path);
+    const formId = component.form || component.resource || component.data.resource;
+    let idQuery = null;
 
-      let idQuery = null;
-      if (component.multiple && _.isArray(compValue)) {
-        idQuery = {$in: []};
-        _.map(compValue, (val) => idQuery.$in.push(util.ObjectId(val._id)));
-      }
-      else if (compValue._id) {
-        idQuery = util.ObjectId(compValue._id);
-      }
+    switch (handler) {
+      case 'afterGet':
+        if (!resource) {
+          return Promise.resolve();
+        }
+        if (!compValue) {
+          return Promise.resolve();
+        }
 
-      if (!idQuery) {
-        return Promise.resolve();
-      }
+        if (component.multiple && _.isArray(compValue)) {
+          idQuery = {$in: []};
+          _.map(compValue, (val) => idQuery.$in.push(util.ObjectId(val._id)));
+        }
+        else if (compValue._id) {
+          idQuery = util.ObjectId(compValue._id);
+        }
 
-      return loadReferences(component, {
-        _id: idQuery,
-        limit: 10000000
-      }, req, res)
-        .then(items => {
-          if (items.length > 0) {
-            _.set(resource.data, path, component.multiple ? items : items[0]);
-          }
-          else {
+        if (!idQuery) {
+          return Promise.resolve();
+        }
+
+        return loadReferences(component, {
+          _id: idQuery,
+          limit: 10000000
+        }, req, res)
+          .then(items => {
+            if (items.length > 0) {
+              _.set(resource.data, path, component.multiple ? items : items[0]);
+            }
+            else {
+              if (component.multiple) {
+                _.set(resource.data, path, _.map(_.get(resource.data, path), iData => _.pick(iData, ['_id'])));
+              }
+              else {
+                _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
+              }
+            }
+          })
+          .catch((err) => {
             if (component.multiple) {
               _.set(resource.data, path, _.map(_.get(resource.data, path), iData => _.pick(iData, ['_id'])));
             }
             else {
               _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
             }
-          }
-        })
-        .catch((err) => {
-          if (component.multiple) {
-            _.set(resource.data, path, _.map(_.get(resource.data, path), iData => _.pick(iData, ['_id'])));
-          }
-          else {
-            _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
-          }
+          });
+      case 'beforeIndex':
+        return buildPipeline(component, path, req, res).then((subpipe) => {
+          let pipeline = req.modelQuery.pipeline || [];
+          pipeline = pipeline.concat(subpipe);
+          req.countQuery.pipeline = req.modelQuery.pipeline = pipeline;
         });
-    },
-    beforeIndex(component, path, req, res) {
-      return buildPipeline(component, path, req, res).then((subpipe) => {
-        let pipeline = req.modelQuery.pipeline || [];
-        pipeline = pipeline.concat(subpipe);
-        req.countQuery.pipeline = req.modelQuery.pipeline = pipeline;
-      });
-    },
-    afterIndex(component, path, req, res) {
-      const formId = component.form || component.resource || component.data.resource;
-
-      return new Promise((resolve, reject) => {
-        router.formio.cache.loadForm(req, null, formId, function(err, form) {
-          if (err) {
-            return reject(err);
-          }
-          util.removeProtectedFields(form, 'index', res.resource.item.map(submission => {
-            return _.get(submission, `data.${path}`);
-          }));
-          resolve();
+      case 'afterIndex':
+        return new Promise((resolve, reject) => {
+          router.formio.cache.loadForm(req, null, formId, function(err, form) {
+            if (err) {
+              return reject(err);
+            }
+            util.removeProtectedFields(form, 'index', res.resource.item.map(submission => {
+              return _.get(submission, `data.${path}`);
+            }));
+            resolve();
+          });
         });
-      });
-    },
-    afterPost: getResource,
-    afterPut: getResource,
-    beforePost: setResource,
-    beforePut: setResource
+      case 'beforePost':
+        return setResource(component, path, req, res);
+       case 'afterPost':
+         return getResource(component, path, req, res);
+      case 'beforePut':
+        return setResource(component, path, req, res);
+       case 'afterPut':
+         return getResource(component, path, req, res);
+    }
   };
 };

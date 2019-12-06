@@ -39,61 +39,6 @@ module.exports = (router, resourceName, resourceId) => {
     }
   ].forEach((method) => {
     /**
-     * Execute the field handler.
-     *
-     * @param component
-     *   The form component.
-     * @param path
-     *   The path to the data in the request body.
-     * @param validation
-     *   Whether or not validation is required before executing.
-     * @param handlerName
-     * @param req
-     * @param res
-     * @param done
-     */
-    function executeFieldHandler(component, path, validation, handlerName, req, res, done) {
-      const fieldActions = hook.alter('fieldActions', fActions);
-      const propertyActions = hook.alter('propertyActions', pActions);
-
-      const handlers = [];
-      const properties = ['reference'];
-
-      // Execute the property handlers after validation has occurred.
-      if (validation) {
-        properties.map(property => {
-          if (component.hasOwnProperty(property) && component[property]) {
-            if (
-              propertyActions.hasOwnProperty(property) &&
-              propertyActions[property].hasOwnProperty(handlerName)
-            ) {
-              handlers.push(propertyActions[property][handlerName](component, path, req, res));
-            }
-          }
-        });
-      }
-
-      // Execute the field handler.
-      if (
-        fieldActions.hasOwnProperty(component.type) &&
-        fieldActions[component.type].hasOwnProperty(handlerName)
-      ) {
-        handlers.push(new Promise((resolve, reject) => {
-          fieldActions[component.type][handlerName](component, path, validation, req, res, (err) => {
-            if (err) {
-              return reject(err);
-            }
-            return resolve();
-          });
-        }));
-      }
-
-      Promise.all(handlers)
-        .then(() => done())
-        .catch(done);
-    }
-
-    /**
      * Load the current form into the request.
      *
      * @param req
@@ -273,6 +218,77 @@ module.exports = (router, resourceName, resourceId) => {
       };
     }
 
+    // This should probably be moved to utils.
+    function eachValue(components, data, fn, context, path = '') {
+      const promises = [];
+
+      components.forEach((component) => {
+        if (component.hasOwnProperty('components') && Array.isArray(component.components)) {
+          // If tree type is an array of objects like datagrid and editgrid.
+          if (['datagrid', 'editgrid'].includes(component.type) || component.arrayTree) {
+            _.get(data, component.key, []).forEach((row, index) => {
+              promises.push(eachValue(
+                component.components,
+                row,
+                fn,
+                context,
+                `${path ? `${path}.` : ''}${component.key}[${index}]`,
+              ));
+            });
+          }
+          else if (['form'].includes(component.type)) {
+            promises.push(eachValue(
+              component.components,
+              _.get(data, `${component.key}.data`, {}),
+              fn,
+              context,
+              `${path ? `${path}.` : ''}${component.key}.data`,
+            ));
+          }
+          else if (
+            ['container'].includes(component.type) ||
+            (
+              component.tree &&
+              !['panel', 'table', 'well', 'columns', 'fieldset', 'tabs', 'form'].includes(component.type)
+            )
+          ) {
+            promises.push(eachValue(
+              component.components,
+              _.get(data, component.key),
+              fn,
+              context,
+              `${path ? `${path}.` : ''}${component.key}`,
+            ));
+          }
+          else {
+            promises.push(eachValue(component.components, data, fn, context, path));
+          }
+        }
+        else if (component.hasOwnProperty('columns') && Array.isArray(component.columns)) {
+          // Handle column like layout components.
+          component.columns.forEach((column) => {
+            promises.push(eachValue(column.components, data, fn, context, path));
+          });
+        }
+        else if (component.hasOwnProperty('rows') && Array.isArray(component.rows)) {
+          // Handle table like layout components.
+          component.rows.forEach((row) => {
+            if (Array.isArray(row)) {
+              row.forEach((column) => {
+                promises.push(eachValue(column.components, data, fn, context, path));
+              });
+            }
+          });
+        }
+        else {
+          // If this is just a regular component, call the callback.
+          promises.push(fn({...context, data, component, path}));
+        }
+      });
+
+      return Promise.all(promises);
+    }
+
     /**
      * Execute the field handlers.
      *
@@ -288,17 +304,51 @@ module.exports = (router, resourceName, resourceId) => {
         return done();
       }
 
-      async.eachOfSeries(req.flattenedComponents, (component, path, cb) => {
-        if (
-          req.body &&
+      const promises = [];
+
+      eachValue(req.currentForm.components, req.body.data, (context) => {
+        const {component, data, handler, action, path} = context;
+
+        // Remove not persistent data
+        if (data &&
           component.hasOwnProperty('persistent') &&
           !component.persistent
         ) {
-          util.deleteProp(`data.${path}`)(req.body);
+          util.deleteProp(component.key)(data);
         }
 
-        executeFieldHandler(component, path, validation, req.handlerName, req, res, cb);
-      }, done);
+        const fieldActions = hook.alter('fieldActions', fActions);
+        const propertyActions = hook.alter('propertyActions', pActions);
+        const componentPath = `${path}${path ? '.' : ''}${component.key}`;
+
+        // Execute the property handlers after validation has occurred.
+        if (validation) {
+          Object.keys(propertyActions).forEach((property) => {
+            if (component.hasOwnProperty(property) && component[property]) {
+              promises.push(propertyActions[property](component, data, handler, action, {
+                validation,
+                path: componentPath,
+                req,
+                res,
+              }));
+            }
+          });
+        }
+
+        // Execute the field handler.
+        if (fieldActions.hasOwnProperty(component.type)) {
+          promises.push(fieldActions[component.type](component, data, handler, action, {
+            validation,
+            path: componentPath,
+            req,
+            res,
+          }));
+        }
+      }, {validation, handler: req.handlerName, action: req.method.toLowerCase(), req, res});
+
+      Promise.all(promises)
+        .then(() => done())
+        .catch(done);
     }
 
     /**
