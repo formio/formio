@@ -280,10 +280,8 @@ module.exports = (router, resourceName, resourceId) => {
             }
           });
         }
-        else {
-          // If this is just a regular component, call the callback.
+          // Call the callback for each component.
           promises.push(fn({...context, data, component, path}));
-        }
       });
 
       return Promise.all(promises);

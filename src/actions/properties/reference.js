@@ -121,14 +121,14 @@ module.exports = router => {
       return Promise.resolve();
     }
     // Make sure to reset the value on the return result.
-    const compValue = _.get(resource.data, path);
+    const compValue = _.get(resource, `data.${path}`);
     if (!compValue || !compValue._id) {
       return Promise.resolve();
     }
 
     const compValueId = compValue._id.toString();
     if (compValue && req.resources && req.resources.hasOwnProperty(compValueId)) {
-      _.set(resource.data, path, req.resources[compValueId]);
+      _.set(resource, `data.${path}`, req.resources[compValueId]);
     }
     return Promise.resolve();
   };
@@ -266,7 +266,7 @@ module.exports = router => {
 
   return async (component, data, handler, action, {validation, path, req, res}) => {
     const resource = _.get(res, 'resource.item');
-    const compValue = _.get(resource.data, path);
+    const compValue = _.get(resource, `data.${path}`);
     const formId = component.form || component.resource || component.data.resource;
     let idQuery = null;
 
@@ -297,23 +297,23 @@ module.exports = router => {
         }, req, res)
           .then(items => {
             if (items.length > 0) {
-              _.set(resource.data, path, component.multiple ? items : items[0]);
+              _.set(resource, `data.${path}`, component.multiple ? items : items[0]);
             }
             else {
               if (component.multiple) {
-                _.set(resource.data, path, _.map(_.get(resource.data, path), iData => _.pick(iData, ['_id'])));
+                _.set(resource, `data.${path}`, _.map(_.get(resource, `data.${path}`), iData => _.pick(iData, ['_id'])));
               }
               else {
-                _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
+                _.set(resource, `data.${path}`, _.pick(_.get(resource, `data.${path}`), ['_id']));
               }
             }
           })
           .catch((err) => {
             if (component.multiple) {
-              _.set(resource.data, path, _.map(_.get(resource.data, path), iData => _.pick(iData, ['_id'])));
+              _.set(resource, `data.${path}`, _.map(_.get(resource, `data.${path}`), iData => _.pick(iData, ['_id'])));
             }
             else {
-              _.set(resource.data, path, _.pick(_.get(resource.data, path), ['_id']));
+              _.set(resource, `data.${path}`, _.pick(_.get(resource, `data.${path}`), ['_id']));
             }
           });
       case 'beforeIndex':
