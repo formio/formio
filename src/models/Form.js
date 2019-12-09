@@ -174,7 +174,7 @@ module.exports = (formio) => {
               .every((shortcut) => shortcut.match(validShortcutRegex))
           },
           {
-            validator: async(components) => {
+            validator: async (components) => {
               const paths = componentPaths(components);
               const msg = 'Component keys must be unique: ';
               const uniq = paths.uniq();
@@ -188,7 +188,7 @@ module.exports = (formio) => {
             }
           },
           {
-            validator: async(components) => {
+            validator: async (components) => {
               const shortcuts = componentShortcuts(components);
               const msg = 'Component shortcuts must be unique: ';
               const uniq = shortcuts.uniq();

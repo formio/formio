@@ -7,14 +7,14 @@ module.exports = router => {
   /**
    * Perform hierarchial submissions of sub-forms.
    */
-  const submitSubForms = function(component, path, validation, req, res, next) {
+  const submitSubForms = function(component, data, validation, req, res, path, next) {
     // Only submit subforms after validation has occurred.
     if (!validation) {
       return next();
     }
 
     // Get the submission object.
-    const subSubmission = _.get(req.body, `data.${path}`, {});
+    const subSubmission = _.get(data, component.key, {});
 
     // if there isn't a sub-submission or the sub-submission has an _id, don't submit.
     // Should be submitted from the frontend.
@@ -76,7 +76,7 @@ module.exports = router => {
       }
 
       if (childRes.resource && childRes.resource.item) {
-        _.set(req.body, `data.${path}`, childRes.resource.item);
+        _.set(data, component.key, childRes.resource.item);
       }
       next();
     });
@@ -85,7 +85,7 @@ module.exports = router => {
   /*
    * Set parent submission id in externalIds of child form component's submission
    */
-  const setChildFormParenthood = function(component, path, validation, req, res, next) {
+  const setChildFormParenthood = function(component, data, validation, req, res, path, next) {
     if (
       res.resource &&
       res.resource.item &&
@@ -135,18 +135,28 @@ module.exports = router => {
     return next();
   };
 
-  return {
-    beforePost(component, path, validation, req, res, next) {
-      return submitSubForms(component, path, validation, req, res, next);
-    },
-    afterPost(component, path, validation, req, res, next) {
-      return setChildFormParenthood(component, path, validation, req, res, next);
-    },
-    beforePut(component, path, validation, req, res, next) {
-      return submitSubForms(component, path, validation, req, res, next);
-    },
-    afterPut:  function(component, path, validation, req, res, next) {
-      return setChildFormParenthood(component, path, validation, req, res, next);
+  return async (component, data, handler, action, {validation, path, req, res}) => {
+    switch (handler) {
+      case 'beforePut':
+      case 'beforePost':
+        return new Promise((resolve, reject) => {
+          submitSubForms(component, data, validation, req, res, path, (err) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve();
+          });
+        });
+      case 'afterPut':
+      case 'afterPost':
+        return new Promise((resolve, reject) => {
+          setChildFormParenthood(component, data, validation, req, res, path, (err) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve();
+          });
+        });
     }
   };
 };
