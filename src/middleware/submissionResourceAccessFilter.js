@@ -78,7 +78,7 @@ module.exports = function(router) {
         query = {
           form: util.idToBson(req.formId),
           deleted: {$eq: null},
-          'access.type': {$in: ['read', 'write', 'admin']},
+          'access.type': {$in: ['read', 'create', 'write', 'admin']},
           'access.resources': {$in: newSearch}
         };
       }
