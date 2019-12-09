@@ -37,7 +37,7 @@ module.exports = (router) => {
     }
 
     // Load the form.
-    router.formio.cache.loadCurrentForm(req, async(err, form) => {
+    router.formio.cache.loadCurrentForm(req, async (err, form) => {
       if (err) {
         return res.sendStatus(401);
       }
@@ -140,9 +140,9 @@ module.exports = (router) => {
 
         // Initialize the exporter.
         exporter.init()
-          .then(async() => {
+          .then(async () => {
             const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-            const addSubData = async(data) => {
+            const addSubData = async (data) => {
               // Create new data
               const newData = {};
               // Array for promises

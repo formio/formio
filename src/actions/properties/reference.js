@@ -301,7 +301,11 @@ module.exports = router => {
             }
             else {
               if (component.multiple) {
-                _.set(resource, `data.${path}`, _.map(_.get(resource, `data.${path}`), iData => _.pick(iData, ['_id'])));
+                _.set(
+                  resource,
+                  `data.${path}`,
+                  _.map(_.get(resource, `data.${path}`), iData => _.pick(iData, ['_id']))
+                );
               }
               else {
                 _.set(resource, `data.${path}`, _.pick(_.get(resource, `data.${path}`), ['_id']));

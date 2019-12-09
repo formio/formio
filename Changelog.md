@@ -4,12 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased]
+## 1.62.0
 ### Added
  - ```create``` Group Permissions layer
  
 ### Changed
  - ```write``` and ```admin``` Group Permissions layers to have ability to create submissions
+
+### Fixed
+ - Convert field and property handlers to work with complex data types by managing the path correctly.
 
 ## 1.61.0
 ### Changed
