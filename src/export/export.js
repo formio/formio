@@ -121,7 +121,7 @@ module.exports = (router) => {
       // Replace form components to populated subforms
       /* eslint-disable require-atomic-updates */
       if (form.display === 'wizard') {
-        const components = populateWizardComponents(form.components);
+        const components = populateWizardComponents(form.components, getSubForms);
         form.components = await Promise.all(components);
       }
       else {
