@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.63.1
+### Fixed
+ - Login lockout test wait times to be more forgiving.
+
 ## 1.63.0
 ### Fixed
  - Issue where CSV exports with wizards was throwing errors.
