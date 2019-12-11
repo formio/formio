@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.63.3
+### Changed
+ - Reverted the sort order of CSV exports.
+
 ## 1.63.2
 ### Fixed
  - Other issues with CSV export using wizards.
