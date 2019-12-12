@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.63.4
+### Fixed
+ - Issue where Swagger could throw an unhandled error.
+ 
+### Changed
+ - Upgraded resourcejs@1.38.0
+
 ## 1.63.3
 ### Changed
  - Reverted the sort order of CSV exports.
