@@ -133,6 +133,10 @@ module.exports = (formio) => {
         type: String,
         description: 'The display method for this form'
       },
+      errorsStyle: {
+        type: String,
+        description: 'Display style of errors.'
+      },
       action: {
         type: String,
         description: 'A custom action URL to submit the data to.'
