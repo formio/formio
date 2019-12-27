@@ -141,6 +141,10 @@ module.exports = (formio) => {
         type: [String],
         index: true
       },
+      controller: {
+        type: String,
+        default: ''
+      },
       deleted: {
         type: Number,
         default: null
