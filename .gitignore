@@ -2,3 +2,5 @@
 bower_components
 node_modules
 npm-debug.log
+config/vm_server_conf.json
+config/vm_server.json
