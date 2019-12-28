@@ -4,6 +4,56 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.63.4
+### Fixed
+ - Issue where Swagger could throw an unhandled error.
+ 
+### Changed
+ - Upgraded resourcejs@1.38.0
+
+## 1.63.3
+### Changed
+ - Reverted the sort order of CSV exports.
+
+## 1.63.2
+### Fixed
+ - Other issues with CSV export using wizards.
+
+## 1.63.1
+### Fixed
+ - Login lockout test wait times to be more forgiving.
+
+## 1.63.0
+### Fixed
+ - Issue where CSV exports with wizards was throwing errors.
+
+### Changed
+ - Upgrade mongodb@3.4.0, mongoose@5.8.0
+
+## 1.62.0
+### Added
+ - ```create``` Group Permissions layer
+ 
+### Changed
+ - ```write``` and ```admin``` Group Permissions layers to have ability to create submissions
+
+### Fixed
+ - Convert field and property handlers to work with complex data types by managing the path correctly.
+
+## 1.61.0
+### Changed
+ - Upgraded dependencies
+
+### Added
+ - Add submission, previous and moment to action should execute context.
+ - Added Merge Component Schema action type.
+ - Added api token support
+
+### Fixed
+ - Fixed temp token check generated with admin key
+ - Fix URL to download Github archives
+ - Fix nested form submissions export
+
 ## 1.60.8
 ### Addded
  - ignoreTLS flag for the nodemailer SMTP configurations.
