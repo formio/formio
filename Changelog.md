@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.63.6
+### Changed
+ - Upgraded mongodb@3.4.1, mongoose@5.8.3, resourcejs@1.38.2
+
 ## 1.63.5
 ### Fixed
  - Issue where the Swagger IO intreface was not working.
