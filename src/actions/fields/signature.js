@@ -2,54 +2,52 @@
 
 const _ = require('lodash');
 
-module.exports = function(formio) {
-  return {
-    beforePost(component, path, validation, req, res, next) {
-      if (!req.body.data) {
-        return next();
-      }
-      const value = _.get(req.body, `data.${path}`);
+module.exports = (formio) => {
+  return async (component, data, handler, action, {validation, path, req, res}) => {
+    let value = _.get(data, component.key);
+    switch (handler) {
+      case 'beforePost':
+        if (!req.body.data) {
+          return;
+        }
 
-      // Coerse the value into an empty string.
-      if (!value && value !== '') {
-        _.set(req.body, `data.${path}`, '');
-      }
-      return next();
-    },
-    beforePut(component, path, validation, req, res, next) {
-      if (!req.body.data) {
-        return next();
-      }
+        // Coerse the value into an empty string.
+        if (!value && value !== '') {
+          _.set(data, component.key, '');
+        }
+        break;
+      case 'beforePut':
+        if (!req.body.data) {
+          return;
+        }
 
-      // Ensure that signatures are not ever wiped out with a PUT request
-      // of data that came from the index request (where the signature is not populated).
-      let value = _.get(req.body, `data.${path}`);
+        // Ensure that signatures are not ever wiped out with a PUT request
+        // of data that came from the index request (where the signature is not populated).
 
-      // Coerse the value into an empty string.
-      if (!value && (value !== '')) {
-        value = '';
-        _.set(req.body, `data.${path}`, '');
-      }
+        // Coerse the value into an empty string.
+        if (!value && (value !== '')) {
+          value = '';
+          _.set(data, component.key, '');
+        }
 
-      if (
-        (typeof value !== 'string') ||
-        ((value !== '') && (value.substr(0, 5) !== 'data:'))
-      ) {
-        formio.cache.loadCurrentSubmission(req, function cacheResults(err, submission) {
-          if (err) {
-            return next(err);
-          }
-          if (!submission) {
-            return next(new Error('No submission found.'));
-          }
+        if (
+          (typeof value !== 'string') ||
+          ((value !== '') && (value.substr(0, 5) !== 'data:'))
+        ) {
+          return new Promise((resolve, reject) => {
+            formio.cache.loadCurrentSubmission(req, (err, submission) => {
+              if (err) {
+                return reject(err);
+              }
+              if (!submission) {
+                return reject(new Error('No submission found.'));
+              }
 
-          _.set(req.body, `data.${path}`, _.get(submission.data, path));
-          next();
-        });
-      }
-      else {
-        return next();
-      }
+              _.set(data, component.key, _.get(submission.data, path));
+              return resolve();
+            });
+          });
+        }
     }
   };
 };

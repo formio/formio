@@ -9746,14 +9746,14 @@ module.exports = function(app, template, hook) {
         }, 'client', [/text\/plain/, 401], done);
       });
 
-      it('Should NOT allow a manager user to create a submission', (done) => {
+      it('Should allow a manager user to create a submission', (done) => {
         helper.createSubmission('clientreg', {
           data: {
             user: helper.template.users.clientuser,
             client: helper.template.users.client,
             manager: helper.template.users.manager
           }
-        }, 'manager', [/text\/plain/, 401], done);
+        }, 'manager', [/json/, 201], done);
       });
 
       it('Should allow admin to create a registration submission with the client and manager set', (done) => {

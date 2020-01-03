@@ -4,6 +4,7 @@ module.exports = function(formio) {
   // Define the available permissions for a submission.
   const available = [
     'read',
+    'create',
     'write',
     'admin'
   ];

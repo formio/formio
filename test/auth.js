@@ -457,7 +457,7 @@ module.exports = function(app, template, hook) {
                 return next(err);
               }
 
-              assert.equal(res.text, count < 4 ? 'User or password was incorrect' : 'Maximum Login attempts. Please wait 2 seconds before trying again.');
+              assert.equal(res.text, count < 4 ? 'User or password was incorrect' : 'Maximum Login attempts. Please wait 4 seconds before trying again.');
               assert.equal(!res.headers['x-jwt-token'], true);
               next();
             });
@@ -495,7 +495,7 @@ module.exports = function(app, template, hook) {
     it('Verify that we can login again after waiting.', function(done) {
       setTimeout(function() {
         login(done);
-      }, 1500);
+      }, 4500);
     });
 
     it('Attempt 4 bad logins to attempt good login after window.', function(done) {
@@ -748,7 +748,7 @@ module.exports = function(app, template, hook) {
             assert.equal(!res.headers['x-jwt-token'], true);
             done();
           });
-      }, 1000);
+      }, 4500);
     });
 
     var oldToken = null;

@@ -2,6 +2,9 @@
 
 const _ = require('lodash');
 const util = require('formiojs/utils').default;
+const debug = {
+  error: require('debug')('formio:error')
+};
 
 module.exports = function(req, router, cb) {
   const hook = require('./hook')(router.formio);
@@ -212,14 +215,22 @@ module.exports = function(req, router, cb) {
       methods: _.clone(router.formio.resources.submission.methods)
     };
 
-    const swagger = router.formio.resources.submission.swagger.call(resource, true);
+    let swagger = {};
+    try {
+      swagger = router.formio.resources.submission.swagger.call(resource, true);
+    }
+    catch (err) {
+      debug.error(err);
+    }
 
     // Override the body definition.
-    swagger.definitions[resource.modelName].required = ['data'];
-    swagger.definitions[resource.modelName].properties.data = {
-      $ref: `#/definitions/${resource.modelName}Data`
-    };
-    swagger.definitions = _.merge(swagger.definitions, getDefinition(form.components, `${resource.modelName}Data`));
+    if (swagger.definitions) {
+      swagger.definitions[resource.modelName].required = ['data'];
+      swagger.definitions[resource.modelName].properties.data = {
+        $ref: `#/definitions/${resource.modelName}Data`
+      };
+      swagger.definitions = _.merge(swagger.definitions, getDefinition(form.components, `${resource.modelName}Data`));
+    }
     return swagger;
   };
 
