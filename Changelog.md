@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.63.7
+### Fixed
+ - Tests to ignore controller form property.
+ 
+### Changed
+ - Upgrade mongoose@5.8.6
+
 ## 1.63.6
 ### Changed
  - Upgraded mongodb@3.4.1, mongoose@5.8.3, resourcejs@1.38.2
