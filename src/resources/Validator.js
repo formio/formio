@@ -783,8 +783,8 @@ class Validator {
         }
       }
 
-      // Make sure to change this to an array if multiple is checked.
-      if (component.multiple) {
+      // Make sure to change this to an array if multiple is checked or component type is file.
+      if (component.multiple || component.type === 'file') {
         // Allow(null) was added since some text fields have empty strings converted to null when multiple which then
         // throws an error on re-validation. Allowing null fixes the issue.
         fieldValidator = JoiX.array().sparse().items(fieldValidator.allow(null)).options({stripUnknown: false});
