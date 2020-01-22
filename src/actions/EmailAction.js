@@ -71,8 +71,6 @@ module.exports = (router) => {
             defaultValue: 'no-reply@form.io',
             input: true,
             placeholder: 'Send the email from the following address',
-            prefix: '',
-            suffix: '',
             type: 'textfield',
             multiple: false,
           },

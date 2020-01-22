@@ -42,7 +42,7 @@ module.exports = (formio) => {
       let availableTransports = [
         {
           transport: 'default',
-          title: 'Default (charges may apply)'
+          title: 'Default (charges may apply)',
         },
       ];
       if (_.get(settings, 'email.custom.url')) {
@@ -113,7 +113,7 @@ module.exports = (formio) => {
     from,
     emails,
     subject,
-    message
+    message,
   });
 
   /**
@@ -150,18 +150,18 @@ module.exports = (formio) => {
         params.data[`${component.key}Obj`] = params.data[component.key];
         replacements.push(
           (new Worker('nunjucks'))
-          .start({
-            form,
-            submission,
-            template: component.template,
-            context: {
-              item: params.data[component.key],
-            },
-          })
-          .then((response) => {
-            params.data[component.key] = response.output;
-            return response;
-          }),
+            .start({
+              form,
+              submission,
+              template: component.template,
+              context: {
+                item: params.data[component.key],
+              },
+            })
+            .then((response) => {
+              params.data[component.key] = response.output;
+              return response;
+            }),
         );
       }
     });
@@ -231,18 +231,18 @@ module.exports = (formio) => {
     let transporter = {sendMail: null};
 
     // Add the request params.
-    params.req = {
-      user: req.user,
-      token: req.token,
-      params: req.params,
-      query: req.query,
-      body: req.body
-    };
+    params.req = _.pick(req, [
+      'user',
+      'token',
+      'params',
+      'query',
+      'body',
+    ]);
 
     // Add the response parameters.
-    params.res = {
-      token: res.token
-    };
+    params.res = _.pick(req, [
+      'token',
+    ]);
 
     // Add the settings to the parameters.
     params.settings = message;
@@ -290,7 +290,7 @@ module.exports = (formio) => {
             if (!formio.config.email.username && formio.config.email.password) {
               transporter = nodemailer.createTransport(sgTransport({
                 auth: {
-                  api_key: formio.config.email.password
+                  api_key: formio.config.email.password,
                 }
               }));
             }
@@ -298,7 +298,7 @@ module.exports = (formio) => {
               transporter = nodemailer.createTransport(sgTransport({
                 auth: {
                   api_user: formio.config.email.username,
-                  api_key: formio.config.email.password
+                  api_key: formio.config.email.password,
                 }
               }));
             }
@@ -307,7 +307,7 @@ module.exports = (formio) => {
           else if (_config && formio.config.email.type === 'mandrill') {
             transporter = nodemailer.createTransport(mandrillTransport({
               auth: {
-                apiKey: formio.config.email.apiKey
+                apiKey: formio.config.email.apiKey,
               }
             }));
           }
@@ -339,7 +339,7 @@ module.exports = (formio) => {
         case 'smtp':
           if (_.has(settings, 'email.smtp')) {
             const _settings = {
-              debug: true
+              debug: true,
             };
 
             if (_.has(settings, 'email.smtp.port')) {
@@ -348,7 +348,7 @@ module.exports = (formio) => {
             if (_.has(settings, 'email.smtp.secure')) {
               const boolean = {
                 'true': true,
-                'false': false
+                'false': false,
               };
 
               _settings['secure'] = _.get(boolean, _.get(settings, 'email.smtp.secure')) || false;
@@ -356,7 +356,7 @@ module.exports = (formio) => {
             if (_.has(settings, 'email.smtp.ignoreTLS')) {
               const boolean = {
                 'true': true,
-                'false': false
+                'false': false,
               };
 
               _settings['ignoreTLS'] = _.get(boolean, _.get(settings, 'email.smtp.ignoreTLS')) || false;
@@ -370,14 +370,14 @@ module.exports = (formio) => {
             ) {
               _settings['auth'] = {
                 user: _.get(settings, 'email.smtp.auth.user'),
-                pass: _.get(settings, 'email.smtp.auth.pass')
+                pass: _.get(settings, 'email.smtp.auth.pass'),
               };
             }
             if (
               _.get(settings, 'email.smtp.allowUnauthorizedCerts', false)
             ) {
               _settings['tls'] = {
-                rejectUnauthorized: false
+                rejectUnauthorized: false,
               };
             }
 
