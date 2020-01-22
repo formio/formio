@@ -39,20 +39,22 @@ module.exports = (formio) => {
       }
 
       // Build the list of available transports, based on the present project settings.
-      let availableTransports = [{
-        transport: 'default',
-        title: 'Default (charges may apply)'
-      }];
+      let availableTransports = [
+        {
+          transport: 'default',
+          title: 'Default (charges may apply)'
+        },
+      ];
       if (_.get(settings, 'email.custom.url')) {
         availableTransports.push({
           transport: 'custom',
-          title: 'Custom'
+          title: 'Custom',
         });
       }
       if (_.get(settings, 'email.gmail.auth.user') && _.get(settings, 'email.gmail.auth.pass')) {
         availableTransports.push({
           transport: 'gmail',
-          title: 'G-Mail'
+          title: 'G-Mail',
         });
       }
       if (
@@ -65,25 +67,25 @@ module.exports = (formio) => {
         }
         availableTransports.push({
           transport: 'sendgrid',
-          title: 'SendGrid'
+          title: 'SendGrid',
         });
       }
       if (_.get(settings, 'email.mandrill.auth.apiKey')) {
         availableTransports.push({
           transport: 'mandrill',
-          title: 'Mandrill'
+          title: 'Mandrill',
         });
       }
       if (_.get(settings, 'email.mailgun.auth.api_key')) {
         availableTransports.push({
           transport: 'mailgun',
-          title: 'Mailgun'
+          title: 'Mailgun',
         });
       }
       if (_.get(settings, 'email.smtp.host')) {
         availableTransports.push({
           transport: 'smtp',
-          title: 'SMTP'
+          title: 'SMTP',
         });
       }
 
@@ -106,15 +108,13 @@ module.exports = (formio) => {
    *
    * @returns {{transport: *, from: *, emails: *, subject: *, message: *}}
    */
-  const settings = (transport, from, emails, subject, message) => {
-    return {
-      transport,
-      from,
-      emails,
-      subject,
-      message
-    };
-  };
+  const settings = (transport, from, emails, subject, message) => ({
+    transport,
+    from,
+    emails,
+    subject,
+    message
+  });
 
   /**
    * Get the available substitution parameters for the current email context.
@@ -148,17 +148,21 @@ module.exports = (formio) => {
       params.components[component.key] = component;
       if (component.type === 'resource' && params.data[component.key]) {
         params.data[`${component.key}Obj`] = params.data[component.key];
-        replacements.push((new Worker('nunjucks')).start({
-          form: form,
-          submission: submission,
-          template: component.template,
-          context: {
-            item: params.data[component.key]
-          }
-        }).then(response => {
-          params.data[component.key] = response.output;
-          return response;
-        }));
+        replacements.push(
+          (new Worker('nunjucks'))
+          .start({
+            form,
+            submission,
+            template: component.template,
+            context: {
+              item: params.data[component.key],
+            },
+          })
+          .then((response) => {
+            params.data[component.key] = response.output;
+            return response;
+          }),
+        );
       }
     });
 
@@ -390,13 +394,13 @@ module.exports = (formio) => {
               }
 
               rest.postJson(settings.email.custom.url, mail, options)
-              .on('complete', (result, response) => {
-                if (result instanceof Error) {
-                  return cb(result);
-                }
+                .on('complete', (result, response) => {
+                  if (result instanceof Error) {
+                    return cb(result);
+                  }
 
-                return cb(null, result);
-              });
+                  return cb(null, result);
+                });
             };
           }
           break;
@@ -421,84 +425,98 @@ module.exports = (formio) => {
         return next();
       }
 
+      const formatNodemailerEmailAddress = (addresses) => _.isString(addresses) ? addresses : addresses.join(', ');
+
+      const {
+        from,
+        emails = '',
+        cc = '',
+        bcc = '',
+        subject,
+        message: html,
+        transport,
+      } = message;
+
       const mail = {
-        from: message.from ? message.from : 'no-reply@form.io',
-        to: (typeof message.emails === 'string') ? message.emails : message.emails.join(', '),
-        subject: message.subject,
-        html: message.message,
-        msgTransport: message.transport,
-        transport: emailType
+        from: from || 'no-reply@form.io',
+        to: formatNodemailerEmailAddress(emails),
+        cc: formatNodemailerEmailAddress(cc),
+        bcc: formatNodemailerEmailAddress(bcc),
+        subject,
+        html,
+        msgTransport: transport,
+        transport: emailType,
       };
       const options = {
-        params
+        params,
       };
 
       nunjucksInjector(mail, options)
-      .then((email) => {
-        let emails = [];
+        .then((email) => {
+          let emails = [];
 
-        debug.send(`message.sendEach: ${message.sendEach}`);
-        debug.send(`email: ${JSON.stringify(email)}`);
-        if (message.sendEach === true) {
-          const addresses = _.uniq(email.to.split(',').map(_.trim));
-          debug.send(`addresses: ${JSON.stringify(addresses)}`);
-          // Make a copy of the email for each recipient.
-          emails = addresses.map((address) => Object.assign({}, email, {to: address}));
-        }
-        else {
-          emails = [email];
-        }
+          debug.send(`message.sendEach: ${message.sendEach}`);
+          debug.send(`email: ${JSON.stringify(email)}`);
+          if (message.sendEach === true) {
+            const addresses = _.uniq(email.to.split(',').map(_.trim));
+            debug.send(`addresses: ${JSON.stringify(addresses)}`);
+            // Make a copy of the email for each recipient.
+            emails = addresses.map((address) => Object.assign({}, email, {to: address}));
+          }
+          else {
+            emails = [email];
+          }
 
-        debug.send(`emails: ${JSON.stringify(emails)}`);
+          debug.send(`emails: ${JSON.stringify(emails)}`);
 
-        const chunks = _.chunk(emails, EMAIL_CHUNK_SIZE);
-        return chunks.reduce((result, chunk) => {
-          // Send each mail using the transporter.
-          return result.then(() => new Promise((resolve) => {
-            setImmediate(
-              () => Promise.all(chunk.map((email) => {
-                // Replace all newline chars with empty strings, to fix newline support in html emails.
-                if (email.html && (typeof email.html === 'string')) {
-                  email.html = email.html.replace(/\n/g, '');
-                }
+          const chunks = _.chunk(emails, EMAIL_CHUNK_SIZE);
+          return chunks.reduce((result, chunk) => {
+            // Send each mail using the transporter.
+            return result.then(() => new Promise((resolve) => {
+              setImmediate(
+                () => Promise.all(chunk.map((email) => {
+                  // Replace all newline chars with empty strings, to fix newline support in html emails.
+                  if (email.html && (typeof email.html === 'string')) {
+                    email.html = email.html.replace(/\n/g, '');
+                  }
 
-                return new Promise((resolve, reject) => {
-                  // Allow anyone to hook the final email before sending.
-                  return hook.alter('email', email, req, res, params, (err, email) => {
-                    if (err) {
-                      return reject(err);
-                    }
-
-                    // Allow anyone to hook the final destination settings before sending.
-                    hook.alter('emailSend', true, email, (err, send) => {
+                  return new Promise((resolve, reject) => {
+                    // Allow anyone to hook the final email before sending.
+                    return hook.alter('email', email, req, res, params, (err, email) => {
                       if (err) {
                         return reject(err);
                       }
-                      if (!send) {
-                        return resolve(email);
-                      }
 
-                      return transporter.sendMail(email, (err, info) => {
+                      // Allow anyone to hook the final destination settings before sending.
+                      hook.alter('emailSend', true, email, (err, send) => {
                         if (err) {
                           return reject(err);
                         }
+                        if (!send) {
+                          return resolve(email);
+                        }
 
-                        return resolve(info);
+                        return transporter.sendMail(email, (err, info) => {
+                          if (err) {
+                            return reject(err);
+                          }
+
+                          return resolve(info);
+                        });
                       });
                     });
                   });
-                });
-              }))
-                .then(resolve),
-            );
-          }));
-        }, Promise.resolve());
-      })
-      .then((response) => next(null, response))
-      .catch((err) => {
-        debug.error(err);
-        return next(err);
-      });
+                }))
+                  .then(resolve),
+              );
+            }));
+          }, Promise.resolve());
+        })
+        .then((response) => next(null, response))
+        .catch((err) => {
+          debug.error(err);
+          return next(err);
+        });
     });
   };
 
@@ -506,6 +524,6 @@ module.exports = (formio) => {
     availableTransports,
     settings,
     getParams,
-    send
+    send,
   };
 };
