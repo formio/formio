@@ -191,7 +191,7 @@ module.exports = (router) => {
 
             const submissionModel = req.submissionModel || router.formio.resources.submission.model;
             return submissionModel.findOne(hook.alter('submissionQuery', query, req))
-              .then((owner) => owner.toObject())
+              .lean()
               // If there is no owner, just proceed as normal.
               .catch(() => ({_id: params.owner}))
               .then((owner) => {
@@ -230,7 +230,7 @@ module.exports = (router) => {
               });
           })
           .catch((err) => {
-            setActionItemMessage('Emailer error2', err, 'error');
+            setActionItemMessage('Emailer error', err, 'error');
             log(req, ecode.emailer.ESUBPARAMS, err);
           });
       });
