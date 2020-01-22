@@ -191,43 +191,43 @@ module.exports = (router) => {
 
             const submissionModel = req.submissionModel || router.formio.resources.submission.model;
             return submissionModel.findOne(hook.alter('submissionQuery', query, req))
-            .then((owner) => owner.toObject())
-            // If there is no owner, just proceed as normal.
-            .catch(() => ({_id: params.owner}))
-            .then((owner) => {
-              if (owner) {
-                params.owner = owner;
-              }
-
-              return new Promise((resolve, reject) => {
-                if (!this.settings.template) {
-                  return resolve(this.settings.message);
+              .then((owner) => owner.toObject())
+              // If there is no owner, just proceed as normal.
+              .catch(() => ({_id: params.owner}))
+              .then((owner) => {
+                if (owner) {
+                  params.owner = owner;
                 }
 
-                return request(this.settings.template, (error, response, body) => {
-                  if (!error && response.statusCode === 200) {
-                    // Save the content before overwriting the message.
-                    params.content = this.settings.message;
-                    return resolve(body);
+                return new Promise((resolve, reject) => {
+                  if (!this.settings.template) {
+                    return resolve(this.settings.message);
                   }
 
-                  return resolve(this.settings.message);
+                  return request(this.settings.template, (error, response, body) => {
+                    if (!error && response.statusCode === 200) {
+                      // Save the content before overwriting the message.
+                      params.content = this.settings.message;
+                      return resolve(body);
+                    }
+
+                    return resolve(this.settings.message);
+                  });
+                });
+              })
+              .then((template) => {
+                this.settings.message = template;
+                setActionItemMessage('Sending message', this.message);
+                emailer.send(req, res, this.settings, params, (err) => {
+                  if (err) {
+                    setActionItemMessage('Error sending message', err, 'error');
+                    log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
+                  }
+                  else {
+                    setActionItemMessage('Message Sent');
+                  }
                 });
               });
-            })
-            .then((template) => {
-              this.settings.message = template;
-              setActionItemMessage('Sending message', this.message);
-              emailer.send(req, res, this.settings, params, (err) => {
-                if (err) {
-                  setActionItemMessage('Error sending message', err, 'error');
-                  log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
-                }
-                else {
-                  setActionItemMessage('Message Sent');
-                }
-              });
-            });
           })
           .catch((err) => {
             setActionItemMessage('Emailer error2', err, 'error');

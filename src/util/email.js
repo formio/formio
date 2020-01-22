@@ -240,7 +240,7 @@ module.exports = (formio) => {
     ]);
 
     // Add the response parameters.
-    params.res = _.pick(req, [
+    params.res = _.pick(res, [
       'token',
     ]);
 
@@ -291,7 +291,7 @@ module.exports = (formio) => {
               transporter = nodemailer.createTransport(sgTransport({
                 auth: {
                   api_key: formio.config.email.password,
-                }
+                },
               }));
             }
             else {
@@ -299,7 +299,7 @@ module.exports = (formio) => {
                 auth: {
                   api_user: formio.config.email.username,
                   api_key: formio.config.email.password,
-                }
+                },
               }));
             }
             /* eslint-enable camelcase */
@@ -308,7 +308,7 @@ module.exports = (formio) => {
             transporter = nodemailer.createTransport(mandrillTransport({
               auth: {
                 apiKey: formio.config.email.apiKey,
-              }
+              },
             }));
           }
           break;
