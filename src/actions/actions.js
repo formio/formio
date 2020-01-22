@@ -321,7 +321,7 @@ module.exports = (router) => {
         return (eq === 'equals') ===
           ((Array.isArray(value) && value.map(String).includes(compare)) || (value === compare));
       }
-    },
+    }
   };
 
   /**

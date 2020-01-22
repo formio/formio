@@ -3,7 +3,7 @@ const request = require('request');
 
 const LOG_EVENT = 'Email Action';
 
-module.exports = (router) => {
+module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router.formio);
@@ -17,6 +17,10 @@ module.exports = (router) => {
    *   This class is used to create the Email action.
    */
   class EmailAction extends Action {
+    constructor(data, req, res) {
+      super(data, req, res);
+    }
+
     static info(req, res, next) {
       next(null, {
         name: 'email',
@@ -25,8 +29,8 @@ module.exports = (router) => {
         priority: 0,
         defaults: {
           handler: ['after'],
-          method: ['create'],
-        },
+          method: ['create']
+        }
       });
     }
 
@@ -39,12 +43,11 @@ module.exports = (router) => {
      */
     static settingsForm(req, res, next) {
       // Get the available transports.
-      emailer.availableTransports(req, (err, availableTransports) => {
+      emailer.availableTransports(req, function(err, availableTransports) {
         if (err) {
           log(req, ecode.emailer.ENOTRANSP, err);
           return next(err);
         }
-
         const settingsForm = [
           {
             type: 'select',
@@ -56,13 +59,13 @@ module.exports = (router) => {
             defaultValue: 'default',
             dataSrc: 'json',
             data: {
-              json: JSON.stringify(availableTransports),
+              json: JSON.stringify(availableTransports)
             },
             valueProperty: 'transport',
             multiple: false,
             validate: {
-              required: true,
-            },
+              required: true
+            }
           },
           {
             label: 'From:',
@@ -71,8 +74,10 @@ module.exports = (router) => {
             defaultValue: 'no-reply@form.io',
             input: true,
             placeholder: 'Send the email from the following address',
+            prefix: '',
+            suffix: '',
             type: 'textfield',
-            multiple: false,
+            multiple: false
           },
           {
             label: 'To: Email Address',
@@ -81,37 +86,19 @@ module.exports = (router) => {
             defaultValue: '',
             input: true,
             placeholder: 'Send to the following email',
+            prefix: '',
+            suffix: '',
             type: 'textfield',
             multiple: true,
             validate: {
-              required: true,
-            },
+              required: true
+            }
           },
           {
             label: 'Send a separate email to each recipient',
             key: 'sendEach',
             type: 'checkbox',
-            input: true,
-          },
-          {
-            label: 'Cc: Email Address',
-            key: 'cc',
-            inputType: 'text',
-            defaultValue: '',
-            input: true,
-            placeholder: 'Send copy of the email to the following email',
-            type: 'textfield',
-            multiple: true,
-          },
-          {
-            label: 'Bcc: Email Address',
-            key: 'bcc',
-            inputType: 'text',
-            defaultValue: '',
-            input: true,
-            placeholder: 'Send blink copy of the email to the following email (other recipients will not see this)',
-            type: 'textfield',
-            multiple: true,
+            input: true
           },
           {
             label: 'Subject',
@@ -121,16 +108,16 @@ module.exports = (router) => {
             input: true,
             placeholder: 'Email subject',
             type: 'textfield',
-            multiple: false,
+            multiple: false
           },
           {
             label: 'Email Template URL',
             key: 'template',
             inputType: 'text',
             defaultValue: 'https://pro.formview.io/assets/email.html',
-            placeholder: 'Enter a URL for your external email template.',
             type: 'textfield',
             multiple: false,
+            placeholder: 'Enter a URL for your external email template.'
           },
           {
             label: 'Message',
@@ -139,9 +126,11 @@ module.exports = (router) => {
             defaultValue: '{{ submission(data, form.components) }}',
             multiple: false,
             rows: 3,
+            suffix: '',
+            prefix: '',
             placeholder: 'Enter the message you would like to send.',
-            input: true,
-          },
+            input: true
+          }
         ];
 
         next(null, settingsForm);
@@ -183,56 +172,59 @@ module.exports = (router) => {
 
         // Get the email parameters.
         emailer.getParams(req, res, form, req.body)
-          .then((params) => {
-            const query = {
-              _id: params.owner,
-              deleted: {$eq: null},
-            };
+        .then(params => {
+          const query = {
+            _id: params.owner,
+            deleted: {$eq: null}
+          };
 
-            const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-            return submissionModel.findOne(hook.alter('submissionQuery', query, req))
-              .lean()
-              // If there is no owner, just proceed as normal.
-              .catch(() => ({_id: params.owner}))
-              .then((owner) => {
-                if (owner) {
-                  params.owner = owner;
+          const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+          return submissionModel.findOne(hook.alter('submissionQuery', query, req))
+          .then(owner => {
+            return owner.toObject();
+          })
+          .catch(() => {
+            // If there is no owner, just proceed as normal.
+            return {_id: params.owner};
+          })
+          .then(owner => {
+            if (owner) {
+              params.owner = owner;
+            }
+            return new Promise((resolve, reject) => {
+              if (!this.settings.template) {
+                return resolve(this.settings.message);
+              }
+
+              return request(this.settings.template, (error, response, body) => {
+                if (!error && response.statusCode === 200) {
+                  // Save the content before overwriting the message.
+                  params.content = this.settings.message;
+                  return resolve(body);
                 }
 
-                return new Promise((resolve, reject) => {
-                  if (!this.settings.template) {
-                    return resolve(this.settings.message);
-                  }
-
-                  return request(this.settings.template, (error, response, body) => {
-                    if (!error && response.statusCode === 200) {
-                      // Save the content before overwriting the message.
-                      params.content = this.settings.message;
-                      return resolve(body);
-                    }
-
-                    return resolve(this.settings.message);
-                  });
-                });
-              })
-              .then((template) => {
-                this.settings.message = template;
-                setActionItemMessage('Sending message', this.message);
-                emailer.send(req, res, this.settings, params, (err) => {
-                  if (err) {
-                    setActionItemMessage('Error sending message', err, 'error');
-                    log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
-                  }
-                  else {
-                    setActionItemMessage('Message Sent');
-                  }
-                });
+                return resolve(this.settings.message);
               });
+            });
           })
-          .catch((err) => {
-            setActionItemMessage('Emailer error', err, 'error');
-            log(req, ecode.emailer.ESUBPARAMS, err);
+          .then(template => {
+            this.settings.message = template;
+            setActionItemMessage('Sending message', this.message);
+            emailer.send(req, res, this.settings, params, (err) => {
+              if (err) {
+                setActionItemMessage('Error sending message', err, 'error');
+                log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
+              }
+              else {
+                setActionItemMessage('Message Sent');
+              }
+            });
           });
+        })
+        .catch(err => {
+          setActionItemMessage('Emailer error2', err, 'error');
+          log(req, ecode.emailer.ESUBPARAMS, err);
+        });
       });
     }
   }
