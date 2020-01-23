@@ -4,7 +4,7 @@ const _ = require('lodash');
 const util = require('../../util/util');
 const asyncLib = require('async');
 
-module.exports = router => {
+module.exports = (router) => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
 
   // Get a subrequest and sub response for a nested request.

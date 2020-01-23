@@ -103,7 +103,7 @@ module.exports = function(config) {
       router.use(methodOverride('X-HTTP-Method-Override'));
 
       // Error handler for malformed JSON
-      router.use(function(err, req, res, next) {
+      router.use((err, req, res, next) => {
         if (err instanceof SyntaxError) {
           res.status(400).send(err.message);
         }
@@ -113,7 +113,7 @@ module.exports = function(config) {
 
       // CORS Support
       const corsRoute = cors(router.formio.hook.alter('cors'));
-      router.use(function(req, res, next) {
+      router.use((req, res, next) => {
         if (req.url === '/') {
           return next();
         }

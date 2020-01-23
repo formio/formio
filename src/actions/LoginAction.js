@@ -17,10 +17,6 @@ module.exports = function(router) {
    *   This class is used to create the Authentication action.
    */
   class LoginAction extends Action {
-    constructor(data, req, res) {
-      super(data, req, res);
-    }
-
     static info(req, res, next) {
       next(null, {
         name: 'login',
@@ -29,12 +25,12 @@ module.exports = function(router) {
         priority: 2,
         defaults: {
           handler: ['before'],
-          method: ['create']
+          method: ['create'],
         },
         access: {
           handler: false,
-          method: false
-        }
+          method: false,
+        },
       });
     }
 
@@ -48,6 +44,7 @@ module.exports = function(router) {
     static settingsForm(req, res, next) {
       const basePath = hook.alter('path', '/form', req);
       const dataSrc = `${basePath}/${req.params.formId}/components`;
+
       next(null, [
         {
           type: 'select',
@@ -61,8 +58,8 @@ module.exports = function(router) {
           template: '<span>{{ item.title }}</span>',
           multiple: true,
           validate: {
-            required: true
-          }
+            required: true,
+          },
         },
         {
           type: 'select',
@@ -76,8 +73,8 @@ module.exports = function(router) {
           valueProperty: 'key',
           multiple: false,
           validate: {
-            required: true
-          }
+            required: true,
+          },
         },
         {
           type: 'select',
@@ -91,8 +88,8 @@ module.exports = function(router) {
           valueProperty: 'key',
           multiple: false,
           validate: {
-            required: true
-          }
+            required: true,
+          },
         },
         {
           type: 'textfield',
@@ -100,7 +97,7 @@ module.exports = function(router) {
           input: true,
           label: 'Maximum Login Attempts',
           description: 'Use 0 for unlimited attempts',
-          defaultValue: '5'
+          defaultValue: '5',
         },
         {
           type: 'textfield',
@@ -109,7 +106,7 @@ module.exports = function(router) {
           label: 'Login Attempt Time Window',
           description: 'This is the window of time to count the login attempts.',
           defaultValue: '30',
-          suffix: 'seconds'
+          suffix: 'seconds',
         },
         {
           type: 'textfield',
@@ -118,8 +115,8 @@ module.exports = function(router) {
           label: 'Locked Account Wait Time',
           description: 'The amount of time a person needs to wait before they can try to login again.',
           defaultValue: '1800',
-          suffix: 'seconds'
-        }
+          suffix: 'seconds',
+        },
       ]);
     }
 
@@ -142,32 +139,28 @@ module.exports = function(router) {
      */
     /* eslint-disable max-statements */
     checkAttempts(error, req, user, next) {
-      if (!user || !user._id) {
-        return next.call(this, error);
-      }
-
-      if (!this.settings.allowedAttempts) {
-        return next.call(this, error);
+      if (!user || !user._id || !this.settings.allowedAttempts) {
+        return next(error);
       }
 
       const allowedAttempts = parseInt(this.settings.allowedAttempts, 10);
-      if (!allowedAttempts) {
-        return next.call(this, error);
+      if (Number.isNaN(allowedAttempts) || allowedAttempts === 0) {
+        return next(error);
       }
 
       // Initialize the login metadata.
-      if (!user.metadata) {
-          user.metadata = {login: {}};
-      }
-      if (!user.metadata.login) {
-          user.metadata.login = {};
+      if (!_.has(user, 'metadata.login')) {
+        _.set(user, 'metadata.login', {});
       }
 
       const now = (new Date()).getTime();
-      const lastAttempt = parseInt(user.metadata.login.last, 10) || 0;
+      const {
+        login: loginMetadata,
+      } = user.metadata;
+      const lastAttempt = parseInt(loginMetadata.last, 10) || 0;
 
       // See if the login is locked.
-      if (user.metadata.login.locked) {
+      if (loginMetadata.locked) {
         // Get how long they must wait to be locked out.
         let lockWait = parseInt(this.settings.lockWait, 10) || 1800;
 
@@ -177,13 +170,13 @@ module.exports = function(router) {
         // See if the time has expired.
         if ((lastAttempt + lockWait) < now) {
           // Reset the locked state and attempts totals.
-          user.metadata.login.attempts = 0;
-          user.metadata.login.locked = false;
-          user.metadata.login.last = now;
+          loginMetadata.attempts = 0;
+          loginMetadata.locked = false;
+          loginMetadata.last = now;
         }
         else {
           const howLong = (lastAttempt + lockWait) - now;
-          return next.call(this, `You must wait ${this.waitText(howLong / 1000)} before you can login.`);
+          return next(`You must wait ${this.waitText(howLong / 1000)} before you can login.`);
         }
       }
       else if (error) {
@@ -195,29 +188,28 @@ module.exports = function(router) {
         // Determine the login attempts within a certain window.
         const withinWindow = lastAttempt ? ((lastAttempt + attemptWindow) > now) : false;
 
-        if (!withinWindow) {
-          user.metadata.login.attempts = 0;
-          user.metadata.login.last = now;
-        }
-        else {
-          let attempts = parseInt(user.metadata.login.attempts, 10) || 0;
-          attempts++;
+        if (withinWindow) {
+          const attempts = (parseInt(loginMetadata.attempts, 10) || 0) + 1;
 
           // If they exceeded the login attempts.
           if (attempts >= allowedAttempts) {
             const lockWait = parseInt(this.settings.lockWait, 10) || 1800;
             error = `Maximum Login attempts. Please wait ${this.waitText(lockWait)} before trying again.`;
-            user.metadata.login.locked = true;
+            loginMetadata.locked = true;
           }
 
           // Set the login attempts.
-          user.metadata.login.attempts = attempts;
+          loginMetadata.attempts = attempts;
+        }
+        else {
+          loginMetadata.attempts = 0;
+          loginMetadata.last = now;
         }
       }
       else {
         // If there was no error, then reset the attempts to zero.
-        user.metadata.login.attempts = 0;
-        user.metadata.login.last = now;
+        loginMetadata.attempts = 0;
+        loginMetadata.last = now;
       }
 
       // Update the user record
@@ -225,13 +217,14 @@ module.exports = function(router) {
       submissionModel.update(
         {_id: user._id},
         {$set: {metadata: user.metadata}},
-        function(err) {
+        (err) => {
           if (err) {
             log(req, ecode.auth.ELOGINCOUNT, err);
-            return next.call(this, ecode.auth.ELOGINCOUNT);
+            return next(ecode.auth.ELOGINCOUNT);
           }
-          next.call(this, error);
-        }.bind(this)
+
+          next(error);
+        },
       );
     }
     /* eslint-enable max-statements */
@@ -260,21 +253,14 @@ module.exports = function(router) {
         return res.status(400).send('Misconfigured Login Action.');
       }
 
-      if (!req.submission || !req.submission.hasOwnProperty('data')) {
+      if (
+        (!req.submission || !req.submission.hasOwnProperty('data'))
+        || !_.has(req.submission.data, this.settings.username)
+        || !_.has(req.submission.data, this.settings.password)
+      ) {
         return res.status(401).send('User or password was incorrect.');
       }
 
-      // They must provide a username.
-      if (!_.has(req.submission.data, this.settings.username)) {
-        return res.status(401).send('User or password was incorrect.');
-      }
-
-      // They must provide a password.
-      if (!_.has(req.submission.data, this.settings.password)) {
-        return res.status(401).send('User or password was incorrect.');
-      }
-
-      // Perform an authentication.
       router.formio.auth.authenticate(
         req,
         this.settings.resources,
@@ -282,14 +268,14 @@ module.exports = function(router) {
         this.settings.password,
         _.get(req.submission.data, this.settings.username),
         _.get(req.submission.data, this.settings.password),
-        function(err, response) {
+        (err, response) => {
           if (err && !response) {
             log(req, ecode.auth.EAUTH, err);
             return res.status(401).send(err);
           }
 
           // Check the amount of attempts made by this user.
-          this.checkAttempts(err, req, response.user, function(error) {
+          this.checkAttempts(err, req, response.user, (error) => {
             if (error) {
               log(req, ecode.auth.EAUTH, error);
               return res.status(401).send(error);
@@ -300,7 +286,7 @@ module.exports = function(router) {
             req.token = response.token.decoded;
             res.token = response.token.token;
             req['x-jwt-token'] = response.token.token;
-            router.formio.auth.currentUser(req, res, function(err) {
+            router.formio.auth.currentUser(req, res, (err) => {
               if (err) {
                 log(req, ecode.auth.EAUTH, err);
                 return res.status(401).send(err.message);
@@ -308,8 +294,8 @@ module.exports = function(router) {
 
               next();
             });
-          }.bind(this));
-        }.bind(this)
+          });
+        },
       );
     }
   }

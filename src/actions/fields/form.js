@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const utils = require('formiojs/utils').default;
 
-module.exports = router => {
+module.exports = (router) => {
   /**
    * Perform hierarchial submissions of sub-forms.
    */
