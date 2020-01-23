@@ -13,10 +13,8 @@ const debug = {
 const rest = require('restler');
 const util = require('./util');
 const _ = require('lodash');
-const {
-  EMAIL_CHUNK_SIZE = 100,
-  EMAIL_OVERRIDE,
-} = process.env;
+const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
+const EMAIL_CHUNK_SIZE = process.env.EMAIL_CHUNK_SIZE || 100;
 
 /**
  * The email sender for emails.
@@ -59,7 +57,10 @@ module.exports = (formio) => {
           title: 'G-Mail',
         });
       }
-      if (_.get(settings, 'email.sendgrid.auth.api_key')) {
+      if (
+        (_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key'))
+        || ((!_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key')))
+      ) {
         // Omit the username if user has configured sendgrid for api key access.
         if (_.get(settings, 'email.sendgrid.auth.api_user') === 'apikey') {
           settings.email.sendgrid.auth = _.omit(settings.email.sendgrid.auth, 'api_user');
@@ -125,7 +126,7 @@ module.exports = (formio) => {
    * @returns {Promise}
    *   The available substitution values.
    */
-  const getParams = (req, res, form, submission) => {
+  const getParams = (req, res, form, submission) => new Promise((resolve, reject) => {
     let params = _.cloneDeep(submission);
     if (res && res.resource && res.resource.item) {
       if (typeof res.resource.item.toObject === 'function') {
@@ -165,14 +166,15 @@ module.exports = (formio) => {
       }
     });
 
-    return Promise.all(replacements).then(() => {
+    Promise.all(replacements).then(() => {
       // Get the parameters for the email.
       params.form = form;
       // Allow hooks to alter params.
-      params = hook.alter('actionContext', params, req);
-      return params;
-    });
-  };
+      params = hook.alter('actionContext', params, req, );
+      return resolve(params);
+    })
+    .catch(reject);
+  });
 
   /**
    * Util function to run the email through nunjucks.
@@ -182,9 +184,9 @@ module.exports = (formio) => {
    *
    * @return {Promise}
    */
-  const nunjucksInjector = (mail, options) => {
+  const nunjucksInjector = (mail, options) => new Promise((resolve, reject) => {
     if (!mail || !mail.to) {
-      return Promise.reject(`No mail was given to send.`);
+      return reject(`No mail was given to send.`);
     }
 
     const params = options.params;
@@ -204,16 +206,15 @@ module.exports = (formio) => {
       context: params,
       options,
     })
-      .then((injectedEmail) => {
-        debug.nunjucksInjector(injectedEmail);
+    .then((injectedEmail) => {
+      debug.nunjucksInjector(injectedEmail);
+      if (!injectedEmail) {
+        return reject(`An error occurred while processing the Email.`);
+      }
 
-        if (!injectedEmail) {
-          return Promise.reject('An error occurred while processing the Email.');
-        }
-
-        return injectedEmail;
-      });
-  };
+      return resolve(injectedEmail);
+    });
+  });
 
   /**
    * Send an email using the current context data.
@@ -251,6 +252,7 @@ module.exports = (formio) => {
       ? message.transport
       : 'default';
 
+    const _config = (formio && formio.config && formio.config.email && formio.config.email.type);
     debug.send(message);
     debug.send(emailType);
 
@@ -280,45 +282,32 @@ module.exports = (formio) => {
         }
       }
 
-      const {
-        email: emailConfig,
-      } = formio.config;
-
-      const {
-        type,
-      } = emailConfig;
-
       switch (emailType) {
         case 'default':
-          if (type === 'sendgrid') {
+          if (_config && formio.config.email.type === 'sendgrid') {
             /* eslint-disable camelcase */
             // Check if the user has configured sendgrid for api key access.
-            const {
-              username,
-              password,
-            } = emailConfig;
-
-            if (!username && password) {
+            if (!formio.config.email.username && formio.config.email.password) {
               transporter = nodemailer.createTransport(sgTransport({
                 auth: {
-                  api_key: password,
+                  api_key: formio.config.email.password,
                 },
               }));
             }
             else {
               transporter = nodemailer.createTransport(sgTransport({
                 auth: {
-                  api_user: username,
-                  api_key: password,
+                  api_user: formio.config.email.username,
+                  api_key: formio.config.email.password,
                 },
               }));
             }
             /* eslint-enable camelcase */
           }
-          else if (type === 'mandrill') {
+          else if (_config && formio.config.email.type === 'mandrill') {
             transporter = nodemailer.createTransport(mandrillTransport({
               auth: {
-                apiKey: emailConfig.apiKey,
+                apiKey: formio.config.email.apiKey,
               },
             }));
           }
@@ -354,41 +343,41 @@ module.exports = (formio) => {
             };
 
             if (_.has(settings, 'email.smtp.port')) {
-              _settings['port'] = parseInt(settings.email.smtp.port);
+              _settings['port'] = parseInt(_.get(settings, 'email.smtp.port'));
             }
             if (_.has(settings, 'email.smtp.secure')) {
               const boolean = {
                 'true': true,
-                'false': false
+                'false': false,
               };
 
-              _settings['secure'] = _.get(boolean, settings.email.smtp.secure) || false;
+              _settings['secure'] = _.get(boolean, _.get(settings, 'email.smtp.secure')) || false;
             }
             if (_.has(settings, 'email.smtp.ignoreTLS')) {
               const boolean = {
                 'true': true,
-                'false': false
+                'false': false,
               };
 
-              _settings['ignoreTLS'] = _.get(boolean, settings.email.smtp.ignoreTLS) || false;
+              _settings['ignoreTLS'] = _.get(boolean, _.get(settings, 'email.smtp.ignoreTLS')) || false;
             }
             if (_.has(settings, 'email.smtp.host')) {
-              _settings['host'] = settings.email.smtp.host;
+              _settings['host'] = _.get(settings, 'email.smtp.host');
             }
             if (
               _.has(settings, 'email.smtp.auth') &&
-              settings.email.smtp.auth.user
+              _.get(settings, 'email.smtp.auth.user', false)
             ) {
               _settings['auth'] = {
-                user: settings.email.smtp.auth.user,
-                pass: settings.email.smtp.auth.pass,
+                user: _.get(settings, 'email.smtp.auth.user'),
+                pass: _.get(settings, 'email.smtp.auth.pass'),
               };
             }
             if (
               _.get(settings, 'email.smtp.allowUnauthorizedCerts', false)
             ) {
               _settings['tls'] = {
-                rejectUnauthorized: false
+                rejectUnauthorized: false,
               };
             }
 
