@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.63.9
+### Fixed
+ - Fixed some more email issues with BCC and CC.
+
 ## 1.63.8
 ### Added
  - Added support for Cc and Bcc for Email action.
