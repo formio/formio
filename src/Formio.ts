@@ -8,6 +8,7 @@ import {cron} from './cron';
 import cronTasks from './cronTasks';
 import {actions} from './entities/Submission/actions';
 import {log} from './log';
+import {routes as routeClasses} from './routes';
 
 export class Formio extends Api {
   protected cronjob;
@@ -50,6 +51,13 @@ export class Formio extends Api {
 
   get cronTasks() {
     return cronTasks;
+  }
+
+  get routeClasses() {
+    return {
+      ...super.routeClasses,
+      ...routeClasses,
+    };
   }
 
   public getStatus(status: any = {}) {
