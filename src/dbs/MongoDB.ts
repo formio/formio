@@ -5,8 +5,8 @@ import { log as consoleLog } from '../log';
 import { PreserveModel } from './PreserveModel';
 
 export class MongoDB extends Database {
-  private dbs: {};
-  private collections: {};
+  protected dbs: {};
+  private collections: [string];
 
   constructor(config) {
     super(config);
@@ -55,7 +55,7 @@ export class MongoDB extends Database {
     return await db.collection(name);
   }
 
-  public async getCollections(database = this.config.database) {
+  public async getCollections(database = this.config.database): Promise<[string]> {
     const db = await this.getDb(database);
 
     return new Promise((resolve, reject) => {
@@ -74,14 +74,15 @@ export class MongoDB extends Database {
     return await db.collection(collection).indexes();
   }
 
-  public async createCollection(name, options, database = this.config.database) {
+  public async createCollection(name, schema, database = this.config.database) {
     const db = await this.getDb(database);
-    return await db.createCollection(name, options);
+    return await db.createCollection(name);
   }
 
   public async createIndex(collection, def, options, database = this.config.database) {
+    log('debug', 'Index', database, collection, def);
     const db = await this.getDb(database);
-    return await db.collection(collection).createIndex(def, options)
+    return await db.collection(collection).ensureIndex(def, options)
       .catch(() => {/* Swallow errors.*/});
   }
 
