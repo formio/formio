@@ -201,14 +201,25 @@ module.exports = (router) => {
 
         debug.handler(user);
 
-        // Check if the user has reset the password since the token was issued.
-        if (user.metadata && user.metadata.jwtIssuedAfter && decoded.iat < user.metadata.jwtIssuedAfter) {
-          router.formio.log('Token', req, 'Token No Longer Valid');
-          return res.status(440).send('Token No Longer Valid');
-        }
+        hook.alter('validateToken', req, decoded, user, (err) => {
+          if (err) {
+            return noToken();
+          }
 
-        // Call the user handler.
-        userHandler(req, res, decoded, token, user, next);
+          // Check if the user has reset the password since the token was issued.
+          if (
+            !req.skipTokensValidation
+            && user.metadata
+            && user.metadata.jwtIssuedAfter
+            && decoded.iat < user.metadata.jwtIssuedAfter
+          ) {
+            router.formio.log('Token', req, 'Token No Longer Valid');
+            return res.status(440).send('Token No Longer Valid');
+          }
+
+          // Call the user handler.
+          userHandler(req, res, decoded, token, user, next);
+        });
       });
     });
   };

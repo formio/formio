@@ -3,8 +3,10 @@
 const _ = require('lodash');
 
 module.exports = (formio) => {
-  const encryptField =(component, data, next) => {
-    formio.encrypt(_.get(data, component.key), function encryptResults(err, hash) {
+  const hook = require('../../util/hook')(formio);
+
+  const encryptField = (component, data, next) => {
+    formio.encrypt(_.get(data, component.key), (err, hash) => {
       if (err) {
         return next(err);
       }
@@ -14,7 +16,7 @@ module.exports = (formio) => {
     });
   };
 
-  return async (component, data, handler, action, {validation, path, req}) => {
+  return async (component, data, handler, action, {validation, path, req, res}) => {
     switch (handler) {
       case 'beforeGet':
         req.modelQuery.select(`-data.${path}${component.key}`);
@@ -28,11 +30,18 @@ module.exports = (formio) => {
                 if (err) {
                   return reject(err);
                 }
-                return resolve();
+                // Since the password was changed, invalidate all user tokens.
+                hook.alter('invalidateTokens', req, res, (err) => {
+                  if (err) {
+                    return reject(err);
+                  }
+
+                  if (!req.skipTokensInvalidation) {
+                    _.set(req.body, 'metadata.jwtIssuedAfter', req.tokenIssued || (Date.now() / 1000));
+                  }
+                  resolve();
+                });
               });
-              // Since the password was changed, invalidate all user tokens.
-              req.body.metadata = req.body.metadata || {};
-              req.body.metadata.jwtIssuedAfter = req.tokenIssued || (Date.now() / 1000);
             }
             else {
               // If there is no password provided.
