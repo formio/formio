@@ -1,6 +1,6 @@
 {
   "name": "@formio/ce",
-  "version": "2.0.0-m.4",
+  "version": "2.0.0-m.3",
   "description": "Community Edition of form.io",
   "license": "Unlicensed",
   "main": "lib/index.js",
