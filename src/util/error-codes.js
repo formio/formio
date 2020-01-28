@@ -50,6 +50,6 @@ module.exports = {
   },
   resource: {
     ENOIDP:        'Resource id is misssing.',
-    ENOHANDLER:    'Resource handler not found.'
-  }
+    ENOHANDLER:    'Resource handler not found.',
+  },
 };

@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.63.9
+### Fixed
+ - Fixed some more email issues with BCC and CC.
+
+## 1.63.8
+### Added
+ - Added support for Cc and Bcc for Email action.
+ 
+### Fixed
+ - Fixed file component validations.
+ 
+### Changed
+ - Upgrade config@3.2.5, mongoose@5.8.9, mongodb@3.5.2
+
 ## 1.63.7
 ### Fixed
  - Tests to ignore controller form property.
