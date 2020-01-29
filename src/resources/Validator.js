@@ -36,7 +36,12 @@ Evaluator.evaluator = function(func, args) {
   };
 };
 
-const {Formio} = require('formiojs/formio.form.js');
+const {Displays, Formio} = require('formiojs/formio.form.js');
+
+// Remove onChange events from all displays.
+_.each(Displays.displays, (display) => {
+  display.prototype.onChange = _.noop;
+});
 
 /**
  * @TODO: Isomorphic validation system.
@@ -98,9 +103,6 @@ class Validator {
         }
       }
     }).then((form) => {
-      // Disable change events.
-      form.onChange = _.noop;
-
       // Set the validation config.
       form.validator.config = {
         db: this.model,

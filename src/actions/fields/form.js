@@ -45,6 +45,10 @@ module.exports = router => {
           _.each(err.details, (details) => {
             if (details.path) {
               details.path = `${path}.data.${details.path}`;
+              details.path = details.path.replace(/[[\]]/g, '.')
+                .replace(/\.\./g, '.')
+                .split('.')
+                .map(part => _.defaultTo(_.toNumber(part), part));
             }
           });
         }

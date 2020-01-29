@@ -2491,7 +2491,7 @@ module.exports = function(app, template, hook) {
             "suffix": "",
             "multiple": true,
             "defaultValue": "",
-            "protected": true,
+            "protected": false,
             "unique": false,
             "persistent": true,
             "validate": {
@@ -2527,6 +2527,58 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(submission.data, {
               textField: ['My Value']
             });
+            done();
+          });
+      });
+
+      it('Should remove protected fields from the response.', function(done) {
+        var components = [
+          {
+            "input": true,
+            "tableView": true,
+            "inputType": "text",
+            "inputMask": "",
+            "label": "Text Field",
+            "key": "textField",
+            "placeholder": "",
+            "prefix": "",
+            "suffix": "",
+            "multiple": true,
+            "defaultValue": "",
+            "protected": true,
+            "unique": false,
+            "persistent": true,
+            "validate": {
+              "required": false,
+              "minLength": "",
+              "maxLength": "",
+              "pattern": "",
+              "custom": "",
+              "customPrivate": false
+            },
+            "conditional": {
+              "show": null,
+              "when": null,
+              "eq": ""
+            },
+            "type": "textfield"
+          }
+        ];
+        var values = {
+          textField: 'My Value'
+        };
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, {});
             done();
           });
       });
@@ -2704,9 +2756,11 @@ module.exports = function(app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
-            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details.length, 2);
             assert.equal(helper.lastResponse.body.details[0].message, 'Text Field is required');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+            assert.equal(helper.lastResponse.body.details[1].message, 'Text Field must be a non-empty array');
+            assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
             done();
           });
       });
