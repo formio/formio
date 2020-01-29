@@ -2311,20 +2311,24 @@ module.exports = function(app, template, hook) {
               input: true
             },
             {
-              type: 'selectboxes',
+              type: 'select',
               label: 'Roles',
               key: 'roles',
               input: true,
-              values: [
-                {
-                  label: 'Administrator',
-                  value: 'administrator'
-                },
-                {
-                  label: 'Authenticated',
-                  value: 'authenticated'
-                }
-              ]
+              multiple: true,
+              dataSrc: 'values',
+              data: {
+                values: [
+                  {
+                    label: 'Administrator',
+                    value: 'administrator'
+                  },
+                  {
+                    label: 'Authenticated',
+                    value: 'authenticated'
+                  }
+                ]
+              }
             }
           ])
           .action({

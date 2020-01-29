@@ -488,109 +488,112 @@ module.exports = {
     email2: 'none2@example.com',
     phoneNumber2: '3947573039',
     address2: {
-      "address_components": [
-        {
-          "long_name": "123",
-          "short_name": "123",
-          "types": [
-            "street_number"
-          ]
-        },
-        {
-          "long_name": "Fake Drive",
-          "short_name": "Fake Dr",
-          "types": [
-            "route"
-          ]
-        },
-        {
-          "long_name": "Luray",
-          "short_name": "Luray",
-          "types": [
-            "locality",
-            "political"
-          ]
-        },
-        {
-          "long_name": "1, West Luray",
-          "short_name": "1, West Luray",
-          "types": [
-            "administrative_area_level_3",
-            "political"
-          ]
-        },
-        {
-          "long_name": "Page County",
-          "short_name": "Page County",
-          "types": [
-            "administrative_area_level_2",
-            "political"
-          ]
-        },
-        {
-          "long_name": "Virginia",
-          "short_name": "VA",
-          "types": [
-            "administrative_area_level_1",
-            "political"
-          ]
-        },
-        {
-          "long_name": "United States",
-          "short_name": "US",
-          "types": [
-            "country",
-            "political"
-          ]
-        },
-        {
-          "long_name": "22835",
-          "short_name": "22835",
-          "types": [
-            "postal_code"
-          ]
-        },
-        {
-          "long_name": "2722",
-          "short_name": "2722",
-          "types": [
-            "postal_code_suffix"
-          ]
-        }
-      ],
+      "mode": "autocomplete",
+      "address": {
+        "address_components": [
+          {
+            "long_name": "123",
+            "short_name": "123",
+            "types": [
+              "street_number"
+            ]
+          },
+          {
+            "long_name": "Fake Drive",
+            "short_name": "Fake Dr",
+            "types": [
+              "route"
+            ]
+          },
+          {
+            "long_name": "Luray",
+            "short_name": "Luray",
+            "types": [
+              "locality",
+              "political"
+            ]
+          },
+          {
+            "long_name": "1, West Luray",
+            "short_name": "1, West Luray",
+            "types": [
+              "administrative_area_level_3",
+              "political"
+            ]
+          },
+          {
+            "long_name": "Page County",
+            "short_name": "Page County",
+            "types": [
+              "administrative_area_level_2",
+              "political"
+            ]
+          },
+          {
+            "long_name": "Virginia",
+            "short_name": "VA",
+            "types": [
+              "administrative_area_level_1",
+              "political"
+            ]
+          },
+          {
+            "long_name": "United States",
+            "short_name": "US",
+            "types": [
+              "country",
+              "political"
+            ]
+          },
+          {
+            "long_name": "22835",
+            "short_name": "22835",
+            "types": [
+              "postal_code"
+            ]
+          },
+          {
+            "long_name": "2722",
+            "short_name": "2722",
+            "types": [
+              "postal_code_suffix"
+            ]
+          }
+        ],
         "formatted_address": "123 Fake Dr, Luray, VA 22835, USA",
         "geometry": {
-        "bounds": {
-          "northeast": {
-            "lat": 38.7062041,
+          "bounds": {
+            "northeast": {
+              "lat": 38.7062041,
               "lng": -78.5065
-          },
-          "southwest": {
-            "lat": 38.70619,
+            },
+            "southwest": {
+              "lat": 38.70619,
               "lng": -78.5065048
-          }
-        },
-        "location": {
-          "lat": 38.7062041,
-            "lng": -78.5065
-        },
-        "location_type": "RANGE_INTERPOLATED",
-          "viewport": {
-          "northeast": {
-            "lat": 38.7075460302915,
-              "lng": -78.50515341970849
+            }
           },
-          "southwest": {
-            "lat": 38.7048480697085,
+          "location": {
+            "lat": 38.7062041,
+            "lng": -78.5065
+          },
+          "location_type": "RANGE_INTERPOLATED",
+          "viewport": {
+            "northeast": {
+              "lat": 38.7075460302915,
+              "lng": -78.50515341970849
+            },
+            "southwest": {
+              "lat": 38.7048480697085,
               "lng": -78.50785138029151
+            }
           }
-        }
-      },
-      "partial_match": true,
+        },
+        "partial_match": true,
         "place_id": "EiExMjMgRmFrZSBEciwgTHVyYXksIFZBIDIyODM1LCBVU0E",
         "types": [
-        "street_address"
-      ]
+          "street_address"
+        ]
+      }
     },
     dateTime2: '2016-08-23T21:48:10.225Z',
     currency2: '2,000',

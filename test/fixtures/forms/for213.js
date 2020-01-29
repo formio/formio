@@ -70,41 +70,44 @@ module.exports = {
   }],
   submission: {
     "for213": {
-      "address_components": [{
-        "long_name": "Estonia",
-        "short_name": "EE",
+      "mode": "autocomplete",
+      "address": {
+        "address_components": [{
+          "long_name": "Estonia",
+          "short_name": "EE",
+          "types": ["country", "political"]
+        }],
+        "formatted_address": "Estonia",
+        "geometry": {
+          "bounds": {
+            "northeast": {
+              "lat": 59.7315,
+              "lng": 28.2101389
+            },
+            "southwest": {
+              "lat": 57.50931600000001,
+              "lng": 21.6540999
+            }
+          },
+          "location": {
+            "lat": 58.595272,
+            "lng": 25.013607
+          },
+          "location_type": "APPROXIMATE",
+          "viewport": {
+            "northeast": {
+              "lat": 59.7001516,
+              "lng": 28.2089248
+            },
+            "southwest": {
+              "lat": 57.5093539,
+              "lng": 21.7643721
+            }
+          }
+        },
+        "place_id": "ChIJ_UuggpyUkkYRwyW0T7qf6kA",
         "types": ["country", "political"]
-      }],
-      "formatted_address": "Estonia",
-      "geometry": {
-        "bounds": {
-          "northeast": {
-            "lat": 59.7315,
-            "lng": 28.2101389
-          },
-          "southwest": {
-            "lat": 57.50931600000001,
-            "lng": 21.6540999
-          }
-        },
-        "location": {
-          "lat": 58.595272,
-          "lng": 25.013607
-        },
-        "location_type": "APPROXIMATE",
-        "viewport": {
-          "northeast": {
-            "lat": 59.7001516,
-            "lng": 28.2089248
-          },
-          "southwest": {
-            "lat": 57.5093539,
-            "lng": 21.7643721
-          }
-        }
-      },
-      "place_id": "ChIJ_UuggpyUkkYRwyW0T7qf6kA",
-      "types": ["country", "political"]
+      }
     }
   }
 };

@@ -2133,7 +2133,6 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
             var submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
@@ -2518,28 +2517,16 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
-          .expect(400)
+          .expect(201)
           .execute(function(err) {
             if (err) {
               return done(err);
             }
 
             var submission = helper.getLastSubmission();
-            assert.equal(submission.name, 'ValidationError');
-            assert.deepEqual(submission.details, [
-              {
-                context: {
-                  key: 'textField',
-                  label: 'Text Field',
-                  setting: true,
-                  validator: 'multiple',
-                  value: 'My Value'
-                },
-                message: 'Text Field must be an array',
-                path: ['textField'],
-                level: 'error'
-              }
-            ]);
+            assert.deepEqual(submission.data, {
+              textField: ['My Value']
+            });
             done();
           });
       });
