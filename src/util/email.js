@@ -429,9 +429,9 @@ module.exports = (formio) => {
 
       const {
         from,
-        emails = '',
-        cc = '',
-        bcc = '',
+        emails,
+        cc,
+        bcc,
         subject,
         message: html,
         transport,
@@ -440,13 +440,20 @@ module.exports = (formio) => {
       const mail = {
         from: from || 'no-reply@form.io',
         to: formatNodemailerEmailAddress(emails),
-        cc: formatNodemailerEmailAddress(cc),
-        bcc: formatNodemailerEmailAddress(bcc),
         subject,
         html,
         msgTransport: transport,
         transport: emailType,
       };
+
+      if (cc && cc.length) {
+        mail.cc = formatNodemailerEmailAddress(cc);
+      }
+
+      if (bcc && bcc.length) {
+        mail.bcc = formatNodemailerEmailAddress(bcc);
+      }
+
       const options = {
         params,
       };
