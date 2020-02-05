@@ -151,12 +151,16 @@ module.exports = (router) => {
               // Array for promises
               const promises = [];
 
-               _.each(data, (field, key) => {
+              _.each(data, (field, key) => {
                 if (field && field._id) {
                   // Add data property for resource fields
                   promises.push(
                     submissionModel.findById(field._id).populate('form').select('form data')
                       .then(result => {
+                        if (!result) {
+                          return;
+                        }
+
                         // Recurse for nested resources
                         return addSubData(result.data)
                           .then(res => newData[key] = {data: res});
