@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.63.10
+### Fixed
+ - FOR-2608: Fixed Cc and Bcc for Mailgun.
+ - FOR-2603: Fixed issue when server would throw an error if nested submission was not found.
+
+### Added
+ - Added missing variables to check conditional context.
+
+### Changed
+ - Upgraded formiojs@4.8.1, mongoose@5.8.11, mysql@2.18.1
+
 ## 1.63.9
 ### Fixed
  - Fixed some more email issues with BCC and CC.
@@ -11,17 +22,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 1.63.8
 ### Added
  - Added support for Cc and Bcc for Email action.
- 
+
 ### Fixed
  - Fixed file component validations.
- 
+
 ### Changed
  - Upgrade config@3.2.5, mongoose@5.8.9, mongodb@3.5.2
 
 ## 1.63.7
 ### Fixed
  - Tests to ignore controller form property.
- 
+
 ### Changed
  - Upgrade mongoose@5.8.6
 
@@ -36,7 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 1.63.4
 ### Fixed
  - Issue where Swagger could throw an unhandled error.
- 
+
 ### Changed
  - Upgraded resourcejs@1.38.0
 
@@ -62,7 +73,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 1.62.0
 ### Added
  - ```create``` Group Permissions layer
- 
+
 ### Changed
  - ```write``` and ```admin``` Group Permissions layers to have ability to create submissions
 
@@ -98,7 +109,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 1.60.5
 ### Changed
  - Upgraded formiojs@4.6.1, resourcejs@1.37.0
- 
+
 ### Added
  - Submission filter queries to the export functions.
 
@@ -142,7 +153,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Upgrade formio-workers to 1.14.0 https://github.com/formio/formio-workers/blob/master/Changelog.md#v1140
 
 ### Changed
- - Upgraded mongoose@5.7.1 
+ - Upgraded mongoose@5.7.1
 
 ## 1.58.0
 ### Changed
@@ -163,7 +174,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ### Changed
  - Upgraded formio-workers to 1.13.0 to resolve email issue with empty file uploads.
- - Upgrade mongoose to 5.7.0 
+ - Upgrade mongoose to 5.7.0
 
 ## 1.55.0
 ### Added
@@ -197,7 +208,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 1.50.0
 ### Added
  - Token schema
- 
+
 ## Fixed
  - Issue with CSV export crashing server when timing is off
  - Add own filter to count query
@@ -218,24 +229,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Fix some issues with protecting password fields.
 
 ## 1.48.1
-### Fixed 
+### Fixed
  - Wait for saves in setActionItemMessage function.
 
 ## 1.48.0
 ### Added
  - ActionItem resource for logging action information.
- 
+
 ### Fixed
  - Fix some issues with protecting password fields.
  - On index, only return if a file is uploaded for base64 files.
- 
+
 ### Changed
  - Update dependencies.
 
 ## 1.46.0
 ### Changed
  - Upgraded mongodb@3.2.4, mongoose@5.5.8, nodemailer@6.1.1, body-parser@1.19.0, formiojs@3.20.14, nodemon@1.19.0
- 
+
 ### Fixed
  - Form properties in export.
  - Ensure that the loadSubForms honors the form revision settings within the form components.
@@ -263,7 +274,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 1.44.5
 ### Fixed
  - Encrypted values not available in emails.
- 
+
 ### Added
  - Ability to hook into email/webhook params.
 
@@ -277,18 +288,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 1.44.3
 ### Fixed
  - Problems where sub-forms are submitting when "reference" is disabled on the component.
- 
+
 ## 1.44.2
 ### Fixed
  - FOR-2143: Protected fields being exposed for SAR select resources
- 
+
 ### Changed
  - Upgraded mongoose@5.4.22
 
 ## 1.44.1
 ### Fixed
  - Submission role tests for the enterprise server.
- 
+
 ### Changed
  - Upgraded formiojs@3.18.4
 
@@ -324,7 +335,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Added a more efficient and complete role checking mechanism for permission handling.
 
 ### Changed
- - Updated bcrypt@3.0.5, jsonwebtoken@8.5.1, mssql@5.0.3, eslint@5.15.3, supertest@4.0.2, formiojs@3.17.4 
+ - Updated bcrypt@3.0.5, jsonwebtoken@8.5.1, mssql@5.0.3, eslint@5.15.3, supertest@4.0.2, formiojs@3.17.4
 
 ## 1.42.1
 ### Fixed
@@ -344,7 +355,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 1.41.2
 ### Fixed
  - Issues with the nested subform create and update when called from the API.
- 
+
 ### Changed
  - Updated mocha@6.0.1
 
@@ -352,7 +363,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - Default the email action to have a default email template.
  - Upgraded mongoose@5.4.14, mssql@4.3.2, request-promise-native@1.0.7, formiojs@3.15.6, jsonwebtoken@8.5.0, eslint@5.14.1, mocha@6.0.0
- 
+
 ### Fixed
  - Issue with subform validation to not include subforms that are conditionally hidden.
  - Issue with subform validation where it will not process the subform requests if the subform is not present within the data.
@@ -363,25 +374,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Added
  - PATCH method support for submissions.
  - Now allow more than GET requests to be skipped for permissions checks.
- 
+
 ### Changed
  - Upgraded async@2.6.2, bcrypt@3.0.4, mongoose@5.4.10, nodemon@1.18.10, formiojs@3.14.1
 
 ## 1.40.2
-### Fixed 
+### Fixed
  - When resetting passwords, jwtIssuedAfter sometimes got set to wrong timestamp resulting in invalid tokens.
 
 ## 1.40.1
 ### Added
  - Ability to connect to SA enabled mongodb instances.
- 
+
 ### Changed
  - Updated formiojs@3.13.9, mongoose@5.4.9, mssql@4.3.1, supertest@3.4.2, moment@2.24.0, eslint@5.13.0
-  
+
 ## 1.40.0
 ### Added
  - reCAPTCHA API Endpoint
- 
+
 ### Changed
  - mongodb@3.1.13, formiojs@3.13.0
 
@@ -392,12 +403,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 1.39.1
 ### Fixed
  - Issue where read all permissions are ignored when resource submission access is established.
- 
+
 ### Changed
  - Upgraded csv@5.1.1, mongodb@3.1.12, mongoose@5.4.5, formiojs@3.12.2, nodemailer@5.1.1, eslint@5.12.1, supertest@3.4.1
 
 ## 1.39.0
-### Changed 
+### Changed
  - Added more permissions form matching during import process to resolve conflicts.
 
 ## 1.38.0
@@ -445,7 +456,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ### Changed
  - Respond with 400 errors instead of 500 when an error occurs.
- 
+
 ### Updated
  - resourcejs 1.30.0
 
