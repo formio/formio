@@ -24,7 +24,7 @@ const debug = {
  * @param {Object} data
  *   The full submission data.
  */
-const checkConditional = (component, row, data, recurse = false) => {
+const checkConditional = (form, component, row, data, recurse = false) => {
   let isVisible = true;
 
   if (!component || !component.hasOwnProperty('key')) {
@@ -37,7 +37,11 @@ const checkConditional = (component, row, data, recurse = false) => {
       // Create the sandbox.
       const sandbox = vm.createContext({
         data,
-        row
+        row,
+        component,
+        moment,
+        _,
+        form,
       });
 
       // Execute the script.
@@ -67,7 +71,7 @@ const checkConditional = (component, row, data, recurse = false) => {
 
   // If visible and recurse, continue down tree to check parents.
   if (isVisible && recurse && component.parent.type !== 'form') {
-    return !component.parent || checkConditional(component.parent, row, data, true);
+    return !component.parent || checkConditional(form, component.parent, row, data, true);
   }
   else {
     return isVisible;
@@ -179,18 +183,18 @@ const getRules = (type) => [
     name: 'hidden',
     params: {
       component: Joi.any(),
-      data: Joi.any()
+      data: Joi.any(),
+      form: Joi.any(),
     },
     validate(params, value, state, options) {
       // If we get here than the field has thrown an error.
       // If we are hidden, sanitize the data and return true to override the error.
       // If not hidden, return an error so the original error remains on the field.
 
-      const component = params.component;
-      const data = params.data;
+      const {component, data, form} = params;
       const row = state.parent;
 
-      const isVisible = checkConditional(component, row, data, true);
+      const isVisible = checkConditional(form, component, row, data, true);
 
       if (isVisible) {
         return value;
@@ -804,7 +808,7 @@ class Validator {
 
       // Only run validations for persistent fields.
       if (component.key && fieldValidator && isPersistent) {
-        schema[component.key] = fieldValidator.hidden(component, submission.data);
+        schema[component.key] = fieldValidator.hidden(component, submission.data, this.form);
       }
     });
     /* eslint-enable max-statements */
@@ -998,7 +1002,7 @@ class Validator {
                 // Form "data" keys don't have components.
                 if (component) {
                   result.hidden = result.hidden ||
-                    !checkConditional(component,
+                    !checkConditional(this.form, component,
                       _.get(value, result.path.slice(0, result.path.length - 1), value), result.submission, true);
 
                   const clearOnHide = util.isBoolean(_.get(component, 'clearOnHide')) ?
