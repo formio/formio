@@ -200,7 +200,21 @@ module.exports = function(router) {
     {
       convertIds: /(^|\.)(_id|form|owner)$/
     }
-  ).rest(hook.alter('submissionRoutes', handlers));
+  ).rest(hook.alter('submissionRoutes', {
+    ...handlers,
+    hooks: {
+      put: {
+        before(req, res, item, next) {
+          if (item.data) {
+            item.markModified('data');
+          }
+
+          return next();
+        }
+      },
+    }
+  }));
+
   _.each(handlers, (handler) => {
     _.each(handler, (fn, index) => {
       handler[index] = fn.bind(submissionResource);
