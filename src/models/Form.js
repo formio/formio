@@ -49,6 +49,25 @@ module.exports = (formio) => {
     return _(shortcuts);
   };
 
+  const componentEmptyLogics = (components) => {
+    const emptyLogics = [];
+
+    util.eachComponent(components, (component, path) => {
+      if (component.logic && component.logic.length > 0) {
+        const empty = component.logic.filter(logic => {
+          const trigger = logic.trigger;
+          return trigger && trigger.type && !trigger[trigger.type];
+        });
+
+        if (empty && empty.length) {
+          emptyLogics.push({[component.key] : [...empty]});
+        }
+      }
+    });
+
+    return emptyLogics;
+  };
+
   const uniqueMessage = 'may only contain letters, numbers, hyphens, and forward slashes ' +
     '(but cannot start or end with a hyphen or forward slash)';
   const uniqueValidator = (property) => async function(value) {
@@ -199,6 +218,23 @@ module.exports = (formio) => {
               }
 
               throw new Error(msg + diff.value().join(', '));
+            }
+          },
+          {
+            validator: async (components) => {
+              const emptyLogics = componentEmptyLogics(components);
+              const msg = 'Component triggers must be not empty: ';
+
+              if (emptyLogics && emptyLogics.length) {
+                const componentsWithEmptyLogics = [];
+                emptyLogics.forEach(logics => _.forOwn(logics, (logic, component) => {
+                  componentsWithEmptyLogics.push(`[${component}]: ${logic.map(logic => logic.name).join(', ')}`);
+                }));
+
+                throw new Error(msg + componentsWithEmptyLogics.join(', '));
+              }
+
+              return true;
             }
           }
         ]
