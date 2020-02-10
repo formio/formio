@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.63.11
+### Fixed
+ - Set sort order of exports.
+
 ## 1.63.10
 ### Fixed
  - FOR-2608: Fixed Cc and Bcc for Mailgun.
