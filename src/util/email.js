@@ -446,8 +446,8 @@ module.exports = (formio) => {
         transport: emailType,
       };
 
-      const cc = rawCc.map(_.trim).filter(Boolean);
-      const bcc = rawBcc.map(_.trim).filter(Boolean);
+      const cc = (rawCc || []).map(_.trim).filter(Boolean);
+      const bcc = (rawBcc || []).map(_.trim).filter(Boolean);
 
       if (cc.length) {
         mail.cc = formatNodemailerEmailAddress(cc);
