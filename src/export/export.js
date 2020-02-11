@@ -182,7 +182,8 @@ module.exports = (router) => {
             }
 
             // Create the query stream.
-            const cursor = submissionModel.find(hook.alter('submissionQuery', query, req)).lean().cursor();
+            const cursor = submissionModel.find(hook.alter('submissionQuery', query, req))
+              .sort('-created').lean().cursor();
             const promises = [];
 
             const stream = cursor.pipe(through(function(row) {
