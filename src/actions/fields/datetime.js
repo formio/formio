@@ -9,5 +9,8 @@ module.exports = formio => async (component, data, handler, action, {validation}
       value = _.isArray(value) ? value.map(val => val ? new Date(val) : '') : new Date(value);
       _.set(data, component.key, value);
     }
+    else if (value === '') {
+      _.set(data, component.key, null);
+    }
   }
 };
