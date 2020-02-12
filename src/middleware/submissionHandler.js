@@ -382,7 +382,7 @@ module.exports = (router, resourceName, resourceId) => {
             // If an update exists.
             if (Object.keys(submissionUpdate).length) {
               const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-              submissionModel.update({
+              submissionModel.updateOne({
                 _id: res.resource.item._id
               }, {'$set': submissionUpdate}, done);
             }

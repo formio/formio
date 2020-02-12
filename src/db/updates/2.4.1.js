@@ -50,7 +50,7 @@ module.exports = function(db, config, tools, done) {
       // Call each deleteFn with submission as the argument
       _.invoke(formsToPurge[submission.form.toString()], Function.call, null, submission);
       // Update new submission
-      updatePromises.push(submissions.update({_id: submission._id}, submission));
+      updatePromises.push(submissions.updateOne({_id: submission._id}, submission));
     }, function() {
       // Finish when all updates are done.
       Q.all(updatePromises)

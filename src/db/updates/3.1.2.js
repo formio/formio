@@ -24,7 +24,7 @@ module.exports = function(db, config, tools, done) {
           if (refId) {
             const update = {};
             update[`data.${path}._id`] = new ObjectID(refId);
-            submissions.update({_id: submission._id}, {$set: update});
+            submissions.updateOne({_id: submission._id}, {$set: update});
           }
         });
       }

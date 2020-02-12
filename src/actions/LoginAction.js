@@ -222,7 +222,7 @@ module.exports = function(router) {
 
       // Update the user record
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.update(
+      submissionModel.updateOne(
         {_id: user._id},
         {$set: {metadata: user.metadata}},
         function(err) {

@@ -52,7 +52,7 @@ module.exports = function(db, config, tools, done) {
         });
 
         // Update the form with the new component keys.
-        formCollection.update({_id:form._id}, {$set:{components:form.components}});
+        formCollection.updateOne({_id:form._id}, {$set:{components:form.components}});
 
         // Query for the resource this auth action is pointing to.
         let query = {name: resource};
@@ -109,7 +109,7 @@ module.exports = function(db, config, tools, done) {
             deleted: null
           });
 
-          actionCollection.remove({_id: action._id});
+          actionCollection.deleteOne({_id: action._id});
           next();
         });
       });

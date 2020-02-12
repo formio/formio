@@ -224,7 +224,7 @@ module.exports = function(formio) {
             const settings = tools.decrypt(config.mongoSecretOld, project.settings_encrypted.buffer);
             if (settings) {
               /* eslint-disable camelcase */
-              projects.update(
+              projects.updateOne(
                 {_id: project._id},
                 {
                   $set: {

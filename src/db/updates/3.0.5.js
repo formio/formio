@@ -76,7 +76,7 @@ module.exports = function(db, config, tools, done) {
         debug.fixSubmissionUniques(update);
       }
 
-      submissionCollection.update(
+      submissionCollection.updateOne(
         {_id: tools.util.idToBson(submission._id)},
         {$set: update},
         function(err) {

@@ -62,12 +62,12 @@ module.exports = function(db, config, tools, done) {
           });
 
           // Handle #4 case
-          actionCollection.remove({_id: resourceAction._id});
+          actionCollection.deleteOne({_id: resourceAction._id});
         }
 
         if (noSubmitAction) {
           // Handle #3 case
-          actionCollection.remove({_id: noSubmitAction._id});
+          actionCollection.deleteOne({_id: noSubmitAction._id});
         }
         else if (!resetpassAction) {
           // Handle #2 case

@@ -569,6 +569,7 @@ const Utils = {
     );
   },
 
+  /* eslint-disable new-cap */
   base64: {
     /**
      * Base64 encode the given data.
@@ -580,7 +581,7 @@ const Utils = {
      *   The base64 representation of the given data.
      */
     encode(decoded) {
-      return new Buffer(decoded.toString()).toString('base64');
+      return new Buffer.from(decoded.toString()).toString('base64');
     },
     /**
      * Base64 decode the given data.
@@ -592,9 +593,10 @@ const Utils = {
      *   The ascii representation of the given encoded data.
      */
     decode(encoded) {
-      return new Buffer(encoded.toString()).toString('ascii');
+      return new Buffer.from(encoded.toString()).toString('ascii');
     }
   },
+  /* eslint-enable new-cap */
 
   /**
    * Retrieve a unique machine name
