@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.64.0
+### Fixed
+ - All deprecations and warnings.
+
+### Changed
+ - Upgrade mongodb@3.5.3, request@2.88.2, adm-zip@0.4.14, async@3.1.1, mssql@6.0.1, nodemailer-mailgun-transport@2.0.0, semver@7.1.3, mocha@7.0.1, nodemon@2.0.2
+
 ## 1.63.11
 ### Fixed
  - Set sort order of exports.
