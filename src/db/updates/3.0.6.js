@@ -48,7 +48,7 @@ module.exports = function(db, config, tools, done) {
     },
     function randomizeBrokenFormPaths(forms, next) {
       async.each(forms, function(form, callback) {
-        formCollection.update({_id: tools.util.idToBson(form._id)}, {$set: {path: chance.word()}}, function(err) {
+        formCollection.updateOne({_id: tools.util.idToBson(form._id)}, {$set: {path: chance.word()}}, function(err) {
           if (err) {
             return callback(err);
           }

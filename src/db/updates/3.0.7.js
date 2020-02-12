@@ -38,7 +38,7 @@ module.exports = function(db, config, tools, done) {
     },
     function fixTypes(forms, next) {
       async.each(forms, function(form, callback) {
-        formCollection.update({_id: tools.util.idToBson(form._id)}, {$set: {type: 'form'}}, function(err) {
+        formCollection.updateOne({_id: tools.util.idToBson(form._id)}, {$set: {type: 'form'}}, function(err) {
           if (err) {
             return callback(err);
           }

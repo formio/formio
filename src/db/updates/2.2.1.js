@@ -15,7 +15,7 @@ module.exports = function(db, config, tools, done) {
 
   forms.find().snapshot({$snapshot: true}).forEach(function(form) {
     if(form.path) {
-      forms.update(
+      forms.updateOne(
         { _id: form._id },
         { $set: { path: form.path.toLowerCase() } }
       );

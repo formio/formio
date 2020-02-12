@@ -62,7 +62,7 @@ module.exports = function(db, config, tools, done) {
       settings = decrypt(config.mongoSecret, project.settings_encrypted.buffer);
       settings.cors = '*';
     }
-    projects.update(
+    projects.updateOne(
       { _id: project._id },
       {
         $set: {

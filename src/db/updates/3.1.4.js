@@ -20,7 +20,7 @@ module.exports = function(db, config, tools, done) {
     submissions.find({deleted: {$eq: null}}).batchSize(1000).each((err, submission) => {
       progress.tick();
       if (submission && submission.data && utils.ensureIds(submission.data)) {
-        submissions.update({_id: submission._id}, submission);
+        submissions.updateOne({_id: submission._id}, submission);
       }
     });
   });

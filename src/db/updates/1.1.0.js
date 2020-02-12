@@ -35,7 +35,7 @@ module.exports = function(db, config, tools, done) {
   // MongoDB Find all oldApps where user has unencrypted settings.
   db.collection('applications').find({ settings: {$exists: true }}).forEach(function(application) {
       // Encrypt each Application's settings at rest.
-      db.collection('applications').update(
+      db.collection('applications').updateOne(
       { _id: application._id },
       {
         $unset: { settings: undefined },

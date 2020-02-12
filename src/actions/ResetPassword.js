@@ -250,7 +250,7 @@ module.exports = function(router) {
 
           // Update the password.
           const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-          submissionModel.update(
+          submissionModel.updateOne(
             {_id: submission._id},
             {$set: setValue},
             function(err, newSub) {
