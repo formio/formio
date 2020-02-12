@@ -2,7 +2,7 @@
 const FormioUtils = require('formiojs/utils').default;
 const _ = require('lodash');
 const util = require('../../util/util');
-const asyncLib = require('async');
+const async = require('async');
 
 module.exports = router => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
@@ -59,7 +59,9 @@ module.exports = router => {
       catch (err) {
         return reject(err);
       }
-      asyncLib.applyEachSeries(router.formio.resources.submission.handlers.beforeIndex, sub.req, sub.res, (err) => {
+      async.series(router.formio.resources.submission.handlers.beforeIndex.map((fn) => {
+        return async.apply(fn, sub.req, sub.res);
+      }), (err) => {
         if (err) {
           return reject(err);
         }
