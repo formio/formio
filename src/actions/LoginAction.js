@@ -17,10 +17,6 @@ module.exports = function(router) {
    *   This class is used to create the Authentication action.
    */
   class LoginAction extends Action {
-    constructor(data, req, res) {
-      super(data, req, res);
-    }
-
     static info(req, res, next) {
       next(null, {
         name: 'login',

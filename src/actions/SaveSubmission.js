@@ -25,10 +25,6 @@ module.exports = function(router) {
   });
 
   class SaveSubmission extends Action {
-    constructor(data, req, res) {
-      super(data, req, res);
-    }
-
     static info(req, res, next) {
       next(null, {
         name: 'save',

@@ -25,10 +25,6 @@ module.exports = function(router) {
    *   This class is used to create the Role action.
    */
   class RoleAction extends Action {
-    constructor(data, req, res) {
-      super(data, req, res);
-    }
-
     static info(req, res, next) {
       next(null, {
         name: 'role',
