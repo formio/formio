@@ -69,10 +69,10 @@ module.exports = (router) => {
       }
 
       // Find the actions associated with this form.
-      this.model.find({
-        form: form,
-        deleted: {$eq: null}
-      })
+      this.model.find(hook.alter('actionsQuery', {
+        form,
+        deleted: {$eq: null},
+      }, req))
       .sort('-priority')
       .lean()
       .exec((err, result) => {
