@@ -20,10 +20,6 @@ module.exports = function(router) {
    *   This class is used to implement Forgot Password.
    */
   class ResetPasswordAction extends Action {
-    constructor(data, req, res) {
-      super(data, req, res);
-    }
-
     static info(req, res, next) {
       next(null, {
         name: 'resetpass',

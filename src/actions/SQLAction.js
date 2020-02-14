@@ -19,10 +19,6 @@ module.exports = function(router) {
    *   This class is used to integrate into external SQL Databases.
    */
   class SQLAction extends Action {
-    constructor(data, req, res) {
-      super(data, req, res);
-    }
-
     static info(req, res, next) {
       next(null, {
         name: 'sql',

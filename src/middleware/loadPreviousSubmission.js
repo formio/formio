@@ -1,8 +1,7 @@
 'use strict';
 
 module.exports = (router) => (req, res, next) => {
-  // Only run for put/patch requests.
-  if (!['PUT', 'POST'].includes(req.method)) {
+  if (!['PUT', 'PATCH', 'DELETE'].includes(req.method)) {
     return next();
   }
 
@@ -17,5 +16,6 @@ module.exports = (router) => (req, res, next) => {
 
       req.previousSubmission = previousSubmission;
       return next();
-    });
+    },
+  );
 };

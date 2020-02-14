@@ -18,10 +18,6 @@ module.exports = function(router) {
    *   This class is used to create webhook interface.
    */
   class WebhookAction extends Action {
-    constructor(data, req, res) {
-      super(data, req, res);
-    }
-
     static info(req, res, next) {
       next(null, hook.alter('actionInfo', {
         name: 'webhook',
