@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.65.0
+### Changed
+ - Upgrade mongoose@5.9.0
+
+### Added
+ - Added actionsQuery alter hook.
+
 ## 1.64.0
 ### Fixed
  - All deprecations and warnings.
