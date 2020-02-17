@@ -93,9 +93,15 @@ module.exports = function(router) {
           return cb('Resource not found');
         }
 
-        this.updateCache(req, cache, result);
-        debug.loadForm('Caching result');
-        cb(null, result);
+        hook.alter('loadForm', result, req, (err, result) => {
+          if (err) {
+            debug.loadForm(err);
+            return cb(err);
+          }
+          this.updateCache(req, cache, result);
+          debug.loadForm('Caching result');
+          cb(null, result);
+        });
       });
     },
 
@@ -239,8 +245,14 @@ module.exports = function(router) {
           return cb(null, null);
         }
 
-        cache.submissions[subId] = submission;
-        cb(null, submission);
+        hook.alter('loadSubmission', submission, req, (err, submission) => {
+          if (err) {
+            debug.loadSubmission(err);
+            return cb(err);
+          }
+          cache.submissions[subId] = submission;
+          cb(null, submission);
+        });
       });
     },
 
