@@ -14,6 +14,8 @@ const debug = {
   error: require('debug')('formio:error')
 };
 
+let hook = null;
+
 /*
  * Returns true or false based on visibility.
  *
@@ -35,14 +37,14 @@ const checkConditional = (form, component, row, data, recurse = false) => {
   if (component.customConditional) {
     try {
       // Create the sandbox.
-      const sandbox = vm.createContext({
+      const sandbox = vm.createContext(hook.alter('evalContext', {
         data,
         row,
         component,
         moment,
         _,
         form,
-      });
+      }, form));
 
       // Execute the script.
       const script = new vm.Script(component.customConditional);
@@ -107,7 +109,7 @@ const getRules = (type) => [
           component.validate.custom = component.validate.custom.replace(replace, (match, $1, $2) =>  _.get(data, $2));
 
           // Create the sandbox.
-          const sandbox = vm.createContext({
+          const sandbox = vm.createContext(hook.alter('evalContext', {
             input: _.isObject(_row) ? util.getValue({data: _row}, component.key) : _row,
             data,
             row: _row,
@@ -117,7 +119,7 @@ const getRules = (type) => [
             form,
             _,
             moment,
-          });
+          }, form));
 
           // Execute the script.
           const script = new vm.Script(component.validate.custom);
@@ -551,6 +553,15 @@ class Validator {
     this.token = token;
   }
 
+  static setHook(_hook) {
+    hook = _hook;
+  }
+
+  evalContext(context) {
+    context.form = this.form;
+    return hook.alter('evalContext', context, this.form);
+  }
+
   /**
    * Returns a validator per component.
    *
@@ -836,13 +847,13 @@ class Validator {
             case 'value':
               try {
                 // Create the sandbox.
-                const sandbox = vm.createContext({
+                const sandbox = vm.createContext(this.evalContext({
                   value: _.get(row, component.key),
                   data,
                   row,
                   component,
                   result,
-                });
+                }));
 
                 // Execute the script.
                 const script = new vm.Script(action.value);
@@ -859,13 +870,13 @@ class Validator {
               }
               break;
             case 'mergeComponentSchema': {
-              const sandbox = vm.createContext({
+              const sandbox = vm.createContext(this.evalContext({
                 value: _.get(row, component.key),
                 data,
                 row,
                 component,
                 result,
-              });
+              }));
 
               const script = new vm.Script(action.schemaDefinition);
               script.runInContext(sandbox, {
@@ -886,14 +897,14 @@ class Validator {
     if (component.calculateServer && component.calculateValue) {
       if (_.isString(component.calculateValue)) {
         try {
-          const sandbox = vm.createContext({
+          const sandbox = vm.createContext(this.evalContext({
             value: _.get(row, component.key),
             data,
             row,
             component,
             util,
             moment
-          });
+          }));
 
           // Execute the script.
           const script = new vm.Script(component.calculateValue);

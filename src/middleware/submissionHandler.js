@@ -177,6 +177,7 @@ module.exports = (router, resourceName, resourceId) => {
 
         // Next we need to validate the input.
         const token = util.getRequestValue(req, 'x-jwt-token');
+        Validator.setHook(hook);
         const validator = new Validator(req.currentForm, submissionModel, token);
 
         // Validate the request.
