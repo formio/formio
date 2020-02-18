@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.66.0
+### Changed
+ - Upgrade mongoose@5.9.1, mssql@6.1.0
+ - Added additional hooks for loadForm.
+
 ## 1.65.0
 ### Changed
  - Upgrade mongoose@5.9.0
