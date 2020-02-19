@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.67.0
+### Fixed
+ - Ensure we call loadForm hook for all types of form loading methods.
+
+### Changed
+ - Upgrade formio.js@4.9.0-beta.8
+
 ## 1.66.0
 ### Changed
  - Upgrade mongoose@5.9.1, mssql@6.1.0
