@@ -335,8 +335,15 @@ module.exports = function(router) {
             return cb('Resource not found');
           }
 
-          this.updateCache(req, cache, result);
-          cb(null, result);
+          hook.alter('loadForm', result, req, (err, result) => {
+            if (err) {
+              debug.loadForm(err);
+              return cb(err);
+            }
+            this.updateCache(req, cache, result);
+            debug.loadForm('Caching result');
+            cb(null, result);
+          });
         });
       }
     },
@@ -365,8 +372,15 @@ module.exports = function(router) {
             return cb('Resource not found');
           }
 
-          this.updateCache(req, cache, result);
-          cb(null, result);
+          hook.alter('loadForm', result, req, (err, result) => {
+            if (err) {
+              debug.loadForm(err);
+              return cb(err);
+            }
+            this.updateCache(req, cache, result);
+            debug.loadForm('Caching result');
+            cb(null, result);
+          });
         });
       }
     },
