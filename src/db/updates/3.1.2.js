@@ -1,7 +1,7 @@
 'use strict';
 const _ = require('lodash');
 const ObjectID = require('mongodb').ObjectID;
-const utils = require('formiojs/utils').default;
+const util = require('../../util/util');
 
 /**
  * Update 3.1.2
@@ -17,7 +17,7 @@ module.exports = function(db, config, tools, done) {
   done();
   const submissions = db.collection('submissions');
   db.collection('forms').find({deleted: {$eq: null}}).forEach((form) => {
-    utils.eachComponent(form.components, function(component, path) {
+    util.FormioUtils.eachComponent(form.components, function(component, path) {
       if (component.reference) {
         submissions.find({form: form._id, deleted: {$eq: null}}).forEach((submission) => {
           const refId = _.get(submission, `data.${path}._id`);

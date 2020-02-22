@@ -8,7 +8,7 @@ const debug = {
   error: require('debug')('formio:error'),
   action: require('debug')('formio:action')
 };
-const FormioUtils = require('formiojs/utils').default;
+const util = require('../util/util');
 const moment = require('moment');
 
 /**
@@ -275,11 +275,11 @@ module.exports = (router) => {
             : condition.custom);
 
           const sandbox = await hook.alter('actionContext', {
-            jsonLogic: FormioUtils.jsonLogic,
+            jsonLogic: util.FormioUtils.jsonLogic,
             data: req.body.data,
             form: req.form,
             query: req.query,
-            util: FormioUtils,
+            util: util.FormioUtils,
             moment: moment,
             submission: req.body,
             previous: req.previousSubmission,

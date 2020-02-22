@@ -4,7 +4,6 @@ const vm = require('vm');
 const Joi = require('joi');
 const _ = require('lodash');
 const util = require('../util/util');
-const FormioUtils = require('formiojs/utils').default;
 const request = require('request-promise-native');
 const moment = require('moment');
 const cache = require('memory-cache');
@@ -15,7 +14,6 @@ const debug = {
 };
 
 let hook = null;
-util.noeval(FormioUtils);
 
 /*
  * Returns true or false based on visibility.
@@ -299,7 +297,7 @@ const getRules = (type) => [
       }
 
       // Make sure to interpolate.
-      requestOptions.url = FormioUtils.interpolate(requestOptions.url, {
+      requestOptions.url = util.FormioUtils.interpolate(requestOptions.url, {
         data: submission.data
       });
 
@@ -838,12 +836,12 @@ class Validator {
         return;
       }
 
-      const result = FormioUtils.checkTrigger(component, logic.trigger, row, data);
+      const result = util.FormioUtils.checkTrigger(component, logic.trigger, row, data);
       if (result) {
         logic.actions.forEach((action) => {
           switch (action.type) {
             case 'property':
-              FormioUtils.setActionProperty(component, action, result, row, data);
+              util.FormioUtils.setActionProperty(component, action, result, row, data);
               break;
             case 'value':
               try {

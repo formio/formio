@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const utils = require('formiojs/utils').default;
+const util = require('../../util/util');
 
 module.exports = router => {
   /**
@@ -29,7 +29,7 @@ module.exports = router => {
     // Only execute if the component should save reference and conditions do not apply.
     if (
       (component.hasOwnProperty('reference') && !component.reference) ||
-      !utils.checkCondition(component, {}, req.body.data)
+      !util.FormioUtils.checkCondition(component, {}, req.body.data)
     ) {
       return next();
     }

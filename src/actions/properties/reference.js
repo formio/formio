@@ -1,5 +1,4 @@
 'use strict';
-const FormioUtils = require('formiojs/utils').default;
 const _ = require('lodash');
 const util = require('../../util/util');
 const async = require('async');
@@ -252,7 +251,7 @@ module.exports = router => {
 
           // Build the pipeline for the subdata.
           var queues = [];
-          FormioUtils.eachComponent(form.components, (subcomp, subpath) => {
+          util.FormioUtils.eachComponent(form.components, (subcomp, subpath) => {
             if (subcomp.reference) {
               queues.push(buildPipeline(subcomp, `${path}.data.${subpath}`, req, res).then((subpipe) => {
                 pipeline = pipeline.concat(subpipe);

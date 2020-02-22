@@ -2,10 +2,6 @@
 
 const Exporter = require('../Exporter');
 const util = require('../../util/util');
-const {
-  getInputMask,
-  convertFormatToMoment,
-} = require('formiojs/utils').default;
 const through = require('through');
 const csv = require('csv');
 const _ = require('lodash');
@@ -35,7 +31,7 @@ class CSVExporter extends Exporter {
   constructor(form, req, res) {
     super(form, req, res);
     this.timezone = _.get(form, 'settings.components.datetime.timezone', '');
-    this.dateFormat = convertFormatToMoment('yyyy-MM-dd hh:mm a');
+    this.dateFormat = util.FormioUtils.convertFormatToMoment('yyyy-MM-dd hh:mm a');
     this.extension = 'csv';
     this.contentType = 'text/csv';
     this.stringifier = csv.stringify({
@@ -256,7 +252,7 @@ class CSVExporter extends Exporter {
 
               if (value) {
                 const dateMoment = moment(value).tz(this.timezone || 'Etc/UTC');
-                this.dateFormat = convertFormatToMoment(component.format);
+                this.dateFormat = util.FormioUtils.convertFormatToMoment(component.format);
                 const result = dateMoment.format(`${this.dateFormat} z`);
                 return result;
               }
@@ -277,7 +273,7 @@ class CSVExporter extends Exporter {
           });
         }
         else if (formattedView && component.inputMask) {
-          const mask = getInputMask(component.inputMask);
+          const mask = util.FormioUtils.getInputMask(component.inputMask);
           items.push({
             preprocessor: (value) => {
               if (!value) {

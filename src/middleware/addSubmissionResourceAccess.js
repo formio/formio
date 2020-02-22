@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const util = require('formiojs/utils').default;
+const util = require('../util/util');
 
 /**
  * Go through each field and if Submission Resource Access is defined on it, add it to the submissionAccess array.
@@ -39,7 +39,7 @@ module.exports = function(router) {
       }
 
       /* eslint-disable max-depth */
-      util.eachComponent(form.components, (component, path) => {
+      util.FormioUtils.eachComponent(form.components, (component, path) => {
         if (component && component.key && component.defaultPermission) {
           let value = _.get(req.body.data, path);
           if (value) {

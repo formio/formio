@@ -5,7 +5,7 @@ const ObjectID = require('mongodb').ObjectID;
 const _ = require('lodash');
 const nodeUrl = require('url');
 const Q = require('q');
-const formioUtils = require('formiojs/utils').default;
+const FormioUtils = require('formiojs/utils').default;
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/util');
 const errorCodes = require('./error-codes.js');
@@ -16,7 +16,29 @@ const debug = {
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
 
+FormioUtils.Evaluator.noeval = true;
+FormioUtils.Evaluator.evaluator = function(func, args) {
+  return function() {
+    const params = _.keys(args);
+    const sandbox = vm.createContext({
+      result: null,
+      args
+    });
+    /* eslint-disable no-empty */
+    try {
+      const script = new vm.Script(`result = (function({${params.join(',')}}) {${func}})(args);`);
+      script.runInContext(sandbox, {
+        timeout: 250
+      });
+    }
+    catch (err) {}
+    /* eslint-enable no-empty */
+    return sandbox.result;
+  };
+};
+
 const Utils = {
+  FormioUtils: FormioUtils,
   deleteProp: deleteProp,
 
   /**
@@ -33,29 +55,6 @@ const Utils = {
     /* eslint-disable */
     console.log(content);
     /* eslint-enable */
-  },
-
-  noeval(FormioUtils) {
-    FormioUtils.Evaluator.noeval = true;
-    FormioUtils.Evaluator.evaluator = function(func, args) {
-      return function() {
-        const params = _.keys(args);
-        const sandbox = vm.createContext({
-          result: null,
-          args
-        });
-        /* eslint-disable no-empty */
-        try {
-          const script = new vm.Script(`result = (function({${params.join(',')}}) {${func}})(args);`);
-          script.runInContext(sandbox, {
-            timeout: 250
-          });
-        }
-        catch (err) {}
-        /* eslint-enable no-empty */
-        return sandbox.result;
-      };
-    };
   },
 
   /**
@@ -215,7 +214,7 @@ const Utils = {
    *   Whether or not to include layout components.
    * @param {String} path
    */
-  eachComponent: formioUtils.eachComponent.bind(formioUtils),
+  eachComponent: FormioUtils.eachComponent.bind(FormioUtils),
 
   /**
    * Get a component by its key
@@ -228,7 +227,7 @@ const Utils = {
    * @returns {Object}
    *   The component that matches the given key, or undefined if not found.
    */
-  getComponent: formioUtils.getComponent.bind(formioUtils),
+  getComponent: FormioUtils.getComponent.bind(FormioUtils),
 
   /**
    * Define if component should be considered input component
@@ -239,7 +238,7 @@ const Utils = {
    * @returns {Boolean}
    *   If component is input or not
    */
-  isInputComponent: formioUtils.isInputComponent.bind(formioUtils),
+  isInputComponent: FormioUtils.isInputComponent.bind(FormioUtils),
 
   /**
    * Flatten the form components for data manipulation.
@@ -252,7 +251,7 @@ const Utils = {
    * @returns {Object}
    *   The flattened components map.
    */
-  flattenComponents: formioUtils.flattenComponents.bind(formioUtils),
+  flattenComponents: FormioUtils.flattenComponents.bind(FormioUtils),
 
   /**
    * Get the value for a component key, in the given submission.
@@ -262,7 +261,7 @@ const Utils = {
    * @param {String} key
    *   A for components API key to search for.
    */
-  getValue: formioUtils.getValue.bind(formioUtils),
+  getValue: FormioUtils.getValue.bind(FormioUtils),
 
   /**
    * Determine if a component is a layout component or not.
@@ -273,7 +272,7 @@ const Utils = {
    * @returns {Boolean}
    *   Whether or not the component is a layout component.
    */
-  isLayoutComponent: formioUtils.isLayoutComponent.bind(formioUtils),
+  isLayoutComponent: FormioUtils.isLayoutComponent.bind(FormioUtils),
 
   /**
    * Apply JSON logic functionality.
@@ -282,7 +281,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  jsonLogic: formioUtils.jsonLogic,
+  jsonLogic: FormioUtils.jsonLogic,
 
   /**
    * Check if the condition for a component is true or not.
@@ -291,7 +290,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  checkCondition: formioUtils.checkCondition.bind(formioUtils),
+  checkCondition: FormioUtils.checkCondition.bind(FormioUtils),
 
   /**
    * Return the objectId.

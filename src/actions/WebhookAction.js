@@ -2,9 +2,7 @@
 
 const rest = require('restler');
 const _ = require('lodash');
-const FormioUtils = require('formiojs/utils').default;
 const util = require('../util/util');
-util.noeval(FormioUtils);
 
 const LOG_EVENT = 'Webhook Action';
 
@@ -185,7 +183,7 @@ module.exports = function(router) {
 
         // Interpolate URL if possible
         if (res && res.resource && res.resource.item && res.resource.item.data) {
-          url = FormioUtils.interpolate(url, res.resource.item.data);
+          url = util.FormioUtils.interpolate(url, res.resource.item.data);
         }
 
         // Fall back if interpolation failed
