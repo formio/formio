@@ -544,12 +544,13 @@ const JoiX = Joi.extend([
  * @constructor
  */
 class Validator {
-  constructor(form, model, token) {
+  constructor(form, model, token, decodedToken) {
     this.model = model;
     this.async = [];
     this.requests = {};
     this.form = form;
     this.token = token;
+    this.decodedToken = decodedToken;
   }
 
   static setHook(_hook) {
@@ -851,6 +852,7 @@ class Validator {
                   data,
                   row,
                   component,
+                  token: this.decodedToken,
                   result,
                 }));
 
@@ -902,7 +904,8 @@ class Validator {
             row,
             component,
             util,
-            moment
+            moment,
+            token: this.decodedToken,
           }));
 
           // Execute the script.
@@ -922,7 +925,8 @@ class Validator {
           _.set(row, component.key, util.jsonLogic(component.calculateValue, {
             data,
             row,
-            _
+            _,
+            token: this.decodedToken,
           }));
         }
         catch (e) {

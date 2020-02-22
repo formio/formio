@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.69.0
+### Added
+ - The decoded JWT Token as "token" to the evaluation context for Calculated Values.
+
+### Changed
+ - Upgrade nodemailer@6.4.3
+
 ## 1.68.0
 ### Changed
  - Updated config@3.2.6, mongoose@5.9.2, moment-timezone@0.5.28
