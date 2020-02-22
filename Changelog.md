@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.70.0
+### Added
+ - Tokens to the calculate value evaluate contexts.
+
 ## 1.69.0
 ### Added
  - The decoded JWT Token as "token" to the evaluation context for Calculated Values.
