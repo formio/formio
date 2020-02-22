@@ -3,6 +3,8 @@
 const rest = require('restler');
 const _ = require('lodash');
 const FormioUtils = require('formiojs/utils').default;
+const util = require('../util/util');
+util.noeval(FormioUtils);
 
 const LOG_EVENT = 'Webhook Action';
 

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.68.0
+### Changed
+ - Updated config@3.2.6, mongoose@5.9.2, moment-timezone@0.5.28
+ - Made changes to ensure evals cannot be can on the server.
+
 ## 1.67.0
 ### Fixed
  - Ensure we call loadForm hook for all types of form loading methods.

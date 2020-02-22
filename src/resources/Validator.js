@@ -15,6 +15,7 @@ const debug = {
 };
 
 let hook = null;
+util.noeval(FormioUtils);
 
 /*
  * Returns true or false based on visibility.

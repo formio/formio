@@ -9,6 +9,7 @@ const formioUtils = require('formiojs/utils').default;
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/util');
 const errorCodes = require('./error-codes.js');
+const vm = require('vm');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
@@ -32,6 +33,29 @@ const Utils = {
     /* eslint-disable */
     console.log(content);
     /* eslint-enable */
+  },
+
+  noeval(FormioUtils) {
+    FormioUtils.Evaluator.noeval = true;
+    FormioUtils.Evaluator.evaluator = function(func, args) {
+      return function() {
+        const params = _.keys(args);
+        const sandbox = vm.createContext({
+          result: null,
+          args
+        });
+        /* eslint-disable no-empty */
+        try {
+          const script = new vm.Script(`result = (function({${params.join(',')}}) {${func}})(args);`);
+          script.runInContext(sandbox, {
+            timeout: 250
+          });
+        }
+        catch (err) {}
+        /* eslint-enable no-empty */
+        return sandbox.result;
+      };
+    };
   },
 
   /**
