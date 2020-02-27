@@ -3,6 +3,7 @@
 const _ = require('lodash');
 const async = require('async');
 const util = require('../util/util');
+const LegacyValidator = require('../resources/LegacyValidator');
 const Validator = require('../resources/Validator');
 
 module.exports = (router, resourceName, resourceId) => {
@@ -163,31 +164,41 @@ module.exports = (router, resourceName, resourceId) => {
       }
 
       // Assign submission data to the request body.
+      const formId = _.get(req, 'body.data.form');
+      const isSubform = formId && formId.toString() !== req.currentForm._id.toString();
       req.submission = req.submission || {data: {}};
-      if (!_.isEmpty(req.submission.data)) {
+      if (!_.isEmpty(req.submission.data) && !isSubform) {
         req.body.data = _.assign(req.body.data, req.submission.data);
       }
 
       // Clone the submission to the real value of the request body.
       req.submission = _.cloneDeep(req.body);
 
-      hook.alter('validateSubmissionForm', req.currentForm, req.body, (form) => {
+      // Next we need to validate the input.
+      hook.alter('validateSubmissionForm', req.currentForm, req.body, async form => { // eslint-disable-line max-statements
+        // Allow use of the legacy validator
+        const useLegacyValidator = (
+          process.env.LEGACY_VALIDATOR ||
+          req.headers['legacy-validator'] ||
+          req.query.legacy_validator
+        );
+
         // Get the submission model.
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
         // Next we need to validate the input.
         const token = util.getRequestValue(req, 'x-jwt-token');
-        Validator.setHook(hook);
-        const validator = new Validator(req.currentForm, submissionModel, token, req.token);
+        const _Validator = useLegacyValidator ? LegacyValidator : Validator;
+        _Validator.setHook(hook);
+        const validator = new _Validator(req.currentForm, submissionModel, token, req.token);
 
         // Validate the request.
-        validator.validate(req.body, (err, submission) => {
+        validator.validate(req.body, (err, data) => {
           if (err) {
             return res.status(400).json(err);
           }
 
-          res.submission = {data: submission};
-
+          res.submission = {data: data};
           done();
         });
       });

@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 'use strict';
 
-var request = require('supertest');
+const request = require('./formio-supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var chance = new (require('chance'))();
@@ -2311,20 +2311,24 @@ module.exports = function(app, template, hook) {
               input: true
             },
             {
-              type: 'selectboxes',
+              type: 'select',
               label: 'Roles',
               key: 'roles',
               input: true,
-              values: [
-                {
-                  label: 'Administrator',
-                  value: 'administrator'
-                },
-                {
-                  label: 'Authenticated',
-                  value: 'authenticated'
-                }
-              ]
+              multiple: true,
+              dataSrc: 'values',
+              data: {
+                values: [
+                  {
+                    label: 'Administrator',
+                    value: 'administrator'
+                  },
+                  {
+                    label: 'Authenticated',
+                    value: 'authenticated'
+                  }
+                ]
+              }
             }
           ])
           .action({

@@ -45,7 +45,7 @@ module.exports = {
           },
           "validate": {
             "customPrivate": false,
-            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "custom": "valid = {{ data.trigger }}.toString() == 'true'",
             "pattern": "",
             "maxLength": "",
             "minLength": "",
@@ -226,7 +226,7 @@ module.exports = {
           "tags": [],
           "type": "number",
           "validate": {
-            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "custom": "valid = {{ data.trigger }}.toString() == 'true'",
             "multiple": "",
             "integer": "",
             "step": "any",
@@ -371,7 +371,7 @@ module.exports = {
           "input": true
         }, {
           "validate": {
-            "custom": "valid = {{ trigger }}.toString() === 'true'"
+            "custom": "valid = {{ data.trigger }}.toString() === 'true'"
           },
           "input": true,
           "tableView": false,
@@ -517,7 +517,7 @@ module.exports = {
           "tags": [],
           "type": "textarea",
           "validate": {
-            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "custom": "valid = {{ data.trigger }}.toString() == 'true'",
             "pattern": "",
             "maxLength": "",
             "minLength": "",
@@ -669,7 +669,7 @@ module.exports = {
           },
           "type": "selectboxes",
           "validate": {
-            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "custom": "valid = {{ data.trigger }}.toString() == 'true'",
             "required": false
           },
           "persistent": true,
@@ -838,7 +838,7 @@ module.exports = {
           "persistent": true,
           "validate": {
             "required": false,
-            "custom": "valid = {{ trigger }}.toString() == 'true'"
+            "custom": "valid = {{ data.trigger }}.toString() == 'true'"
           },
           "type": "select",
           "tags": [],
@@ -993,7 +993,7 @@ module.exports = {
           "type": "radio",
           "validate": {
             "customPrivate": false,
-            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "custom": "valid = {{ data.trigger }}.toString() == 'true'",
             "required": false
           },
           "persistent": true,
@@ -1132,7 +1132,7 @@ module.exports = {
         }, {
           "lockKey": true,
           "validate": {
-            "custom": "valid = {{ trigger }}.toString() == 'true'"
+            "custom": "valid = {{ data.trigger }}.toString() == 'true'"
           },
           "conditional": {
             "eq": "",
@@ -1289,7 +1289,7 @@ module.exports = {
           "tags": [],
           "type": "datetime",
           "validate": {
-            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "custom": "valid = {{ data.trigger }}.toString() == 'true'",
             "required": false
           },
           "persistent": true,
@@ -1473,7 +1473,7 @@ module.exports = {
           "tags": [],
           "type": "day",
           "validate": {
-            "custom": "valid = {{ trigger }}.toString() == 'true'"
+            "custom": "valid = {{ data.trigger }}.toString() == 'true'"
           },
           "persistent": true,
           "protected": false,
@@ -1647,7 +1647,7 @@ module.exports = {
           "validate": {
             "required": false,
             "multiple": "",
-            "custom": "valid = {{ trigger }}.toString() == 'true'"
+            "custom": "valid = {{ data.trigger }}.toString() == 'true'"
           },
           "conditional": {
             "show": "",
@@ -1789,7 +1789,7 @@ module.exports = {
           "type": "survey",
           "validate": {
             "customPrivate": false,
-            "custom": "valid = {{ trigger }}.toString() == 'true'",
+            "custom": "valid = {{ data.trigger }}.toString() == 'true'",
             "required": false
           },
           "persistent": true,
@@ -2181,7 +2181,7 @@ module.exports = {
             },
             "validate": {
               "customPrivate": false,
-              "custom": "valid = '{{ trigger }}' == 'true'",
+              "custom": "valid = '{{ data.trigger }}' == 'true'",
               "pattern": "",
               "maxLength": "",
               "minLength": "",

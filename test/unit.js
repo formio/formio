@@ -4,7 +4,7 @@
 let assert = require('assert');
 let fs = require('fs');
 let docker = process.env.DOCKER;
-var request = require('supertest');
+const request = require('./formio-supertest');
 
 module.exports = function(app, template, hook) {
   let Thread = require('formio-workers/Thread');

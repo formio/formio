@@ -5,7 +5,6 @@ const ObjectID = require('mongodb').ObjectID;
 const _ = require('lodash');
 const nodeUrl = require('url');
 const Q = require('q');
-const FormioUtils = require('formiojs/utils').default;
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/util');
 const errorCodes = require('./error-codes.js');
@@ -16,8 +15,27 @@ const debug = {
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
 
-FormioUtils.Evaluator.noeval = true;
-FormioUtils.Evaluator.evaluator = function(func, args) {
+// Define a few global noop placeholder shims and import the component classes
+global.Text              = class {};
+global.HTMLElement       = class {};
+global.HTMLCanvasElement = class {};
+global.navigator         = {userAgent: ''};
+global.document          = {
+  createElement: () => ({}),
+  cookie: '',
+  getElementsByTagName: () => [],
+  documentElement: {style: []}
+};
+global.window            = {addEventListener: () => {}, Event: {}, navigator: global.navigator};
+const Formio = require('formiojs/formio.form.js');
+
+// Remove onChange events from all renderer displays.
+_.each(Formio.Displays.displays, (display) => {
+  display.prototype.onChange = _.noop;
+});
+
+Formio.Utils.Evaluator.noeval = true;
+Formio.Utils.Evaluator.evaluator = function(func, args) {
   return function() {
     const params = _.keys(args);
     const sandbox = vm.createContext({
@@ -38,7 +56,8 @@ FormioUtils.Evaluator.evaluator = function(func, args) {
 };
 
 const Utils = {
-  FormioUtils: FormioUtils,
+  Formio: Formio.Formio,
+  FormioUtils: Formio.Utils,
   deleteProp: deleteProp,
 
   /**
@@ -214,7 +233,7 @@ const Utils = {
    *   Whether or not to include layout components.
    * @param {String} path
    */
-  eachComponent: FormioUtils.eachComponent.bind(FormioUtils),
+  eachComponent: Formio.Utils.eachComponent.bind(Formio.Utils),
 
   /**
    * Get a component by its key
@@ -227,7 +246,7 @@ const Utils = {
    * @returns {Object}
    *   The component that matches the given key, or undefined if not found.
    */
-  getComponent: FormioUtils.getComponent.bind(FormioUtils),
+  getComponent: Formio.Utils.getComponent.bind(Formio.Utils),
 
   /**
    * Define if component should be considered input component
@@ -238,7 +257,7 @@ const Utils = {
    * @returns {Boolean}
    *   If component is input or not
    */
-  isInputComponent: FormioUtils.isInputComponent.bind(FormioUtils),
+  isInputComponent: Formio.Utils.isInputComponent.bind(Formio.Utils),
 
   /**
    * Flatten the form components for data manipulation.
@@ -251,7 +270,7 @@ const Utils = {
    * @returns {Object}
    *   The flattened components map.
    */
-  flattenComponents: FormioUtils.flattenComponents.bind(FormioUtils),
+  flattenComponents: Formio.Utils.flattenComponents.bind(Formio.Utils),
 
   /**
    * Get the value for a component key, in the given submission.
@@ -261,7 +280,7 @@ const Utils = {
    * @param {String} key
    *   A for components API key to search for.
    */
-  getValue: FormioUtils.getValue.bind(FormioUtils),
+  getValue: Formio.Utils.getValue.bind(Formio.Utils),
 
   /**
    * Determine if a component is a layout component or not.
@@ -272,7 +291,7 @@ const Utils = {
    * @returns {Boolean}
    *   Whether or not the component is a layout component.
    */
-  isLayoutComponent: FormioUtils.isLayoutComponent.bind(FormioUtils),
+  isLayoutComponent: Formio.Utils.isLayoutComponent.bind(Formio.Utils),
 
   /**
    * Apply JSON logic functionality.
@@ -281,7 +300,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  jsonLogic: FormioUtils.jsonLogic,
+  jsonLogic: Formio.Utils.jsonLogic,
 
   /**
    * Check if the condition for a component is true or not.
@@ -290,7 +309,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  checkCondition: FormioUtils.checkCondition.bind(FormioUtils),
+  checkCondition: Formio.Utils.checkCondition.bind(Formio.Utils),
 
   /**
    * Return the objectId.

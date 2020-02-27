@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-var request = require('supertest');
+const request = require('./formio-supertest');
 var assert = require('assert');
 var Chance = require('chance');
 var chance = new Chance();
@@ -137,9 +137,9 @@ module.exports = function(app, template, hook) {
           // It should fail validation.
           assert.equal(updated.name, 'ValidationError');
           assert.equal(updated.details.length, 1);
-          assert.equal(updated.details[0].message, '"signature2" is not allowed to be empty');
+          assert.equal(updated.details[0].message, 'Signature is required');
           assert.equal(updated.details[0].path, 'signature2');
-          assert.equal(updated.details[0].type, 'any.empty');
+          assert.equal(updated.details[0].context.validator, 'required');
           done();
         });
       });
@@ -159,9 +159,9 @@ module.exports = function(app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.equal(submission.name, 'ValidationError');
             assert.equal(submission.details.length, 1);
-            assert.equal(submission.details[0].message, '"signature2" is not allowed to be empty');
+            assert.equal(submission.details[0].message, 'Signature is required');
             assert.equal(submission.details[0].path, 'signature2');
-            assert.equal(submission.details[0].type, 'any.empty');
+            assert.equal(submission.details[0].context.validator, 'required');
             done();
           });
       });
@@ -181,9 +181,9 @@ module.exports = function(app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.equal(submission.name, 'ValidationError');
             assert.equal(submission.details.length, 1);
-            assert.equal(submission.details[0].message, '"signature2" is not allowed to be empty');
+            assert.equal(submission.details[0].message, 'Signature is required');
             assert.equal(submission.details[0].path, 'signature2');
-            assert.equal(submission.details[0].type, 'any.empty');
+            assert.equal(submission.details[0].context.validator, 'required');
             done();
           });
       });
@@ -1554,17 +1554,19 @@ module.exports = function(app, template, hook) {
 
             var result = {textField: 'My Value'};
             var submission = helper.getLastSubmission();
-            assert(submission.isJoi);
             assert.equal(submission.name, 'ValidationError');
             assert.deepEqual(submission.details, [
               {
                 context: {
                   key: 'requiredField',
-                  label: 'requiredField'
+                  setting: true,
+                  validator: 'required',
+                  value: '',
+                  label: 'Required Field'
                 },
-                message: '"requiredField" is required',
-                path: ['requiredField'],
-                type: 'any.required'
+                message: 'Required Field is required',
+                level: 'error',
+                path: ['requiredField']
               }
             ]);
             done();
@@ -1920,17 +1922,19 @@ module.exports = function(app, template, hook) {
 
             var result = {textField: 'My Value'};
             var submission = helper.getLastSubmission();
-            assert(submission.isJoi);
             assert.equal(submission.name, 'ValidationError');
             assert.deepEqual(submission.details, [
               {
                 context: {
                   key: 'requiredField',
-                  label: 'requiredField'
+                  label: 'Required Field',
+                  setting: true,
+                  validator: 'required',
+                  value: ''
                 },
-                message: '"requiredField" is required',
-                path: ['requiredField'],
-                type: 'any.required'
+                message: 'Required Field is required',
+                level: 'error',
+                path: ['requiredField']
               }
             ]);
             done();
@@ -2129,7 +2133,6 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
             var submission = helper.getLastSubmission();
             assert.deepEqual(values, submission.data);
             done();
@@ -2488,6 +2491,60 @@ module.exports = function(app, template, hook) {
             "suffix": "",
             "multiple": true,
             "defaultValue": "",
+            "protected": false,
+            "unique": false,
+            "persistent": true,
+            "validate": {
+              "required": false,
+              "minLength": "",
+              "maxLength": "",
+              "pattern": "",
+              "custom": "",
+              "customPrivate": false
+            },
+            "conditional": {
+              "show": null,
+              "when": null,
+              "eq": ""
+            },
+            "type": "textfield"
+          }
+        ];
+        var values = {
+          textField: 'My Value'
+        };
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(submission.data, {
+              textField: ['My Value']
+            });
+            done();
+          });
+      });
+
+      it('Should remove protected fields from the response.', function(done) {
+        var components = [
+          {
+            "input": true,
+            "tableView": true,
+            "inputType": "text",
+            "inputMask": "",
+            "label": "Text Field",
+            "key": "textField",
+            "placeholder": "",
+            "prefix": "",
+            "suffix": "",
+            "multiple": true,
+            "defaultValue": "",
             "protected": true,
             "unique": false,
             "persistent": true,
@@ -2514,26 +2571,14 @@ module.exports = function(app, template, hook) {
         helper
           .form('test', components)
           .submission(values)
-          .expect(400)
+          .expect(201)
           .execute(function(err) {
             if (err) {
               return done(err);
             }
 
             var submission = helper.getLastSubmission();
-            assert(submission.isJoi);
-            assert.equal(submission.name, 'ValidationError');
-            assert.deepEqual(submission.details, [
-              {
-                context: {
-                  key: 'textField',
-                  label: 'textField'
-                },
-                message: '"textField" must be an array',
-                path: ['textField'],
-                type: 'array.base'
-              }
-            ]);
+            assert.deepEqual(submission.data, {});
             done();
           });
       });
@@ -2585,18 +2630,19 @@ module.exports = function(app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert(submission.isJoi);
             assert.equal(submission.name, 'ValidationError');
             assert.deepEqual(submission.details, [
               {
                 context: {
                   key: 'textField',
-                  label: 'textField',
+                  label: 'Text Field',
+                  setting: false,
+                  validator: 'multiple',
                   value: ['Never', 'gonna', 'give', 'you', 'up']
                 },
-                message: '"textField" must be a string',
+                message: 'Text Field must not be an array',
                 path: ['textField'],
-                type: 'string.base'
+                level: 'error'
               }
             ]);
             done();
@@ -2655,7 +2701,7 @@ module.exports = function(app, template, hook) {
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
-            assert.equal(helper.lastResponse.body.details[0].message, '"Text Field" must be unique.');
+            assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be unique');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
             done();
           });
@@ -2710,9 +2756,11 @@ module.exports = function(app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
-            assert.equal(helper.lastResponse.body.details.length, 1);
-            assert.equal(helper.lastResponse.body.details[0].message, '"textField" is required');
+            assert.equal(helper.lastResponse.body.details.length, 2);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Text Field is required');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+            assert.equal(helper.lastResponse.body.details[1].message, 'Text Field must be a non-empty array');
+            assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
             done();
           });
       });
@@ -2782,8 +2830,8 @@ module.exports = function(app, template, hook) {
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
-            assert.equal(helper.lastResponse.body.details[0].message, '"Text Field" must be unique.');
-            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField', 0]);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be unique');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
             done();
           });
       });
@@ -2842,7 +2890,7 @@ module.exports = function(app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.deepEqual(submission.name, 'ValidationError');
             var error = submission.details.pop();
-            assert.equal(error.message, '"req" is required');
+            assert.equal(error.message, 'req is required');
             done();
           });
       });
@@ -2909,7 +2957,7 @@ module.exports = function(app, template, hook) {
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
-            assert.equal(helper.lastResponse.body.details[0].message, '"address" must be unique.');
+            assert.equal(helper.lastResponse.body.details[0].message, 'address must be unique');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['for213']);
             done();
           });
@@ -2980,8 +3028,8 @@ module.exports = function(app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.status, 400);
             assert.equal(submission.name, 'ValidationError');
-            assert.equal(submission.details[0].type, 'string.maxWords');
-            assert.equal(submission.details[0].message, '"test" exceeded maximum words.');
+            assert.equal(submission.details[0].context.validator, 'maxWords');
+            assert.equal(submission.details[0].message, 'test must have less than 31 words.');
             done();
           });
       });
@@ -3021,8 +3069,8 @@ module.exports = function(app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.status, 400);
             assert.equal(submission.name, 'ValidationError');
-            assert.equal(submission.details[0].type, 'string.minWords');
-            assert.equal(submission.details[0].message, '"test" does not have enough words.');
+            assert.equal(submission.details[0].context.validator, 'minWords');
+            assert.equal(submission.details[0].message, 'test must have more than 4 words.');
             done();
           });
       });
@@ -3211,7 +3259,7 @@ module.exports = function(app, template, hook) {
           assert.equal(helper.lastResponse.statusCode, 400);
           assert.equal(helper.lastResponse.body.name, 'ValidationError');
           assert.equal(helper.lastResponse.body.details.length, 1);
-          assert.equal(helper.lastResponse.body.details[0].message, '"Foo" for "Select a fruit" is not a valid selection.');
+          assert.equal(helper.lastResponse.body.details[0].message, 'Select a fruit contains an invalid selection');
           assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
           done();
         });
@@ -3418,17 +3466,19 @@ module.exports = function(app, template, hook) {
             }
 
             var submission = helper.getLastSubmission();
-            assert(submission.isJoi);
             assert.equal(submission.name, 'ValidationError');
             assert.deepEqual(submission.details, [
               {
                 context: {
                   key: 'changeme',
-                  label: 'changeme'
+                  label: 'Two',
+                  setting: true,
+                  validator: 'required',
+                  value: ''
                 },
-                message: '"changeme" is required',
-                path: ['changeme'],
-                type: 'any.required'
+                level: 'error',
+                message: 'Two is required',
+                path: ['changeme']
               }
             ]);
             done();
@@ -3627,17 +3677,19 @@ module.exports = function(app, template, hook) {
             if (err) {
               return done(err);
             }
-            assert(res.body.isJoi);
             assert.equal(res.body.name, 'ValidationError');
             assert.deepEqual(res.body.details, [
               {
                 context: {
                   key: 'test',
-                  label: 'test'
+                  label: 'Test',
+                  setting: true,
+                  validator: 'required',
+                  value: ''
                 },
-                message: '"test" is required',
-                path: ['test'],
-                type: 'any.required'
+                level: 'error',
+                message: 'Test is required',
+                path: ['test']
               }
             ]);
             done();
@@ -3889,7 +3941,7 @@ module.exports = function(app, template, hook) {
           }
 
           assert.equal(helper.lastResponse.body.details.length, 1);
-          assert.equal(helper.lastResponse.body.details[0].message, '"a" is required');
+          assert.equal(helper.lastResponse.body.details[0].message, 'A is required');
           assert.deepEqual(helper.lastResponse.body.details[0].path, [
             'childA',
             'data',
@@ -4001,7 +4053,7 @@ module.exports = function(app, template, hook) {
     });
 
     if (app.hasProjects || docker)
-    it('Should allow a an update to the submission where all sub-submissions are also updated.', (done) => {
+    it('Should allow an update to the submission where all sub-submissions are also updated.', (done) => {
       const existing = _.cloneDeep(helper.lastSubmission);
       existing.state = 'submitted';
       existing.data.childA.data.a = 'Seven';
