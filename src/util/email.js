@@ -466,10 +466,10 @@ module.exports = (formio) => {
           let emails = [];
 
           debug.send(`message.sendEach: ${message.sendEach}`);
-          debug.send(`email: ${JSON.stringify(email)}`);
+          // debug.send(`email: ${JSON.stringify(email)}`);
           if (message.sendEach === true) {
             const addresses = _.uniq(email.to.split(',').map(_.trim));
-            debug.send(`addresses: ${JSON.stringify(addresses)}`);
+            // debug.send(`addresses: ${JSON.stringify(addresses)}`);
             // Make a copy of the email for each recipient.
             emails = addresses.map((address) => Object.assign({}, email, {to: address}));
           }
@@ -477,7 +477,7 @@ module.exports = (formio) => {
             emails = [email];
           }
 
-          debug.send(`emails: ${JSON.stringify(emails)}`);
+          // debug.send(`emails: ${JSON.stringify(emails)}`);
 
           const chunks = _.chunk(emails, EMAIL_CHUNK_SIZE);
           return chunks.reduce((result, chunk) => {
@@ -508,7 +508,7 @@ module.exports = (formio) => {
 
                         return transporter.sendMail(email, (err, info) => {
                           if (err) {
-                            return reject(err);
+                            debug.error(err);
                           }
 
                           return resolve(info);
