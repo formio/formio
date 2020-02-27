@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-beta.1
+### Breaking Changes
+ - Isomorphic validations. May cause error interface and codes to change slightly.
+
+### Changed
+ - Upgrade mongodb@3.5.4, async@3.2.0
+ - Upgrade ResourceJS@2.0.0
+
 ## 1.70.0
 ### Added
  - Tokens to the calculate value evaluate contexts.

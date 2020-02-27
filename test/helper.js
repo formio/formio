@@ -1,6 +1,6 @@
 'use strict';
 
-var request = require('supertest');
+const request = require('./formio-supertest');
 var chance = new (require('chance'))();
 var assert = require('assert');
 var _ = require('lodash');
