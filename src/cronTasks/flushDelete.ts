@@ -15,7 +15,9 @@ export default async (app: Formio) => {
   };
 
   const deletePromises = Object.keys(app.models)
-    .map((modelName: string) => app.models[modelName].delete(query));
+    .map((modelName: string) => app.models[modelName].delete(query, null, {
+      force: true,
+    }));
 
   return Promise.all(deletePromises);
 };

@@ -37,7 +37,11 @@ export class PreserveModel extends Model {
     return super.read(query, context);
   }
 
-  public delete(query, context?) {
+  public delete(query, context?, options?) {
+    if (options && options.force) {
+      return super.delete(query, context);
+    }
+
     return this.initialized.then(() => {
       return this.read(query, context).then((doc) => {
         doc.deleted = Date.now();
