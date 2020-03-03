@@ -15,7 +15,7 @@ const app = express();
 import {init} from './src/init';
 
 export const main = new Promise((resolve, reject) => {
-  return init(config).then(([db, remoteActions]) => {
+  return init(config).then(([db]) => {
     // Only continue if the DB is initializing.
     if (!db) {
       return reject('Error: No database configured');
@@ -27,7 +27,7 @@ export const main = new Promise((resolve, reject) => {
     app.use(bodyParser.urlencoded({ extended: true, limit: config.maxBodySize }));
     app.use(bodyParser.json({ limit: config.maxBodySize }));
 
-    const formio = new Formio(app, db, config, remoteActions || {});
+    const formio = new Formio(app, db, config);
 
     app.listen(config.port);
     console.log('');

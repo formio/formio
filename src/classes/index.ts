@@ -1,1 +1,1 @@
-export * from './RemoteAction';
+export default {};

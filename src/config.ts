@@ -6,8 +6,6 @@ export const config: any = {
     expireTime: process.env.JWT_EXPIRETIME || 240,
   },
   cronTime: process.env.CRON_TIME || '*/15 * * * *',
-  actionsServer: process.env.ACTIONS_SERVER,
-  actionsServerKey: process.env.ACTIONS_SERVER_KEY,
 };
 
 if (process.env.MONGO) {

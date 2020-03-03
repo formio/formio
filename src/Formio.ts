@@ -12,12 +12,9 @@ import {routes as routeClasses} from './routes';
 
 export class Formio extends Api {
   protected cronjob;
-  protected externalActions;
 
-  constructor(router, db, config, externalActions) {
+  constructor(router, db, config) {
     super(router, db, config);
-
-    this.externalActions = externalActions;
 
     // Ensure that required environment variables are set.
     if (this.requiredEnvVars.reduce((prev, variable) => {
@@ -45,7 +42,6 @@ export class Formio extends Api {
     return {
       ...super.actions,
       ...actions,
-      ...this.externalActions.actions,
     };
   }
 
