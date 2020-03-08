@@ -108,6 +108,10 @@ You will need to make sure you replace ```{PROJECTNAME}``` and ```{APIKEY}``` wi
 
 This will then ask you to log into the local Form.io server (which can be provided within the Admin resource), and then after it authenticates, it will export the project and deploy that project to the Form.io hosted form.
 
+License Change (March 8th, 2020)
+--------------------
+This library is now licensed under the OSL-v3 license, which is a copy-left OSI approved license. Please read the license @ https://opensource.org/licenses/OSL-3.0 for more information. Our goal for the change to OSLv3 from BSD is to ensure that appropriate Attribution is provided when creating proprietary products that leverage or extend this library.
+
 Help
 --------------------
 We will be updating the help guides found @ https://help.form.io as questions arise and also to help you get started with Form.io.
