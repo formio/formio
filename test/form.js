@@ -1922,7 +1922,7 @@ module.exports = function(app, template, hook) {
               var response = res.body;
               assert.deepEqual(response.name, 'ValidationError');
               assert.equal(response.details.length, 1);
-              assert.equal(response.details[0].message, 'foo must be shorter than 0 characters.');
+              assert.equal(response.details[0].message, 'foo must have no more than -1 characters.');
               done();
             });
         });
