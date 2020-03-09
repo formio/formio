@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-beta.3
+#### Changed
+ - Upgrade formiojs@4.9.0-rc.6
+
+## 2.0.0-beta.2
+#### Changed
+ - Upgrading dependencies.
+
 ## 2.0.0-beta.1
 ### Breaking Changes
  - Isomorphic validations. May cause error interface and codes to change slightly.
