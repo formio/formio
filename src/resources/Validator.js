@@ -64,6 +64,7 @@ class Validator {
     }
 
     const unsets = [];
+    const emptyData = _.isEmpty(submission.data);
     let unsetsEnabled = false;
 
     // Create the form, then check validity.
@@ -119,7 +120,7 @@ class Validator {
         if (valid) {
           // Clear the non-persistent fields.
           unsets.forEach((unset) => _.unset(unset.data, unset.key));
-          submission.data = form.data;
+          submission.data = emptyData ? {} : form.data;
           return next(null, submission.data);
         }
 

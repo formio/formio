@@ -69,6 +69,7 @@ module.exports = {
     "type": "button"
   }],
   submission: {
+    "test": "",
     "for213": {
       "mode": "autocomplete",
       "address": {
