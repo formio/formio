@@ -43,9 +43,16 @@ export class PreserveModel extends Model {
     }
 
     return this.initialized.then(() => {
-      return this.read(query, context).then((doc) => {
-        doc.deleted = Date.now();
-        return this.db.update(this.collectionName, doc, context);
+      return this.read(query, context).then((input) => {
+        if (!input) {
+          throw new Error('Not Found');
+        }
+        return this.beforeSave(input, {})
+            .then((doc) => {
+              doc.deleted = Date.now();
+              return this.db.update(this.collectionName, doc, context)
+                  .then((doc) => this.afterLoad(doc));
+            });
       });
     });
   }
