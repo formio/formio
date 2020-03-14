@@ -14,6 +14,7 @@ module.exports = function(router) {
   return function formLoader(req, res, next) {
     if (
       req.method !== 'GET' ||
+      Array.isArray(res.resource.item) ||
       (_.get(req, '__rMethod', 'get') !== 'get')
     ) {
       return next();

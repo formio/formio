@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.71.0
+### Changed
+ - Upgrade csv@5.3.2, mongodb@3.5.5, mongoose@5.9.4, nodemailer@6.4.5, async@3.2.0, config@3.3.0, mssql@6.2.0, mocha@7.1.0
+
+### Fixed
+ - Fixing dryrun for field actions so they execute, and adding more hooks for formResponse and alias.
+
 ## 1.70.0
 ### Added
  - Tokens to the calculate value evaluate contexts.
