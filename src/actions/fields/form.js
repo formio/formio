@@ -75,8 +75,10 @@ module.exports = router => {
         return next(err);
       }
 
-      if (childRes.resource && childRes.resource.item) {
-        _.set(data, component.key, childRes.resource.item);
+      if (!req.query.dryrun) {
+        if (childRes.resource && childRes.resource.item) {
+          _.set(data, component.key, childRes.resource.item);
+        }
       }
       next();
     });
