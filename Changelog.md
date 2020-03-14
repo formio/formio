@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-beta.4
+### Added
+ - Hooks for the alias.
+ - Hooks for the formResponse.
+
+### Changed
+ - Upgrade mongodb@3.5.5, mongoose@5.9.4, nodemailer@6.4.5, mssql@6.2.0
+ - Upgrade formiojs@4.9.0-rc.10
+ - Ensure that field actions are triggered on dryrun.
+
 ## 2.0.0-beta.3
 #### Changed
  - Upgrade formiojs@4.9.0-rc.6
