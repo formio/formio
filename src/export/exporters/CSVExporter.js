@@ -252,7 +252,8 @@ class CSVExporter extends Exporter {
 
               if (value) {
                 const dateMoment = moment(value).tz(this.timezone || 'Etc/UTC');
-                this.dateFormat = util.FormioUtils.convertFormatToMoment(component.format);
+                const format = component.format || 'yyyy-MM-dd hh:mm a';
+                this.dateFormat = util.FormioUtils.convertFormatToMoment(format);
                 const result = dateMoment.format(`${this.dateFormat} z`);
                 return result;
               }
