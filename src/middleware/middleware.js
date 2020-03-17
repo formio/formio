@@ -34,6 +34,7 @@ module.exports = function(router) {
     submissionResourceAccessFilter: require('./submissionResourceAccessFilter')(router),
     tokenHandler: require('./tokenHandler')(router),
     restrictRequestTypes: require('./restrictRequestTypes')(router),
-    filterIndex: require('./filterIndex')(router)
+    filterIndex: require('./filterIndex')(router),
+    mongodbConnectionState: require('./mongodbConnectionState')(router),
   };
 };
