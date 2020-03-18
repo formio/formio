@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.72.0
+### Changed
+ - Upgrade mongoose@5.9.5
+
+### Fixed
+ - Fixed CSVExporter: Add default format for datetime
+
 ## 1.71.0
 ### Changed
  - Upgrade csv@5.3.2, mongodb@3.5.5, mongoose@5.9.4, nodemailer@6.4.5, async@3.2.0, config@3.3.0, mssql@6.2.0, mocha@7.1.0
