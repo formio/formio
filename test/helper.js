@@ -216,7 +216,7 @@ module.exports = function(app) {
     // Get the roles created for this project.
     request(app)
       .get(url)
-      .set('x-jwt-token', this.owner.token || {})
+      .set('x-jwt-token', this.owner.token)
       .expect('Content-Type', /json/)
       .expect(200)
       .end((err, res) => {
