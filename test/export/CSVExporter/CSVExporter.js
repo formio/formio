@@ -1,5 +1,6 @@
 module.exports = function(app, template, hook) {
   const docker = process.env.DOCKER;
+  const assert = require('assert');
   const Helper = require('../../helper')(app);
   let helper = null;
   const test = require('../../fixtures/forms/datetime-format.js');
@@ -26,9 +27,8 @@ module.exports = function(app, template, hook) {
             if (error) {
               done(error);
             }
-            if (result.text.split('\n')[1].split(',')[3]) {
-              done();
-            }
+            assert(!!result.text.split('\n')[1].split(',')[3], 'Date was not set');
+            done();
           });
         });
     })
