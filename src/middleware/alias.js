@@ -39,7 +39,8 @@ module.exports = function(router) {
     const baseUrl = aliasHandler.baseUrl ? aliasHandler.baseUrl(req) : '';
 
     // Get the alias from the request.
-    const alias = url.parse(req.url).pathname.substr(baseUrl.length).replace(formsRegEx, '').substr(1);
+    let alias = url.parse(req.url).pathname.substr(baseUrl.length).replace(formsRegEx, '').substr(1);
+    alias = router.formio.hook.alter('alias', alias, req, res);
 
     // If this is normal request, then pass this middleware.
     /* eslint-disable no-useless-escape */

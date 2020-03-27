@@ -12,10 +12,16 @@ const _ = require('lodash');
 module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
   return function formLoader(req, res, next) {
+    if (
+      req.method !== 'GET' ||
+      (_.get(req, '__rMethod', 'get') !== 'get')
+    ) {
+      return next();
+    }
+
     let shouldLoadSubForms = true;
     // Only process on GET request, and if they provide full query.
     if (
-      req.method !== 'GET' ||
       !req.query.full ||
       !res.resource ||
       !res.resource.item
@@ -23,20 +29,8 @@ module.exports = function(router) {
       shouldLoadSubForms = false;
     }
 
-    //populate reCAPTCHA siteKey from Project Settings if reCAPTCHA is enabled for this form
-    if (_.get(res.resource.item, 'settings.recaptcha.isEnabled')) {
-      hook.settings(req, (err, settings) => {
-        _.set(res.resource.item, 'settings.recaptcha.siteKey', _.get(settings, 'recaptcha.siteKey'));
-        // Load all subforms recursively.
-        if (shouldLoadSubForms) {
-          router.formio.cache.loadSubForms(res.resource.item, req, next);
-        }
-        else {
-          return next();
-        }
-      });
-    }
-    else {
+    // Allow modules to hook into the form loader middleware.
+    hook.alter('formResponse', res.resource.item, req, () => {
       // Load all subforms recursively.
       if (shouldLoadSubForms) {
         router.formio.cache.loadSubForms(res.resource.item, req, next);
@@ -44,6 +38,6 @@ module.exports = function(router) {
       else {
         return next();
       }
-    }
+    });
   };
 };

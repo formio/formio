@@ -40,6 +40,24 @@ module.exports = function(app) {
     return permsConfig;
   };
 
+  Helper.prototype.getExport = function(form, format, done) {
+    let url = '';
+    if (this.template.project && this.template.project._id) {
+      url += `/project/${this.template.project._id}`;
+    }
+    url += `/form/${form._id}/export?format=${format || 'csv'}`;
+
+    request(app)
+      .get(url)
+      .set('x-jwt-token', this.owner.token)
+      .expect('Content-Type', format === 'json' ? /json/ : 'text/csv')
+      .expect(200)
+      .end((err, res) => {
+        this.owner.token = res.headers['x-jwt-token'];
+        done(err, res);
+      })
+  };
+
   Helper.prototype.getTemplate = function() {
     return this.template;
   };
