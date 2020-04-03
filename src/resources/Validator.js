@@ -580,6 +580,7 @@ class Validator {
     /* eslint-disable max-statements */
     components.forEach((component) => {
       let fieldValidator = null;
+      let componentKey = component.key;
 
       this.applyLogic(component, componentData, submission.data);
       this.calculateValue(component, componentData, submission.data);
@@ -723,7 +724,7 @@ class Validator {
           break;
         case 'checkbox':
           if (component.name && !_.find(components, ['key', component.name])) {
-            schema[component.name] = JoiX.any();
+            componentKey = component.name;
           }
           fieldValidator = fieldValidator || JoiX.any();
           break;
@@ -753,7 +754,7 @@ class Validator {
       }
       /* eslint-enable max-depth, valid-typeof */
 
-      if (component.key && (component.key.indexOf('.') === -1) && component.validate) {
+      if (componentKey && (componentKey.indexOf('.') === -1) && component.validate) {
         // Add required validator.
         if (component.validate.required) {
           fieldValidator = fieldValidator.required().empty().disallow('', null);
@@ -818,8 +819,8 @@ class Validator {
       }
 
       // Only run validations for persistent fields.
-      if (component.key && fieldValidator && isPersistent) {
-        schema[component.key] = fieldValidator.hidden(component, submission.data, this.form);
+      if (componentKey && fieldValidator && isPersistent) {
+        schema[componentKey] = fieldValidator.hidden(component, submission.data, this.form);
       }
     });
     /* eslint-enable max-statements */
