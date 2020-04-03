@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.73.0
+### Fixed
+ - Validations for checkboxes configured as radio inputs.
+
+### Changed
+ - Upgrade config@3.3.1, formiojs@4.9.13, mongoose@5.9.7, nodemailer@6.4.6, mocha@7.1.1
+
 ## 1.72.0
 ### Changed
  - Upgrade mongoose@5.9.5
