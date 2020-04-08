@@ -134,9 +134,11 @@ export class Formio extends Api {
         }
       }
 
-      if (
-        !payload.user || !payload.user._id ||
-        !payload.form || !payload.form._id
+      if (!payload.external &&
+          (
+            !payload.user || !payload.user._id ||
+            !payload.form || !payload.form._id
+          )
       ) {
         return res.status(401).send('Invalid token. Missing form or user ids');
       }
@@ -167,6 +169,7 @@ export class Formio extends Api {
     // Allow external tokens.
     if (payload.external) {
       req.user = payload.user;
+      req.user.external = true;
       return next();
     }
 
