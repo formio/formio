@@ -24,7 +24,7 @@
   "schema": "3.1.4",
   "templateVersion": "2.0.0",
   "dependencies": {
-    "@formio/api": "^0.4.2",
+    "@formio/api": "^0.4.3",
     "adm-zip": "^0.4.13",
     "colors": "^1.3.3",
     "cors": "^2.8.4",

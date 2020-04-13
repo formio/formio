@@ -122,7 +122,10 @@ export class MongoDB extends Database {
   public async update(collectionName, doc) {
     const database = this.getDatabaseName(collectionName, doc);
     const collection = await this.collection(collectionName, database);
-    const result = await collection.findOneAndReplace({ _id: doc._id }, doc, { returnNewDocument: true });
+    const result = await collection.findOneAndReplace({ _id: doc._id }, doc, {
+      returnNewDocument: true,
+      returnOriginal: false,
+    });
     return result.value;
   }
 
