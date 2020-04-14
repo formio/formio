@@ -9,6 +9,7 @@ const debug = {
   loadFormByAlias: require('debug')('formio:cache:loadFormByAlias'),
   loadSubmission: require('debug')('formio:cache:loadSubmission'),
   loadSubmissions: require('debug')('formio:cache:loadSubmissions'),
+  loadSubForms: require('debug')('formio:cache:loadSubForms'),
   error: require('debug')('formio:error')
 };
 
@@ -138,10 +139,12 @@ module.exports = function(router) {
 
     loadFormRevisions(req, revs, cb) {
       if (!revs || !revs.length || !router.formio.resources.formrevision) {
+        debug.loadSubForms(`Form revisions not used.`);
         return cb();
       }
 
       async.each(revs, (rev, next) => {
+        debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${rev.formRevision}`);
         router.formio.resources.formrevision.model.findOne(
           hook.alter('formQuery', {
             _rid: util.idToBson(rev.form),
@@ -150,17 +153,21 @@ module.exports = function(router) {
           }, req)
         ).lean().exec((err, result) => {
           if (err) {
+            debug.loadSubForms(err);
             return next(err);
           }
           if (!result) {
+            debug.loadSubForms(`Cannot find form revision for form ${util.idToBson(rev.form)} revision ${rev.formRevision}`);
             return next();
           }
 
+          debug.loadSubForms(`Loaded revision for form ${util.idToBson(rev.form)} revision ${rev.formRevision}`);
           rev.components = result.components;
           next();
         });
       }, (err) => {
         if (err) {
+          debug.loadSubForms(err);
           debug.loadFormRevisions(err);
           return cb(err);
         }
@@ -397,6 +404,7 @@ module.exports = function(router) {
     loadSubForms(form, req, next, depth, forms) {
       depth = depth || 0;
       forms = forms || {};
+      debug.loadSubForms(`Loading subforms for ${form._id}`);
 
       // Only allow 5 deep.
       if (depth >= 5) {
@@ -413,8 +421,10 @@ module.exports = function(router) {
           if (!comps[formId]) {
             comps[formId] = [];
             formIds.push(formId);
+            debug.loadSubForms(`Found subform ${formId}`);
             if (component.formRevision) {
               formRevs.push(component);
+              debug.loadSubForms(`Using subform ${formId} revision ${component.formRevision}`);
             }
           }
           comps[formId].push(component);
@@ -427,6 +437,7 @@ module.exports = function(router) {
       }
 
       // Load all subforms in this form.
+      debug.loadSubForms(`Loading subforms ${formIds.join(', ')}`);
       this.loadForms(req, formIds, (err, result) => {
         if (err) {
           return next();
@@ -438,14 +449,17 @@ module.exports = function(router) {
           async.each(result, (subForm, done) => {
             const formId = subForm._id.toString();
             if (!comps[formId]) {
+              debug.loadSubForms(`No subform found for ${formId}`);
               return done();
             }
             comps[formId].forEach((comp) => {
               if (!comp.components || !comp.components.length) {
+                debug.loadSubForms(`Setting components for ${formId}`);
                 comp.components = subForm.components;
               }
             });
             if (forms[formId]) {
+              debug.loadSubForms(`Subforms already loaded for ${formId}.`);
               return done();
             }
             forms[formId] = true;
