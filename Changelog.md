@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.74.0
+### Changed
+ - Upgrade formiojs@4.9.18, mongodb@3.5.6, mongoose@5.9.9, nodemon@2.0.3, html-entities@1.3.1, semver@7.3.2
+
+### Added
+ - Debug messages to the loadSubForms method.
+ - Validator for tagpad component.
+
 ## 1.73.0
 ### Fixed
  - Validations for checkboxes configured as radio inputs.
