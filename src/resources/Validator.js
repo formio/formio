@@ -632,6 +632,21 @@ class Validator {
 
           fieldValidator = JoiX.array().items(JoiX.object().keys(objectSchema)).options({stripUnknown: false});
           break;
+        case 'tagpad':
+          objectSchema = this.buildSchema(
+              {},
+              component.components,
+              _.get(componentData, component.key, componentData).map(dot => dot.data),
+              submission
+          );
+          fieldValidator = JoiX.array().items(JoiX.object({
+            coordinate: JoiX.object({
+              x: JoiX.number(),
+              y: JoiX.number()
+            }),
+            data: JoiX.object().keys(objectSchema)
+          })).options({stripUnknown: false});
+          break;
         case 'container':
           objectSchema = this.buildSchema(
             {},
@@ -963,7 +978,8 @@ class Validator {
     };
 
     // Create the validator schema.
-    schema = JoiX.object().keys(this.buildSchema(schema, this.form.components, submission.data, submission));
+    const builtSchema = this.buildSchema(schema, this.form.components, submission.data, submission);
+    schema = JoiX.object().keys(builtSchema);
 
     // Iterate the list of components one time to build the path map.
     const components = {};
