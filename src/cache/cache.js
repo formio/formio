@@ -143,6 +143,7 @@ module.exports = function(router) {
         return cb();
       }
 
+      const formRevs = {};
       async.each(revs, (rev, next) => {
         debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${rev.formRevision}`);
         router.formio.resources.formrevision.model.findOne(
@@ -162,7 +163,7 @@ module.exports = function(router) {
           }
 
           debug.loadSubForms(`Loaded revision for form ${util.idToBson(rev.form)} revision ${rev.formRevision}`);
-          rev.components = result.components;
+          formRevs[result._id.toString()] = result;
           next();
         });
       }, (err) => {
@@ -172,7 +173,7 @@ module.exports = function(router) {
           return cb(err);
         }
 
-        cb();
+        cb(null, formRevs);
       });
     },
 
@@ -401,7 +402,7 @@ module.exports = function(router) {
      * @param depth
      * @returns {*}
      */
-    loadSubForms(form, req, next, depth, forms) {
+    loadAllForms(form, req, next, depth, forms) {
       depth = depth || 0;
       forms = forms || {};
       debug.loadSubForms(`Loading subforms for ${form._id}`);
@@ -412,22 +413,17 @@ module.exports = function(router) {
       }
 
       // Get all of the form components.
-      const comps = {};
       const formIds = [];
       const formRevs = [];
       util.eachComponent(form.components, function(component) {
         if ((component.type === 'form') && component.form) {
           const formId = component.form.toString();
-          if (!comps[formId]) {
-            comps[formId] = [];
-            formIds.push(formId);
-            debug.loadSubForms(`Found subform ${formId}`);
-            if (component.formRevision) {
-              formRevs.push(component);
-              debug.loadSubForms(`Using subform ${formId} revision ${component.formRevision}`);
-            }
+          formIds.push(formId);
+          debug.loadSubForms(`Found subform ${formId}`);
+          if (component.formRevision) {
+            formRevs.push(component);
+            debug.loadSubForms(`Using subform ${formId} revision ${component.formRevision}`);
           }
-          comps[formId].push(component);
         }
       }, true);
 
@@ -444,29 +440,46 @@ module.exports = function(router) {
         }
 
         // Load all form revisions.
-        this.loadFormRevisions(req, formRevs, () => {
+        this.loadFormRevisions(req, formRevs, (err, revs) => {
+          if (err) {
+            return next();
+          }
+
           // Iterate through all subforms.
           async.each(result, (subForm, done) => {
             const formId = subForm._id.toString();
-            if (!comps[formId]) {
-              debug.loadSubForms(`No subform found for ${formId}`);
-              return done();
-            }
-            comps[formId].forEach((comp) => {
-              if (!comp.components || !comp.components.length) {
-                debug.loadSubForms(`Setting components for ${formId}`);
-                comp.components = subForm.components;
-              }
-            });
             if (forms[formId]) {
               debug.loadSubForms(`Subforms already loaded for ${formId}.`);
               return done();
             }
-            forms[formId] = true;
-            this.loadSubForms(subForm, req, done, depth + 1, forms);
+            forms[formId] = revs[formId] ? revs[formId] : subForm;
+            this.loadAllForms(subForm, req, done, depth + 1, forms);
           }, next);
         });
       });
+    },
+
+    setFormComponents(components, forms) {
+      util.eachComponent(components, (component) => {
+        if ((component.type === 'form') && component.form) {
+          const formId = component.form.toString();
+          if (forms[formId]) {
+            component.components = forms[formId].components;
+            this.setFormComponents(component.components, forms);
+          }
+        }
+      }, true);
+    },
+
+    loadSubForms(form, req, next) {
+      const forms = {};
+      this.loadAllForms(form, req, (err) => {
+        if (err) {
+          return next(err);
+        }
+        this.setFormComponents(form.components, forms);
+        next(null, form);
+      }, 0, forms);
     },
 
     /**
