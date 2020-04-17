@@ -446,6 +446,7 @@ module.exports = function(router) {
           }
 
           // Iterate through all subforms.
+          revs = revs || {};
           async.each(result, (subForm, done) => {
             const formId = subForm._id.toString();
             if (forms[formId]) {
