@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.75.0
+### Fixed
+ - Issues where loading subforms could lose references.
+
+### Changed
+ - Upgrade formiojs@4.9.19
+
 ## 1.74.0
 ### Changed
  - Upgrade formiojs@4.9.18, mongodb@3.5.6, mongoose@5.9.9, nodemon@2.0.3, html-entities@1.3.1, semver@7.3.2
