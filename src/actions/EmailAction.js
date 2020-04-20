@@ -1,5 +1,5 @@
 'use strict';
-const request = require('request');
+const fetch = require('node-fetch');
 
 const LOG_EVENT = 'Email Action';
 
@@ -199,21 +199,20 @@ module.exports = (router) => {
                   params.owner = owner;
                 }
 
-                return new Promise((resolve, reject) => {
-                  if (!this.settings.template) {
-                    return resolve(this.settings.message);
-                  }
+                if (!this.settings.template) {
+                  return this.settings.message;
+                }
 
-                  return request(this.settings.template, (error, response, body) => {
-                    if (!error && response.statusCode === 200) {
-                      // Save the content before overwriting the message.
-                      params.content = this.settings.message;
-                      return resolve(body);
-                    }
-
-                    return resolve(this.settings.message);
-                  });
-                });
+                return fetch(this.settings.template)
+                    .then((response) => response.ok ? response.text() : null)
+                    .then((body) => {
+                      if (body) {
+                        // Save the content before overwriting the message.
+                        params.content = this.settings.message;
+                      }
+                      return body || this.settings.message;
+                    })
+                    .catch(() => this.settings.message);
               })
               .then((template) => {
                 this.settings.message = template;

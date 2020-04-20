@@ -40,7 +40,7 @@ module.exports = function(formio, items, done) {
       return done();
     }
 
-    const request = require('request');
+    const fetch = require('node-fetch');
     const ProgressBar = require('progress');
     util.log(`Downloading ${dir}${'...'.green}`);
 
@@ -49,11 +49,11 @@ module.exports = function(formio, items, done) {
     let tries = 0;
     let bar = null;
     (function downloadProject() {
-      request.get(url)
-        .on('response', function(res) {
+      fetch(url)
+        .then(function(res) {
           if (
-            !res.headers.hasOwnProperty('content-disposition') ||
-            !parseInt(res.headers['content-length'], 10)
+            !res.headers.has('content-disposition') ||
+            !parseInt(res.headers.get('content-length'), 10)
           ) {
             if (tries++ > 3) {
               return done('Unable to download project. Please try again.');
@@ -68,21 +68,21 @@ module.exports = function(formio, items, done) {
             complete: '=',
             incomplete: ' ',
             width: 50,
-            total: parseInt(res.headers['content-length'], 10)
+            total: parseInt(res.headers.get('content-length'), 10)
           });
 
-          res.pipe(fs.createWriteStream(zipFile, {
+          res.body.pipe(fs.createWriteStream(zipFile, {
             flags: 'w'
           }));
-          res.on('data', function(chunk) {
+          res.body.on('data', function(chunk) {
             if (bar) {
               bar.tick(chunk.length);
             }
           });
-          res.on('error', function(err) {
+          res.body.on('error', function(err) {
             downloadError = err;
           });
-          res.on('end', function() {
+          res.body.on('end', function() {
             setTimeout(function() {
               done(downloadError);
             }, 100);

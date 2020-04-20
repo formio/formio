@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const ObjectID = require('mongodb').ObjectID;
 const _ = require('lodash');
 const nodeUrl = require('url');
-const Q = require('q');
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/util');
 const errorCodes = require('./error-codes.js');
@@ -485,14 +484,6 @@ const Utils = {
   getFormComponentKey(key) {
     return key.replace(/\.data\./g, '.');
   },
-
-  /**
-   * A promisified version of request. Use this if you need
-   * to be able to mock requests for tests, as it's much easier
-   * to mock this than the individual required 'request' modules
-   * in each file.
-   */
-  request: Q.denodeify(require('request')),
 
   /**
    * Utility function to ensure the given id is always a BSON object.
