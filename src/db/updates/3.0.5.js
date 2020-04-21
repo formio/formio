@@ -1,8 +1,8 @@
 'use strict';
 
-var async = require('async');
-var _ = require('lodash');
-var debug = {
+let async = require('async');
+let _ = require('lodash');
+let debug = {
   getFormsWithUniqueComponents: require('debug')('formio:update:3.0.5-getFormsWithUniqueComponents'),
   getFormsWithUniqueComponentsInLayoutComponents: require('debug')('formio:update:3.0.5-getFormsWithUniqueComponentsInLayoutComponents'),
   getFormsWithPotentialUniqueComponentsInLayoutComponents: require('debug')('formio:update:3.0.5-getFormsWithPotentialUniqueComponentsInLayoutComponents'),
@@ -26,15 +26,15 @@ var debug = {
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var formCollection = db.collection('forms');
-  var submissionCollection = db.collection('submissions');
-  var blackListedComponents = ['select', 'address'];
+  let formCollection = db.collection('forms');
+  let submissionCollection = db.collection('submissions');
+  let blackListedComponents = ['select', 'address'];
 
   // List of forms to sweep.
-  var forms = [];
+  let forms = [];
 
   // Unique map for all sweepable forms.
-  var uniques = {};
+  let uniques = {};
 
   /**
    * Fix the submissions unique fields.
@@ -44,11 +44,11 @@ module.exports = function(db, config, tools, done) {
    * @param next
    * @returns {*}
    */
-  var fixSubmissionUniques = function(submissions, next) {
+  let fixSubmissionUniques = function(submissions, next) {
     async.each(submissions, function(submission, cb) {
-      var update = {};
+      let update = {};
       _.each(uniques[submission.form.toString()], function(path, key) {
-        var item = _.get(submission, 'data.' + path);
+        let item = _.get(submission, 'data.' + path);
         if (item) {
           // Coerce all unique string fields to be lowercase.
           if (typeof item === 'string') {
@@ -76,7 +76,7 @@ module.exports = function(db, config, tools, done) {
         debug.fixSubmissionUniques(update);
       }
 
-      submissionCollection.update(
+      submissionCollection.updateOne(
         {_id: tools.util.idToBson(submission._id)},
         {$set: update},
         function(err) {
@@ -102,7 +102,7 @@ module.exports = function(db, config, tools, done) {
    * @param next
    * @returns {*}
    */
-  var buildUniqueComponentList = function(next) {
+  let buildUniqueComponentList = function(next) {
     formCollection.find({_id: {$in: forms}, deleted: {$eq: null}})
       .snapshot(true)
       .forEach(function(form) {
@@ -126,7 +126,7 @@ module.exports = function(db, config, tools, done) {
    *
    * @param next
    */
-  var getFormsWithUniqueComponents = function(next) {
+  let getFormsWithUniqueComponents = function(next) {
     formCollection.find({
       components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}},
       deleted: {$eq: null}
@@ -151,7 +151,7 @@ module.exports = function(db, config, tools, done) {
    *
    * @param next
    */
-  var getFormsWithUniqueComponentsInLayoutComponents = function(next) {
+  let getFormsWithUniqueComponentsInLayoutComponents = function(next) {
     formCollection.find({
       _id: {$nin: forms},
       deleted: {$eq: null},
@@ -184,7 +184,7 @@ module.exports = function(db, config, tools, done) {
    *
    * @param next
    */
-  var getFormsWithPotentialUniqueComponentsInLayoutComponents = function(next) {
+  let getFormsWithPotentialUniqueComponentsInLayoutComponents = function(next) {
     formCollection.find({
       _id: {$nin: forms},
       deleted: {$eq: null},
@@ -222,10 +222,10 @@ module.exports = function(db, config, tools, done) {
         return next(err);
       }
 
-      var walkComponents = function(components) {
-        for(var a = 0; a < components.length; a++) {
+      let walkComponents = function(components) {
+        for(let a = 0; a < components.length; a++) {
           // Check the current component, to see if its unique.
-          var component = components[a];
+          let component = components[a];
           if (
             component.hasOwnProperty('unique')
             && component.unique === true
@@ -251,9 +251,9 @@ module.exports = function(db, config, tools, done) {
         return false;
       };
 
-      var filtered = [];
+      let filtered = [];
       forms.forEach(function(form) {
-        var res = (walkComponents(form.components) === true);
+        let res = (walkComponents(form.components) === true);
 
         if (res) {
           filtered.push(form._id);
@@ -271,7 +271,7 @@ module.exports = function(db, config, tools, done) {
    *
    * @param next
    */
-  var getAffectedSubmissions = function(next) {
+  let getAffectedSubmissions = function(next) {
     submissionCollection.find({
       deleted: {$eq: null},
       form: {$in: forms}
@@ -293,7 +293,7 @@ module.exports = function(db, config, tools, done) {
    * @param newForms
    * @param next
    */
-  var mergeForms = function(newForms, next) {
+  let mergeForms = function(newForms, next) {
     debug.mergeForms('Old: ' + forms.length);
     debug.mergeForms('New: ' + newForms.length);
     forms = forms.concat(newForms);

@@ -1,19 +1,63 @@
 'use strict';
 
-var mongoose = require('mongoose');
-var _ = require('lodash');
-var moment = require('moment');
-var nodeUrl = require('url');
-var Q = require('q');
-var formioUtils = require('formiojs/utils');
-var deleteProp = require('delete-property').default;
-var debug = {
+const mongoose = require('mongoose');
+const ObjectID = require('mongodb').ObjectID;
+const _ = require('lodash');
+const nodeUrl = require('url');
+const Q = require('q');
+const deleteProp = require('delete-property').default;
+const workerUtils = require('formio-workers/util');
+const errorCodes = require('./error-codes.js');
+const vm = require('vm');
+const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
 
+// Define a few global noop placeholder shims and import the component classes
+global.Text              = class {};
+global.HTMLElement       = class {};
+global.HTMLCanvasElement = class {};
+global.navigator         = {userAgent: ''};
+global.document          = {
+  createElement: () => ({}),
+  cookie: '',
+  getElementsByTagName: () => [],
+  documentElement: {style: []}
+};
+global.window            = {addEventListener: () => {}, Event: {}, navigator: global.navigator};
+const Formio = require('formiojs/formio.form.js');
+
+// Remove onChange events from all renderer displays.
+_.each(Formio.Displays.displays, (display) => {
+  display.prototype.onChange = _.noop;
+});
+
+Formio.Utils.Evaluator.noeval = true;
+Formio.Utils.Evaluator.evaluator = function(func, args) {
+  return function() {
+    const params = _.keys(args);
+    const sandbox = vm.createContext({
+      result: null,
+      args
+    });
+    /* eslint-disable no-empty */
+    try {
+      const script = new vm.Script(`result = (function({${params.join(',')}}) {${func}})(args);`);
+      script.runInContext(sandbox, {
+        timeout: 250
+      });
+    }
+    catch (err) {}
+    /* eslint-enable no-empty */
+    return sandbox.result;
+  };
+};
+
 const Utils = {
+  Formio: Formio.Formio,
+  FormioUtils: Formio.Utils,
   deleteProp: deleteProp,
 
   /**
@@ -22,7 +66,7 @@ const Utils = {
    * @param {*} content
    *   The content to pass to console.log.
    */
-  log: function(content) {
+  log(content) {
     if (process.env.TEST_SUITE) {
       return;
     }
@@ -37,7 +81,7 @@ const Utils = {
    * @param value
    * @return {boolean}
    */
-  isBoolean: function(value) {
+  isBoolean(value) {
     if (typeof value === 'boolean') {
       return true;
     }
@@ -53,7 +97,7 @@ const Utils = {
    * @param value
    * @return {boolean}
    */
-  boolean: function(value) {
+  boolean(value) {
     if (typeof value === 'boolean') {
       return value;
     }
@@ -69,7 +113,7 @@ const Utils = {
    * @param {*} content
    *   The content to pass to console.error.
    */
-  error: function(content) {
+  error(content) {
     /* eslint-disable */
     console.error(content);
     /* eslint-enable */
@@ -78,12 +122,12 @@ const Utils = {
   /**
    * Returns the URL alias for a form provided the url.
    */
-  getAlias: function(req, reservedForms) {
+  getAlias(req, reservedForms) {
     /* eslint-disable no-useless-escape */
-    var formsRegEx = new RegExp('\/(' + reservedForms.join('|') + ').*', 'i');
+    const formsRegEx = new RegExp(`\/(${reservedForms.join('|')}).*`, 'i');
     /* eslint-enable no-useless-escape */
-    var alias = req.url.substr(1).replace(formsRegEx, '');
-    var additional = req.url.substr(alias.length + 1);
+    const alias = req.url.substr(1).replace(formsRegEx, '');
+    let additional = req.url.substr(alias.length + 1);
     if (!additional && req.method === 'POST') {
       additional = '/submission';
     }
@@ -99,10 +143,35 @@ const Utils = {
    * @param str
    * @returns {*}
    */
-  escapeRegExp: function(str) {
+  escapeRegExp(str) {
     /* eslint-disable */
     return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
     /* eslint-enable */
+  },
+
+  /**
+   * Create a sub response object that only handles errors.
+   *
+   * @param res
+   * @return {{send: function(), sendStatus: function(*=), status: function(*=)}}
+   */
+  createSubResponse(response) {
+    response = response || _.noop;
+    const subResponse = {
+      statusCode: 200,
+      send: (err) => response(err),
+      json: (err) => response(err),
+      setHeader: () => _.noop,
+      sendStatus: (status) => {
+        subResponse.statusCode = status;
+        response(status);
+      },
+      status: (status) => {
+        subResponse.statusCode = status;
+        return subResponse;
+      }
+    };
+    return subResponse;
   },
 
   /**
@@ -110,9 +179,9 @@ const Utils = {
    *
    * @param req
    */
-  createSubRequest: function(req) {
+  createSubRequest(req) {
     // Determine how many child requests have been made.
-    var childRequests = req.childRequests || 0;
+    let childRequests = req.childRequests || 0;
 
     // Break recursive child requests.
     if (childRequests > 5) {
@@ -120,11 +189,13 @@ const Utils = {
     }
 
     // Save off formio for fast cloning...
-    var cache = req.formioCache;
+    const cache = req.formioCache;
     delete req.formioCache;
 
     // Clone the request.
-    var childReq = _.cloneDeep(req);
+    const childReq = _.clone(req);
+    childReq.params = _.clone(childReq.params);
+    childReq.query = _.clone(childReq.query);
 
     // Add the parameters back.
     childReq.formioCache = cache;
@@ -132,9 +203,13 @@ const Utils = {
     childReq.modelQuery = null;
     childReq.countQuery = null;
     childReq.childRequests = ++childRequests;
+    childReq.permissionsChecked = false;
 
     // Delete the actions cache.
     delete childReq.actions;
+
+    // Delete submission model.
+    delete childReq.submissionModel;
 
     // Delete default resourceData from actions
     // otherwise you get an endless loop
@@ -158,7 +233,7 @@ const Utils = {
    *   Whether or not to include layout components.
    * @param {String} path
    */
-  eachComponent: formioUtils.eachComponent,
+  eachComponent: Formio.Utils.eachComponent.bind(Formio.Utils),
 
   /**
    * Get a component by its key
@@ -171,7 +246,18 @@ const Utils = {
    * @returns {Object}
    *   The component that matches the given key, or undefined if not found.
    */
-  getComponent: formioUtils.getComponent,
+  getComponent: Formio.Utils.getComponent.bind(Formio.Utils),
+
+  /**
+   * Define if component should be considered input component
+   *
+   * @param {Object} componentJson
+   *   JSON of component to check
+   *
+   * @returns {Boolean}
+   *   If component is input or not
+   */
+  isInputComponent: Formio.Utils.isInputComponent.bind(Formio.Utils),
 
   /**
    * Flatten the form components for data manipulation.
@@ -184,7 +270,7 @@ const Utils = {
    * @returns {Object}
    *   The flattened components map.
    */
-  flattenComponents: formioUtils.flattenComponents,
+  flattenComponents: Formio.Utils.flattenComponents.bind(Formio.Utils),
 
   /**
    * Get the value for a component key, in the given submission.
@@ -194,7 +280,7 @@ const Utils = {
    * @param {String} key
    *   A for components API key to search for.
    */
-  getValue: formioUtils.getValue,
+  getValue: Formio.Utils.getValue.bind(Formio.Utils),
 
   /**
    * Determine if a component is a layout component or not.
@@ -205,7 +291,7 @@ const Utils = {
    * @returns {Boolean}
    *   Whether or not the component is a layout component.
    */
-  isLayoutComponent: formioUtils.isLayoutComponent,
+  isLayoutComponent: Formio.Utils.isLayoutComponent.bind(Formio.Utils),
 
   /**
    * Apply JSON logic functionality.
@@ -214,7 +300,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  jsonLogic: formioUtils.jsonLogic,
+  jsonLogic: Formio.Utils.jsonLogic,
 
   /**
    * Check if the condition for a component is true or not.
@@ -223,7 +309,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  checkCondition: formioUtils.checkCondition,
+  checkCondition: Formio.Utils.checkCondition.bind(Formio.Utils),
 
   /**
    * Return the objectId.
@@ -232,10 +318,15 @@ const Utils = {
    * @returns {*}
    * @constructor
    */
-  ObjectId: function(id) {
-    return _.isObject(id)
-      ? id
-      : mongoose.Types.ObjectId(id);
+  ObjectId(id) {
+    try {
+      return _.isObject(id)
+        ? id
+        : mongoose.Types.ObjectId(id);
+    }
+    catch (e) {
+      return id;
+    }
   },
 
   /**
@@ -249,7 +340,7 @@ const Utils = {
    * @return
    *   The header value if found or false.
    */
-  getHeader: function(req, key) {
+  getHeader(req, key) {
     if (typeof req.headers[key] !== 'undefined') {
       return req.headers[key];
     }
@@ -257,178 +348,9 @@ const Utils = {
     return false;
   },
 
-    flattenComponentsForRender: function(components) {
-      var flattened = {};
-      this.eachComponent(components, function(component, path) {
-        // Containers will get rendered as flat.
-        if (
-          (component.type === 'container') ||
-          (component.type === 'button') ||
-          (component.type === 'hidden')
-        ) {
-          return;
-        }
-
-        flattened[path] = component;
-
-        if (component.type === 'datagrid') {
-          return true;
-        }
-      });
-      return flattened;
-    },
-
-  renderFormSubmission: function(data, components) {
-    var comps = this.flattenComponentsForRender(components);
-    var submission = '<table border="1" style="width:100%">';
-    _.each(comps, function(component, key) {
-      var cmpValue = this.renderComponentValue(data, key, comps);
-      if (typeof cmpValue.value === 'string') {
-        submission += '<tr>';
-        submission += '<th style="padding: 5px 10px;">' + cmpValue.label + '</th>';
-        submission += '<td style="width:100%;padding:5px 10px;">' + cmpValue.value + '</td>';
-        submission += '</tr>';
-      }
-    }.bind(this));
-    submission += '</table>';
-    return submission;
-  },
-
-  /**
-   * Renders a specific component value, which is also able
-   * to handle Containers, Data Grids, as well as other more advanced
-   * components such as Signatures, Dates, etc.
-   *
-   * @param data
-   * @param key
-   * @param components
-   * @returns {{label: *, value: *}}
-   */
-  renderComponentValue: function(data, key, components) {
-    var value = _.get(data, key);
-    if (!value) {
-      value = '';
-    }
-    var compValue = {
-      label: key,
-      value: value
-    };
-    if (!components.hasOwnProperty(key)) {
-      return compValue;
-    }
-    var component = components[key];
-    compValue.label = component.label || component.placeholder || component.key;
-    if (component.multiple) {
-      components[key].multiple = false;
-      compValue.value = _.map(value, function(subValue) {
-        var subValues = {};
-        subValues[key] = subValue;
-        return this.renderComponentValue(subValues, key, components).value;
-      }.bind(this)).join(', ');
-      return compValue;
-    }
-
-    switch (component.type) {
-      case 'password':
-        compValue.value = '--- PASSWORD ---';
-        break;
-      case 'address':
-        compValue.value = compValue.value ? compValue.value.formatted_address : '';
-        break;
-      case 'signature':
-        // For now, we will just email YES or NO until we can make signatures work for all email clients.
-        compValue.value = ((typeof value === 'string') && (value.indexOf('data:') === 0)) ? 'YES' : 'NO';
-        break;
-      case 'container':
-        compValue.value = '<table border="1" style="width:100%">';
-        _.each(value, function(subValue, subKey) {
-          var subCompValue = this.renderComponentValue(value, subKey, components);
-          if (typeof subCompValue.value === 'string') {
-            compValue.value += '<tr>';
-            compValue.value += '<th style="text-align:right;padding: 5px 10px;">' + subCompValue.label + '</th>';
-            compValue.value += '<td style="width:100%;padding:5px 10px;">' + subCompValue.value + '</td>';
-            compValue.value += '</tr>';
-          }
-        }.bind(this));
-        compValue.value += '</table>';
-        break;
-      case 'datagrid':
-        var columns = this.flattenComponentsForRender(component.components);
-        compValue.value = '<table border="1" style="width:100%">';
-        compValue.value += '<tr>';
-        _.each(columns, function(column) {
-          var subLabel = column.label || column.key;
-          compValue.value += '<th style="padding: 5px 10px;">' + subLabel + '</th>';
-        });
-        compValue.value += '</tr>';
-        _.each(value, function(subValue) {
-          compValue.value += '<tr>';
-          _.each(columns, function(column, key) {
-            var subCompValue = this.renderComponentValue(subValue, key, columns);
-            if (typeof subCompValue.value === 'string') {
-              compValue.value += '<td style="padding:5px 10px;">';
-              compValue.value += subCompValue.value;
-              compValue.value += '</td>';
-            }
-          }.bind(this));
-          compValue.value += '</tr>';
-        }.bind(this));
-        compValue.value += '</table>';
-        break;
-      case 'datetime':
-        var dateFormat = '';
-        if (component.enableDate) {
-          dateFormat = component.format.toUpperCase();
-        }
-        if (component.enableTime) {
-          dateFormat += ' hh:mm:ss A';
-        }
-        if (dateFormat) {
-          compValue.value = moment(value).format(dateFormat);
-        }
-        break;
-      case 'radio':
-      case 'select':
-        var values = [];
-        if (component.hasOwnProperty('values')) {
-          values = component.values;
-        }
-        else if (component.hasOwnProperty('data') && component.data.values) {
-          values = component.data.values;
-        }
-        for (var i in values) {
-          var subCompValue = values[i];
-          if (subCompValue.value === value) {
-            compValue.value = subCompValue.label;
-            break;
-          }
-        }
-        break;
-      case 'selectboxes':
-        var selectedValues = [];
-        for (var j in component.values) {
-          var selectBoxValue = component.values[j];
-          if (value[selectBoxValue.value]) {
-            selectedValues.push(selectBoxValue.label);
-          }
-        }
-        compValue.value = selectedValues.join(',');
-        break;
-      default:
-        if (!component.input) {
-          return {value: false};
-        }
-        break;
-    }
-
-    if (component.protected) {
-      compValue.value = '--- PROTECTED ---';
-    }
-
-    // Ensure the value is a string.
-    compValue.value = compValue.value ? compValue.value.toString() : '';
-    return compValue;
-  },
+  flattenComponentsForRender: workerUtils.flattenComponentsForRender.bind(workerUtils),
+  renderFormSubmission: workerUtils.renderFormSubmission.bind(workerUtils),
+  renderComponentValue: workerUtils.renderComponentValue.bind(workerUtils),
 
   /**
    * Search the request query for the given key.
@@ -441,7 +363,7 @@ const Utils = {
    * @return
    *   The query value if found or false.
    */
-  getQuery: function(req, key) {
+  getQuery(req, key) {
     if (typeof req.query[key] !== 'undefined') {
       return req.query[key];
     }
@@ -460,7 +382,7 @@ const Utils = {
    * @return
    *   The parameter value if found or false.
    */
-  getParameter: function(req, key) {
+  getParameter(req, key) {
     if (typeof req.params[key] !== 'undefined') {
       return req.params[key];
     }
@@ -479,8 +401,8 @@ const Utils = {
    * @return
    *   Return the value of the key or false if not found.
    */
-  getRequestValue: function(req, key) {
-    var ret = null;
+  getRequestValue(req, key) {
+    let ret = null;
 
     // If the header is present, return it.
     ret = this.getHeader(req, key);
@@ -512,13 +434,13 @@ const Utils = {
    * @returns {{}}
    *   The key/value pairs of the request url.
    */
-  getUrlParams: function(url) {
-    var urlParams = {};
+  getUrlParams(url) {
+    const urlParams = {};
     if (!url) {
       return urlParams;
     }
-    var parsed = nodeUrl.parse(url);
-    var parts = parsed.pathname.split('/');
+    const parsed = nodeUrl.parse(url);
+    let parts = parsed.pathname.split('/');
     debug.getUrlParams(parsed);
 
     // Remove element originating from first slash.
@@ -530,7 +452,7 @@ const Utils = {
     }
 
     // Build key/value list.
-    for (var a = 0; a < parts.length; a += 2) {
+    for (let a = 0; a < parts.length; a += 2) {
       urlParams[parts[a]] = parts[a + 1];
     }
 
@@ -547,7 +469,7 @@ const Utils = {
    * @return
    *   The submission key
    */
-  getSubmissionKey: function(key) {
+  getSubmissionKey(key) {
     return key.replace(/\./g, '.data.');
   },
 
@@ -560,7 +482,7 @@ const Utils = {
    * @return
    *   The form component key
    */
-  getFormComponentKey: function(key) {
+  getFormComponentKey(key) {
     return key.replace(/\.data\./g, '.');
   },
 
@@ -581,14 +503,14 @@ const Utils = {
    * @returns {Object}
    *   The mongo BSON id.
    */
-  idToBson: function(_id) {
+  idToBson(_id) {
     try {
       _id = _.isObject(_id)
         ? _id
         : mongoose.Types.ObjectId(_id);
     }
     catch (e) {
-      debug.idToBson('Unknown _id given: ' + _id + ', typeof: ' + typeof _id);
+      debug.idToBson(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
       _id = false;
     }
 
@@ -604,47 +526,92 @@ const Utils = {
    * @returns {String}
    *   The mongo string id.
    */
-  idToString: function(_id) {
+  idToString(_id) {
     return _.isObject(_id)
       ? _id.toString()
       : _id;
   },
 
-  removeProtectedFields: function(form, action, submissions) {
-    if (!(submissions instanceof Array)) {
+  /**
+   * Ensures that a submission data has MongoDB ObjectID's for all "id" fields.
+   * @param data
+   * @return {boolean}
+   */
+  ensureIds(data) {
+    if (!data) {
+      return false;
+    }
+    let changed = false;
+    _.each(data, (value, key) => {
+      if (!value) {
+        return;
+      }
+      if (_.isArray(value)) {
+        changed = value.reduce((subchanged, row) => {
+          return Utils.ensureIds(row) || subchanged;
+        }, false) || changed;
+      }
+      else if (_.isObject(value)) {
+        changed = Utils.ensureIds(value) || changed;
+      }
+      else if (
+        (
+          (key === '_id') ||
+          (key === 'form') ||
+          (key === 'owner')
+        ) &&
+        (typeof value === 'string') &&
+        ObjectID.isValid(value)
+      ) {
+        const bsonId = Utils.idToBson(value);
+        if (bsonId) {
+          data[key] = bsonId;
+          changed = true;
+        }
+      }
+    });
+    return changed;
+  },
+
+  removeProtectedFields(form, action, submissions) {
+    if (!Array.isArray(submissions)) {
       submissions = [submissions];
     }
 
     // Initialize our delete fields array.
-    var modifyFields = [];
+    const modifyFields = [];
 
     // Iterate through all components.
-    this.eachComponent(form.components, function(component, path) {
-      path = 'data.' + path;
+    this.eachComponent(form.components, (component, path) => {
+      path = `data.${path}`;
       if (component.protected) {
         debug.removeProtectedFields('Removing protected field:', component.key);
         modifyFields.push(deleteProp(path));
       }
       else if ((component.type === 'signature') && (action === 'index')) {
-        modifyFields.push((function(fieldPath) {
-          return function(sub) {
-            var data = _.get(sub, fieldPath);
-            _.set(sub, fieldPath, (!data || (data.length < 25)) ? '' : 'YES');
-          };
-        })(path));
+        modifyFields.push(((submission) => {
+          const data = _.get(submission, path);
+          _.set(submission, path, (!data || (data.length < 25)) ? '' : 'YES');
+        }));
       }
-    }.bind(this), true);
+      else if (component.type === 'file' && action === 'index') {
+        modifyFields.push(((submission) => {
+          const data = _.map(
+            _.get(submission, path),
+            file => (file.url || '').startsWith('data:') ? _.omit(file, 'url') : file
+          );
+          _.set(submission, path, data);
+        }));
+      }
+    }, true);
 
     // Iterate through each submission once.
-    if (modifyFields.length > 0) {
-      _.each(submissions, function(submission) {
-        _.each(modifyFields, function(modifyField) {
-          modifyField(submission);
-        });
-      });
-    }
+    submissions.forEach((submission) =>
+      modifyFields.forEach((modifyField) => modifyField(submission))
+    );
   },
 
+  /* eslint-disable new-cap */
   base64: {
     /**
      * Base64 encode the given data.
@@ -655,8 +622,8 @@ const Utils = {
      * @return {String}
      *   The base64 representation of the given data.
      */
-    encode: function(decoded) {
-      return new Buffer(decoded.toString()).toString('base64');
+    encode(decoded) {
+      return new Buffer.from(decoded.toString()).toString('base64');
     },
     /**
      * Base64 decode the given data.
@@ -667,10 +634,11 @@ const Utils = {
      * @return {String}
      *   The ascii representation of the given encoded data.
      */
-    decode: function(encoded) {
-      return new Buffer(encoded.toString()).toString('ascii');
+    decode(encoded) {
+      return new Buffer.from(encoded.toString()).toString('ascii');
     }
   },
+  /* eslint-enable new-cap */
 
   /**
    * Retrieve a unique machine name
@@ -681,11 +649,16 @@ const Utils = {
    * @param next
    * @return {*}
    */
-  uniqueMachineName: function(document, model, next) {
-    model.find({
-      machineName: {"$regex": document.machineName},
+  uniqueMachineName(document, model, next) {
+    var query = {
+      machineName: {$regex: `^${document.machineName}[0-9]*$`},
       deleted: {$eq: null}
-    }, (err, records) => {
+    };
+    if (document._id) {
+      query._id = {$ne: document._id};
+    }
+
+    model.find(query).lean().exec((err, records) => {
       if (err) {
         return next(err);
       }
@@ -694,10 +667,10 @@ const Utils = {
         return next();
       }
 
-      var i = 0;
+      let i = 0;
       records.forEach((record) => {
-        var parts = record.machineName.split(/(\d+)/).filter(Boolean);
-        var number = parts[1] || 0;
+        const parts = record.machineName.split(/(\d+)$/).filter(Boolean);
+        const number = parseInt(parts[1], 10) || 0;
         if (number > i) {
           i = number;
         }
@@ -705,7 +678,12 @@ const Utils = {
       document.machineName += ++i;
       next();
     });
-  }
+  },
+
+  /**
+   * Application error codes.
+   */
+  errorCodes,
 };
 
 module.exports = Utils;

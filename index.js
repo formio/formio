@@ -1,20 +1,24 @@
 'use strict';
 
 // Setup the Form.IO server.
-var express = require('express');
-var cors = require('cors');
-var router = express.Router();
-var mongoose = require('mongoose');
+const express = require('express');
+const cors = require('cors');
+const router = express.Router();
+const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-var bodyParser = require('body-parser');
-var methodOverride = require('method-override');
-var _ = require('lodash');
-var events = require('events');
-var Q = require('q');
-var nunjucks = require('nunjucks');
-var util = require('./src/util/util');
+const bodyParser = require('body-parser');
+const methodOverride = require('method-override');
+const _ = require('lodash');
+const events = require('events');
+const Q = require('q');
+const nunjucks = require('nunjucks');
+const util = require('./src/util/util');
+const log = require('debug')('formio:log');
 // Keep track of the formio interface.
 router.formio = {};
+
+// Allow libraries to use a single instance of mongoose.
+router.formio.mongoose = mongoose;
 
 // Use custom template delimiters.
 _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
@@ -36,11 +40,19 @@ module.exports = function(config) {
   router.formio.events = new events.EventEmitter();
   router.formio.config.schema = require('./package.json').schema;
 
+  router.formio.log = (event, req, ...info) => {
+    const result = router.formio.hook.alter('log', event, req, ...info);
+
+    if (result) {
+      log(event, ...info);
+    }
+  };
+
   /**
    * Initialize the formio server.
    */
   router.init = function(hooks) {
-    var deferred = Q.defer();
+    const deferred = Q.defer();
 
     // Hooks system during boot.
     router.formio.hooks = hooks;
@@ -100,7 +112,7 @@ module.exports = function(config) {
       });
 
       // CORS Support
-      var corsRoute = cors(router.formio.hook.alter('cors'));
+      const corsRoute = cors(router.formio.hook.alter('cors'));
       router.use(function(req, res, next) {
         if (req.url === '/') {
           return next();
@@ -116,14 +128,14 @@ module.exports = function(config) {
       // Import our authentication models.
       router.formio.auth = require('./src/authentication/index')(router);
 
-      // The get token handler
-      if (!router.formio.hook.invoke('init', 'getTempToken', router.formio)) {
-        router.get('/token', router.formio.auth.tempToken);
-      }
-
       // Perform token mutation before all requests.
       if (!router.formio.hook.invoke('init', 'token', router.formio)) {
         router.use(router.formio.middleware.tokenHandler);
+      }
+
+      // The get token handler
+      if (!router.formio.hook.invoke('init', 'getTempToken', router.formio)) {
+        router.get('/token', router.formio.auth.tempToken);
       }
 
       // The current user handler.
@@ -133,7 +145,7 @@ module.exports = function(config) {
 
       // The current user handler.
       if (!router.formio.hook.invoke('init', 'current', router.formio)) {
-        router.get('/current', router.formio.auth.currentUser);
+        router.get('/current', router.formio.hook.alter('currentUser', [router.formio.auth.currentUser]));
       }
 
       // The access handler.
@@ -146,26 +158,39 @@ module.exports = function(config) {
         router.use(router.formio.middleware.permissionHandler);
       }
 
-      // Allow libraries to use a single instance of mongoose.
-      router.formio.mongoose = mongoose;
-
       let mongoUrl = config.mongo;
-      let mongoOptions = {
-        keepAlive: 120,
-        useMongoClient: true
-      };
-
-      if (process.env.MONGO_HIGH_AVAILABILITY) {
-        mongoOptions.mongos = true;
+      const mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
+      if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
+        mongoConfig.connectTimeoutMS = 300000;
       }
-
+      if (!mongoConfig.hasOwnProperty('socketTimeoutMS')) {
+        mongoConfig.socketTimeoutMS = 300000;
+      }
+      if (!mongoConfig.hasOwnProperty('useNewUrlParser')) {
+        mongoConfig.useNewUrlParser = true;
+      }
+      if (!mongoConfig.hasOwnProperty('keepAlive')) {
+        mongoConfig.keepAlive = 120;
+      }
+      if (process.env.MONGO_HIGH_AVAILABILITY) {
+        mongoConfig.mongos = true;
+      }
       if (_.isArray(config.mongo)) {
         mongoUrl = config.mongo.join(',');
-        mongoOptions.mongos = true;
+        mongoConfig.mongos = true;
+      }
+      if (config.mongoSA) {
+        mongoConfig.sslValidate = true;
+        mongoConfig.sslCA = config.mongoSA;
       }
 
+      mongoConfig.useUnifiedTopology = true;
+      mongoConfig.useCreateIndex = true;
+
       // Connect to MongoDB.
-      mongoose.connect(mongoUrl, mongoOptions);
+      mongoose.connect(mongoUrl, mongoConfig);
+      mongoose.set('useFindAndModify', false);
+      mongoose.set('useCreateIndex', true);
 
       // Trigger when the connection is made.
       mongoose.connection.on('error', function(err) {
@@ -189,7 +214,7 @@ module.exports = function(config) {
         };
 
         // Get the models for our project.
-        var models = require('./src/models/models')(router);
+        const models = require('./src/models/models')(router);
 
         // Load the Schemas.
         router.formio.schemas = _.assign(router.formio.schemas, models.schemas);
@@ -214,7 +239,7 @@ module.exports = function(config) {
               return res.status(404).send('Form not found');
             }
             // If query params present, filter components that match params
-            var filter = Object.keys(req.query).length !== 0 ? _.omit(req.query, ['limit', 'skip']) : null;
+            const filter = Object.keys(req.query).length !== 0 ? _.omit(req.query, ['limit', 'skip']) : null;
             res.json(
               _(util.flattenComponents(form.components))
               .filter(function(component) {
@@ -225,7 +250,7 @@ module.exports = function(config) {
                   if (!value) {
                     return prev && _.has(component, prop);
                   }
-                  var actualValue = _.property(prop)(component);
+                  const actualValue = _.property(prop)(component);
                   // loose equality so number values can match
                   return prev && actualValue == value || // eslint-disable-line eqeqeq
                     value === 'true' && actualValue === true ||
@@ -254,7 +279,7 @@ module.exports = function(config) {
         // Add the template functions.
         router.formio.template = require('./src/templates/index')(router);
 
-        var swagger = require('./src/util/swagger');
+        const swagger = require('./src/util/swagger');
         // Show the swagger for the whole site.
         router.get('/spec.json', function(req, res, next) {
           swagger(req, router, function(spec) {
@@ -268,6 +293,8 @@ module.exports = function(config) {
             res.json(spec);
           });
         });
+
+        require('./src/middleware/recaptcha')(router);
 
         // Say we are done.
         deferred.resolve(router.formio);

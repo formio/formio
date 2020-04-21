@@ -1,26 +1,22 @@
 'use strict';
 
-module.exports = function(formio) {
-  var hook = require('../../util/hook')(formio);
-  return {
-    beforePut: function(component, path, validation, req, res, next) {
-      // Only perform before validation has occurred.
-      if (validation) {
-        return next();
-      }
-      if (!hook.invoke('validateEmail', component, path, req, res, next)) {
-        return next();
-      }
-    },
-
-    beforePost: function(component, path, validation, req, res, next) {
-      // Only perform before validation has occurred.
-      if (validation) {
-        return next();
-      }
-      if (!hook.invoke('validateEmail', component, path, req, res, next)) {
-        return next();
-      }
+module.exports = formio => {
+  const hook = require('../../util/hook')(formio);
+  return async (component, data, handler, action, {validation, path, req, res}) => {
+    // Only perform before validation has occurred.
+    if (validation) {
+      return;
     }
+
+    return new Promise((resolve, reject) => {
+      if (!hook.invoke('validateEmail', component, path, req, res, (err) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve();
+      })) {
+        return resolve();
+      }
+    });
   };
 };

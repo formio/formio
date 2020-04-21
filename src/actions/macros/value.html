@@ -1,9 +1,0 @@
-{% macro value(key) %}
-{{ data | componentValue(key, components) }}
-{% endmacro %}
-{% macro submission(data, components) %}
-{{ data | submissionTable(components) }}
-{% endmacro %}
-{% macro label(key) %}
-{{ key | componentLabel(components) }}
-{% endmacro %}

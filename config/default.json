@@ -3,9 +3,12 @@
   "appPort": 8080,
   "host": "localhost:3001",
   "protocol": "http",
+  "allowedOrigins": ["*"],
   "domain": "http://localhost:3001",
   "basePath": "",
   "mongo": "mongodb://localhost:27017/formioapp",
+  "mongoConfig": "",
+  "mongoSA": "",
   "mongoSecret": "--- change me now ---",
   "reservedForms": [
     "submission",
@@ -17,7 +20,8 @@
     "import",
     "form",
     "access",
-    "token"
+    "token",
+    "recaptcha"
   ],
   "jwt": {
     "secret": "--- change me now ---",
@@ -36,7 +40,7 @@
       "cert": "",
       "thumbprint": ""
     },
-    "database": {
+    "databases": {
       "mysql": {
         "host": "",
         "port": "",

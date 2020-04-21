@@ -1,20 +1,21 @@
 'use strict';
 
-var Exporter = require('../Exporter');
-var JSONStream = require('JSONStream');
+const Exporter = require('../Exporter');
+const JSONStream = require('JSONStream');
 
-var JSONExporter = function(form, req, res) {
-  Exporter.call(this, form, req, res);
-  this.extension = 'json';
-  this.contentType = 'application/json';
-};
+class JSONExporter extends Exporter {
+  constructor(form, req, res) {
+    super(form, req, res);
 
-JSONExporter.prototype = Object.create(Exporter.prototype);
-JSONExporter.prototype.constructor = JSONExporter;
-JSONExporter.prototype.stream = function(stream) {
-  return stream
-    .pipe(JSONStream.stringify())
-    .pipe(this.res);
-};
+    this.extension = 'json';
+    this.contentType = 'application/json';
+  }
+
+  stream(stream) {
+    return stream
+      .pipe(JSONStream.stringify())
+      .pipe(this.res);
+  }
+}
 
 module.exports = JSONExporter;

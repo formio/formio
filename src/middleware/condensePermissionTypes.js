@@ -1,8 +1,7 @@
 'use strict';
 
-var _ = require('lodash');
-var debug = require('debug')('formio:middleware:condensePermissionTypes');
-var BSON = new RegExp('^[0-9a-fA-F]{24}$');
+const _ = require('lodash');
+const BSON = new RegExp('^[0-9a-fA-F]{24}$');
 
 /**
  * The Condense Permission Types middleware.
@@ -21,9 +20,8 @@ module.exports = function(router) {
       return next();
     }
 
-    debug(req.body);
-    var final = null;
-    var condensed = null;
+    let final = null;
+    let condensed = null;
 
     // Attempt to condense the access array if present and populated.
     if (
@@ -86,17 +84,24 @@ module.exports = function(router) {
         });
 
         if (_.isString(permission.type)) {
-          condensed[permission.type] = condensed[permission.type] || [];
-          condensed[permission.type] = condensed[permission.type].concat(permission.roles);
-          condensed[permission.type] = _.compact(_.uniq(condensed[permission.type]));
+          condensed[permission.type] = condensed[permission.type] || {roles: []};
+          condensed[permission.type].roles = condensed[permission.type].roles.concat(permission.roles);
+          condensed[permission.type].roles = _.compact(_.uniq(condensed[permission.type].roles));
+          if (permission.permission) {
+            condensed[permission.type].permission = permission.permission;
+          }
         }
       });
 
       Object.keys(condensed).forEach(function(key) {
-        final.push({
+        const access = {
           type: key,
-          roles: condensed[key]
-        });
+          roles: condensed[key].roles
+        };
+        if (condensed[key].permission) {
+          access.permission = condensed[key].permission;
+        }
+        final.push(access);
       });
 
       // Modify the payload.

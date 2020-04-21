@@ -1,66 +1,69 @@
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 
-module.exports = function(formio) {
-  return {
-    beforeGet: function(component, path, validation, req, res, next) {
-      req.modelQuery.select('-data.' + path);
+module.exports = (formio) => {
+  const encryptField =(component, data, next) => {
+    formio.encrypt(_.get(data, component.key), function encryptResults(err, hash) {
+      if (err) {
+        return next(err);
+      }
+
+      _.set(data, component.key, hash);
       next();
-    },
+    });
+  };
 
-    encryptField: function(req, component, path, next) {
-      formio.encrypt(_.get(req.body, 'data.' + path), function encryptResults(err, hash) {
-        if (err) {
-          return next(err);
+  return async (component, data, handler, action, {validation, path, req}) => {
+    switch (handler) {
+      case 'beforeGet':
+        req.modelQuery.select(`-data.${path}${component.key}`);
+        break;
+      case 'beforePut':
+        // Only perform password encryption after validation has occurred.
+        if (validation) {
+          return new Promise((resolve, reject) => {
+            if (_.has(data, component.key)) {
+              encryptField(component, data, (err) => {
+                if (err) {
+                  return reject(err);
+                }
+                return resolve();
+              });
+              // Since the password was changed, invalidate all user tokens.
+              req.body.metadata = req.body.metadata || {};
+              req.body.metadata.jwtIssuedAfter = req.tokenIssued || (Date.now() / 1000);
+            }
+            else {
+              // If there is no password provided.
+              // Load the current submission.
+              formio.cache.loadCurrentSubmission(req, function cacheResults(err, submission) {
+                if (err) {
+                  return reject(err);
+                }
+                if (!submission) {
+                  return reject(new Error('No submission found.'));
+                }
+
+                _.set(data, component.key, _.get(submission.data, path));
+                return resolve();
+              });
+            }
+          });
         }
-
-        _.set(req.body, 'data.' + path, hash);
-        next();
-      });
-    },
-
-    beforePut: function(component, path, validation, req, res, next) {
-      // Only perform password encryption after validation has occurred.
-      if (!validation) {
-        return next();
-      }
-
-      // If there is not payload data.
-      if (!req.body.data) {
-        return next();
-      }
-
-      if (_.get(req.body, 'data.' + path)) {
-        this.encryptField(req, component, path, next);
-      }
-      else {
-        // If there is no password provided.
-        // Load the current submission.
-        formio.cache.loadCurrentSubmission(req, function cacheResults(err, submission) {
-          if (err) {
-            return next(err);
-          }
-          if (!submission) {
-            return next(new Error('No submission found.'));
-          }
-
-          _.set(req.body, 'data.' + path, _.get(submission.data, path));
-          next();
-        });
-      }
-    },
-
-    beforePost: function(component, path, validation, req, res, next) {
-      // Only perform password encryption after validation has occurred.
-      if (!validation) {
-        return next();
-      }
-      if (!_.has(req.body, 'data.' + path)) {
-        return next();
-      }
-
-      this.encryptField(req, component, path, next);
+        break;
+      case 'beforePost':
+        if (validation && _.has(data, component.key)) {
+          return new Promise((resolve, reject) => {
+            encryptField(component, data, (err) => {
+              if (err) {
+                return reject(err);
+              }
+              return resolve();
+            });
+          });
+        }
+        break;
     }
   };
 };

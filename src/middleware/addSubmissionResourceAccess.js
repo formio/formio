@@ -1,7 +1,7 @@
 'use strict';
 
-var _ = require('lodash');
-var util = require('formiojs/utils');
+const _ = require('lodash');
+const util = require('../util/util');
 
 /**
  * Go through each field and if Submission Resource Access is defined on it, add it to the submissionAccess array.
@@ -16,7 +16,7 @@ module.exports = function(router) {
       input = [input];
     }
 
-    var final = [];
+    const final = [];
     input.forEach(function(element) {
       if (element && element._id) {
         final.push(element._id);
@@ -32,54 +32,44 @@ module.exports = function(router) {
       return next();
     }
 
-    let defaultPermissions = {};
     req.body.access = [];
     router.formio.cache.loadForm(req, undefined, req.params.formId, function(err, form) {
-      util.eachComponent(form.components, function(component) {
-        if (component.key && component.defaultPermission) {
-          defaultPermissions[component.key] = component.defaultPermission;
-        }
-      }, true);
+      if (err || !form) {
+        return next(`Cannot load form ${req.params.formId}`);
+      }
 
-      // Only proceed if a field has a resource permission.
-      const defaultPermissionsKeys = Object.keys(defaultPermissions);
-      if (req.body.data && defaultPermissionsKeys.length) {
-        _.each(defaultPermissionsKeys, key => {
-          // Setup the submission access.
-          const perm = defaultPermissions[key];
-          let value = req.body.data[key];
-
-          // Coerce value into an array for plucking.
-          if (!(value instanceof Array)) {
-            value = [value];
-          }
-
-          let ids = grabIds(value);
-          if (ids.length) {
-            // Try to find and update an existing permission.
-            let found = false;
-            req.body.access.forEach(function(permission) {
-              if (permission.type === perm) {
-                found = true;
-                permission.resources = permission.resources || [];
-                permission.resources.concat(ids);
-              }
-            });
-
-            // Add a permission, because one was not found.
-            if (!found) {
-              req.body.access.push({
-                type: perm,
-                resources: ids
+      /* eslint-disable max-depth */
+      util.FormioUtils.eachComponent(form.components, (component, path) => {
+        if (component && component.key && component.defaultPermission) {
+          let value = _.get(req.body.data, path);
+          if (value) {
+            if (!(value instanceof Array)) {
+              value = [value];
+            }
+            const ids = grabIds(value);
+            if (ids.length) {
+              const perm = _.find(req.body.access, {
+                type: component.defaultPermission
               });
+              if (perm) {
+                if (!perm.resources) {
+                  perm.resources = [];
+                }
+                perm.resources = perm.resources.concat(ids);
+              }
+              else {
+                req.body.access.push({
+                  type: component.defaultPermission,
+                  resources: ids
+                });
+              }
             }
           }
-        });
-        return next();
-      }
-      else {
-        return next();
-      }
+        }
+      });
+      /* eslint-enable max-depth */
+
+      return next();
     });
   };
 };

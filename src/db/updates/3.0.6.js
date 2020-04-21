@@ -1,8 +1,8 @@
 'use strict';
 
-var async = require('async');
-var chance = new (require('chance'))();
-var debug = {
+let async = require('async');
+let chance = new (require('chance'))();
+let debug = {
   findBrokenForms: require('debug')('formio:update:3.0.6-findBrokenForms'),
   randomizeBrokenFormPaths: require('debug')('formio:update:3.0.6-randomizeBrokenFormPaths')
 };
@@ -21,7 +21,7 @@ var debug = {
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var formCollection = db.collection('forms');
+  let formCollection = db.collection('forms');
 
   async.waterfall([
     function findBrokenForms(next) {
@@ -48,7 +48,7 @@ module.exports = function(db, config, tools, done) {
     },
     function randomizeBrokenFormPaths(forms, next) {
       async.each(forms, function(form, callback) {
-        formCollection.update({_id: tools.util.idToBson(form._id)}, {$set: {path: chance.word()}}, function(err) {
+        formCollection.updateOne({_id: tools.util.idToBson(form._id)}, {$set: {path: chance.word()}}, function(err) {
           if (err) {
             return callback(err);
           }

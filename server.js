@@ -3,20 +3,23 @@
 /**
  * This is the Form.io application server.
  */
-var express = require('express');
-var nunjucks = require('nunjucks');
-var fs = require('fs-extra');
-var util = require('./src/util/util');
+const express = require('express');
+const nunjucks = require('nunjucks');
+const fs = require('fs-extra');
+const path = require('path');
+const util = require('./src/util/util');
 require('colors');
-var Q = require('q');
-var test = process.env.TEST_SUITE;
+const Q = require('q');
+const cors = require('cors');
+const test = process.env.TEST_SUITE;
+const noInstall = process.env.NO_INSTALL;
 
 module.exports = function(options) {
   options = options || {};
-  var q = Q.defer();
+  const q = Q.defer();
 
   util.log('');
-  var rl = require('readline').createInterface({
+  const rl = require('readline').createInterface({
     input: require('fs').createReadStream('logo.txt')
   });
 
@@ -37,10 +40,10 @@ module.exports = function(options) {
   });
 
   // Use the express application.
-  var app = options.app || express();
+  const app = options.app || express();
 
   // Use the given config.
-  var config = options.config || require('config');
+  const config = options.config || require('config');
 
   // Configure nunjucks.
   nunjucks.configure('client', {
@@ -48,25 +51,40 @@ module.exports = function(options) {
     express: app
   });
 
+  //cors configuration
+  if (config.allowedOrigins) {
+    app.use(cors({
+      origin: function(origin, callback) {
+        if (!origin) {
+          return callback(null, true);
+        }
+        if (config.allowedOrigins.indexOf(origin) === -1 && config.allowedOrigins.indexOf("*") === -1) {
+          var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+          return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+      }
+    }));
+  }
   // Mount the client application.
-  app.use('/', express.static(__dirname + '/client/dist'));
+  app.use('/', express.static(path.join(__dirname, '/client/dist')));
 
   // Load the form.io server.
-  var server = options.server || require('./index')(config);
-  var hooks = options.hooks || {};
+  const server = options.server || require('./index')(config);
+  const hooks = options.hooks || {};
 
   app.use(server.formio.middleware.restrictRequestTypes);
   server.init(hooks).then(function(formio) {
     // Called when we are ready to start the server.
-    var start = function() {
+    const start = function() {
       // Start the application.
       if (fs.existsSync('app')) {
-        var application = express();
-        application.use('/', express.static(__dirname + '/app/dist'));
+        const application = express();
+        application.use('/', express.static(path.join(__dirname, '/app/dist')));
         config.appPort = config.appPort || 8080;
         application.listen(config.appPort);
-        var appHost = 'http://localhost:' + config.appPort;
-        util.log(' > Serving application at ' + appHost.green);
+        const appHost = `http://localhost:${config.appPort}`;
+        util.log(` > Serving application at ${appHost.green}`);
       }
 
       // Mount the Form.io API platform.
@@ -83,7 +101,7 @@ module.exports = function(options) {
     };
 
     // Which items should be installed.
-    var install = {
+    const install = {
       download: false,
       extract: false,
       import: false,
@@ -91,15 +109,15 @@ module.exports = function(options) {
     };
 
     // Check for the client folder.
-    if (!fs.existsSync('client') && !test) {
+    if (!fs.existsSync('client') && !test && !noInstall) {
       install.download = true;
       install.extract = true;
     }
 
     // See if they have any forms available.
-    formio.db.collection('forms').count(function(err, numForms) {
+    formio.db.collection('forms').estimatedDocumentCount(function(err, numForms) {
       // If there are forms, then go ahead and start the server.
-      if ((!err && numForms > 0) || test) {
+      if ((!err && numForms > 0) || test || noInstall) {
         if (!install.download && !install.extract) {
           return start();
         }
@@ -112,7 +130,9 @@ module.exports = function(options) {
       // Install.
       require('./install')(formio, install, function(err) {
         if (err) {
-          return util.log(err.message);
+          if (err !== 'Installation canceled.') {
+            return util.log(err.message);
+          }
         }
 
         // Start the server.

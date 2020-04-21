@@ -1,7 +1,7 @@
 'use strict';
 
-var async = require('async');
-var debug = {
+let async = require('async');
+let debug = {
   findBrokenForms: require('debug')('formio:update:3.0.7-findBrokenForms'),
   fixTypes: require('debug')('formio:update:3.0.7-fixTypes')
 };
@@ -20,7 +20,7 @@ var debug = {
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var formCollection = db.collection('forms');
+  let formCollection = db.collection('forms');
 
   async.waterfall([
     function findBrokenForms(next) {
@@ -38,7 +38,7 @@ module.exports = function(db, config, tools, done) {
     },
     function fixTypes(forms, next) {
       async.each(forms, function(form, callback) {
-        formCollection.update({_id: tools.util.idToBson(form._id)}, {$set: {type: 'form'}}, function(err) {
+        formCollection.updateOne({_id: tools.util.idToBson(form._id)}, {$set: {type: 'form'}}, function(err) {
           if (err) {
             return callback(err);
           }

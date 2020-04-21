@@ -1,6 +1,6 @@
 'use strict';
-var url = require('url');
-var debug = require('debug')('formio:alias');
+const url = require('url');
+const debug = require('debug')('formio:alias');
 
 /**
  * Provides URL alias capabilities.
@@ -20,24 +20,27 @@ module.exports = function(router) {
       'logout',
       'form',
       'access',
-      'token'
+      'token',
+      'recaptcha',
+      'action',
+      'actionItem',
+      'tag'
     ];
     /* eslint-enable max-len */
   }
 
   /* eslint-disable no-useless-escape */
-  var formsRegEx = new RegExp('\/(' + router.formio.config.reservedForms.join('|') + ')($|\/.*)', 'i');
+  const formsRegEx = new RegExp(`\/(${router.formio.config.reservedForms.join('|')})($|\/.*)`, 'i');
   /* eslint-enable no-useless-escape */
 
   // Handle the request.
   return function aliasHandler(req, res, next) {
     // Allow a base url to be provided to the alias handler.
-    var baseUrl = aliasHandler.baseUrl ? aliasHandler.baseUrl(req) : '';
+    const baseUrl = aliasHandler.baseUrl ? aliasHandler.baseUrl(req) : '';
 
     // Get the alias from the request.
-    var alias = url.parse(req.url).pathname.substr(baseUrl.length).replace(formsRegEx, '').substr(1);
-    debug('url: ' + req.url);
-    debug('Alias: ' + alias);
+    let alias = url.parse(req.url).pathname.substr(baseUrl.length).replace(formsRegEx, '').substr(1);
+    alias = router.formio.hook.alter('alias', alias, req, res);
 
     // If this is normal request, then pass this middleware.
     /* eslint-disable no-useless-escape */
@@ -49,7 +52,7 @@ module.exports = function(router) {
     // Now load the form by alias.
     router.formio.cache.loadFormByAlias(req, alias, function(error, form) {
       if (error) {
-        debug('Error: ' + error);
+        debug(`Error: ${error}`);
         return res.status(400).send('Invalid alias');
       }
       if (!form) {
@@ -60,7 +63,7 @@ module.exports = function(router) {
       req.formId = form._id.toString();
 
       // Get the additional path.
-      var additional = req.url.substr(baseUrl.length + alias.length + 1);
+      let additional = req.url.substr(baseUrl.length + alias.length + 1);
 
       // Handle a special case where they 'POST' to the form. Assume to create a submission.
       if (!additional && req.method === 'POST') {
@@ -68,8 +71,7 @@ module.exports = function(router) {
       }
 
       // Create the new URL for the project.
-      req.url = baseUrl + '/form/' + form._id + additional;
-      debug('Rewriting the request from the FormCache: ' + req.url);
+      req.url = `${baseUrl}/form/${form._id}${additional}`;
       next();
     });
   };

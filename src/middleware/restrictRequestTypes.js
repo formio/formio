@@ -1,7 +1,5 @@
 'use strict';
 
-var debug = require('debug')('formio:middleware:restrictRequestTypes');
-
 module.exports = function(router) {
   /**
    * Middleware to restrict incoming requests by method.
@@ -12,17 +10,12 @@ module.exports = function(router) {
    * @returns {*}
    */
   return function(req, res, next) {
-    if (
-      req.method === 'OPTIONS'
-      || req.method === 'GET'
-      || req.method === 'POST'
-      || req.method === 'PUT'
-      || req.method === 'DELETE'
-    ) {
+    const hook = require('../util/hook')(router.formio);
+    const methods = hook.alter('methods', ['OPTIONS', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH']);
+    if (methods.includes(req.method)) {
       return next();
     }
 
-    debug('Blocking request: ' + (req.method || '').toUpperCase() + ' ' + req.url);
     return res.sendStatus(405);
   };
 };

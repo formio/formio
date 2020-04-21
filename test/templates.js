@@ -2,7 +2,7 @@
 
 let assert = require('assert');
 let _ = require('lodash');
-let formioUtils = require('formiojs/utils');
+let formioUtils = require('formiojs/utils').default;
 var docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
@@ -128,7 +128,7 @@ module.exports = (app, template, hook) => {
           assert.equal(form.hasOwnProperty('machineName'), true);
 
           let machineName = form.machineName;
-          let tempForm = _.omit(form, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner', '_vid', 'revisions']);
+          let tempForm = _.omit(form, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner', '_vid', 'revisions', 'controller']);
 
           tempForm.access = tempForm.access.map(access => {
             access.roles = access.roles.map(role => {
@@ -238,7 +238,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the empty template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -349,7 +349,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err, template) => {
@@ -468,7 +468,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -590,7 +590,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -712,7 +712,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -834,7 +834,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -956,7 +956,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1078,7 +1078,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1200,7 +1200,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1322,7 +1322,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1444,7 +1444,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1566,7 +1566,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1692,7 +1692,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1818,7 +1818,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -1942,7 +1942,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2066,7 +2066,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2189,7 +2189,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2312,7 +2312,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2436,7 +2436,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2559,7 +2559,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2681,7 +2681,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2803,7 +2803,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -2925,7 +2925,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -3051,7 +3051,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -3174,7 +3174,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -3296,7 +3296,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -3418,7 +3418,7 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
-        let project = {};
+        let project = {title: 'Export', name: 'export'};
 
         it('Should be able to bootstrap the template', function(done) {
           importer.import.template(_template, alters, (err) => {
@@ -3523,6 +3523,52 @@ module.exports = (app, template, hook) => {
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
           assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'actions']), _.omit(testTemplate, ['version', 'tag', 'access', 'actions']));
+        });
+      });
+
+      before(function(done) {
+        template.clearData(done);
+      });
+
+      after(function(done) {
+        template.clearData(done);
+      });
+    });
+
+    describe('Everyone Roles Template', function() {
+      let testTemplate = require('./fixtures/templates/everyoneRoles.json');
+      let _template = _.cloneDeep(testTemplate);
+      const EVERYONE = '000000000000000000000000';
+
+      it('Should translate all "everyone" roles into 000000000000000000000000', function(done) {
+        importer.import.template(_template, alters, (err) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(_template.resources.a.submissionAccess[0].roles[0].toString(), _template.roles.anonymous._id.toString());
+          assert.equal(_template.resources.a.submissionAccess[0].roles[1].toString(), EVERYONE);
+          assert.equal(_template.resources.a.submissionAccess[1].roles[0].toString(), EVERYONE);
+          assert.equal(_template.resources.b.access[0].roles[0].toString(), _template.roles.authenticated._id.toString());
+          assert.equal(_template.resources.b.access[0].roles[1].toString(), _template.roles.anonymous._id.toString());
+          assert.equal(_template.resources.b.access[1].roles[0].toString(), EVERYONE);
+          done();
+        });
+      });
+
+      it('Should convert ObjectID(000000000000000000000000) to "everyone"', function(done) {
+        importer.export(_template, (err, data) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(data.resources.a.submissionAccess[0].roles[0].toString(), 'anonymous');
+          assert.equal(data.resources.a.submissionAccess[0].roles[1].toString(), 'everyone');
+          assert.equal(data.resources.a.submissionAccess[1].roles[0].toString(), 'everyone');
+          assert.equal(data.resources.b.access[0].roles[0].toString(), 'authenticated');
+          assert.equal(data.resources.b.access[0].roles[1].toString(), 'anonymous');
+          assert.equal(data.resources.b.access[1].roles[0].toString(), 'everyone');
+          return done();
         });
       });
 

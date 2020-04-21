@@ -1,9 +1,10 @@
 'use strict';
 
-let async = require(`async`);
-let _ = require(`lodash`);
-let util = require(`../util/util`);
-let debug = {
+const async = require(`async`);
+const _ = require(`lodash`);
+const util = require(`../util/util`);
+const EVERYONE = '000000000000000000000000';
+const debug = {
   template: require(`debug`)(`formio:template:template`),
   items: require(`debug`)(`formio:template:items`),
   install: require(`debug`)(`formio:template:install`),
@@ -20,8 +21,8 @@ let debug = {
  *   The express router object.
  */
 module.exports = (router) => {
-  let formio = router.formio;
-  let hook = require(`../util/hook`)(formio);
+  const formio = router.formio;
+  const hook = require(`../util/hook`)(formio);
 
   /**
    * A base alter used during import, if one wasn`t supplied for the entity.
@@ -32,7 +33,7 @@ module.exports = (router) => {
    * @param {Function} done
    *   The callback function to invoke, with the entity.
    */
-  let baseAlter = (item, template, done) => done(null, item);
+  const baseAlter = (item, template, done) => done(null, item);
 
   /**
    * Converts an entities role id (machineName) to bson id.
@@ -45,15 +46,21 @@ module.exports = (router) => {
    * @returns {boolean}
    *   Whether or not the conversion was successful.
    */
-  let roleMachineNameToId = (template, entity) => {
+  const roleMachineNameToId = (template, entity) => {
     if (!entity || !template.hasOwnProperty(`roles`)) {
       return false;
     }
 
     if (!(entity instanceof Array)) {
-      if (entity.hasOwnProperty(`role`) && template.roles.hasOwnProperty(entity.role)) {
-        entity.role = template.roles[entity.role]._id.toString();
-        return true;
+      if (entity.hasOwnProperty('role')) {
+        if (entity.role === 'everyone') {
+          entity.role = EVERYONE;
+          return true;
+        }
+        else if (template.roles.hasOwnProperty(entity.role)) {
+          entity.role = template.roles[entity.role]._id.toString();
+          return true;
+        }
       }
 
       return false;
@@ -64,7 +71,11 @@ module.exports = (router) => {
     // Used for permissions arrays.
     _.each(entity, (access) => {
       _.each(access.roles, (role, i) => {
-        if (template.roles.hasOwnProperty(role) && template.roles[role]._id) {
+        if (role === 'everyone') {
+          access.roles[i] = EVERYONE;
+          changes = true;
+        }
+        else if (template.roles.hasOwnProperty(role) && template.roles[role]._id) {
           access.roles[i] = template.roles[role]._id.toString();
           changes = true;
         }
@@ -92,23 +103,30 @@ module.exports = (router) => {
    * @returns {boolean}
    *   Whether or not the conversion was successful.
    */
-  let formMachineNameToId = (template, entity) => {
+  const formMachineNameToId = (template, entity) => {
     if (!entity.hasOwnProperty(`form`)) {
       return false;
     }
+    const formName = entity.form;
     if (template.hasOwnProperty(`forms`) && template.forms.hasOwnProperty(entity.form)) {
-      entity.form = template.forms[entity.form]._id.toString();
+      entity.form = template.forms[formName]._id.toString();
+      if (template.forms[formName].hasOwnProperty('_vid') && template.forms[formName]._vid) {
+        entity.formRevision = template.forms[formName]._vid.toString();
+      }
       return true;
     }
     if (template.hasOwnProperty(`resources`) && template.resources.hasOwnProperty(entity.form)) {
-      entity.form = template.resources[entity.form]._id.toString();
+      entity.form = template.resources[formName]._id.toString();
+      if (template.resources[formName].hasOwnProperty('_vid') && template.resources[formName]._vid) {
+        entity.formRevision = template.resources[formName]._vid.toString();
+      }
       return true;
     }
 
     return false;
   };
 
-  let setFormProperty = (template, entity) => {
+  const setFormProperty = (template, entity) => {
     if (
       !entity ||
       !entity.form ||
@@ -119,15 +137,22 @@ module.exports = (router) => {
 
     let changes = false;
 
+    const formName = entity.form;
     // Attempt to add a form.
-    if (template.forms[entity.form]) {
-      entity.form = template.forms[entity.form]._id.toString();
+    if (template.forms && template.forms[entity.form] && template.forms[entity.form]._id) {
+      entity.form = template.forms[formName]._id.toString();
+      if (template.forms[formName].hasOwnProperty('_vid') && template.forms[formName]._vid) {
+        entity.formRevision = template.forms[formName]._vid.toString();
+      }
       changes = true;
     }
 
     // Attempt to add a resource
-    if (!changes && template.resources[entity.form]) {
+    if (!changes && template.resources && template.resources[entity.form] && template.resources[entity.form]._id) {
       entity.form = template.resources[entity.form]._id.toString();
+      if (template.resources[formName].hasOwnProperty('_vid') && template.resources[formName]._vid) {
+        entity.formRevision = template.resources[formName]._vid.toString();
+      }
       changes = true;
     }
 
@@ -145,7 +170,7 @@ module.exports = (router) => {
    * @returns {boolean}
    *   Whether or not the conversion was successful.
    */
-  let resourceMachineNameToId = (template, entity) => {
+  const resourceMachineNameToId = (template, entity) => {
     // Check the template and entity for resource and resources definitions.
     if (!entity || (!(entity.resource || entity.resources) || !template.hasOwnProperty('resources'))) {
       return false;
@@ -164,7 +189,11 @@ module.exports = (router) => {
     }
 
     // Attempt to update a single resource if present.
-    if (entity.resource && template.hasOwnProperty(`resources`) && template.resources[entity.resource]) {
+    if (
+      entity.resource && template.hasOwnProperty(`resources`) &&
+      template.resources[entity.resource] &&
+      template.resources[entity.resource]._id
+    ) {
       entity.resource = template.resources[entity.resource]._id.toString();
       changes = true;
     }
@@ -183,7 +212,7 @@ module.exports = (router) => {
    * @returns {boolean}
    *   Whether or not the any changes were made.
    */
-  let componentMachineNameToId = (template, components) => {
+  const componentMachineNameToId = (template, components) => {
     let changed = false;
     util.eachComponent(components, (component) => {
       // Update resource machineNames for resource components.
@@ -222,7 +251,7 @@ module.exports = (router) => {
    *
    * @type {*}
    */
-  let entities = {
+  const entities = {
     role: {
       model: formio.resources.role.model,
       valid: (roles) => {
@@ -233,8 +262,19 @@ module.exports = (router) => {
         return false;
       },
       transform: (template, role) => role,
-      query: function(document, template) {
-        let query = {machineName: document.machineName, deleted: {$eq: null}};
+      query(document, template) {
+        const query = {
+          $or: [
+            {
+              machineName: document.machineName,
+              deleted: {$eq: null}
+            },
+            {
+              title: document.title,
+              deleted: {$eq: null}
+            }
+          ]
+        };
         return hook.alter(`importRoleQuery`, query, document, template);
       }
     },
@@ -250,10 +290,11 @@ module.exports = (router) => {
       transform: (template, resource) => {
         roleMachineNameToId(template, resource.submissionAccess);
         roleMachineNameToId(template, resource.access);
+        componentMachineNameToId(template, resource.components);
         return resource;
       },
       cleanUp: (template, resources, done) => {
-        let model = formio.resources.form.model;
+        const model = formio.resources.form.model;
 
         async.forEachOf(resources, (resource, machineName, next) => {
           if (!componentMachineNameToId(template, resource.components)) {
@@ -264,24 +305,38 @@ module.exports = (router) => {
           model.findOneAndUpdate(
             {_id: resource._id, deleted: {$eq: null}},
             {components: resource.components},
-            {new: true},
-            (err, doc) => {
-              if (err) {
-                return next(err);
-              }
-              if (!doc) {
-                return next();
-              }
-
-              resources[machineName] = doc.toObject();
-              debug.cleanUp(`Updated resource component _ids for`, machineName);
-              next();
+            {new: true}
+          ).lean().exec((err, doc) => {
+            if (err) {
+              return next(err);
             }
-          );
+            if (!doc) {
+              return next();
+            }
+
+            resources[machineName] = doc;
+            debug.cleanUp(`Updated resource component _ids for`, machineName);
+            next();
+          });
         }, done);
       },
-      query: function(document, template) {
-        let query = {machineName: document.machineName, deleted: {$eq: null}};
+      query(document, template) {
+        const query = {
+          $or: [
+            {
+              machineName: document.machineName,
+              deleted: {$eq: null}
+            },
+            {
+              name: document.name,
+              deleted: {$eq: null}
+            },
+            {
+              path: document.path,
+              deleted: {$eq: null}
+            }
+          ]
+        };
         return hook.alter(`importFormQuery`, query, document, template);
       }
     },
@@ -300,8 +355,50 @@ module.exports = (router) => {
         componentMachineNameToId(template, form.components);
         return form;
       },
-      query: function(document, template) {
-        let query = {machineName: document.machineName, deleted: {$eq: null}};
+      cleanUp: (template, forms, done) => {
+        const model = formio.resources.form.model;
+
+        async.forEachOf(forms, (form, machineName, next) => {
+          if (!componentMachineNameToId(template, form.components)) {
+            return next();
+          }
+
+          debug.cleanUp(`Need to update form component _ids for`, machineName);
+          model.findOneAndUpdate(
+            {_id: form._id, deleted: {$eq: null}},
+            {components: form.components},
+            {new: true}
+          ).lean().exec((err, doc) => {
+            if (err) {
+              return next(err);
+            }
+            if (!doc) {
+              return next();
+            }
+
+            forms[machineName] = doc;
+            debug.cleanUp(`Updated form component _ids for`, machineName);
+            next();
+          });
+        }, done);
+      },
+      query(document, template) {
+        const query = {
+          $or: [
+            {
+              machineName: document.machineName,
+              deleted: {$eq: null}
+            },
+            {
+              name: document.name,
+              deleted: {$eq: null}
+            },
+            {
+              path: document.path,
+              deleted: {$eq: null}
+            }
+          ]
+        };
         return hook.alter(`importFormQuery`, query, document, template);
       }
     },
@@ -325,8 +422,15 @@ module.exports = (router) => {
 
         return action;
       },
-      query: function(document, template) {
-        let query = {machineName: document.machineName, deleted: {$eq: null}};
+      query(document, template) {
+        const query = {
+          $or: [
+            {
+              machineName: document.machineName,
+              deleted: {$eq: null}
+            }
+          ]
+        };
         return hook.alter(`importActionQuery`, query, document, template);
       }
     }
@@ -341,11 +445,12 @@ module.exports = (router) => {
    * @returns {function()}
    *   An invokable function to install the entity with callbacks.
    */
-  let install = (entity) => {
-    let model = entity.model;
-    let valid = entity.valid;
-    let transform = entity.transform;
-    let cleanUp = entity.cleanUp;
+  const install = (entity) => {
+    const model = entity.model;
+    const valid = entity.valid;
+    const transform = entity.transform;
+    const cleanUp = entity.cleanUp;
+    const createOnly = entity.createOnly;
 
     return (template, items, alter, done) => {
       // Normalize arguments.
@@ -370,7 +475,7 @@ module.exports = (router) => {
       }
 
       async.forEachOfSeries(items, (item, machineName, next) => {
-        let document = transform
+        const document = transform
           ? transform(template, item)
           : item;
 
@@ -393,18 +498,18 @@ module.exports = (router) => {
           }
 
           debug.install(document);
-          let query = entity.query ? entity.query(document, template) : {
+          const query = entity.query ? entity.query(document, template) : {
             machineName: document.machineName,
             deleted: {$eq: null}
           };
 
-          model.findOne(query, (err, doc) => {
+          model.findOne(query).exec((err, doc) => {
             if (err) {
               debug.install(err);
               return next(err);
             }
 
-            let saveDoc = function(updatedDoc) {
+            const saveDoc = function(updatedDoc) {
               updatedDoc.save((err, result) => {
                 if (err) {
                   debug.install(err.errors || err);
@@ -424,11 +529,16 @@ module.exports = (router) => {
               return saveDoc(new model(document));
               /* eslint-enable new-cap */
             }
-            else {
+            else if (!createOnly) {
               debug.install(`Existing found`);
               doc = _.assign(doc, document);
               debug.install(doc);
               return saveDoc(doc);
+            }
+            else {
+              debug.install(`Skipping existing entity`);
+              items[machineName] = doc.toObject();
+              return next();
             }
           });
         });
@@ -447,6 +557,31 @@ module.exports = (router) => {
   };
 
   /**
+   * Invoke cleanUp method on passed entities
+   *
+   * @param {Array} data
+   *   Array of maps of entities and form templates
+   * @param {Object} template
+   *   The parsed JSON template to import.
+   * @param {Function} done
+   *   The callback function to invoke after the cleanUp is complete.
+   *
+   * @returns {*}
+   */
+  const cleanUp = (data, template, done) => {
+    return async.series(data.map(({entity, forms}) => {
+      return async.apply(entity.cleanUp, template, forms);
+    }), (err) => {
+      if (err) {
+        debug.template(err);
+        return done(err);
+      }
+
+      done(null, template);
+    });
+  };
+
+  /**
    * Import the formio template.
    *
    * Note: This is all of the core entities, not submission data.
@@ -460,7 +595,7 @@ module.exports = (router) => {
    *
    * @returns {*}
    */
-  let importTemplate = (template, alter, done) => {
+  const importTemplate = (template, alter, done) => {
     if (!done) {
       done = alter;
       alter = null;
@@ -470,32 +605,28 @@ module.exports = (router) => {
       return done(`No template provided.`);
     }
 
-    if (!template.title) {
-      template.title = 'Export';
-    }
-    if (!template.name) {
-      template.name = 'Export';
-    }
-
     async.series(hook.alter(`templateImportSteps`, [
       async.apply(install(entities.role), template, template.roles, alter.role),
       async.apply(install(entities.resource), template, template.resources, alter.form),
       async.apply(install(entities.form), template, template.forms, alter.form),
-      async.apply(install(entities.action), template, template.actions, alter.action)
+      async.apply(install(entities.action), template, template.actions, alter.action),
     ], install, template), (err) => {
       if (err) {
         debug.template(err);
         return done(err);
       }
 
-      done(null, template);
+      cleanUp([
+        {entity: entities.resource, forms: template.resources},
+        {entity: entities.form, forms: template.forms},
+      ], template, done);
     });
   };
 
   // Implement an import endpoint.
   if (router.post) {
     router.post('/import', (req, res, next) => {
-      let alters = hook.alter('templateAlters', {});
+      const alters = hook.alter('templateAlters', {});
 
       let template = req.body.template;
       if (typeof template === 'string') {

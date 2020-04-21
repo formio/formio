@@ -4,10 +4,10 @@
 let assert = require('assert');
 let fs = require('fs');
 let docker = process.env.DOCKER;
-var request = require('supertest');
+const request = require('./formio-supertest');
 
 module.exports = function(app, template, hook) {
-  let Thread = require('../src/worker/Thread');
+  let Thread = require('formio-workers/Thread');
 
   /**
    * Unit tests for various parts of the platform.
@@ -272,7 +272,6 @@ module.exports = function(app, template, hook) {
 
     var formio = hook.alter('formio', app.formio);
     var email = require('../src/util/email')(formio);
-    var macros = require('../src/actions/macros/macros');
     var sendMessage = function(to, from, message, content, cb) {
       var dirName = 'fixtures/email/' + message + '/';
       var submission = require('./' + dirName + 'submission.json');
@@ -298,8 +297,7 @@ module.exports = function(app, template, hook) {
           }
         }
       };
-      var messageText = macros;
-      messageText += (fs.readFileSync(__dirname + '/' + dirName + 'message.html')).toString();
+      var messageText = (fs.readFileSync(__dirname + '/' + dirName + 'message.html')).toString();
       var message = {
         transport: 'test',
         from: from,
@@ -310,7 +308,7 @@ module.exports = function(app, template, hook) {
         message: messageText
       };
 
-      email.getParams(res, form, submission)
+      email.getParams(req, res, form, submission)
       .then(params => {
         params.content = content;
         email.send(req, res, message, params, (err, response) => {

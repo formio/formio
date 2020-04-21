@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 'use strict';
 
-var request = require('supertest');
+const request = require('./formio-supertest');
 var assert = require('assert');
 var async = require('async');
 var _ = require('lodash');
@@ -33,6 +33,7 @@ var request401 = function(request, done, user) {
 };
 
 module.exports = function(app, template, hook) {
+  var Helper = require('./helper')(app);
   describe('Submissions', function() {
     describe('Submission Level Permissions (Project Owner)', function() {
       describe('Submission CRUD', function() {
@@ -114,6 +115,8 @@ module.exports = function(app, template, hook) {
 
         describe('Project Owner Submission', function() {
           it('The Project Owner should be able to Create a submission without explicit permissions', function(done) {
+            // Test that roles can not be added on creation.
+            tempSubmission.roles = [template.roles.administrator._id.toString()];
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
               .set('x-jwt-token', template.users.admin.token)
@@ -199,6 +202,37 @@ module.exports = function(app, template, hook) {
               });
           });
 
+          it('The Project Owner should not be able to add roles to a submission', (done) => {
+            var updatedSubmission = _.clone(tempSubmission);
+            updatedSubmission.data.value = 'bar';
+            updatedSubmission.roles = [template.roles.administrator._id.toString()];
+            request(app)
+              .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(updatedSubmission)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                // Update the modified timestamp for response comparison.
+                updatedSubmission.modified = response.modified;
+                updatedSubmission.roles = [];
+                assert.deepEqual(response, updatedSubmission);
+
+                // Update the submission data.
+                tempSubmission = updatedSubmission;
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
           it('The Project Owner should be able to Read the Index of submissions without explicit permissions', function(done) {
             request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
@@ -213,6 +247,28 @@ module.exports = function(app, template, hook) {
                 var response = res.body;
                 assert.equal(response.length, 1, 'The response should contain 1 element');
                 assert.deepEqual(response[0], tempSubmission);
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
+          it('The Project Owner should be able to Read the Index of submissions without explicit permissions without data', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/submission?list=1', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.equal(response.length, 1, 'The response should contain 1 element');
+                assert(!response[0].hasOwnProperty('data'));
 
                 // Store the JWT for future API calls.
                 template.users.admin.token = res.headers['x-jwt-token'];
@@ -413,7 +469,7 @@ module.exports = function(app, template, hook) {
 
           it('Cant access a submission without a valid Submission Id', function(done) {
             request(app)
-              .get(hook.alter('url', '/' + tempForm.path + '/submission/💩', template))
+              .get(hook.alter('url', '/' + tempForm.path + '/submission/2342342344234', template))
               .set('x-jwt-token', template.users.admin.token)
               .expect(400)
               .end(function(err, res) {
@@ -1055,7 +1111,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+            {
+              type: 'read_all', roles: [,
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_own', roles: [template.roles.authenticated._id.toString()]},
@@ -1167,6 +1229,8 @@ module.exports = function(app, template, hook) {
           });
 
           it('A Registered user should be able to Create a submission with explicit Own permissions', function(done) {
+            // Try to create a submission with elevated permissions.
+            templateSubmission.roles = [template.roles.administrator._id.toString()];
             request(app)
               .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
               .set('x-jwt-token', template.users.user1.token)
@@ -1228,6 +1292,8 @@ module.exports = function(app, template, hook) {
           it('A Registered user should be able to Update a submission with explicit Own permissions', function(done) {
             var updatedSubmission = _.cloneDeep(tempSubmissionUser1);
             updatedSubmission.data.value = 'bar';
+            // Attempt to elevate permissions.
+            updatedSubmission.roles = [template.roles.administrator._id.toString()];
 
             request(app)
               .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmissionUser1._id, template))
@@ -1243,6 +1309,7 @@ module.exports = function(app, template, hook) {
                 var response = res.body;
                 // Update the modified timestamp for response comparison.
                 updatedSubmission.modified = response.modified;
+                updatedSubmission.roles = [];
                 assert.deepEqual(response, updatedSubmission);
 
                 // Update the submission data.
@@ -1258,6 +1325,28 @@ module.exports = function(app, template, hook) {
           it('A Registered user should be able to Read the Index of their submissions with explicit Own permissions', function(done) {
             request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+              .set('x-jwt-token', template.users.user1.token)
+              .expect(200)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.equal(response.length, 1);
+                assert.deepEqual(response[0], tempSubmissionUser1);
+
+                // Store the JWT for future API calls.
+                template.users.user1.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
+          it('A Registered user should be able to Read the Index of their submissions with owner property set', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/submission?owner=' + template.users.user1._id.toString(), template))
               .set('x-jwt-token', template.users.user1.token)
               .expect(200)
               .expect('Content-Type', /json/)
@@ -2038,7 +2127,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_all', roles: [template.roles.authenticated._id.toString()]},
@@ -2763,7 +2858,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_own', roles: [template.roles.authenticated._id.toString()]},
@@ -3131,7 +3232,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_all', roles: [template.roles.authenticated._id.toString()]},
@@ -3543,7 +3650,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.anonymous._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_own', roles: [template.roles.anonymous._id.toString()]},
@@ -3698,7 +3811,7 @@ module.exports = function(app, template, hook) {
             request(app)
               .put(hook.alter('url', '/' + tempForm.path, template))
               .set('x-jwt-token', template.users.admin.token)
-              .send(tempForm)
+              .send(_.omit(tempForm, 'modified'))
               .expect(200)
               .expect('Content-Type', /json/)
               .end(function(err, res) {
@@ -3762,7 +3875,7 @@ module.exports = function(app, template, hook) {
             request(app)
               .put(hook.alter('url', '/' + tempForm.path, template))
               .set('x-jwt-token', template.users.admin.token)
-              .send(tempForm)
+              .send(_.omit(tempForm, 'modified'))
               .expect(200)
               .expect('Content-Type', /json/)
               .end(function(err, res) {
@@ -3818,7 +3931,7 @@ module.exports = function(app, template, hook) {
             request(app)
               .put(hook.alter('url', '/' + tempForm.path, template))
               .set('x-jwt-token', template.users.admin.token)
-              .send(tempForm)
+              .send(_.omit(tempForm, 'modified'))
               .expect(200)
               .expect('Content-Type', /json/)
               .end(function(err, res) {
@@ -3875,7 +3988,7 @@ module.exports = function(app, template, hook) {
             request(app)
               .put(hook.alter('url', '/' + tempForm.path, template))
               .set('x-jwt-token', template.users.admin.token)
-              .send(tempForm)
+              .send(_.omit(tempForm, 'modified'))
               .expect(200)
               .expect('Content-Type', /json/)
               .end(done);
@@ -4399,7 +4512,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.anonymous._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_all', roles: [template.roles.anonymous._id.toString()]},
@@ -5070,7 +5189,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.anonymous._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_own', roles: [template.roles.anonymous._id.toString()]},
@@ -5443,7 +5568,13 @@ module.exports = function(app, template, hook) {
         // Before the suite runs, attach the test Project's id to the payload.
         before(function() {
           tempForm.access = [
-            {type: 'read_all', roles: [template.roles.anonymous._id.toString()]}
+            {
+              type: 'read_all', roles: [
+                template.roles.anonymous._id.toString(),
+                template.roles.authenticated._id.toString(),
+                template.roles.administrator._id.toString()
+              ]
+            }
           ];
           tempForm.submissionAccess = [
             {type: 'create_all', roles: [template.roles.anonymous._id.toString()]},
@@ -6065,7 +6196,13 @@ module.exports = function(app, template, hook) {
       // Before the suite runs, attach the test Project's id to the payload.
       before(function() {
         tempForm.access = [
-          {type: 'read_all', roles: [template.roles.authenticated._id.toString()]}
+          {
+            type: 'read_all', roles: [
+              template.roles.anonymous._id.toString(),
+              template.roles.authenticated._id.toString(),
+              template.roles.administrator._id.toString()
+            ]
+          }
         ];
         tempForm.submissionAccess = [
           {type: 'update_all', roles: [template.roles.authenticated._id.toString()]}
@@ -6643,9 +6780,277 @@ module.exports = function(app, template, hook) {
       };
       var tempSubmission = {};
       var tempSubmissions = [];
-
+      let managerRole = null;
+      let managerResource = null;
+      let managerRegister = null;
+      let manager = null;
       describe('Bootstrap', function() {
+        it('Create a manager role', (done) => {
+          request(app)
+            .post(hook.alter('url', '/role', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              "title": "Manager",
+              "description": "A role for Manager Users.",
+              "admin": false,
+              "default": false
+            })
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              managerRole = res.body;
+              done();
+            });
+        });
+        it('Create a manager resource', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              title: 'Manager',
+              name: 'manager',
+              path: 'manager',
+              type: 'resource',
+              tags: [],
+              "submissionAccess": [],
+              "access": [],
+              components: [
+                {
+                  type: 'email',
+                  persistent: true,
+                  unique: false,
+                  protected: false,
+                  defaultValue: '',
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'Enter your email address',
+                  key: 'email',
+                  label: 'Email',
+                  inputType: 'email',
+                  tableView: true,
+                  input: true
+                },
+                {
+                  type: 'password',
+                  persistent: true,
+                  protected: true,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'Enter your password.',
+                  key: 'password',
+                  label: 'Password',
+                  inputType: 'password',
+                  tableView: false,
+                  input: true
+                },
+                {
+                  theme: 'primary',
+                  disableOnInvalid: true,
+                  action: 'submit',
+                  block: false,
+                  rightIcon: '',
+                  leftIcon: '',
+                  size: 'md',
+                  key: 'submit',
+                  label: 'Submit',
+                  input: true,
+                  type: 'button'
+                }
+              ]
+            })
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              managerResource = res.body;
+              done();
+            });
+        });
+        it('Create a manager role assignment action', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + managerResource._id.toString() + '/action', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              "title": "Role Assignment",
+              "name": "role",
+              "priority": 1,
+              "handler": ["after"],
+              "method": ["create"],
+              "form": managerResource._id.toString(),
+              "settings": {
+                "association": "new",
+                "type": "add",
+                "role": managerRole._id.toString()
+              }
+            })
+            .expect(201)
+            .end(done);
+        });
+        it('Create a manager role save action', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + managerResource._id.toString() + '/action', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              "title": "Save Submission",
+              "name": "save",
+              "form": managerResource._id.toString(),
+              "handler": ["before"],
+              "method": ["create", "update"],
+              "priority": 10
+            })
+            .expect(201)
+            .end(done);
+        });
+        it('Create a manager register form', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              title: 'Manager',
+              name: 'managerRegister',
+              path: 'manager/register',
+              type: 'form',
+              tags: [],
+              "submissionAccess": [
+                {
+                  "type": "create_own",
+                  "roles": [template.roles.anonymous._id.toString()]
+                }
+              ],
+              "access": [
+                {
+                  "type": "read_all",
+                  "roles": [template.roles.anonymous._id.toString()]
+                }
+              ],
+              components: [
+                {
+                  type: 'email',
+                  persistent: true,
+                  unique: false,
+                  protected: false,
+                  defaultValue: '',
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'Enter your email address',
+                  key: 'email',
+                  label: 'Email',
+                  inputType: 'email',
+                  tableView: true,
+                  input: true
+                },
+                {
+                  type: 'password',
+                  persistent: true,
+                  protected: true,
+                  suffix: '',
+                  prefix: '',
+                  placeholder: 'Enter your password.',
+                  key: 'password',
+                  label: 'Password',
+                  inputType: 'password',
+                  tableView: false,
+                  input: true
+                },
+                {
+                  theme: 'primary',
+                  disableOnInvalid: true,
+                  action: 'submit',
+                  block: false,
+                  rightIcon: '',
+                  leftIcon: '',
+                  size: 'md',
+                  key: 'submit',
+                  label: 'Submit',
+                  input: true,
+                  type: 'button'
+                }
+              ]
+            })
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              managerRegister = res.body;
+              done();
+            });
+        });
+        it('Create a manager register save action', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + managerRegister._id.toString() + '/action', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              name: 'save',
+              title: 'Save Submission',
+              form: managerRegister._id.toString(),
+              priority: 11,
+              method: ['create', 'update'],
+              handler: ['before'],
+              settings: {
+                resource: managerResource._id.toString(),
+                fields: {
+                  email: 'email',
+                  password: 'password'
+                }
+              }
+            })
+            .expect(201)
+            .end(done);
+        });
+        it('Create a manager login action', function(done) {
+          request(app)
+            .post(hook.alter('url', '/form/' + managerRegister._id.toString() + '/action', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              name: 'login',
+              title: 'Login',
+              form: managerRegister._id.toString(),
+              priority: 2,
+              method: ['create'],
+              handler: ['before'],
+              settings: {
+                resources: [managerResource._id.toString()],
+                username: 'email',
+                password: 'password',
+                allowedAttempts: 5,
+                attemptWindow: 10,
+                lockWait: 10
+              }
+            })
+            .expect(201)
+            .end(done);
+        });
+        it('Register a new manager', (done) => {
+          request(app)
+            .post(hook.alter('url', '/manager/register/submission', template))
+            .send({
+              data: {
+                email: 'manager@example.com',
+                password: 'test123'
+              }
+            })
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              manager = res.body;
+              manager.token = res.headers['x-jwt-token'];
+              done();
+            });
+        });
         it('Create the form', function(done) {
+          tempForm.submissionAccess = [
+            {
+              type: 'read_all',
+              roles: [managerRole._id.toString()]
+            }
+          ];
           request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
@@ -6668,7 +7073,7 @@ module.exports = function(app, template, hook) {
               assert.equal(response.type, 'form');
               assert.equal(response.access.length, 1);
               assert.equal(response.access[0].type, 'read_all');
-              assert.equal(response.access[0].roles.length, 3);
+              assert.equal(response.access[0].roles.length, 4);
               assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
               assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
               assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
@@ -6776,8 +7181,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, the owner, can update a submissions resource access, without explicit resource access (read)', function(done) {
           tempSubmission.data.readPerm = [template.users.admin];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -6880,7 +7283,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission owner, without explicit resource access (read)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -6986,8 +7389,8 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, the owner, can update a submissions resource access, without explicit resource access (write)', function(done) {
           tempSubmission.data.writePerm = [template.users.admin];
-          delete tempSubmission.data.readPerm;
-          delete tempSubmission.data.adminPerm;
+          tempSubmission.data.readPerm = [];
+          tempSubmission.data.adminPerm = [];
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -7064,6 +7467,32 @@ module.exports = function(app, template, hook) {
             });
         });
 
+        it('A Manager can read the index of submissions, with explicit resource access', function(done) {
+          request(app)
+            .get(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+            .set('x-jwt-token', manager.token)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert(response instanceof Array);
+
+              var found = false;
+              _.forEach(response, function(result) {
+                if (_.has(result, '_id') && (_.get(result, '_id') === tempSubmission._id)) {
+                  found = true;
+                  assert.deepEqual(_.omit(result, 'modified'), _.omit(tempSubmission, 'modified'));
+                }
+              });
+              assert(found);
+              done();
+            });
+        });
+
         it('An Admin, the owner, can update a submission, with explicit resource access (write)', function(done) {
           tempSubmission.data.value = '1231888123q';
           request(app)
@@ -7090,7 +7519,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission owner, without explicit resource access (write)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -7196,8 +7625,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, the owner, can update a submissions resource access, with explicit resource access (admin)', function(done) {
           tempSubmission.data.adminPerm = [template.users.admin];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.readPerm;
           var update = {access: [{type: 'admin', resources: [template.users.admin._id]}]};
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
@@ -7301,7 +7728,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submission owner, with explicit resource access (admin)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -7459,8 +7886,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (read)', function(done) {
           tempSubmission.data.readPerm = [template.users.admin2];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -7562,7 +7987,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission owner, without explicit resource access (read)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -7609,8 +8034,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (read)', function(done) {
           tempSubmission.data.readPerm = [template.users.user2];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -7696,8 +8119,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (write)', function(done) {
           tempSubmission.data.writePerm = [template.users.admin2];
-          delete tempSubmission.data.readPerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -7799,7 +8220,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission owner, without explicit resource access (write)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -7846,8 +8267,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (write)', function(done) {
           tempSubmission.data.writePerm = [template.users.user2];
-          delete tempSubmission.data.readPerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -7933,8 +8352,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, with explicit resource access (admin)', function(done) {
           tempSubmission.data.adminPerm = [template.users.admin2];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.readPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -8036,7 +8453,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, not the owner, can update a submission owner, with explicit resource access (admin)', function(done) {
-          tempSubmission.owner = null;
+          tempSubmission.owner = '';
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -8083,8 +8500,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, with explicit resource access (admin)', function(done) {
           tempSubmission.data.adminPerm = [template.users.user2];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.readPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -8194,14 +8609,14 @@ module.exports = function(app, template, hook) {
           request(app)
             .get(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
             .set('x-jwt-token', template.users.user1.token)
-            .expect(401)
+            .expect(200)
             .end(function(err, res) {
               if (err) {
                 return done(err);
               }
 
               var response = res.body;
-              assert.deepEqual(response, {});
+              assert.equal(response.length, 0);
 
               // Store the JWT for future API calls.
               template.users.user1.token = res.headers['x-jwt-token'];
@@ -8295,8 +8710,6 @@ module.exports = function(app, template, hook) {
 
         it('Give the user read access to the submission', function(done) {
           tempSubmission.data.readPerm = [template.users.user1];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -8457,8 +8870,8 @@ module.exports = function(app, template, hook) {
 
         it('Give the user write access to the submission', function(done) {
           tempSubmission.data.writePerm = [template.users.user1];
-          delete tempSubmission.data.readPerm;
-          delete tempSubmission.data.adminPerm;
+          tempSubmission.data.readPerm = [];
+          tempSubmission.data.adminPerm = [];
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -8606,8 +9019,8 @@ module.exports = function(app, template, hook) {
 
         it('Give the user admin access to the submission', function(done) {
           tempSubmission.data.adminPerm = [template.users.user1];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.readPerm;
+          tempSubmission.data.writePerm = [];
+          tempSubmission.data.readPerm = [];
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -8935,8 +9348,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin can update the submissions resource access', function(done) {
           tempSubmission.data.readPerm = [template.users.admin];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -9074,6 +9485,63 @@ module.exports = function(app, template, hook) {
       });
 
       describe('Form Normalization', function() {
+        it('Delete the manager resource', (done) => {
+          request(app)
+            .delete(hook.alter('url', '/form/' + managerResource._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response, {});
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+        it('Delete the manager register form', (done) => {
+          request(app)
+            .delete(hook.alter('url', '/form/' + managerRegister._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response, {});
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
+        it('Delete the manager role', (done) => {
+          request(app)
+            .delete(hook.alter('url', '/role/' + managerRole._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              var response = res.body;
+              assert.deepEqual(response, {});
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              done();
+            });
+        });
         it('Delete the form', function(done) {
           request(app)
             .delete(hook.alter('url', '/form/' + tempForm._id, template))
@@ -9093,6 +9561,790 @@ module.exports = function(app, template, hook) {
               done();
             });
         });
+      });
+    });
+
+    describe('Submission Resource Access - Multiple Users', () => {
+      var helper = null;
+      var submission = null;
+      it('Should create a project with multiple resource users', (done) => {
+        var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+        helper = new Helper(owner);
+        helper
+          .project()
+          .resource('client', [
+            {
+              type: 'email',
+              label: 'Email',
+              key: 'email'
+            },
+            {
+              type: 'password',
+              label: 'Password',
+              key: 'password'
+            }
+          ])
+          .form('clientLogin', [
+            {
+              type: 'email',
+              label: 'Email',
+              key: 'email'
+            },
+            {
+              type: 'password',
+              label: 'Password',
+              key: 'password'
+            }
+          ], {
+            submissionAccess: [
+              {
+                type: 'create_own',
+                roles: ['anonymous']
+              }
+            ]
+          })
+          .removeAction('clientLogin', {
+            title: 'Save Submission'
+          })
+          .action('clientLogin', {
+            title: 'Client Login',
+            name: 'login',
+            handler: ['before'],
+            method: ['create'],
+            priority: 0,
+            settings: {
+              resources: ['client'],
+              username: 'email',
+              password: 'password'
+            }
+          })
+          .resource('manager', [
+            {
+              type: 'email',
+              label: 'Email',
+              key: 'email'
+            },
+            {
+              type: 'password',
+              label: 'Password',
+              key: 'password'
+            }
+          ])
+          .form('managerLogin', [
+            {
+              type: 'email',
+              label: 'Email',
+              key: 'email'
+            },
+            {
+              type: 'password',
+              label: 'Password',
+              key: 'password'
+            }
+          ], {
+            submissionAccess: [
+              {
+                type: 'create_own',
+                roles: ['anonymous']
+              }
+            ]
+          })
+          .removeAction('managerLogin', {
+            title: 'Save Submission'
+          })
+          .action('managerLogin', {
+            title: 'Manager Login',
+            name: 'login',
+            handler: ['before'],
+            method: ['create'],
+            priority: 0,
+            settings: {
+              resources: ['manager'],
+              username: 'email',
+              password: 'password'
+            }
+          })
+          .form('clientreg', [
+            {
+              type: 'resource',
+              label: 'User',
+              key: 'user',
+              resource: 'user',
+              template: '<span>{{ item.data.email }}</span>',
+              defaultPermission: 'read'
+            },
+            {
+              type: 'resource',
+              label: 'Client',
+              key: 'client',
+              resource: 'client',
+              template: '<span>{{ item.data.email }}</span>',
+              defaultPermission: 'read'
+            },
+            {
+              type: 'resource',
+              label: 'Manager',
+              key: 'manager',
+              resource: 'manager',
+              template: '<span>{{ item.data.email }}</span>',
+              defaultPermission: 'admin'
+            }
+          ])
+          .user('user', 'clientuser')
+          .user('client', 'client')
+          .user('manager', 'manager')
+          .execute(done);
+      });
+
+      it('Should NOT allow an anonymous user to create a submission', (done) => {
+        helper.createSubmission('clientreg', {
+          data: {
+            user: helper.template.users.clientuser,
+            client: helper.template.users.client,
+            manager: helper.template.users.manager
+          }
+        }, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow a clientuser to create a submission', (done) => {
+        helper.createSubmission('clientreg', {
+          data: {
+            user: helper.template.users.clientuser,
+            client: helper.template.users.client,
+            manager: helper.template.users.manager
+          }
+        }, 'clientuser', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow a client to create a submission', (done) => {
+        helper.createSubmission('clientreg', {
+          data: {
+            user: helper.template.users.clientuser,
+            client: helper.template.users.client,
+            manager: helper.template.users.manager
+          }
+        }, 'client', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow a manager user to create a submission', (done) => {
+        helper.createSubmission('clientreg', {
+          data: {
+            user: helper.template.users.clientuser,
+            client: helper.template.users.client,
+            manager: helper.template.users.manager
+          }
+        }, 'manager', [/json/, 201], done);
+      });
+
+      it('Should allow admin to create a registration submission with the client and manager set', (done) => {
+        helper.createSubmission('clientreg', {
+          data: {
+            user: helper.template.users.clientuser,
+            client: helper.template.users.client,
+            manager: helper.template.users.manager
+          }
+        }, (err, response) => {
+          if (err) {
+            return done(err);
+          }
+          submission = response;
+          done();
+        });
+      });
+
+      it('Should NOT allow an anonymous user to see the submission', (done) => {
+        helper.getSubmission('clientreg', submission._id, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow an anonymous user to update the submission', (done) => {
+        helper.updateSubmission(submission, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow an anonymous user to delete the submission', (done) => {
+        helper.deleteSubmission(submission, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should allow the clientuser to see this submission', (done) => {
+        helper.getSubmission('clientreg', submission._id, 'clientuser', [/json/, 200], done);
+      });
+
+      it('Should NOT allow the clientuser to update the submission', (done) => {
+        submission.data.testing = 'hello';
+        helper.updateSubmission(submission, 'clientuser', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow the clientuser to delete the submission', (done) => {
+        helper.deleteSubmission(submission, 'clientuser', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow the client to see this submission', (done) => {
+        helper.getSubmission('clientreg', submission._id, 'client', [/json/, 200], done);
+      });
+
+      it('Should NOT allow the client to update the submission', (done) => {
+        submission.data.testing = 'hello';
+        helper.updateSubmission(submission, 'client', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow the client to delete the submission', (done) => {
+        helper.deleteSubmission(submission, 'client', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow the manager to see this submission', (done) => {
+        helper.getSubmission('clientreg', submission._id, 'manager', [/json/, 200], done);
+      });
+
+      it('Should allow allow the manager to update the submission', (done) => {
+        submission.data.testing = 'hello';
+        helper.updateSubmission(submission, 'manager', [/json/, 200], done);
+      });
+
+      it('Should allow the manager to delete the submission', (done) => {
+        helper.deleteSubmission(submission, 'manager', [/json/, 200], done);
+      });
+    });
+
+    describe('Mix and Match Permissions', () => {
+      var helper = null;
+      it('Create the project with a new users.', (done) => {
+        var owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+        helper = new Helper(owner);
+        helper
+          .project()
+          .user('admin', 'admin1')
+          .user('admin', 'admin2')
+          .user('user', 'user1')
+          .user('user', 'user2')
+          .execute(done);
+      });
+
+      const components = [
+        {
+          type: 'textfield',
+          persistent: true,
+          unique: false,
+          protected: false,
+          defaultValue: '',
+          suffix: '',
+          prefix: '',
+          placeholder: '',
+          key: 'a',
+          label: 'a',
+          inputType: 'text',
+          tableView: true,
+          input: true
+        },
+        {
+          type: 'textfield',
+          persistent: true,
+          unique: false,
+          protected: false,
+          defaultValue: '',
+          suffix: '',
+          prefix: '',
+          placeholder: '',
+          key: 'b',
+          label: 'b',
+          inputType: 'text',
+          tableView: true,
+          input: true
+        },
+        {
+          type: 'textfield',
+          persistent: true,
+          unique: false,
+          protected: false,
+          defaultValue: '',
+          suffix: '',
+          prefix: '',
+          placeholder: '',
+          key: 'c',
+          label: 'c',
+          inputType: 'text',
+          tableView: true,
+          input: true
+        }
+      ];
+
+      it('Create the resources', function(done) {
+        const components = [
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'a',
+            label: 'a',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          },
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'b',
+            label: 'b',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          },
+          {
+            type: 'textfield',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: '',
+            key: 'c',
+            label: 'c',
+            inputType: 'text',
+            tableView: true,
+            input: true
+          }
+        ];
+        helper
+          .resource('mixmatcha', components, {
+            submissionAccess: helper.perms({
+              create_own: ['authenticated'],
+              read_own: ['authenticated'],
+              update_own: ['authenticated']
+            })
+          })
+          .resource('mixmatchb', components, {
+            submissionAccess: helper.perms({
+              create_own: ['anonymous'],
+              read_own: ['anonymous'],
+              update_own: ['anonymous'],
+              delete_own: ['anonymous']
+            })
+          })
+          .resource('mixmatchc', components, {
+            submissionAccess: helper.perms({
+              create_all: ['anonymous'],
+              create_own: ['authenticated', 'anonymous'],
+              read_own: ['authenticated'],
+              update_own: ['authenticated'],
+              delete_own: ['authenticated']
+            })
+          })
+          .resource('mixmatchd', components, {
+            submissionAccess: helper.perms({
+              create_all: ['authenticated'],
+              read_all: ['anonymous'],
+              read_own: ['authenticated', 'anonymous'],
+              update_own: ['authenticated'],
+              delete_all: ['anonymous']
+            })
+          })
+          .execute(done);
+      });
+
+      it('Should not allow anonymous to create a record in mixmatcha', (done) => {
+        helper.submission('mixmatcha', {
+          a: 'test',
+          b: 'test2',
+          c: 'test3'
+        }, null, [/text\/plain/, 401]).execute(done)
+      });
+
+      it('Should allow authenticated to create a record in mixmatcha', (done) => {
+        helper.submission('mixmatcha', {
+          a: 'test',
+          b: 'test2',
+          c: 'test3'
+        }, 'user1').execute(done)
+      });
+
+      it('Should not allow user2 to see user1 submission', (done) => {
+        helper.getSubmission('mixmatcha', helper.lastSubmission._id, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user1 to see their own submission', (done) => {
+        helper.getSubmission('mixmatcha', helper.lastSubmission._id, 'user1', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, helper.lastSubmission.data);
+          done();
+        });
+      });
+
+      it('Should allow admin users to see user1 submission', (done) => {
+        helper.getSubmission('mixmatcha', helper.lastSubmission._id, 'admin1', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, helper.lastSubmission.data);
+          done();
+        });
+      });
+
+      it('Should not allow user1 to change the owner of the submission in mixmatcha', (done) => {
+        helper.submission('mixmatcha', {
+          data: {
+            a: 'test',
+            b: 'test2',
+            c: 'test3'
+          },
+          owner: helper.template.users.user2._id.toString()
+        }, 'user1').execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          assert.equal(submission.owner.toString(), helper.template.users.user1._id.toString());
+          assert(submission.owner.toString() !== helper.template.users.user2._id.toString(), 'Owner should not be user2');
+          done();
+        })
+      });
+
+      it('Should allow admins to change the owner of the submission in mixmatcha', (done) => {
+        helper.createSubmission('mixmatcha', {
+          data: {
+            a: 'test',
+            b: 'test2',
+            c: 'test3'
+          },
+          owner: helper.template.users.user2._id.toString()
+        }, 'admin1', (err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          assert.equal(submission.owner.toString(), helper.template.users.user2._id.toString());
+          done();
+        })
+      });
+
+      it('Should not allow user1 to see that submission now.', (done) => {
+        helper.getSubmission('mixmatcha', helper.lastSubmission._id, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user2 to see the submission now.', (done) => {
+        helper.getSubmission('mixmatcha', helper.lastSubmission._id, 'user2', done);
+      });
+
+      it('Should not allow user1 to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should not allow user2 to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow an administrator to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'admin2', done);
+      });
+
+      it('Should not allow authenticated to create a submission in mixmatchb', (done) => {
+        helper.createSubmission('mixmatchb', {
+          a: 'testing',
+          b: 'one',
+          c: 'two'
+        }, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow admins to create a submisison in mixmatchb', (done) => {
+        helper.createSubmission('mixmatchb', {
+          a: 'testing',
+          b: 'one',
+          c: 'two'
+        }, 'admin2', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, {
+            a: 'testing',
+            b: 'one',
+            c: 'two'
+          });
+          assert.equal(submission.owner, helper.template.users.admin2._id.toString());
+          done();
+        });
+      });
+
+      it('Should also allow for anonymous users to create a submission in mixmatchb', (done) => {
+        helper.createSubmission('mixmatchb', {
+          a: 'testing',
+          b: 'one',
+          c: 'two'
+        }, null, (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, {
+            a: 'testing',
+            b: 'one',
+            c: 'two'
+          });
+          assert.equal(submission.owner, null);
+          done();
+        });
+      });
+
+      it('Should NOT allow anonymous user to update the submission in mixmatchb', (done) => {
+        helper.lastSubmission.data = {
+          a: 'test2',
+          b: 'test3',
+          c: 'test4'
+        };
+        helper.updateSubmission(helper.lastSubmission, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow anonymous user to delete the submission in mixmatchb', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow anonymous to view the submission in mixmatchb', (done) => {
+        helper.getSubmission('mixmatchb', helper.lastSubmission._id, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow user1 to view the submission in mixmatchb', (done) => {
+        helper.getSubmission('mixmatchb', helper.lastSubmission._id, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow user1 to delete the submission in mixmatchb', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow admin1 to get the submission in mixmatchb', (done) => {
+        helper.getSubmission('mixmatchb', helper.lastSubmission._id, 'admin1', done);
+      });
+
+      it('Should allow admin2 to delete the submission in mixmatchb', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'admin2', done);
+      });
+
+      it('Should allow an admin to assign owner on create', (done) => {
+        helper.createSubmission('mixmatchb', {
+          owner: helper.template.users.admin2._id.toString(),
+          data: {
+            a: 'hello',
+            b: 'there',
+            c: 'admin2'
+          }
+        }, 'admin1', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(submission.owner, helper.template.users.admin2._id.toString());
+          done();
+        });
+      });
+
+      it('Should NOT allow anonymous to assign owner on create', (done) => {
+        helper.createSubmission('mixmatchb', {
+          owner: helper.template.users.admin2._id.toString(),
+          data: {
+            a: 'hello',
+            b: 'there',
+            c: 'admin2'
+          }
+        }, null, (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(submission.owner, null);
+          done();
+        });
+      });
+
+      it('Should allow anonymous to create submission and change owner in mixmatchc', (done) => {
+        helper.createSubmission('mixmatchc', {
+          owner: helper.template.users.user1._id.toString(),
+          data: {
+            a: 'hello',
+            b: 'there',
+            c: 'admin2'
+          }
+        }, null, (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(submission.owner, helper.template.users.user1._id.toString());
+          done();
+        });
+      });
+
+      it('Should allow user1 to get that submission that was created on behalf of that user', (done) => {
+        helper.getSubmission('mixmatchc', helper.lastSubmission._id, 'user1', done);
+      });
+
+      it('Should NOT allow user2 to get that submission that was created on behalf of that user', (done) => {
+        helper.getSubmission('mixmatchc', helper.lastSubmission._id, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow anonymous to read the created submission either.', (done) => {
+        helper.getSubmission('mixmatchc', helper.lastSubmission._id, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should allow an admin to read the submission', (done) => {
+        helper.getSubmission('mixmatchc', helper.lastSubmission._id, 'admin2', done);
+      });
+
+      it('Should NOT allow user2 to update the created submission', (done) => {
+        helper.lastSubmission.data = {
+          a: 'test2',
+          b: 'test3',
+          c: 'test4'
+        };
+        helper.updateSubmission(helper.lastSubmission, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow anonymous to update the created submission', (done) => {
+        helper.lastSubmission.data = {
+          a: 'test2',
+          b: 'test3',
+          c: 'test4'
+        };
+        helper.updateSubmission(helper.lastSubmission, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user1 to update their submission.', (done) => {
+        helper.lastSubmission.data = {
+          a: 'test345',
+          b: 'test234234',
+          c: 'test567567'
+        };
+        helper.updateSubmission(helper.lastSubmission, 'user1', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, {
+            a: 'test345',
+            b: 'test234234',
+            c: 'test567567'
+          });
+          done();
+        });
+      });
+
+      it('Should also allow an admin to update the submission', (done) => {
+        helper.lastSubmission.data = {
+          a: 'a',
+          b: 'b',
+          c: 'c'
+        };
+        helper.updateSubmission(helper.lastSubmission, 'admin1', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.deepEqual(submission.data, {
+            a: 'a',
+            b: 'b',
+            c: 'c'
+          });
+          done();
+        });
+      });
+
+      it('Should not allow user2 to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should not allow anonymous to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user1 to delete their own submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user1', done);
+      });
+
+      it('Should NOT allow anonymous users to create submissions in mixmatchd', (done) => {
+        helper.createSubmission('mixmatchd', {
+          a: 'a',
+          b: 'b',
+          c: 'c'
+        }, null, [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user2 to create a submission in mixmatchd', (done) => {
+        helper.createSubmission('mixmatchd', {
+          a: 'a',
+          b: 'b',
+          c: 'c'
+        }, 'user2', done);
+      });
+
+      it('Should allow anonymous to read the created submission.', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, null, done);
+      });
+
+      it('Should also allow user2 to read the created submission.', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, 'user2', done);
+      });
+
+      it('Should also allow admin1 to read the created submission.', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, 'admin1', done);
+      });
+
+      it('Should NOT allow user1 to read the created submission', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user2 to create a submission and assign it to user1', (done) => {
+        helper.createSubmission('mixmatchd', {
+          owner: helper.template.users.user1._id.toString(),
+          data: {
+            a: 'a',
+            b: 'b',
+            c: 'c'
+          }
+        }, 'user2', (err, submission) => {
+          if (err) {
+            return done(err);
+          }
+
+          assert.equal(submission.owner, helper.template.users.user1._id.toString());
+          done();
+        });
+      });
+
+      it('Should not allow user2 to read the created submission.', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow user1 to read the created submission.', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, 'user1', done);
+      });
+
+      it('Should allow anonymous user to read the created submission.', (done) => {
+        helper.getSubmission('mixmatchd', helper.lastSubmission._id, null, done);
+      });
+
+      it('Should NOT allow user1 to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user1', [/text\/plain/, 401], done);
+      });
+
+      it('Should NOT allow user2 to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, 'user2', [/text\/plain/, 401], done);
+      });
+
+      it('Should allow an anonymous user to delete the submission.', (done) => {
+        helper.deleteSubmission(helper.lastSubmission, null, done);
       });
     });
 
@@ -9128,7 +10380,7 @@ module.exports = function(app, template, hook) {
           }
         ]
       };
-      var adminValues = ['test1', 'test2', 'test3', 'test4'];
+      var adminValues = ['test1', 'test2', 'test3', 'test4', 'other7', 'other8'];
       var userValues = ['test5', 'test6', 'test7', 'test8'];
 
       before(function() {
@@ -9165,10 +10417,9 @@ module.exports = function(app, template, hook) {
             assert.equal(response.type, 'form');
             assert.equal(response.access.length, 1);
             assert.equal(response.access[0].type, 'read_all');
-            assert.equal(response.access[0].roles.length, 3);
+            assert.equal(response.access[0].roles.length, 2);
             assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
             assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
-            assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
 
             // Build a temp list to compare access without mongo id's.
             var tempSubmissionAccess = [];
@@ -9282,6 +10533,48 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('An admin should be able to export with filters', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export?data.value__regex=/^other/i', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 2);
+            assert(response instanceof Array);
+            assert(['other7', 'other8'].indexOf(response[0].data.value) !== -1, 'Value not found');
+            assert(['other7', 'other8'].indexOf(response[1].data.value) !== -1, 'Value not found');
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      it('An admin should be able to export with filters', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export?data.value__regex=/7$/i', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 2);
+            assert(response instanceof Array);
+            assert(['other7', 'test7'].indexOf(response[0].data.value) !== -1, 'Value not found');
+            assert(['other7', 'test7'].indexOf(response[1].data.value) !== -1, 'Value not found');
+            template.users.admin.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
       it('A user should only be able to see their submissions', function(done) {
         request(app)
           .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
@@ -9314,6 +10607,45 @@ module.exports = function(app, template, hook) {
 
               done();
             });
+          });
+      });
+
+      it('A user should be able to export with filters', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export?data.value__regex=/^other/i', template))
+          .set('x-jwt-token', template.users.user1.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 0);
+            assert(response instanceof Array);
+            template.users.user1.token = res.headers['x-jwt-token'];
+            done();
+          });
+      });
+
+      it('An admin should be able to export with filters', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + tempForm._id + '/export?data.value__regex=/7$/i', template))
+          .set('x-jwt-token', template.users.user1.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.equal(response.length, 1);
+            assert(response instanceof Array);
+            assert.equal(response[0].data.value, 'test7');
+            template.users.user1.token = res.headers['x-jwt-token'];
+            done();
           });
       });
 

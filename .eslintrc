@@ -1,6 +1,9 @@
 {
   "root": true,
   "extends": "eslint-config-formio",
+  "parserOptions": {
+    "ecmaVersion": 2018
+  },
   "env": {
     "node": true,
     "es6": true
@@ -10,6 +13,14 @@
     "no-unused-vars": [1, {"args": "none"}],
     "strict": [2, "global"],
     "max-statements": [2, 35],
-    "quotes": [0]
+    "quotes": [0],
+    "no-prototype-builtins": "off",
+    "prefer-const": "error",
+    "prefer-template": "error",
+    "space-before-function-paren": ["error", {
+      "anonymous": "never",
+      "named": "never",
+      "asyncArrow": "always"
+    }]
   }
 }

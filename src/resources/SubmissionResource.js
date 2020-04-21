@@ -1,143 +1,116 @@
 'use strict';
 
-const Resource = require('resourcejs');
-const mongoose = require('mongoose');
-const utils = require('formiojs/utils');
+const ResourceFactory = require('resourcejs');
+const Resource = ResourceFactory.Resource;
 const _ = require('lodash');
 
-module.exports = function(router) {
+module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
   const handlers = router.formio.middleware.submissionHandler;
   const hiddenFields = ['deleted', '__v', 'machineName'];
 
   // Manually update the handlers, to add additional middleware.
   handlers.beforePost = [
+    router.formio.middleware.filterIdCreate,
+    router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-    router.formio.middleware.bootstrapEntityOwner(true),
+    router.formio.middleware.bootstrapEntityOwner,
     router.formio.middleware.bootstrapSubmissionAccess,
     router.formio.middleware.addSubmissionResourceAccess,
     router.formio.middleware.condenseSubmissionPermissionTypes,
-    handlers.beforePost
+    handlers.beforePost,
   ];
   handlers.afterPost = [
     handlers.afterPost,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields('create', (req) => {
-      return router.formio.cache.getCurrentFormId(req);
-    })
+    router.formio.middleware.filterProtectedFields('create', (req) => router.formio.cache.getCurrentFormId(req)),
   ];
   handlers.beforeGet = [
+    router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-    handlers.beforeGet
+    handlers.beforeGet,
   ];
   handlers.afterGet = [
     handlers.afterGet,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields('get', (req) => {
-      return router.formio.cache.getCurrentFormId(req);
-    })
+    router.formio.middleware.filterProtectedFields('get', (req) => router.formio.cache.getCurrentFormId(req)),
   ];
   handlers.beforePut = [
+    router.formio.middleware.permissionHandler,
+    router.formio.middleware.submissionApplyPatch,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-    router.formio.middleware.bootstrapEntityOwner(false),
+    router.formio.middleware.bootstrapEntityOwner,
     router.formio.middleware.bootstrapSubmissionAccess,
     router.formio.middleware.addSubmissionResourceAccess,
     router.formio.middleware.condenseSubmissionPermissionTypes,
-    handlers.beforePut
+    router.formio.middleware.loadPreviousSubmission,
+    handlers.beforePut,
   ];
   handlers.afterPut = [
     handlers.afterPut,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields('update', (req) => {
-      return router.formio.cache.getCurrentFormId(req);
-    })
+    router.formio.middleware.filterProtectedFields('update', (req) => router.formio.cache.getCurrentFormId(req)),
   ];
   handlers.beforeIndex = [
+    (req, res, next) => {
+      // If we leave list in query it will interfere with the find query.
+      if (req.query.list) {
+        req.filterIndex = true;
+        delete req.query.list;
+      }
+
+      next();
+    },
+    router.formio.middleware.permissionHandler,
     router.formio.middleware.setFilterQueryTypes,
-    router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
+    router.formio.middleware.filterMongooseExists({
+      field: 'deleted',
+      isNull: true,
+      resource: 'submission',
+    }),
     router.formio.middleware.ownerFilter,
     router.formio.middleware.submissionResourceAccessFilter,
-    handlers.beforeIndex
+    handlers.beforeIndex,
   ];
   handlers.afterIndex = [
     handlers.afterIndex,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields('index', (req) => {
-      return router.formio.cache.getCurrentFormId(req);
-    })
+    router.formio.middleware.filterProtectedFields('index', (req) => router.formio.cache.getCurrentFormId(req)),
+    router.formio.middleware.filterIndex(['data']),
   ];
   handlers.beforeDelete = [
+    router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     handlers.beforeDelete,
-    router.formio.middleware.deleteSubmissionHandler
+    router.formio.middleware.loadPreviousSubmission,
+    router.formio.middleware.deleteSubmissionHandler,
   ];
   handlers.afterDelete = [
     handlers.afterDelete,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    router.formio.middleware.filterProtectedFields('delete', (req) => {
-      return router.formio.cache.getCurrentFormId(req);
-    })
+    router.formio.middleware.filterProtectedFields('delete', (req) => router.formio.cache.getCurrentFormId(req)),
   ];
 
   // Register an exists endpoint to see if a submission exists.
-  router.get('/form/:formId/exists', function(req, res, next) {
+  router.get('/form/:formId/exists', (req, res, next) => {
     // First load the form.
-    router.formio.cache.loadCurrentForm(req, function(err, form) {
+    router.formio.cache.loadCurrentForm(req, (err, form) => {
       if (err) {
         return next(err);
       }
 
-      // Start the query.
-      let query = {
-        form: form._id,
-        deleted: {$eq: null}
-      };
-
-      // Default the query to not be valid.
-      let queryValid = false;
-
-      // Allow them to provide the owner flag.
-      if (req.query.owner) {
-        query.owner = req.query.owner;
-        queryValid = true;
+      // Get the find query for this item.
+      const query = router.formio.resources.submission.getFindQuery(req);
+      if (_.isEmpty(query)) {
+        return res.status(400).send('Invalid query');
       }
 
-      let queryComponents = {};
-      _.each(req.query, function(value, key) {
-        let parts = key.split('.');
-        if (parts[0] === 'data' && parts.length > 1) {
-          queryComponents[parts[1]] = {
-            value: value,
-            key: key
-          };
-        }
-      });
-
-      // Build the data query.
-      utils.eachComponent(form.components, function(component) {
-        // Only add components that are not protected and are persistent.
-        if (
-          queryComponents.hasOwnProperty(component.key) &&
-          !component.protected &&
-          (!component.hasOwnProperty('persistent') || component.persistent)
-        ) {
-          queryValid = true;
-
-          // Get the query component.
-          var queryComponent = queryComponents[component.key];
-
-          // Add this to the query data.
-          query[queryComponent.key] = queryComponent.value;
-        }
-      });
-
-      // Ensure they provide query components.
-      if (!queryValid) {
-        return res.status(400).send('Invalid Query.');
-      }
+      query.form = form._id;
+      query.deleted = {$eq: null};
+      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
       // Query the submissions for this submission.
-      router.formio.resources.submission.model.findOne(query, function(err, submission) {
+      submissionModel.findOne(hook.alter('submissionQuery', query, req), (err, submission) => {
         if (err) {
           return next(err);
         }
@@ -149,20 +122,98 @@ module.exports = function(router) {
 
         // Send only the id as a response if the submission exists.
         return res.status(200).json({
-          _id: submission._id.toString()
+          _id: submission._id.toString(),
         });
       });
     });
   });
 
-  /* eslint-disable new-cap */
-  // If the last argument is a function, hook.alter assumes it is a callback function.
-  const SubmissionResource = hook.alter('SubmissionResource', Resource, null);
+  class SubmissionResource extends Resource {
+    patch(options) {
+      options = Resource.getMethodOptions('put', options);
+      this.methods.push('patch');
+      this._register('patch', `${this.route}/:${this.name}Id`, (req, res, next) => {
+        // Store the internal method for response manipulation.
+        req.__rMethod = 'patch';
 
-  return SubmissionResource(
+        if (req.skipResource) {
+          return next();
+        }
+
+        // Remove __v field
+        const update = _.omit(req.body, '__v');
+        const query = req.modelQuery || req.model || this.model;
+
+        query.findOne({_id: req.params[`${this.name}Id`]}, (err, item) => {
+          if (err) {
+            return Resource.setResponse(res, {status: 400, error: err}, next);
+          }
+
+          if (!item) {
+            return Resource.setResponse(res, {status: 404}, next);
+          }
+
+          item.set(update);
+          options.hooks.put.before.call(
+            this,
+            req,
+            res,
+            item,
+            () => {
+              const writeOptions = req.writeOptions || {};
+              item.save(writeOptions, (err, item) => {
+                if (err) {
+                  return Resource.setResponse(res, {status: 400, error: err}, next);
+                }
+
+                return options.hooks.put.after.call(
+                  this,
+                  req,
+                  res,
+                  item,
+                  Resource.setResponse.bind(Resource, res, {status: 200, item}, next),
+                );
+              });
+            },
+          );
+        });
+      }, Resource.respond, options);
+      return this;
+    }
+  }
+
+  // Since we are handling patching before we get to resourcejs, make it work like put.
+
+  const MySubmissionResource = hook.alter('SubmissionResource', SubmissionResource, null);
+
+  const submissionResource = new MySubmissionResource(
     router,
     '/form/:formId',
     'submission',
-    mongoose.model('submission')
-  ).rest(hook.alter('submissionRoutes', handlers));
+    router.formio.mongoose.model('submission'),
+    {
+      convertIds: /(^|\.)(_id|form|owner)$/,
+    },
+  ).rest(hook.alter('submissionRoutes', {
+    ...handlers,
+    hooks: {
+      put: {
+        before(req, res, item, next) {
+          if (item.data) {
+            item.markModified('data');
+          }
+
+          return next();
+        },
+      },
+    },
+  }));
+
+  _.each(handlers, (handler) => {
+    _.each(handler, (fn, index) => {
+      handler[index] = fn.bind(submissionResource);
+    });
+  });
+  submissionResource.handlers = handlers;
+  return submissionResource;
 };

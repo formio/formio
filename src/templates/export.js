@@ -1,8 +1,9 @@
 'use strict';
 
-let async = require('async');
-let _ = require('lodash');
-let util = require('../util/util');
+const async = require('async');
+const _ = require('lodash');
+const util = require('../util/util');
+const EVERYONE = '000000000000000000000000';
 
 /**
  * Perform an export of a specified template.
@@ -11,15 +12,18 @@ let util = require('../util/util');
  *   The express router object.
  */
 module.exports = (router) => {
-  let formio = router.formio;
-  let hook = require('../util/hook')(formio);
+  const formio = router.formio;
+  const hook = require('../util/hook')(formio);
 
   // Assign the role ids.
-  var assignRoles = function(_map, perms) {
+  const assignRoles = function(_map, perms) {
     _.each(perms, function(access) {
       _.each(access.roles, function(roleId, i) {
         roleId = roleId.toString();
-        if (_map.roles && _map.roles.hasOwnProperty(roleId)) {
+        if (roleId === EVERYONE) {
+          access.roles[i] = 'everyone';
+        }
+        else if (_map.roles && _map.roles.hasOwnProperty(roleId)) {
           access.roles[i] = _map.roles[roleId];
         }
       });
@@ -27,17 +31,23 @@ module.exports = (router) => {
   };
 
   // Assign the role to an entity.
-  var assignRole = function(_map, entity) {
+  const assignRole = function(_map, entity) {
     if (!entity) {
       return;
     }
-    if (entity.hasOwnProperty('role') && _map.roles && _map.roles.hasOwnProperty(entity.role)) {
-      entity.role = _map.roles[entity.role];
+
+    if (entity.hasOwnProperty('role')) {
+      if (entity.role.toString() === EVERYONE) {
+        entity.role = 'everyone';
+      }
+      else if (_map.roles && _map.roles.hasOwnProperty(entity.role)) {
+        entity.role = _map.roles[entity.role];
+      }
     }
   };
 
   // Assign the resources.
-  var assignResources = function(_map, entity) {
+  const assignResources = function(_map, entity) {
     if (!entity || !entity.resources) {
       return;
     }
@@ -49,7 +59,7 @@ module.exports = (router) => {
   };
 
   // Assign the resource of an entity.
-  var assignResource = function(_map, entity) {
+  const assignResource = function(_map, entity) {
     if (!entity || !entity.resource) {
       return;
     }
@@ -59,7 +69,7 @@ module.exports = (router) => {
   };
 
   // Assign form.
-  var assignForm = function(_map, entity) {
+  const assignForm = function(_map, entity) {
     if (!entity) {
       return;
     }
@@ -71,7 +81,7 @@ module.exports = (router) => {
   };
 
   // Export actions.
-  var exportActions = function(_export, _map, options, next) {
+  const exportActions = function(_export, _map, options, next) {
     formio.actions.model.find({
         form: {$in: _.keys(_map.forms)},
         deleted: {$eq: null}
@@ -86,7 +96,7 @@ module.exports = (router) => {
           assignRole(_map, action.settings);
           assignResource(_map, action.settings);
           assignResources(_map, action.settings);
-          var machineName = action.machineName = hook.alter('machineNameExport', action.machineName);
+          const machineName = action.machineName = hook.alter('machineNameExport', action.machineName);
           _export.actions[machineName] = _.pick(action,
             'title',
             'name',
@@ -103,7 +113,7 @@ module.exports = (router) => {
   };
 
   // Export forms.
-  var exportForms = function(_export, _map, options, next) {
+  const exportForms = function(_export, _map, options, next) {
     formio.resources.form.model
       .find(hook.alter('formQuery', {deleted: {$eq: null}}, options))
       .lean(true)
@@ -112,10 +122,13 @@ module.exports = (router) => {
           return next(err);
         }
         _.each(forms, function(form) {
+          if (!form || !form._id) {
+            return;
+          }
           assignRoles(_map, form.access);
           assignRoles(_map, form.submissionAccess);
-          var machineName = form.machineName = hook.alter('machineNameExport', form.machineName);
-          _export[form.type + 's'][machineName] = _.pick(form,
+          const machineName = form.machineName = hook.alter('machineNameExport', form.machineName);
+          _export[`${form.type}s`][machineName] = _.pick(form,
             'title',
             'type',
             'name',
@@ -126,7 +139,8 @@ module.exports = (router) => {
             'settings',
             'components',
             'access',
-            'submissionAccess'
+            'submissionAccess',
+            'properties',
           );
           _map.forms[form._id.toString()] = machineName;
         });
@@ -154,7 +168,7 @@ module.exports = (router) => {
   };
 
   // Export the roles.
-  var exportRoles = function(_export, _map, options, next) {
+  const exportRoles = function(_export, _map, options, next) {
     formio.resources.role.model
       .find(hook.alter('roleQuery', {deleted: {$eq: null}}, options))
       .lean(true)
@@ -163,7 +177,10 @@ module.exports = (router) => {
           return next(err);
         }
         _.each(roles, function(role) {
-          var machineName = role.machineName = hook.alter('machineNameExport', role.machineName);
+          if (!role || !role._id) {
+            return;
+          }
+          const machineName = role.machineName = hook.alter('machineNameExport', role.machineName);
           _export.roles[machineName] = _.pick(role,
             'title',
             'description',
@@ -182,8 +199,8 @@ module.exports = (router) => {
    *
    * Note: This is all of the core entities, not submission data.
    */
-  let exportTemplate = (options, next) => {
-    let template = hook.alter('defaultTemplate', Object.assign({
+  const exportTemplate = (options, next) => {
+    const template = hook.alter('defaultTemplate', Object.assign({
       title: 'Export',
       version: '2.0.0',
       description: '',
@@ -195,7 +212,7 @@ module.exports = (router) => {
     }, _.pick(options, ['title', 'version', 'description', 'name'])), options);
 
     // Memoize resource mapping.
-    let map = {
+    const map = {
       roles: {},
       forms: {}
     };
@@ -218,7 +235,7 @@ module.exports = (router) => {
   // Add the export endpoint
   if (router.get) {
     router.get('/export', (req, res, next) => {
-      let options = hook.alter('exportOptions', {}, req, res);
+      const options = hook.alter('exportOptions', {}, req, res);
       exportTemplate(options, (err, data) => {
         if (err) {
           return next(err.message || err);

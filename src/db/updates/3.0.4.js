@@ -1,7 +1,7 @@
 'use strict';
 
-var async = require('async');
-var _ = require('lodash');
+let async = require('async');
+let _ = require('lodash');
 
 /**
  * Update 3.0.4
@@ -17,11 +17,11 @@ var _ = require('lodash');
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var roleCollection = db.collection('roles');
+  let roleCollection = db.collection('roles');
 
   async.series([
     function checkDefaultRole(callback) {
-      roleCollection.count({deleted: {$eq: null}, default: true}, function(err, count) {
+      roleCollection.countDocuments({deleted: {$eq: null}, default: true}, function(err, count) {
         if (err) {
           return callback(err);
         }
@@ -53,7 +53,7 @@ module.exports = function(db, config, tools, done) {
       });
     },
     function checkAdminRole(callback) {
-      roleCollection.count({deleted: {$eq: null}, admin: true}, function(err, count) {
+      roleCollection.countDocuments({deleted: {$eq: null}, admin: true}, function(err, count) {
         if (err) {
           return callback(err);
         }

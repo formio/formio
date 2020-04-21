@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 'use strict';
 
-var request = require('supertest');
+const request = require('./formio-supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var async = require('async');
@@ -439,7 +439,7 @@ module.exports = function(app, template, hook) {
     it('A Form.io User should get locked out if they keep trying a bad password', function(done) {
       var count = 0;
       async.whilst(
-        function() { return count < 4; },
+        function(next) { return next(null, count < 4); },
         function(next) {
           count++;
           lastAttempt = (new Date()).getTime();
@@ -457,7 +457,7 @@ module.exports = function(app, template, hook) {
                 return next(err);
               }
 
-              assert.equal(res.text, count < 4 ? 'User or password was incorrect' : 'Maximum Login attempts. Please wait 2 seconds before trying again.');
+              assert.equal(res.text, count < 4 ? 'User or password was incorrect' : 'Maximum Login attempts. Please wait 4 seconds before trying again.');
               assert.equal(!res.headers['x-jwt-token'], true);
               next();
             });
@@ -495,13 +495,13 @@ module.exports = function(app, template, hook) {
     it('Verify that we can login again after waiting.', function(done) {
       setTimeout(function() {
         login(done);
-      }, 1500);
+      }, 4500);
     });
 
     it('Attempt 4 bad logins to attempt good login after window.', function(done) {
       var count = 0;
       async.whilst(
-        function() { return count < 4; },
+        function(next) { return next(null, count < 4); },
         function(next) {
           count++;
           lastAttempt = (new Date()).getTime();
@@ -748,7 +748,7 @@ module.exports = function(app, template, hook) {
             assert.equal(!res.headers['x-jwt-token'], true);
             done();
           });
-      }, 1000);
+      }, 4500);
     });
 
     var oldToken = null;
@@ -841,7 +841,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .expect(400)
-          .expect('You must provide an existing token in the x-jwt-token header.')
+          .expect('No authentication token provided.')
           .end(done);
       });
 
@@ -945,7 +945,7 @@ module.exports = function(app, template, hook) {
             .get(hook.alter('url', '/current', template))
             .set('x-jwt-token', tempToken)
             .expect(440)
-            .expect('Login Timeout')
+            .expect('Token Expired')
             .end(done);
         }, 2000);
       });
@@ -1017,7 +1017,7 @@ module.exports = function(app, template, hook) {
         request(app)
           .get(hook.alter('url', '/token', template))
           .set('x-jwt-token', allowedToken)
-          .expect(401)
+          .expect(400)
           .end(done);
       });
 

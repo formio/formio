@@ -1,6 +1,5 @@
 'use strict';
 
-const mongoose = require('mongoose');
 const _ = require('lodash');
 const debug = require('debug')('formio:models:form');
 
@@ -9,7 +8,7 @@ module.exports = (formio) => {
   const util = formio.util;
   /* eslint-disable no-useless-escape */
   const invalidRegex = /[^0-9a-zA-Z\-\/]|^\-|\-$|^\/|\/$/;
-  const validKeyRegex = /^[A-Za-z_]+[A-Za-z0-9\-._]*$/g;
+  const validKeyRegex = /^(\w|\w[\w-.]*\w)$/;
   const validShortcutRegex = /^([A-Z]|Enter|Esc)$/i;
   /* eslint-enable no-useless-escape */
   const componentKeys = (components) => {
@@ -25,7 +24,7 @@ module.exports = (formio) => {
   const componentPaths = (components) => {
     const paths = [];
     util.eachComponent(components, (component, path) => {
-      if (!_.isUndefined(component.key) && !_.isNull(component.key)) {
+      if (util.isInputComponent(component) && !_.isUndefined(component.key) && !_.isNull(component.key)) {
         paths.push(path);
       }
     }, true);
@@ -52,7 +51,7 @@ module.exports = (formio) => {
 
   const uniqueMessage = 'may only contain letters, numbers, hyphens, and forward slashes ' +
     '(but cannot start or end with a hyphen or forward slash)';
-  const uniqueValidator = (property) => function(value, done) {
+  const uniqueValidator = (property) => async function(value) {
     const query = {deleted: {$eq: null}};
     query[property] = value;
     const search = hook.alter('formSearch', query, this, value);
@@ -62,18 +61,14 @@ module.exports = (formio) => {
       search._id = {$ne: this._id};
     }
 
-    mongoose.model('form').findOne(search).exec((err, result) => {
-      if (err) {
-        debug(err);
-        return done(false);
-      }
-      if (result) {
-        debug(result);
-        return done(false);
-      }
-
-      done(true);
-    });
+    try {
+      const result = await formio.mongoose.model('form').findOne(search).lean().exec();
+      return !result;
+    }
+    catch (err) {
+      debug(err);
+      return false;
+    }
   };
 
   const keyError = 'A component on this form has an invalid or missing API key. Keys must only contain alphanumeric ' +
@@ -83,7 +78,7 @@ module.exports = (formio) => {
     'characters or must be equal to \'Enter\' or \'Esc\'';
 
   const model = require('./BaseModel')({
-    schema: new mongoose.Schema({
+    schema: new formio.mongoose.Schema({
       title: {
         type: String,
         description: 'The title for the form.',
@@ -95,11 +90,10 @@ module.exports = (formio) => {
         required: true,
         validate: [
           {
-            message: 'The Name ' + uniqueMessage,
+            message: `The Name ${uniqueMessage}`,
             validator: (value) => !invalidRegex.test(value)
           },
           {
-            isAsync: true,
             message: 'The Name must be unique per Project.',
             validator: uniqueValidator('name')
           }
@@ -114,7 +108,7 @@ module.exports = (formio) => {
         trim: true,
         validate: [
           {
-            message: 'The Path ' + uniqueMessage,
+            message: `The Path ${uniqueMessage}`,
             validator: (value) => !invalidRegex.test(value)
           },
           {
@@ -122,7 +116,6 @@ module.exports = (formio) => {
             validator: (path) => !path.match(/(submission|action)\/?$/)
           },
           {
-            isAsync: true,
             message: 'The Path must be unique per Project.',
             validator: uniqueValidator('path')
           }
@@ -155,13 +148,20 @@ module.exports = (formio) => {
       access: [formio.schemas.PermissionSchema],
       submissionAccess: [formio.schemas.PermissionSchema],
       owner: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: formio.mongoose.Schema.Types.Mixed,
         ref: 'submission',
         index: true,
-        default: null
+        default: null,
+        set: owner => {
+          // Attempt to convert to objectId.
+          return formio.util.ObjectId(owner);
+        },
+        get: owner => {
+          return owner ? owner.toString() : owner;
+        }
       },
       components: {
-        type: [mongoose.Schema.Types.Mixed],
+        type: [formio.mongoose.Schema.Types.Mixed],
         description: 'An array of components within the form.',
         validate: [
           {
@@ -174,46 +174,55 @@ module.exports = (formio) => {
               .every((shortcut) => shortcut.match(validShortcutRegex))
           },
           {
-            isAsync: true,
-            validator: (components, valid) => {
+            validator: async (components) => {
               const paths = componentPaths(components);
               const msg = 'Component keys must be unique: ';
               const uniq = paths.uniq();
               const diff = paths.filter((value, index, collection) => _.includes(collection, value, index + 1));
 
               if (_.isEqual(paths.value(), uniq.value())) {
-                return valid(true);
+                return true;
               }
 
-              return valid(false, (msg + diff.value().join(', ')));
+              throw new Error(msg + diff.value().join(', '));
             }
           },
           {
-            isAsync: true,
-            validator: (components, valid) => {
+            validator: async (components) => {
               const shortcuts = componentShortcuts(components);
               const msg = 'Component shortcuts must be unique: ';
               const uniq = shortcuts.uniq();
               const diff = shortcuts.filter((value, index, collection) => _.includes(collection, value, index + 1));
 
               if (_.isEqual(shortcuts.value(), uniq.value())) {
-                return valid(true);
+                return true;
               }
 
-              return valid(false, (msg + diff.value().join(', ')));
+              throw new Error(msg + diff.value().join(', '));
             }
           }
         ]
       },
       settings: {
-        type: mongoose.Schema.Types.Mixed,
+        type: formio.mongoose.Schema.Types.Mixed,
         description: 'Custom form settings object.'
+      },
+      properties: {
+        type: formio.mongoose.Schema.Types.Mixed,
+        description: 'Custom form properties.'
       }
     })
   });
 
+  // Add a partial index for deleted forms.
+  model.schema.index({
+    deleted: 1
+  }, {
+    partialFilterExpression: {deleted: {$eq: null}}
+  });
+
   // Add machineName to the schema.
-  model.schema.plugin(require('../plugins/machineName')('form'));
+  model.schema.plugin(require('../plugins/machineName')('form', formio));
 
   // Set the default machine name.
   model.schema.machineName = (document, done) => {

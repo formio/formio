@@ -1,7 +1,6 @@
 'use strict';
 
-var debug = require('debug')('formio:middleware:filterProtectedFields');
-var util = require('../util/util');
+const util = require('../util/util');
 
 /**
  * Middleware function to filter protected fields from a submission response.
@@ -23,7 +22,6 @@ module.exports = function(router) {
         }
 
         util.removeProtectedFields(form, action, res.resource.item);
-        debug(res.resource.item);
         next();
       });
     };

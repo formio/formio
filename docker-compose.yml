@@ -1,0 +1,48 @@
+# Allows us to start the stack without touching too much of our local system
+#
+# note: the application initialization will download/unpack/configure files
+#       in the local directory...
+#
+# ##### Usage:
+# *0. Create a broken symlink: `ln -sf "/.npm-packages/node_modules/" node_modules`
+# 1. Start the database: `docker-compose up -d mongo`
+# 2. Start the application:  `docker-compose run formio`
+# [3]. Stop the database: `docker-compose down` (add --volumes to clear data)
+# [4]. Remove lingering docker images: `docker-compose down -v --rmi all`
+#
+# *TODO: Step 0 is for the bcrypt binary compiled on alpine, which is required...
+#        but this step feels like an anti-pattern and a better approach should be found
+
+version: '3.7'
+services:
+  mongo:
+    image: mongo:4.1
+    restart: always
+    volumes:
+      - mdb-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME:
+      MONGO_INITDB_ROOT_PASSWORD:
+
+  formio:
+    build: ./
+    # The app will restart until Mongo is listening
+    restart: always
+    links:
+      - mongo
+    ports:
+      - "3001:3001"
+    # The application wants to download things to the local directory
+    # TODO: really wish I could mount this as read-only
+    volumes:
+      - ./:/app:rw
+    environment:
+      DEBUG: formio:*
+      NODE_CONFIG: '{"mongo": "mongodb://mongo:27017/formio"}'
+      ROOT_EMAIL: admin@example.com
+      ROOT_PASSWORD: CHANGEME
+    stdin_open: true  # -i
+    tty: true         # -t
+
+volumes:
+  mdb-data:

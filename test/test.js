@@ -42,7 +42,7 @@ describe('Initialization', function() {
          *   The callback to execute.
          */
         var dropDocuments = function(model, next) {
-          model.remove({}, next);
+          model.deleteMany({}, next);
         };
 
         async.series([
@@ -69,5 +69,6 @@ describe('Initialization', function() {
     require('./actions')(app, template, hook);
     require('./submission-access')(app, template, hook);
     require('./submission')(app, template, hook);
+    require('./export/CSVExporter/CSVExporter')(app, template, hook);
   });
 });

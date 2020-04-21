@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 'use strict';
 
-var request = require('supertest');
+const request = require('./formio-supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var async = require('async');
@@ -10,7 +10,7 @@ var chance = new (require('chance'))();
 
 module.exports = function(app, template, hook) {
   var Helper = require('./helper')(app);
-  
+
   describe('Roles', function() {
     // Store the temp role for this test suite.
     var tempRole = {
@@ -169,10 +169,10 @@ module.exports = function(app, template, hook) {
 
       it('Cant access a Role without a valid Role Id', function(done) {
         request(app)
-          .get(hook.alter('url', '/role/💩', template))
+          .get(hook.alter('url', '/role/2342342344234', template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
-          .expect(500)
+          .expect(400)
           .end(function(err, res) {
             if (err) {
               return done(err);
@@ -190,6 +190,15 @@ module.exports = function(app, template, hook) {
           .get(hook.alter('url', '/role', template))
           .set('x-jwt-token', template.users.user1.token)
           .expect(401)
+          .end(done);
+      });
+
+      it('should not be able to PATCH a role', function(done) {
+        request(app)
+          .patch(hook.alter('url', '/role/' + template.roles.tempRole._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send([{op: 'replace', path: 'default', value: false}])
+          .expect(405)
           .end(done);
       });
     });
@@ -659,6 +668,343 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
+    });
+  });
+
+  describe('Submission Role Access', () => {
+    let accessHelper = null;
+    let manager = null;
+    let employee = null;
+    it('Bootstrap', (done) => {
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      accessHelper = new Helper(owner, null, hook);
+      accessHelper
+        .project()
+        .role({
+          title: 'access-manager'
+        })
+        .role({
+          title: 'access-employee'
+        })
+        .resource('access-manager', [
+          {
+            type: 'email',
+            key: 'email',
+            label: 'Email'
+          },
+          {
+            type: 'password',
+            key: 'password',
+            label: 'Password'
+          }
+        ], {
+          submissionAccess: [
+            {
+              type: 'create_all',
+              roles: ['anonymous']
+            },
+            {
+              type: 'update_own',
+              roles: ['access-manager']
+            }
+          ]
+        })
+        .action('access-manager', {
+          title: 'Save Submission',
+          name: 'save',
+          handler: ['before'],
+          method: ['create', 'update'],
+          priority: 11,
+          settings: {}
+        })
+        .action('access-manager', {
+          title: 'Role Assignment',
+          name: 'role',
+          priority: 1,
+          handler: ['after'],
+          method: ['create'],
+          settings: {
+            association: 'new',
+            type: 'add',
+            role: 'access-manager'
+          }
+        })
+        .action('access-manager', {
+          title: 'Role Assignment',
+          name: 'role',
+          priority: 2,
+          handler: ['after'],
+          method: ['create'],
+          settings: {
+            association: 'new',
+            type: 'add',
+            role: 'access-employee'
+          }
+        })
+        .resource('access-employee', [
+          {
+            type: 'email',
+            key: 'email',
+            label: 'Email'
+          },
+          {
+            type: 'password',
+            key: 'password',
+            label: 'Password'
+          }
+        ], {
+          submissionAccess: [
+            {
+              type: 'create_all',
+              roles: ['anonymous']
+            },
+            {
+              type: 'update_own',
+              roles: ['access-employee']
+            }
+          ]
+        })
+        .action('access-employee', {
+          title: 'Save Submission',
+          name: 'save',
+          handler: ['before'],
+          method: ['create', 'update'],
+          priority: 11,
+          settings: {}
+        })
+        .action('access-employee', {
+          title: 'Role Assignment',
+          name: 'role',
+          priority: 1,
+          handler: ['after'],
+          method: ['create'],
+          settings: {
+            association: 'new',
+            type: 'add',
+            role: 'access-employee'
+          }
+        })
+        .form('access-login', [
+          {
+            type: 'email',
+            key: 'email',
+            label: 'Email'
+          },
+          {
+            type: 'password',
+            key: 'password',
+            label: 'Password'
+          }
+        ], {
+          submissionAccess: [
+            {
+              type: 'create_own',
+              roles: ['anonymous']
+            }
+          ]
+        })
+        .action('access-login', {
+          title: 'Login',
+          name: 'login',
+          handler: ['before'],
+          method: ['create'],
+          priority: 0,
+          settings: {
+            resources: ['access-manager', 'access-employee'],
+            username: 'email',
+            password: 'password'
+          }
+        })
+        .execute(function(err) {
+          if (err) {
+            return done(err);
+          }
+          done();
+        });
+    });
+
+    it('Should allow an anonymous user to create a Manager record.', (done) => {
+      accessHelper.submission('access-manager', {
+        email: 'manager@example.com',
+        password: 'manager123'
+      }, null).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        manager = accessHelper.getLastSubmission();
+
+        // Make sure that the owner is set for the manager.
+        assert.equal(manager._id, manager.owner);
+        assert.equal(_.intersection(manager.roles, [
+          accessHelper.template.roles['access-manager']._id.toString(),
+          accessHelper.template.roles['access-employee']._id.toString()]
+        ).length, 2);
+        done();
+      });
+    });
+
+    it('Should allow an anonymous user to create an Employee record.', (done) => {
+      accessHelper.submission('access-employee', {
+        email: 'employee@example.com',
+        password: 'employee123'
+      }, null).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        employee = accessHelper.getLastSubmission();
+
+        // Make sure that the owner is set for the manager.
+        assert.equal(employee._id, employee.owner);
+        assert.deepEqual(employee.roles, [
+          accessHelper.template.roles['access-employee']._id.toString()
+        ]);
+        done();
+      });
+    });
+
+    it('Should allow the manager to log in', (done) => {
+      accessHelper.submission('access-login', {
+        email: 'manager@example.com',
+        password: 'manager123'
+      }, null).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        manager.token = accessHelper.lastResponse.headers['x-jwt-token'];
+        assert(!!manager.token, 'No token was created');
+        done();
+      });
+    });
+
+    it('Should allow the employee to log in', (done) => {
+      accessHelper.submission('access-login', {
+        email: 'employee@example.com',
+        password: 'employee123'
+      }, null).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        employee.token = accessHelper.lastResponse.headers['x-jwt-token'];
+        assert(!!employee.token, 'No token was created');
+        done();
+      });
+    });
+
+    it('Should allow the manager to update their own record, but not roles.', (done) => {
+      manager.data.email = 'manager2@example.com';
+      manager.roles = [
+        accessHelper.template.roles['access-manager']._id.toString(),
+        accessHelper.template.roles['access-employee']._id.toString(),
+        accessHelper.template.roles.authenticated._id.toString()
+      ];
+      accessHelper.submission('access-manager', manager, manager)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          // Make sure they cannot add roles.
+          const updated = accessHelper.getLastSubmission();
+          assert.equal(updated.data.email, 'manager2@example.com');
+          assert.equal(_.intersection(updated.roles, [
+            accessHelper.template.roles['access-manager']._id.toString(),
+            accessHelper.template.roles['access-employee']._id.toString()]
+          ).length, 2);
+          _.assign(manager, updated);
+          done();
+        });
+    });
+
+    it('Should not allow an anonymous user to update the manager record', (done) => {
+      manager.data.email = 'manager3@example.com';
+      accessHelper.submission('access-manager', manager, null, [/text\/plain/, 401]).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        manager.data.email = 'manager2@example.com';
+        done();
+      });
+    });
+
+    it('Should not allow an employee user to update the manager record', (done) => {
+      manager.data.email = 'manager3@example.com';
+      accessHelper.submission('access-manager', manager, employee, [/text\/plain/, 401]).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        manager.data.email = 'manager2@example.com';
+        done();
+      });
+    });
+
+    it('Should allow the manager to remove a role, but not add one.', (done) => {
+      manager.roles = [
+        accessHelper.template.roles['access-manager']._id.toString(),
+        accessHelper.template.roles.authenticated._id.toString()
+      ];
+      accessHelper.submission('access-manager', manager, manager).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        const updated = accessHelper.getLastSubmission();
+        assert.deepEqual(updated.roles, [
+          accessHelper.template.roles['access-manager']._id.toString()
+        ]);
+        _.assign(manager, updated);
+        done();
+      });
+    });
+
+    it('Should not allow the manager to re-add the roles since they do not have access.', (done) => {
+      manager.roles = [
+        accessHelper.template.roles['access-manager']._id.toString(),
+        accessHelper.template.roles['access-employee']._id.toString()
+      ];
+      accessHelper.submission('access-manager', manager, manager).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        const updated = accessHelper.getLastSubmission();
+        assert.deepEqual(updated.roles, [
+          accessHelper.template.roles['access-manager']._id.toString()
+        ]);
+        _.assign(manager, updated);
+        done();
+      });
+    });
+
+    it('Cleanup', (done) => {
+      accessHelper
+        .deleteForm('access-manager')
+        .deleteForm('access-employee')
+        .deleteForm('access-login')
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          async.series(
+            [
+              (next) => accessHelper.deleteRole('access-manager', next),
+              (next) => accessHelper.deleteRole('access-employee', next)
+            ],
+            (err) => {
+              if (err) {
+                return done(err);
+              }
+
+              done();
+            }
+          );
+        });
     });
   });
 };

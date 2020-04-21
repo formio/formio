@@ -1,11 +1,24 @@
 'use strict';
 
-var Exporter = require('../Exporter');
-var util = require('../../util/util');
-var through = require('through');
-var csv = require('csv');
-var _ = require('lodash');
-var Entities = require('html-entities').AllHtmlEntities;
+const Exporter = require('../Exporter');
+const util = require('../../util/util');
+const through = require('through');
+const csv = require('csv');
+const _ = require('lodash');
+const Entities = require('html-entities').AllHtmlEntities;
+const moment = require('moment-timezone');
+const {conformToMask} = require('vanilla-text-mask');
+
+const interpolate = (string, data) => string.replace(/{{\s*(\S*)\s*}}/g, (match, path) => {
+  const value = _.get(data, path);
+  if (_.isObject(value)) {
+    return JSON.stringify(value);
+  }
+
+  return value;
+});
+
+const labelRegexp = /(?:(\.data\.)(?!\.data\.))/g;
 
 /**
  * Create a CSV exporter.
@@ -14,221 +27,441 @@ var Entities = require('html-entities').AllHtmlEntities;
  * @param req
  * @constructor
  */
-var CSVExporter = function(form, req, res) {
-  Exporter.call(this, form, req, res);
-  this.extension = 'csv';
-  this.contentType = 'text/csv';
-  this.stringifier = csv.stringify({
-    delimiter: ',',
-    quoted: true
-  });
-  this.fields = [];
+class CSVExporter extends Exporter {
+  constructor(form, req, res) {
+    super(form, req, res);
+    this.timezone = _.get(form, 'settings.components.datetime.timezone', '');
+    this.dateFormat = util.FormioUtils.convertFormatToMoment('yyyy-MM-dd hh:mm a');
+    this.extension = 'csv';
+    this.contentType = 'text/csv';
+    this.stringifier = csv.stringify({
+      delimiter: ',',
+      quoted: true
+    });
+    this.fields = [];
 
-  var ignore = ['password', 'button', 'container', 'datagrid'];
-  util.eachComponent(form.components, function(component, path) {
-    if (!component.input || !component.key || ignore.indexOf(component.type) !== -1) {
-      return;
-    }
+    const formattedView = req.query.view === 'formatted';
+    this.formattedView = formattedView;
 
-    var items = [];
-
-    // If a component has multiple parts, pick what we want.
-    if (component.type === 'address') {
-      items.push({
-        path: 'formatted_address',
-        rename: 'formatted'
-      });
-      items.push({
-        path: 'geometry.location.lat',
-        rename: 'lat'
-      });
-      items.push({
-        path: 'geometry.location.lng',
-        rename: 'lng'
-      });
-    }
-    else if (component.type === 'selectboxes') {
-      _.each(component.values, function(option) {
-        items.push({label: [path, option.value].join('.'), path: option.value, type: 'boolean'});
-      });
-    }
-    else if (component.type === 'checkbox') {
-      items.push({type: 'boolean'});
-    }
-    else if (component.type === 'survey') {
-      _.each(component.questions, function(question) {
-        items.push({label: [path, question.value].join('.'), path: question.value});
-      });
-    }
-    else if (['select', 'resource'].indexOf(component.type) !== -1) {
-      // Prepare the Lodash template by deleting tags and html entities
-      var clearTemplate = Entities.decode(component.template.replace(/<\/?[^>]+(>|$)/g, ''));
-      var templateExtractor = _.template(clearTemplate, {
-        variable: 'item'
-      });
-
-      var valuesExtractor = function(value) {
-          //checking if the component can accept multiple values.
-          if (component.multiple) {
-              if (component.type === 'resource') {
-                  var tempVal = [];
-                  _.each(value, function(eachItem) {
-                      tempVal.push(templateExtractor(eachItem));
-                  });
-                  return tempVal;
-              }
-              else if (component.type === 'select') {
-                  return value;
-              }
-          }
-          else {
-              return templateExtractor(value);
-          }
-      };
-      items.push({
-        preprocessor: function(value) {
-          return _.isObject(value)
-            ? valuesExtractor(value)
-            : value;
-        }
-      });
-    }
-    else {
-      // Default to the current component item.
-      items.push({});
-    }
-
-    items.forEach(function(item) {
-      var finalItem = {
-        component: path,
-        path: item.path || component.key,
-        label: item.label || path
-      };
-
-      if (item.hasOwnProperty('rename')) {
-        finalItem.rename = item.rename;
-      }
-
-      if (item.hasOwnProperty('type')) {
-        finalItem.type = item.type;
-      }
-
-      if (item.hasOwnProperty('preprocessor')) {
-        finalItem.preprocessor = item.preprocessor;
-      }
-
-      this.fields.push(finalItem);
-    }.bind(this));
-  }.bind(this));
-};
-
-CSVExporter.prototype = Object.create(Exporter.prototype);
-CSVExporter.prototype.constructor = CSVExporter;
-
-/**
- * Start the CSV export by creating the headers.
- *
- * @param deferred
- */
-CSVExporter.prototype.start = function(deferred) {
-  var row = null;
-  this.stringifier.on('readable', function() {
-    /* eslint-disable no-cond-assign */
-    while (row = this.stringifier.read()) {
-      this.res.write(row.toString());
-    }
-    /* eslint-enable no-cond-assign */
-
-    deferred.resolve();
-  }.bind(this));
-
-  var labels = ['ID', 'Created', 'Modified'];
-  this.fields.forEach(function(item) {
-    if (item.hasOwnProperty('rename')) {
-      labels.push(item.rename);
-      return;
-    }
-
-    labels.push(item.label);
-  });
-
-  this.stringifier.write(labels);
-};
-
-/**
- * Stream the CSV export.
- *
- * @param stream
- * @returns {*}
- */
-CSVExporter.prototype.stream = function(stream) {
-  var self = this;
-  var write = function(submission) {
-    var data = [
-      submission._id.toString(),
-      submission.created.toISOString(),
-      submission.modified.toISOString()
-    ];
-
-    /**
-     * Util function to unwrap an unknown data payload into a string.
-     *
-     * @param data
-     * @returns {string}
-     */
-    var coerceToString = function(data, column) {
-      data = (column.preprocessor || _.identity)(data);
-
-      if (data instanceof Array && data.length > 0) {
-        return data.map(function(item) {
-          return '"' + coerceToString(_.get(item, column.path, item), column) + '"';
-        }).join(',');
-      }
-      if (typeof data === 'string') {
-        if (column.type === 'boolean') {
-          return Boolean(data).toString();
-        }
-
-        return data.toString();
-      }
-      if (typeof data === 'number') {
-        return data.toString();
-      }
-      if (typeof data === 'object' && !!data) {
-        return coerceToString(_.get(data, column.path, ''), column);
-      }
-
-      return JSON.stringify(data);
-    };
-
-    self.fields.forEach(function(column) {
-      var componentData = _.get(submission.data, column.component);
-
-      // If the path had no results and the component specifies a path, check for a datagrid component
-      if (componentData === undefined && column.component.indexOf('.') !== -1) {
-        var parts = column.component.split('.');
-        var container = parts.shift();
-        // If the subdata is an array, coerce it to a displayable string.
-        if (_.get(submission.data, container) instanceof Array) {
-          // Update the column component path, since we removed part of it.
-          column.component = parts.join('.');
-
-          data.push(coerceToString(_.get(submission.data, container), column));
+    const ignore = ['password', 'button', 'container', 'datagrid'];
+    try {
+      util.eachComponent(form.components, (component, path) => {
+        if (!component.input || !component.key || ignore.includes(component.type)) {
           return;
         }
-      }
 
-      data.push(coerceToString(componentData, column));
+        const items = [];
+
+        // If a component has multiple parts, pick what we want.
+        if (component.type === 'address') {
+          items.push({
+            subpath: 'formatted_address',
+            rename: (label) => `${label}.formatted`
+          });
+          items.push({
+            subpath: 'geometry.location.lat',
+            rename: (label) => `${label}.lat`
+          });
+          items.push({
+            subpath: 'geometry.location.lng',
+            rename: (label) => `${label}.lng`
+          });
+        }
+        else if (component.type === 'selectboxes') {
+          _.each(component.values, (option) => {
+            items.push({label: [path, option.value].join('.'), subpath: option.value, type: 'boolean'});
+          });
+        }
+        else if (component.type === 'radio') {
+          items.push({
+            preprocessor: (value) => {
+              if (_.isObject(value)) {
+                return value;
+              }
+
+              if (!value) {
+                return '';
+              }
+
+              const componentValue = component.values.find((v) => v.value === value) || '';
+                return componentValue && formattedView
+                  ? componentValue.label
+                  : componentValue.value;
+            }
+          });
+        }
+        else if (formattedView && ['currency', 'number'].includes(component.type)) {
+          const currency = component.type === 'currency';
+
+          const formatOptions = {
+            style: currency ? 'currency' : 'decimal',
+            useGrouping: true,
+            maximumFractionDigits: component.decimalLimit || 2
+          };
+
+          if (currency) {
+            formatOptions.currency = component.currency || 'USD';
+          }
+
+          items.push({
+            preprocessor: (value) => {
+              if (!value) {
+                return '';
+              }
+
+              if (_.isObject(value)) {
+                return value;
+              }
+
+              return value.toLocaleString('en', formatOptions);
+            }
+          });
+        }
+        else if (component.type === 'checkbox') {
+          items.push({type: 'boolean'});
+        }
+        else if (component.type === 'survey') {
+          _.each(component.questions, (question) => {
+            items.push({
+              label: [path, question.value].join('.'),
+              subpath: question.value,
+              preprocessor: (value) => {
+                if (_.isObject(value)) {
+                  return value;
+                }
+
+                if (!value) {
+                  return '';
+                }
+
+                const componentValue = component.values.find((v) => v.value === value) || '';
+                return componentValue && formattedView
+                  ? componentValue.label
+                  : componentValue.value;
+              }
+            });
+          });
+        }
+        else if (['select', 'resource'].includes(component.type)) {
+          // Prepare the Lodash template by deleting tags and html entities
+          const clearTemplate = Entities.decode(component.template.replace(/<\/?[^>]+(>|$)/g, ''));
+          const templateExtractor = (item) => interpolate(clearTemplate, {item});
+
+          const valuesExtractor = (value) => {
+            // Check if this is within a datagrid.
+            if (Array.isArray(value) && value[0] && value[0][component.key]) {
+              const rowValues = [];
+              value.forEach((row) => {
+                if (!row) {
+                  return;
+                }
+                const rowValue = row[component.key];
+                if (rowValue) {
+                  rowValues.push(valuesExtractor(rowValue));
+                }
+              });
+              return rowValues;
+            }
+            else {
+              //checking if the component can accept multiple values.
+              if (component.multiple) {
+                if (component.type === 'resource') {
+                  const tempVal = [];
+                  value.forEach((eachItem) => {
+                    let result = '';
+                    try {
+                      result = templateExtractor(eachItem);
+                    }
+                    catch (err) {
+                      result = err.message;
+                    }
+                    tempVal.push(result);
+                  });
+                  return tempVal;
+                }
+                else if (component.type === 'select') {
+                  return value;
+                }
+              }
+              else {
+                let result = '';
+                try {
+                  result = _.isObject(value) ? templateExtractor(value) : value;
+                }
+                catch (err) {
+                  result = err.message;
+                }
+                return result;
+              }
+            }
+          };
+
+          const primitiveValueHandler = (value) => {
+            if (component.type === 'select' && component.dataSrc === 'values') {
+              const componentValue = component.data.values.find((v) => v.value === value) || '';
+                return componentValue && formattedView
+                  ? componentValue.label
+                  : componentValue.value;
+            }
+
+            return value;
+          };
+
+          items.push({
+            preprocessor: (value) => {
+              if (!value) {
+                return '';
+              }
+              return _.isObject(value)
+                ? valuesExtractor(value)
+                : primitiveValueHandler(value);
+            }
+          });
+        }
+        else if (component.type === 'datetime') {
+          if (component.displayInTimezone === 'location' && component.timezone) {
+            this.timezone = component.timezone;
+          }
+
+          // If we are configured to display in timezone of viewer, then look for a query string of the timezone.
+          if (component.displayInTimezone === 'viewer' && req.query.timezone) {
+            this.timezone = decodeURIComponent(req.query.timezone);
+          }
+
+          // If we want to display in timezone of utc, then reset timezone.
+          if (component.displayInTimezone === 'utc') {
+            this.timezone = '';
+          }
+          items.push({
+            preprocessor: (value, submission) => {
+              // If we wish to display in submission timezone, and there is submission timezone metadata.
+              if (
+                (component.displayInTimezone === 'submission') &&
+                submission.metadata &&
+                submission.metadata.timezone
+              ) {
+                this.timezone = submission.metadata.timezone;
+              }
+              if (_.isObject(value) && !_.isDate(value)) {
+                return value;
+              }
+
+              if (!formattedView && value) {
+                return (typeof value.toISOString === 'function') ? value.toISOString() : value;
+              }
+
+              if (value) {
+                const dateMoment = moment(value).tz(this.timezone || 'Etc/UTC');
+                const format = component.format || 'yyyy-MM-dd hh:mm a';
+                this.dateFormat = util.FormioUtils.convertFormatToMoment(format);
+                const result = dateMoment.format(`${this.dateFormat} z`);
+                return result;
+              }
+
+              return '';
+            }
+          });
+        }
+        else if (component.type === 'signature') {
+          items.push({
+            preprocessor: (value) => {
+              if (_.isObject(value)) {
+                return value;
+              }
+
+              return value ? 'YES' : 'NO';
+            }
+          });
+        }
+        else if (formattedView && component.inputMask) {
+          const mask = util.FormioUtils.getInputMask(component.inputMask);
+          items.push({
+            preprocessor: (value) => {
+              if (!value) {
+                return '';
+              }
+              return conformToMask(value, mask).conformedValue;
+            }
+          });
+        }
+        else {
+          // Default to the current component item.
+          items.push({});
+        }
+
+        items.forEach((item) => {
+          const finalItem = {
+            path,
+            key: component.key,
+            label: (item.label || path).replace(labelRegexp, '.'),
+            title: component.label,
+          };
+
+          if (item.hasOwnProperty('subpath')) {
+            finalItem.subpath = item.subpath;
+          }
+
+          if (item.hasOwnProperty('rename')) {
+            finalItem.rename = item.rename;
+          }
+
+          if (item.hasOwnProperty('type')) {
+            finalItem.type = item.type;
+          }
+
+          if (item.hasOwnProperty('preprocessor')) {
+            finalItem.preprocessor = item.preprocessor;
+          }
+
+          this.fields.push(finalItem);
+        });
+      }, true);
+    }
+    catch (err) {
+      res.status(400).send(err.message || err);
+    }
+  }
+
+  /**
+   * Start the CSV export by creating the headers.
+   *
+   * @param deferred
+   */
+  start(resolve) {
+    let row = null;
+    this.stringifier.on('readable', () => {
+      /* eslint-disable no-cond-assign */
+      while (row = this.stringifier.read()) {
+        this.res.write(row.toString());
+      }
+      /* eslint-enable no-cond-assign */
+
+      resolve();
     });
 
-    this.queue(data);
-  };
+    const labels = this.formattedView
+      ? ['ID', 'Created', 'Modified']
+      : ['_id', 'created', 'modified'];
+    this.fields.forEach((item) => {
+      if (item.hasOwnProperty('rename')) {
+        if (_.isFunction(item.rename)) {
+          labels.push(item.rename(item.label));
+        }
+        else {
+          labels.push(item.rename);
+        }
 
-  return stream
-    .pipe(through(write, function() {
-      return self.res.end();
-    }))
-    .pipe(this.stringifier);
-};
+        return;
+      }
+
+      labels.push(item.label);
+    });
+
+    this.stringifier.write(labels);
+  }
+
+  /**
+   * Stream the CSV export.
+   *
+   * @param stream
+   * @returns {*}
+   */
+  stream(stream) {
+    const self = this;
+    const write = function(submission) {
+      const formatDate = (value) => {
+        return moment(value).tz(self.timezone || 'Etc/UTC').format(`${self.dateFormat} z`);
+      };
+
+      const data = [
+        submission._id.toString(),
+        // Perform this after the field data since they may set the timezone and format.
+        formatDate(submission.created),
+        formatDate(submission.modified),
+        ...self.getSubmissionData(submission),
+      ];
+
+      this.queue(data);
+    };
+
+    return stream
+      .pipe(through(write, () => this.res.end()))
+      .pipe(this.stringifier);
+  }
+
+  getSubmissionData(submission) {
+    const updatedSubmission = {};
+    const result = this.fields.map((column) => {
+      const componentData = _.get(submission.data, column.path);
+
+      // If the path had no results and the component specifies a path, check for a datagrid component
+      if (_.isUndefined(componentData) && column.path.includes('.')) {
+        let parts = column.path.split('.');
+
+        // If array in nested form
+        if (parts.length > 2) {
+          let newParts = _.chunk(parts, parts.length - 1);
+          newParts = newParts.map(part => part.join('.'));
+          parts = newParts;
+        }
+        const container = parts.shift();
+        const containerData = _.get(submission.data, container);
+
+        // If the subdata is an array, coerce it to a displayable string.
+        if (Array.isArray(containerData)) {
+          // Update the column component path, since we removed part of it.
+          const subcolumn = {
+            ...column,
+            path: parts.join('.'),
+          };
+
+          const result = this.coerceToString(containerData, subcolumn, submission);
+          _.set(updatedSubmission, column.label, result);
+          return result;
+        }
+      }
+
+      const result = this.coerceToString(componentData, column, submission);
+      _.set(updatedSubmission, column.label, result);
+      return result;
+    });
+
+    result.updatedSubmission = updatedSubmission;
+    return result;
+  }
+
+  /**
+   * Util function to unwrap an unknown data payload into a string.
+   *
+   * @param data
+   * @returns {string}
+   */
+  coerceToString(data, column, submission) {
+    data = (column.preprocessor || _.identity)(data, submission);
+
+    if (Array.isArray(data) && data.length > 0) {
+      const fullPath = column.subpath
+        ? `${column.key}.${column.subpath}`
+        : column.key;
+
+      return data.map((item) => `"${this.coerceToString(_.get(item, fullPath, item), column)}"`).join(',');
+    }
+    if (_.isString(data)) {
+      if (column.type === 'boolean') {
+        return Boolean(data).toString();
+      }
+
+      return data.toString();
+    }
+    if (_.isNumber(data)) {
+      return data.toString();
+    }
+    if (_.isObject(data)) {
+      return this.coerceToString(_.get(data, column.subpath, ''), column);
+    }
+
+    return JSON.stringify(data);
+  }
+}
 
 module.exports = CSVExporter;

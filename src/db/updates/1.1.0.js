@@ -1,7 +1,7 @@
 'use strict';
 
-var async = require('async');
-var crypto = require('crypto');
+let async = require('async');
+let crypto = require('crypto');
 
 /**
  * Encrypt some text
@@ -14,8 +14,8 @@ function encrypt(secret, mixed) {
     return undefined;
   }
 
-  var cipher = crypto.createCipher('aes-256-cbc', secret);
-  var decryptedJSON = JSON.stringify(mixed);
+  let cipher = crypto.createCipher('aes-256-cbc', secret);
+  let decryptedJSON = JSON.stringify(mixed);
 
   return Buffer.concat([
     cipher.update(decryptedJSON),
@@ -35,7 +35,7 @@ module.exports = function(db, config, tools, done) {
   // MongoDB Find all oldApps where user has unencrypted settings.
   db.collection('applications').find({ settings: {$exists: true }}).forEach(function(application) {
       // Encrypt each Application's settings at rest.
-      db.collection('applications').update(
+      db.collection('applications').updateOne(
       { _id: application._id },
       {
         $unset: { settings: undefined },

@@ -8,16 +8,16 @@
  *
  * @type {exports}
  */
-var bcrypt = require('bcrypt');
-var jwt = require('jsonwebtoken');
-var util = require('../util/util');
-var _ = require('lodash');
-var debug = {
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const util = require('../util/util');
+const _ = require('lodash');
+const debug = {
   authenticate: require('debug')('formio:authentication:authenticate')
 };
 
 module.exports = function(router) {
-  var hook = require('../util/hook')(router.formio);
+  const hook = require('../util/hook')(router.formio);
 
   /**
    * Generate our JWT with the given payload, and pass it to the given callback function.
@@ -28,18 +28,11 @@ module.exports = function(router) {
    * @return {String|Boolean}
    *   The JWT from the given payload, or false if the jwt payload is still valid.
    */
-  var getToken = function(payload) {
-    // Ensure that we do not do multiple re-issues consecutively.
-    // Re-issue at the maximum rate of 1/min.
-    if (payload.iat) {
-      var now = Math.floor(Date.now() / 1000);
-      if ((now - payload.iat) < 60) {
-        return false;
-      }
-
-      delete payload.iat;
-      delete payload.exp;
-    }
+  const getToken = function(tokenInfo) {
+    // Clone to make sure we don't change original.
+    const payload = Object.assign({}, tokenInfo);
+    delete payload.iat;
+    delete payload.exp;
 
     return jwt.sign(payload, router.formio.config.jwt.secret, {
       expiresIn: router.formio.config.jwt.expireTime * 60
@@ -52,15 +45,16 @@ module.exports = function(router) {
    * @param decoded
    * @return {boolean}
    */
-  var isTokenAllowed = function(req, decoded) {
+  const isTokenAllowed = function(req, decoded) {
     if (!decoded.allow) {
       return true;
     }
 
-    var isAllowed = false;
-    var allowed = decoded.allow.split(',');
+    let isAllowed = false;
+    const allowed = decoded.allow.split(',');
+    const urlParts = req.url.split('?');
     _.each(allowed, function(allow) {
-      var parts = allow.split(':');
+      const parts = allow.split(':');
       if (parts.length < 2) {
         return;
       }
@@ -71,8 +65,8 @@ module.exports = function(router) {
       }
 
       try {
-        var regex = new RegExp(parts[1]);
-        if (regex.test(req.baseUrl + req.url)) {
+        const regex = new RegExp(parts[1]);
+        if (regex.test(req.baseUrl + urlParts[0])) {
           isAllowed = true;
           return false;
         }
@@ -81,6 +75,17 @@ module.exports = function(router) {
         debug.authenticate('Bad token allow string.');
       }
     });
+
+    // If no project is provided, then provide it from the token.
+    if (decoded.isAdmin && allowed.length) {
+      /* eslint-disable no-useless-escape */
+      const ids = allowed[0].match(/\/project\/([^\/]+)/);
+      /* eslint-enable no-useless-escape */
+      if (ids && !decoded.project && ids[1]) {
+        decoded.project = {_id: ids[1]};
+      }
+    }
+
     return isAllowed;
   };
 
@@ -92,91 +97,93 @@ module.exports = function(router) {
    * @param expire
    * @param cb
    */
-  var getTempToken = function(req, res, token, allow, expire, cb) {
-    // Decode/refresh the token and store for later middleware.
-    jwt.verify(token, router.formio.config.jwt.secret, function(err, decoded) {
-      if (err || !decoded) {
-        if (err && (err.name === 'JsonWebTokenError')) {
-          return cb('Bad Token');
-        }
-        else if (err && (err.name === 'TokenExpiredError')) {
-          return cb('Login Timeout');
-        }
-        else {
-          return cb('Unauthorized');
-        }
+  const getTempToken = function(req, res, allow, expire, admin, cb) {
+    let tempToken = {};
+    if (!admin) {
+      if (!req.token) {
+        return cb('No authentication token provided.');
       }
 
-      if (!res.headersSent) {
-        res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
-        res.setHeader('x-jwt-token', token);
-      }
+      tempToken = _.cloneDeep(req.token);
 
       // Check to see if this path is allowed.
-      if (!isTokenAllowed(req, decoded)) {
+      if (!isTokenAllowed(req, tempToken)) {
         return res.status(401).send('Token path not allowed.');
       }
 
       // Do not allow regeneration of temp tokens from other temp tokens.
-      if (decoded.tempToken) {
+      if (tempToken.tempToken) {
         return cb('Cannot issue a temporary token using another temporary token.');
       }
+    }
 
-      var now = Math.round((new Date()).getTime() / 1000);
-      expire = expire || 3600;
-      expire = parseInt(expire, 10);
-      var timeLeft = (parseInt(decoded.exp, 10) - now);
+    // Check the expiration.
+    const now = Math.round((new Date()).getTime() / 1000);
+    expire = expire || 3600;
+    expire = parseInt(expire, 10);
+    const timeLeft = (parseInt(tempToken.exp, 10) - now);
 
-      // Ensure they are not trying to create an extended expiration.
-      if ((expire > 3600) && (timeLeft < expire)) {
-        return cb('Cannot generate extended expiring temp token.');
+    // Ensure they are not trying to create an extended expiration.
+    if ((expire > 3600) && (timeLeft < expire)) {
+      return cb('Cannot generate extended expiring temp token.');
+    }
+
+    // Add the allowed to the token.
+    if (allow) {
+      tempToken.allow = allow;
+    }
+
+    tempToken.tempToken = true;
+    tempToken.isAdmin = admin;
+
+    // Delete the previous expiration so we can generate a new one.
+    delete tempToken.exp;
+
+    // Sign the token.
+    jwt.sign(tempToken, router.formio.config.jwt.secret, {
+      expiresIn: expire
+    }, (err, token) => {
+      if (err) {
+        return cb(err);
       }
+      const tokenResponse = {
+        token
+      };
 
-      // Add the allowed to the token.
-      if (allow) {
-        decoded.allow = allow;
-      }
-
-      decoded.tempToken = true;
-
-      // Delete the previous expiration so we can generate a new one.
-      delete decoded.exp;
-
-      // Sign the token.
-      jwt.sign(decoded, router.formio.config.jwt.secret, {
-        expiresIn: expire
-      }, (err, token) => cb(err, token));
+      // Allow other libraries to hook into the response.
+      hook.alter('tempToken', req, res, allow, expire, tokenResponse, (err) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, tokenResponse);
+      });
     });
   };
 
-  var tempToken = function(req, res, next) {
+  const tempToken = function(req, res, next) {
     if (!req.headers) {
       return res.status(400).send('No headers provided.');
     }
 
-    var token = req.headers['x-jwt-token'];
-    var allow = req.headers['x-allow'];
-    var expire = req.headers['x-expire'];
-    expire = expire || 3600;
-    expire = parseInt(expire, 10);
-    if (!token) {
-      return res.status(400).send('You must provide an existing token in the x-jwt-token header.');
+    let adminKey = false;
+    if (process.env.ADMIN_KEY && process.env.ADMIN_KEY === req.headers['x-admin-key']) {
+      adminKey = true;
+    }
+    else if (!req.token) {
+      return res.status(400).send('No authentication token provided.');
     }
 
+    const allow = req.headers['x-allow'];
+    let expire = req.headers['x-expire'];
+    expire = expire || 3600;
+    expire = parseInt(expire, 10);
+
     // get a temporary token.
-    getTempToken(req, res, token, allow, expire, function(err, tempToken) {
+    getTempToken(req, res, allow, expire, adminKey, function(err, tempToken) {
       if (err) {
         return res.status(400).send(err);
       }
-
-      var tokenResponse = {
-        token: tempToken
-      };
-
-      // Allow other libraries to hook into the response.
-      hook.alter('tempToken', req, res, token, allow, expire, tokenResponse, (err) => {
-        return res.json(tokenResponse);
-      });
+      return res.json(tempToken);
     });
   };
 
@@ -196,7 +203,7 @@ module.exports = function(router) {
    * @param next {Function}
    *   The callback function to call after authentication.
    */
-  var authenticate = function(forms, userField, passField, username, password, next) {
+  const authenticate = function(req, forms, userField, passField, username, password, next) {
     // Make sure they have provided a username and password.
     if (!username) {
       return next('Missing username');
@@ -205,7 +212,7 @@ module.exports = function(router) {
       return next('Missing password');
     }
 
-    var query = {deleted: {$eq: null}};
+    const query = {deleted: {$eq: null}};
 
     // Determine the form id for querying.
     if (_.isArray(forms)) {
@@ -219,10 +226,11 @@ module.exports = function(router) {
     }
 
     // Look for the user.
-    query['data.' + userField] = {$regex: new RegExp('^' + util.escapeRegExp(username) + '$'), $options: 'i'};
+    query[`data.${userField}`] = {$regex: new RegExp(`^${util.escapeRegExp(username)}$`), $options: 'i'};
 
     // Find the user object.
-    router.formio.resources.submission.model.findOne(query, function(err, user) {
+    const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+    submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec((err, user) => {
       if (err) {
         return next(err);
       }
@@ -230,7 +238,6 @@ module.exports = function(router) {
         return next('User or password was incorrect');
       }
 
-      user = user.toObject();
       if (!_.get(user.data, passField)) {
         return next('Your account does not have a password. You must reset your password to login.');
       }
@@ -248,15 +255,13 @@ module.exports = function(router) {
         router.formio.resources.form.model.findOne({
           _id: user.form,
           deleted: {$eq: null}
-        }, function(err, form) {
+        }).lean().exec((err, form) => {
           if (err) {
             return next(err);
           }
           if (!form) {
             return next('User form not found.');
           }
-
-          form = form.toObject();
 
           // Allow anyone to hook and modify the user.
           hook.alter('user', user, function hookUserCallback(err, _user) {
@@ -271,7 +276,7 @@ module.exports = function(router) {
             }
 
             // Allow anyone to hook and modify the token.
-            var token = hook.alter('token', {
+            const token = hook.alter('token', {
               user: {
                 _id: user._id
               },
@@ -301,7 +306,7 @@ module.exports = function(router) {
    * @param res
    * @param next
    */
-  var currentUser = function(req, res, next) {
+  const currentUser = function(req, res, next) {
     if (!res.token || !req.token) {
       return res.sendStatus(401);
     }
@@ -313,8 +318,9 @@ module.exports = function(router) {
     }
 
     // Duplicate the current request get the users information.
-    var url = '/form/:formId/submission/:submissionId';
-    var childReq = util.createSubRequest(req);
+    const url = '/form/:formId/submission/:submissionId';
+    const childReq = util.createSubRequest(req);
+    childReq.permissionsChecked = true;
     if (!childReq) {
       return res.status(400).send('Too many recursive requests.');
     }
@@ -322,7 +328,7 @@ module.exports = function(router) {
     childReq.skipResource = false;
 
     // If this request is not directly accessing /current, allow the response to be sent.
-    if (req.url !== '/current') {
+    if (req.url.split('?').shift() !== '/current') {
       childReq.noResponse = true;
     }
 
@@ -346,7 +352,7 @@ module.exports = function(router) {
     authenticate: authenticate,
     currentUser: currentUser,
     tempToken: tempToken,
-    logout: function(req, res) {
+    logout(req, res) {
       res.setHeader('x-jwt-token', '');
       res.sendStatus(200);
     }

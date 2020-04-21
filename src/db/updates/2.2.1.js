@@ -11,11 +11,11 @@
  * @param done
  */
 module.exports = function(db, config, tools, done) {
-  var forms = db.collection('forms');
+  let forms = db.collection('forms');
 
   forms.find().snapshot({$snapshot: true}).forEach(function(form) {
     if(form.path) {
-      forms.update(
+      forms.updateOne(
         { _id: form._id },
         { $set: { path: form.path.toLowerCase() } }
       );
