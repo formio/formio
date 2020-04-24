@@ -242,18 +242,24 @@ module.exports = function(router) {
       }
 
       if (!_.get(user.data, passField)) {
-        audit('EAUTH_BLANKPW', req, username, user._id);
+        audit('EAUTH_BLANKPW', {
+          ...req,
+          userId: user._id,
+        }, username);
         return next('Your account does not have a password. You must reset your password to login.');
       }
 
       // Compare the provided password.
       bcrypt.compare(password, _.get(user.data, passField), function(err, value) {
         if (err) {
-          audit('EAUTH_BCRYPT', req, username, user._id, err);
+          audit('EAUTH_BCRYPT', {
+            ...req,
+            userId: user._id
+          }, username, err);
           return next(err);
         }
         if (!value) {
-          audit('EAUTH_PASSWORD', req, username, user._id);
+          audit('EAUTH_PASSWORD', req, user._id, username);
           return next('User or password was incorrect', {user: user});
         }
 
@@ -263,11 +269,17 @@ module.exports = function(router) {
           deleted: {$eq: null}
         }).lean().exec((err, form) => {
           if (err) {
-            audit('EAUTH_USERFORM', req, user._id, user.form, err);
+            audit('EAUTH_USERFORM', {
+              ...req,
+              userId: user._id,
+            }, user.form, err);
             return next(err);
           }
           if (!form) {
-            audit('EAUTH_USERFORM', req, user._id, user.form, {message: 'User form not found'});
+            audit('EAUTH_USERFORM', {
+              ...req,
+              userId: user._id,
+            }, user.form, {message: 'User form not found'});
             return next('User form not found.');
           }
 
@@ -294,7 +306,10 @@ module.exports = function(router) {
             }, form);
 
             // Continue with the token data.
-            audit('AUTH_TOKEN', req, user._id, router.formio.config.jwt.expireTime * 60);
+            audit('AUTH_TOKENCREATE', {
+              ...req,
+              userId: user._id,
+            }, router.formio.config.jwt.expireTime * 60);
             next(null, {
               user: user,
               token: {

@@ -293,12 +293,12 @@ module.exports = function(router) {
           // Check the amount of attempts made by this user.
           this.checkAttempts(err, req, response.user, function(error) {
             if (error) {
-              audit('EAUTH_LOGINCOUNT', req, _.get(req.submission.data, this.settings.username), response.user._id);
+              audit('EAUTH_LOGINCOUNT', req, _.get(req.submission.data, this.settings.username));
               log(req, ecode.auth.EAUTH, error);
               return res.status(401).send(error);
             }
 
-            audit('AUTH_LOGIN', req, response.user._id);
+            audit('AUTH_LOGIN', req);
             // Set the user and generate a token.
             req.user = response.user;
             req.token = response.token.decoded;

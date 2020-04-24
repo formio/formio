@@ -20,7 +20,6 @@ const debug = {
  */
 module.exports = function(router) {
   // Load the form.io hooks.
-  const audit = router.formio.audit || (() => {});
   const hook = require('../util/hook')(router.formio);
   const formioCache = require('../cache/cache')(router);
 
@@ -40,7 +39,7 @@ module.exports = function(router) {
 
     // Set the headers if they haven't been sent yet.
     if (!res.headersSent) {
-      audit('AUTH_TOKENREFRESH', req, payload.user._id, router.formio.config.jwt.expireTime * 60);
+      router.formio.audit('AUTH_TOKENREFRESH', req, router.formio.config.jwt.expireTime * 60);
       res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
       res.setHeader('x-jwt-token', res.token);
     }
@@ -93,6 +92,7 @@ module.exports = function(router) {
       req.user = null;
       req.token = null;
       res.token = null;
+      router.formio.audit('AUTH_ANONYMOUS', req);
       return next();
     };
 
@@ -102,6 +102,7 @@ module.exports = function(router) {
         : [];
 
       if (keys.includes(req.headers['x-token'])) {
+        router.formio.audit('AUTH_APIKEY', req);
         req.isAdmin = true;
         req.permissionsChecked = true;
         req.user = null;
@@ -119,6 +120,7 @@ module.exports = function(router) {
     jwt.verify(token, router.formio.config.jwt.secret, function(err, decoded) {
       if (err || !decoded) {
         debug.handler(err || `Token could not decoded: ${token}`);
+        router.formio.audit('EAUTH_TOKENBAD', req, err);
         router.formio.log('Token', req, 'Token could not be decoded');
 
         // If the token has expired, send a 440 error (Login Timeout)
@@ -127,6 +129,7 @@ module.exports = function(router) {
           return res.status(400).send('Bad Token');
         }
         else if (err && (err.name === 'TokenExpiredError')) {
+          router.formio.audit('EAUTH_TOKENEXPIRED', req, err);
           router.formio.log('Token', req, 'Token Expired');
           return res.status(440).send('Token Expired');
         }
@@ -137,11 +140,13 @@ module.exports = function(router) {
 
       // Check to see if this token is allowed to access this path.
       if (!router.formio.auth.isTokenAllowed(req, decoded)) {
+        router.formio.audit('EAUTH_TEMPTOKEN_ALLOW', req, decoded.allow);
         return noToken();
       }
 
       // If this is a temporary token, then decode it and set it in the request.
       if (decoded.temp) {
+        router.formio.audit('AUTH_TEMPTOKEN', req);
         router.formio.log('Token', req, 'Using temp token');
         debug.handler('Temp token');
         req.tempToken = decoded;
@@ -153,17 +158,23 @@ module.exports = function(router) {
 
       // Allow external tokens.
       if (!hook.alter('external', decoded, req)) {
+        router.formio.audit('AUTH_EXTERNALTOKEN', req, decoded.allow);
         decoded.user.project = decoded.project._id;
         return userHandler(req, res, decoded, token, decoded.user, next);
       }
 
       // See if this is a remote token.
       if (decoded.project && decoded.permission) {
+        router.formio.audit('AUTH_REMOTETOKEN', req, decoded.origin);
         req.userProject = decoded.project;
         req.remotePermission = decoded.permission;
         return userHandler(req, res, decoded, token, decoded.user, next);
       }
 
+      router.formio.audit('AUTH_TOKEN', {
+        ...req,
+        userId: decoded.user._id,
+      });
       if (decoded.isAdmin) {
         router.formio.log('Token', req, 'User is admin');
         if (req.user) {
