@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-beta.5
+### Changed
+ - Upgrade dependencies.
+ - FJS 864: Fixed login action resources limitation
+ - Set email for User and Admin ressource required & unique
+ - Fixed server crash on invalid x-query
+
 ## 2.0.0-beta.4
 ### Added
  - Hooks for the alias.
