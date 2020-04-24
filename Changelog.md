@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.76.0
+### Fixed
+ - FJS 864: Fixed login action resources limitation
+ - Fixed server crash on invalid x-query
+
 ## 1.75.0
 ### Fixed
  - Issues where loading subforms could lose references.
