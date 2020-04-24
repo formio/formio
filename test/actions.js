@@ -890,7 +890,7 @@ module.exports = (app, template, hook) => {
 
           Promise.all([email1, email2])
             .then(() => {
-              event.removeAllListeners('newMail'); 
+              event.removeAllListeners('newMail');
               done();
             })
             .catch(done);

@@ -37,7 +37,7 @@ module.exports = {
   },
   user: {
     ENOUSER:       'User not found.',
-    ENONAMEP:      'No user neme provided.',
+    ENONAMEP:      'No user name provided.',
   },
   role: {
     EROLESLOAD:    'Cannot load the Roles.',
@@ -49,7 +49,7 @@ module.exports = {
     EREQRECUR:     'Too many recursive requests.',
   },
   resource: {
-    ENOIDP:        'Resource id is misssing.',
+    ENOIDP:        'Resource id is missing.',
     ENOHANDLER:    'Resource handler not found.',
   },
 };

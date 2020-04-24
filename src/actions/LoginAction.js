@@ -10,6 +10,7 @@ module.exports = function(router) {
   const debug = require('debug')('formio:action:login');
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug;
+  const audit = router.formio.audit || (() => {});
   const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**
@@ -253,20 +254,24 @@ module.exports = function(router) {
       }
 
       if (!this.settings) {
+        audit('EAUTH_AUTHCONFIG', req, _.get(req.submission.data, this.settings.username));
         return res.status(400).send('Misconfigured Login Action.');
       }
 
       if (!req.submission || !req.submission.hasOwnProperty('data')) {
+        audit('EAUTH_EMPTYSUB', req, _.get(req.submission.data, this.settings.username));
         return res.status(401).send('User or password was incorrect.');
       }
 
       // They must provide a username.
       if (!_.has(req.submission.data, this.settings.username)) {
+        audit('EAUTH_EMPTYUN', req);
         return res.status(401).send('User or password was incorrect.');
       }
 
       // They must provide a password.
       if (!_.has(req.submission.data, this.settings.password)) {
+        audit('EAUTH_EMPTYPW', req, _.get(req.submission.data, this.settings.username));
         return res.status(401).send('User or password was incorrect.');
       }
 
@@ -280,6 +285,7 @@ module.exports = function(router) {
         _.get(req.submission.data, this.settings.password),
         function(err, response) {
           if (err && !response) {
+            audit('EAUTH_NOUSER', req, _.get(req.submission.data, this.settings.username));
             log(req, ecode.auth.EAUTH, err);
             return res.status(401).send(err);
           }
@@ -287,10 +293,12 @@ module.exports = function(router) {
           // Check the amount of attempts made by this user.
           this.checkAttempts(err, req, response.user, function(error) {
             if (error) {
+              audit('EAUTH_LOGINCOUNT', req, _.get(req.submission.data, this.settings.username), response.user._id);
               log(req, ecode.auth.EAUTH, error);
               return res.status(401).send(error);
             }
 
+            audit('AUTH_LOGIN', req, response.user._id);
             // Set the user and generate a token.
             req.user = response.user;
             req.token = response.token.decoded;

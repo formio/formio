@@ -20,6 +20,7 @@ const debug = {
  */
 module.exports = function(router) {
   // Load the form.io hooks.
+  const audit = router.formio.audit || (() => {});
   const hook = require('../util/hook')(router.formio);
   const formioCache = require('../cache/cache')(router);
 
@@ -30,7 +31,7 @@ module.exports = function(router) {
    * @param payload
    * @param res
    */
-  const generateToken = (inputToken, payload, res) => {
+  const generateToken = (inputToken, payload, res, req) => {
     // Refresh the token that is sent back to the user when appropriate.
     const newToken = router.formio.auth.getToken(payload);
     res.token = newToken
@@ -39,6 +40,7 @@ module.exports = function(router) {
 
     // Set the headers if they haven't been sent yet.
     if (!res.headersSent) {
+      audit('AUTH_TOKENREFRESH', req, payload.user._id, router.formio.config.jwt.expireTime * 60);
       res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
       res.setHeader('x-jwt-token', res.token);
     }
@@ -67,7 +69,7 @@ module.exports = function(router) {
 
       // Refresh the token that is sent back to the user when appropriate.
       req.tokenIssued = parseInt(Date.now() / 1000);
-      generateToken(token, decoded, res);
+      generateToken(token, decoded, res, req);
       router.formio.log('Token', req, 'Using normal token');
       if (req.user) {
         router.formio.log('User', req, req.user._id);
