@@ -14,11 +14,7 @@ module.exports = router => {
     }
 
     // Get the submission object.
-    let subSubmission = _.get(data, component.key, {});
-
-    if (req.resources && _.isEmpty(subSubmission.data) && req.resources[subSubmission._id.toString()]) {
-      subSubmission = req.resources[subSubmission._id.toString()];
-    }
+    const subSubmission = _.get(data, component.key, {});
 
     // if there isn't a sub-submission or the sub-submission has an _id, don't submit.
     // Should be submitted from the frontend.
