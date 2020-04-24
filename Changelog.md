@@ -30,6 +30,42 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
 
+## 1.75.0
+### Fixed
+ - Issues where loading subforms could lose references.
+
+### Changed
+ - Upgrade formiojs@4.9.19
+
+## 1.74.0
+### Changed
+ - Upgrade formiojs@4.9.18, mongodb@3.5.6, mongoose@5.9.9, nodemon@2.0.3, html-entities@1.3.1, semver@7.3.2
+
+### Added
+ - Debug messages to the loadSubForms method.
+ - Validator for tagpad component.
+
+## 1.73.0
+### Fixed
+ - Validations for checkboxes configured as radio inputs.
+
+### Changed
+ - Upgrade config@3.3.1, formiojs@4.9.13, mongoose@5.9.7, nodemailer@6.4.6, mocha@7.1.1
+
+## 1.72.0
+### Changed
+ - Upgrade mongoose@5.9.5
+
+### Fixed
+ - Fixed CSVExporter: Add default format for datetime
+
+## 1.71.0
+### Changed
+ - Upgrade csv@5.3.2, mongodb@3.5.5, mongoose@5.9.4, nodemailer@6.4.5, async@3.2.0, config@3.3.0, mssql@6.2.0, mocha@7.1.0
+
+### Fixed
+ - Fixing dryrun for field actions so they execute, and adding more hooks for formResponse and alias.
+
 ## 1.70.0
 ### Added
  - Tokens to the calculate value evaluate contexts.
