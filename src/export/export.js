@@ -199,7 +199,12 @@ module.exports = (router) => {
               })
              );
             }), {end: false});
-
+            // If the DB cursor throws an error, send the error.
+            cursor.on('error', (error) => {
+              debug(error);
+              router.formio.util.log(error);
+              res.status(400).send(error);
+            });
             // When the DB cursor ends, allow the output stream a tick to perform the last write,
             // then manually end it by pushing a null item to the output stream's queue
             cursor.on('end',() => Promise.all(promises).then(() => process.nextTick(() => stream.queue(null))));

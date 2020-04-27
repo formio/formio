@@ -78,7 +78,8 @@
         {
           "type": "email",
           "persistent": true,
-          "unique": false,
+          "unique": true,
+          "required": true,
           "protected": false,
           "defaultValue": "",
           "suffix": "",
@@ -173,7 +174,8 @@
         {
           "type": "email",
           "persistent": true,
-          "unique": false,
+          "unique": true,
+          "required": true,
           "protected": false,
           "defaultValue": "",
           "suffix": "",
