@@ -43,7 +43,7 @@ class CSVExporter extends Exporter {
     const formattedView = req.query.view === 'formatted';
     this.formattedView = formattedView;
 
-    const ignore = ['password', 'button', 'container', 'datagrid'];
+    const ignore = ['password', 'button', 'container', 'datagrid', 'editgrid'];
     try {
       util.eachComponent(form.components, (component, path) => {
         if (!component.input || !component.key || ignore.includes(component.type)) {
