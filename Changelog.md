@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.77.0
+### Fixed
+ - Issue with email renderings not working with workers upgrade.
+ - EditGrid issues when exported in CSV format.
+
 ## 1.76.0
 ### Fixed
  - FJS 864: Fixed login action resources limitation
