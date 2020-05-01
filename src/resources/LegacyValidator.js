@@ -3,7 +3,6 @@
 const vm = require('vm');
 const Joi = require('joi');
 const _ = require('lodash');
-const fetch = require('node-fetch');
 const moment = require('moment');
 const cache = require('memory-cache');
 const querystring = require('querystring');
@@ -333,7 +332,7 @@ const getRules = (type) => [
         debug.validator(cacheKey, 'miss');
 
         // Us an existing promise or create a new one.
-        requests[cacheKey] = requests[cacheKey] || fetch(url, {method, headers})
+        requests[cacheKey] = requests[cacheKey] || util.fetch(url, {method, headers})
           .then((res) => (res.ok ? res.json() : null));
 
         requests[cacheKey]

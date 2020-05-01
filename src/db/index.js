@@ -3,7 +3,7 @@
 const async = require('async');
 const MongoClient = require('mongodb').MongoClient;
 const semver = require('semver');
-const fetch = require('node-fetch');
+const fetch = require('../util/fetch');
 const _ = require('lodash');
 const fs = require('fs');
 const debug = {
@@ -93,7 +93,6 @@ module.exports = function(formio) {
       }
     );
   };
-
   /**
    * Fetch the SA certificate.
    *

@@ -40,7 +40,6 @@ module.exports = function(formio, items, done) {
       return done();
     }
 
-    const fetch = require('node-fetch');
     const ProgressBar = require('progress');
     util.log(`Downloading ${dir}${'...'.green}`);
 
@@ -49,7 +48,7 @@ module.exports = function(formio, items, done) {
     let tries = 0;
     let bar = null;
     (function downloadProject() {
-      fetch(url)
+      util.fetch(url)
         .then(function(res) {
           if (
             !res.headers.has('content-disposition') ||

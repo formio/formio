@@ -1,5 +1,5 @@
 'use strict';
-const fetch = require('node-fetch');
+const fetch = require('../util/fetch');
 
 const LOG_EVENT = 'Email Action';
 

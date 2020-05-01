@@ -1,7 +1,7 @@
 'use strict';
 
 const querystring = require('querystring');
-const fetch = require('node-fetch');
+const fetch = require('../util/fetch');
 
 module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
