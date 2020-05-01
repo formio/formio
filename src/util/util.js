@@ -7,6 +7,7 @@ const nodeUrl = require('url');
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/util');
 const errorCodes = require('./error-codes.js');
+const fetch = require('./fetch');
 const vm = require('vm');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
@@ -484,6 +485,16 @@ const Utils = {
   getFormComponentKey(key) {
     return key.replace(/\.data\./g, '.');
   },
+
+  /**
+   * A node-fetch shim adding support for http(s) proxy and allowing
+   * invalid tls certificates (to be used with self signed certificates).
+   *
+   * @param {any} url The request url string or url like object.
+   * @param {any} options The request options object.
+   * @returns {Promise<Response>} The promise with the node-fetch response object.
+   */
+  fetch,
 
   /**
    * Utility function to ensure the given id is always a BSON object.
