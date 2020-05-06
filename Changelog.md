@@ -37,6 +37,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
 
+## 1.78.0
+### Changed
+ - Reverted action logs to save correctly.
+
+### Fixed
+ - Problem where malformed data could throw errors.
+
+## 1.77.0
+### Fixed
+ - Issue with email renderings not working with workers upgrade.
+ - EditGrid issues when exported in CSV format.
+
+## 1.76.0
+### Fixed
+ - FJS 864: Fixed login action resources limitation
+ - Fixed server crash on invalid x-query
+
 ## 1.75.0
 ### Fixed
  - Issues where loading subforms could lose references.
