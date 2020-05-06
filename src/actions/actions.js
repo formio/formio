@@ -204,25 +204,22 @@ module.exports = (router) => {
                 }
               ]
             }, req), (err, actionItem) => {
+              // Mongoose has issues if you call "save" too frequently on the same item. We need to wait till the previous
+              // save is complete before calling again.
+              let lastSavePromise = Promise.resolve();
               const setActionItemMessage = (message, data = {}, state = null) => {
-                actionItem.messages.push({
-                  datetime: new Date(),
-                  info: message,
-                  data
-                });
+                lastSavePromise.then(() => {
+                  actionItem.messages.push({
+                    datetime: new Date(),
+                    info: message,
+                    data
+                  });
 
-                if (state) {
-                  actionItem.state = state;
-                }
-
-                // Update the action item.
-                router.formio.mongoose.models.actionItem.updateOne({
-                  _id: actionItem._id
-                }, {
-                  $set: {
-                    state: actionItem.state,
-                    messages: actionItem.messages
+                  if (state) {
+                    actionItem.state = state;
                   }
+
+                  lastSavePromise = actionItem.save();
                 });
               };
 
