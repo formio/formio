@@ -227,15 +227,18 @@ module.exports = (router, resourceName, resourceId) => {
           if (component.hasOwnProperty('components') && Array.isArray(component.components)) {
             // If tree type is an array of objects like datagrid and editgrid.
             if (['datagrid', 'editgrid'].includes(component.type) || component.arrayTree) {
-              _.get(data, component.key, []).forEach((row, index) => {
-                promises.push(eachValue(
-                  component.components,
-                  row,
-                  fn,
-                  context,
-                  `${path ? `${path}.` : ''}${component.key}[${index}]`,
-                ));
-              });
+              const compData = _.get(data, component.key, []);
+              if (Array.isArray(compData)) {
+                compData.forEach((row, index) => {
+                  promises.push(eachValue(
+                    component.components,
+                    row,
+                    fn,
+                    context,
+                    `${path ? `${path}.` : ''}${component.key}[${index}]`,
+                  ));
+                });
+              }
             }
             else if (['form'].includes(component.type)) {
               promises.push(eachValue(
