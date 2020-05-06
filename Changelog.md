@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.78.0
+### Changed
+ - Reverted action logs to save correctly.
+
+### Fixed
+ - Problem where malformed data could throw errors.
+
 ## 1.77.0
 ### Fixed
  - Issue with email renderings not working with workers upgrade.
