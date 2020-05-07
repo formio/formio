@@ -618,6 +618,21 @@ class Validator {
 
           fieldValidator = JoiX.array().items(JoiX.object().keys(objectSchema)).options({stripUnknown: false});
           break;
+        case 'tagpad':
+          objectSchema = this.buildSchema(
+              {},
+              component.components,
+              _.get(componentData, component.key, componentData).map(dot => dot.data),
+              submission
+          );
+          fieldValidator = JoiX.array().items(JoiX.object({
+            coordinate: JoiX.object({
+              x: JoiX.number(),
+              y: JoiX.number()
+            }),
+            data: JoiX.object().keys(objectSchema)
+          })).options({stripUnknown: false});
+          break;
         case 'container':
           objectSchema = this.buildSchema(
             {},

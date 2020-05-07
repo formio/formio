@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-beta.5
+### Changed
+ - Upgrade dependencies.
+ - FJS 864: Fixed login action resources limitation
+ - Set email for User and Admin ressource required & unique
+ - Fixed server crash on invalid x-query
+
 ## 2.0.0-beta.4
 ### Added
  - Hooks for the alias.
@@ -29,6 +36,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
+
+## 1.78.0
+### Changed
+ - Reverted action logs to save correctly.
+
+### Fixed
+ - Problem where malformed data could throw errors.
+
+## 1.77.0
+### Fixed
+ - Issue with email renderings not working with workers upgrade.
+ - EditGrid issues when exported in CSV format.
+
+## 1.76.0
+### Fixed
+ - FJS 864: Fixed login action resources limitation
+ - Fixed server crash on invalid x-query
 
 ## 1.75.0
 ### Fixed

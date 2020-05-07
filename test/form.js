@@ -4186,11 +4186,9 @@ module.exports = function(app, template, hook) {
             console.log('projectFilter', projectFilter);
 
             if (filter && projectFilter) {
-              assert.equal(Object.keys(res.body.roles).length, 0);
               assert.equal(Object.keys(res.body.forms).length, 0);
             }
             else {
-              assert.notEqual(Object.keys(res.body.roles).length, 0);
               assert.notEqual(Object.keys(res.body.forms).length, 0);
             }
 
