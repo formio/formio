@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.79.0
+### Added
+ - More options for mapping Save Submission action to a Resource.
+
 ## 1.78.0
 ### Changed
  - Reverted action logs to save correctly.
