@@ -37,6 +37,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
 
+## 1.79.0
+### Added
+ - More options for mapping Save Submission action to a Resource.
+
 ## 1.78.0
 ### Changed
  - Reverted action logs to save correctly.
