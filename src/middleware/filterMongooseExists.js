@@ -24,11 +24,13 @@ module.exports = (router) => (settings) => function(req, res, next) {
     ? router.formio.resources[settings.resource].getFindQuery(req)
     : {};
 
-  if (!findQuery.hasOwnProperty(settings.field)) {
+  if (!_.some(findQuery.$and, function(o) {
+    return o.hasOwnProperty(settings.field);
+  }) ) {
     // Set the exist modifier.
     const exists = settings.isNull
-      ? {$eq: null}
-      : {$ne: null};
+        ? {$eq: null}
+        : {$ne: null};
 
     query[settings.field] = exists;
   }
