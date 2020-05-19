@@ -66,7 +66,7 @@ module.exports = function(router) {
                       });
                   case 'datetime': {
                       return parseValues(value,function(value) {
-                          value = Number(value);
+                          value = (value === "" ? Number(value) : value);
                           const date = moment.utc(value, ['YYYY-MM-DD', 'YYYY-MM', 'YYYY', 'x', moment.ISO_8601], true);
 
                           if (date.isValid()) {
