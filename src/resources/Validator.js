@@ -647,6 +647,18 @@ class Validator {
             data: JoiX.object().keys(objectSchema)
           })).options({stripUnknown: false});
           break;
+        case 'tree':
+          objectSchema = this.buildSchema(
+              {},
+              component.components,
+              _.get(componentData, component.key, componentData).data,
+              submission
+          );
+          fieldValidator = JoiX.object({
+            data: JoiX.object().keys(objectSchema),
+            children: JoiX.array().items(JoiX.lazy(() => fieldValidator))
+          }).options({stripUnknown: false});
+          break;
         case 'container':
           objectSchema = this.buildSchema(
             {},
