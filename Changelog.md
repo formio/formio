@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-beta.6
+### Added
+ - Add tree validation to server.
+ - Mongo SSL Certificate options.
+
+### Changed
+ - Replace request library with node-fetch.
+ - Updated formio.js to 4.10.0-rc.4 to fix isomorphic validation.
+
 ## 2.0.0-beta.5
 ### Changed
  - Upgrade dependencies.
