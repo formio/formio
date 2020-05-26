@@ -3,10 +3,10 @@
 const vm = require('vm');
 const Joi = require('joi');
 const _ = require('lodash');
-const util = require('../util/util');
-const request = require('request-promise-native');
 const moment = require('moment');
 const cache = require('memory-cache');
+const querystring = require('querystring');
+const util = require('../util/util');
 
 const debug = {
   validator: require('debug')('formio:validator'),
@@ -251,18 +251,15 @@ const getRules = (type) => [
       const requests = params.requests;
 
       // Initialize the request options.
-      const requestOptions = {
-        url: _.get(component, 'validate.select'),
-        method: 'GET',
-        qs: {},
-        json: true,
-        headers: {}
-      };
+      let url = _.get(component, 'validate.select');
+      const method = 'GET';
+      const query = {};
+      const headers = {};
 
       // If the url is a boolean value.
-      if (util.isBoolean(requestOptions.url)) {
-        requestOptions.url = util.boolean(requestOptions.url);
-        if (!requestOptions.url) {
+      if (util.isBoolean(url)) {
+        url = util.boolean(url);
+        if (!url) {
           return value;
         }
 
@@ -275,28 +272,30 @@ const getRules = (type) => [
         }
 
         // Get the validation url.
-        requestOptions.url = component.data.url;
+        url = component.data.url;
 
         // Add the search field.
-        requestOptions.qs[component.searchField] = value;
+        query[component.searchField] = value;
 
         // Add the filters.
         if (component.filter) {
-          requestOptions.url += (!requestOptions.url.includes('?') ? '?' : '&') + component.filter;
+          url += (!url.includes('?') ? '?' : '&') + component.filter;
         }
 
         // If they only wish to return certain fields.
         if (component.selectFields) {
-          requestOptions.qs.select = component.selectFields;
+          query.select = component.selectFields;
         }
       }
 
-      if (!requestOptions.url) {
+      if (!url) {
         return value;
       }
 
+      url += (!url.includes('?') ? '?' : '&') + querystring.stringify(query);
+
       // Make sure to interpolate.
-      requestOptions.url = util.FormioUtils.interpolate(requestOptions.url, {
+      url = util.FormioUtils.interpolate(url, {
         data: submission.data
       });
 
@@ -304,21 +303,18 @@ const getRules = (type) => [
       if (component.data && component.data.headers) {
         _.each(component.data.headers, (header) => {
           if (header.key) {
-            requestOptions.headers[header.key] = header.value;
+            headers[header.key] = header.value;
           }
         });
       }
 
       // Set form.io authentication.
       if (component.authenticate && token) {
-        requestOptions.headers['x-jwt-token'] = token;
+        headers['x-jwt-token'] = token;
       }
 
       async.push(new Promise((resolve, reject) => {
-        /* eslint-disable prefer-template */
-        const cacheKey = `${requestOptions.method}:${requestOptions.url}?` +
-          Object.keys(requestOptions.qs).map(key => key + '=' + requestOptions.qs[key]).join('&');
-        /* eslint-enable prefer-template */
+        const cacheKey = `${method}:${url}`;
         const cacheTime = (process.env.VALIDATOR_CACHE_TIME || (3 * 60)) * 60 * 1000;
 
         // Check if this request was cached
@@ -336,7 +332,8 @@ const getRules = (type) => [
         debug.validator(cacheKey, 'miss');
 
         // Us an existing promise or create a new one.
-        requests[cacheKey] = requests[cacheKey] || request(requestOptions);
+        requests[cacheKey] = requests[cacheKey] || util.fetch(url, {method, headers})
+          .then((res) => (res.ok ? res.json() : null));
 
         requests[cacheKey]
           .then(body => {
@@ -635,6 +632,18 @@ class Validator {
             }),
             data: JoiX.object().keys(objectSchema)
           })).options({stripUnknown: false});
+          break;
+        case 'tree':
+          objectSchema = this.buildSchema(
+              {},
+              component.components,
+              _.get(componentData, component.key, componentData).data,
+              submission
+          );
+          fieldValidator = JoiX.object({
+            data: JoiX.object().keys(objectSchema),
+            children: JoiX.array().items(JoiX.lazy(() => fieldValidator))
+          }).options({stripUnknown: false});
           break;
         case 'container':
           objectSchema = this.buildSchema(
