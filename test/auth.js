@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 'use strict';
 
-var request = require('supertest');
+const request = require('./formio-supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var async = require('async');
@@ -439,7 +439,7 @@ module.exports = function(app, template, hook) {
     it('A Form.io User should get locked out if they keep trying a bad password', function(done) {
       var count = 0;
       async.whilst(
-        function() { return count < 4; },
+        function(next) { return next(null, count < 4); },
         function(next) {
           count++;
           lastAttempt = (new Date()).getTime();
@@ -501,7 +501,7 @@ module.exports = function(app, template, hook) {
     it('Attempt 4 bad logins to attempt good login after window.', function(done) {
       var count = 0;
       async.whilst(
-        function() { return count < 4; },
+        function(next) { return next(null, count < 4); },
         function(next) {
           count++;
           lastAttempt = (new Date()).getTime();

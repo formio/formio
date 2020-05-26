@@ -16,7 +16,7 @@ module.exports = function(db, config, tools, done) {
   let roles = db.collection('roles');
   projects.find({}).forEach(function(project) {
     if (project.defaultAccess) {
-      roles.update(
+      roles.updateOne(
         { _id: project.defaultAccess },
         { $set: { default: true } }
       );

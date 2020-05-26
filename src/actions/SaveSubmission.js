@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const async = require('async');
+const vm = require('vm');
 const util = require('../util/util');
 
 const LOG_EVENT = 'Save Submission Action';
@@ -25,10 +26,6 @@ module.exports = function(router) {
   });
 
   class SaveSubmission extends Action {
-    constructor(data, req, res) {
-      super(data, req, res);
-    }
-
     static info(req, res, next) {
       next(null, {
         name: 'save',
@@ -207,10 +204,26 @@ module.exports = function(router) {
 
         // Iterate over all the available fields.
         _.each(this.settings.fields, function(field, key) {
-          if (req.body.data.hasOwnProperty(field)) {
-            submission.data[key] = req.body.data[field];
+          if (field === 'data') {
+            _.set(submission.data, key, req.body.data);
+          }
+          else if (_.has(req.body.data, field)) {
+            _.set(submission.data, key, _.get(req.body.data, field));
           }
         });
+
+        if (this.settings.transform) {
+          const script = new vm.Script(this.settings.transform);
+          const sandbox = {
+            submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
+            data: submission.data,
+          };
+          script.runInContext(vm.createContext(sandbox), {
+            timeout: 500
+          });
+          submission.data = sandbox.data;
+        }
+
         return submission;
       }.bind(this);
 

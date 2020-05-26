@@ -189,6 +189,8 @@ module.exports = function(config) {
 
       // Connect to MongoDB.
       mongoose.connect(mongoUrl, mongoConfig);
+      mongoose.set('useFindAndModify', false);
+      mongoose.set('useCreateIndex', true);
 
       // Trigger when the connection is made.
       mongoose.connection.on('error', function(err) {

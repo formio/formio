@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const utils = require('formiojs/utils').default;
+const util = require('../../util/util');
 
 module.exports = (router) => {
   /**
@@ -29,7 +29,7 @@ module.exports = (router) => {
     // Only execute if the component should save reference and conditions do not apply.
     if (
       (component.hasOwnProperty('reference') && !component.reference) ||
-      !utils.checkCondition(component, {}, req.body.data)
+      !util.FormioUtils.checkCondition(component, {}, req.body.data)
     ) {
       return next();
     }
@@ -45,6 +45,10 @@ module.exports = (router) => {
           _.each(err.details, (details) => {
             if (details.path) {
               details.path = `${path}.data.${details.path}`;
+              details.path = details.path.replace(/[[\]]/g, '.')
+                .replace(/\.\./g, '.')
+                .split('.')
+                .map(part => _.defaultTo(_.toNumber(part), part));
             }
           });
         }
@@ -75,8 +79,10 @@ module.exports = (router) => {
         return next(err);
       }
 
-      if (childRes.resource && childRes.resource.item) {
-        _.set(data, component.key, childRes.resource.item);
+      if (!req.query.dryrun) {
+        if (childRes.resource && childRes.resource.item) {
+          _.set(data, component.key, childRes.resource.item);
+        }
       }
       next();
     });

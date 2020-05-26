@@ -170,8 +170,7 @@ module.exports = (formio) => {
       // Get the parameters for the email.
       params.form = form;
       // Allow hooks to alter params.
-      params = hook.alter('actionContext', params, req, );
-      return resolve(params);
+      Promise.resolve(hook.alter('actionContext', params, req)).then(params => resolve(params), reject);
     })
     .catch(reject);
   });
@@ -429,9 +428,9 @@ module.exports = (formio) => {
 
       const {
         from,
-        emails = '',
-        cc = '',
-        bcc = '',
+        emails,
+        cc: rawCc,
+        bcc: rawBcc,
         subject,
         message: html,
         transport,
@@ -440,13 +439,23 @@ module.exports = (formio) => {
       const mail = {
         from: from || 'no-reply@form.io',
         to: formatNodemailerEmailAddress(emails),
-        cc: formatNodemailerEmailAddress(cc),
-        bcc: formatNodemailerEmailAddress(bcc),
         subject,
         html,
         msgTransport: transport,
         transport: emailType,
       };
+
+      const cc = (rawCc || []).map(_.trim).filter(Boolean);
+      const bcc = (rawBcc || []).map(_.trim).filter(Boolean);
+
+      if (cc.length) {
+        mail.cc = formatNodemailerEmailAddress(cc);
+      }
+
+      if (bcc.length) {
+        mail.bcc = formatNodemailerEmailAddress(bcc);
+      }
+
       const options = {
         params,
       };
@@ -456,10 +465,10 @@ module.exports = (formio) => {
           let emails = [];
 
           debug.send(`message.sendEach: ${message.sendEach}`);
-          debug.send(`email: ${JSON.stringify(email)}`);
+          // debug.send(`email: ${JSON.stringify(email)}`);
           if (message.sendEach === true) {
             const addresses = _.uniq(email.to.split(',').map(_.trim));
-            debug.send(`addresses: ${JSON.stringify(addresses)}`);
+            // debug.send(`addresses: ${JSON.stringify(addresses)}`);
             // Make a copy of the email for each recipient.
             emails = addresses.map((address) => Object.assign({}, email, {to: address}));
           }
@@ -467,7 +476,7 @@ module.exports = (formio) => {
             emails = [email];
           }
 
-          debug.send(`emails: ${JSON.stringify(emails)}`);
+          // debug.send(`emails: ${JSON.stringify(emails)}`);
 
           const chunks = _.chunk(emails, EMAIL_CHUNK_SIZE);
           return chunks.reduce((result, chunk) => {
@@ -498,7 +507,7 @@ module.exports = (formio) => {
 
                         return transporter.sendMail(email, (err, info) => {
                           if (err) {
-                            return reject(err);
+                            debug.error(err);
                           }
 
                           return resolve(info);

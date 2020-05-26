@@ -53,7 +53,7 @@ module.exports = function(db, config, tools, done) {
 
     // Forms update step 2.
     let rename = function(next) {
-      forms.update({}, {$rename: {'app': 'project'}}, {multi: 1}, function(err) {
+      forms.updateMany({}, {$rename: {'app': 'project'}}, function(err) {
         if (err) {
           return next(err);
         }
@@ -108,7 +108,7 @@ module.exports = function(db, config, tools, done) {
 
     // Roles update step 2.
     let rename = function(next) {
-      roles.update({}, {$rename: {'app': 'project'}}, {multi: 1}, function(err) {
+      roles.updateMany({}, {$rename: {'app': 'project'}}, function(err) {
         if (err) {
           return next(err);
         }

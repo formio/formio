@@ -151,12 +151,16 @@ module.exports = (router) => {
               // Array for promises
               const promises = [];
 
-               _.each(data, (field, key) => {
+              _.each(data, (field, key) => {
                 if (field && field._id) {
                   // Add data property for resource fields
                   promises.push(
                     submissionModel.findById(field._id).populate('form').select('form data')
                       .then(result => {
+                        if (!result) {
+                          return;
+                        }
+
                         // Recurse for nested resources
                         return addSubData(result.data)
                           .then(res => newData[key] = {data: res});
@@ -178,7 +182,8 @@ module.exports = (router) => {
             }
 
             // Create the query stream.
-            const cursor = submissionModel.find(hook.alter('submissionQuery', query, req)).lean().cursor();
+            const cursor = submissionModel.find(hook.alter('submissionQuery', query, req))
+              .sort('-created').lean().cursor();
             const promises = [];
 
             const stream = cursor.pipe(through(function(row) {
@@ -194,7 +199,12 @@ module.exports = (router) => {
               })
              );
             }), {end: false});
-
+            // If the DB cursor throws an error, send the error.
+            cursor.on('error', (error) => {
+              debug(error);
+              router.formio.util.log(error);
+              res.status(400).send(error);
+            });
             // When the DB cursor ends, allow the output stream a tick to perform the last write,
             // then manually end it by pushing a null item to the output stream's queue
             cursor.on('end',() => Promise.all(promises).then(() => process.nextTick(() => stream.queue(null))));

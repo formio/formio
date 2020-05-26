@@ -4,18 +4,60 @@ const mongoose = require('mongoose');
 const ObjectID = require('mongodb').ObjectID;
 const _ = require('lodash');
 const nodeUrl = require('url');
-const Q = require('q');
-const formioUtils = require('formiojs/utils').default;
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/util');
 const errorCodes = require('./error-codes.js');
+const fetch = require('./fetch');
+const vm = require('vm');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
 
+// Define a few global noop placeholder shims and import the component classes
+global.Text              = class {};
+global.HTMLElement       = class {};
+global.HTMLCanvasElement = class {};
+global.navigator         = {userAgent: ''};
+global.document          = {
+  createElement: () => ({}),
+  cookie: '',
+  getElementsByTagName: () => [],
+  documentElement: {style: []}
+};
+global.window            = {addEventListener: () => {}, Event: {}, navigator: global.navigator};
+const Formio = require('formiojs/formio.form.js');
+
+// Remove onChange events from all renderer displays.
+_.each(Formio.Displays.displays, (display) => {
+  display.prototype.onChange = _.noop;
+});
+
+Formio.Utils.Evaluator.noeval = true;
+Formio.Utils.Evaluator.evaluator = function(func, args) {
+  return function() {
+    const params = _.keys(args);
+    const sandbox = vm.createContext({
+      result: null,
+      args
+    });
+    /* eslint-disable no-empty */
+    try {
+      const script = new vm.Script(`result = (function({${params.join(',')}}) {${func}})(args);`);
+      script.runInContext(sandbox, {
+        timeout: 250
+      });
+    }
+    catch (err) {}
+    /* eslint-enable no-empty */
+    return sandbox.result;
+  };
+};
+
 const Utils = {
+  Formio: Formio.Formio,
+  FormioUtils: Formio.Utils,
   deleteProp,
 
   /**
@@ -191,7 +233,7 @@ const Utils = {
    *   Whether or not to include layout components.
    * @param {String} path
    */
-  eachComponent: formioUtils.eachComponent.bind(formioUtils),
+  eachComponent: Formio.Utils.eachComponent.bind(Formio.Utils),
 
   /**
    * Get a component by its key
@@ -204,7 +246,7 @@ const Utils = {
    * @returns {Object}
    *   The component that matches the given key, or undefined if not found.
    */
-  getComponent: formioUtils.getComponent.bind(formioUtils),
+  getComponent: Formio.Utils.getComponent.bind(Formio.Utils),
 
   /**
    * Define if component should be considered input component
@@ -215,7 +257,7 @@ const Utils = {
    * @returns {Boolean}
    *   If component is input or not
    */
-  isInputComponent: formioUtils.isInputComponent.bind(formioUtils),
+  isInputComponent: Formio.Utils.isInputComponent.bind(Formio.Utils),
 
   /**
    * Flatten the form components for data manipulation.
@@ -228,7 +270,7 @@ const Utils = {
    * @returns {Object}
    *   The flattened components map.
    */
-  flattenComponents: formioUtils.flattenComponents.bind(formioUtils),
+  flattenComponents: Formio.Utils.flattenComponents.bind(Formio.Utils),
 
   /**
    * Get the value for a component key, in the given submission.
@@ -238,7 +280,7 @@ const Utils = {
    * @param {String} key
    *   A for components API key to search for.
    */
-  getValue: formioUtils.getValue.bind(formioUtils),
+  getValue: Formio.Utils.getValue.bind(Formio.Utils),
 
   /**
    * Determine if a component is a layout component or not.
@@ -249,7 +291,7 @@ const Utils = {
    * @returns {Boolean}
    *   Whether or not the component is a layout component.
    */
-  isLayoutComponent: formioUtils.isLayoutComponent.bind(formioUtils),
+  isLayoutComponent: Formio.Utils.isLayoutComponent.bind(Formio.Utils),
 
   /**
    * Apply JSON logic functionality.
@@ -258,7 +300,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  jsonLogic: formioUtils.jsonLogic,
+  jsonLogic: Formio.Utils.jsonLogic,
 
   /**
    * Check if the condition for a component is true or not.
@@ -267,7 +309,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  checkCondition: formioUtils.checkCondition.bind(formioUtils),
+  checkCondition: Formio.Utils.checkCondition.bind(Formio.Utils),
 
   /**
    * Return the objectId.
@@ -445,12 +487,14 @@ const Utils = {
   },
 
   /**
-   * A promisified version of request. Use this if you need
-   * to be able to mock requests for tests, as it's much easier
-   * to mock this than the individual required 'request' modules
-   * in each file.
+   * A node-fetch shim adding support for http(s) proxy and allowing
+   * invalid tls certificates (to be used with self signed certificates).
+   *
+   * @param {any} url The request url string or url like object.
+   * @param {any} options The request options object.
+   * @returns {Promise<Response>} The promise with the node-fetch response object.
    */
-  request: Q.denodeify(require('request')),
+  fetch,
 
   /**
    * Utility function to ensure the given id is always a BSON object.
@@ -569,6 +613,7 @@ const Utils = {
     );
   },
 
+  /* eslint-disable new-cap */
   base64: {
     /**
      * Base64 encode the given data.
@@ -580,7 +625,7 @@ const Utils = {
      *   The base64 representation of the given data.
      */
     encode(decoded) {
-      return new Buffer(decoded.toString()).toString('base64');
+      return new Buffer.from(decoded.toString()).toString('base64');
     },
     /**
      * Base64 decode the given data.
@@ -592,9 +637,10 @@ const Utils = {
      *   The ascii representation of the given encoded data.
      */
     decode(encoded) {
-      return new Buffer(encoded.toString()).toString('ascii');
+      return new Buffer.from(encoded.toString()).toString('ascii');
     }
   },
+  /* eslint-enable new-cap */
 
   /**
    * Retrieve a unique machine name

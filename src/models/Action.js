@@ -12,7 +12,7 @@ module.exports = function(formio) {
    * @param res
    */
   class Action {
-    constructor(data) {
+    constructor(data, req, res) {
       this.name = data.name;
       this.title = data.title;
       this.action = data.action;
@@ -22,6 +22,8 @@ module.exports = function(formio) {
       this.form = data.form;
       this.settings = data.settings;
       this.condition = data.condition;
+      this.req = req;
+      this.res = res;
     }
 
     /**

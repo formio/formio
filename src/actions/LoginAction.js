@@ -53,9 +53,10 @@ module.exports = (router) => {
           key: 'resources',
           placeholder: 'Select the resources we should login against.',
           dataSrc: 'url',
-          data: {url: `${basePath}?type=resource`},
+          data: {url: `${basePath}?type=resource&limit={{ limit }}`},
           valueProperty: '_id',
           template: '<span>{{ item.title }}</span>',
+          limit: 4294967295,
           multiple: true,
           validate: {
             required: true,
@@ -214,7 +215,7 @@ module.exports = (router) => {
 
       // Update the user record
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.update(
+      submissionModel.updateOne(
         {_id: user._id},
         {$set: {metadata: user.metadata}},
         (err) => {

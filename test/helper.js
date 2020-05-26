@@ -1,6 +1,6 @@
 'use strict';
 
-var request = require('supertest');
+const request = require('./formio-supertest');
 var chance = new (require('chance'))();
 var assert = require('assert');
 var _ = require('lodash');
@@ -38,6 +38,24 @@ module.exports = function(app) {
       });
     });
     return permsConfig;
+  };
+
+  Helper.prototype.getExport = function(form, format, done) {
+    let url = '';
+    if (this.template.project && this.template.project._id) {
+      url += `/project/${this.template.project._id}`;
+    }
+    url += `/form/${form._id}/export?format=${format || 'csv'}`;
+
+    request(app)
+      .get(url)
+      .set('x-jwt-token', this.owner.token)
+      .expect('Content-Type', format === 'json' ? /json/ : 'text/csv')
+      .expect(200)
+      .end((err, res) => {
+        this.owner.token = res.headers['x-jwt-token'];
+        done(err, res);
+      })
   };
 
   Helper.prototype.getTemplate = function() {

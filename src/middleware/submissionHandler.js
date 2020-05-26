@@ -3,6 +3,7 @@
 const _ = require('lodash');
 const async = require('async');
 const util = require('../util/util');
+const LegacyValidator = require('../resources/LegacyValidator');
 const Validator = require('../resources/Validator');
 
 module.exports = (router, resourceName, resourceId) => {
@@ -163,30 +164,41 @@ module.exports = (router, resourceName, resourceId) => {
       }
 
       // Assign submission data to the request body.
+      const formId = _.get(req, 'body.data.form');
+      const isSubform = formId && formId.toString() !== req.currentForm._id.toString();
       req.submission = req.submission || {data: {}};
-      if (!_.isEmpty(req.submission.data)) {
+      if (!_.isEmpty(req.submission.data) && !isSubform) {
         req.body.data = _.assign(req.body.data, req.submission.data);
       }
 
       // Clone the submission to the real value of the request body.
       req.submission = _.cloneDeep(req.body);
 
-      hook.alter('validateSubmissionForm', req.currentForm, req.body, (form) => {
+      // Next we need to validate the input.
+      hook.alter('validateSubmissionForm', req.currentForm, req.body, async form => { // eslint-disable-line max-statements
+        // Allow use of the legacy validator
+        const useLegacyValidator = (
+          process.env.LEGACY_VALIDATOR ||
+          req.headers['legacy-validator'] ||
+          req.query.legacy_validator
+        );
+
         // Get the submission model.
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
         // Next we need to validate the input.
         const token = util.getRequestValue(req, 'x-jwt-token');
-        const validator = new Validator(req.currentForm, submissionModel, token);
+        const _Validator = useLegacyValidator ? LegacyValidator : Validator;
+        _Validator.setHook(hook);
+        const validator = new _Validator(req.currentForm, submissionModel, token, req.token);
 
         // Validate the request.
-        validator.validate(req.body, (err, submission) => {
+        validator.validate(req.body, (err, data) => {
           if (err) {
             return res.status(400).json(err);
           }
 
-          res.submission = {data: submission};
-
+          res.submission = {data: data};
           done();
         });
       });
@@ -216,6 +228,79 @@ module.exports = (router, resourceName, resourceId) => {
 
         router.formio.actions.execute(handler, method.name, req, res, done);
       };
+    }
+
+    // This should probably be moved to utils.
+    function eachValue(components, data, fn, context, path = '') {
+      const promises = [];
+      if (components) {
+        components.forEach((component) => {
+          if (component.hasOwnProperty('components') && Array.isArray(component.components)) {
+            // If tree type is an array of objects like datagrid and editgrid.
+            if (['datagrid', 'editgrid'].includes(component.type) || component.arrayTree) {
+              const compData = _.get(data, component.key, []);
+              if (Array.isArray(compData)) {
+                compData.forEach((row, index) => {
+                  promises.push(eachValue(
+                    component.components,
+                    row,
+                    fn,
+                    context,
+                    `${path ? `${path}.` : ''}${component.key}[${index}]`,
+                  ));
+                });
+              }
+            }
+            else if (['form'].includes(component.type)) {
+              promises.push(eachValue(
+                component.components,
+                _.get(data, `${component.key}.data`, {}),
+                fn,
+                context,
+                `${path ? `${path}.` : ''}${component.key}.data`,
+              ));
+            }
+            else if (
+              ['container'].includes(component.type) ||
+              (
+                component.tree &&
+                !['panel', 'table', 'well', 'columns', 'fieldset', 'tabs', 'form'].includes(component.type)
+              )
+            ) {
+              promises.push(eachValue(
+                component.components,
+                _.get(data, component.key),
+                fn,
+                context,
+                `${path ? `${path}.` : ''}${component.key}`,
+              ));
+            }
+            else {
+              promises.push(eachValue(component.components, data, fn, context, path));
+            }
+          }
+          else if (component.hasOwnProperty('columns') && Array.isArray(component.columns)) {
+            // Handle column like layout components.
+            component.columns.forEach((column) => {
+              promises.push(eachValue(column.components, data, fn, context, path));
+            });
+          }
+          else if (component.hasOwnProperty('rows') && Array.isArray(component.rows)) {
+            // Handle table like layout components.
+            component.rows.forEach((row) => {
+              if (Array.isArray(row)) {
+                row.forEach((column) => {
+                  promises.push(eachValue(column.components, data, fn, context, path));
+                });
+              }
+            });
+          }
+          // Call the callback for each component.
+          promises.push(fn({...context, data, component, path}));
+        });
+      }
+
+      return Promise.all(promises);
     }
 
     /**
@@ -326,7 +411,7 @@ module.exports = (router, resourceName, resourceId) => {
             // If an update exists.
             if (Object.keys(submissionUpdate).length) {
               const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-              submissionModel.update({
+              submissionModel.updateOne({
                 _id: res.resource.item._id
               }, {'$set': submissionUpdate}, done);
             }

@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const util = require('formiojs/utils').default;
+const util = require('../util/util');
 const debug = {
   error: require('debug')('formio:error')
 };
@@ -113,7 +113,7 @@ module.exports = function(req, router, cb) {
       required: []
     };
 
-    util.eachComponent(components, function(component) {
+    util.FormioUtils.eachComponent(components, function(component) {
       if (component.key) {
         let property;
         switch (component.type) {

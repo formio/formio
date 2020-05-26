@@ -10,7 +10,7 @@
  * @param tools
  * @param done
  */
-const utils = require('formiojs/utils').default;
+const util = require('../../util/util');
 const config = require('config');
 const async = require('async');
 const mongodb = require('mongodb');
@@ -70,7 +70,7 @@ MongoClient.connect(config.mongo, {useNewUrlParser: true}, (err, client) => {
         return nextForm();
       }
       const fields = [];
-      utils.eachComponent(form.components, function(component, path) {
+      util.FormioUtils.eachComponent(form.components, function(component, path) {
         // We only care about non-layout components, which are not unique, and have not been blacklisted.
         if (component.type === 'datetime') {
           fields.push(path);

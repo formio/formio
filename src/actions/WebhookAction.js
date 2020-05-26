@@ -2,7 +2,7 @@
 
 const rest = require('restler');
 const _ = require('lodash');
-const FormioUtils = require('formiojs/utils').default;
+const util = require('../util/util');
 
 const LOG_EVENT = 'Webhook Action';
 
@@ -18,10 +18,6 @@ module.exports = function(router) {
    *   This class is used to create webhook interface.
    */
   class WebhookAction extends Action {
-    constructor(data, req, res) {
-      super(data, req, res);
-    }
-
     static info(req, res, next) {
       next(null, hook.alter('actionInfo', {
         name: 'webhook',
@@ -187,7 +183,7 @@ module.exports = function(router) {
 
         // Interpolate URL if possible
         if (res && res.resource && res.resource.item && res.resource.item.data) {
-          url = FormioUtils.interpolate(url, res.resource.item.data);
+          url = util.FormioUtils.interpolate(url, res.resource.item.data);
         }
 
         // Fall back if interpolation failed
