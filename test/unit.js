@@ -2,6 +2,7 @@
 'use strict';
 
 let assert = require('assert');
+var chance = new (require('chance'))();
 let fs = require('fs');
 let docker = process.env.DOCKER;
 const request = require('./formio-supertest');
@@ -126,12 +127,14 @@ module.exports = function(app, template, hook) {
       let request2 = new Promise((resolve, reject) => {
         setTimeout(() => {
           started.push('request2');
+          const email = chance.email();
+          const password = chance.word({length: 10});
           request(app)
             .post(hook.alter('url', '/form/' + template.forms.adminRegister._id + '/submission', template))
             .send({
               data: {
-                'email': template.users.admin.data.email,
-                'password': template.users.admin.data.password
+                'email': email,
+                'password': password,
               }
             })
             .expect(200)
@@ -148,7 +151,7 @@ module.exports = function(app, template, hook) {
               assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
               assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
               assert(response.data.hasOwnProperty('email'), 'The submission `data` should contain the `email`.');
-              assert.equal(response.data.email, template.users.admin.data.email);
+              assert.equal(response.data.email, email);
               assert(!response.data.hasOwnProperty('password'), 'The submission `data` should not contain the `password`.');
               assert(response.hasOwnProperty('form'), 'The response should contain the resource `form`.');
               assert.equal(response.form, template.resources.admin._id);
@@ -158,14 +161,6 @@ module.exports = function(app, template, hook) {
               assert.equal(response.owner, response._id);
               assert.equal(response.roles.length, 1);
               assert.equal(response.roles[0].toString(), template.roles.administrator._id.toString());
-
-              // Update our testProject.owners data.
-              let tempPassword = template.users.admin.data.password;
-              template.users.admin = response;
-              template.users.admin.data.password = tempPassword;
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
 
               resolve();
             });
