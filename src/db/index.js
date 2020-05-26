@@ -137,6 +137,57 @@ module.exports = function(formio) {
   };
 
   /**
+   * Fetch the SSL certificates from local dir.
+   *
+   * @param next
+   * @return {*}
+   */
+  const getSSL = function(next) {
+    if (!config.mongoSSL) {
+      return next();
+    }
+
+    console.log('Loading Mongo SSL Certificates');
+
+    const certs = {
+      sslValidate: !!config.mongoSSLValidate,
+      ssl: true,
+    };
+
+    if (config.mongoSSLPassword) {
+      certs.sslPass = config.mongoSSLPassword;
+    }
+
+    const files = {
+      sslCA: 'ca.pem',
+      sslCert: 'cert.pem',
+      sslCRL: 'crl.pem',
+      sslKey: 'key.pem',
+    };
+
+    // Load each file into its setting.
+    Object.keys(files).forEach((key) => {
+      const file = files[key];
+      if (fs.existsSync(path.join(config.mongoSSL, file))) {
+        console.log(' > Reading', path.join(config.mongoSSL, file));
+        if (key === 'sslCA') {
+          certs[key] = [fs.readFileSync(path.join(config.mongoSSL, file))];
+        }
+        else {
+          certs[key] = fs.readFileSync(path.join(config.mongoSSL, file));
+        }
+      }
+      else {
+        console.log(' > Could not find', path.join(config.mongoSSL, file), 'skipping');
+      }
+    });
+    console.log('');
+
+    config.mongoSSL = certs;
+    return next();
+  };
+
+  /**
    * Initialize the Mongo Connections for queries.
    *
    * @param next
@@ -157,7 +208,7 @@ module.exports = function(formio) {
       : config.mongo[0];
 
     debug.db(`Opening new connection to ${dbUrl}`);
-    const mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
+    let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
     if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
       mongoConfig.connectTimeoutMS = 300000;
     }
@@ -170,6 +221,12 @@ module.exports = function(formio) {
     if (config.mongoSA) {
       mongoConfig.sslValidate = true;
       mongoConfig.sslCA = config.mongoSA;
+    }
+    if (config.mongoSSL) {
+      mongoConfig = {
+        ...mongoConfig,
+        ...config.mongoSSL,
+      };
     }
 
     mongoConfig.useUnifiedTopology = true;
@@ -632,6 +689,7 @@ module.exports = function(formio) {
 
     async.series([
       getSA,
+      getSSL,
       connection,
       checkSetup,
       checkEncryption,
