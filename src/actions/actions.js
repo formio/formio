@@ -33,12 +33,12 @@ module.exports = (router) => {
      */
     actions: hook.alter('actions', {
       email: require('./EmailAction')(router),
-      webhook: require('./WebhookAction')(router),
-      sql: require('./SQLAction')(router),
-      role: require('./RoleAction')(router),
+      login: require('./LoginAction')(router),
       resetpass: require('./ResetPassword')(router),
+      role: require('./RoleAction')(router),
       save: require('./SaveSubmission')(router),
-      login: require('./LoginAction')(router)
+      sql: require('./SQLAction')(router),
+      webhook: require('./WebhookAction')(router),
     }),
 
     /**
