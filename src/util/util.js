@@ -4,10 +4,10 @@ const mongoose = require('mongoose');
 const ObjectID = require('mongodb').ObjectID;
 const _ = require('lodash');
 const nodeUrl = require('url');
-const Q = require('q');
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/util');
 const errorCodes = require('./error-codes.js');
+const fetch = require('./fetch');
 const vm = require('vm');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
@@ -487,12 +487,14 @@ const Utils = {
   },
 
   /**
-   * A promisified version of request. Use this if you need
-   * to be able to mock requests for tests, as it's much easier
-   * to mock this than the individual required 'request' modules
-   * in each file.
+   * A node-fetch shim adding support for http(s) proxy and allowing
+   * invalid tls certificates (to be used with self signed certificates).
+   *
+   * @param {any} url The request url string or url like object.
+   * @param {any} options The request options object.
+   * @returns {Promise<Response>} The promise with the node-fetch response object.
    */
-  request: Q.denodeify(require('request')),
+  fetch,
 
   /**
    * Utility function to ensure the given id is always a BSON object.
