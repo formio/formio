@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.81.0
+### Added
+ - Fix (Tree): added validation schema.
+
 ## 1.80.0
 ### Changed
  - FJS-917: Add options to use SSL Certs with Mongo connection.
