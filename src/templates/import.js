@@ -581,6 +581,12 @@ module.exports = (router) => {
     });
   };
 
+  const alterFormSave = (forms, alter) => {
+    return Object.values(forms || {}).map((form) => {
+      return async.apply((done) => alter(form, done));
+    });
+  };
+
   /**
    * Import the formio template.
    *
@@ -619,7 +625,23 @@ module.exports = (router) => {
       cleanUp([
         {entity: entities.resource, forms: template.resources},
         {entity: entities.form, forms: template.forms},
-      ], template, done);
+      ], template, (err, data) => {
+        if (err) {
+          return done(err);
+        }
+
+        if (!alter.formSave) {
+          return done(null, data);
+        }
+
+        return async.series(
+          [
+            ...alterFormSave(data.forms, alter.formSave),
+            ...alterFormSave(data.resources, alter.formSave),
+          ],
+          done(null, data),
+        );
+      });
     });
   };
 
