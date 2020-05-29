@@ -113,7 +113,12 @@ module.exports = (router) => {
   };
 
   // Export forms.
-  const exportForms = function(_export, _map, options, extraFields, next) {
+  const exportForms = function(_export, _map, options, next) {
+    let extraFormFields = [];
+    if (options && options.extraFormFields) {
+      extraFormFields = options.extraFormFields;
+    }
+
     formio.resources.form.model
       .find(hook.alter('formQuery', {deleted: {$eq: null}}, options))
       .lean(true)
@@ -141,7 +146,7 @@ module.exports = (router) => {
             'access',
             'submissionAccess',
             'properties',
-            ...extraFields,
+            ...extraFormFields,
           );
           _map.forms[form._id.toString()] = machineName;
         });
@@ -200,7 +205,7 @@ module.exports = (router) => {
    *
    * Note: This is all of the core entities, not submission data.
    */
-  const exportTemplate = (options, extraFormFields, next) => {
+  const exportTemplate = (options, next) => {
     const template = hook.alter('defaultTemplate', Object.assign({
       title: 'Export',
       version: '2.0.0',
@@ -221,7 +226,7 @@ module.exports = (router) => {
     // Export the roles forms and actions.
     async.series(hook.alter(`templateExportSteps`, [
       async.apply(exportRoles, template, map, options),
-      async.apply(exportForms, template, map, options, extraFormFields),
+      async.apply(exportForms, template, map, options),
       async.apply(exportActions, template, map, options)
     ], template, map, options), (err) => {
       if (err) {
@@ -237,9 +242,11 @@ module.exports = (router) => {
   if (router.get) {
     router.get('/export', (req, res, next) => {
       const options = hook.alter('exportOptions', {}, req, res);
-      const extraFormFields = (req.query.extra && req.query.extra.split(',').filter((field) => !!field)) || [];
+      if (options) {
+        options.extraFormFields = (req.query.extra && req.query.extra.split(',').filter((field) => !!field));
+      }
 
-      exportTemplate(options, extraFormFields, (err, data) => {
+      exportTemplate(options, (err, data) => {
         if (err) {
           return next(err.message || err);
         }
