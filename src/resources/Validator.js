@@ -583,7 +583,7 @@ class Validator {
       let componentKey = component.key;
 
       this.applyLogic(component, componentData, submission.data);
-      this.calculateValue(component, componentData, submission.data);
+      this.calculateValue(component, componentData, submission.data, submission);
 
       // The value is persistent if it doesn't say otherwise or explicitly says so.
       const isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
@@ -922,17 +922,21 @@ class Validator {
     });
   }
 
-  calculateValue(component, row, data) {
+  calculateValue(component, row, data, submission) {
     if (component.calculateServer && component.calculateValue) {
       if (_.isString(component.calculateValue)) {
         try {
           const sandbox = vm.createContext(this.evalContext({
             value: _.get(row, component.key),
+            form: this.form,
+            submission,
             data,
             row,
             component,
             util,
+            utils: util,
             moment,
+            _,
             token: this.decodedToken,
           }));
 
@@ -945,20 +949,26 @@ class Validator {
           _.set(row, component.key, sandbox.value);
         }
         catch (e) {
-          // Need to log error for calculated value.
+          debug.error(e);
         }
       }
       else {
         try {
           _.set(row, component.key, util.jsonLogic(component.calculateValue, {
+            form: this.form,
+            submission,
             data,
             row,
+            component,
+            util,
+            utils: util,
+            moment,
             _,
             token: this.decodedToken,
           }));
         }
         catch (e) {
-          // Need to log error for calculated value.
+          debug.error(e);
         }
       }
     }
