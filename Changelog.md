@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.83.0
+### Changed
+ - Update chance@1.1.6, formio-workers@1.14.7, mongodb@3.5.8, mongoose@5.9.16, nodemailer@6.4.8, moment@2.26.0, eslint@7.1.0, mocha@7.2.0
+
+### Fixed
+ - FOR-2665: Ensure calculate value eval context
+
 ## 1.82.0
 ### Added
  - Template import/export improvements.
