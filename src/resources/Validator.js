@@ -669,6 +669,16 @@ class Validator {
 
           fieldValidator = JoiX.object().keys(objectSchema);
           break;
+        case 'address':
+          objectSchema = this.buildSchema(
+            {},
+            component.components,
+            componentData,
+            submission
+          );
+
+          fieldValidator = fieldValidator || JoiX.any();
+          break;
         case 'fieldset':
         case 'panel':
         case 'well':
