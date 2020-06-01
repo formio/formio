@@ -35,7 +35,7 @@
     "express": "^4.17.1",
     "fast-json-patch": "^2.2.1",
     "formio-workers": "1.14.2",
-    "formiojs": "^4.10.0-rc.4",
+    "formiojs": "^4.10.0-rc.6",
     "fs-extra": "^8.1.0",
     "html-entities": "^1.3.1",
     "https-proxy-agent": "^5.0.0",

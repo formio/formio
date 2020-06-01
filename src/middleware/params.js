@@ -1,11 +1,13 @@
 'use strict';
 
-const util = require('../util/util');
 const _ = require('lodash');
 
-module.exports = function(router) {
+const util = require('../util/util');
+
+module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
-  return function paramsHandler(req, res, next) {
+
+  return (req, res, next) => {
     // Split the request url into its corresponding parameters.
     const params = _.assign(util.getUrlParams(req.url), util.getUrlParams(req.baseUrl));
 
