@@ -203,7 +203,7 @@ module.exports = (router) => {
 
         hook.alter('validateToken', req, decoded, user, (err) => {
           if (err) {
-            return noToken();
+            return res.status(440).send(err);
           }
 
           // Check if the user has reset the password since the token was issued.

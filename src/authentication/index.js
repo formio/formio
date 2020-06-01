@@ -242,49 +242,49 @@ module.exports = (router) => {
         return next('User or password was incorrect');
       }
 
-      hook.alter('authenticate', user, req, (err) => {
+      const hash = _.get(user.data, passField);
+      if (!hash) {
+        return next('Your account does not have a password. You must reset your password to login.');
+      }
+
+      // Compare the provided password.
+      bcrypt.compare(password, hash, (err, value) => {
         if (err) {
           return next(err);
         }
 
-        const hash = _.get(user.data, passField);
-        if (!hash) {
-          return next('Your account does not have a password. You must reset your password to login.');
+        if (!value) {
+          return next('User or password was incorrect', {user});
         }
 
-        // Compare the provided password.
-        bcrypt.compare(password, hash, (err, value) => {
+        // Load the form associated with this user record.
+        router.formio.resources.form.model.findOne({
+          _id: user.form,
+          deleted: {$eq: null},
+        }).lean().exec((err, form) => {
           if (err) {
             return next(err);
           }
 
-          if (!value) {
-            return next('User or password was incorrect', {user});
+          if (!form) {
+            return next('User form not found.');
           }
 
-          // Load the form associated with this user record.
-          router.formio.resources.form.model.findOne({
-            _id: user.form,
-            deleted: {$eq: null},
-          }).lean().exec((err, form) => {
+          // Allow anyone to hook and modify the user.
+          hook.alter('user', user, (err, _user) => {
             if (err) {
-              return next(err);
+              // Attempt to fail safely and not update the user reference.
+              debug.authenticate(err);
+            }
+            else {
+              // Update the user with the hook results.
+              debug.authenticate(user);
+              user = _user;
             }
 
-            if (!form) {
-              return next('User form not found.');
-            }
-
-            // Allow anyone to hook and modify the user.
-            hook.alter('user', user, (err, _user) => {
+            hook.alter('login', user, req, (err) => {
               if (err) {
-                // Attempt to fail safely and not update the user reference.
-                debug.authenticate(err);
-              }
-              else {
-                // Update the user with the hook results.
-                debug.authenticate(user);
-                user = _user;
+                return next(err);
               }
 
               // Allow anyone to hook and modify the token.
