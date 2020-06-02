@@ -523,8 +523,15 @@ module.exports = (router) => {
               });
             };
 
+            const setVid = (document, _vid) => {
+              if (document && document.hasOwnProperty('_vid')) {
+                document._vid = _vid;
+              }
+            };
+
             if (!doc) {
               debug.install(`Existing not found (${document.machineName})`);
+              setVid(document, 0);
               /* eslint-disable new-cap */
               return saveDoc(new model(document));
               /* eslint-enable new-cap */
@@ -532,6 +539,7 @@ module.exports = (router) => {
             else if (!createOnly) {
               debug.install(`Existing found`);
               doc = _.assign(doc, document);
+              setVid(doc, 0);
               debug.install(doc);
               return saveDoc(doc);
             }
@@ -639,7 +647,7 @@ module.exports = (router) => {
             ...alterFormSave(data.forms, alter.formSave),
             ...alterFormSave(data.resources, alter.formSave),
           ],
-          done(null, data),
+          () => done(null, data),
         );
       });
     });
