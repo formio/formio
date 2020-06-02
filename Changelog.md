@@ -53,6 +53,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
 
+## 1.84.0
+### Fixed
+ - Fixed callback invocation after alterFormSave series.
+
+## 1.83.0
+### Changed
+ - Update chance@1.1.6, formio-workers@1.14.7, mongodb@3.5.8, mongoose@5.9.16, nodemailer@6.4.8, moment@2.26.0, eslint@7.1.0, mocha@7.2.0
+
+### Fixed
+ - FOR-2665: Ensure calculate value eval context
+
+## 1.82.0
+### Added
+ - Template import/export improvements.
+
+## 1.81.0
+### Added
+ - Fix (Tree): added validation schema.
+
+## 1.80.0
+### Changed
+ - FJS-917: Add options to use SSL Certs with Mongo connection.
+
 ## 1.79.0
 ### Added
  - More options for mapping Save Submission action to a Resource.

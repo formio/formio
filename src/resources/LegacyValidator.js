@@ -567,9 +567,10 @@ class Validator {
     /* eslint-disable max-statements */
     components.forEach((component) => {
       let fieldValidator = null;
+      let componentKey = component.key;
 
       this.applyLogic(component, componentData, submission.data);
-      this.calculateValue(component, componentData, submission.data);
+      this.calculateValue(component, componentData, submission.data, submission);
 
       // The value is persistent if it doesn't say otherwise or explicitly says so.
       const isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
@@ -620,10 +621,10 @@ class Validator {
           break;
         case 'tagpad':
           objectSchema = this.buildSchema(
-              {},
-              component.components,
-              _.get(componentData, component.key, componentData).map(dot => dot.data),
-              submission
+            {},
+            component.components,
+            _.get(componentData, component.key, componentData).map(dot => dot.data),
+            submission
           );
           fieldValidator = JoiX.array().items(JoiX.object({
             coordinate: JoiX.object({
@@ -635,10 +636,10 @@ class Validator {
           break;
         case 'tree':
           objectSchema = this.buildSchema(
-              {},
-              component.components,
-              _.get(componentData, component.key, componentData).data,
-              submission
+            {},
+            component.components,
+            _.get(componentData, component.key, componentData).data,
+            submission
           );
           fieldValidator = JoiX.object({
             data: JoiX.object().keys(objectSchema),
@@ -737,7 +738,7 @@ class Validator {
           break;
         case 'checkbox':
           if (component.name && !_.find(components, ['key', component.name])) {
-            schema[component.name] = JoiX.any();
+            componentKey = component.name;
           }
           fieldValidator = fieldValidator || JoiX.any();
           break;
@@ -767,7 +768,7 @@ class Validator {
       }
       /* eslint-enable max-depth, valid-typeof */
 
-      if (component.key && (component.key.indexOf('.') === -1) && component.validate) {
+      if (componentKey && (componentKey.indexOf('.') === -1) && component.validate) {
         // Add required validator.
         if (component.validate.required) {
           fieldValidator = fieldValidator.required().empty().disallow('', null);
@@ -832,8 +833,8 @@ class Validator {
       }
 
       // Only run validations for persistent fields.
-      if (component.key && fieldValidator && isPersistent) {
-        schema[component.key] = fieldValidator.hidden(component, submission.data, this.form);
+      if (componentKey && fieldValidator && isPersistent) {
+        schema[componentKey] = fieldValidator.hidden(component, submission.data, this.form);
       }
     });
     /* eslint-enable max-statements */
@@ -917,17 +918,21 @@ class Validator {
     });
   }
 
-  calculateValue(component, row, data) {
+  calculateValue(component, row, data, submission) {
     if (component.calculateServer && component.calculateValue) {
       if (_.isString(component.calculateValue)) {
         try {
           const sandbox = vm.createContext(this.evalContext({
             value: _.get(row, component.key),
+            form: this.form,
+            submission,
             data,
             row,
             component,
             util,
+            utils: util,
             moment,
+            _,
             token: this.decodedToken,
           }));
 
@@ -940,20 +945,26 @@ class Validator {
           _.set(row, component.key, sandbox.value);
         }
         catch (e) {
-          // Need to log error for calculated value.
+          debug.error(e);
         }
       }
       else {
         try {
           _.set(row, component.key, util.jsonLogic(component.calculateValue, {
+            form: this.form,
+            submission,
             data,
             row,
+            component,
+            util,
+            utils: util,
+            moment,
             _,
             token: this.decodedToken,
           }));
         }
         catch (e) {
-          // Need to log error for calculated value.
+          debug.error(e);
         }
       }
     }
