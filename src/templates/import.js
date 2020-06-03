@@ -523,8 +523,15 @@ module.exports = (router) => {
               });
             };
 
+            const setVid = (document, _vid) => {
+              if (document && document.hasOwnProperty('_vid')) {
+                document._vid = _vid;
+              }
+            };
+
             if (!doc) {
               debug.install(`Existing not found (${document.machineName})`);
+              setVid(document, 0);
               /* eslint-disable new-cap */
               return saveDoc(new model(document));
               /* eslint-enable new-cap */
@@ -532,6 +539,7 @@ module.exports = (router) => {
             else if (!createOnly) {
               debug.install(`Existing found`);
               doc = _.assign(doc, document);
+              setVid(doc, 0);
               debug.install(doc);
               return saveDoc(doc);
             }
@@ -581,6 +589,12 @@ module.exports = (router) => {
     });
   };
 
+  const alterFormSave = (forms, alter) => {
+    return Object.values(forms || {}).map((form) => {
+      return async.apply((done) => alter(form, done));
+    });
+  };
+
   /**
    * Import the formio template.
    *
@@ -619,7 +633,23 @@ module.exports = (router) => {
       cleanUp([
         {entity: entities.resource, forms: template.resources},
         {entity: entities.form, forms: template.forms},
-      ], template, done);
+      ], template, (err, data) => {
+        if (err) {
+          return done(err);
+        }
+
+        if (!alter.formSave) {
+          return done(null, data);
+        }
+
+        return async.series(
+          [
+            ...alterFormSave(data.forms, alter.formSave),
+            ...alterFormSave(data.resources, alter.formSave),
+          ],
+          () => done(null, data),
+        );
+      });
     });
   };
 
