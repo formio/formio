@@ -45,7 +45,7 @@ module.exports = function(formio) {
       // The roles associated with this submission, if any.
       // Useful for complex custom resources.
       roles: {
-        type: [formio.mongoose.Schema.Types.ObjectId],
+        type: [formio.mongoose.Schema.Types.Mixed],
         ref: 'role',
         index: true
       },

@@ -17,7 +17,7 @@ module.exports = function(formio) {
       required: 'A permission type is required to associate an available permission with a Resource.'
     },
     resources: {
-      type: [formio.mongoose.Schema.Types.ObjectId],
+      type: [formio.mongoose.Schema.Types.Mixed],
       ref: 'form'
     }
   }, {_id: false});
