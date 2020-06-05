@@ -221,7 +221,7 @@ module.exports = function(router) {
             // check for group permissions, only if creating submission (POST request)
             if (req.method === 'POST') {
               util.eachComponent(item.components, (component, path) => {
-                if (component && component.key && component.defaultPermission) {
+                if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
                   let selectValue = _.get(req.body.data, path);
                   if (selectValue) {
                     if (!(selectValue instanceof Array)) {
@@ -230,10 +230,16 @@ module.exports = function(router) {
                     /* eslint-disable camelcase */
                     selectValue.forEach(value => {
                       if (value && value._id) {
-                        if (['create', 'write', 'admin'].indexOf(component.defaultPermission) > -1) {
-                          access.submission.create_all = access.submission.create_all || [];
-                          access.submission.create_all.push(value._id);
-                        }
+                        component.submissionAccess.forEach(submission => {
+                          if (['create', 'write', 'admin'].indexOf(submission.type) > -1) {
+                            let id;
+                            if (submission.roles.length) {
+                              submission.roles.forEach(role => role !== '' ? id = `${value._id}:${role}` : value._id);
+                            }
+                            access.submission.create_all = access.submission.create_all || [];
+                            access.submission.create_all.push(id || value._id);
+                          }
+                        });
                       }
                     });
                   }
@@ -311,8 +317,6 @@ module.exports = function(router) {
             if (req.user) {
               access.roles = _(req.user.roles || [])
                 .filter()
-                .map(util.idToString)
-                .intersection(validRoles)
                 .uniq()
                 .value();
 
@@ -354,7 +358,7 @@ module.exports = function(router) {
 
             // See if any of our components have "defaultPermission" established.
             util.eachComponent(item.components, (component) => {
-              if (component.defaultPermission) {
+              if (component.submissionAccess || component.defaultPermission) {
                 // Since the access is now determined by the submission resource access, we
                 // can skip the owner filter.
                 req.skipOwnerFilter = true;
