@@ -298,18 +298,6 @@ module.exports = function(router) {
               return callback(400);
             }
 
-            // Get a list of all valid roles this user can have.
-            const validRoles = (roles && roles.length) ? roles.map((role) => {
-              const roleId = role._id.toString();
-              if (role.default) {
-                access.defaultRole = roleId;
-              }
-              if (role.admin) {
-                access.adminRole = roleId;
-              }
-              return roleId;
-            }) : [];
-
             // Default the access roles.
             access.roles = [access.defaultRole];
 
