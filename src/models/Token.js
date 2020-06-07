@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function(formio) {
+module.exports = (formio) => {
   // Include the hook system.
   const hook = require('../util/hook')(formio);
 
@@ -17,13 +17,13 @@ module.exports = function(formio) {
       required: true,
       default: () => chance.string({
         pool: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-        length: 30
+        length: 30,
       }),
       validate: [
         {
           message: 'Token key must be unique.',
           async validator(key) {
-            const search = hook.alter('tokenSearch', {key: key}, this, key);
+            const search = hook.alter('tokenSearch', {key}, this, key);
 
             // Ignore the id of the token, if this is an update.
             if (this._id) {
@@ -38,23 +38,23 @@ module.exports = function(formio) {
             catch (err) {
               return false;
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     value: {
       type: String,
-      required: true
+      required: true,
     },
     expireAt: {
-      type: Date
-    }
+      type: Date,
+    },
   }));
 
   TokenSchema.index({expireAt: 1}, {expireAfterSeconds: 0});
 
   const model = require('./BaseModel')({
-    schema: TokenSchema
+    schema: TokenSchema,
   });
 
   // Return the model
