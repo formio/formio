@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.85.0
+### Changed
+ - FJS-953: Fixed getting error when exporting scv with time inside dataGrid
+ - PDF 14 - Allow PDF Submission endpoint to be retrieved by 'Form Alias'
+
 ## 1.84.0
 ### Fixed
  - Fixed callback invocation after alterFormSave series.
