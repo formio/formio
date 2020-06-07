@@ -1,23 +1,23 @@
 'use strict';
 
-module.exports = function(schema, options) {
+module.exports = (schema, options = {}) => {
   // Add the created and modified params.
   schema.add({
     created: {
       type: Date,
       description: 'The date this resource was created.',
-      'default': Date.now,
-      __readonly: true
+      default: Date.now,
+      __readonly: true,
     },
     modified: {
       type: Date,
       description: 'The date this resource was modified.',
-      __readonly: true
-    }
+      __readonly: true,
+    },
   });
 
   // If we wish to make these an index.
-  if (options && options.index) {
+  if (options.index) {
     schema.path('created').index(options.index);
     schema.path('modified').index(options.index);
   }

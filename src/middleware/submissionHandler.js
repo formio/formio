@@ -313,13 +313,23 @@ module.exports = (router, resourceName, resourceId) => {
      * @param done
      */
     function executeFieldHandlers(validation, req, res, done) {
+      // If they wish to disable actions, then just skip.
+      if (req.query.dryrun) {
+        return done();
+      }
+
       const promises = [];
 
-      eachValue(req.currentForm.components, req.body.data, (context) => {
-        const {component, data, handler, action, path} = context;
-
+      util.eachValue(req.currentForm.components, req.body.data, ({
+        component,
+        data,
+        handler,
+        action,
+        path,
+      }) => {
         // Remove not persistent data
-        if (data &&
+        if (
+          data &&
           component.hasOwnProperty('persistent') &&
           !component.persistent
         ) {
@@ -328,32 +338,41 @@ module.exports = (router, resourceName, resourceId) => {
 
         const fieldActions = hook.alter('fieldActions', fActions);
         const propertyActions = hook.alter('propertyActions', pActions);
-        const componentPath = `${path}${path ? '.' : ''}${component.key}`;
+        const componentPath = util.valuePath(path, component.key);
 
         // Execute the property handlers after validation has occurred.
+        const handlerArgs = [
+          component,
+          data,
+          handler,
+          action,
+          {
+            validation,
+            path: componentPath,
+            req,
+            res,
+          },
+        ];
+
         if (validation) {
           Object.keys(propertyActions).forEach((property) => {
             if (component.hasOwnProperty(property) && component[property]) {
-              promises.push(propertyActions[property](component, data, handler, action, {
-                validation,
-                path: componentPath,
-                req,
-                res,
-              }));
+              promises.push(propertyActions[property](...handlerArgs));
             }
           });
         }
 
         // Execute the field handler.
         if (fieldActions.hasOwnProperty(component.type)) {
-          promises.push(fieldActions[component.type](component, data, handler, action, {
-            validation,
-            path: componentPath,
-            req,
-            res,
-          }));
+          promises.push(fieldActions[component.type](...handlerArgs));
         }
-      }, {validation, handler: req.handlerName, action: req.method.toLowerCase(), req, res});
+      }, {
+        validation,
+        handler: req.handlerName,
+        action: req.method.toLowerCase(),
+        req,
+        res,
+      });
 
       Promise.all(promises)
         .then(() => done())
