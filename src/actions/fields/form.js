@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const util = require('../../util/util');
 
-module.exports = router => {
+module.exports = (router) => {
   /**
    * Perform hierarchial submissions of sub-forms.
    */

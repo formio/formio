@@ -6,7 +6,7 @@ const _ = require('lodash');
 
 const LOG_EVENT = 'Reset Password Action';
 
-module.exports = function(router) {
+module.exports = (router) => {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router.formio);
@@ -31,14 +31,14 @@ module.exports = function(router) {
         },
         access: {
           handler: false,
-          method: false
-        }
+          method: false,
+        },
       });
     }
 
     static settingsForm(req, res, next) {
       // Get the available email transports.
-      emailer.availableTransports(req, function(err, availableTransports) {
+      emailer.availableTransports(req, (err, availableTransports) => {
         if (err) {
           log(req, ecode.emailer.ENOTRANSP, err);
           return next(err);
@@ -61,8 +61,8 @@ module.exports = function(router) {
             template: '<span>{{ item.title }}</span>',
             multiple: true,
             validate: {
-              required: true
-            }
+              required: true,
+            },
           },
           {
             type: 'select',
@@ -76,8 +76,8 @@ module.exports = function(router) {
             valueProperty: 'key',
             multiple: false,
             validate: {
-              required: true
-            }
+              required: true,
+            },
           },
           {
             type: 'select',
@@ -91,8 +91,8 @@ module.exports = function(router) {
             valueProperty: 'key',
             multiple: false,
             validate: {
-              required: true
-            }
+              required: true,
+            },
           },
           {
             label: 'Reset Link URL',
@@ -104,8 +104,8 @@ module.exports = function(router) {
             type: 'textfield',
             multiple: false,
             validate: {
-              required: true
-            }
+              required: true,
+            },
           },
           {
             label: 'Reset Password Button Label',
@@ -115,7 +115,7 @@ module.exports = function(router) {
             input: true,
             placeholder: '',
             type: 'textfield',
-            multiple: false
+            multiple: false,
           },
           {
             type: 'select',
@@ -127,13 +127,13 @@ module.exports = function(router) {
             defaultValue: 'default',
             dataSrc: 'json',
             data: {
-              json: JSON.stringify(availableTransports)
+              json: JSON.stringify(availableTransports),
             },
             valueProperty: 'transport',
             multiple: false,
             validate: {
-              required: true
-            }
+              required: true,
+            },
           },
           {
             label: 'From:',
@@ -142,10 +142,8 @@ module.exports = function(router) {
             defaultValue: 'no-reply@form.io',
             input: true,
             placeholder: 'Send the email from the following address',
-            prefix: '',
-            suffix: '',
             type: 'textfield',
-            multiple: false
+            multiple: false,
           },
           {
             label: 'Subject',
@@ -155,7 +153,7 @@ module.exports = function(router) {
             input: true,
             placeholder: '',
             type: 'textfield',
-            multiple: false
+            multiple: false,
           },
           {
             label: 'Message',
@@ -168,8 +166,8 @@ module.exports = function(router) {
             suffix: '',
             prefix: '',
             placeholder: '',
-            input: true
-          }
+            input: true,
+          },
         ]);
       });
     }
@@ -192,7 +190,7 @@ module.exports = function(router) {
 
       // Create the query.
       const query = {
-        deleted: {$eq: null}
+        deleted: {$eq: null},
       };
 
       query[usernamekey] = {$regex: new RegExp(`^${util.escapeRegExp(token.username)}$`), $options: 'i'};
@@ -200,15 +198,15 @@ module.exports = function(router) {
 
       // Perform a mongo query to find the submission.
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.findOne(hook.alter('submissionQuery', query, req), function(err, submission) {
+      submissionModel.findOne(hook.alter('submissionQuery', query, req), (err, submission) => {
         if (err || !submission) {
           log(req, ecode.submission.ENOSUB, err);
-          return next.call(this, ecode.submission.ENOSUB);
+          return next(ecode.submission.ENOSUB);
         }
 
         // Submission found.
-        next.call(this, null, submission);
-      }.bind(this));
+        next(null, submission);
+      });
     }
 
     /**
@@ -221,45 +219,46 @@ module.exports = function(router) {
      */
     updatePassword(req, token, password, next) {
       // Get the submission.
-      this.getSubmission(req, token, function(err, submission) {
+      this.getSubmission(req, token, (err, submission) => {
         // Make sure we found the user.
         if (err || !submission) {
           log(req, ecode.user.ENOUSER, err);
-          return next.call(this, ecode.user.ENOUSER);
+          return next(ecode.user.ENOUSER);
         }
 
         // Get the name of the password field.
         if (!this.settings.password) {
           log(req, ecode.auth.EPASSFIELD, new Error(ecode.auth.EPASSFIELD));
-          return next.call(this, ecode.auth.EPASSFIELD);
+          return next(ecode.auth.EPASSFIELD);
         }
 
         // Manually encrypt and update the password.
-        router.formio.encrypt(password, function(err, hash) {
+        router.formio.encrypt(password, (err, hash) => {
           if (err) {
             log(req, ecode.auth.EPASSRESET, err);
-            return next.call(this, ecode.auth.EPASSRESET);
+            return next(ecode.auth.EPASSRESET);
           }
 
-          const setValue = {};
-          setValue[`data.${this.settings.password}`] = hash;
+          const setValue = {
+            [`data.${this.settings.password}`]: hash,
+          };
 
           // Update the password.
           const submissionModel = req.submissionModel || router.formio.resources.submission.model;
           submissionModel.updateOne(
             {_id: submission._id},
             {$set: setValue},
-            function(err, newSub) {
+            (err, newSub) => {
               if (err) {
                 log(req, ecode.auth.EPASSRESET, err);
-                return next.call(this, ecode.auth.EPASSRESET);
+                return next(ecode.auth.EPASSRESET);
               }
 
               // The submission was saved!
-              next.call(this, null, submission);
-            }.bind(this)
+              next(null, submission);
+            },
           );
-        }.bind(this));
+        });
       });
     }
 
@@ -268,7 +267,7 @@ module.exports = function(router) {
      */
     initialize(method, req, res, next) {
       // See if we have a reset password token.
-      const hasResetToken = !!(req.tempToken && (req.tempToken.type === 'resetpass'));
+      const hasResetToken = Boolean(req.tempToken && (req.tempToken.type === 'resetpass'));
       if (!hasResetToken && (method === 'create')) {
         // Figure out the username data.
         const username = _.get(req.body.data, this.settings.username);
@@ -281,15 +280,15 @@ module.exports = function(router) {
 
         // Create a token.
         const token = {
-          username: username,
+          username,
           form: req.formId,
           resources: this.settings.resources,
           temp: true,
-          type: 'resetpass'
+          type: 'resetpass',
         };
 
         // Look up the user.
-        this.getSubmission(req, token, function(err, submission) {
+        this.getSubmission(req, token, (err, submission) => {
           if (err || !submission) {
             log(req, ecode.user.ENOUSER, err);
             return res.status(400).send(ecode.user.ENOUSER);
@@ -297,28 +296,35 @@ module.exports = function(router) {
 
           // Generate a temporary token for resetting their password.
           const resetToken = jwt.sign(token, router.formio.config.jwt.secret, {
-            expiresIn: 5 * 60
+            expiresIn: 5 * 60,
           });
 
           // Create the reset link and add it to the email parameters.
           const params = {
-            resetlink: `${this.settings.url}?x-jwt-token=${resetToken}`
+            resetlink: `${this.settings.url}?x-jwt-token=${resetToken}`,
           };
+
+          const {
+            transport,
+            from,
+            subject,
+            message,
+          } = this.settings;
 
           // Now send them an email.
           emailer.send(req, res, {
-            transport: this.settings.transport,
-            from: this.settings.from,
+            transport,
+            from,
             emails: username,
-            subject: this.settings.subject,
-            message: this.settings.message
-          }, _.assign(params, req.body), function(err) {
+            subject,
+            message,
+          }, _.assign(params, req.body), (err) => {
             if (err) {
               log(req, ecode.emailer.ESENDMAIL, err);
             }
             // Let them know an email is on its way.
             res.status(200).json({
-              message: 'Password reset email was sent.'
+              message: 'Password reset email was sent.',
             });
           });
         });
@@ -349,7 +355,7 @@ module.exports = function(router) {
      */
     resolve(handler, method, req, res, next) {
       // See if we have a reset password token.
-      const hasResetToken = !!(req.tempToken && (req.tempToken.type === 'resetpass'));
+      const hasResetToken = Boolean(req.tempToken && (req.tempToken.type === 'resetpass'));
 
       // Only show the reset password username field on form get.
       if (
@@ -361,7 +367,7 @@ module.exports = function(router) {
         res.resource.item._id
       ) {
         // Modify the form based on if there is a reset token or not.
-        util.eachComponent(res.resource.item.components, function(component) {
+        util.eachComponent(res.resource.item.components, (component) => {
           if (
             !hasResetToken &&
             (component.type === 'button') &&
@@ -378,7 +384,7 @@ module.exports = function(router) {
               component.validate.required = false;
             }
           }
-        }.bind(this));
+        });
 
         return next();
       }
@@ -401,7 +407,7 @@ module.exports = function(router) {
         const password = _.get(req.submission.data, this.settings.password);
         if (!password) {
           debug(ecode.auth.ENOPASSP);
-          return next.call(this, ecode.auth.ENOPASSP);
+          return next(ecode.auth.ENOPASSP);
         }
 
         // Update the password.
@@ -411,7 +417,7 @@ module.exports = function(router) {
             return res.status(400).send('Unable to update the password. Please try again.');
           }
           res.status(200).send({
-            message: 'Password was successfully updated.'
+            message: 'Password was successfully updated.',
           });
         });
       }
@@ -423,7 +429,7 @@ module.exports = function(router) {
 
   ResetPasswordAction.access = {
     handler: false,
-    method: false
+    method: false,
   };
 
   // Return the ResetPasswordAction.

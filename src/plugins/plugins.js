@@ -2,5 +2,5 @@
 
 module.exports = {
   machineName: require('./machineName'),
-  timestamps: require('./timestamps')
+  timestamps: require('./timestamps'),
 };
