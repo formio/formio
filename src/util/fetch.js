@@ -4,6 +4,8 @@ const {Agent} = require('https');
 const {parse} = require('url');
 const fetch = require('node-fetch');
 const HttpsProxyAgent = require('https-proxy-agent');
+const AbortController = require('abort-controller');
+const _ = require('lodash');
 
 /**
  * Parses a value to a UrlWithStringQuery object
@@ -78,6 +80,24 @@ module.exports = (url, options = {}) => {
     return Promise.reject(new TypeError('Only absolute URLs are supported'));
   }
 
+  // Convert timeout into abort controller;
+  let keepAlive = () => {};
+  if (options.timeout) {
+    const ctrl = new AbortController();
+    keepAlive = _.debounce(() => {
+      ctrl.abort();
+    }, options.timeout);
+    options.signal = ctrl.signal;
+    delete options.timeout;
+    // Start the timer
+    keepAlive();
+  }
+
+  let qs = '';
+  if (options.qs) {
+    qs = Object.keys(options.qs).reduce((str, q) => `${str}${(str ? '&' : '?')}${q}=${options.qs[q]}`, '');
+  }
+
   // Shallow clone the request init options
   const init = Object.assign({}, options);
 
@@ -102,5 +122,11 @@ module.exports = (url, options = {}) => {
     });
   }
 
-  return fetch(url, init);
+  return fetch(`${url}${qs}`, init)
+    .then((response) => {
+      if (response.ok) {
+        response.body.on('data', keepAlive);
+      }
+      return response;
+    });
 };
