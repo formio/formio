@@ -280,6 +280,11 @@ class CSVExporter extends Exporter {
               if (!value) {
                 return '';
               }
+
+              if (_.isObject(value)) {
+                return value;
+              }
+
               return conformToMask(value, mask).conformedValue;
             }
           });
