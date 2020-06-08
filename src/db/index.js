@@ -319,10 +319,17 @@ module.exports = function(formio) {
   const sanityCheck = function sanityCheck(req, res, next) {
     // Determine if a response is expected by the request path.
     const response = (req.path === '/health');
+    const {verboseHealth} = req;
 
     // Skip functionality if testing.
     if (process.env.TEST_SUITE) {
       debug.db('Skipping for TEST_SUITE');
+
+      if (response && verboseHealth) {
+        res.status(200);
+        return next();
+      }
+
       return response
         ? res.sendStatus(200)
         : next();
@@ -337,6 +344,16 @@ module.exports = function(formio) {
      * @returns {*}
      */
     const handleResponse = function(err) {
+      if (response && verboseHealth) {
+        if (err) {
+          res.status(400);
+        }
+        else {
+          res.status(200);
+        }
+        return next();
+      }
+
       if (err) {
         return res.status(400).send(err);
       }
