@@ -337,10 +337,6 @@ module.exports = function(router) {
             return callback();
           }
 
-          if (!req.formId || req.subId) {
-            return callback();
-          }
-
           // Does not apply if the user doesn't have any roles.
           const userRoles = _.get(req, 'user.roles', []);
           if (!userRoles.length) {
