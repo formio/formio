@@ -298,7 +298,6 @@ module.exports = function(router) {
               return callback(400);
             }
 
-            // Get a list of all valid roles this user can have.
             const validRoles = (roles && roles.length) ? roles.map((role) => {
               const roleId = role._id.toString();
               if (role.default) {
@@ -317,6 +316,7 @@ module.exports = function(router) {
             if (req.user) {
               access.roles = _(req.user.roles || [])
                 .filter()
+                .intersection(validRoles)
                 .uniq()
                 .value();
 
