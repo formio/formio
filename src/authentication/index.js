@@ -297,9 +297,9 @@ module.exports = (router) => {
                 },
               }, form, req);
 
-              hook.alter('tokenDecode', token, req, (decoded) => {
+              hook.alter('tokenDecode', token, req, (err, decoded) => {
                 // Continue with the token data.
-                next(null, {
+                next(err, {
                   user,
                   token: {
                     token: getToken(token),

@@ -138,7 +138,7 @@ module.exports = (router) => {
         }
       }
 
-      hook.alter('tokenDecode', decoded, req, (decoded) => {
+      hook.alter('tokenDecode', decoded, req, (err, decoded) => {
         // Check to see if this token is allowed to access this path.
         if (!router.formio.auth.isTokenAllowed(req, decoded)) {
           return noToken();
