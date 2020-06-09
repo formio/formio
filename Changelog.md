@@ -53,6 +53,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
 
+## 1.85.0
+### Changed
+ - FJS-953: Fixed getting error when exporting scv with time inside dataGrid
+ - PDF 14 - Allow PDF Submission endpoint to be retrieved by 'Form Alias'
+
 ## 1.84.0
 ### Fixed
  - Fixed callback invocation after alterFormSave series.
