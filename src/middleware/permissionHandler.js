@@ -298,6 +298,17 @@ module.exports = function(router) {
               return callback(400);
             }
 
+            const validRoles = (roles && roles.length) ? roles.map((role) => {
+              const roleId = role._id.toString();
+              if (role.default) {
+                access.defaultRole = roleId;
+              }
+              if (role.admin) {
+                access.adminRole = roleId;
+              }
+              return roleId;
+            }) : [];
+
             // Default the access roles.
             access.roles = [access.defaultRole];
 
@@ -305,6 +316,7 @@ module.exports = function(router) {
             if (req.user) {
               access.roles = _(req.user.roles || [])
                 .filter()
+                .intersection(validRoles)
                 .uniq()
                 .value();
 
