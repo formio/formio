@@ -237,17 +237,6 @@
           "type": "button"
         }
       ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [],
       "properties": {}
     },
     "sosialsoknad": {
@@ -711,18 +700,7 @@
           "dataGridLabel": true,
           "id": "eyhycjm"
         }
-      ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": []
+      ]
     },
     "nav190110CopyEndringAvAlderspensjon": {
       "title": "NAV 19-01.10 Pdf-kopi Endring av alderspensjon",
@@ -2772,17 +2750,6 @@
           "calculateServer": false
         }
       ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [],
       "properties": {}
     },
     "nav041301PdfEgenerklaeringsskjemaForFastsettelseAvGrensearbeiderstatus": {
@@ -5388,17 +5355,6 @@
           "calculateServer": false
         }
       ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [],
       "properties": {}
     },
     "nav08093501InntektsopplysningerForSelvstendigNaeringsdrivendeOgEllerFrilansere": {
@@ -12297,17 +12253,6 @@
           "calculateServer": false
         }
       ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [],
       "properties": {}
     },
     "nav121501SoknadOmBarnetilleggForDegSomHarUforetrygd": {
@@ -15577,18 +15522,7 @@
           "id": "eyogshf",
           "calculateServer": false
         }
-      ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": []
+      ]
     },
     "kladd2": {
       "title": "NAV 76-07.10 Registreringsskjema for tilskudd til utdanning",
@@ -18703,104 +18637,6 @@
           "calculateServer": false
         }
       ],
-      "access": [
-        {
-          "roles": [],
-          "type": "create_own"
-        },
-        {
-          "roles": [],
-          "type": "create_all"
-        },
-        {
-          "roles": [],
-          "type": "read_own"
-        },
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        },
-        {
-          "roles": [],
-          "type": "update_own"
-        },
-        {
-          "roles": [],
-          "type": "update_all"
-        },
-        {
-          "roles": [],
-          "type": "delete_own"
-        },
-        {
-          "roles": [],
-          "type": "delete_all"
-        },
-        {
-          "roles": [],
-          "type": "team_read"
-        },
-        {
-          "roles": [],
-          "type": "team_write"
-        },
-        {
-          "roles": [],
-          "type": "team_admin"
-        }
-      ],
-      "submissionAccess": [
-        {
-          "roles": [
-            "anonymous"
-          ],
-          "type": "create_own"
-        },
-        {
-          "roles": [],
-          "type": "create_all"
-        },
-        {
-          "roles": [],
-          "type": "read_own"
-        },
-        {
-          "roles": [],
-          "type": "read_all"
-        },
-        {
-          "roles": [],
-          "type": "update_own"
-        },
-        {
-          "roles": [],
-          "type": "update_all"
-        },
-        {
-          "roles": [],
-          "type": "delete_own"
-        },
-        {
-          "roles": [],
-          "type": "delete_all"
-        },
-        {
-          "roles": [],
-          "type": "team_read"
-        },
-        {
-          "roles": [],
-          "type": "team_write"
-        },
-        {
-          "roles": [],
-          "type": "team_admin"
-        }
-      ],
       "properties": {}
     },
     "debug2": {
@@ -18959,18 +18795,7 @@
           "dataGridLabel": true,
           "id": "e0c105vl"
         }
-      ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": []
+      ]
     },
     "debug": {
       "title": "Debug",
@@ -18981,18 +18806,7 @@
       "tags": [
         "nav-skjema"
       ],
-      "components": [],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": []
+      "components": []
     },
     "surdeig": {
       "title": "surdeig",
@@ -19492,18 +19306,7 @@
           "dataGridLabel": true,
           "id": "ewk1zf9"
         }
-      ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": []
+      ]
     },
     "skatt": {
       "title": "Skattemelding",
@@ -19588,18 +19391,7 @@
           "dataGridLabel": true,
           "id": "e5zxad"
         }
-      ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": []
+      ]
     },
     "duppe": {
       "title": "Duppe",
@@ -19755,18 +19547,7 @@
           "dataGridLabel": true,
           "id": "eao2bf"
         }
-      ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": []
+      ]
     },
     "skalSlettes": {
       "title": "skal slettes",
@@ -20159,17 +19940,6 @@
           "id": "er8qd3sj"
         }
       ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [],
       "properties": {}
     },
     "bacon": {
@@ -20235,17 +20005,6 @@
           "type": "button"
         }
       ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [],
       "properties": {}
     },
     "nav100714SoknadOmBrillerTilBehandlingOgEllerForebyggingAvAmblyopi": {
@@ -34940,17 +34699,6 @@
           "id": "eyogshf"
         }
       ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [],
       "properties": {}
     },
     "nav190110EndringAvAlderspensjon": {
@@ -37021,18 +36769,7 @@
           "dataGridLabel": true,
           "id": "enofkr"
         }
-      ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": []
+      ]
     },
     "nav100750SoknadOmForerhund": {
       "title": "NAV 10-07.50 Søknad om førerhund",
@@ -38600,106 +38337,6 @@
           "id": "e94ayf"
         }
       ],
-      "access": [
-        {
-          "roles": [],
-          "type": "create_own"
-        },
-        {
-          "roles": [],
-          "type": "create_all"
-        },
-        {
-          "roles": [],
-          "type": "read_own"
-        },
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        },
-        {
-          "roles": [],
-          "type": "update_own"
-        },
-        {
-          "roles": [],
-          "type": "update_all"
-        },
-        {
-          "roles": [],
-          "type": "delete_own"
-        },
-        {
-          "roles": [],
-          "type": "delete_all"
-        },
-        {
-          "roles": [],
-          "type": "team_read"
-        },
-        {
-          "roles": [],
-          "type": "team_write"
-        },
-        {
-          "roles": [],
-          "type": "team_admin"
-        }
-      ],
-      "submissionAccess": [
-        {
-          "roles": [
-            "anonymous"
-          ],
-          "type": "create_own"
-        },
-        {
-          "roles": [],
-          "type": "create_all"
-        },
-        {
-          "roles": [
-            "anonymous"
-          ],
-          "type": "read_own"
-        },
-        {
-          "roles": [],
-          "type": "read_all"
-        },
-        {
-          "roles": [],
-          "type": "update_own"
-        },
-        {
-          "roles": [],
-          "type": "update_all"
-        },
-        {
-          "roles": [],
-          "type": "delete_own"
-        },
-        {
-          "roles": [],
-          "type": "delete_all"
-        },
-        {
-          "roles": [],
-          "type": "team_read"
-        },
-        {
-          "roles": [],
-          "type": "team_write"
-        },
-        {
-          "roles": [],
-          "type": "team_admin"
-        }
-      ],
       "properties": {}
     },
     "jhljk": {
@@ -38749,18 +38386,7 @@
           "type": "textfield",
           "input": true
         }
-      ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": []
+      ]
     },
     "flesk": {
       "title": "Flesk",
@@ -39006,18 +38632,7 @@
           "dataGridLabel": true,
           "id": "edx37ut"
         }
-      ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": []
+      ]
     },
     "testskjema": {
       "title": "kladdeskjema",
@@ -39850,17 +39465,6 @@
           "type": "button"
         }
       ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [],
       "properties": {}
     },
     "adresse": {
@@ -40129,17 +39733,6 @@
           "type": "button"
         }
       ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [],
       "properties": {}
     },
     "person": {
@@ -40279,17 +39872,6 @@
           "type": "button"
         }
       ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [],
       "properties": {}
     },
     "adminLogin": {
@@ -40343,22 +39925,6 @@
           "label": "Submit",
           "input": true
         }
-      ],
-      "access": [
-        {
-          "roles": [
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [
-        {
-          "roles": [
-            "anonymous"
-          ],
-          "type": "create_own"
-        }
       ]
     },
     "userRegister": {
@@ -40410,22 +39976,6 @@
           "label": "Submit",
           "input": true,
           "type": "button"
-        }
-      ],
-      "access": [
-        {
-          "roles": [
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [
-        {
-          "roles": [
-            "anonymous"
-          ],
-          "type": "create_own"
         }
       ]
     },
@@ -40479,22 +40029,6 @@
           "tableView": false,
           "label": "Submit",
           "input": true
-        }
-      ],
-      "access": [
-        {
-          "roles": [
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [
-        {
-          "roles": [
-            "anonymous"
-          ],
-          "type": "create_own"
         }
       ]
     }
@@ -41962,17 +41496,6 @@
           "type": "button"
         }
       ],
-      "access": [
-        {
-          "roles": [
-            "administrator",
-            "authenticated",
-            "anonymous"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [],
       "properties": {}
     },
     "admin": {
@@ -42023,58 +41546,6 @@
           "tableView": false,
           "label": "Submit",
           "input": true
-        }
-      ],
-      "access": [
-        {
-          "roles": [
-            "anonymous",
-            "authenticated",
-            "administrator"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [
-        {
-          "roles": [
-            "administrator"
-          ],
-          "type": "create_all"
-        },
-        {
-          "roles": [
-            "administrator"
-          ],
-          "type": "read_all"
-        },
-        {
-          "roles": [
-            "administrator"
-          ],
-          "type": "update_all"
-        },
-        {
-          "roles": [
-            "administrator"
-          ],
-          "type": "delete_all"
-        },
-        {
-          "roles": [],
-          "type": "create_own"
-        },
-        {
-          "roles": [],
-          "type": "read_own"
-        },
-        {
-          "roles": [],
-          "type": "update_own"
-        },
-        {
-          "roles": [],
-          "type": "delete_own"
         }
       ]
     },
@@ -42127,87 +41598,8 @@
           "label": "Submit",
           "input": true
         }
-      ],
-      "access": [
-        {
-          "roles": [
-            "anonymous",
-            "authenticated",
-            "administrator"
-          ],
-          "type": "read_all"
-        }
-      ],
-      "submissionAccess": [
-        {
-          "roles": [
-            "administrator"
-          ],
-          "type": "create_all"
-        },
-        {
-          "roles": [
-            "administrator"
-          ],
-          "type": "read_all"
-        },
-        {
-          "roles": [
-            "administrator"
-          ],
-          "type": "update_all"
-        },
-        {
-          "roles": [
-            "administrator"
-          ],
-          "type": "delete_all"
-        },
-        {
-          "roles": [],
-          "type": "create_own"
-        },
-        {
-          "roles": [],
-          "type": "read_own"
-        },
-        {
-          "roles": [],
-          "type": "update_own"
-        },
-        {
-          "roles": [],
-          "type": "delete_own"
-        }
       ]
     }
   },
-  "access": [
-    {
-      "type": "create_all",
-      "roles": [
-        "administrator"
-      ]
-    },
-    {
-      "type": "read_all",
-      "roles": [
-        "administrator",
-        "authenticated",
-        "anonymous"
-      ]
-    },
-    {
-      "type": "update_all",
-      "roles": [
-        "administrator"
-      ]
-    },
-    {
-      "type": "delete_all",
-      "roles": [
-        "administrator"
-      ]
-    }
-  ]
+  "excludeAccess": true
 }
