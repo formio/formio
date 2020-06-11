@@ -21,7 +21,7 @@ module.exports = (router) => {
   /* eslint-enable new-cap */
 
   // Mount the export endpoint using the url.
-  router.get('/form/:formId/export', (req, res, next) => {
+  router.get('/form/:formId/export', router.formio.middleware.getFullFormSchema, (req, res, next) => {
     if (!req.isAdmin && !_.has(req, 'token.user._id')) {
       return res.sendStatus(400);
     }
