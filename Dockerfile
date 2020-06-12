@@ -34,6 +34,11 @@ RUN npm ci --prefix=$NPM_PACKAGES
 #          See docker-compose.yml for instructions
 RUN ln -sf $NPM_PACKAGES/node_modules node_modules
 
+COPY ./main.js ./server.js ./package.json ./index.js ./logo.txt ./welcome.txt ./install.js ./
+COPY ./src/ ./src
+COPY ./config/ ./config
+COPY ./client ./client
+
 # Set this to inspect more from the application. Examples:
 #   DEBUG=formio:db (see index.js for more)
 #   DEBUG=formio:*
