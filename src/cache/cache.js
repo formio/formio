@@ -158,7 +158,9 @@ module.exports = function(router) {
             return next(err);
           }
           if (!result) {
-            debug.loadSubForms(`Cannot find form revision for form ${util.idToBson(rev.form)} revision ${rev.formRevision}`);
+            debug.loadSubForms(
+              `Cannot find form revision for form ${util.idToBson(rev.form)} revision ${rev.formRevision}`,
+            );
             return next();
           }
 
