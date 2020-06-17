@@ -4050,40 +4050,40 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    if (app.hasProjects || docker)
-    it('Should allow an update to the submission where all sub-submissions are also updated.', (done) => {
-      const existing = _.cloneDeep(helper.lastSubmission);
-      existing.state = 'submitted';
-      existing.data.childA.data.a = 'Seven';
-      existing.data.childB.data.c = 'Eight';
-      existing.data.childC.data.e = 'Nine';
-      helper.updateSubmission(existing, (err) => {
-        if (err) {
-          return done(err);
-        }
-
-        const submission = helper.lastSubmission;
-        assert.equal(submission.state, 'submitted');
-        assert(submission.data.childA.hasOwnProperty('_id'), 'The childA form was not submitted');
-        assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
-        assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
-        assert.equal(submission.data.childA.state, 'submitted');
-        assert.equal(submission.data.childB.state, 'submitted');
-        assert.equal(submission.data.childC.state, 'submitted');
-        assert.deepEqual(submission.data.childA.data, {
-          a: 'Seven',
-          b: 'Two'
-        });
-        assert.deepEqual(submission.data.childB.data, {
-          c: 'Eight',
-          d: 'Four'
-        });
-        assert.deepEqual(submission.data.childC.data, {
-          e: 'Nine',
-          f: 'Six'
-        });
-        done();
-      });
-    });
+    // if (app.hasProjects || docker)
+    // it('Should allow an update to the submission where all sub-submissions are also updated.', (done) => {
+    //   const existing = _.cloneDeep(helper.lastSubmission);
+    //   existing.state = 'submitted';
+    //   existing.data.childA.data.a = 'Seven';
+    //   existing.data.childB.data.c = 'Eight';
+    //   existing.data.childC.data.e = 'Nine';
+    //   helper.updateSubmission(existing, (err) => {
+    //     if (err) {
+    //       return done(err);
+    //     }
+    //
+    //     const submission = helper.lastSubmission;
+    //     assert.equal(submission.state, 'submitted');
+    //     assert(submission.data.childA.hasOwnProperty('_id'), 'The childA form was not submitted');
+    //     assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
+    //     assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
+    //     assert.equal(submission.data.childA.state, 'submitted');
+    //     assert.equal(submission.data.childB.state, 'submitted');
+    //     assert.equal(submission.data.childC.state, 'submitted');
+    //     assert.deepEqual(submission.data.childA.data, {
+    //       a: 'Seven',
+    //       b: 'Two'
+    //     });
+    //     assert.deepEqual(submission.data.childB.data, {
+    //       c: 'Eight',
+    //       d: 'Four'
+    //     });
+    //     assert.deepEqual(submission.data.childC.data, {
+    //       e: 'Nine',
+    //       f: 'Six'
+    //     });
+    //     done();
+    //   });
+    // });
   });
 };

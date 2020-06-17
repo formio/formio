@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-beta.10
+### Changed
+ - Update formio.js to 4.1.0-rc.13
+
+## 2.0.0-beta.9
+### Changed
+ - retagging
+
+## 2.0.0-beta.8
+### Added
+ - Additional options to fetch wrapper.
+
 ## 2.0.0-beta.7
 ### Added
  - New hooks to extend the authentication system.
@@ -52,6 +64,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
+
+## 1.85.0
+### Changed
+ - FJS-953: Fixed getting error when exporting scv with time inside dataGrid
+ - PDF 14 - Allow PDF Submission endpoint to be retrieved by 'Form Alias'
 
 ## 1.84.0
 ### Fixed
