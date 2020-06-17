@@ -275,7 +275,7 @@ module.exports = {
     select3: ['one', 'three'],
     email3: ['none@example.com', 'test@example.com'],
     phoneNumber3: ['(030) 303-0304', '(209) 473-9403'],
-    address3: {
+    address3: [{
       "mode": "autocomplete",
       "address": [
         {
@@ -384,7 +384,7 @@ module.exports = {
           ]
         }
       ]
-    },
+    }],
     currency3: ['3,000', '500', '1,000,000'],
     resource3: [{}, {}],
     file3: [

@@ -297,13 +297,15 @@ module.exports = (router) => {
                 },
               }, form, req);
 
-              // Continue with the token data.
-              next(null, {
-                user,
-                token: {
-                  token: getToken(token),
-                  decoded: token,
-                },
+              hook.alter('tokenDecode', token, req, (err, decoded) => {
+                // Continue with the token data.
+                next(err, {
+                  user,
+                  token: {
+                    token: getToken(token),
+                    decoded,
+                  },
+                });
               });
             });
           });
