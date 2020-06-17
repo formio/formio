@@ -179,7 +179,6 @@ module.exports = (router) => {
 
         async.eachSeries(actions, (action, cb) => {
           this.shouldExecute(action, req).then(execute => {
-            debug.action(`execute (${execute}):`, action);
             if (!execute) {
               return cb();
             }
