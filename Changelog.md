@@ -65,6 +65,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
 
+## 1.86.0
+### Fixed
+ - FJS-704: Address Refactor Issues
+ - Refactored for the verbose health endpoint
+ - Fixed Form Controller export.
+
+### Added
+ - Support Extra form fields exporting
+
+### Changed
+ - Upgraded formio-workers@1.14.8, mongodb@3.5.9, mongoose@5.9.19, nodemailer@6.4.10, formiojs@4.10.2, fs-extra@9.0.1, resourcejs@2.2.0, mocha@8.0.1
+
 ## 1.85.0
 ### Changed
  - FJS-953: Fixed getting error when exporting scv with time inside dataGrid
