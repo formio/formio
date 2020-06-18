@@ -147,7 +147,6 @@ module.exports = (router) => {
             'submissionAccess',
             'properties',
             ...includeFormFields,
-            'controller',
           );
           _map.forms[form._id.toString()] = machineName;
         });
