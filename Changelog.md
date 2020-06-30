@@ -69,6 +69,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
 
+## 1.87.0
+### Fixed
+ - Export of form controllers.
+
 ## 1.86.0
 ### Fixed
  - FJS-704: Address Refactor Issues
