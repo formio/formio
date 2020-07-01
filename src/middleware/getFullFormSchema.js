@@ -7,7 +7,7 @@ module.exports = (router) => (req, res, next) => {
     }
 
     try {
-      await router.formio.util.Formio.createForm(form);
+      req.formInstance = await router.formio.util.Formio.createForm(form);
       return next();
     }
     catch (error) {
