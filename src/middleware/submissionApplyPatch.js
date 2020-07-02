@@ -32,7 +32,15 @@ module.exports = router => (req, res, next) => {
       return res.sendStatus(404);
     }
 
-    const patch = req.body;
+    let patch = req.body;
+
+    if (!_.isArray(patch) && req.subPatch && !_.isEmpty(req.body)) {
+      patch = jsonPatch.compare(submission.data, req.body.data)
+        .map((operation) => {
+          operation.path = `/data${operation.path}`;
+          return operation;
+        });
+    }
 
     try {
       req.body = jsonPatch.applyPatch(submission, patch, true).newDocument;
