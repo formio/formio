@@ -82,6 +82,13 @@ module.exports = function(config) {
       // Add the database connection to the router.
       router.formio.db = db;
 
+      // Ensure we do not have memory leaks in core renderer
+      router.use((req, res, next) => {
+        util.Formio.forms = {};
+        util.Formio.cache = {};
+        next();
+      });
+
       // Establish our url alias middleware.
       if (!router.formio.hook.invoke('init', 'alias', router.formio)) {
         router.use(router.formio.middleware.alias);
