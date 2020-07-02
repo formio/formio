@@ -36,5 +36,6 @@ module.exports = function(router) {
     restrictRequestTypes: require('./restrictRequestTypes')(router),
     filterIndex: require('./filterIndex')(router),
     getFullFormSchema: require('./getFullFormSchema')(router),
+    mongodbConnectionState: require('./mongodbConnectionState')(router),
   };
 };
