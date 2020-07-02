@@ -4,6 +4,92 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.1-4
+### Changed
+  - Merge changes from 1.x
+
+## 2.0.0-beta.10
+### Changed
+ - Update formio.js to 4.1.0-rc.13
+
+## 2.0.0-beta.9
+### Changed
+ - retagging
+
+## 2.0.0-beta.8
+### Added
+ - Additional options to fetch wrapper.
+
+## 2.0.0-beta.7
+### Added
+ - New hooks to extend the authentication system.
+ 
+### Changed
+ - Update formio.js to 4.1.0-rc.6
+
+## 2.0.0-beta.6
+### Added
+ - Add tree validation to server.
+ - Mongo SSL Certificate options.
+
+### Changed
+ - Replace request library with node-fetch.
+ - Updated formio.js to 4.10.0-rc.4 to fix isomorphic validation.
+
+## 2.0.0-beta.5
+### Changed
+ - Upgrade dependencies.
+ - FJS 864: Fixed login action resources limitation
+ - Set email for User and Admin ressource required & unique
+ - Fixed server crash on invalid x-query
+
+## 2.0.0-beta.4
+### Added
+ - Hooks for the alias.
+ - Hooks for the formResponse.
+
+### Changed
+ - Upgrade mongodb@3.5.5, mongoose@5.9.4, nodemailer@6.4.5, mssql@6.2.0
+ - Upgrade formiojs@4.9.0-rc.10
+ - Ensure that field actions are triggered on dryrun.
+
+## 2.0.0-beta.3
+#### Changed
+ - Upgrade formiojs@4.9.0-rc.6
+
+## 2.0.0-beta.2
+#### Changed
+ - Upgrading dependencies.
+
+## 2.0.0-beta.1
+### Breaking Changes
+ - Isomorphic validations. May cause error interface and codes to change slightly.
+
+### Changed
+ - Upgrade mongodb@3.5.4, async@3.2.0
+ - Upgrade ResourceJS@2.0.0
+
+## 1.87.0
+### Fixed
+ - Export of form controllers.
+
+## 1.86.0
+### Fixed
+ - FJS-704: Address Refactor Issues
+ - Refactored for the verbose health endpoint
+ - Fixed Form Controller export.
+
+### Added
+ - Support Extra form fields exporting
+
+### Changed
+ - Upgraded formio-workers@1.14.8, mongodb@3.5.9, mongoose@5.9.19, nodemailer@6.4.10, formiojs@4.10.2, fs-extra@9.0.1, resourcejs@2.2.0, mocha@8.0.1
+
+## 1.85.0
+### Changed
+ - FJS-953: Fixed getting error when exporting scv with time inside dataGrid
+ - PDF 14 - Allow PDF Submission endpoint to be retrieved by 'Form Alias'
+
 ## 1.84.0
 ### Fixed
  - Fixed callback invocation after alterFormSave series.

@@ -4,11 +4,10 @@ const mongoose = require('mongoose');
 const ObjectID = require('mongodb').ObjectID;
 const _ = require('lodash');
 const nodeUrl = require('url');
-const Q = require('q');
-const FormioUtils = require('formiojs/utils').default;
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/util');
 const errorCodes = require('./error-codes.js');
+const fetch = require('./fetch');
 const vm = require('vm');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
@@ -16,8 +15,27 @@ const debug = {
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
 
-FormioUtils.Evaluator.noeval = true;
-FormioUtils.Evaluator.evaluator = function(func, args) {
+// Define a few global noop placeholder shims and import the component classes
+global.Text              = class {};
+global.HTMLElement       = class {};
+global.HTMLCanvasElement = class {};
+global.navigator         = {userAgent: ''};
+global.document          = {
+  createElement: () => ({}),
+  cookie: '',
+  getElementsByTagName: () => [],
+  documentElement: {style: []}
+};
+global.window            = {addEventListener: () => {}, Event: {}, navigator: global.navigator};
+const Formio = require('formiojs/formio.form.js');
+
+// Remove onChange events from all renderer displays.
+_.each(Formio.Displays.displays, (display) => {
+  display.prototype.onChange = _.noop;
+});
+
+Formio.Utils.Evaluator.noeval = true;
+Formio.Utils.Evaluator.evaluator = function(func, args) {
   return function() {
     const params = _.keys(args);
     const sandbox = vm.createContext({
@@ -38,8 +56,9 @@ FormioUtils.Evaluator.evaluator = function(func, args) {
 };
 
 const Utils = {
-  FormioUtils: FormioUtils,
-  deleteProp: deleteProp,
+  Formio: Formio.Formio,
+  FormioUtils: Formio.Utils,
+  deleteProp,
 
   /**
    * A wrapper around console.log that gets ignored by eslint.
@@ -162,7 +181,7 @@ const Utils = {
    */
   createSubRequest(req) {
     // Determine how many child requests have been made.
-    let childRequests = req.childRequests || 0;
+    const childRequests = req.childRequests || 0;
 
     // Break recursive child requests.
     if (childRequests > 5) {
@@ -183,7 +202,7 @@ const Utils = {
     childReq.user = req.user;
     childReq.modelQuery = null;
     childReq.countQuery = null;
-    childReq.childRequests = ++childRequests;
+    childReq.childRequests = childRequests + 1;
     childReq.permissionsChecked = false;
 
     // Delete the actions cache.
@@ -214,7 +233,7 @@ const Utils = {
    *   Whether or not to include layout components.
    * @param {String} path
    */
-  eachComponent: FormioUtils.eachComponent.bind(FormioUtils),
+  eachComponent: Formio.Utils.eachComponent.bind(Formio.Utils),
 
   /**
    * Get a component by its key
@@ -227,7 +246,7 @@ const Utils = {
    * @returns {Object}
    *   The component that matches the given key, or undefined if not found.
    */
-  getComponent: FormioUtils.getComponent.bind(FormioUtils),
+  getComponent: Formio.Utils.getComponent.bind(Formio.Utils),
 
   /**
    * Define if component should be considered input component
@@ -238,7 +257,7 @@ const Utils = {
    * @returns {Boolean}
    *   If component is input or not
    */
-  isInputComponent: FormioUtils.isInputComponent.bind(FormioUtils),
+  isInputComponent: Formio.Utils.isInputComponent.bind(Formio.Utils),
 
   /**
    * Flatten the form components for data manipulation.
@@ -251,7 +270,7 @@ const Utils = {
    * @returns {Object}
    *   The flattened components map.
    */
-  flattenComponents: FormioUtils.flattenComponents.bind(FormioUtils),
+  flattenComponents: Formio.Utils.flattenComponents.bind(Formio.Utils),
 
   /**
    * Get the value for a component key, in the given submission.
@@ -261,7 +280,7 @@ const Utils = {
    * @param {String} key
    *   A for components API key to search for.
    */
-  getValue: FormioUtils.getValue.bind(FormioUtils),
+  getValue: Formio.Utils.getValue.bind(Formio.Utils),
 
   /**
    * Determine if a component is a layout component or not.
@@ -272,7 +291,7 @@ const Utils = {
    * @returns {Boolean}
    *   Whether or not the component is a layout component.
    */
-  isLayoutComponent: FormioUtils.isLayoutComponent.bind(FormioUtils),
+  isLayoutComponent: Formio.Utils.isLayoutComponent.bind(Formio.Utils),
 
   /**
    * Apply JSON logic functionality.
@@ -281,7 +300,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  jsonLogic: FormioUtils.jsonLogic,
+  jsonLogic: Formio.Utils.jsonLogic,
 
   /**
    * Check if the condition for a component is true or not.
@@ -290,7 +309,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  checkCondition: FormioUtils.checkCondition.bind(FormioUtils),
+  checkCondition: Formio.Utils.checkCondition.bind(Formio.Utils),
 
   /**
    * Return the objectId.
@@ -310,7 +329,11 @@ const Utils = {
     }
   },
 
-  /**
+  flattenComponentsForRender: workerUtils.flattenComponentsForRender.bind(workerUtils),
+  renderFormSubmission: workerUtils.renderFormSubmission.bind(workerUtils),
+  renderComponentValue: workerUtils.renderComponentValue.bind(workerUtils),
+
+/**
    * Search the request headers for the given key.
    *
    * @param req
@@ -328,10 +351,6 @@ const Utils = {
 
     return false;
   },
-
-  flattenComponentsForRender: workerUtils.flattenComponentsForRender.bind(workerUtils),
-  renderFormSubmission: workerUtils.renderFormSubmission.bind(workerUtils),
-  renderComponentValue: workerUtils.renderComponentValue.bind(workerUtils),
 
   /**
    * Search the request query for the given key.
@@ -468,12 +487,14 @@ const Utils = {
   },
 
   /**
-   * A promisified version of request. Use this if you need
-   * to be able to mock requests for tests, as it's much easier
-   * to mock this than the individual required 'request' modules
-   * in each file.
+   * A node-fetch shim adding support for http(s) proxy and allowing
+   * invalid tls certificates (to be used with self signed certificates).
+   *
+   * @param {any} url The request url string or url like object.
+   * @param {any} options The request options object.
+   * @returns {Promise<Response>} The promise with the node-fetch response object.
    */
-  request: Q.denodeify(require('request')),
+  fetch,
 
   /**
    * Utility function to ensure the given id is always a BSON object.
@@ -665,6 +686,113 @@ const Utils = {
    * Application error codes.
    */
   errorCodes,
+
+  valuePath(prefix, key) {
+    return `${prefix ? `${prefix}.` : ''}${key}`;
+  },
+
+  layoutComponents: [
+    'panel',
+    'table',
+    'well',
+    'columns',
+    'fieldset',
+    'tabs',
+  ],
+
+  eachValue(
+    components,
+    data,
+    fn,
+    context,
+    path = '',
+  ) {
+    components.forEach((component) => {
+      if (Array.isArray(component.components)) {
+        // If tree type is an array of objects like datagrid and editgrid.
+        if (['datagrid', 'editgrid'].includes(component.type) || component.arrayTree) {
+          _.get(data, component.key, []).forEach((row, index) => {
+            this.eachValue(
+              component.components,
+              row,
+              fn,
+              context,
+              this.valuePath(path, `${component.key}[${index}]`),
+            );
+          });
+        }
+        else if (['form'].includes(component.type)) {
+          this.eachValue(
+            component.components,
+            _.get(data, `${component.key}.data`, {}),
+            fn,
+            context,
+            this.valuePath(path, `${component.key}.data`),
+          );
+        }
+        else if (
+          ['container'].includes(component.type) ||
+          (
+            component.tree &&
+            !this.layoutComponents.includes(component.type)
+          )
+        ) {
+          this.eachValue(
+            component.components,
+            _.get(data, component.key),
+            fn,
+            context,
+            this.valuePath(path, component.key),
+          );
+        }
+        else {
+          this.eachValue(
+            component.components,
+            data,
+            fn,
+            context,
+            path,
+          );
+        }
+      }
+      else if (Array.isArray(component.columns)) {
+        // Handle column like layout components.
+        component.columns.forEach((column) => {
+          this.eachValue(
+            column.components,
+            data,
+            fn,
+            context,
+            path,
+          );
+        });
+      }
+      else if (Array.isArray(component.rows)) {
+        // Handle table like layout components.
+        component.rows.forEach((row) => {
+          if (Array.isArray(row)) {
+            row.forEach((column) => {
+              this.eachValue(
+                column.components,
+                data,
+                fn,
+                context,
+                path,
+              );
+            });
+          }
+        });
+      }
+
+      // Call the callback for each component.
+      fn({
+        ...context,
+        data,
+        component,
+        path,
+      });
+    });
+  },
 };
 
 module.exports = Utils;

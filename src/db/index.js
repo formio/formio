@@ -3,7 +3,7 @@
 const async = require('async');
 const MongoClient = require('mongodb').MongoClient;
 const semver = require('semver');
-const request = require('request');
+const fetch = require('../util/fetch');
 const _ = require('lodash');
 const fs = require('fs');
 const debug = {
@@ -93,7 +93,6 @@ module.exports = function(formio) {
       }
     );
   };
-
   /**
    * Fetch the SA certificate.
    *
@@ -108,18 +107,29 @@ module.exports = function(formio) {
     // If they provide the SA url, then fetch it from there.
     if (config.mongoSA.indexOf('http') === 0) {
       debug.db(`Fetching SA Certificate ${config.mongoSA}`);
-      request.get(config.mongoSA, (err, response, body) => {
-        if (err || !body) {
-          debug.db(`Unable to fetch SA Certificate: ${err}`);
-          unlock(function() {
+      fetch(config.mongoSA)
+        .then((response) => {
+          if (response.ok) {
+            return response.text();
+          }
+          throw new Error(response.statusText);
+        })
+        .then((body) => {
+          if (body) {
+            debug.db('Fetched SA Certificate');
+            config.mongoSA = body;
+            return next();
+          }
+          throw new Error('Empty Body');
+        })
+        .catch((error) => {
+          debug.db(`Unable to fetch SA Certificate: ${error}`);
+          unlock(() => {
             throw new Error(`Unable to fetch the SA Certificate: ${config.mongoSA}.`);
           });
-        }
-
-        debug.db('Fetched SA Certificate');
-        config.mongoSA = body;
-        return next();
-      });
+          config.mongoSA = '';
+          return next();
+        });
     }
     else {
       return next();
@@ -319,10 +329,17 @@ module.exports = function(formio) {
   const sanityCheck = function sanityCheck(req, res, next) {
     // Determine if a response is expected by the request path.
     const response = (req.path === '/health');
+    const {verboseHealth} = req;
 
     // Skip functionality if testing.
     if (process.env.TEST_SUITE) {
       debug.db('Skipping for TEST_SUITE');
+
+      if (response && verboseHealth) {
+        res.status(200);
+        return next();
+      }
+
       return response
         ? res.sendStatus(200)
         : next();
@@ -337,6 +354,16 @@ module.exports = function(formio) {
      * @returns {*}
      */
     const handleResponse = function(err) {
+      if (response && verboseHealth) {
+        if (err) {
+          res.status(400);
+        }
+        else {
+          res.status(200);
+        }
+        return next();
+      }
+
       if (err) {
         return res.status(400).send(err);
       }

@@ -28,6 +28,7 @@ const labelRegexp = /(?:(\.data\.)(?!\.data\.))/g;
  * @constructor
  */
 class CSVExporter extends Exporter {
+  /* eslint-disable max-statements */
   constructor(form, req, res) {
     super(form, req, res);
     this.timezone = _.get(form, 'settings.components.datetime.timezone', '');
@@ -51,21 +52,33 @@ class CSVExporter extends Exporter {
         }
 
         const items = [];
+        let noRecurse = false;
 
         // If a component has multiple parts, pick what we want.
         if (component.type === 'address') {
           items.push({
-            subpath: 'formatted_address',
-            rename: (label) => `${label}.formatted`
+            rename: (label) => `${label}.formatted`,
+            preprocessor: (value) => {
+              const address = (value && value.address) || value || {};
+              return address.formatted_address;
+            },
           });
           items.push({
-            subpath: 'geometry.location.lat',
-            rename: (label) => `${label}.lat`
+            rename: (label) => `${label}.lat`,
+            preprocessor: (value) => {
+              const address = (value && value.address) || value || {};
+              return _.get(address, 'geometry.location.lat');
+            },
           });
           items.push({
-            subpath: 'geometry.location.lng',
-            rename: (label) => `${label}.lng`
+            rename: (label) => `${label}.lng`,
+            preprocessor: (value) => {
+              const address = (value && value.address) || value || {};
+              return _.get(address, 'geometry.location.lng');
+            },
           });
+
+          noRecurse = true;
         }
         else if (component.type === 'selectboxes') {
           _.each(component.values, (option) => {
@@ -280,6 +293,11 @@ class CSVExporter extends Exporter {
               if (!value) {
                 return '';
               }
+
+              if (_.isObject(value)) {
+                return value;
+              }
+
               return conformToMask(value, mask).conformedValue;
             }
           });
@@ -315,12 +333,15 @@ class CSVExporter extends Exporter {
 
           this.fields.push(finalItem);
         });
+
+        return noRecurse;
       }, true);
     }
     catch (err) {
       res.status(400).send(err.message || err);
     }
   }
+  /* eslint-enable max-statements */
 
   /**
    * Start the CSV export by creating the headers.

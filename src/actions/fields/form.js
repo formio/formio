@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const util = require('../../util/util');
 
-module.exports = router => {
+module.exports = (router) => {
   /**
    * Perform hierarchial submissions of sub-forms.
    */
@@ -45,6 +45,10 @@ module.exports = router => {
           _.each(err.details, (details) => {
             if (details.path) {
               details.path = `${path}.data.${details.path}`;
+              details.path = details.path.replace(/[[\]]/g, '.')
+                .replace(/\.\./g, '.')
+                .split('.')
+                .map(part => _.defaultTo(_.toNumber(part), part));
             }
           });
         }

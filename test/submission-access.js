@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 'use strict';
 
-var request = require('supertest');
+const request = require('./formio-supertest');
 var assert = require('assert');
 var async = require('async');
 var _ = require('lodash');
@@ -7181,8 +7181,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, the owner, can update a submissions resource access, without explicit resource access (read)', function(done) {
           tempSubmission.data.readPerm = [template.users.admin];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -7391,8 +7389,8 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, the owner, can update a submissions resource access, without explicit resource access (write)', function(done) {
           tempSubmission.data.writePerm = [template.users.admin];
-          delete tempSubmission.data.readPerm;
-          delete tempSubmission.data.adminPerm;
+          tempSubmission.data.readPerm = [];
+          tempSubmission.data.adminPerm = [];
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -7627,8 +7625,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, the owner, can update a submissions resource access, with explicit resource access (admin)', function(done) {
           tempSubmission.data.adminPerm = [template.users.admin];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.readPerm;
           var update = {access: [{type: 'admin', resources: [template.users.admin._id]}]};
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
@@ -7890,8 +7886,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (read)', function(done) {
           tempSubmission.data.readPerm = [template.users.admin2];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -8040,8 +8034,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (read)', function(done) {
           tempSubmission.data.readPerm = [template.users.user2];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -8127,8 +8119,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (write)', function(done) {
           tempSubmission.data.writePerm = [template.users.admin2];
-          delete tempSubmission.data.readPerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -8277,8 +8267,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (write)', function(done) {
           tempSubmission.data.writePerm = [template.users.user2];
-          delete tempSubmission.data.readPerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -8364,8 +8352,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, with explicit resource access (admin)', function(done) {
           tempSubmission.data.adminPerm = [template.users.admin2];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.readPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -8514,8 +8500,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, with explicit resource access (admin)', function(done) {
           tempSubmission.data.adminPerm = [template.users.user2];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.readPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin2.token)
@@ -8726,8 +8710,6 @@ module.exports = function(app, template, hook) {
 
         it('Give the user read access to the submission', function(done) {
           tempSubmission.data.readPerm = [template.users.user1];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -8888,8 +8870,8 @@ module.exports = function(app, template, hook) {
 
         it('Give the user write access to the submission', function(done) {
           tempSubmission.data.writePerm = [template.users.user1];
-          delete tempSubmission.data.readPerm;
-          delete tempSubmission.data.adminPerm;
+          tempSubmission.data.readPerm = [];
+          tempSubmission.data.adminPerm = [];
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -9037,8 +9019,8 @@ module.exports = function(app, template, hook) {
 
         it('Give the user admin access to the submission', function(done) {
           tempSubmission.data.adminPerm = [template.users.user1];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.readPerm;
+          tempSubmission.data.writePerm = [];
+          tempSubmission.data.readPerm = [];
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)
@@ -9366,8 +9348,6 @@ module.exports = function(app, template, hook) {
 
         it('An Admin can update the submissions resource access', function(done) {
           tempSubmission.data.readPerm = [template.users.admin];
-          delete tempSubmission.data.writePerm;
-          delete tempSubmission.data.adminPerm;
           request(app)
             .put(hook.alter('url', '/form/' + tempForm._id + '/submission/' + tempSubmission._id, template))
             .set('x-jwt-token', template.users.admin.token)

@@ -128,7 +128,7 @@ module.exports = (app, template, hook) => {
           assert.equal(form.hasOwnProperty('machineName'), true);
 
           let machineName = form.machineName;
-          let tempForm = _.omit(form, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner', '_vid', 'revisions', 'controller']);
+          let tempForm = _.omit(form, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner', '_vid', 'revisions']);
 
           tempForm.access = tempForm.access.map(access => {
             access.roles = access.roles.map(role => {
