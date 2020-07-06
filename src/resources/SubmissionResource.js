@@ -18,7 +18,6 @@ module.exports = (router) => {
     router.formio.middleware.bootstrapSubmissionAccess,
     router.formio.middleware.addSubmissionResourceAccess,
     router.formio.middleware.condenseSubmissionPermissionTypes,
-    router.formio.middleware.getFullFormSchema,
     handlers.beforePost,
   ];
   handlers.afterPost = [
@@ -29,7 +28,6 @@ module.exports = (router) => {
   handlers.beforeGet = [
     router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-    router.formio.middleware.getFullFormSchema,
     handlers.beforeGet,
   ];
   handlers.afterGet = [
@@ -46,7 +44,6 @@ module.exports = (router) => {
     router.formio.middleware.addSubmissionResourceAccess,
     router.formio.middleware.condenseSubmissionPermissionTypes,
     router.formio.middleware.loadPreviousSubmission,
-    router.formio.middleware.getFullFormSchema,
     handlers.beforePut,
   ];
   handlers.afterPut = [
@@ -73,7 +70,6 @@ module.exports = (router) => {
     }),
     router.formio.middleware.ownerFilter,
     router.formio.middleware.submissionResourceAccessFilter,
-    router.formio.middleware.getFullFormSchema,
     handlers.beforeIndex,
   ];
   handlers.afterIndex = [
@@ -85,7 +81,6 @@ module.exports = (router) => {
   handlers.beforeDelete = [
     router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
-    router.formio.middleware.getFullFormSchema,
     handlers.beforeDelete,
     router.formio.middleware.loadPreviousSubmission,
     router.formio.middleware.deleteSubmissionHandler,
