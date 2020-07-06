@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "1.88.0",
+  "version": "1.89.0",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
@@ -65,7 +65,7 @@
     "vanilla-text-mask": "^5.1.1"
   },
   "devDependencies": {
-    "eslint": "^7.3.1",
+    "eslint": "^7.4.0",
     "mocha": "^8.0.1",
     "nodemon": "^2.0.4",
     "pre-commit": "^1.2.2",

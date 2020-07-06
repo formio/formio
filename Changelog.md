@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.89.0
+### Changed
+ - Revert "Added a middleware for loading a full form schema for use component settings.
+
 ## 1.88.0
 ### Fixed
  - FOR-2707: Fixes an issue where the PATCH request was being failed if a form has a nested form as reference.
