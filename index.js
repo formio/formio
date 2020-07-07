@@ -50,7 +50,6 @@ module.exports = function(config) {
 
   router.formio.audit = (event, req, ...info) => {
     if (config.audit) {
-      info.unshift(event);
       const result = router.formio.hook.alter('audit', info, event, req);
 
       console.log(...result);
