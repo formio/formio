@@ -34,7 +34,7 @@ module.exports = (router) => {
    * @param payload
    * @param res
    */
-  const generateToken = (inputToken, payload, res, req) => {
+  const generateToken = (inputToken, payload, res) => {
     // Refresh the token that is sent back to the user when appropriate.
     const newToken = router.formio.auth.getToken(payload);
     res.token = newToken
@@ -43,7 +43,6 @@ module.exports = (router) => {
 
     // Set the headers if they haven't been sent yet.
     if (!res.headersSent) {
-      router.formio.audit('AUTH_TOKENREFRESH', req, router.formio.config.jwt.expireTime * 60);
       res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
       res.setHeader('x-jwt-token', res.token);
     }
