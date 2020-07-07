@@ -91,6 +91,13 @@ module.exports = function(config) {
       // Add the database connection to the router.
       router.formio.db = db;
 
+      // Ensure we do not have memory leaks in core renderer
+      router.use((req, res, next) => {
+        util.Formio.forms = {};
+        util.Formio.cache = {};
+        next();
+      });
+
       // Establish our url alias middleware.
       if (!router.formio.hook.invoke('init', 'alias', router.formio)) {
         router.use(router.formio.middleware.alias);
@@ -112,7 +119,7 @@ module.exports = function(config) {
       router.use(methodOverride('X-HTTP-Method-Override'));
 
       // Error handler for malformed JSON
-      router.use(function(err, req, res, next) {
+      router.use((err, req, res, next) => {
         if (err instanceof SyntaxError) {
           res.status(400).send(err.message);
         }
@@ -122,7 +129,7 @@ module.exports = function(config) {
 
       // CORS Support
       const corsRoute = cors(router.formio.hook.alter('cors'));
-      router.use(function(req, res, next) {
+      router.use((req, res, next) => {
         if (req.url === '/') {
           return next();
         }

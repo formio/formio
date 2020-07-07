@@ -158,7 +158,9 @@ module.exports = function(router) {
             return next(err);
           }
           if (!result) {
-            debug.loadSubForms(`Cannot find form revision for form ${util.idToBson(rev.form)} revision ${rev.formRevision}`);
+            debug.loadSubForms(
+              `Cannot find form revision for form ${util.idToBson(rev.form)} revision ${rev.formRevision}`,
+            );
             return next();
           }
 
@@ -182,7 +184,7 @@ module.exports = function(router) {
       if (req.params.formId) {
         formId = req.params.formId;
       }
-      else if (req.body.data.formId) {
+      else if (req.body.data && req.body.data.formId) {
         formId = req.body.data.formId;
       }
       else if (req.query.formId) {
@@ -192,6 +194,7 @@ module.exports = function(router) {
         return '';
       }
       req.formId = formId;
+      req.params.formId = formId;
       return formId;
     },
 

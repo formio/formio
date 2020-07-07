@@ -3,10 +3,10 @@
 const vm = require('vm');
 const Joi = require('joi');
 const _ = require('lodash');
-const util = require('../util/util');
-const request = require('request-promise-native');
 const moment = require('moment');
 const cache = require('memory-cache');
+const querystring = require('querystring');
+const util = require('../util/util');
 
 const debug = {
   validator: require('debug')('formio:validator'),
@@ -251,18 +251,15 @@ const getRules = (type) => [
       const requests = params.requests;
 
       // Initialize the request options.
-      const requestOptions = {
-        url: _.get(component, 'validate.select'),
-        method: 'GET',
-        qs: {},
-        json: true,
-        headers: {}
-      };
+      let url = _.get(component, 'validate.select');
+      const method = 'GET';
+      const query = {};
+      const headers = {};
 
       // If the url is a boolean value.
-      if (util.isBoolean(requestOptions.url)) {
-        requestOptions.url = util.boolean(requestOptions.url);
-        if (!requestOptions.url) {
+      if (util.isBoolean(url)) {
+        url = util.boolean(url);
+        if (!url) {
           return value;
         }
 
@@ -275,28 +272,30 @@ const getRules = (type) => [
         }
 
         // Get the validation url.
-        requestOptions.url = component.data.url;
+        url = component.data.url;
 
         // Add the search field.
-        requestOptions.qs[component.searchField] = value;
+        query[component.searchField] = value;
 
         // Add the filters.
         if (component.filter) {
-          requestOptions.url += (!requestOptions.url.includes('?') ? '?' : '&') + component.filter;
+          url += (!url.includes('?') ? '?' : '&') + component.filter;
         }
 
         // If they only wish to return certain fields.
         if (component.selectFields) {
-          requestOptions.qs.select = component.selectFields;
+          query.select = component.selectFields;
         }
       }
 
-      if (!requestOptions.url) {
+      if (!url) {
         return value;
       }
 
+      url += (!url.includes('?') ? '?' : '&') + querystring.stringify(query);
+
       // Make sure to interpolate.
-      requestOptions.url = util.FormioUtils.interpolate(requestOptions.url, {
+      url = util.FormioUtils.interpolate(url, {
         data: submission.data
       });
 
@@ -304,21 +303,18 @@ const getRules = (type) => [
       if (component.data && component.data.headers) {
         _.each(component.data.headers, (header) => {
           if (header.key) {
-            requestOptions.headers[header.key] = header.value;
+            headers[header.key] = header.value;
           }
         });
       }
 
       // Set form.io authentication.
       if (component.authenticate && token) {
-        requestOptions.headers['x-jwt-token'] = token;
+        headers['x-jwt-token'] = token;
       }
 
       async.push(new Promise((resolve, reject) => {
-        /* eslint-disable prefer-template */
-        const cacheKey = `${requestOptions.method}:${requestOptions.url}?` +
-          Object.keys(requestOptions.qs).map(key => key + '=' + requestOptions.qs[key]).join('&');
-        /* eslint-enable prefer-template */
+        const cacheKey = `${method}:${url}`;
         const cacheTime = (process.env.VALIDATOR_CACHE_TIME || (3 * 60)) * 60 * 1000;
 
         // Check if this request was cached
@@ -336,7 +332,8 @@ const getRules = (type) => [
         debug.validator(cacheKey, 'miss');
 
         // Us an existing promise or create a new one.
-        requests[cacheKey] = requests[cacheKey] || request(requestOptions);
+        requests[cacheKey] = requests[cacheKey] || util.fetch(url, {method, headers})
+          .then((res) => (res.ok ? res.json() : null));
 
         requests[cacheKey]
           .then(body => {
@@ -570,9 +567,10 @@ class Validator {
     /* eslint-disable max-statements */
     components.forEach((component) => {
       let fieldValidator = null;
+      let componentKey = component.key;
 
       this.applyLogic(component, componentData, submission.data);
-      this.calculateValue(component, componentData, submission.data);
+      this.calculateValue(component, componentData, submission.data, submission);
 
       // The value is persistent if it doesn't say otherwise or explicitly says so.
       const isPersistent = !component.hasOwnProperty('persistent') || component.persistent;
@@ -621,6 +619,33 @@ class Validator {
 
           fieldValidator = JoiX.array().items(JoiX.object().keys(objectSchema)).options({stripUnknown: false});
           break;
+        case 'tagpad':
+          objectSchema = this.buildSchema(
+            {},
+            component.components,
+            _.get(componentData, component.key, componentData).map(dot => dot.data),
+            submission
+          );
+          fieldValidator = JoiX.array().items(JoiX.object({
+            coordinate: JoiX.object({
+              x: JoiX.number(),
+              y: JoiX.number()
+            }),
+            data: JoiX.object().keys(objectSchema)
+          })).options({stripUnknown: false});
+          break;
+        case 'tree':
+          objectSchema = this.buildSchema(
+            {},
+            component.components,
+            _.get(componentData, component.key, componentData).data,
+            submission
+          );
+          fieldValidator = JoiX.object({
+            data: JoiX.object().keys(objectSchema),
+            children: JoiX.array().items(JoiX.lazy(() => fieldValidator))
+          }).options({stripUnknown: false});
+          break;
         case 'container':
           objectSchema = this.buildSchema(
             {},
@@ -630,6 +655,16 @@ class Validator {
           );
 
           fieldValidator = JoiX.object().keys(objectSchema);
+          break;
+        case 'address':
+          objectSchema = this.buildSchema(
+            {},
+            component.components,
+            componentData,
+            submission
+          );
+
+          fieldValidator = fieldValidator || JoiX.any();
           break;
         case 'fieldset':
         case 'panel':
@@ -713,7 +748,7 @@ class Validator {
           break;
         case 'checkbox':
           if (component.name && !_.find(components, ['key', component.name])) {
-            schema[component.name] = JoiX.any();
+            componentKey = component.name;
           }
           fieldValidator = fieldValidator || JoiX.any();
           break;
@@ -743,7 +778,7 @@ class Validator {
       }
       /* eslint-enable max-depth, valid-typeof */
 
-      if (component.key && (component.key.indexOf('.') === -1) && component.validate) {
+      if (componentKey && (componentKey.indexOf('.') === -1) && component.validate) {
         // Add required validator.
         if (component.validate.required) {
           fieldValidator = fieldValidator.required().empty().disallow('', null);
@@ -808,8 +843,8 @@ class Validator {
       }
 
       // Only run validations for persistent fields.
-      if (component.key && fieldValidator && isPersistent) {
-        schema[component.key] = fieldValidator.hidden(component, submission.data, this.form);
+      if (componentKey && fieldValidator && isPersistent) {
+        schema[componentKey] = fieldValidator.hidden(component, submission.data, this.form);
       }
     });
     /* eslint-enable max-statements */
@@ -893,17 +928,21 @@ class Validator {
     });
   }
 
-  calculateValue(component, row, data) {
+  calculateValue(component, row, data, submission) {
     if (component.calculateServer && component.calculateValue) {
       if (_.isString(component.calculateValue)) {
         try {
           const sandbox = vm.createContext(this.evalContext({
             value: _.get(row, component.key),
+            form: this.form,
+            submission,
             data,
             row,
             component,
             util,
+            utils: util,
             moment,
+            _,
             token: this.decodedToken,
           }));
 
@@ -916,20 +955,26 @@ class Validator {
           _.set(row, component.key, sandbox.value);
         }
         catch (e) {
-          // Need to log error for calculated value.
+          debug.error(e);
         }
       }
       else {
         try {
           _.set(row, component.key, util.jsonLogic(component.calculateValue, {
+            form: this.form,
+            submission,
             data,
             row,
+            component,
+            util,
+            utils: util,
+            moment,
             _,
             token: this.decodedToken,
           }));
         }
         catch (e) {
-          // Need to log error for calculated value.
+          debug.error(e);
         }
       }
     }

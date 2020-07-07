@@ -114,6 +114,11 @@ module.exports = (router) => {
 
   // Export forms.
   const exportForms = function(_export, _map, options, next) {
+    let includeFormFields = [];
+    if (options && options.includeFormFields) {
+      includeFormFields = options.includeFormFields;
+    }
+
     formio.resources.form.model
       .find(hook.alter('formQuery', {deleted: {$eq: null}}, options))
       .lean(true)
@@ -141,6 +146,8 @@ module.exports = (router) => {
             'access',
             'submissionAccess',
             'properties',
+            'controller',
+            ...includeFormFields,
           );
           _map.forms[form._id.toString()] = machineName;
         });
@@ -236,6 +243,10 @@ module.exports = (router) => {
   if (router.get) {
     router.get('/export', (req, res, next) => {
       const options = hook.alter('exportOptions', {}, req, res);
+      if (options) {
+        options.includeFormFields = (req.query.include && req.query.include.split(',').filter((field) => !!field));
+      }
+
       exportTemplate(options, (err, data) => {
         if (err) {
           return next(err.message || err);

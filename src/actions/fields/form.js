@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const util = require('../../util/util');
 
-module.exports = router => {
+module.exports = (router) => {
   /**
    * Perform hierarchial submissions of sub-forms.
    */
@@ -35,7 +35,7 @@ module.exports = router => {
     }
 
     let url = '/form/:formId/submission';
-    if (req.method === 'PUT') {
+    if (['PUT', 'PATCH'].includes(req.method)) {
       url += '/:submissionId';
     }
     const childRes = router.formio.util.createSubResponse((err) => {
@@ -74,6 +74,11 @@ module.exports = router => {
 
     // Make the child request.
     const method = (req.method === 'POST') ? 'post' : 'put';
+
+    if (req.method === 'PATCH') {
+      childReq.subPatch = true;
+    }
+
     router.resourcejs[url][method](childReq, childRes, function(err) {
       if (err) {
         return next(err);

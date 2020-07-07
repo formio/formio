@@ -230,76 +230,6 @@ module.exports = (router, resourceName, resourceId) => {
       };
     }
 
-    // This should probably be moved to utils.
-    function eachValue(components, data, fn, context, path = '') {
-      const promises = [];
-      if (components) {
-        components.forEach((component) => {
-          if (component.hasOwnProperty('components') && Array.isArray(component.components)) {
-            // If tree type is an array of objects like datagrid and editgrid.
-            if (['datagrid', 'editgrid'].includes(component.type) || component.arrayTree) {
-              _.get(data, component.key, []).forEach((row, index) => {
-                promises.push(eachValue(
-                  component.components,
-                  row,
-                  fn,
-                  context,
-                  `${path ? `${path}.` : ''}${component.key}[${index}]`,
-                ));
-              });
-            }
-            else if (['form'].includes(component.type)) {
-              promises.push(eachValue(
-                component.components,
-                _.get(data, `${component.key}.data`, {}),
-                fn,
-                context,
-                `${path ? `${path}.` : ''}${component.key}.data`,
-              ));
-            }
-            else if (
-              ['container'].includes(component.type) ||
-              (
-                component.tree &&
-                !['panel', 'table', 'well', 'columns', 'fieldset', 'tabs', 'form'].includes(component.type)
-              )
-            ) {
-              promises.push(eachValue(
-                component.components,
-                _.get(data, component.key),
-                fn,
-                context,
-                `${path ? `${path}.` : ''}${component.key}`,
-              ));
-            }
-            else {
-              promises.push(eachValue(component.components, data, fn, context, path));
-            }
-          }
-          else if (component.hasOwnProperty('columns') && Array.isArray(component.columns)) {
-            // Handle column like layout components.
-            component.columns.forEach((column) => {
-              promises.push(eachValue(column.components, data, fn, context, path));
-            });
-          }
-          else if (component.hasOwnProperty('rows') && Array.isArray(component.rows)) {
-            // Handle table like layout components.
-            component.rows.forEach((row) => {
-              if (Array.isArray(row)) {
-                row.forEach((column) => {
-                  promises.push(eachValue(column.components, data, fn, context, path));
-                });
-              }
-            });
-          }
-          // Call the callback for each component.
-          promises.push(fn({...context, data, component, path}));
-        });
-      }
-
-      return Promise.all(promises);
-    }
-
     /**
      * Execute the field handlers.
      *
@@ -310,13 +240,23 @@ module.exports = (router, resourceName, resourceId) => {
      * @param done
      */
     function executeFieldHandlers(validation, req, res, done) {
+      // If they wish to disable actions, then just skip.
+      if (req.query.dryrun) {
+        return done();
+      }
+
       const promises = [];
 
-      eachValue(req.currentForm.components, req.body.data, (context) => {
-        const {component, data, handler, action, path} = context;
-
+      util.eachValue(req.currentForm.components, req.body.data, ({
+        component,
+        data,
+        handler,
+        action,
+        path,
+      }) => {
         // Remove not persistent data
-        if (data &&
+        if (
+          data &&
           component.hasOwnProperty('persistent') &&
           !component.persistent
         ) {
@@ -325,32 +265,41 @@ module.exports = (router, resourceName, resourceId) => {
 
         const fieldActions = hook.alter('fieldActions', fActions);
         const propertyActions = hook.alter('propertyActions', pActions);
-        const componentPath = `${path}${path ? '.' : ''}${component.key}`;
+        const componentPath = util.valuePath(path, component.key);
 
         // Execute the property handlers after validation has occurred.
+        const handlerArgs = [
+          component,
+          data,
+          handler,
+          action,
+          {
+            validation,
+            path: componentPath,
+            req,
+            res,
+          },
+        ];
+
         if (validation) {
           Object.keys(propertyActions).forEach((property) => {
             if (component.hasOwnProperty(property) && component[property]) {
-              promises.push(propertyActions[property](component, data, handler, action, {
-                validation,
-                path: componentPath,
-                req,
-                res,
-              }));
+              promises.push(propertyActions[property](...handlerArgs));
             }
           });
         }
 
         // Execute the field handler.
         if (fieldActions.hasOwnProperty(component.type)) {
-          promises.push(fieldActions[component.type](component, data, handler, action, {
-            validation,
-            path: componentPath,
-            req,
-            res,
-          }));
+          promises.push(fieldActions[component.type](...handlerArgs));
         }
-      }, {validation, handler: req.handlerName, action: req.method.toLowerCase(), req, res});
+      }, {
+        validation,
+        handler: req.handlerName,
+        action: req.method.toLowerCase(),
+        req,
+        res,
+      });
 
       Promise.all(promises)
         .then(() => done())
