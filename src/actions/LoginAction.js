@@ -287,7 +287,6 @@ module.exports = (router) => {
               return res.status(401).send(error);
             }
 
-            audit('AUTH_LOGIN', req);
             // Set the user and generate a token.
             req.user = response.user;
             req.token = response.token.decoded;
