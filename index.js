@@ -52,7 +52,9 @@ module.exports = function(config) {
     if (config.audit) {
       const result = router.formio.hook.alter('audit', info, event, req);
 
-      console.log(...result);
+      if (result) {
+        console.log(...result);
+      }
     }
   };
 
