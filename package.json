@@ -58,7 +58,7 @@
     "q": "^1.5.0",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.8",
-    "resourcejs": "^2.3.0",
+    "resourcejs": "^2.3.1",
     "restler": "^3.4.0",
     "semver": "^7.3.2",
     "through": "^2.3.8",
