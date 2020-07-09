@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.2
+### Changed
+ - Cherry pick email fix for large emails.
+
 ## 1.90.1
 ### Changed
  - Resource.js library to 2.3.1 to revert change in aggregation.
