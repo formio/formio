@@ -365,6 +365,45 @@ module.exports = function(router) {
 
             return callback();
           });
+        },
+
+        function flagRequestAsSubmissionFieldMatchAccess(callback) {
+          if (req.method.toUpperCase() !== 'GET') {
+            return callback();
+          }
+
+          if (!req.formId || req.subId) {
+            return callback();
+          }
+
+          // Load the form, and get its roles/permissions data.
+          router.formio.cache.loadForm(req, null, req.formId, function(err, item) {
+            if (err) {
+              return callback(err);
+            }
+            if (!item) {
+              return callback(`No Form found with formId: ${req.formId}`);
+            }
+
+            if (item.fieldMatchAccess) {
+              let hasSubmissionFieldMatchAccess = false;
+              Object.entries(item.fieldMatchAccess).forEach(([type, fields]) => {
+                if (fields.formFieldPath && fields.userFieldPath) {
+                  if (hasSubmissionFieldMatchAccess) {
+                    req.submissionFieldMatchAccess[type] = fields;
+                  }
+                  else {
+                    hasSubmissionFieldMatchAccess = true;
+                    req.submissionFieldMatchAccess = {
+                      [type]: fields
+                    };
+                  }
+                }
+              });
+            }
+
+            return callback();
+          });
         }
       ], req, res, access), function(err) {
         if (err) {
@@ -486,11 +525,13 @@ module.exports = function(router) {
 
         // Do not include the submission resource access filter if they have "all" access.
         req.submissionResourceAccessFilter = false;
+        // req.submissionFieldMatchAccess = false;
         _hasAccess = true;
       }
 
       // If resource access applies, then allow for that to be in the query.
-      if (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter) {
+      if (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter ||
+      _.has(req, 'submissionFieldMatchAccess') && req.submissionFieldMatchAccess) {
         _hasAccess = true;
       }
 
@@ -548,7 +589,7 @@ module.exports = function(router) {
       return next();
     }
 
-    // Determine if we are trying to access and entity of the form or submission.
+    // Determine if we are trying to access an entity of the form or submission.
     router.formio.access.getAccess(req, res, function(err, access) {
       if (err) {
         if (_.isNumber(err)) {
@@ -594,6 +635,7 @@ module.exports = function(router) {
 
       // Attempt a final access check against submission index requests using the submission resource access.
       // If this passes, it is up to the submissionResourceAccessFilter middleware to handle permissions.
+      // TODO: ask Travis if these lines are redundant
       if (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter) {
         req.skipOwnerFilter = true;
         return next();
