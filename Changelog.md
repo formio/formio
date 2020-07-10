@@ -69,6 +69,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
 
+## 1.90.2
+### Changed
+ - Cherry pick email fix for large emails.
+
+## 1.90.1
+### Changed
+ - Resource.js library to 2.3.1 to revert change in aggregation.
+
+## 1.90.0
+### Fixed
+ - A bad revert.
+
+## 1.89.0
+### Changed
+ - Revert "Added a middleware for loading a full form schema for use component settings.
+
+## 1.88.0
+### Fixed
+ - FOR-2707: Fixes an issue where the PATCH request was being failed if a form has a nested form as reference.
+ - Server crashes when a bad query is passed to ResourceJS
+ - Added a middleware for loading a full form schema for use component settings.
+
 ## 1.87.0
 ### Fixed
  - Export of form controllers.
