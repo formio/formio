@@ -58,7 +58,7 @@ Formio.Utils.Evaluator.evaluator = function(func, args) {
 const Utils = {
   Formio: Formio.Formio,
   FormioUtils: Formio.Utils,
-  deleteProp,
+  deleteProp: deleteProp,
 
   /**
    * A wrapper around console.log that gets ignored by eslint.
