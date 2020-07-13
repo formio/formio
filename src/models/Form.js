@@ -148,22 +148,10 @@ module.exports = (formio) => {
       access: [formio.schemas.PermissionSchema],
       submissionAccess: [formio.schemas.PermissionSchema],
       fieldMatchAccess: {
-        read: {
-          formFieldPath: String,
-          userFieldPath: String
-        },
-        write: {
-          formFieldPath: String,
-          userFieldPath: String
-        },
-        create: {
-          formFieldPath: String,
-          userFieldPath: String
-        },
-        admin: {
-          formFieldPath: String,
-          userFieldPath: String
-        },
+        read: formio.schemas.FieldMatchAccessPermissionSchema,
+        write: formio.schemas.FieldMatchAccessPermissionSchema,
+        ceate: formio.schemas.FieldMatchAccessPermissionSchema,
+        admin: formio.schemas.FieldMatchAccessPermissionSchema
       },
       owner: {
         type: formio.mongoose.Schema.Types.Mixed,

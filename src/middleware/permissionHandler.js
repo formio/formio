@@ -387,19 +387,17 @@ module.exports = function(router) {
 
             if (item.fieldMatchAccess) {
               let hasSubmissionFieldMatchAccess = false;
-              Object.entries(item.fieldMatchAccess).forEach(([type, fields]) => {
-                if (fields.formFieldPath && fields.userFieldPath) {
+              Object.entries(item.fieldMatchAccess).forEach(([type, condition]) => {
                   if (hasSubmissionFieldMatchAccess) {
-                    req.submissionFieldMatchAccess[type] = fields;
+                    req.submissionFieldMatchAccess[type] = condition;
                   }
                   else {
                     hasSubmissionFieldMatchAccess = true;
                     req.submissionFieldMatchAccess = {
-                      [type]: fields
+                      [type]: condition
                     };
                   }
-                }
-              });
+                });
             }
 
             return callback();
@@ -532,6 +530,7 @@ module.exports = function(router) {
       // If resource access applies, then allow for that to be in the query.
       if (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter ||
       _.has(req, 'submissionFieldMatchAccess') && req.submissionFieldMatchAccess) {
+         req.skipOwnerFilter = true;
         _hasAccess = true;
       }
 

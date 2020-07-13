@@ -217,7 +217,8 @@ module.exports = function(config) {
 
         router.formio.schemas = {
           PermissionSchema: require('./src/models/PermissionSchema')(router.formio),
-          AccessSchema: require('./src/models/AccessSchema')(router.formio)
+          AccessSchema: require('./src/models/AccessSchema')(router.formio),
+          FieldMatchAccessPermissionSchema: require('./src/models/FieldMatchAccessPermissionSchema')(router.formio),
         };
 
         // Get the models for our project.

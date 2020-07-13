@@ -24,34 +24,42 @@ module.exports = function(router) {
     }
 
     const userId = _.get(req, 'user._id');
+    const userRoles = _.get(req, 'user.roles', []);
+    if (!userRoles.length) {
+      return res.sendStatus(401);
+    }
     // Perform our search.
     let query = null;
-    const fieldsToCheck = Object.entries(req.submissionFieldMatchAccess).map(([, fields]) => {
-      if (_.has(req, `user.${fields.userFieldPath}`)) {
-        return {[`data.${fields.formFieldPath}`]:  {$eq: _.get(req, `user.${fields.userFieldPath}`)}};
+    // Map permissions to array of Mongo conditions
+    const fieldsToCheck = Object.entries(req.submissionFieldMatchAccess).map(([, condition]) => {
+      let allowed = true;
+      if (condition.roles.length && !condition.roles.find((role) => userRoles.some((userRole) => userRole === role.toString()))) {
+        allowed = false;
       }
-    });
-    if (userId) {
-      query = {
-        form: util.idToBson(req.formId),
-        deleted: {$eq: null},
-        $or: [
-          ...fieldsToCheck,
-          {
-            owner: util.idToBson(userId)
+      if (allowed) {
+        if (condition.valueType === 'userFieldPath') {
+          if (_.has(req, `user.${condition.valueOrPath}`)) {
+            return {[`data.${condition.formFieldPath}`]:  {[condition.operator]: _.get(req, `user.${condition.valueOrPath}`)}};
           }
-        ]
-      };
-    }
-    else {
-      query = {
-        form: util.idToBson(req.formId),
-        deleted: {$eq: null},
-        $or: {
-          ...fieldsToCheck
         }
-      };
+        else if (condition.valueType === 'value') {
+          return {[`data.${condition.formFieldPath}`]:  {[condition.operator]: condition.valueOrPath}};
+        }
+      }
+    }).filter((condition) => !!condition);
+
+    if (userId) {
+      fieldsToCheck.push({owner: util.idToBson(userId)});
     }
+
+    query = fieldsToCheck.length !== 0 ? {
+      form: util.idToBson(req.formId),
+      deleted: {$eq: null},
+      $or: [...fieldsToCheck]
+    } : {
+      form: util.idToBson(req.formId),
+      deleted: {$eq: null},
+    };
 
     req.modelQuery = req.modelQuery || req.model || this.model;
     req.modelQuery = req.modelQuery.find(query);
