@@ -48,6 +48,16 @@ module.exports = function(config) {
     }
   };
 
+  router.formio.audit = (event, req, ...info) => {
+    if (config.audit) {
+      const result = router.formio.hook.alter('audit', info, event, req);
+
+      if (result) {
+        console.log(...result);
+      }
+    }
+  };
+
   /**
    * Initialize the formio server.
    */
