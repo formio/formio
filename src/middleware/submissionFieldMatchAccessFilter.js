@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const debug = require('debug')('formio:middleware:submissionResourceAccessFilter');
+const EVERYONE = '000000000000000000000000';
 
 module.exports = function(router) {
   return function submissionResourceAccessFilter(req, res, next) {
@@ -28,24 +29,29 @@ module.exports = function(router) {
     if (!userRoles.length) {
       return res.sendStatus(401);
     }
+    userRoles.push(EVERYONE);
     // Perform our search.
     let query = null;
+    const hasRolesIntersection = (condition) => condition.roles.find((role) => {
+      return userRoles.find((userRole) => userRole === role.toString());
+    });
     // Map permissions to array of Mongo conditions
-    const fieldsToCheck = Object.entries(req.submissionFieldMatchAccess).map(([, condition]) => {
-      let allowed = true;
-      if (condition.roles.length && !condition.roles.find((role) => userRoles.some((userRole) => userRole === role.toString()))) {
-        allowed = false;
-      }
-      if (allowed) {
-        if (condition.valueType === 'userFieldPath') {
-          if (_.has(req, `user.${condition.valueOrPath}`)) {
-            return {[`data.${condition.formFieldPath}`]:  {[condition.operator]: _.get(req, `user.${condition.valueOrPath}`)}};
+    const fieldsToCheck = Object.entries(req.submissionFieldMatchAccess).flatMap(([, conditions]) => {
+      return conditions.map((condition) => {
+        if (!condition.roles.length || hasRolesIntersection(condition)) {
+          const {formFieldPath, operator, valueOrPath, valueType}= condition;
+
+          if (valueType === 'userFieldPath') {
+            if (_.has(req, `user.${valueOrPath}`)) {
+              const userFieldValue = _.get(req, `user.${valueOrPath}`);
+              return {[`data.${formFieldPath}`]:  {[operator]: userFieldValue}};
+            }
+          }
+          else if (valueType === 'value') {
+            return {[`data.${formFieldPath}`]:  {[operator]: valueOrPath}};
           }
         }
-        else if (condition.valueType === 'value') {
-          return {[`data.${condition.formFieldPath}`]:  {[condition.operator]: condition.valueOrPath}};
-        }
-      }
+      });
     }).filter((condition) => !!condition);
 
     if (userId) {

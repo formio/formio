@@ -387,14 +387,14 @@ module.exports = function(router) {
 
             if (item.fieldMatchAccess) {
               let hasSubmissionFieldMatchAccess = false;
-              Object.entries(item.fieldMatchAccess).forEach(([type, condition]) => {
+              Object.entries(item.fieldMatchAccess).forEach(([type, conditions]) => {
                   if (hasSubmissionFieldMatchAccess) {
-                    req.submissionFieldMatchAccess[type] = condition;
+                    req.submissionFieldMatchAccess[type] = conditions;
                   }
                   else {
                     hasSubmissionFieldMatchAccess = true;
                     req.submissionFieldMatchAccess = {
-                      [type]: condition
+                      [type]: conditions
                     };
                   }
                 });
