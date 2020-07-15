@@ -1813,6 +1813,124 @@ module.exports = (app, template, hook) => {
       });
     });
 
+    describe('missingResourceAction', function() {
+      let testTemplate = require('./fixtures/templates/missingResourceAction.json');
+      let _template = _.cloneDeep(testTemplate);
+
+      const checkMissingResourceActions = (actionsObject) => {
+        Object.values(actionsObject).forEach((action) => {
+          assert(action.settings && !action.settings.resource, 'Save to resource should be clear');
+        });
+      };
+
+      describe('Import', function() {
+        let project = {title: 'Export', name: 'export'};
+
+        it('Should be able to bootstrap the template', function(done) {
+          importer.import.template(_template, alters, (err) => {
+            if (err) {
+              return done(err);
+            }
+
+            done();
+          });
+        });
+
+        it('All the roles should be imported', function(done) {
+          checkTemplateRoles(project, testTemplate.roles, done);
+        });
+
+        it('All the forms should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.forms);
+          checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
+        });
+
+        it('All the resources should be imported', function(done) {
+          hook.alter('templateImportComponent', testTemplate.resources);
+          checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
+        });
+
+        it('Save submission to resource should be empty', function(done) {
+          formio.actions.model.find({deleted: {$eq: null}}).then((actions) => {
+            checkMissingResourceActions(actions);
+            done();
+          });
+        });
+      });
+
+      describe('Export', function() {
+        let project = {};
+        let exportData = {};
+
+        it('Should be able to export project data', function(done) {
+          importer.export(_template, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+
+            exportData = data;
+            return done();
+          });
+        });
+
+        it('An export should contain the export title', function() {
+          assert.equal(
+            hook.alter('exportTitle', 'Export', exportData),
+            'Export'
+          );
+        });
+
+        it('An export should contain the current export version', function() {
+          assert.equal(
+            exportData.version,
+            '2.0.0'
+          );
+        });
+
+        it('An export should contain the description', function() {
+          assert.equal(
+            hook.alter('exportDescription', '', exportData),
+            ''
+          );
+        });
+
+        it('An export should contain the export name', function() {
+          assert.equal(
+            hook.alter('exportName', 'export', exportData),
+            'export'
+          );
+        });
+
+        it('An export should contain the export plan', function() {
+          assert.equal(
+            hook.alter('exportPlan', 'community', exportData),
+            'community'
+          );
+        });
+
+        it('The template should export all forms', function(done) {
+          checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
+        });
+
+        it('The template should export all resources', function(done) {
+          checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
+        });
+
+        it('The template should export all actions without mapped resource', () => {
+          console.log(exportData.actions);
+          checkMissingResourceActions(exportData.actions);
+        });
+      });
+
+      before(function(done) {
+        template.clearData(done);
+      });
+
+      after(function(done) {
+        template.clearData(done);
+      });
+    });
+
     describe('unknownRoleResources Template', function() {
       let testTemplate = require('./fixtures/templates/unknownRoleResources.json');
       let _template = _.cloneDeep(testTemplate);
