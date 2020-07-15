@@ -73,6 +73,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
 
+## 1.90.3
+### Changed
+ - Fixed setting of formRevision property on import when revisions are enabled.
+
 ## 1.90.2
 ### Changed
  - Cherry pick email fix for large emails.
