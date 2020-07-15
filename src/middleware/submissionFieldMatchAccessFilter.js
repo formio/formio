@@ -15,7 +15,7 @@ module.exports = function(router) {
     }
 
     // Skip this filter, if not flagged in the permission handler.
-    if (!_.has(req, 'submissionFieldMatchAccess') || !req.submissionFieldMatchAccess) {
+    if (!_.has(req, 'submissionFieldMatchAccessFilter') || req.submissionFieldMatchAccessFilter === false) {
       return next();
     }
 
@@ -29,23 +29,18 @@ module.exports = function(router) {
     userRoles.push(EVERYONE);
     // Perform our search.
     let query = null;
-    const hasRolesIntersection = (condition) => condition.roles.find((role) => {
-      return userRoles.find((userRole) => userRole === role.toString());
-    });
+    const hasRolesIntersection = (condition) => !!_.intersectionWith(condition.roles, userRoles,
+      (role, userRole) => role.toString() === userRole.toString()).length;
+
     // Map permissions to array of Mongo conditions
     const fieldsToCheck = Object.entries(req.submissionFieldMatchAccess).flatMap(([, conditions]) => {
       return conditions.map((condition) => {
-        if (!condition.roles.length || hasRolesIntersection(condition)) {
+        if (hasRolesIntersection(condition)) {
           const {formFieldPath, operator, valueOrPath, valueType}= condition;
+          const value = valueType === 'userFieldPath' ? _.get(req, `user.${valueOrPath}`) : valueOrPath;
 
-          if (valueType === 'userFieldPath') {
-            if (_.has(req, `user.${valueOrPath}`)) {
-              const userFieldValue = _.get(req, `user.${valueOrPath}`);
-              return {[`data.${formFieldPath}`]:  {[operator]: userFieldValue}};
-            }
-          }
-          else if (valueType === 'value') {
-            return {[`data.${formFieldPath}`]:  {[operator]: valueOrPath}};
+          if (value) {
+            return {[`data.${formFieldPath}`]:  {[operator]: value}};
           }
         }
       });

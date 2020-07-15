@@ -100,6 +100,7 @@ module.exports = function(router) {
     if (!submission || !access) {
       return;
     }
+    // If the form has no Field Match Access permissions or it is an index request
     if (!req.submissionFieldMatchAccess || req.submissionFieldMatchAccessFilter === true) {
       return;
     }
@@ -107,6 +108,7 @@ module.exports = function(router) {
     const userRoles = _.get(req, 'user.roles', []);
     userRoles.push(EVERYONE);
 
+    // Allowed actions for each permission level
     const permissions = {
       read: ['read_all'],
       create: ['read_all', 'create_all'],
@@ -114,7 +116,7 @@ module.exports = function(router) {
       admin: ['read_all', 'create_all', 'update_all', 'delete_all'],
     };
 
-    const compare = (value, formFieldValue, operator) => {
+    const isConditionMet = (value, formFieldValue, operator) => {
       switch (operator) {
         case '$eq':
           return value === formFieldValue;
@@ -131,25 +133,34 @@ module.exports = function(router) {
       }
     };
 
-    Object.entries(req.submissionFieldMatchAccess).forEach(([type, conditions]) => {
+    const grantAccess = (permissionLevel, roles) => {
+      if (permissions[permissionLevel]) {
+        permissions[permissionLevel].forEach((right) => {
+          if (access.submission[right]) {
+            access.submission[right].push(...roles);
+            access.submission[right] = _(access.submission[right]).uniq().value();
+          }
+        });
+      }
+    };
+
+    // Iterate through each permission level
+    Object.entries(req.submissionFieldMatchAccess).forEach(([permissionLevel, conditions]) => {
+      // Iterate through each condition within a permission level
       conditions.forEach((condition) => {
+        // Get intersection of roles within condition and the user's roles
         const rolesIntersection = _.intersectionWith(condition.roles, userRoles, (role, userRole) => {
           return role.toString() === userRole.toString();
         }).map((role) => role.toString());
 
-        if (!condition.roles.length || rolesIntersection.length) {
+        // If the user has a role specified in condition
+        if (rolesIntersection.length) {
           const {formFieldPath, operator, valueOrPath, valueType}= condition;
           const formFieldValue = _.get(submission, `data.${formFieldPath}`);
           const value = valueType === 'userFieldPath' ? _.get(req, `user.${valueOrPath}`) : valueOrPath;
 
-          if (compare(value, formFieldValue, operator)) {
-            if (permissions[type]) {
-              permissions[type].forEach((right) => {
-                if (access.submission[right]) {
-                  access.submission[right].push(...rolesIntersection);
-                }
-              });
-            }
+          if (isConditionMet(value, formFieldValue, operator)) {
+            grantAccess(permissionLevel, rolesIntersection);
           }
         }
       });
@@ -306,7 +317,11 @@ module.exports = function(router) {
           });
         },
 
-        function getSubmissionFieldMatchAccess(callback) {
+        // Load the form and set Field Match Access conditions to the request
+        function setSubmissionFieldMatchAccessToRequest(callback) {
+          if (!req.formId) {
+            return callback(null);
+          }
           router.formio.cache.loadForm(req, null, req.formId, function(err, item) {
             if (err) {
               return callback(err);
@@ -316,36 +331,23 @@ module.exports = function(router) {
             }
 
             if (item.fieldMatchAccess) {
-              let hasSubmissionFieldMatchAccess = false;
-              Object.entries(item.fieldMatchAccess).forEach(([type, conditions]) => {
-                if (hasSubmissionFieldMatchAccess) {
-                  req.submissionFieldMatchAccess[type] = conditions;
-                }
-                else {
-                  hasSubmissionFieldMatchAccess = true;
-                  req.submissionFieldMatchAccess = {
-                    [type]: conditions
-                  };
-                }
-              });
+              req.submissionFieldMatchAccess = item.fieldMatchAccess;
             }
-            return callback();
+            return callback(null);
           });
         },
 
-        function flagRequestAsSubmissionFieldMatchAccess(callback) {
-          if (req.method.toUpperCase() !== 'GET') {
-            return callback();
-          }
-
-          if (!req.formId || req.subId) {
-            return callback();
+        // Mark the index request to be proccessed by SubmissionFieldMatchAccessFilter
+        function flagIndexRequestAsSubmissionFieldMatchAccess(callback) {
+          const isIndexRequest = (req) => req.method.toUpperCase() === 'GET' && req.formId && !req.subId;
+          if (!isIndexRequest(req)) {
+            return callback(null);
           }
 
           if (req.submissionFieldMatchAccess) {
             req.submissionFieldMatchAccessFilter = true;
-            return callback();
           }
+          return callback(null);
         },
 
         // Get the permissions for a Submission with the given ObjectId.
@@ -586,13 +588,13 @@ module.exports = function(router) {
         // Skip the owner filter if they have all access.
         req.skipOwnerFilter = true;
 
-        // Do not include the submission resource access filter if they have "all" access.
+        // Do not include the submission resource access and field match access filters if they have "all" access.
         req.submissionResourceAccessFilter = false;
         req.submissionFieldMatchAccessFilter = false;
         _hasAccess = true;
       }
 
-      // If resource access applies, then allow for that to be in the query.
+      // If resource access or field match access applies, then allow for that to be in the query.
       if (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter ||
       _.has(req, 'submissionFieldMatchAccessFilter') && req.submissionFieldMatchAccessFilter) {
          req.skipOwnerFilter = true;
