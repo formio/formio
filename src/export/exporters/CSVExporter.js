@@ -8,6 +8,7 @@ const _ = require('lodash');
 const Entities = require('html-entities').AllHtmlEntities;
 const moment = require('moment-timezone');
 const {conformToMask} = require('vanilla-text-mask');
+const Formio = require('formiojs/formio.form');
 
 const interpolate = (string, data) => string.replace(/{{\s*(\S*)\s*}}/g, (match, path) => {
   const value = _.get(data, path);
@@ -46,11 +47,12 @@ class CSVExporter extends Exporter {
 
     const ignore = ['password', 'button', 'container', 'datagrid', 'editgrid'];
     try {
-      util.eachComponent(form.components, (component, path) => {
-        if (!component.input || !component.key || ignore.includes(component.type)) {
+      util.eachComponent(form.components, (comp, path) => {
+        if (!comp.input || !comp.key || ignore.includes(comp.type)) {
           return;
         }
 
+        const {component} = Formio.Components.create(comp);
         const items = [];
         let noRecurse = false;
 
