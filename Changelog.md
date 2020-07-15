@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.3
+### Changed
+ - Fixed setting of formRevision property on import when revisions are enabled.
+
 ## 1.90.2
 ### Changed
  - Cherry pick email fix for large emails.
