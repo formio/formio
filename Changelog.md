@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.7
+### Fixed
+ - FOR-2708: Remove resource from action if it was not found on import.
+ - FJS-1049: Fixed CSV export of components with minimized schema. 
+ - Fixed setting of formRevision property on import when revisions are enabled.
+
 ## 2.0.0-rc.5-6
 ### Changed
  - Updated logging functionality.
