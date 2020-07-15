@@ -26,9 +26,6 @@ module.exports = function(router) {
 
     const userId = _.get(req, 'user._id');
     const userRoles = _.get(req, 'user.roles', []);
-    if (!userRoles.length) {
-      return res.sendStatus(401);
-    }
     userRoles.push(EVERYONE);
     // Perform our search.
     let query = null;
