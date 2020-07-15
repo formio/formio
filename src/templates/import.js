@@ -137,12 +137,21 @@ module.exports = (router) => {
 
     let changes = false;
 
+    const getFormRevision = (_vid) => {
+      const formRevision = (parseInt(_vid, 10) + 1) || 1;
+      return formRevision.toString();
+    };
+
     const formName = entity.form;
     // Attempt to add a form.
     if (template.forms && template.forms[entity.form] && template.forms[entity.form]._id) {
       entity.form = template.forms[formName]._id.toString();
       if (template.forms[formName].hasOwnProperty('_vid') && template.forms[formName]._vid) {
         entity.formRevision = template.forms[formName]._vid.toString();
+      }
+      else if (template.forms[formName].revisions) {
+        // Make sure revision is set if revisions are enabled on the form
+        entity.formRevision = getFormRevision(template.forms[formName]._vid);
       }
       changes = true;
     }
@@ -152,6 +161,9 @@ module.exports = (router) => {
       entity.form = template.resources[entity.form]._id.toString();
       if (template.resources[formName].hasOwnProperty('_vid') && template.resources[formName]._vid) {
         entity.formRevision = template.resources[formName]._vid.toString();
+      }
+      else if (template.resources[formName].revisions) {
+        entity.formRevision = getFormRevision(template.resources[formName]._vid);
       }
       changes = true;
     }
