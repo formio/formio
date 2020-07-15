@@ -25,8 +25,10 @@ module.exports = function(router) {
     }
 
     const userId = _.get(req, 'user._id');
-    const userRoles = _.get(req, 'user.roles', []);
-    userRoles.push(EVERYONE);
+    const userRoles = _.get(req, 'accessRoles', []);
+    if (!userRoles.length) {
+      return res.sendStatus(401);
+    }
     // Perform our search.
     let query = null;
     const hasRolesIntersection = (condition) => !!_.intersectionWith(condition.roles, userRoles,
@@ -54,10 +56,11 @@ module.exports = function(router) {
       form: util.idToBson(req.formId),
       deleted: {$eq: null},
       $or: [...fieldsToCheck]
-    } : {
-      form: util.idToBson(req.formId),
-      deleted: {$eq: null},
-    };
+    } : null;
+
+    if (!query) {
+      return res.sendStatus(401);
+    }
 
     req.modelQuery = req.modelQuery || req.model || this.model;
     req.modelQuery = req.modelQuery.find(query);

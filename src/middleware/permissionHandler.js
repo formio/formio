@@ -105,8 +105,7 @@ module.exports = function(router) {
       return;
     }
 
-    const userRoles = _.get(req, 'user.roles', []);
-    userRoles.push(EVERYONE);
+    const userRoles = access.roles;
 
     // Allowed actions for each permission level
     const permissions = {
@@ -317,6 +316,52 @@ module.exports = function(router) {
           });
         },
 
+        // Get a list of all roles associated with this access check.
+        function getAccessRoles(callback) {
+          // Load all the roles.
+          router.formio.resources.role.model.find(hook.alter('roleQuery', {
+            deleted: {$eq: null}
+          }, req), function(err, roles) {
+            if (err) {
+              return callback(400);
+            }
+
+            // Get a list of all valid roles this user can have.
+            const validRoles = (roles && roles.length) ? roles.map((role) => {
+              const roleId = role._id.toString();
+              if (role.default) {
+                access.defaultRole = roleId;
+              }
+              if (role.admin) {
+                access.adminRole = roleId;
+              }
+              return roleId;
+            }) : [];
+
+            // Default the access roles.
+            access.roles = [access.defaultRole];
+
+            // Ensure the user only has valid roles.
+            if (req.user) {
+              access.roles = _(req.user.roles || [])
+                .filter()
+                .map(util.idToString)
+                .intersection(validRoles)
+                .uniq()
+                .value();
+
+              if (req.user._id && (req.user._id !== 'external')) {
+                access.roles.push(req.user._id.toString());
+              }
+            }
+
+            // Add the EVERYONE role.
+            access.roles.push(EVERYONE);
+            req.accessRoles = access.roles;
+            callback();
+          });
+        },
+
         // Load the form and set Field Match Access conditions to the request
         function setSubmissionFieldMatchAccessToRequest(callback) {
           if (!req.formId) {
@@ -383,51 +428,6 @@ module.exports = function(router) {
             // Load Submission Resource Access.
             getSubmissionFieldMatchAccess(req, submission, access);
             getSubmissionResourceAccess(req, submission, access, callback);
-          });
-        },
-
-        // Get a list of all roles associated with this access check.
-        function getAccessRoles(callback) {
-          // Load all the roles.
-          router.formio.resources.role.model.find(hook.alter('roleQuery', {
-            deleted: {$eq: null}
-          }, req), function(err, roles) {
-            if (err) {
-              return callback(400);
-            }
-
-            // Get a list of all valid roles this user can have.
-            const validRoles = (roles && roles.length) ? roles.map((role) => {
-              const roleId = role._id.toString();
-              if (role.default) {
-                access.defaultRole = roleId;
-              }
-              if (role.admin) {
-                access.adminRole = roleId;
-              }
-              return roleId;
-            }) : [];
-
-            // Default the access roles.
-            access.roles = [access.defaultRole];
-
-            // Ensure the user only has valid roles.
-            if (req.user) {
-              access.roles = _(req.user.roles || [])
-                .filter()
-                .map(util.idToString)
-                .intersection(validRoles)
-                .uniq()
-                .value();
-
-              if (req.user._id && (req.user._id !== 'external')) {
-                access.roles.push(req.user._id.toString());
-              }
-            }
-
-            // Add the EVERYONE role.
-            access.roles.push(EVERYONE);
-            callback();
           });
         },
 
