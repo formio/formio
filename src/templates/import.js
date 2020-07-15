@@ -412,7 +412,11 @@ module.exports = (router) => {
         return false;
       },
       transform: (template, action) => {
-        resourceMachineNameToId(template, action.settings);
+        const isResourceChanged = resourceMachineNameToId(template, action.settings);
+        if (!isResourceChanged && action.settings && action.settings.resource) {
+          action.settings.resource = '';
+        }
+
         roleMachineNameToId(template, action.settings);
 
         // If no changes were made, the form was invalid and we can't insert the action.
