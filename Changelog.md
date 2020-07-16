@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.5
+### Added
+ - Add TLS connection for mongoose connection as well.
+
 ## 1.90.4
 ### Changed
  - Upgrade dependencies.
