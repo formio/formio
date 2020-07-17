@@ -513,7 +513,6 @@ const Utils = {
     }
     catch (e) {
       debug.idToBson(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
-      _id = false;
     }
 
     return _id;
