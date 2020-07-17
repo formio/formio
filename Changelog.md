@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.7
+### Fixed
+ - FOR-2708: Remove resource from action if it was not found on import.
+ - FJS-1049: Fixed CSV export of components with minimized schema. 
+ - Fixed setting of formRevision property on import when revisions are enabled.
+
+## 2.0.0-rc.5-6
+### Changed
+ - Updated logging functionality.
+
+## 2.0.0-rc.1-4
+### Changed
+ - Merge changes from 1.x
+
+## 2.0.0-beta.10
+### Changed
+ - Update formio.js to 4.1.0-rc.13
+
+## 2.0.0-beta.9
+### Changed
+ - retagging
+
 ## 2.0.0-beta.8
 ### Added
  - Additional options to fetch wrapper.
@@ -56,6 +78,48 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
+
+## 1.90.3
+### Changed
+ - Fixed setting of formRevision property on import when revisions are enabled.
+
+## 1.90.2
+### Changed
+ - Cherry pick email fix for large emails.
+
+## 1.90.1
+### Changed
+ - Resource.js library to 2.3.1 to revert change in aggregation.
+
+## 1.90.0
+### Fixed
+ - A bad revert.
+
+## 1.89.0
+### Changed
+ - Revert "Added a middleware for loading a full form schema for use component settings.
+
+## 1.88.0
+### Fixed
+ - FOR-2707: Fixes an issue where the PATCH request was being failed if a form has a nested form as reference.
+ - Server crashes when a bad query is passed to ResourceJS
+ - Added a middleware for loading a full form schema for use component settings.
+
+## 1.87.0
+### Fixed
+ - Export of form controllers.
+
+## 1.86.0
+### Fixed
+ - FJS-704: Address Refactor Issues
+ - Refactored for the verbose health endpoint
+ - Fixed Form Controller export.
+
+### Added
+ - Support Extra form fields exporting
+
+### Changed
+ - Upgraded formio-workers@1.14.8, mongodb@3.5.9, mongoose@5.9.19, nodemailer@6.4.10, formiojs@4.10.2, fs-extra@9.0.1, resourcejs@2.2.0, mocha@8.0.1
 
 ## 1.85.0
 ### Changed

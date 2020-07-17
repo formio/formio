@@ -10,6 +10,7 @@ module.exports = (router) => {
   const debug = require('debug')('formio:action:login');
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug;
+  const audit = router.formio.audit || (() => {});
   const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**
@@ -251,6 +252,7 @@ module.exports = (router) => {
       }
 
       if (!this.settings) {
+        audit('EAUTH_AUTHCONFIG', req, _.get(req.submission.data, this.settings.username));
         return res.status(400).send('Misconfigured Login Action.');
       }
 
@@ -259,6 +261,7 @@ module.exports = (router) => {
         || !_.has(req.submission.data, this.settings.username)
         || !_.has(req.submission.data, this.settings.password)
       ) {
+        audit('EAUTH_PASSWORD', req, _.get(req.submission.data, this.settings.username));
         return res.status(401).send('User or password was incorrect.');
       }
 
@@ -271,6 +274,7 @@ module.exports = (router) => {
         _.get(req.submission.data, this.settings.password),
         (err, response) => {
           if (err && !response) {
+            audit('EAUTH_NOUSER', req, _.get(req.submission.data, this.settings.username));
             log(req, ecode.auth.EAUTH, err);
             return res.status(401).send(err);
           }
@@ -278,6 +282,7 @@ module.exports = (router) => {
           // Check the amount of attempts made by this user.
           this.checkAttempts(err, req, response.user, (error) => {
             if (error) {
+              audit('EAUTH_LOGINCOUNT', req, _.get(req.submission.data, this.settings.username));
               log(req, ecode.auth.EAUTH, error);
               return res.status(401).send(error);
             }
