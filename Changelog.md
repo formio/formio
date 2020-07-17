@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+##1.90.10
+### Added
+ - Cherry pick group permission levels from 2.x.
+
 ## 1.90.9
 ### Fixed
  - Issue where the form component revision setting would not take preference over the internal formRevision configuration.
