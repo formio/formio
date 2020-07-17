@@ -100,10 +100,9 @@ export class Formio extends Api {
 
     let token;
     if (typeof req.headers.authorization !== 'undefined') {
-      if (!req.headers.authorization.startsWith('Bearer: ')) {
-        return res.send(401).send('Not using Bearer token');
+      if (req.headers.authorization.startsWith('Bearer: ')) {
+        token = req.headers.authorization.replace(/^Bearer: /, '');
       }
-      token = req.headers.authorization.replace(/^Bearer: /, '');
     }
 
     // Support legacy x-jwt-token location.
