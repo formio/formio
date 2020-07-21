@@ -154,11 +154,9 @@ module.exports = function(router) {
 
         // If the user has a role specified in condition
         if (rolesIntersection.length) {
-          const {formFieldPath, operator, valueOrPath, valueType}= condition;
-          const formFieldValue = _.get(submission, `data.${formFieldPath}`);
-          const value = valueType === 'userFieldPath' ? _.get(req, `user.${valueOrPath}`) : valueOrPath;
-
-          if (isConditionMet(value, formFieldValue, operator)) {
+          const {formFieldPath, operator, value, valueType} = condition;
+          const formFieldValue = _.get(submission, formFieldPath);
+          if (isConditionMet(util.castValue(valueType, value), formFieldValue, operator)) {
             grantAccess(permissionLevel, rolesIntersection);
           }
         }

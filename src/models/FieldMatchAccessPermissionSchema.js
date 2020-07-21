@@ -2,6 +2,7 @@
 
 module.exports = function(formio) {
   const hook = require('../util/hook')(formio);
+  const typeError = 'Value does not match a selected type';
 
   // Defines the permissions schema for field match access form's permissions.
   return new formio.mongoose.Schema(hook.alter('fieldMatchAccessPermissionSchema', {
@@ -9,7 +10,7 @@ module.exports = function(formio) {
       type: String,
       required: true
     },
-    valueOrPath: {
+    value: {
       type: String,
       required: true
     },
@@ -20,12 +21,31 @@ module.exports = function(formio) {
     },
     valueType: {
       type: String,
-      enum: ['value', 'userFieldPath'],
-      required: true
+      enum: ['string', 'number', 'boolean', '[string]', '[number]'],
+      required: true,
+      default: 'string',
+      validate: [
+        {
+          validator: function(type) {
+            switch (type) {
+              case 'number':
+                return isFinite(Number(this.value));
+              case 'boolean':
+                return (this.value === 'true' || this.value === 'false');
+              case '[number]':
+                return this.value.replace(/(^,)|(,$)/g, '')
+                           .split('.')
+                           .map(val => Number(val))
+                           .every(val => isFinite(val));
+            }
+          },
+          message: typeError
+        }
+      ]
     },
     roles: {
       type: [formio.mongoose.Schema.Types.ObjectId],
-      ref: 'role'
+      ref: 'role',
     }
   }), {_id: false});
 };

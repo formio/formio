@@ -2,7 +2,6 @@
 
 const _ = require('lodash');
 const debug = require('debug')('formio:middleware:submissionResourceAccessFilter');
-const EVERYONE = '000000000000000000000000';
 
 module.exports = function(router) {
   return function submissionResourceAccessFilter(req, res, next) {
@@ -38,11 +37,10 @@ module.exports = function(router) {
     const fieldsToCheck = Object.entries(req.submissionFieldMatchAccess).flatMap(([, conditions]) => {
       return conditions.map((condition) => {
         if (hasRolesIntersection(condition)) {
-          const {formFieldPath, operator, valueOrPath, valueType}= condition;
-          const value = valueType === 'userFieldPath' ? _.get(req, `user.${valueOrPath}`) : valueOrPath;
+          const {formFieldPath, operator, value, valueType} = condition;
 
           if (value) {
-            return {[`data.${formFieldPath}`]:  {[operator]: value}};
+            return {[formFieldPath]:  {[operator]: util.castValue(valueType, value)}};
           }
         }
       });
@@ -58,6 +56,7 @@ module.exports = function(router) {
       $or: [...fieldsToCheck]
     } : null;
 
+    // If there no conditions which may give an access to the current user, return the Unauthorized response
     if (!query) {
       return res.sendStatus(401);
     }
