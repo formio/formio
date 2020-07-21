@@ -34,7 +34,7 @@ module.exports = function(formio) {
                 return (this.value === 'true' || this.value === 'false');
               case '[number]':
                 return this.value.replace(/(^,)|(,$)/g, '')
-                           .split('.')
+                           .split(',')
                            .map(val => Number(val))
                            .every(val => isFinite(val));
             }

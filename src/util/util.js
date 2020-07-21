@@ -690,11 +690,11 @@ const Utils = {
         return value === 'true';
       case '[number]':
         return this.value.replace(/(^,)|(,$)/g, '')
-                         .split('.')
+                         .split(',')
                          .map(val => Number(val));
       case '[string]':
         return this.value.replace(/(^,)|(,$)/g, '')
-                         .split('.')
+                         .split(',')
                          .map(val => val.toString());
     }
   },
