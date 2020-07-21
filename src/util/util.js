@@ -689,11 +689,11 @@ const Utils = {
       case 'boolean':
         return value === 'true';
       case '[number]':
-        return this.value.replace(/(^,)|(,$)/g, '')
+        return value.replace(/(^,)|(,$)/g, '')
                          .split(',')
                          .map(val => Number(val));
       case '[string]':
-        return this.value.replace(/(^,)|(,$)/g, '')
+        return value.replace(/(^,)|(,$)/g, '')
                          .split(',')
                          .map(val => val.toString());
     }
