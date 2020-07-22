@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.8
+### Changed
+ - Group permissions so that it can handle more complex group assignments.
+ - Upgrade mongoose@5.9.25, eslint@7.5.0
+
 ## 2.0.0-rc.7
 ### Fixed
  - FOR-2708: Remove resource from action if it was not found on import.
