@@ -399,6 +399,8 @@ module.exports = function(router) {
 
           // Skip submission access if no subId was given.
           if (!req.subId) {
+            // Still need to check if the user allowed to create submissions withing Field Match Access
+            getSubmissionFieldMatchAccess(req, req.body, access);
             return callback(null);
           }
           // Get the submission by request id and query its access.
@@ -422,9 +424,9 @@ module.exports = function(router) {
               // Add the submission id to the access entity.
               access.submission._id = util.idToString(submission._id);
             }
-
-            // Load Submission Resource Access.
+            // Load Submission Field Match Access.
             getSubmissionFieldMatchAccess(req, submission, access);
+            // Load Submission Resource Access.
             getSubmissionResourceAccess(req, submission, access, callback);
           });
         },
