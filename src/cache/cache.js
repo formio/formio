@@ -225,7 +225,7 @@ module.exports = function(router) {
      * @param cb {Function}
      *   The callback function to invoke after loading the submission.
      */
-    loadSubmission(req, formId, subId, cb, queryObj = {}) {
+    loadSubmission(req, formId, subId, cb) {
       const cache = this.cache(req);
       if (cache.submissions[subId]) {
         debug.loadSubmission(`Cache hit: ${subId}`);
@@ -243,7 +243,7 @@ module.exports = function(router) {
       }
 
       debug.loadSubmission(`Searching for form: ${formId}, and submission: ${subId}`);
-      const query = {_id: subId, form: formId, deleted: {$eq: null}, ...queryObj};
+      const query = {_id: subId, form: formId, deleted: {$eq: null}};
       debug.loadSubmission(query);
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
       submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec((err, submission) => {
