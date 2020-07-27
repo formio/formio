@@ -204,6 +204,7 @@ module.exports = function(router) {
           case 'post':
             rest.postJson(url, payload, options).on('success', handleSuccess).on('fail', handleError);
             break;
+          case 'patch':
           case 'put':
             rest.putJson(url, payload, options).on('success', handleSuccess).on('fail', handleError);
             break;
