@@ -100,8 +100,8 @@ export class Formio extends Api {
 
     let token;
     if (typeof req.headers.authorization !== 'undefined') {
-      if (req.headers.authorization.startsWith('Bearer: ')) {
-        token = req.headers.authorization.replace(/^Bearer: /, '');
+      if (req.headers.authorization.startsWith('Bearer ')) {
+        token = req.headers.authorization.replace(/^Bearer /, '');
       }
     }
 
@@ -177,7 +177,7 @@ export class Formio extends Api {
         req.user = user;
         res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token, Authorization');
         res.setHeader('x-jwt-token', this.generateToken(payload));
-        res.setHeader('Authorization', `Bearer: ${res.getHeader('x-jwt-token')}`);
+        res.setHeader('Authorization', `Bearer ${res.getHeader('x-jwt-token')}`);
         next();
       })
       .catch((err) => {
