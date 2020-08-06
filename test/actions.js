@@ -643,7 +643,10 @@ module.exports = (app, template, hook) => {
         webhookHandler = (body, url) => {
           body = hook.alter('webhookBody', body);
 
-          assert.equal(body, '');
+          // Because of made changes in formio-server to make possible populate submissions with a DELETE request.
+          if (!app.skipWHDeleteBody) {
+            assert.equal(body, '');
+          }
           assert.equal(url.query.formId, webhookForm._id);
           assert.equal(url.query.submissionId, webhookSubmission._id);
 
