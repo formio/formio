@@ -178,12 +178,16 @@ module.exports = (router) => {
           return next(err);
         }
 
+        // Save off the req.params since they get deleted after the response and we need them later.
+        const reqParams = req.params;
+
         // Dont block on sending emails.
         next(); // eslint-disable-line callback-return
 
         // Get the email parameters.
         emailer.getParams(req, res, form, req.body)
           .then((params) => {
+            req.params = reqParams;
             const query = {
               _id: params.owner,
               deleted: {$eq: null},
