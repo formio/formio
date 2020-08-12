@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.6
+### Fixed
+ - Upgrade formiojs@4.11.2-rc.4 so it will remove errors about Element not defined.
+
 ## 1.90.5
 ### Added
  - Add TLS connection for mongoose connection as well.
