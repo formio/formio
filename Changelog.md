@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.7
+### Fixed
+ - Problem where the req.params would get removed before sending off emails.
+
 ## 1.90.6
 ### Fixed
  - Upgrade formiojs@4.11.2-rc.4 so it will remove errors about Element not defined.
