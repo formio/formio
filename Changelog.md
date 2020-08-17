@@ -4,6 +4,98 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.8
+### Changed
+ - Group permissions so that it can handle more complex group assignments.
+ - Upgrade mongoose@5.9.25, eslint@7.5.0
+
+## 2.0.0-rc.7
+### Fixed
+ - FOR-2708: Remove resource from action if it was not found on import.
+ - FJS-1049: Fixed CSV export of components with minimized schema. 
+ - Fixed setting of formRevision property on import when revisions are enabled.
+
+## 2.0.0-rc.5-6
+### Changed
+ - Updated logging functionality.
+
+## 2.0.0-rc.1-4
+### Changed
+ - Merge changes from 1.x
+
+## 2.0.0-beta.10
+### Changed
+ - Update formio.js to 4.1.0-rc.13
+
+## 2.0.0-beta.9
+### Changed
+ - retagging
+
+## 2.0.0-beta.8
+### Added
+ - Additional options to fetch wrapper.
+
+## 2.0.0-beta.7
+### Added
+ - New hooks to extend the authentication system.
+ 
+### Changed
+ - Update formio.js to 4.1.0-rc.6
+
+## 2.0.0-beta.6
+### Added
+ - Add tree validation to server.
+ - Mongo SSL Certificate options.
+
+### Changed
+ - Replace request library with node-fetch.
+ - Updated formio.js to 4.10.0-rc.4 to fix isomorphic validation.
+
+## 2.0.0-beta.5
+### Changed
+ - Upgrade dependencies.
+ - FJS 864: Fixed login action resources limitation
+ - Set email for User and Admin ressource required & unique
+ - Fixed server crash on invalid x-query
+
+## 2.0.0-beta.4
+### Added
+ - Hooks for the alias.
+ - Hooks for the formResponse.
+
+### Changed
+ - Upgrade mongodb@3.5.5, mongoose@5.9.4, nodemailer@6.4.5, mssql@6.2.0
+ - Upgrade formiojs@4.9.0-rc.10
+ - Ensure that field actions are triggered on dryrun.
+
+## 2.0.0-beta.3
+#### Changed
+ - Upgrade formiojs@4.9.0-rc.6
+
+## 2.0.0-beta.2
+#### Changed
+ - Upgrading dependencies.
+
+## 2.0.0-beta.1
+### Breaking Changes
+ - Isomorphic validations. May cause error interface and codes to change slightly.
+
+### Changed
+ - Upgrade mongodb@3.5.4, async@3.2.0
+ - Upgrade ResourceJS@2.0.0
+
+## 1.90.3
+### Changed
+ - Fixed setting of formRevision property on import when revisions are enabled.
+
+## 1.90.2
+### Changed
+ - Cherry pick email fix for large emails.
+
+## 1.90.1
+### Changed
+ - Resource.js library to 2.3.1 to revert change in aggregation.
+
 ## 1.90.0
 ### Fixed
  - A bad revert.

@@ -289,20 +289,39 @@ module.exports = function(router) {
             // check for group permissions, only if creating submission (POST request)
             if (req.method === 'POST') {
               util.eachComponent(item.components, (component, path) => {
-                if (component && component.key && component.defaultPermission) {
+                if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
+                  if (!component.submissionAccess) {
+                    component.submissionAccess = [
+                      {
+                        type: component.defaultPermission,
+                        roles: [],
+                      },
+                    ];
+                  }
+
                   let selectValue = _.get(req.body.data, path);
                   if (selectValue) {
-                    if (!(selectValue instanceof Array)) {
+                    if (!Array.isArray(selectValue)) {
                       selectValue = [selectValue];
                     }
-                    /* eslint-disable camelcase */
-                    selectValue.forEach(value => {
-                      if (value && value._id) {
-                        if (['create', 'write', 'admin'].indexOf(component.defaultPermission) > -1) {
-                          access.submission.create_all = access.submission.create_all || [];
-                          access.submission.create_all.push(value._id);
-                        }
-                      }
+
+                    const createAccess = component.submissionAccess
+                      .filter(({type}) => (['create', 'write', 'admin'].includes(type)))
+                      .map((access) => ({
+                        ...access,
+                        roles: _.compact(access.roles || []),
+                      }));
+
+                    selectValue.filter((value) => (value && value._id)).forEach(({_id}) => {
+                      createAccess.forEach(({roles}) => {
+                        /* eslint-disable camelcase */
+                        access.submission.create_all = (access.submission.create_all || []).concat(
+                          roles.length
+                            ? roles.map((role) => (`${_id}:${role}`))
+                            : _id,
+                        );
+                        /* eslint-enable camelcase */
+                      });
                     });
                   }
                 }
@@ -324,7 +343,6 @@ module.exports = function(router) {
               return callback(400);
             }
 
-            // Get a list of all valid roles this user can have.
             const validRoles = (roles && roles.length) ? roles.map((role) => {
               const roleId = role._id.toString();
               if (role.default) {
@@ -456,9 +474,9 @@ module.exports = function(router) {
               return callback(`No Form found with formId: ${req.formId}`);
             }
 
-            // See if any of our components have "defaultPermission" established.
+            // See if any of our components have "submissionAccess" or "defaultPermission" established.
             util.eachComponent(item.components, (component) => {
-              if (component.defaultPermission) {
+              if (component.submissionAccess || component.defaultPermission) {
                 // Since the access is now determined by the submission resource access, we
                 // can skip the owner filter.
                 req.skipOwnerFilter = true;

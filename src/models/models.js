@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 
-module.exports = function(router) {
+module.exports = (router) => {
   // Implement our hook system.
   const hook = require('../util/hook')(router.formio);
 
@@ -11,16 +11,16 @@ module.exports = function(router) {
     action: require('./Action')(router.formio),
     actionItem: require('./ActionItem')(router.formio),
     form: require('./Form')(router.formio),
+    role: require('./Role')(router.formio),
     schema: require('./Schema')(router.formio),
     submission: require('./Submission')(router.formio),
-    role: require('./Role')(router.formio),
-    token: require('./Token')(router.formio)
+    token: require('./Token')(router.formio),
   });
 
   const defs = {
     schemas: {},
     models: {},
-    specs: {}
+    specs: {},
   };
 
   _.each(models, (model, name) => {

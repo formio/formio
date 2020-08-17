@@ -4,10 +4,10 @@ const mongoose = require('mongoose');
 const ObjectID = require('mongodb').ObjectID;
 const _ = require('lodash');
 const nodeUrl = require('url');
-const Q = require('q');
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/util');
 const errorCodes = require('./error-codes.js');
+const fetch = require('./fetch');
 const vm = require('vm');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
@@ -181,7 +181,7 @@ const Utils = {
    */
   createSubRequest(req) {
     // Determine how many child requests have been made.
-    let childRequests = req.childRequests || 0;
+    const childRequests = req.childRequests || 0;
 
     // Break recursive child requests.
     if (childRequests > 5) {
@@ -202,7 +202,7 @@ const Utils = {
     childReq.user = req.user;
     childReq.modelQuery = null;
     childReq.countQuery = null;
-    childReq.childRequests = ++childRequests;
+    childReq.childRequests = childRequests + 1;
     childReq.permissionsChecked = false;
 
     // Delete the actions cache.
@@ -329,7 +329,11 @@ const Utils = {
     }
   },
 
-  /**
+  flattenComponentsForRender: workerUtils.flattenComponentsForRender.bind(workerUtils),
+  renderFormSubmission: workerUtils.renderFormSubmission.bind(workerUtils),
+  renderComponentValue: workerUtils.renderComponentValue.bind(workerUtils),
+
+/**
    * Search the request headers for the given key.
    *
    * @param req
@@ -347,10 +351,6 @@ const Utils = {
 
     return false;
   },
-
-  flattenComponentsForRender: workerUtils.flattenComponentsForRender.bind(workerUtils),
-  renderFormSubmission: workerUtils.renderFormSubmission.bind(workerUtils),
-  renderComponentValue: workerUtils.renderComponentValue.bind(workerUtils),
 
   /**
    * Search the request query for the given key.
@@ -487,12 +487,14 @@ const Utils = {
   },
 
   /**
-   * A promisified version of request. Use this if you need
-   * to be able to mock requests for tests, as it's much easier
-   * to mock this than the individual required 'request' modules
-   * in each file.
+   * A node-fetch shim adding support for http(s) proxy and allowing
+   * invalid tls certificates (to be used with self signed certificates).
+   *
+   * @param {any} url The request url string or url like object.
+   * @param {any} options The request options object.
+   * @returns {Promise<Response>} The promise with the node-fetch response object.
    */
-  request: Q.denodeify(require('request')),
+  fetch,
 
   /**
    * Utility function to ensure the given id is always a BSON object.
@@ -511,7 +513,6 @@ const Utils = {
     }
     catch (e) {
       debug.idToBson(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
-      _id = false;
     }
 
     return _id;
@@ -703,6 +704,113 @@ const Utils = {
    * Application error codes.
    */
   errorCodes,
+
+  valuePath(prefix, key) {
+    return `${prefix ? `${prefix}.` : ''}${key}`;
+  },
+
+  layoutComponents: [
+    'panel',
+    'table',
+    'well',
+    'columns',
+    'fieldset',
+    'tabs',
+  ],
+
+  eachValue(
+    components,
+    data,
+    fn,
+    context,
+    path = '',
+  ) {
+    components.forEach((component) => {
+      if (Array.isArray(component.components)) {
+        // If tree type is an array of objects like datagrid and editgrid.
+        if (['datagrid', 'editgrid'].includes(component.type) || component.arrayTree) {
+          _.get(data, component.key, []).forEach((row, index) => {
+            this.eachValue(
+              component.components,
+              row,
+              fn,
+              context,
+              this.valuePath(path, `${component.key}[${index}]`),
+            );
+          });
+        }
+        else if (['form'].includes(component.type)) {
+          this.eachValue(
+            component.components,
+            _.get(data, `${component.key}.data`, {}),
+            fn,
+            context,
+            this.valuePath(path, `${component.key}.data`),
+          );
+        }
+        else if (
+          ['container'].includes(component.type) ||
+          (
+            component.tree &&
+            !this.layoutComponents.includes(component.type)
+          )
+        ) {
+          this.eachValue(
+            component.components,
+            _.get(data, component.key),
+            fn,
+            context,
+            this.valuePath(path, component.key),
+          );
+        }
+        else {
+          this.eachValue(
+            component.components,
+            data,
+            fn,
+            context,
+            path,
+          );
+        }
+      }
+      else if (Array.isArray(component.columns)) {
+        // Handle column like layout components.
+        component.columns.forEach((column) => {
+          this.eachValue(
+            column.components,
+            data,
+            fn,
+            context,
+            path,
+          );
+        });
+      }
+      else if (Array.isArray(component.rows)) {
+        // Handle table like layout components.
+        component.rows.forEach((row) => {
+          if (Array.isArray(row)) {
+            row.forEach((column) => {
+              this.eachValue(
+                column.components,
+                data,
+                fn,
+                context,
+                path,
+              );
+            });
+          }
+        });
+      }
+
+      // Call the callback for each component.
+      fn({
+        ...context,
+        data,
+        component,
+        path,
+      });
+    });
+  },
 };
 
 module.exports = Utils;

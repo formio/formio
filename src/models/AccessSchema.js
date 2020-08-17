@@ -17,8 +17,17 @@ module.exports = function(formio) {
       required: 'A permission type is required to associate an available permission with a Resource.'
     },
     resources: {
-      type: [formio.mongoose.Schema.Types.ObjectId],
-      ref: 'form'
+      type: [formio.mongoose.Schema.Types.Mixed],
+      ref: 'form',
+      set(resources) {
+        // Attempt to convert to objectId.
+        return resources.map(formio.util.ObjectId);
+      },
+      get(resources) {
+        return Array.isArray(resources)
+          ? resources.map((resource) => resource.toString())
+          : resources;
+      }
     }
   }, {_id: false});
 };

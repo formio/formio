@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function(model) {
+module.exports = (model) => {
   const timestamps = require('../plugins/timestamps');
 
   // Add timestamps to the schema.
