@@ -33,6 +33,7 @@ module.exports = function(router) {
     submissionApplyPatch: require('./submissionApplyPatch')(router),
     submissionHandler: require('./submissionHandler')(router),
     submissionResourceAccessFilter: require('./submissionResourceAccessFilter')(router),
+    submissionFieldMatchAccessFilter: require('./submissionFieldMatchAccessFilter')(router),
     tokenHandler: require('./tokenHandler')(router),
     restrictRequestTypes: require('./restrictRequestTypes')(router),
     filterIndex: require('./filterIndex')(router),
