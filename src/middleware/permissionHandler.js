@@ -96,6 +96,74 @@ module.exports = function(router) {
     /* eslint-enable camelcase */
   };
 
+  const getSubmissionFieldMatchAccess = function(req, submission, access) {
+    if (!submission || !access) {
+      return;
+    }
+    // If the form has no Field Match Access permissions or it is an index request
+    if (!req.submissionFieldMatchAccess || req.submissionFieldMatchAccessFilter === true) {
+      return;
+    }
+
+    const userRoles = access.roles;
+
+    // Allowed actions for each permission level
+    const permissions = {
+      read: ['read_all'],
+      create: ['read_all', 'create_all'],
+      write: ['read_all', 'create_all', 'update_all'],
+      admin: ['read_all', 'create_all', 'update_all', 'delete_all'],
+    };
+
+    const isConditionMet = (value, formFieldValue, operator) => {
+      switch (operator) {
+        case '$eq':
+          return value === formFieldValue;
+        case '$gte':
+          return (formFieldValue >= value);
+        case '$lte':
+          return (formFieldValue <= value);
+        case '$gt':
+          return (formFieldValue > value);
+        case '$lt':
+          return (formFieldValue < value);
+        case '$in':
+          return Array.isArray(value) ? _.find(value, formFieldValue) : false;
+      }
+    };
+
+    const grantAccess = (permissionLevel, roles) => {
+      if (permissions[permissionLevel]) {
+        permissions[permissionLevel].forEach((right) => {
+          if (access.submission[right]) {
+            access.submission[right].push(...roles);
+            access.submission[right] = _(access.submission[right]).uniq().value();
+          }
+        });
+      }
+    };
+
+    // Iterate through each permission level
+    Object.entries(req.submissionFieldMatchAccess).forEach(([permissionLevel, conditions]) => {
+      // Iterate through each condition within a permission level
+      conditions.forEach((condition) => {
+        // Get intersection of roles within condition and the user's roles
+        const rolesIntersection = _.intersectionWith(condition.roles, userRoles, (role, userRole) => {
+          return role.toString() === userRole.toString();
+        }).map((role) => role.toString());
+
+        // If the user has a role specified in condition
+        if (rolesIntersection.length) {
+          const {formFieldPath, operator, value, valueType} = condition;
+          const formFieldValue = _.get(submission, formFieldPath);
+          if (isConditionMet(util.castValue(valueType, value), formFieldValue, operator)) {
+            grantAccess(permissionLevel, rolesIntersection);
+          }
+        }
+      });
+    });
+  };
+
   /**
    * Attempts to add Self Access Permissions if present in the form access.
    *
@@ -265,42 +333,6 @@ module.exports = function(router) {
           });
         },
 
-        // Get the permissions for a Submission with the given ObjectId.
-        function getSubmissionAccess(callback) {
-          access.submission = access.submission || {};
-
-          // Skip submission access if no subId was given.
-          if (!req.subId) {
-            return callback(null);
-          }
-
-          // Get the submission by request id and query its access.
-          router.formio.cache.loadSubmission(req, req.formId, req.subId, function(err, submission) {
-            if (err) {
-              return callback(400);
-            }
-
-            // No submission exists.
-            if (!submission) {
-              return callback(404);
-            }
-
-            // Add the submission owners UserId to the access list.
-            access.submission.owner = submission.owner
-              ? submission.owner.toString()
-              : null;
-
-            // Add self access if previously defined.
-            if (req.selfAccess && req.selfAccess === true) {
-              // Add the submission id to the access entity.
-              access.submission._id = util.idToString(submission._id);
-            }
-
-            // Load Submission Resource Access.
-            getSubmissionResourceAccess(req, submission, access, callback);
-          });
-        },
-
         // Get a list of all roles associated with this access check.
         function getAccessRoles(callback) {
           // Load all the roles.
@@ -341,7 +373,79 @@ module.exports = function(router) {
 
             // Add the EVERYONE role.
             access.roles.push(EVERYONE);
+            req.accessRoles = access.roles;
             callback();
+          });
+        },
+
+        // Load the form and set Field Match Access conditions to the request
+        function setSubmissionFieldMatchAccessToRequest(callback) {
+          if (!req.formId) {
+            return callback(null);
+          }
+          router.formio.cache.loadForm(req, null, req.formId, function(err, item) {
+            if (err) {
+              return callback(err);
+            }
+            if (!item) {
+              return callback(`No Form found with formId: ${req.formId}`);
+            }
+
+            if (item.fieldMatchAccess) {
+              req.submissionFieldMatchAccess = item.fieldMatchAccess;
+            }
+            return callback(null);
+          });
+        },
+
+        // Mark the index request to be proccessed by SubmissionFieldMatchAccessFilter
+        function flagIndexRequestAsSubmissionFieldMatchAccess(callback) {
+          const isIndexRequest = (req) => req.method.toUpperCase() === 'GET' && req.formId && !req.subId;
+          if (!isIndexRequest(req)) {
+            return callback(null);
+          }
+
+          if (req.submissionFieldMatchAccess) {
+            req.submissionFieldMatchAccessFilter = true;
+          }
+          return callback(null);
+        },
+
+        // Get the permissions for a Submission with the given ObjectId.
+        function getSubmissionAccess(callback) {
+          access.submission = access.submission || {};
+
+          // Skip submission access if no subId was given.
+          if (!req.subId) {
+            // Still need to check if the user allowed to create submissions withing Field Match Access
+            getSubmissionFieldMatchAccess(req, req.body, access);
+            return callback(null);
+          }
+          // Get the submission by request id and query its access.
+          router.formio.cache.loadSubmission(req, req.formId, req.subId, function(err, submission) {
+            if (err) {
+              return callback(400);
+            }
+
+            // No submission exists.
+            if (!submission) {
+              return callback(404);
+            }
+
+            // Add the submission owners UserId to the access list.
+            access.submission.owner = submission.owner
+              ? submission.owner.toString()
+              : null;
+
+            // Add self access if previously defined.
+            if (req.selfAccess && req.selfAccess === true) {
+              // Add the submission id to the access entity.
+              access.submission._id = util.idToString(submission._id);
+            }
+            // Load Submission Field Match Access.
+            getSubmissionFieldMatchAccess(req, submission, access);
+            // Load Submission Resource Access.
+            getSubmissionResourceAccess(req, submission, access, callback);
           });
         },
 
@@ -502,13 +606,16 @@ module.exports = function(router) {
         // Skip the owner filter if they have all access.
         req.skipOwnerFilter = true;
 
-        // Do not include the submission resource access filter if they have "all" access.
+        // Do not include the submission resource access and field match access filters if they have "all" access.
         req.submissionResourceAccessFilter = false;
+        req.submissionFieldMatchAccessFilter = false;
         _hasAccess = true;
       }
 
-      // If resource access applies, then allow for that to be in the query.
-      if (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter) {
+      // If resource access or field match access applies, then allow for that to be in the query.
+      if (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter ||
+      _.has(req, 'submissionFieldMatchAccessFilter') && req.submissionFieldMatchAccessFilter) {
+         req.skipOwnerFilter = true;
         _hasAccess = true;
       }
 
@@ -566,7 +673,7 @@ module.exports = function(router) {
       return next();
     }
 
-    // Determine if we are trying to access and entity of the form or submission.
+    // Determine if we are trying to access an entity of the form or submission.
     router.formio.access.getAccess(req, res, function(err, access) {
       if (err) {
         if (_.isNumber(err)) {
@@ -612,6 +719,7 @@ module.exports = function(router) {
 
       // Attempt a final access check against submission index requests using the submission resource access.
       // If this passes, it is up to the submissionResourceAccessFilter middleware to handle permissions.
+      // TODO: ask Travis if these lines are redundant
       if (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter) {
         req.skipOwnerFilter = true;
         return next();
