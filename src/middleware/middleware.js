@@ -25,6 +25,7 @@ module.exports = function(router) {
     formHandler: require('./formHandler')(router),
     formActionHandler: require('./formActionHandler')(router),
     ownerFilter: require('./ownerFilter')(router),
+    storageAccessHandler: require('./storageAccessHandler')(router),
     permissionHandler: require('./permissionHandler')(router),
     loadPreviousSubmission: require('./loadPreviousSubmission')(router),
     setFilterQueryTypes: require('./setFilterQueryTypes')(router),
