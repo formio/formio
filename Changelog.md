@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ## 2.0.0-rc.8
 ### Changed
+ - Merged changes from 1.x
+
+## 2.0.0-rc.8
+### Changed
  - Group permissions so that it can handle more complex group assignments.
  - Upgrade mongoose@5.9.25, eslint@7.5.0
 
