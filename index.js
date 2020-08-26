@@ -196,9 +196,9 @@ module.exports = function(config) {
         mongoUrl = config.mongo.join(',');
         mongoConfig.mongos = true;
       }
-      if (config.mongoSA) {
+      if (config.mongoSA || config.mongoCA) {
         mongoConfig.sslValidate = true;
-        mongoConfig.sslCA = config.mongoSA;
+        mongoConfig.sslCA = config.mongoSA || config.mongoCA;
       }
 
       mongoConfig.useUnifiedTopology = true;
