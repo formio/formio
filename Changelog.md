@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ## 2.0.0-rc.8
 ### Changed
+ - Merged changes from 1.x
+
+## 2.0.0-rc.8
+### Changed
  - Group permissions so that it can handle more complex group assignments.
  - Upgrade mongoose@5.9.25, eslint@7.5.0
 
@@ -83,6 +87,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
+
+## 1.90.7
+### Fixed
+ - Problem where the req.params would get removed before sending off emails.
+
+## 1.90.6
+### Fixed
+ - Upgrade formiojs@4.11.2-rc.4 so it will remove errors about Element not defined.
+
+## 1.90.5
+### Added
+ - Add TLS connection for mongoose connection as well.
+
+## 1.90.4
+### Changed
+ - Upgrade dependencies.
+
+### Fixed
+ - FOR-2708: Remove resource from action if it was not found on import.
+ - FJS-1049: Fixed CSV export of components with minimized schema.
 
 ## 1.90.3
 ### Changed

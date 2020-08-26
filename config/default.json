@@ -8,7 +8,7 @@
   "basePath": "",
   "mongo": "mongodb://localhost:27017/formioapp",
   "mongoConfig": "",
-  "mongoSA": "",
+  "mongoCA": "",
   "mongoSecret": "--- change me now ---",
   "reservedForms": [
     "submission",
