@@ -176,7 +176,7 @@ module.exports = function(config) {
       }
 
       let mongoUrl = config.mongo;
-      const mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
+      let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
       if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
         mongoConfig.connectTimeoutMS = 300000;
       }
@@ -196,13 +196,20 @@ module.exports = function(config) {
         mongoUrl = config.mongo.join(',');
         mongoConfig.mongos = true;
       }
-      if (config.mongoSA) {
+      if (config.mongoSA || config.mongoCA) {
         mongoConfig.sslValidate = true;
-        mongoConfig.sslCA = config.mongoSA;
+        mongoConfig.sslCA = config.mongoSA || config.mongoCA;
       }
 
       mongoConfig.useUnifiedTopology = true;
       mongoConfig.useCreateIndex = true;
+
+      if (config.mongoSSL) {
+        mongoConfig = {
+          ...mongoConfig,
+          ...config.mongoSSL,
+        };
+      }
 
       // Connect to MongoDB.
       mongoose.connect(mongoUrl, mongoConfig);

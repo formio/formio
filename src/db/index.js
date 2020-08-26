@@ -99,15 +99,17 @@ module.exports = function(formio) {
    * @param next
    * @return {*}
    */
-  const getSA = function(next) {
-    if (!config.mongoSA) {
+  const getCA = function(next) {
+    // Handle reverse compatability.
+    const CA = config.mongoSA || config.mongoCA;
+    if (!CA) {
       return next();
     }
 
     // If they provide the SA url, then fetch it from there.
-    if (config.mongoSA.indexOf('http') === 0) {
-      debug.db(`Fetching SA Certificate ${config.mongoSA}`);
-      fetch(config.mongoSA)
+    if (CA.indexOf('http') === 0) {
+      debug.db(`Fetching MongoDB Public Key ${CA}`);
+      fetch(CA)
         .then((response) => {
           if (response.ok) {
             return response.text();
@@ -116,20 +118,34 @@ module.exports = function(formio) {
         })
         .then((body) => {
           if (body) {
-            debug.db('Fetched SA Certificate');
-            config.mongoSA = body;
+            debug.db('Fetched MongoDB Public Key');
+            config.mongoCA = body;
             return next();
           }
           throw new Error('Empty Body');
         })
         .catch((error) => {
-          debug.db(`Unable to fetch SA Certificate: ${error}`);
+          debug.db(`Unable to fetch MongoDB Public Key: ${error}`);
           unlock(() => {
-            throw new Error(`Unable to fetch the SA Certificate: ${config.mongoSA}.`);
+            throw new Error(`Unable to fetch the SA Certificate: ${CA}.`);
           });
-          config.mongoSA = '';
+          config.mongoCA = '';
           return next();
         });
+    }
+    else if (CA.indexOf('/') === 0) {
+      // This is a file path, load it directly.
+      try {
+        config.mongoCA = fs.readFileSync(CA);
+      }
+      catch (err) {
+        debug.db(`Unable to read MongoDB Public Key: ${err}`);
+        unlock(() => {
+          throw new Error(`Unable to read the MongoDB Public Key: ${CA}. ${err}`);
+        });
+        config.mongoCA = '';
+      }
+      return next();
     }
     else {
       return next();
@@ -218,9 +234,9 @@ module.exports = function(formio) {
     if (!mongoConfig.hasOwnProperty('useNewUrlParser')) {
       mongoConfig.useNewUrlParser = true;
     }
-    if (config.mongoSA) {
+    if (config.mongoSA || config.mongoCA) {
       mongoConfig.sslValidate = true;
-      mongoConfig.sslCA = config.mongoSA;
+      mongoConfig.sslCA = config.mongoSA || config.mongoCA;
     }
     if (config.mongoSSL) {
       mongoConfig = {
@@ -705,7 +721,7 @@ module.exports = function(formio) {
     }
 
     async.series([
-      getSA,
+      getCA,
       getSSL,
       connection,
       checkSetup,
