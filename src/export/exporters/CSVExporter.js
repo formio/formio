@@ -98,7 +98,7 @@ class CSVExporter extends Exporter {
                 return '';
               }
 
-              const componentValue = component.values.find((v) => v.value === value) || '';
+              const componentValue = component.values.find((v) => v.value === value.toString()) || '';
                 return componentValue && formattedView
                   ? componentValue.label
                   : componentValue.value;
