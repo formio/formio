@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.10
+### Added
+ - A way to include the mongoCA certificate as a file path.
+
+### Changed
+ - Changing configuration (with reverse compatibility) of the mongoSA variable to the more correct mongoCA name.
+
 ## 2.0.0-rc.8
 ### Changed
  - Merged changes from 1.x
@@ -16,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 2.0.0-rc.7
 ### Fixed
  - FOR-2708: Remove resource from action if it was not found on import.
- - FJS-1049: Fixed CSV export of components with minimized schema. 
+ - FJS-1049: Fixed CSV export of components with minimized schema.
  - Fixed setting of formRevision property on import when revisions are enabled.
 
 ## 2.0.0-rc.5-6
@@ -42,7 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 2.0.0-beta.7
 ### Added
  - New hooks to extend the authentication system.
- 
+
 ### Changed
  - Update formio.js to 4.1.0-rc.6
 
