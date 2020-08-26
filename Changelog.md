@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ## 2.0.0-rc.10
+### Fixed
+ - FJS-1129: fixes an issue where the Custom Error Message is not used for the Unique validation error
+ - FOR-2728: modified CSVExporter preprocessor to convert roadio component data to string
+
 ### Added
  - A way to include the mongoCA certificate as a file path.
 
