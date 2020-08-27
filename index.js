@@ -7,7 +7,6 @@ const router = express.Router();
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 const bodyParser = require('body-parser');
-const methodOverride = require('method-override');
 const _ = require('lodash');
 const events = require('events');
 const Q = require('q');
@@ -117,7 +116,6 @@ module.exports = function(config) {
       router.use(bodyParser.json({
         limit: '16mb'
       }));
-      router.use(methodOverride('X-HTTP-Method-Override'));
 
       // Error handler for malformed JSON
       router.use((err, req, res, next) => {
