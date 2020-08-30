@@ -119,7 +119,7 @@ module.exports = function(formio) {
         .then((body) => {
           if (body) {
             debug.db('Fetched MongoDB Public Key');
-            config.mongoCA = body;
+            config.mongoSA = config.mongoCA = body;
             return next();
           }
           throw new Error('Empty Body');
@@ -129,21 +129,21 @@ module.exports = function(formio) {
           unlock(() => {
             throw new Error(`Unable to fetch the SA Certificate: ${CA}.`);
           });
-          config.mongoCA = '';
+          config.mongoSA = config.mongoCA = '';
           return next();
         });
     }
     else if (CA.indexOf('/') === 0) {
       // This is a file path, load it directly.
       try {
-        config.mongoCA = fs.readFileSync(CA);
+        config.mongoSA = config.mongoCA = fs.readFileSync(CA);
       }
       catch (err) {
         debug.db(`Unable to read MongoDB Public Key: ${err}`);
         unlock(() => {
           throw new Error(`Unable to read the MongoDB Public Key: ${CA}. ${err}`);
         });
-        config.mongoCA = '';
+        config.mongoSA = config.mongoCA = '';
       }
       return next();
     }
