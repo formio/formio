@@ -159,13 +159,13 @@ module.exports = function(router) {
           }
           if (!result) {
             debug.loadSubForms(
-              `Cannot find form revision for form ${util.idToBson(rev.form)} revision ${rev.formRevision}`,
+              `Cannot find form revision for form ${rev.form} revision ${rev.formRevision}`,
             );
             return next();
           }
 
-          debug.loadSubForms(`Loaded revision for form ${util.idToBson(rev.form)} revision ${rev.formRevision}`);
-          formRevs[result._id.toString()] = result;
+          debug.loadSubForms(`Loaded revision for form ${rev.form} revision ${rev.formRevision}`);
+          formRevs[rev.form.toString()] = result;
           next();
         });
       }, (err) => {
