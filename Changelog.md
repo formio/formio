@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.8
+### Fixed
+ - Issue with loading subforms with full=true query was not honoring form revision settings.
+
+### Changed
+ - Upgrade chance@1.1.7, formiojs@4.11.3, lodash@4.17.20, mssql@6.2.1, nodemailer@6.4.11, request-promise-native@1.0.9,
+   mongodb@3.6.0, mongoose@5.10.2, eslint@7.7.0, mocha@8.1.3
+
 ## 1.90.7
 ### Fixed
  - Problem where the req.params would get removed before sending off emails.
