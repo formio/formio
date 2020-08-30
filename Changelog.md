@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.9
+### Fixed
+ - Issue where the form component revision setting would not take preference over the internal formRevision configuration.
+
 ## 1.90.8
 ### Fixed
  - Issue with loading subforms with full=true query was not honoring form revision settings.
