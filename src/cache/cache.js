@@ -145,11 +145,12 @@ module.exports = function(router) {
 
       const formRevs = {};
       async.each(revs, (rev, next) => {
-        debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${rev.formRevision}`);
+        const formRevision = parseInt(rev.revision || rev.formRevision);
+        debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${formRevision}`);
         router.formio.resources.formrevision.model.findOne(
           hook.alter('formQuery', {
             _rid: util.idToBson(rev.form),
-            _vid: rev.formRevision,
+            _vid: formRevision,
             deleted: {$eq: null}
           }, req)
         ).lean().exec((err, result) => {
@@ -159,12 +160,12 @@ module.exports = function(router) {
           }
           if (!result) {
             debug.loadSubForms(
-              `Cannot find form revision for form ${rev.form} revision ${rev.formRevision}`,
+              `Cannot find form revision for form ${rev.form} revision ${formRevision}`,
             );
             return next();
           }
 
-          debug.loadSubForms(`Loaded revision for form ${rev.form} revision ${rev.formRevision}`);
+          debug.loadSubForms(`Loaded revision for form ${rev.form} revision ${formRevision}`);
           formRevs[rev.form.toString()] = result;
           next();
         });
@@ -423,9 +424,9 @@ module.exports = function(router) {
           const formId = component.form.toString();
           formIds.push(formId);
           debug.loadSubForms(`Found subform ${formId}`);
-          if (component.formRevision) {
+          // TO-DO: Figure out why there are two revisions here?...
+          if (component.revision || component.formRevision) {
             formRevs.push(component);
-            debug.loadSubForms(`Using subform ${formId} revision ${component.formRevision}`);
           }
         }
       }, true);
