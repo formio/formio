@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "2.0.0-rc.10",
+  "version": "2.0.0-rc.11",
   "description": "The formio server application.",
   "license": "OSL-3.0",
   "main": "index.js",
@@ -44,7 +44,6 @@
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.19",
     "memory-cache": "^0.2.0",
-    "method-override": "^3.0.0",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
     "mongodb": "^3.5.9",
