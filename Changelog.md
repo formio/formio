@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.12
+### Fixed
+ - Ensure the mongoSA variables are always set correctly.
+ - Fixing an issue with the form revisions not getting set correctly when loading with full=true.
+
+### Changed
+ - Upgrade chance@1.1.7, formiojs@4.11.3, mongoose@5.10.2, mocha@8.1.3, eslint@7.8.0
+
 ## 2.0.0-rc.11
 ### Removed
  - Method override for security reasons.
