@@ -1,5 +1,6 @@
 'use strict';
 
+const _last = require('lodash/last');
 module.exports = function(formio) {
   const hook = require('../util/hook')(formio);
 
@@ -108,7 +109,9 @@ module.exports = function(formio) {
           return;
         }
 
-        hook.alter('actionMachineName', `${form.name}:${document.name}`, document, done);
+        const formMachineName = _last(form.machineName.split(':'));
+
+        hook.alter('actionMachineName', `${formMachineName || form.name}:${document.name}`, document, done);
       });
   };
 
