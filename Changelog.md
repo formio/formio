@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.13
+### Fixed
+ - FOR-2719: Fixes an issue where new actions and removed actions weren't deployed on a stage.
+ - Ensure we also check hostname when checking the NO_PROXY environment variable.
+
+### Changed
+ - FOR-2722: Updated a test for Webhook actions.
+ - Upgrade mongodb@3.6.1
+
 ## 2.0.0-rc.12
 ### Fixed
  - Ensure the mongoSA variables are always set correctly.
