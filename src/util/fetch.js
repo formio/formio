@@ -56,19 +56,20 @@ const noProxyDomains = (process.env.no_proxy || process.env.NO_PROXY || '')
  * @returns {boolean} Wether the url should be excluded from proxying or not.
  */
 function noProxy(url) {
-  const {protocol, host} = parseUrl(url);
+  const {protocol, hostname, host} = parseUrl(url);
   // If invalid url, just return true
-  if (!protocol || !host) {
+  if (!protocol || !host || !hostname) {
     return true;
   }
-  // Check if protocol does not match the available proxy
   if (protocol === 'http:' && httpProxy.host === null) {
     return true;
   }
   if (protocol === 'https:' && httpsProxy.host === null) {
     return true;
   }
-  return noProxyDomains.some((domain) => host.endsWith(domain));
+  return noProxyDomains.some(
+    (domain) => (host.endsWith(domain) || hostname.endsWith(domain))
+  );
 }
 
 module.exports = (url, options = {}) => {
