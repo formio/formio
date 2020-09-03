@@ -681,6 +681,25 @@ const Utils = {
     });
   },
 
+  castValue(valueType, value) {
+    switch (valueType) {
+      case 'string':
+        return value.toString();
+      case 'number':
+        return Number(value);
+      case 'boolean':
+        return value === 'true';
+      case '[number]':
+        return value.replace(/(^,)|(,$)/g, '')
+                         .split(',')
+                         .map(val => Number(val));
+      case '[string]':
+        return value.replace(/(^,)|(,$)/g, '')
+                         .split(',')
+                         .map(val => val.toString());
+    }
+  },
+
   /**
    * Application error codes.
    */

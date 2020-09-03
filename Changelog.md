@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.12
+### Fixed
+ - Ensure the mongoSA variables are always set correctly.
+ - Fixing an issue with the form revisions not getting set correctly when loading with full=true.
+
+### Changed
+ - Upgrade chance@1.1.7, formiojs@4.11.3, mongoose@5.10.2, mocha@8.1.3, eslint@7.8.0
+
+## 2.0.0-rc.11
+### Removed
+ - Method override for security reasons.
+
+## 2.0.0-rc.10
+### Fixed
+ - FJS-1129: fixes an issue where the Custom Error Message is not used for the Unique validation error
+ - FOR-2728: modified CSVExporter preprocessor to convert roadio component data to string
+
+### Added
+ - A way to include the mongoCA certificate as a file path.
+
+### Changed
+ - Changing configuration (with reverse compatibility) of the mongoSA variable to the more correct mongoCA name.
+
+## 2.0.0-rc.8
+### Changed
+ - Merged changes from 1.x
+
 ## 2.0.0-rc.8
 ### Changed
  - Group permissions so that it can handle more complex group assignments.
@@ -12,7 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 2.0.0-rc.7
 ### Fixed
  - FOR-2708: Remove resource from action if it was not found on import.
- - FJS-1049: Fixed CSV export of components with minimized schema. 
+ - FJS-1049: Fixed CSV export of components with minimized schema.
  - Fixed setting of formRevision property on import when revisions are enabled.
 
 ## 2.0.0-rc.5-6
@@ -38,7 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 2.0.0-beta.7
 ### Added
  - New hooks to extend the authentication system.
- 
+
 ### Changed
  - Update formio.js to 4.1.0-rc.6
 
@@ -83,6 +110,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - Upgrade mongodb@3.5.4, async@3.2.0
  - Upgrade ResourceJS@2.0.0
+
+## 1.90.7
+### Fixed
+ - Problem where the req.params would get removed before sending off emails.
+
+## 1.90.6
+### Fixed
+ - Upgrade formiojs@4.11.2-rc.4 so it will remove errors about Element not defined.
+
+## 1.90.5
+### Added
+ - Add TLS connection for mongoose connection as well.
+
+## 1.90.4
+### Changed
+ - Upgrade dependencies.
+
+### Fixed
+ - FOR-2708: Remove resource from action if it was not found on import.
+ - FJS-1049: Fixed CSV export of components with minimized schema.
 
 ## 1.90.3
 ### Changed

@@ -7,7 +7,6 @@ const router = express.Router();
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 const bodyParser = require('body-parser');
-const methodOverride = require('method-override');
 const _ = require('lodash');
 const events = require('events');
 const Q = require('q');
@@ -117,7 +116,6 @@ module.exports = function(config) {
       router.use(bodyParser.json({
         limit: '16mb'
       }));
-      router.use(methodOverride('X-HTTP-Method-Override'));
 
       // Error handler for malformed JSON
       router.use((err, req, res, next) => {
@@ -176,7 +174,7 @@ module.exports = function(config) {
       }
 
       let mongoUrl = config.mongo;
-      const mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
+      let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
       if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
         mongoConfig.connectTimeoutMS = 300000;
       }
@@ -196,13 +194,20 @@ module.exports = function(config) {
         mongoUrl = config.mongo.join(',');
         mongoConfig.mongos = true;
       }
-      if (config.mongoSA) {
+      if (config.mongoSA || config.mongoCA) {
         mongoConfig.sslValidate = true;
-        mongoConfig.sslCA = config.mongoSA;
+        mongoConfig.sslCA = config.mongoSA || config.mongoCA;
       }
 
       mongoConfig.useUnifiedTopology = true;
       mongoConfig.useCreateIndex = true;
+
+      if (config.mongoSSL) {
+        mongoConfig = {
+          ...mongoConfig,
+          ...config.mongoSSL,
+        };
+      }
 
       // Connect to MongoDB.
       mongoose.connect(mongoUrl, mongoConfig);
@@ -227,7 +232,8 @@ module.exports = function(config) {
 
         router.formio.schemas = {
           PermissionSchema: require('./src/models/PermissionSchema')(router.formio),
-          AccessSchema: require('./src/models/AccessSchema')(router.formio)
+          AccessSchema: require('./src/models/AccessSchema')(router.formio),
+          FieldMatchAccessPermissionSchema: require('./src/models/FieldMatchAccessPermissionSchema')(router.formio),
         };
 
         // Get the models for our project.
