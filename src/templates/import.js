@@ -412,6 +412,12 @@ module.exports = (router) => {
           ]
         };
         return hook.alter(`importFormQuery`, query, document, template);
+      },
+      deleteAllActions(form, done) {
+        const prun = require('../util/delete')(router);
+        prun.action(null, form).then(() => {
+          done();
+        });
       }
     },
     action: {
@@ -535,7 +541,10 @@ module.exports = (router) => {
                 items[machineName] = result.toObject();
                 debug.save(machineName);
                 debug.save(items[machineName]);
-                next();
+                if (entity.hasOwnProperty('deleteAllActions')) {
+                  return entity.deleteAllActions(updatedDoc._id, next);
+                }
+                return next();
               });
             };
 

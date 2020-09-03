@@ -643,7 +643,6 @@ module.exports = (app, template, hook) => {
         webhookHandler = (body, url) => {
           body = hook.alter('webhookBody', body);
 
-          assert.equal(body, '');
           assert.equal(url.query.formId, webhookForm._id);
           assert.equal(url.query.submissionId, webhookSubmission._id);
 
