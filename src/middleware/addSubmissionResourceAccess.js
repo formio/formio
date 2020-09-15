@@ -22,7 +22,7 @@ module.exports = (router) => {
 
     roles = roles.filter(_.identity);
 
-    return input.map((element) => {
+    return _.flatMap(input, (element) => {
       if (!element || !element._id) {
         return [];
       }
@@ -30,7 +30,7 @@ module.exports = (router) => {
       return roles.length
         ? roles.map((role) => (`${element._id}:${role}`))
         : element._id;
-    }).flat();
+    });
   };
 
   return function addSubmissionResourceAccess(req, res, next) {

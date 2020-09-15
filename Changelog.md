@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.12
+### Fixed
+ - Fix flatmap again.
+
 ## 1.90.11
 ### Fixed
  - Remove use of flatMap for node.js 10.x compatibility.
