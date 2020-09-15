@@ -240,11 +240,6 @@ module.exports = (router, resourceName, resourceId) => {
      * @param done
      */
     function executeFieldHandlers(validation, req, res, done) {
-      // If they wish to disable actions, then just skip.
-      if (req.query.dryrun) {
-        return done();
-      }
-
       const promises = [];
 
       util.eachValue(req.currentForm.components, req.body.data, ({
