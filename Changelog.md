@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.14
+### Fixed
+ - Adding ability to execute field actions on dryrun. Fixes validate endpoint for DataSource component.
+
 ## 2.0.0-rc.13
 ### Fixed
  - FOR-2719: Fixes an issue where new actions and removed actions weren't deployed on a stage.
