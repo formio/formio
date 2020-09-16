@@ -87,7 +87,7 @@ module.exports = (router) => {
       }
 
       if (!req.query.dryrun) {
-        if (childRes.resource && childRes.resource.item) {
+        if (childRes.resource && childRes.resource.item && !['POST', 'PUT', 'PATCH'].includes(req.method)) {
           _.set(data, component.key, childRes.resource.item);
         }
       }
