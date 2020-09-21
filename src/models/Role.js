@@ -14,6 +14,7 @@ module.exports = function(formio) {
     title: {
       type: String,
       required: true,
+      index: true,
       validate: [
         {
           message: 'Role title must be unique.',

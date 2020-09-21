@@ -5,12 +5,14 @@ module.exports = (schema, options = {}) => {
   schema.add({
     created: {
       type: Date,
+      index: true,
       description: 'The date this resource was created.',
       default: Date.now,
       __readonly: true,
     },
     modified: {
       type: Date,
+      index: true,
       description: 'The date this resource was modified.',
       __readonly: true,
     },

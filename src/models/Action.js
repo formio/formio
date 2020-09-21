@@ -54,6 +54,7 @@ module.exports = function(formio) {
   Action.schema = new formio.mongoose.Schema({
     title: {
       type: String,
+      index: true,
       required: true
     },
     name: {
@@ -75,6 +76,7 @@ module.exports = function(formio) {
     priority: {
       type: Number,
       require: true,
+      index: true,
       default: 0
     },
     settings: {
