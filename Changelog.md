@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.13
+### Changed
+ - Upgrade formiojs@4.12.0, resourcejs@2.3.2, mongodb@3.6.2, mongoose@5.10.6, mssql@6.2.2, debug@4.2.0, formiojs@4.12.0, moment@2.29.0, eslint@7.9.0
+
+### Fixed
+ - FJS-1129: fixes an issue where the Custom Error Message is not used for the Unique validation error
+
 ## 1.90.12
 ### Fixed
  - Fix flatmap again.
