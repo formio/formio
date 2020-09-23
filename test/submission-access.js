@@ -7212,15 +7212,9 @@ module.exports = function(app, template, hook) {
         });
 
         it('An Admin, the owner, can update a submissions resource access, without explicit resource access (write)', (done) => {
-<<<<<<< HEAD
-          tempSubmission.data.readPerm = [];
-          tempSubmission.data.writePerm = [template.users.admin];
-          tempSubmission.data.adminPerm = [];
-=======
           tempSubmission.data.writePerm = [template.users.admin];
           delete tempSubmission.data.readPerm;
           delete tempSubmission.data.adminPerm;
->>>>>>> 1.x
 
           request(app)
             .put(hook.alter('url', `/form/${tempForm._id}/submission/${tempSubmission._id}`, template))
@@ -7457,12 +7451,9 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, the owner, can update a submissions resource access, with explicit resource access (admin)', (done) => {
           tempSubmission.data.adminPerm = [template.users.admin];
-<<<<<<< HEAD
-=======
           delete tempSubmission.data.writePerm;
           delete tempSubmission.data.readPerm;
           var update = {access: [{type: 'admin', resources: [template.users.admin._id]}]};
->>>>>>> 1.x
 
           request(app)
             .put(hook.alter('url', `/form/${tempForm._id}/submission/${tempSubmission._id}`, template))
@@ -7725,11 +7716,8 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (read)', (done) => {
           tempSubmission.data.readPerm = [template.users.admin2];
-<<<<<<< HEAD
-=======
           delete tempSubmission.data.writePerm;
           delete tempSubmission.data.adminPerm;
->>>>>>> 1.x
 
           request(app)
             .put(hook.alter('url', `/form/${tempForm._id}/submission/${tempSubmission._id}`, template))
@@ -7881,11 +7869,8 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (read)', (done) => {
           tempSubmission.data.readPerm = [template.users.user2];
-<<<<<<< HEAD
-=======
           delete tempSubmission.data.writePerm;
           delete tempSubmission.data.adminPerm;
->>>>>>> 1.x
 
           request(app)
             .put(hook.alter('url', `/form/${tempForm._id}/submission/${tempSubmission._id}`, template))
@@ -7971,11 +7956,8 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (write)', (done) => {
           tempSubmission.data.writePerm = [template.users.admin2];
-<<<<<<< HEAD
-=======
           delete tempSubmission.data.readPerm;
           delete tempSubmission.data.adminPerm;
->>>>>>> 1.x
 
           request(app)
             .put(hook.alter('url', `/form/${tempForm._id}/submission/${tempSubmission._id}`, template))
@@ -8127,11 +8109,8 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, without explicit resource access (write)', (done) => {
           tempSubmission.data.writePerm = [template.users.user2];
-<<<<<<< HEAD
-=======
           delete tempSubmission.data.readPerm;
           delete tempSubmission.data.adminPerm;
->>>>>>> 1.x
 
           request(app)
             .put(hook.alter('url', `/form/${tempForm._id}/submission/${tempSubmission._id}`, template))
@@ -8217,11 +8196,8 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, with explicit resource access (admin)', (done) => {
           tempSubmission.data.adminPerm = [template.users.admin2];
-<<<<<<< HEAD
-=======
           delete tempSubmission.data.writePerm;
           delete tempSubmission.data.readPerm;
->>>>>>> 1.x
 
           request(app)
             .put(hook.alter('url', `/form/${tempForm._id}/submission/${tempSubmission._id}`, template))
@@ -8373,11 +8349,8 @@ module.exports = function(app, template, hook) {
 
         it('An Admin, not the owner, can update a submissions resource access, with explicit resource access (admin)', (done) => {
           tempSubmission.data.adminPerm = [template.users.user2];
-<<<<<<< HEAD
-=======
           delete tempSubmission.data.writePerm;
           delete tempSubmission.data.readPerm;
->>>>>>> 1.x
 
           request(app)
             .put(hook.alter('url', `/form/${tempForm._id}/submission/${tempSubmission._id}`, template))
@@ -8593,11 +8566,8 @@ module.exports = function(app, template, hook) {
 
         it('Give the user read access to the submission', (done) => {
           tempSubmission.data.readPerm = [template.users.user1];
-<<<<<<< HEAD
-=======
           delete tempSubmission.data.writePerm;
           delete tempSubmission.data.adminPerm;
->>>>>>> 1.x
 
           request(app)
             .put(hook.alter('url', `/form/${tempForm._id}/submission/${tempSubmission._id}`, template))
@@ -9251,11 +9221,8 @@ module.exports = function(app, template, hook) {
 
         it('An Admin can update the submissions resource access', (done) => {
           tempSubmission.data.readPerm = [template.users.admin];
-<<<<<<< HEAD
-=======
           delete tempSubmission.data.writePerm;
           delete tempSubmission.data.adminPerm;
->>>>>>> 1.x
 
           request(app)
             .put(hook.alter('url', `/form/${tempForm._id}/submission/${tempSubmission._id}`, template))
