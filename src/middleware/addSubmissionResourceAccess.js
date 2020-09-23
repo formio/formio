@@ -22,7 +22,7 @@ module.exports = (router) => {
 
     roles = roles.filter(_.identity);
 
-    return input.flatMap((element) => {
+    return _.flatMap(input, (element) => {
       if (!element || !element._id) {
         return [];
       }

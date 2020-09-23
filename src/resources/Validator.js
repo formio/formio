@@ -15,6 +15,10 @@ const debug = {
 
 let hook = null;
 
+const getErrorMessage = (component, message) => {
+  return _.get(component, 'validate.customMessage', message);
+};
+
 /*
  * Returns true or false based on visibility.
  *
@@ -423,7 +427,7 @@ const getRules = (type) => [
         model.findOne(query, (err, result) => {
           if (err) {
             return resolve({
-              message: err,
+              message: getErrorMessage(component, err),
               path: state.path,
               type: 'any.unique'
             });
@@ -434,7 +438,7 @@ const getRules = (type) => [
           }
           else if (result) {
             return resolve({
-              message: `"${component.label}" must be unique.`,
+              message: getErrorMessage(component, `"${component.label}" must be unique.`),
               path: state.path,
               type: 'any.unique'
             });
