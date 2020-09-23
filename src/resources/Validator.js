@@ -87,6 +87,11 @@ class Validator {
           ) {
             unsets.push({key, data});
           }
+          else if (
+            this.component.type === 'password' && value === this.defaultValue
+          ) {
+            unsets.push({key, data});
+          }
           return value;
         }
       }
