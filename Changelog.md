@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.15
+### Changed
+ - Upgrade mongodb@3.6.2, mongoose@5.10.6, mssql@6.2.2, node-fetch@2.6.1, resourcejs@2.3.2, debug@4.2.0, formiojs@4.12.0, moment@2.29.0, eslint@7.9.0
+
+### Fixed
+ - Fix some updates resetting password due to isomorphic validator adding back a default value.
+ - Fix queries so indexes exist for cosmos.
+
 ## 2.0.0-rc.14
 ### Fixed
  - Adding ability to execute field actions on dryrun. Fixes validate endpoint for DataSource component.
