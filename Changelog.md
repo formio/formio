@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.14
+### Fixed
+ - Fixed an issue where submission of reference Nested Form is not updated when was modified through the parent
+
 ## 1.90.13
 ### Changed
  - Upgrade formiojs@4.12.0, resourcejs@2.3.2, mongodb@3.6.2, mongoose@5.10.6, mssql@6.2.2, debug@4.2.0, formiojs@4.12.0, moment@2.29.0, eslint@7.9.0
