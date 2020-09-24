@@ -14,9 +14,7 @@ module.exports = router => {
     }
 
     // Get the submission object.
-    let subSubmission = _.get(data, component.key, {});
-    const id = subSubmission._id ? subSubmission._id.toString() : null;
-    subSubmission = _.cloneDeep(_.get(req, `resources.${id}`, subSubmission));
+    const subSubmission = _.get(data, component.key, {});
 
     // if there isn't a sub-submission or the sub-submission has an _id, don't submit.
     // Should be submitted from the frontend.
@@ -83,7 +81,7 @@ module.exports = router => {
       }
 
       if (!req.query.dryrun) {
-        if (childRes.resource && childRes.resource.item && !['PUT', 'PATCH'].includes(req.method)) {
+        if (childRes.resource && childRes.resource.item) {
           _.set(data, component.key, childRes.resource.item);
         }
       }
