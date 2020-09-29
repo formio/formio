@@ -61,22 +61,34 @@ class CSVExporter extends Exporter {
           items.push({
             rename: (label) => `${label}.formatted`,
             preprocessor: (value) => {
+              if (_.isArray(value)) {
+                return value;
+              }
+
               const address = (value && value.address) || value || {};
-              return address.formatted_address;
+              return address.formatted_address || '';
             },
           });
           items.push({
             rename: (label) => `${label}.lat`,
             preprocessor: (value) => {
+              if (_.isArray(value)) {
+                return value;
+              }
+
               const address = (value && value.address) || value || {};
-              return _.get(address, 'geometry.location.lat');
+              return _.get(address, 'geometry.location.lat', '');
             },
           });
           items.push({
             rename: (label) => `${label}.lng`,
             preprocessor: (value) => {
+              if (_.isArray(value)) {
+                return value;
+              }
+
               const address = (value && value.address) || value || {};
-              return _.get(address, 'geometry.location.lng');
+              return _.get(address, 'geometry.location.lng', '');
             },
           });
 
