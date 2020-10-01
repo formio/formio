@@ -57,13 +57,13 @@ module.exports = function(router) {
       else if (permission.type === 'create') {
         _.each(permission.resources, function(id) {
           access.submission.create_all.push(id);
-          access.submission.read_all.push(id);
+          // access.submission.read_all.push(id);
         });
       }
-      else if (permission.type === 'write') {
+      else if (permission.type === 'update') {
         _.each(permission.resources, function(id) {
-          access.submission.create_all.push(id);
-          access.submission.read_all.push(id);
+          // access.submission.create_all.push(id);
+          // access.submission.read_all.push(id);
           access.submission.update_all.push(id);
 
           // Flag this request as not having admin access through submission resource access.
@@ -71,11 +71,11 @@ module.exports = function(router) {
           req.submissionResourceAccessAdminBlock.push(util.idToString(id));
         });
       }
-      else if (permission.type === 'admin') {
+      else if (permission.type === 'delete') {
         _.each(permission.resources, function(id) {
-          access.submission.create_all.push(id);
-          access.submission.read_all.push(id);
-          access.submission.update_all.push(id);
+          // access.submission.create_all.push(id);
+          // access.submission.read_all.push(id);
+          // access.submission.update_all.push(id);
           access.submission.delete_all.push(id);
         });
       }
@@ -306,7 +306,7 @@ module.exports = function(router) {
                     }
 
                     const createAccess = component.submissionAccess
-                      .filter(({type}) => (['create', 'write', 'admin'].includes(type)))
+                      .filter(({type}) => (type === 'create'))
                       .map((access) => ({
                         ...access,
                         roles: _.compact(access.roles || []),
@@ -477,11 +477,28 @@ module.exports = function(router) {
             // See if any of our components have "submissionAccess" or "defaultPermission" established.
             util.eachComponent(item.components, (component) => {
               if (component.submissionAccess || component.defaultPermission) {
-                // Since the access is now determined by the submission resource access, we
-                // can skip the owner filter.
-                req.skipOwnerFilter = true;
-                req.submissionResourceAccessFilter = true;
-                return true;
+                let userHasReadRole = false;
+                const readRoles = _.chain(component.submissionAccess)
+                  .filter(access => access.type === 'read')
+                  .map(el => el.roles)
+                  .flattenDeep()
+                  .value();
+
+                userRoles.forEach(function(roleEntity) {
+                  const role = roleEntity.split(':')[1];
+
+                  if (role && readRoles.includes(role)) {
+                    userHasReadRole = true;
+                  }
+                });
+
+                if (userHasReadRole || !readRoles.length) {
+                  // Since the access is now determined by the submission resource access, we
+                  // can skip the owner filter.
+                  req.skipOwnerFilter = true;
+                  req.submissionResourceAccessFilter = true;
+                  return true;
+                }
               }
             });
 
