@@ -69,6 +69,7 @@ class Validator {
 
     // Create the form, then check validity.
     Formio.createForm(this.form, {
+      server: true,
       hooks: {
         setDataValue: function(value, key, data) {
           if (!unsetsEnabled) {
@@ -108,9 +109,7 @@ class Validator {
       form.data = submission.data;
 
       // Perform calculations and conditions.
-      form.calculateValue({
-        fromSubmission: true
-      });
+      form.calculateValue();
       form.checkConditions();
 
       // Reset the data
