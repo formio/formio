@@ -27,6 +27,11 @@ global.document          = {
   documentElement: {style: []}
 };
 global.window            = {addEventListener: () => {}, Event: {}, navigator: global.navigator};
+global.btoa = (str) => {
+  return (str instanceof Buffer) ?
+    str.toString('base64') :
+    Buffer.from(str.toString(), 'binary').toString('base64');
+};
 const Formio = require('formiojs/formio.form.js');
 
 // Remove onChange events from all renderer displays.
