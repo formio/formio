@@ -57,13 +57,10 @@ module.exports = function(router) {
       if (permission.type === 'create') {
         _.each(permission.resources, function(id) {
           access.submission.create_all.push(id);
-          // access.submission.read_all.push(id);
         });
       }
       if (permission.type === 'update') {
         _.each(permission.resources, function(id) {
-          // access.submission.create_all.push(id);
-          // access.submission.read_all.push(id);
           access.submission.update_all.push(id);
 
           // Flag this request as not having admin access through submission resource access.
@@ -73,9 +70,6 @@ module.exports = function(router) {
       }
       if (permission.type === 'delete') {
         _.each(permission.resources, function(id) {
-          // access.submission.create_all.push(id);
-          // access.submission.read_all.push(id);
-          // access.submission.update_all.push(id);
           access.submission.delete_all.push(id);
         });
       }
