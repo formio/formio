@@ -54,13 +54,13 @@ module.exports = function(router) {
           access.submission.read_all.push(id);
         });
       }
-      else if (permission.type === 'create') {
+      if (permission.type === 'create') {
         _.each(permission.resources, function(id) {
           access.submission.create_all.push(id);
           // access.submission.read_all.push(id);
         });
       }
-      else if (permission.type === 'update') {
+      if (permission.type === 'update') {
         _.each(permission.resources, function(id) {
           // access.submission.create_all.push(id);
           // access.submission.read_all.push(id);
@@ -71,7 +71,7 @@ module.exports = function(router) {
           req.submissionResourceAccessAdminBlock.push(util.idToString(id));
         });
       }
-      else if (permission.type === 'delete') {
+      if (permission.type === 'delete') {
         _.each(permission.resources, function(id) {
           // access.submission.create_all.push(id);
           // access.submission.read_all.push(id);
@@ -110,9 +110,9 @@ module.exports = function(router) {
     // Allowed actions for each permission level
     const permissions = {
       read: ['read_all'],
-      create: ['read_all', 'create_all'],
-      write: ['read_all', 'create_all', 'update_all'],
-      admin: ['read_all', 'create_all', 'update_all', 'delete_all'],
+      create: ['create_all'],
+      update: ['update_all'],
+      delete: ['delete_all'],
     };
 
     const isConditionMet = (value, formFieldValue, operator) => {
@@ -198,6 +198,47 @@ module.exports = function(router) {
         form.submissionAccess = _.filter(form.submissionAccess);
       }
     }
+  };
+
+  const getAccessBasedOnMethod = function(req, item, access, role) {
+    util.eachComponent(item.components, (component, path) => {
+      if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
+        if (!component.submissionAccess) {
+          component.submissionAccess = [
+            {
+              type: component.defaultPermission,
+              roles: [],
+            },
+          ];
+        }
+
+        let selectValue = _.get(req.body.data, path);
+        if (selectValue) {
+          if (!Array.isArray(selectValue)) {
+            selectValue = [selectValue];
+          }
+
+          const createAccess = component.submissionAccess
+            .filter(({type}) => (type === role))
+            .map((access) => ({
+              ...access,
+              roles: _.compact(access.roles || []),
+            }));
+
+          selectValue.filter((value) => (value && value._id)).forEach(({_id}) => {
+            createAccess.forEach(({roles}) => {
+              /* eslint-disable camelcase */
+              access.submission.create_all = (access.submission.create_all || []).concat(
+                roles.length
+                  ? roles.map((role) => (`${_id}:${role}`))
+                  : _id,
+              );
+              /* eslint-enable camelcase */
+            });
+          });
+        }
+      }
+    });
   };
 
   // Add this access handlers for all to use.
@@ -288,44 +329,15 @@ module.exports = function(router) {
 
             // check for group permissions, only if creating submission (POST request)
             if (req.method === 'POST') {
-              util.eachComponent(item.components, (component, path) => {
-                if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
-                  if (!component.submissionAccess) {
-                    component.submissionAccess = [
-                      {
-                        type: component.defaultPermission,
-                        roles: [],
-                      },
-                    ];
-                  }
+              getAccessBasedOnMethod(req, item, access, 'create');
+            }
 
-                  let selectValue = _.get(req.body.data, path);
-                  if (selectValue) {
-                    if (!Array.isArray(selectValue)) {
-                      selectValue = [selectValue];
-                    }
+            if (req.method === 'DELETE') {
+              getAccessBasedOnMethod(req, item, access, 'delete');
+            }
 
-                    const createAccess = component.submissionAccess
-                      .filter(({type}) => (type === 'create'))
-                      .map((access) => ({
-                        ...access,
-                        roles: _.compact(access.roles || []),
-                      }));
-
-                    selectValue.filter((value) => (value && value._id)).forEach(({_id}) => {
-                      createAccess.forEach(({roles}) => {
-                        /* eslint-disable camelcase */
-                        access.submission.create_all = (access.submission.create_all || []).concat(
-                          roles.length
-                            ? roles.map((role) => (`${_id}:${role}`))
-                            : _id,
-                        );
-                        /* eslint-enable camelcase */
-                      });
-                    });
-                  }
-                }
-              });
+            if (req.method === 'PUT' || req.method === 'PATCH') {
+              getAccessBasedOnMethod(req, item, access, 'create');
             }
 
             // Return the updated access list.

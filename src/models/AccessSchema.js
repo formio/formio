@@ -5,8 +5,8 @@ module.exports = function(formio) {
   const available = [
     'read',
     'create',
-    'write',
-    'admin'
+    'update',
+    'delete'
   ];
 
   // Defines the permissions schema for submission permissions.
