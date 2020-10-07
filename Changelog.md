@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.22
+### Fixed
+ - Problem where btoa not being defined would cause validator to crash.
+
 ## 2.0.0-rc.21
 ### Fixed
  - Issue where server calculations were not getting performed correctly."
