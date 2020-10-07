@@ -633,7 +633,9 @@ class Validator {
           fieldValidator = JoiX.array().items(JoiX.object({
             coordinate: JoiX.object({
               x: JoiX.number(),
-              y: JoiX.number()
+              y: JoiX.number(),
+              width: JoiX.number(),
+              height: JoiX.number()
             }),
             data: JoiX.object().keys(objectSchema)
           })).options({stripUnknown: false});
