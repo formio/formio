@@ -8,9 +8,18 @@ export const config: any = {
   cronTime: process.env.CRON_TIME || '*/15 * * * *',
 };
 
+// See if they provided the database in the connection string.
+let defaultDb = 'formio';
+if (!process.env.DEFAULT_DATABASE || !process.env.MONGO_DATABASE) {
+  const dbMatches = process.env.MONGO.match(/\/\/.*\/(.*)\?+/);
+  if (dbMatches && dbMatches[1]) {
+    defaultDb = dbMatches[1];
+  }
+}
+
 if (process.env.MONGO) {
   config.mongodb = {
     connectionString: process.env.MONGO,
-    database: process.env.DEFAULT_DATABASE || process.env.MONGO_DATABASE || 'formio',
+    database: process.env.DEFAULT_DATABASE || process.env.MONGO_DATABASE || defaultDb,
   };
 }
