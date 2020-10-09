@@ -64,6 +64,7 @@ class Validator {
 
     // Create the form, then check validity.
     Formio.createForm(this.form, {
+      server: true,
       hooks: {
         setDataValue: function(value, key, data) {
           if (!unsetsEnabled) {

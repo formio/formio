@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.22
+### Fixed
+ - Problem where btoa not being defined would cause validator to crash.
+
+## 2.0.0-rc.21
+### Fixed
+ - Issue where server calculations were not getting performed correctly."
+
+## 2.0.0-rc.20
+### Fixed
+ - FOR-2771: Fixed issue where calculated values get overridden on the server.
+
+## 2.0.0-rc.19
+### Changed
+ - Upgrade formiojs@4.12.1-rc.4
+
+## 2.0.0-rc.18
+### Fixed
+ - FJS-1240: fixed an issue where address data (if address is inside dataGrid) is missed when loading as CSV.
+
+## 2.0.0-rc.17
+### Fixed
+ - Fixed issues where data would be ignored due to bug with renderer validation.
+
+### Changed
+ - Upgrade formiojs@4.12.1-rc.2
+ - Upgrade config@3.3.2, mongoose@5.10.7, mssql@6.2.3, eslint@7.10.0
+
 ## 2.0.0-rc.16
 ### Fixed
  - Revert "Fixed an issue where submission of reference Nested Form is not updated when was modified through the parent…"
