@@ -6,8 +6,6 @@ const debug = {
   error: require('debug')('formio:error')
 };
 
-let hook = null;
-
 /**
  * @TODO: Isomorphic validation system.
  *
@@ -16,10 +14,11 @@ let hook = null;
  * @constructor
  */
 class Validator {
-  constructor(form, model, token, decodedToken) {
+  constructor(form, model, token, decodedToken, hook) {
     this.model = model;
     this.form = form;
     this.token = token;
+    this.hook = hook;
 
     const self = this;
     const evalContext = Formio.Components.components.component.prototype.evalContext;
@@ -37,11 +36,7 @@ class Validator {
   evalContext(context) {
     context = context || {};
     context.form = this.form;
-    return hook.alter('evalContext', context, this.form);
-  }
-
-  static setHook(_hook) {
-    hook = _hook;
+    return this.hook.alter('evalContext', context, this.form);
   }
 
   /**

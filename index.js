@@ -13,6 +13,10 @@ const Q = require('q');
 const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
+
+const originalGetToken = util.Formio.getToken;
+const originalEvalContext = util.Formio.Components.components.component.prototype.evalContext;
+
 // Keep track of the formio interface.
 router.formio = {};
 
@@ -95,6 +99,15 @@ module.exports = function(config) {
       router.use((req, res, next) => {
         util.Formio.forms = {};
         util.Formio.cache = {};
+        util.Formio.Components.components.component.Validator.config = {
+          db: null,
+          token: null,
+          form: null,
+          submission: null
+        };
+        util.Formio.getToken = originalGetToken;
+        util.Formio.Components.components.component.prototype.evalContext = originalEvalContext;
+
         next();
       });
 
