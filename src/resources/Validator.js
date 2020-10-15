@@ -122,7 +122,8 @@ class Validator {
           // Clear the non-persistent fields.
           unsets.forEach((unset) => _.unset(unset.data, unset.key));
           submission.data = emptyData ? {} : form.data;
-          return next(null, submission.data);
+          const visibleComponents = (form.getComponents() || []).map(comp => comp.component);
+          return next(null, submission.data, visibleComponents);
         }
 
         const details = [];
