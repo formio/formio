@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.23
+### Fixed
+ - FOR-2741: Fixes memory leaks that come from Validator.
+ - Fixes an issue when we get a server error while submitting a form with conditional page with subform inside.
+
+### Changed
+ - Upgrade mongoose@5.10.9, nodemailer@6.4.14, nodemon@2.0.6, eslint@7.11.0, mocha@8.2.0
+
 ## 2.0.0-rc.22
 ### Fixed
  - Problem where btoa not being defined would cause validator to crash.
