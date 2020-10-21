@@ -6606,7 +6606,20 @@ module.exports = function(app, template, hook) {
             input: true,
           },
           {
-            defaultPermission: 'write',
+            submissionAccess: [
+              {
+                type: 'read',
+                roles: [],
+              },
+              {
+                type: 'create',
+                roles: [],
+              },
+              {
+                type: 'update',
+                roles: [],
+              },
+            ],
             type: 'select',
             multiple: true,
             dataSrc: 'url',
@@ -6618,7 +6631,24 @@ module.exports = function(app, template, hook) {
             input: true,
           },
           {
-            defaultPermission: 'admin',
+            submissionAccess: [
+              {
+                type: 'read',
+                roles: [],
+              },
+              {
+                type: 'create',
+                roles: [],
+              },
+              {
+                type: 'update',
+                roles: [],
+              },
+              {
+                type: 'delete',
+                roles: [],
+              },
+            ],
             type: 'select',
             multiple: true,
             dataSrc: 'url',
@@ -7227,7 +7257,20 @@ module.exports = function(app, template, hook) {
 
               const response = res.body;
               const expected = _.clone(tempSubmission);
-              expected.access = [{type: 'write', resources: [template.users.admin._id]}];
+              expected.access = [
+                {
+                  type: 'read', 
+                  resources: [template.users.admin._id]
+                },
+                {
+                  type: 'create', 
+                  resources: [template.users.admin._id]
+                },
+                {
+                  type: 'update', 
+                  resources: [template.users.admin._id]
+                },
+              ];
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
@@ -7463,7 +7506,24 @@ module.exports = function(app, template, hook) {
 
               const response = res.body;
               const expected = _.clone(tempSubmission);
-              expected.access = [{type: 'admin', resources: [template.users.admin._id]}];
+              expected.access = [
+                {
+                  type: 'read', 
+                  resources: [template.users.admin._id],
+                },
+                {
+                  type: 'create', 
+                  resources: [template.users.admin._id],
+                },
+                {
+                  type: 'update', 
+                  resources: [template.users.admin._id],
+                },
+                {
+                  type: 'delete', 
+                  resources: [template.users.admin._id],
+                },
+              ];
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
@@ -7961,7 +8021,20 @@ module.exports = function(app, template, hook) {
 
               const response = res.body;
               const expected = _.clone(tempSubmission);
-              expected.access = [{type: 'write', resources: [template.users.admin2._id]}];
+              expected.access = [
+                {
+                  type: 'read', 
+                  resources: [template.users.admin2._id],
+                },
+                {
+                  type: 'create', 
+                  resources: [template.users.admin2._id],
+                },
+                {
+                  type: 'update', 
+                  resources: [template.users.admin2._id],
+                },
+              ];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
 
@@ -8112,7 +8185,20 @@ module.exports = function(app, template, hook) {
 
               const response = res.body;
               const expected = _.clone(tempSubmission);
-              expected.access = [{type: 'write', resources: [template.users.user2._id]}];
+              expected.access = [
+                {
+                  type: 'read', 
+                  resources: [template.users.user2._id],
+                },
+                {
+                  type: 'create', 
+                  resources: [template.users.user2._id],
+                },
+                {
+                  type: 'update', 
+                  resources: [template.users.user2._id],
+                },
+              ];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
 
@@ -8197,7 +8283,24 @@ module.exports = function(app, template, hook) {
 
               const response = res.body;
               const expected = _.clone(tempSubmission);
-              expected.access = [{type: 'admin', resources: [template.users.admin2._id]}];
+              expected.access = [
+                {
+                  type: 'read', 
+                  resources: [template.users.admin2._id],
+                },
+                {
+                  type: 'create', 
+                  resources: [template.users.admin2._id],
+                },
+                {
+                  type: 'update', 
+                  resources: [template.users.admin2._id],
+                },
+                {
+                  type: 'delete', 
+                  resources: [template.users.admin2._id],
+                },
+              ];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
 
@@ -8348,7 +8451,24 @@ module.exports = function(app, template, hook) {
 
               const response = res.body;
               const expected = _.clone(tempSubmission);
-              expected.access = [{type: 'admin', resources: [template.users.user2._id]}];
+              expected.access = [
+                {
+                  type: 'read', 
+                  resources: [template.users.user2._id],
+                },
+                {
+                  type: 'create', 
+                  resources: [template.users.user2._id],
+                },
+                {
+                  type: 'update', 
+                  resources: [template.users.user2._id],
+                },
+                {
+                  type: 'delete', 
+                  resources: [template.users.user2._id],
+                },
+              ];
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
               tempSubmission = response;
 
@@ -8508,7 +8628,7 @@ module.exports = function(app, template, hook) {
           request(app)
             .put(hook.alter('url', `/form/${tempForm._id}/submission/${tempSubmission._id}`, template))
             .set('x-jwt-token', template.users.user1.token)
-            .send({access: [{type: 'admin', resources: [template.users.user1._id]}]})
+            .send({access: [{type: 'delete', resources: [template.users.user1._id]}]})
             .expect(401)
             .expect('Content-Type', /text/)
             .end((err, res) => {
@@ -8673,7 +8793,7 @@ module.exports = function(app, template, hook) {
           request(app)
             .put(hook.alter('url', `/form/${tempForm._id}/submission/${tempSubmission._id}`, template))
             .set('x-jwt-token', template.users.user1.token)
-            .send({access: [{type: 'admin', resources: [template.users.user1._id]}]})
+            .send({access: [{type: 'delete', resources: [template.users.user1._id]}]})
             .expect(401)
             .expect('Content-Type', /text/)
             .end((err, res) => {
@@ -8729,7 +8849,20 @@ module.exports = function(app, template, hook) {
 
               const response = res.body;
               const expected = _.clone(tempSubmission);
-              expected.access = [{type: 'write', resources: [template.users.user1._id]}];
+              expected.access = [
+                {
+                  type: 'read', 
+                  resources: [template.users.user1._id],
+                },
+                {
+                  type: 'create', 
+                  resources: [template.users.user1._id],
+                },
+                {
+                  type: 'update', 
+                  resources: [template.users.user1._id],
+                },
+              ];
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
 
@@ -8882,7 +9015,24 @@ module.exports = function(app, template, hook) {
 
               const response = res.body;
               const expected = _.clone(tempSubmission);
-              expected.access = [{type: 'admin', resources: [template.users.user1._id]}];
+              expected.access = [
+                {
+                  type: 'read', 
+                  resources: [template.users.user1._id]
+                },
+                {
+                  type: 'create', 
+                  resources: [template.users.user1._id]
+                },
+                {
+                  type: 'update', 
+                  resources: [template.users.user1._id]
+                },
+                {
+                  type: 'delete', 
+                  resources: [template.users.user1._id]
+                },
+              ];
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
 
@@ -9286,9 +9436,22 @@ module.exports = function(app, template, hook) {
               const response = res.body;
               const expected = _.clone(tempSubmission);
               expected.access = [
-                {type: 'read', resources: [template.users.admin._id, template.users.admin2._id]},
-                {type: 'write', resources: [template.users.admin._id, template.users.admin2._id]},
-                {type: 'admin', resources: [template.users.admin._id, template.users.admin2._id]}
+                {
+                  type: 'read', 
+                  resources: [template.users.admin._id, template.users.admin2._id],
+                },
+                {
+                  type: 'create', 
+                  resources: [template.users.admin._id, template.users.admin2._id],
+                },
+                {
+                  type: 'update', 
+                  resources: [template.users.admin._id, template.users.admin2._id],
+                },
+                {
+                  type: 'delete', 
+                  resources: [template.users.admin._id, template.users.admin2._id],
+                },
               ];
 
               assert.deepEqual(_.omit(response, 'modified'), _.omit(expected, 'modified'));
@@ -9439,11 +9602,15 @@ module.exports = function(app, template, hook) {
                 roles: [],
               },
               {
-                type: 'write',
+                type: 'create',
                 roles: ['role1', 'role2'],
               },
               {
-                type: 'admin',
+                type: 'update',
+                roles: ['role1', 'role2'],
+              },
+              {
+                type: 'delete',
                 roles: [],
               },
             ],
@@ -9565,11 +9732,15 @@ module.exports = function(app, template, hook) {
                   resources: [template.users.admin._id, `${template.users.admin2._id}:role`],
                 },
                 {
-                  type: 'write',
+                  type: 'create',
                   resources: [`${template.users.admin._id}:role1`, `${template.users.admin._id}:role2`],
                 },
                 {
-                  type: 'admin',
+                  type: 'update',
+                  resources: [`${template.users.admin._id}:role1`, `${template.users.admin._id}:role2`],
+                },
+                {
+                  type: 'delete',
                   resources: [template.users.admin._id],
                 },
               ]);
@@ -9728,7 +9899,24 @@ module.exports = function(app, template, hook) {
               key: 'manager',
               resource: 'manager',
               template: '<span>{{ item.data.email }}</span>',
-              defaultPermission: 'admin'
+              submissionAccess: [
+                {
+                  type: 'read',
+                  roles: []
+                },
+                {
+                  type: 'create',
+                  roles: []
+                },
+                {
+                  type: 'update',
+                  roles: []
+                },
+                {
+                  type: 'delete',
+                  roles: []
+                }  
+              ]
             }
           ])
           .user('user', 'clientuser')

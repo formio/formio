@@ -52,14 +52,22 @@ module.exports = function(router) {
       if (permission.type === 'read') {
         _.each(permission.resources, function(id) {
           access.submission.read_all.push(id);
+
+          // Flag this request as not having admin access through submission resource access.
+          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
         });
       }
-      if (permission.type === 'create') {
+      else if (permission.type === 'create') {
         _.each(permission.resources, function(id) {
           access.submission.create_all.push(id);
+
+          // Flag this request as not having admin access through submission resource access.
+          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
         });
       }
-      if (permission.type === 'update') {
+      else if (permission.type === 'update') {
         _.each(permission.resources, function(id) {
           access.submission.update_all.push(id);
 
@@ -68,7 +76,7 @@ module.exports = function(router) {
           req.submissionResourceAccessAdminBlock.push(util.idToString(id));
         });
       }
-      if (permission.type === 'delete') {
+      else if (permission.type === 'delete') {
         _.each(permission.resources, function(id) {
           access.submission.delete_all.push(id);
         });
@@ -78,8 +86,22 @@ module.exports = function(router) {
     }, function(err) {
       // Force all the permissions to be unique, even if an error occurred.
       access.submission.read_all = _(access.submission.read_all).uniq().value();
+      access.submission.create_all = _(access.submission.create_all).uniq().value();
       access.submission.update_all = _(access.submission.update_all).uniq().value();
       access.submission.delete_all = _(access.submission.delete_all).uniq().value();
+
+      const adminAccess = _.chain(access.submission.delete_all)
+        .intersection(access.submission.update_all)
+        .intersection(access.submission.create_all)
+        .intersection(access.submission.read_all)
+        .uniq()
+        .value();
+
+      if (_.intersection(req.submissionResourceAccessAdminBlock, adminAccess).length) {
+        req.submissionResourceAccessAdminBlock = _.filter(req.submissionResourceAccessAdminBlock, function(el) {
+          adminAccess.includes(el);
+        });
+      }
 
       if (err) {
         return next(err);
@@ -483,28 +505,11 @@ module.exports = function(router) {
             // See if any of our components have "submissionAccess" or "defaultPermission" established.
             util.eachComponent(item.components, (component) => {
               if (component.submissionAccess || component.defaultPermission) {
-                let userHasReadRole = false;
-                const readRoles = _.chain(component.submissionAccess)
-                  .filter(access => access.type === 'read')
-                  .map(el => el.roles)
-                  .flattenDeep()
-                  .value();
-
-                userRoles.forEach(function(roleEntity) {
-                  const role = roleEntity.split(':')[1];
-
-                  if (role && readRoles.includes(role)) {
-                    userHasReadRole = true;
-                  }
-                });
-
-                if (userHasReadRole || !readRoles.length) {
-                  // Since the access is now determined by the submission resource access, we
-                  // can skip the owner filter.
-                  req.skipOwnerFilter = true;
-                  req.submissionResourceAccessFilter = true;
-                  return true;
-                }
+                // Since the access is now determined by the submission resource access, we
+                // can skip the owner filter.
+                req.skipOwnerFilter = true;
+                req.submissionResourceAccessFilter = true;
+                return true;
               }
             });
 
