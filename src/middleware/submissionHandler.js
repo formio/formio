@@ -189,16 +189,24 @@ module.exports = (router, resourceName, resourceId) => {
         // Next we need to validate the input.
         const token = util.getRequestValue(req, 'x-jwt-token');
         const _Validator = useLegacyValidator ? LegacyValidator : Validator;
-        _Validator.setHook(hook);
-        const validator = new _Validator(req.currentForm, submissionModel, token, req.token);
+
+        if (useLegacyValidator) {
+          _Validator.setHook(hook);
+        }
+
+        const validator = new _Validator(req.currentForm, submissionModel, token, req.token, hook);
 
         // Validate the request.
-        validator.validate(req.body, (err, data) => {
+        validator.validate(req.body, (err, data, visibleComponents) => {
           if (err) {
             return res.status(400).json(err);
           }
 
           res.submission = {data: data};
+
+          if (!_.isEqual(visibleComponents, req.currentForm.components)) {
+            req.currentFormComponents = visibleComponents;
+          }
           done();
         });
       });
@@ -242,7 +250,7 @@ module.exports = (router, resourceName, resourceId) => {
     function executeFieldHandlers(validation, req, res, done) {
       const promises = [];
 
-      util.eachValue(req.currentForm.components, req.body.data, ({
+      util.eachValue((req.currentFormComponents || req.currentForm.components), req.body.data, ({
         component,
         data,
         handler,
@@ -376,7 +384,10 @@ module.exports = (router, resourceName, resourceId) => {
         async.apply(executeFieldHandlers, true, req, res),
         async.apply(alterSubmission, req, res),
         async.apply(ensureResponse, req, res)
-      ], next);
+      ], (...args) => {
+        delete req.currentFormComponents;
+        next(...args);
+      });
     };
   });
 

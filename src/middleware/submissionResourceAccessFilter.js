@@ -65,8 +65,12 @@ module.exports = function(router) {
           deleted: {$eq: null},
           $or: [
             {
-              'access.type': {$in: ['read', 'update', 'delete']},
-              'access.resources': {$in: newSearch}
+              access: {
+                $elemMatch: {
+                  type: {$in: ['read', 'create', 'update', 'delete']},
+                  resources: {$in: newSearch},
+                },
+              },
             },
             {
               owner: util.idToBson(userId)
@@ -78,8 +82,12 @@ module.exports = function(router) {
         query = {
           form: util.idToBson(req.formId),
           deleted: {$eq: null},
-          'access.type': {$in: ['read', 'create', 'update', 'delete']},
-          'access.resources': {$in: newSearch}
+          access: {
+            $elemMatch: {
+              type: {$in: ['read', 'create', 'update', 'delete']},
+              resources: {$in: newSearch},
+            },
+          },
         };
       }
 
