@@ -59,6 +59,7 @@ class Validator {
     }
 
     const unsets = [];
+    const conditionallyInvisibleComponents = [];
     const emptyData = _.isEmpty(submission.data);
     let unsetsEnabled = false;
 
@@ -81,7 +82,7 @@ class Validator {
             (!this.component.hasOwnProperty('clearOnHide') || this.component.clearOnHide) &&
             (!this.conditionallyVisible() || !this.parentVisible)
           ) {
-            unsets.push({key, data});
+            conditionallyInvisibleComponents.push({component: this, key, data});
           }
           else if (
             this.component.type === 'password' && value === this.defaultValue
@@ -114,6 +115,13 @@ class Validator {
       unsetsEnabled = true;
       form.setValue(submission, {
         sanitize: true
+      });
+
+      // Check the visibility of conditionally visible components after unconditionally visible
+      _.forEach(conditionallyInvisibleComponents, ({component, key, data}) => {
+        if (!component.conditionallyVisible()) {
+          unsets.push({key, data});
+        }
       });
 
       // Check the validity of the form.
