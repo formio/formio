@@ -6,7 +6,9 @@ module.exports = function(formio) {
     'read',
     'create',
     'update',
-    'delete'
+    'delete',
+    'write',
+    'admin'
   ];
 
   // Defines the permissions schema for submission permissions.
