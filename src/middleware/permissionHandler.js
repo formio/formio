@@ -81,6 +81,25 @@ module.exports = function(router) {
           access.submission.delete_all.push(id);
         });
       }
+      else if (permission.type === 'write') {
+        _.each(permission.resources, function(id) {
+          access.submission.read_all.push(id);
+          access.submission.create_all.push(id);
+          access.submission.update_all.push(id);
+
+          // Flag this request as not having admin access through submission resource access.
+          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
+        });
+      }
+      else if (permission.type === 'admin') {
+        _.each(permission.resources, function(id) {
+          access.submission.read_all.push(id);
+          access.submission.create_all.push(id);
+          access.submission.update_all.push(id);
+          access.submission.delete_all.push(id);
+        });
+      }
 
       callback();
     }, function(err) {
@@ -148,7 +167,7 @@ module.exports = function(router) {
     }
   };
 
-  const getAccessBasedOnMethod = function(req, item, access, role) {
+  const getAccessBasedOnMethod = function(req, item, access, roles) {
     util.eachComponent(item.components, (component, path) => {
       if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
         if (!component.submissionAccess) {
@@ -167,7 +186,7 @@ module.exports = function(router) {
           }
 
           const createAccess = component.submissionAccess
-            .filter(({type}) => (type === role))
+            .filter(({type}) => (roles.includes(type)))
             .map((access) => ({
               ...access,
               roles: _.compact(access.roles || []),
@@ -277,15 +296,15 @@ module.exports = function(router) {
 
             // check for group permissions, only if creating submission (POST request)
             if (req.method === 'POST') {
-              getAccessBasedOnMethod(req, item, access, 'create');
+              getAccessBasedOnMethod(req, item, access, ['create', 'write', 'admin']);
             }
 
             if (req.method === 'DELETE') {
-              getAccessBasedOnMethod(req, item, access, 'delete');
+              getAccessBasedOnMethod(req, item, access, ['delete', 'admin']);
             }
 
             if (req.method === 'PUT' || req.method === 'PATCH') {
-              getAccessBasedOnMethod(req, item, access, 'create');
+              getAccessBasedOnMethod(req, item, access, ['update', 'write', 'admin']);
             }
 
             // Return the updated access list.
