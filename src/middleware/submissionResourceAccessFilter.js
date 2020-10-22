@@ -67,7 +67,7 @@ module.exports = function(router) {
             {
               access: {
                 $elemMatch: {
-                  type: {$in: ['read', 'create', 'write', 'admin']},
+                  type: {$in: ['read', 'create', 'update', 'delete', 'write', 'admin']},
                   resources: {$in: newSearch},
                 },
               },
@@ -84,7 +84,7 @@ module.exports = function(router) {
           deleted: {$eq: null},
           access: {
             $elemMatch: {
-              type: {$in: ['read', 'create', 'write', 'admin']},
+              type: {$in: ['read', 'create', 'update', 'delete', 'write', 'admin']},
               resources: {$in: newSearch},
             },
           },
