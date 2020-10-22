@@ -75,11 +75,9 @@ const checkConditional = (form, component, row, data, recurse = false) => {
   }
   else {
     try {
-      if (component.parent && component.parent.key) {
-        component.path = getComponentPath(component);
-        const dataParent = util.getDataParentComponent(component);
-        dataParent.path = getComponentPath(dataParent);
-      }
+      component.path = getComponentPath(component);
+      const dataParent = util.getDataParentComponent(component);
+      dataParent.path = getComponentPath(dataParent);
       isVisible = util.checkCondition(component, row, data, form, component);
     }
     catch (err) {
