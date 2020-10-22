@@ -119,7 +119,7 @@ class Validator {
 
       // Check the visibility of conditionally visible components after unconditionally visible
       _.forEach(conditionallyInvisibleComponents, ({component, key, data}) => {
-        if (!component.conditionallyVisible()) {
+        if (!component.conditionallyVisible() || !this.parentVisible) {
           unsets.push({key, data});
         }
       });
