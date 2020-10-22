@@ -19,6 +19,14 @@ const getErrorMessage = (component, message) => {
   return _.get(component, 'validate.customMessage', message);
 };
 
+const getComponentPath = (component, path = '') => {
+  if (!component || !component.key) {
+    return path;
+  }
+  path = component.input === true ? `${component.key}${path ? '.' : ''}${path}` : path;
+  return getComponentPath(component.parent, path);
+};
+
 /*
  * Returns true or false based on visibility.
  *
@@ -67,7 +75,12 @@ const checkConditional = (form, component, row, data, recurse = false) => {
   }
   else {
     try {
-      isVisible = util.checkCondition(component, row, data);
+      if (component.parent && component.parent.key) {
+        component.path = getComponentPath(component);
+        const dataParent = util.getDataParentComponent(component);
+        dataParent.path = getComponentPath(dataParent);
+      }
+      isVisible = util.checkCondition(component, row, data, form, component);
     }
     catch (err) {
       debug.error(err);
