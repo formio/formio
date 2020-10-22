@@ -33,6 +33,11 @@ global.btoa = (str) => {
     Buffer.from(str.toString(), 'binary').toString('base64');
 };
 const Formio = require('formiojs/formio.form.js');
+global.Formio = Formio.Formio;
+global.self = global;
+global.document.documentElement.firstElementChild = {appendChild: () => {}};
+const premium = require('@formio/premium/dist/premium');
+Formio.Formio.use(premium);
 
 // Remove onChange events from all renderer displays.
 _.each(Formio.Displays.displays, (display) => {
