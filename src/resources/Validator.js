@@ -76,8 +76,8 @@ const checkConditional = (form, component, row, data, recurse = false, path) => 
 
   // If visible and recurse, continue down tree to check parents.
   if (isVisible && recurse && component.parent.type !== 'form') {
-    const parentPath = [...path];
-    if (component.parent && parentPath && parentPath.length) {
+    if (component.parent && path && path.length) {
+      const parentPath = [...path];
       // Remove child's key from path
       parentPath.pop();
       const isInsideRow = parentPath.length  && typeof parentPath[parentPath.length - 1] === 'number';
