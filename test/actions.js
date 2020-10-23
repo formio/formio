@@ -879,28 +879,19 @@ module.exports = function(app, template, hook) {
 
           // Check for an email.
           let event = template.hooks.getEmitter();
-          let email1 = new Promise((resolve, reject) => {
-            event.once('newMail', (email) => {
-              assert.equal(email.from, 'travis@form.io');
-              assert.equal(email.to, 'gary@form.io');
-              assert.equal(email.html.indexOf('Howdy, '), 0);
-              assert.equal(email.subject, 'Hello there Test Person');
-              resolve();
-            });
-          });
-
-          let email2 = new Promise((resolve, reject) => {
-            event.once('newMail', (email) => {
-              assert.equal(email.from, 'travis@form.io');
-              assert.equal(email.to, 'test@example.com');
-              assert.equal(email.html.indexOf('Howdy, '), 0);
-              assert.equal(email.subject, 'Hello there Test Person');
-              resolve();
-            });
-          });
-          Promise.all([email1, email2])
-            .then(done)
-            .catch(done);
+          const emailTos = {'gary@form.io': true, 'test@example.com': true};
+          var checkEmail = (email) => {
+            assert.equal(email.from, 'travis@form.io');
+            assert(emailTos[email.to]);
+            delete emailTos[email.to];
+            assert.equal(email.html.indexOf('Howdy, '), 0);
+            assert.equal(email.subject, 'Hello there Test Person');
+            if (Object.keys(emailTos).length === 0) {
+              event.off('newMail', checkEmail);
+              done();
+            }
+          };
+          event.on('newMail', checkEmail);
 
           request(app)
             .post(hook.alter('url', '/form/' + testForm._id + '/submission', template))
@@ -914,7 +905,7 @@ module.exports = function(app, template, hook) {
             })
             .expect(201)
             .expect('Content-Type', /json/)
-            .end(done);
+            .end(() => {});
         });
       });
     });
