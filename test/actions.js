@@ -855,44 +855,18 @@ module.exports = (app, template, hook) => {
 
           // Check for an email.
           const event = template.hooks.getEmitter();
-          const email1 = new Promise((resolve) => {
-            event.on('newMail', (email) => {
-              try {
-                assert.equal(email.from, 'travis@form.io');
-                assert.equal(email.to, 'test@example.com');
-                assert(email.html.startsWith('Howdy, '));
-                assert.equal(email.subject, 'Hello there Test Person');
-
-                resolve();
-              }
-              catch (err) {
-                // ignore
-              }
-            });
-          });
-
-          const email2 = new Promise((resolve) => {
-            event.on('newMail', (email) => {
-              try {
-                assert.equal(email.from, 'travis@form.io');
-                assert.equal(email.to, 'gary@form.io');
-                assert(email.html.startsWith('Howdy, '));
-                assert.equal(email.subject, 'Hello there Test Person');
-
-                resolve();
-              }
-              catch (err) {
-                // ignore
-              }
-            });
-          });
-
-          Promise.all([email1, email2])
-            .then(() => {
+          const emailTos = {'gary@form.io': true, 'test@example.com': true};
+          event.on('newMail', (email) => {
+            assert.equal(email.from, 'travis@form.io');
+            assert(emailTos[email.to]);
+            delete emailTos[email.to];
+            assert.equal(email.html.indexOf('Howdy, '), 0);
+            assert.equal(email.subject, 'Hello there Test Person');
+            if (Object.keys(emailTos).length === 0) {
               event.removeAllListeners('newMail');
               done();
-            })
-            .catch(done);
+            }
+          });
 
           request(app)
             .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
@@ -959,11 +933,15 @@ module.exports = (app, template, hook) => {
             })
             .expect(201)
             .expect('Content-Type', /json/)
+<<<<<<< HEAD
             .end((err) => {
               if (err) {
                 done(err);
               }
             });
+=======
+            .end(() => {});
+>>>>>>> 117a925... Fixed issues with email tests and actionItem saving.
         });
       });
     });
