@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.16
+### Fixed
+ - Fixes an issue where values of conditionally visible components inside EditGrid are not saved on the 6.x server
+
 ## 1.90.15
 ### Changed
  - Revert "Fixed an issue where submission of reference Nested Form is not updated when was modified through the parent…"
