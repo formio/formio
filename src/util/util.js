@@ -24,7 +24,10 @@ global.document          = {
   createElement: () => ({}),
   cookie: '',
   getElementsByTagName: () => [],
-  documentElement: {style: []}
+  documentElement: {
+    style: [],
+    firstElementChild: {appendChild: () => {}}
+  }
 };
 global.window            = {addEventListener: () => {}, Event: {}, navigator: global.navigator};
 global.btoa = (str) => {
@@ -35,8 +38,7 @@ global.btoa = (str) => {
 const Formio = require('formiojs/formio.form.js');
 global.Formio = Formio.Formio;
 global.self = global;
-global.document.documentElement.firstElementChild = {appendChild: () => {}};
-const premium = require('@formio/premium/dist/premium');
+const premium = require('@formio/premium/dist/premium-server.min.js');
 Formio.Formio.use(premium);
 
 // Remove onChange events from all renderer displays.
