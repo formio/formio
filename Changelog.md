@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.17
+### Fixed
+ - Fixed issues with multiple save() being called more than once.
+ - Fixed an issue where icorrect row passed to checkCondition when we have editgrid inside another editgrid
+
+### Changed
+ - Upgrade formiojs@4.12.1-rc.17
+ - Upgrade mongoose@5.10.10
+
 ## 1.90.16
 ### Fixed
  - Fixes an issue where values of conditionally visible components inside EditGrid are not saved on the 6.x server
