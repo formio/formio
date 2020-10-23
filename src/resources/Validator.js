@@ -29,7 +29,7 @@ const getErrorMessage = (component, message) => {
  * @param {Object} data
  *   The full submission data.
  */
-const checkConditional = (form, component, row, data, recurse = false) => {
+const checkConditional = (form, component, row, data, recurse = false, path) => {
   let isVisible = true;
 
   if (!component || !component.hasOwnProperty('key')) {
@@ -76,7 +76,22 @@ const checkConditional = (form, component, row, data, recurse = false) => {
 
   // If visible and recurse, continue down tree to check parents.
   if (isVisible && recurse && component.parent.type !== 'form') {
-    return !component.parent || checkConditional(form, component.parent, row, data, true);
+    const parentPath = [...path];
+    if (component.parent && parentPath && parentPath.length) {
+      // Remove child's key from path
+      parentPath.pop();
+      const isInsideRow = parentPath.length  && typeof parentPath[parentPath.length - 1] === 'number';
+      if (isInsideRow) {
+        // Romove row's index of child component
+        parentPath.pop();
+      }
+      const isParentInsideRow = parentPath.length > 2 && typeof parentPath[parentPath.length - 2] === 'number';
+      if (isParentInsideRow) {
+        // Get the row the parent is inside
+        row = _.get(data, parentPath.slice(0, parentPath.length - 1).join('.'));
+      }
+    }
+    return !component.parent || checkConditional(form, component.parent, row, data, true, parentPath);
   }
   else {
     return isVisible;
@@ -198,8 +213,9 @@ const getRules = (type) => [
 
       const {component, data, form} = params;
       const row = state.parent;
+      const path = state.path;
 
-      const isVisible = checkConditional(form, component, row, data, true);
+      const isVisible = checkConditional(form, component, row, data, true, path);
 
       if (isVisible) {
         return value;
