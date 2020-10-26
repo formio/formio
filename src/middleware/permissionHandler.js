@@ -81,25 +81,6 @@ module.exports = function(router) {
           access.submission.delete_all.push(id);
         });
       }
-      else if (permission.type === 'write') {
-        _.each(permission.resources, function(id) {
-          access.submission.read_all.push(id);
-          access.submission.create_all.push(id);
-          access.submission.update_all.push(id);
-
-          // Flag this request as not having admin access through submission resource access.
-          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
-          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
-        });
-      }
-      else if (permission.type === 'admin') {
-        _.each(permission.resources, function(id) {
-          access.submission.read_all.push(id);
-          access.submission.create_all.push(id);
-          access.submission.update_all.push(id);
-          access.submission.delete_all.push(id);
-        });
-      }
 
       callback();
     }, function(err) {
@@ -129,76 +110,6 @@ module.exports = function(router) {
       next();
     });
     /* eslint-enable camelcase */
-  };
-
-  const getSubmissionFieldMatchAccess = function(req, submission, access) {
-    if (!submission || !access) {
-      return;
-    }
-    // If the form has no Field Match Access permissions or it is an index request
-    if (!req.submissionFieldMatchAccess || req.submissionFieldMatchAccessFilter === true) {
-      return;
-    }
-
-    const userRoles = access.roles;
-
-    // Allowed actions for each permission level
-    const permissions = {
-      read: ['read_all'],
-      create: ['create_all'],
-      update: ['update_all'],
-      delete: ['delete_all'],
-      write: ['read_all', 'create_all', 'update_all'],
-      admin: ['read_all', 'create_all', 'update_all', 'delete_all']
-    };
-
-    const isConditionMet = (value, formFieldValue, operator) => {
-      switch (operator) {
-        case '$eq':
-          return value === formFieldValue;
-        case '$gte':
-          return (formFieldValue >= value);
-        case '$lte':
-          return (formFieldValue <= value);
-        case '$gt':
-          return (formFieldValue > value);
-        case '$lt':
-          return (formFieldValue < value);
-        case '$in':
-          return Array.isArray(value) ? _.find(value, formFieldValue) : false;
-      }
-    };
-
-    const grantAccess = (permissionLevel, roles) => {
-      if (permissions[permissionLevel]) {
-        permissions[permissionLevel].forEach((right) => {
-          if (access.submission[right]) {
-            access.submission[right].push(...roles);
-            access.submission[right] = _(access.submission[right]).uniq().value();
-          }
-        });
-      }
-    };
-
-    // Iterate through each permission level
-    Object.entries(req.submissionFieldMatchAccess).forEach(([permissionLevel, conditions]) => {
-      // Iterate through each condition within a permission level
-      conditions.forEach((condition) => {
-        // Get intersection of roles within condition and the user's roles
-        const rolesIntersection = _.intersectionWith(condition.roles, userRoles, (role, userRole) => {
-          return role.toString() === userRole.toString();
-        }).map((role) => role.toString());
-
-        // If the user has a role specified in condition
-        if (rolesIntersection.length) {
-          const {formFieldPath, operator, value, valueType} = condition;
-          const formFieldValue = _.get(submission, formFieldPath);
-          if (isConditionMet(util.castValue(valueType, value), formFieldValue, operator)) {
-            grantAccess(permissionLevel, rolesIntersection);
-          }
-        }
-      });
-    });
   };
 
   /**
@@ -237,7 +148,7 @@ module.exports = function(router) {
     }
   };
 
-  const getAccessBasedOnMethod = function(req, item, access, roles) {
+  const getAccessBasedOnMethod = function(req, item, access, role) {
     util.eachComponent(item.components, (component, path) => {
       if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
         if (!component.submissionAccess) {
@@ -256,7 +167,7 @@ module.exports = function(router) {
           }
 
           const createAccess = component.submissionAccess
-            .filter(({type}) => (roles.includes(type)))
+            .filter(({type}) => (type === role))
             .map((access) => ({
               ...access,
               roles: _.compact(access.roles || []),
@@ -366,15 +277,15 @@ module.exports = function(router) {
 
             // check for group permissions, only if creating submission (POST request)
             if (req.method === 'POST') {
-              getAccessBasedOnMethod(req, item, access, ['create', 'write', 'admin']);
+              getAccessBasedOnMethod(req, item, access, 'create');
             }
 
             if (req.method === 'DELETE') {
-              getAccessBasedOnMethod(req, item, access, ['delete', 'admin']);
+              getAccessBasedOnMethod(req, item, access, 'delete');
             }
 
             if (req.method === 'PUT' || req.method === 'PATCH') {
-              getAccessBasedOnMethod(req, item, access, ['update', 'write', 'admin']);
+              getAccessBasedOnMethod(req, item, access, 'create');
             }
 
             // Return the updated access list.
