@@ -52,18 +52,39 @@ module.exports = function(router) {
       if (permission.type === 'read') {
         _.each(permission.resources, function(id) {
           access.submission.read_all.push(id);
+
+          // Flag this request as not having admin access through submission resource access.
+          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
         });
       }
       else if (permission.type === 'create') {
         _.each(permission.resources, function(id) {
           access.submission.create_all.push(id);
-          access.submission.read_all.push(id);
+
+          // Flag this request as not having admin access through submission resource access.
+          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
+        });
+      }
+      else if (permission.type === 'update') {
+        _.each(permission.resources, function(id) {
+          access.submission.update_all.push(id);
+
+          // Flag this request as not having admin access through submission resource access.
+          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
+        });
+      }
+      else if (permission.type === 'delete') {
+        _.each(permission.resources, function(id) {
+          access.submission.delete_all.push(id);
         });
       }
       else if (permission.type === 'write') {
         _.each(permission.resources, function(id) {
-          access.submission.create_all.push(id);
           access.submission.read_all.push(id);
+          access.submission.create_all.push(id);
           access.submission.update_all.push(id);
 
           // Flag this request as not having admin access through submission resource access.
@@ -73,8 +94,8 @@ module.exports = function(router) {
       }
       else if (permission.type === 'admin') {
         _.each(permission.resources, function(id) {
-          access.submission.create_all.push(id);
           access.submission.read_all.push(id);
+          access.submission.create_all.push(id);
           access.submission.update_all.push(id);
           access.submission.delete_all.push(id);
         });
@@ -84,8 +105,22 @@ module.exports = function(router) {
     }, function(err) {
       // Force all the permissions to be unique, even if an error occurred.
       access.submission.read_all = _(access.submission.read_all).uniq().value();
+      access.submission.create_all = _(access.submission.create_all).uniq().value();
       access.submission.update_all = _(access.submission.update_all).uniq().value();
       access.submission.delete_all = _(access.submission.delete_all).uniq().value();
+
+      const adminAccess = _.chain(access.submission.delete_all)
+        .intersection(access.submission.update_all)
+        .intersection(access.submission.create_all)
+        .intersection(access.submission.read_all)
+        .uniq()
+        .value();
+
+      if (_.intersection(req.submissionResourceAccessAdminBlock, adminAccess).length) {
+        req.submissionResourceAccessAdminBlock = _.filter(req.submissionResourceAccessAdminBlock, function(el) {
+          adminAccess.includes(el);
+        });
+      }
 
       if (err) {
         return next(err);
@@ -130,6 +165,47 @@ module.exports = function(router) {
         form.submissionAccess = _.filter(form.submissionAccess);
       }
     }
+  };
+
+  const getAccessBasedOnMethod = function(req, item, access, roles) {
+    util.eachComponent(item.components, (component, path) => {
+      if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
+        if (!component.submissionAccess) {
+          component.submissionAccess = [
+            {
+              type: component.defaultPermission,
+              roles: [],
+            },
+          ];
+        }
+
+        let selectValue = _.get(req.body.data, path);
+        if (selectValue) {
+          if (!Array.isArray(selectValue)) {
+            selectValue = [selectValue];
+          }
+
+          const createAccess = component.submissionAccess
+            .filter(({type}) => (roles.includes(type)))
+            .map((access) => ({
+              ...access,
+              roles: _.compact(access.roles || []),
+            }));
+
+          selectValue.filter((value) => (value && value._id)).forEach(({_id}) => {
+            createAccess.forEach(({roles}) => {
+              /* eslint-disable camelcase */
+              access.submission.create_all = (access.submission.create_all || []).concat(
+                roles.length
+                  ? roles.map((role) => (`${_id}:${role}`))
+                  : _id,
+              );
+              /* eslint-enable camelcase */
+            });
+          });
+        }
+      }
+    });
   };
 
   // Add this access handlers for all to use.
@@ -220,44 +296,15 @@ module.exports = function(router) {
 
             // check for group permissions, only if creating submission (POST request)
             if (req.method === 'POST') {
-              util.eachComponent(item.components, (component, path) => {
-                if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
-                  if (!component.submissionAccess) {
-                    component.submissionAccess = [
-                      {
-                        type: component.defaultPermission,
-                        roles: [],
-                      },
-                    ];
-                  }
+              getAccessBasedOnMethod(req, item, access, ['create', 'write', 'admin']);
+            }
 
-                  let selectValue = _.get(req.body.data, path);
-                  if (selectValue) {
-                    if (!Array.isArray(selectValue)) {
-                      selectValue = [selectValue];
-                    }
+            if (req.method === 'DELETE') {
+              getAccessBasedOnMethod(req, item, access, ['delete', 'admin']);
+            }
 
-                    const createAccess = component.submissionAccess
-                      .filter(({type}) => (['create', 'write', 'admin'].includes(type)))
-                      .map((access) => ({
-                        ...access,
-                        roles: _.compact(access.roles || []),
-                      }));
-
-                    selectValue.filter((value) => (value && value._id)).forEach(({_id}) => {
-                      createAccess.forEach(({roles}) => {
-                        /* eslint-disable camelcase */
-                        access.submission.create_all = (access.submission.create_all || []).concat(
-                          roles.length
-                            ? roles.map((role) => (`${_id}:${role}`))
-                            : _id,
-                        );
-                        /* eslint-enable camelcase */
-                      });
-                    });
-                  }
-                }
-              });
+            if (req.method === 'PUT' || req.method === 'PATCH') {
+              getAccessBasedOnMethod(req, item, access, ['update', 'write', 'admin']);
             }
 
             // Return the updated access list.
@@ -373,6 +420,40 @@ module.exports = function(router) {
             // See if any of our components have "submissionAccess" or "defaultPermission" established.
             util.eachComponent(item.components, (component) => {
               if (component.submissionAccess || component.defaultPermission) {
+                if (!component.submissionAccess) {
+                  component.submissionAccess = [
+                    {
+                      type: component.defaultPermission,
+                      roles: [],
+                    },
+                  ];
+                }
+
+                //We need to know if there is read submission access
+                const [readAccess] = _.chain(component.submissionAccess)
+                  .filter(access => access.type === 'read')
+                  .value();
+
+                const readBlockingRoles =  _.chain(component.submissionAccess)
+                  .filter(access => access.type !== 'read')
+                  .map(el => el.roles)
+                  .flattenDeep()
+                  .value();
+
+                if (readAccess && !readAccess.roles.length) {
+                  req.skipOwnerFilter = true;
+                  req.submissionResourceAccessFilter = true;
+                  return true;
+                }
+
+                userRoles.forEach(function(roleEntity) {
+                  const role = roleEntity.split(':')[1];
+
+                  if (role && readBlockingRoles.includes(role)) {
+                    req.readBlockingRoles = roleEntity;
+                  }
+                });
+
                 // Since the access is now determined by the submission resource access, we
                 // can skip the owner filter.
                 req.skipOwnerFilter = true;

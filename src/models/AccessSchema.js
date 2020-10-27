@@ -5,6 +5,8 @@ module.exports = function(formio) {
   const available = [
     'read',
     'create',
+    'update',
+    'delete',
     'write',
     'admin'
   ];

@@ -37,7 +37,15 @@ module.exports = function(router) {
     }
 
     const userId = _.get(req, 'user._id');
-    const search = userRoles.map(util.idToBson.bind(util));
+    const search = userRoles.filter(role => {
+      if (req.readBlockingRoles &&
+        req.readBlockingRoles.length &&
+        req.readBlockingRoles.includes(role)) {
+          return false;
+        }
+
+      return true;
+    }).map(util.idToBson.bind(util));
     search.push(util.idToBson(EVERYONE));
     if (userId) {
       search.push(util.idToBson(userId));
@@ -65,8 +73,12 @@ module.exports = function(router) {
           deleted: {$eq: null},
           $or: [
             {
-              'access.type': {$in: ['read', 'write', 'admin']},
-              'access.resources': {$in: newSearch}
+              access: {
+                $elemMatch: {
+                  type: {$in: ['read', 'create', 'update', 'delete', 'write', 'admin']},
+                  resources: {$in: newSearch},
+                },
+              },
             },
             {
               owner: util.idToBson(userId)
@@ -78,8 +90,12 @@ module.exports = function(router) {
         query = {
           form: util.idToBson(req.formId),
           deleted: {$eq: null},
-          'access.type': {$in: ['read', 'create', 'write', 'admin']},
-          'access.resources': {$in: newSearch}
+          access: {
+            $elemMatch: {
+              type: {$in: ['read', 'create', 'update', 'delete', 'write', 'admin']},
+              resources: {$in: newSearch},
+            },
+          },
         };
       }
 
