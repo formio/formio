@@ -37,7 +37,15 @@ module.exports = function(router) {
     }
 
     const userId = _.get(req, 'user._id');
-    const search = userRoles.map(util.idToBson.bind(util));
+    const search = userRoles.filter(role => {
+      if (req.readBlockingRoles &&
+        req.readBlockingRoles.length &&
+        req.readBlockingRoles.includes(role)) {
+          return false;
+        }
+
+      return true;
+    }).map(util.idToBson.bind(util));
     search.push(util.idToBson(EVERYONE));
     if (userId) {
       search.push(util.idToBson(userId));
