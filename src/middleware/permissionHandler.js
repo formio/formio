@@ -526,6 +526,40 @@ module.exports = function(router) {
             // See if any of our components have "submissionAccess" or "defaultPermission" established.
             util.eachComponent(item.components, (component) => {
               if (component.submissionAccess || component.defaultPermission) {
+                if (!component.submissionAccess) {
+                  component.submissionAccess = [
+                    {
+                      type: component.defaultPermission,
+                      roles: [],
+                    },
+                  ];
+                }
+
+                //We need to know if there is read submission access
+                const [readAccess] = _.chain(component.submissionAccess)
+                  .filter(access => access.type === 'read')
+                  .value();
+
+                const readBlockingRoles =  _.chain(component.submissionAccess)
+                  .filter(access => access.type !== 'read')
+                  .map(el => el.roles)
+                  .flattenDeep()
+                  .value();
+
+                if (readAccess && !readAccess.roles.length) {
+                  req.skipOwnerFilter = true;
+                  req.submissionResourceAccessFilter = true;
+                  return true;
+                }
+
+                userRoles.forEach(function(roleEntity) {
+                  const role = roleEntity.split(':')[1];
+
+                  if (role && readBlockingRoles.includes(role)) {
+                    req.readBlockingRoles = roleEntity;
+                  }
+                });
+
                 // Since the access is now determined by the submission resource access, we
                 // can skip the owner filter.
                 req.skipOwnerFilter = true;
