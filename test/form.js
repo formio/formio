@@ -4168,30 +4168,12 @@ module.exports = function(app, template, hook) {
             if (err) {
               return done(err);
             }
-
-            // console.log(JSON.stringify(res.body, null, 4));
-            console.log('process.env.FILTER_ACCESS', process.env.FILTER_ACCESS);
-
-            let filter = true;
-            let projectFilter = false;
-
-            try {
-              filter = require(process.cwd() + '/config').filterAccess;
-              projectFilter = true;
-            } catch (err) {
-              console.log(err);
-            }
-
-            console.log('filter', filter);
-            console.log('projectFilter', projectFilter);
-
-            if (filter && projectFilter) {
+            if (app.hasProjects) {
               assert.equal(Object.keys(res.body.forms).length, 0);
             }
             else {
               assert.notEqual(Object.keys(res.body.forms).length, 0);
             }
-
             done();
           });
       });
@@ -4439,7 +4421,7 @@ module.exports = function(app, template, hook) {
 
       var references = [];
       it('Should create a new submission in that form.', (done) => {
-        async.eachOf(resources, (resource, index, next) => {
+        async.eachOfSeries(resources, (resource, index, next) => {
           request(app)
             .post(hook.alter('url', '/form/' + referenceForm._id + '/submission', template))
             .set('x-jwt-token', template.users.admin.token)
