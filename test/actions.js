@@ -933,15 +933,11 @@ module.exports = (app, template, hook) => {
             })
             .expect(201)
             .expect('Content-Type', /json/)
-<<<<<<< HEAD
             .end((err) => {
               if (err) {
                 done(err);
               }
             });
-=======
-            .end(() => {});
->>>>>>> 117a925... Fixed issues with email tests and actionItem saving.
         });
       });
     });
