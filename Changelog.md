@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.18
+### Fixed
+ - PDF-148: Add width and height validation for tagpad component
+ - FJS-1351: add DynamicWizard handling in Validator
+
 ## 1.90.17
 ### Fixed
  - Fixed issues with multiple save() being called more than once.
