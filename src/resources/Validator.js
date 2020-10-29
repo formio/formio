@@ -625,6 +625,7 @@ class Validator {
           break;
         }
         case 'editgrid':
+        case 'dynamicWizard':
         case 'datagrid':
           component.multiple = false;
           objectSchema = this.buildSchema(
