@@ -540,17 +540,18 @@ module.exports = function(router) {
                   .filter(access => access.type === 'read')
                   .value();
 
-                const readBlockingRoles =  _.chain(component.submissionAccess)
-                  .filter(access => access.type !== 'read')
-                  .map(el => el.roles)
-                  .flattenDeep()
-                  .value();
-
                 if (readAccess && !readAccess.roles.length) {
                   req.skipOwnerFilter = true;
                   req.submissionResourceAccessFilter = true;
                   return true;
                 }
+
+                const readBlockingRoles =  _.chain(component.submissionAccess)
+                  .filter(access => access.type !== 'read')
+                  .map(el => el.roles)
+                  .flattenDeep()
+                  .pullAll(readAccess.roles)
+                  .value();
 
                 userRoles.forEach(function(roleEntity) {
                   const role = roleEntity.split(':')[1];
