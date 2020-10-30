@@ -24,7 +24,10 @@ global.document          = {
   createElement: () => ({}),
   cookie: '',
   getElementsByTagName: () => [],
-  documentElement: {style: []}
+  documentElement: {
+    style: [],
+    firstElementChild: {appendChild: () => {}}
+  }
 };
 global.window            = {addEventListener: () => {}, Event: {}, navigator: global.navigator};
 global.btoa = (str) => {
@@ -32,7 +35,9 @@ global.btoa = (str) => {
     str.toString('base64') :
     Buffer.from(str.toString(), 'binary').toString('base64');
 };
+global.self = global;
 const Formio = require('formiojs/formio.form.js');
+global.Formio = Formio.Formio;
 
 // Remove onChange events from all renderer displays.
 _.each(Formio.Displays.displays, (display) => {
