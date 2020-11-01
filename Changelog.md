@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.90.19
+### Added
+ - Added hook to configure Formio instance
+
+### Changed
+ - Upgrade formio@4.12.1-rc.23
+
 ## 1.90.18
 ### Fixed
  - PDF-148: Add width and height validation for tagpad component
