@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.0-rc.2
+### Changed
+ - Added hook to configure Formio instance
+ - 112 split roles bug fixes
+
 ## 1.91.0-rc.1
 ### Changed
  - Added split based roles.
