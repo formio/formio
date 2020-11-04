@@ -1,0 +1,18 @@
+Hva bruker vi formio serveren til i dag.
+
+* Login og brukerregistrering.
+* Lasting av en liste eller en enkelt form
+* Lagring av forms (men ikke submissions).
+* Access kontrol til forms (basert på login over).
+
+Lagringen og lastingen virker rimelig triviellt på meg. Man henter en
+JSON fil fra en nøkkel (name/key). Man henter et knippe eller alle
+json filene i systemet. Lagringen skriver over den eksisterende fila
+men sjekker at skrivingen er basert på en lesing av siste versjon
+(optimistisk concurrency sjekk).
+
+Mao. tror jeg ikke det er noen katastrofe om vi av en eller annen
+grunn ikke kan bruke formio serveren og vi må lage vår egen formio
+server. All annen funksjonalitet kommer som en følge av å bruke
+formio.js biblioteket og ikke serveren.
+
