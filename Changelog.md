@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.0-rc.3
+### Fixed
+ - 112 split roles fixed index request
+
+### Changed
+ - Upgrade mongoose@5.10.12, mocha@8.2.1
+ - Upgrade formiojs@4.12.1-rc.25
+
 ## 1.91.0-rc.2
 ### Changed
  - Added hook to configure Formio instance
