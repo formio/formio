@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.29
+### Fixed
+ - FJS-1336, FJS-1337, FJS-1422: Adds configFormio hook call to the index.js
+
+### Upgrade
+ - mongoose@5.10.12
+ - formiojs@4.12.1-rc.25
+
 ## 2.0.0-rc.28
 ### Fixed
  - 112 split roles bug that fixes server tests
