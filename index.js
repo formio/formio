@@ -76,7 +76,7 @@ module.exports = function(config) {
     // Get the hook system.
     router.formio.hook = require('./src/util/hook')(router.formio);
 
-    router.formio.hook.alter('configFormio', util.Formio);
+    router.formio.hook.alter('configFormio', {Formio: util.Formio});
 
     // Get the encryption system.
     router.formio.encrypt = require('./src/util/encrypt');
