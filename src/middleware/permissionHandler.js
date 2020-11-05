@@ -408,6 +408,12 @@ module.exports = function(router) {
             return callback();
           }
 
+          const findSubmissionAccessByType = function(submissionAccess, type) {
+            return _.chain(submissionAccess)
+              .filter(access => access.type === type)
+              .value();
+          };
+
           // Load the form, and get its roles/permissions data.
           router.formio.cache.loadForm(req, null, req.formId, function(err, item) {
             if (err) {
@@ -430,22 +436,31 @@ module.exports = function(router) {
                 }
 
                 //We need to know if there is read submission access
-                const [readAccess] = _.chain(component.submissionAccess)
-                  .filter(access => access.type === 'read')
-                  .value();
+                const [readAccess] = findSubmissionAccessByType(component.submissionAccess, 'read');
+                const [writeAccess] = findSubmissionAccessByType(component.submissionAccess, 'write');
+                const [adminAccess] = findSubmissionAccessByType(component.submissionAccess, 'admin');
 
-                if (readAccess && !readAccess.roles.length) {
+                if ((readAccess && readAccess.roles && !readAccess.roles.length) ||
+                  (writeAccess && writeAccess.roles && !writeAccess.roles.length) ||
+                  (adminAccess && adminAccess.roles && !adminAccess.roles.length)) {
                   req.skipOwnerFilter = true;
                   req.submissionResourceAccessFilter = true;
                   return true;
                 }
 
                 const readBlockingRoles =  _.chain(component.submissionAccess)
-                  .filter(access => access.type !== 'read')
+                  .filter(access => access && access.type !== 'read')
                   .map(el => el.roles)
                   .flattenDeep()
-                  .pullAll(readAccess.roles)
                   .value();
+
+                if (writeAccess && writeAccess.roles && writeAccess.roles.length) {
+                  _.pullAll(readBlockingRoles, writeAccess.roles);
+                }
+
+                if (adminAccess && adminAccess.roles && adminAccess.roles.length) {
+                  _.pullAll(readBlockingRoles, adminAccess.roles);
+                }
 
                 userRoles.forEach(function(roleEntity) {
                   const role = roleEntity.split(':')[1];
