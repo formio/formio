@@ -5,6 +5,7 @@ const async = require('async');
 const util = require('../util/util');
 const LegacyValidator = require('../resources/LegacyValidator');
 const Validator = require('../resources/Validator');
+const setDefaultProperties = require('../actions/properties/setDefaultProperties');
 
 module.exports = (router, resourceName, resourceId) => {
   const hook = require('../util/hook')(router.formio);
@@ -286,6 +287,10 @@ module.exports = (router, resourceName, resourceId) => {
 
         if (validation) {
           Object.keys(propertyActions).forEach((property) => {
+            // Set the default value of property if only minified schema of component is loaded
+            if (!component.hasOwnProperty(property) && setDefaultProperties.hasOwnProperty(property)) {
+             setDefaultProperties[property](component);
+            }
             if (component.hasOwnProperty(property) && component[property]) {
               promises.push(propertyActions[property](...handlerArgs));
             }
