@@ -88,8 +88,7 @@ module.exports = (router) => {
 
       if (!req.query.dryrun) {
         if (childRes.resource && childRes.resource.item) {
-          // Set child submission to { _id }
-          _.set(data, component.key, {_id: childRes.resource.item._id});
+          _.set(data, component.key, childRes.resource.item);
         }
       }
       next();
