@@ -250,8 +250,10 @@ module.exports = (router, resourceName, resourceId) => {
      */
     function executeFieldHandlers(validation, req, res, done) {
       const promises = [];
+      const resourceData = _.get(res, 'resource.item.data', {});
+      const submissionData = req.body.data || resourceData;
 
-      util.eachValue((req.currentFormComponents || req.currentForm.components), req.body.data, ({
+      util.eachValue((req.currentFormComponents || req.currentForm.components), submissionData, ({
         component,
         data,
         handler,
