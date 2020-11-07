@@ -87,13 +87,13 @@ module.exports = (router) => {
       }
 
       if (!req.query.dryrun) {
-        if (childRes.resource && childRes.resource.item) {
-          // Set child submission to { _id }
-          // _.set(data, component.key, childRes.resource.item);
+        if (childRes.resource && childRes.resource.item && childRes.resource.item._id) {
+          // Set resources to return full submission on response
           if (!req.resources) {
             req.resources = {};
           }
           req.resources[childRes.resource.item._id.toString()] = childRes.resource.item;
+          // Set child submission to { _id } to save only the reference
           _.set(data, component.key, {_id: childRes.resource.item._id});
         }
       }
