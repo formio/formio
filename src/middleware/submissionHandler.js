@@ -99,7 +99,7 @@ module.exports = (router, resourceName, resourceId) => {
           req.body.data = {};
         }
 
-        // Esure that the _fvid is number.
+        // Ensure that the _fvid is number.
         if (req.body.hasOwnProperty('_fvid') && !_.isNaN(parseInt(req.body._fvid))) {
           req.body._fvid = parseInt(req.body._fvid);
         }
