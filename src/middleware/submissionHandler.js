@@ -99,6 +99,11 @@ module.exports = (router, resourceName, resourceId) => {
           req.body.data = {};
         }
 
+        // Esure that the _fvid is number.
+        if (req.body.hasOwnProperty('_fvid') && !_.isNaN(parseInt(req.body._fvid))) {
+          req.body._fvid = parseInt(req.body._fvid);
+        }
+
         // Ensure they cannot reset the submission id.
         if (req.params.submissionId) {
           req.body._id = req.params.submissionId;
