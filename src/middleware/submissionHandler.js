@@ -226,7 +226,7 @@ module.exports = (router, resourceName, resourceId) => {
         components.forEach((component) => {
           if (component.hasOwnProperty('components') && Array.isArray(component.components)) {
             // If tree type is an array of objects like datagrid and editgrid.
-            if (['datagrid', 'editgrid'].includes(component.type) || component.arrayTree) {
+            if (['datagrid', 'editgrid', 'dynamicWizard'].includes(component.type) || component.arrayTree) {
               const compData = _.get(data, component.key, []);
               if (Array.isArray(compData)) {
                 compData.forEach((row, index) => {
