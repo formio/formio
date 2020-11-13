@@ -611,6 +611,7 @@ class Validator {
           }
           break;
         }
+        case 'dynamicWizard':
         case 'editgrid':
         case 'datagrid':
           component.multiple = false;
