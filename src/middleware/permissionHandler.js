@@ -60,6 +60,10 @@ module.exports = function(router) {
       }
       else if (permission.type === 'create') {
         _.each(permission.resources, function(id) {
+          //create role behaves diffrently depending on schema
+          if (!req.schema || req.schema && req.schema <= '3.3.6') {
+            access.submission.read_all.push(id);
+          }
           access.submission.create_all.push(id);
 
           // Flag this request as not having admin access through submission resource access.
@@ -408,9 +412,12 @@ module.exports = function(router) {
             return callback();
           }
 
-          const findSubmissionAccessByType = function(submissionAccess, type) {
+          const findReadAccessRoles = function(submissionAccess, types) {
             return _.chain(submissionAccess)
-              .filter(access => access.type === type)
+              .filter(access => access.type && types.includes(access.type))
+              .map(el => el.roles)
+              .flattenDeep()
+              .uniq()
               .value();
           };
 
@@ -435,41 +442,29 @@ module.exports = function(router) {
                   ];
                 }
 
-                //We need to know if there is read submission access
-                const [readAccess] = findSubmissionAccessByType(component.submissionAccess, 'read');
-                const [writeAccess] = findSubmissionAccessByType(component.submissionAccess, 'write');
-                const [adminAccess] = findSubmissionAccessByType(component.submissionAccess, 'admin');
+                //We need to get the list of all roles that have read access
+                const readRolesFilter = ['read', 'write', 'admin'];
 
-                if ((readAccess && readAccess.roles && !readAccess.roles.length) ||
-                  (writeAccess && writeAccess.roles && !writeAccess.roles.length) ||
-                  (adminAccess && adminAccess.roles && !adminAccess.roles.length)) {
-                  req.skipOwnerFilter = true;
-                  req.submissionResourceAccessFilter = true;
-                  return true;
+                if (!req.schema || req.schema && req.schema <= '3.3.6') {
+                  readRolesFilter.push('create');
                 }
 
-                const readBlockingRoles =  _.chain(component.submissionAccess)
-                  .filter(access => access && access.type !== 'read')
-                  .map(el => el.roles)
-                  .flattenDeep()
-                  .value();
+                const readRoles = findReadAccessRoles(component.submissionAccess, ['read', 'write', 'admin']);
+                if (readRoles && readRoles.length) {
+                  const readBlockingRoles = _.chain(component.submissionAccess)
+                    .map(access => access.roles)
+                    .flattenDeep()
+                    .pullAll(readRoles)
+                    .value();
 
-                if (writeAccess && writeAccess.roles && writeAccess.roles.length) {
-                  _.pullAll(readBlockingRoles, writeAccess.roles);
+                  userRoles.forEach(function(roleEntity) {
+                    const role = roleEntity.split(':')[1];
+
+                    if (role && readBlockingRoles.includes(role)) {
+                      req.readBlockingRoles = roleEntity;
+                    }
+                  });
                 }
-
-                if (adminAccess && adminAccess.roles && adminAccess.roles.length) {
-                  _.pullAll(readBlockingRoles, adminAccess.roles);
-                }
-
-                userRoles.forEach(function(roleEntity) {
-                  const role = roleEntity.split(':')[1];
-
-                  if (role && readBlockingRoles.includes(role)) {
-                    req.readBlockingRoles = roleEntity;
-                  }
-                });
-
                 // Since the access is now determined by the submission resource access, we
                 // can skip the owner filter.
                 req.skipOwnerFilter = true;
@@ -638,7 +633,11 @@ module.exports = function(router) {
       return next();
     }
     req.permissionsChecked = true;
+    const schema = hook.alter('getSchema');
 
+    if (schema) {
+      req.schema = schema;
+    }
     // Check for whitelisted paths.
     let skip = false;
     if (req.method === 'GET') {
