@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.31
+### Fixed
+ - FJS-1443: add exceptions for the DynamicWizard component
+ - Fixes an issue where for validating a submission with a form revision always was getting the latest version of the form.
+
+### Changed
+ - Upgrade formiojs@4.12.1
+ - Upgrade mongoose@5.10.14, nodemailer@6.4.16, moment-timezone@0.5.32
+
 ## 2.0.0-rc.30
 ### Fixed
  - Fix references updating
