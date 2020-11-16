@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.0-rc.4
+### Fixed
+ - 112 split roles fixed bug with reverse compatibility
+ - FJS-1443: add exceptions for the DynamicWizard component 
+
+### Changed
+ - Upgrade formiojs@4.12.1
+ - Upgrade mongodb@3.6.3, mongoose@5.10.14, nodemailer@6.4.16, eslint@7.13.0, moment-timezone@0.5.32
+
 ## 1.91.0-rc.3
 ### Fixed
  - 112 split roles fixed index request
