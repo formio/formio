@@ -60,6 +60,10 @@ module.exports = function(router) {
       }
       else if (permission.type === 'create') {
         _.each(permission.resources, function(id) {
+          //create role behaves diffrently depending on schema
+          if (!req.schema || req.schema && req.schema <= '3.3.6') {
+            access.submission.read_all.push(id);
+          }
           access.submission.create_all.push(id);
 
           // Flag this request as not having admin access through submission resource access.
@@ -439,6 +443,12 @@ module.exports = function(router) {
                 }
 
                 //We need to get the list of all roles that have read access
+                const readRolesFilter = ['read', 'write', 'admin'];
+
+                if (!req.schema || req.schema && req.schema <= '3.3.6') {
+                  readRolesFilter.push('create');
+                }
+
                 const readRoles = findReadAccessRoles(component.submissionAccess, ['read', 'write', 'admin']);
                 if (readRoles && readRoles.length) {
                   const readBlockingRoles = _.chain(component.submissionAccess)
@@ -623,7 +633,11 @@ module.exports = function(router) {
       return next();
     }
     req.permissionsChecked = true;
+    const schema = hook.alter('getSchema');
 
+    if (schema) {
+      req.schema = schema;
+    }
     // Check for whitelisted paths.
     let skip = false;
     if (req.method === 'GET') {
