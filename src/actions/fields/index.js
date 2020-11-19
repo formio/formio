@@ -6,4 +6,6 @@ module.exports = (router) => ({
   form: require('./form')(router),
   email: require('./email')(router.formio),
   datetime: require('./datetime')(router.formio),
+  select: require('./select')(router.formio),
+  radio: require('./radio')(router.formio),
 });
