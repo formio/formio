@@ -1,5 +1,7 @@
 'use strict';
 
+const _ = require('lodash');
+
 module.exports = function(router) {
     return function storageAccessHandler(req, res, next) {
         if (!req.originalUrl.split('/').includes('storage')) {
@@ -19,12 +21,19 @@ module.exports = function(router) {
             }
 
             if (req.body.groupPermissions) {
-                req.body.groupPermissions.forEach((permission) => {
-                    permission.roles.forEach((role) => {
-                        if (req.user.roles.includes(role) && (['admin', 'write', 'create'].includes(permission))) {
-                            req.permissionsChecked = true;
-                        }
-                    });
+                const createRoles = _.chain(req.body.groupPermissions)
+                    .filter(permission => permission.type && ['admin', 'write', 'create'].includes(permission.type))
+                    .map(permission => permission.roles)
+                    .flattenDeep()
+                    .value();
+
+                req.user.roles.forEach(function(roleEntity) {
+                    const [groupId, role] = roleEntity.split(':');
+
+                    if (role && groupId &&
+                        createRoles.includes(role) && req.body.groupId === groupId) {
+                        req.permissionsChecked = true;
+                    }
                 });
             }
 
