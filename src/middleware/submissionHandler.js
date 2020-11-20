@@ -171,7 +171,12 @@ module.exports = (router, resourceName, resourceId) => {
 
       // Assign submission data to the request body.
       const formId = _.get(req, 'body.data.form');
-      const isSubform = formId && formId.toString() !== req.currentForm._id.toString();
+      if (!req.mainForm) {
+        const hasSubforms = Object.values(_.get(req, 'body.data', {})).some(value => _.isObject(value) && value.form);
+        req.mainForm = hasSubforms && _.get(req, 'body.form');
+      }
+      let isSubform = formId && formId.toString() !== req.currentForm._id.toString();
+      isSubform = !isSubform && req.mainForm ? req.mainForm.toString() !== req.currentForm._id.toString() : isSubform;
       req.submission = req.submission || {data: {}};
       if (!_.isEmpty(req.submission.data) && !isSubform) {
         req.body.data = _.assign(req.body.data, req.submission.data);
