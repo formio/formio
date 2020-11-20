@@ -5,6 +5,7 @@ const async = require('async');
 const util = require('../util/util');
 const LegacyValidator = require('../resources/LegacyValidator');
 const Validator = require('../resources/Validator');
+const setDefaultProperties = require('../actions/properties/setDefaultProperties');
 
 module.exports = (router, resourceName, resourceId) => {
   const hook = require('../util/hook')(router.formio);
@@ -99,6 +100,11 @@ module.exports = (router, resourceName, resourceId) => {
           req.body.data = {};
         }
 
+        // Ensure that the _fvid is a number.
+        if (req.body.hasOwnProperty('_fvid') && !_.isNaN(parseInt(req.body._fvid))) {
+          req.body._fvid = parseInt(req.body._fvid);
+        }
+
         // Ensure they cannot reset the submission id.
         if (req.params.submissionId) {
           req.body._id = req.params.submissionId;
@@ -165,7 +171,12 @@ module.exports = (router, resourceName, resourceId) => {
 
       // Assign submission data to the request body.
       const formId = _.get(req, 'body.data.form');
-      const isSubform = formId && formId.toString() !== req.currentForm._id.toString();
+      if (!req.mainForm) {
+        const hasSubforms = Object.values(_.get(req, 'body.data', {})).some(value => _.isObject(value) && value.form);
+        req.mainForm = hasSubforms && _.get(req, 'body.form');
+      }
+      let isSubform = formId && formId.toString() !== req.currentForm._id.toString();
+      isSubform = !isSubform && req.mainForm ? req.mainForm.toString() !== req.currentForm._id.toString() : isSubform;
       req.submission = req.submission || {data: {}};
       if (!_.isEmpty(req.submission.data) && !isSubform) {
         req.body.data = _.assign(req.body.data, req.submission.data);
@@ -249,8 +260,10 @@ module.exports = (router, resourceName, resourceId) => {
      */
     function executeFieldHandlers(validation, req, res, done) {
       const promises = [];
+      const resourceData = _.get(res, 'resource.item.data', {});
+      const submissionData = req.body.data || resourceData;
 
-      util.eachValue((req.currentFormComponents || req.currentForm.components), req.body.data, ({
+      util.eachValue((req.currentFormComponents || req.currentForm.components), submissionData, ({
         component,
         data,
         handler,
@@ -286,6 +299,10 @@ module.exports = (router, resourceName, resourceId) => {
 
         if (validation) {
           Object.keys(propertyActions).forEach((property) => {
+            // Set the default value of property if only minified schema of component is loaded
+            if (!component.hasOwnProperty(property) && setDefaultProperties.hasOwnProperty(property)) {
+             setDefaultProperties[property](component);
+            }
             if (component.hasOwnProperty(property) && component[property]) {
               promises.push(propertyActions[property](...handlerArgs));
             }
