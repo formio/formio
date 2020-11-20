@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.0-rc.5
+### Fixed
+ - FJS-1297: fix submission of nested wizards
+
+### Changed
+ - Upgrade mongoose@5.10.15, debug@4.3.1, adm-zip@0.5.0
+
 ## 1.91.0-rc.4
 ### Fixed
  - 112 split roles fixed bug with reverse compatibility
