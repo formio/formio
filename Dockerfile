@@ -31,8 +31,6 @@ RUN npm ci --prefix=$NPM_PACKAGES
 RUN ln -sf $NPM_PACKAGES/node_modules node_modules
 
 WORKDIR /app
-RUN addgroup -g 1000 -S app
-RUN adduser -u 1000 -S app -G app -h /app
 
 EXPOSE 3001
 
