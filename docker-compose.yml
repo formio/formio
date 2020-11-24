@@ -25,7 +25,9 @@ services:
       MONGO_INITDB_ROOT_PASSWORD:
 
   formio:
-    build: ./
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
     # The app will restart until Mongo is listening
     restart: always
     links:

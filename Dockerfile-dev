@@ -5,14 +5,14 @@
 # Use Node image, maintained by Docker:
 # hub.docker.com/r/_/node/
 FROM node:lts-alpine3.10
+WORKDIR /app
 
 # "bcrypt" requires python/make/g++, all must be installed in alpine
 # (note: using pinned versions to ensure immutable build environment)
 RUN apk update && \
     apk upgrade && \
     apk add make=4.2.1-r2 && \
-    apk add g++=8.3.0-r0 && \
-    apk add tini
+    apk add g++=8.3.0-r0
 
 # Using an alternative package install location
 # to allow overwriting the /app folder at runtime
@@ -29,14 +29,6 @@ COPY ./package-lock.json $NPM_PACKAGES/
 # Use "Continuous Integration" to install as-is from package-lock.json
 RUN npm ci --prefix=$NPM_PACKAGES
 
-WORKDIR /app
-RUN addgroup -g 1000 -S app
-RUN adduser -u 1000 -S app -G app -h /app
-
-EXPOSE 3001
-
-COPY . /app
-
 # Link in the global install because `require()` only looks for ./node_modules
 # WARNING: This is overwritten by volume-mount at runtime!
 #          See docker-compose.yml for instructions
@@ -49,47 +41,4 @@ ENV DEBUG=""
 
 # This will initialize the application based on
 # some questions to the user (login email, password, etc.)
-
-ENTRYPOINT ["/sbin/tini", "--"]
-
-CMD [ "node", "main" ]
-
-
-
-
-
-FROM quay.io/quintype/docker-base:alpine-node-10.16.3 AS build
-
-RUN apk update && \
-    apk add git && \
-    apk --no-cache add --virtual builds-deps build-base python
-
-RUN mkdir /app
-
-WORKDIR /app
-
-COPY package.json package-lock.json /app/
-RUN npm install --no-optional
-
-# Everything above should be cached by docker. The below should run on every build
-
-COPY . /app/
-RUN git log -n1 --pretty="Commit Date: %aD%nBuild Date: `date --rfc-2822`%n%h %an%n%s%n" > public/round-table.txt
-
-FROM quay.io/quintype/docker-base:alpine-node-10.16.3
-MAINTAINER Quintype Developers <dev-core@quintype.com>
-
-RUN apk update && \
-    apk add tini
-
-RUN addgroup -g 1000 -S app
-RUN adduser -u 1000 -S app -G app -h /app
-
-WORKDIR /app
-
-ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["npm", "start"]
-
-COPY --from=build /app /app
-RUN chown -R app:app /app
-USER app
+ENTRYPOINT [ "node", "main" ]
