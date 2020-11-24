@@ -32,8 +32,6 @@ RUN ln -sf $NPM_PACKAGES/node_modules node_modules
 
 WORKDIR /app
 
-EXPOSE 3001
-
 COPY . /app
 
 # Link in the global install because `require()` only looks for ./node_modules

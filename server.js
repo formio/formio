@@ -69,6 +69,8 @@ module.exports = function(options) {
   // Mount the client application.
   app.use('/', express.static(path.join(__dirname, '/client/dist')));
 
+  app.get('/ping', (req, res) => res.send("Pong"));
+
   // Load the form.io server.
   const server = options.server || require('./index')(config);
   const hooks = options.hooks || {};

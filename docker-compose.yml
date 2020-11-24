@@ -33,7 +33,7 @@ services:
     links:
       - mongo
     ports:
-      - "3001:3001"
+      - "12001:12001"
     # The application wants to download things to the local directory
     # TODO: really wish I could mount this as read-only
     volumes:
