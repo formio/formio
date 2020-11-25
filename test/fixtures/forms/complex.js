@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
   components: [
     {
@@ -74,7 +76,6 @@ module.exports = {
               "legend": "",
               "components": [
                 {
-                  "searchField": "data.apparatusId",
                   "conditional": {
                     "eq": "",
                     "when": null,
@@ -93,7 +94,6 @@ module.exports = {
                   "filter": "",
                   "refreshOn": "",
                   "defaultValue": "",
-                  "valueProperty": "data.apparatusId",
                   "dataSrc": "values",
                   "data": {
                     "project": "57ae043a78c4691a181d23f0",
@@ -158,7 +158,6 @@ module.exports = {
                         "project": "57ae043a78c4691a181d23f0"
                       },
                       "dataSrc": "values",
-                      "valueProperty": "data.shortName",
                       "defaultValue": "",
                       "refreshOn": "",
                       "filter": "",
@@ -177,7 +176,6 @@ module.exports = {
                         "when": null,
                         "eq": ""
                       },
-                      "searchField": "data.shortName"
                     },
                     {
                       "tags": [],
@@ -208,7 +206,6 @@ module.exports = {
                         "project": "57ae043a78c4691a181d23f0"
                       },
                       "dataSrc": "values",
-                      "valueProperty": "data.fullName",
                       "defaultValue": "",
                       "refreshOn": "",
                       "filter": "sort=data.fullName",
@@ -227,7 +224,6 @@ module.exports = {
                         "when": null,
                         "eq": ""
                       },
-                      "searchField": "data.fullName"
                     },
                     {
                       "tabindex": "2",

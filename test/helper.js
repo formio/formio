@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 'use strict';
 
 const request = require('./formio-supertest');
@@ -33,7 +34,7 @@ module.exports = function(app) {
       permsConfig.push({
         type: name,
         roles: _.map(roles, (roleName) => {
-          return this.template.roles[roleName]._id.toString()
+          return this.template.roles[roleName]._id.toString();
         })
       });
     });
@@ -55,7 +56,7 @@ module.exports = function(app) {
       .end((err, res) => {
         this.owner.token = res.headers['x-jwt-token'];
         done(err, res);
-      })
+      });
   };
 
   Helper.prototype.getTemplate = function() {
@@ -70,7 +71,7 @@ module.exports = function(app) {
   Helper.prototype.getForms = function(done) {
     var url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
     url += '/form?limit=9999';
     request(app)
@@ -103,9 +104,9 @@ module.exports = function(app) {
   Helper.prototype.getActions = function(form, done) {
     var url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
-    url += '/form/' + this.template.forms[form]._id + '/action';
+    url += `/form/${  this.template.forms[form]._id  }/action`;
     request(app)
       .get(url)
       .set('x-jwt-token', this.owner.token)
@@ -116,7 +117,7 @@ module.exports = function(app) {
           return done(err, res);
         }
         if (!res.body) {
-          return done('No response', res)
+          return done('No response', res);
         }
 
         this.lastResponse = res;
@@ -178,9 +179,9 @@ module.exports = function(app) {
       if (_action) {
         var url = '';
         if (this.template.project && this.template.project._id) {
-          url += '/project/' + this.template.project._id;
+          url += `/project/${  this.template.project._id}`;
         }
-        url += '/form/' + this.template.forms[form]._id + '/action/' + _action._id;
+        url += `/form/${  this.template.forms[form]._id  }/action/${  _action._id}`;
 
         request(app)
           .delete(url)
@@ -191,7 +192,7 @@ module.exports = function(app) {
               return done(err, res);
             }
             if (!res.body) {
-              return done('No response', res)
+              return done('No response', res);
             }
 
             this.lastResponse = res;
@@ -209,7 +210,7 @@ module.exports = function(app) {
   Helper.prototype.getRoles = function(done) {
     var url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
     url += '/role?limit=9999';
 
@@ -276,7 +277,7 @@ module.exports = function(app) {
     }
 
     request(app)
-      .get('/project/' + this.template.project._id)
+      .get(`/project/${  this.template.project._id}`)
       .set('x-jwt-token', this.owner.token)
       .expect('Content-Type', /json/)
       .expect(200)
@@ -336,9 +337,9 @@ module.exports = function(app) {
   Helper.prototype.updateForm = function(form, done) {
     let url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
-    url += '/form/' + form._id;
+    url += `/form/${  form._id}`;
 
     request(app).put(url)
       .send(_.omit(form, 'modified'))
@@ -353,7 +354,7 @@ module.exports = function(app) {
         this.template.forms[form.name] = res.body;
         done(null, res.body);
       });
-  }
+  };
 
   Helper.prototype.upsertForm = function(form, done) {
     this.contextName = form.name;
@@ -381,7 +382,7 @@ module.exports = function(app) {
     var status = 201;
     var url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
     url += '/form';
     var data = {
@@ -396,7 +397,7 @@ module.exports = function(app) {
     if (this.template.forms.hasOwnProperty(form.name)) {
       method = 'put';
       status = 200;
-      url += '/' + this.template.forms[form.name]._id;
+      url += `/${  this.template.forms[form.name]._id}`;
       data = {
         components: form.components
       };
@@ -472,7 +473,7 @@ module.exports = function(app) {
     if (this.template.forms.hasOwnProperty(_id)) {
       _id = this.template.forms[_id]._id.toString();
     }
-    let url = '/form/' + _id;
+    let url = `/form/${  _id}`;
     if (this.hook) {
       url = this.hook.alter('url', url, this.template);
     }
@@ -536,9 +537,9 @@ module.exports = function(app) {
 
     var url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
-    url += '/form/' + this.template.forms[form]._id + '/action/' + _action._id;
+    url += `/form/${  this.template.forms[form]._id  }/action/${  _action._id}`;
 
     request(app)
       .put(url)
@@ -551,7 +552,7 @@ module.exports = function(app) {
           return done(err, res);
         }
         if (!res.body) {
-          return done('No response', res)
+          return done('No response', res);
         }
 
         this.lastResponse = res;
@@ -609,9 +610,9 @@ module.exports = function(app) {
 
     var url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
-    url += '/form/' + this.template.forms[form]._id + '/action';
+    url += `/form/${  this.template.forms[form]._id  }/action`;
 
     request(app)
       .post(url)
@@ -666,9 +667,9 @@ module.exports = function(app) {
 
     var url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
-    url += '/form/' + submission.form + '/submission/' + submission._id;
+    url += `/form/${  submission.form  }/submission/${  submission._id}`;
 
     let currentRequest = request(app).put(url).send(submission);
     if (user) {
@@ -738,9 +739,9 @@ module.exports = function(app) {
 
     var url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
-    url += '/form/' + this.template.forms[form]._id + '/submission';
+    url += `/form/${  this.template.forms[form]._id  }/submission`;
 
     // Allow passing in the submission as well
     if (!data.hasOwnProperty('data')) {
@@ -833,12 +834,12 @@ module.exports = function(app) {
     var url = '';
     var subIndex = true;
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
-    url += '/form/' + this.template.forms[form]._id + '/submission';
+    url += `/form/${  this.template.forms[form]._id  }/submission`;
     if (typeof id === 'string') {
       subIndex = false;
-      url += '/' + id;
+      url += `/${  id}`;
     }
 
     let currentRequest = request(app).get(url).send();
@@ -909,9 +910,9 @@ module.exports = function(app) {
 
     var url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
-    url += '/form/' + submission.form + '/submission/' + submission._id;
+    url += `/form/${  submission.form  }/submission/${  submission._id}`;
 
     let currentRequest = request(app).delete(url).send(submission);
     if (user) {
@@ -955,7 +956,7 @@ module.exports = function(app) {
 
     var url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
     url += '/role';
 
@@ -965,7 +966,7 @@ module.exports = function(app) {
         _role = this.getRole(role.title || role);
       }
 
-      url += '/' + _role._id;
+      url += `/${  _role._id}`;
       request(app)
         .put(url)
         .send(update)
@@ -1021,9 +1022,9 @@ module.exports = function(app) {
 
     var url = '';
     if (this.template.project && this.template.project._id) {
-      url += '/project/' + this.template.project._id;
+      url += `/project/${  this.template.project._id}`;
     }
-    url += '/role/' + _role._id;
+    url += `/role/${  _role._id}`;
 
     request(app)
       .delete(url)
@@ -1074,7 +1075,7 @@ module.exports = function(app) {
         this.template.users[user].data.password = data.password;
 
         // Now authenticate as this user to get JWT token.
-        this.createSubmission(form + 'Login', {data: {
+        this.createSubmission(`${form  }Login`, {data: {
           email: this.template.users[user].data.email,
           password: this.template.users[user].data.password
         }}, null, [/application\/json/, 200], (err) => {
