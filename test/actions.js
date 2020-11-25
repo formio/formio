@@ -2528,7 +2528,7 @@ module.exports = (app, template, hook) => {
           ])
           .execute((err) => {
             if (err) {
-              done(err);
+              return done(err);
             }
 
             const invalidRolesValueError = {
