@@ -2840,8 +2840,6 @@ module.exports = function(app, template, hook) {
     describe('Complex form with hidden fields and embedded datagrids', function() {
       it('Saves a complex form correctly', function(done) {
         var test = require('./fixtures/forms/complex.js');
-        // eslint-disable-next-line no-debugger
-        debugger;
         helper
           .form('test', test.components)
           .submission(test.submission)
