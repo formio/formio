@@ -47,6 +47,8 @@ const checkConditional = (form, component, row, data, recurse = false, path) => 
         moment,
         _,
         form,
+        utils: util.FormioUtils,
+        util: util.FormioUtils,
       }, form));
 
       // Execute the script.
@@ -138,6 +140,8 @@ const getRules = (type) => [
             form,
             _,
             moment,
+            utils: util.FormioUtils,
+            util: util.FormioUtils,
           }, form));
 
           // Execute the script.
