@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.34
+### Fixed
+ - Issues with ResetPassword action not setting form object correctly within email parameters.
+
 ## 2.0.0-rc.33
 ### Fixed
  - Tests regarding new validations.
