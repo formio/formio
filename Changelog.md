@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.0-rc.7
+### Fixed
+ - Issues with the ResetPassword action not setting form object correctly.
+
 ## 1.91.0-rc.6
 ### Changed
  - Upgrade config@3.3.3, mongoose@5.10.17, nodemailer-mailgun-transport@2.0.2, eslint@7.14.0, adm-zip@0.5.1
