@@ -63,6 +63,8 @@ class Validator {
     const emptyData = _.isEmpty(submission.data);
     let unsetsEnabled = false;
 
+    const {validateReCaptcha} = this;
+
     // Create the form, then check validity.
     Formio.createForm(this.form, {
       server: true,
@@ -90,7 +92,14 @@ class Validator {
             unsets.push({key, data});
           }
           return value;
-        }
+        },
+        validateReCaptcha(responseToken) {
+          if (validateReCaptcha) {
+            return validateReCaptcha(responseToken);
+          }
+
+          return true;
+        },
       }
     }).then((form) => {
       // Set the validation config.
