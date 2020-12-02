@@ -53,16 +53,16 @@ module.exports = function(formio) {
     }
   }));
 
-  // Add indexes to speed up the action items pages.
-  ActionItemSchema.index(hook.alter('schemaIndex', {state: 1, deleted: 1, modified: -1}));
-  ActionItemSchema.index(hook.alter('schemaIndex', {handler: 1, deleted: 1, modified: -1}));
-  ActionItemSchema.index(hook.alter('schemaIndex', {handler: 1, method: 1, deleted: 1, modified: -1}));
-
   const model = require('./BaseModel')({
     schema: ActionItemSchema
   }, {
     expires: '30d'
   });
+
+  // Add indexes to speed up the action items pages.
+  model.schema.index(hook.alter('schemaIndex', {state: 1, deleted: 1, modified: -1}));
+  model.schema.index(hook.alter('schemaIndex', {handler: 1, deleted: 1, modified: -1}));
+  model.schema.index(hook.alter('schemaIndex', {handler: 1, method: 1, deleted: 1, modified: -1}));
 
   return model;
 };
