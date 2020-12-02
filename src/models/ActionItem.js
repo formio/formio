@@ -55,6 +55,8 @@ module.exports = function(formio) {
 
   const model = require('./BaseModel')({
     schema: ActionItemSchema
+  }, {
+    expires: '30d'
   });
 
   return model;
