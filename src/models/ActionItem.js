@@ -54,9 +54,9 @@ module.exports = function(formio) {
   }));
 
   // Add indexes to speed up the action items pages.
-  ActionItemSchema.index({project: 1, state: 1, deleted: 1, modified: -1});
-  ActionItemSchema.index({project: 1, handler: 1, deleted: 1, modified: -1});
-  ActionItemSchema.index({project: 1, handler: 1, method: 1, deleted: 1, modified: -1});
+  ActionItemSchema.index(hook.alter('schemaIndex', {state: 1, deleted: 1, modified: -1}));
+  ActionItemSchema.index(hook.alter('schemaIndex', {handler: 1, deleted: 1, modified: -1}));
+  ActionItemSchema.index(hook.alter('schemaIndex', {handler: 1, method: 1, deleted: 1, modified: -1}));
 
   const model = require('./BaseModel')({
     schema: ActionItemSchema
