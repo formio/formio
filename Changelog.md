@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.0
+### Fixed
+ - FOR-2837: Fixes an issue where for validating a submission with a form revision always was getting the latest version of th form.
+
+### Changed
+ - Upgrade formio@4.12.2
+ - Upgrade semver@7.3.4, mongoose@5.11.4, eslint@7.15.0
+
 ## 1.91.0-rc.7
 ### Fixed
  - Issues with the ResetPassword action not setting form object correctly.
