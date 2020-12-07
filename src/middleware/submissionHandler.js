@@ -206,6 +206,22 @@ module.exports = (router, resourceName, resourceId) => {
         }
 
         const validator = new _Validator(req.currentForm, submissionModel, token, req.token, hook);
+        validator.validateReCaptcha = (responseToken) => {
+          return new Promise((resolve, reject) => {
+            router.formio.mongoose.models.token.findOne({value: responseToken}, (err, token) => {
+              if (err) {
+                return reject(err);
+              }
+
+              if (!token) {
+                return reject(new Error('ReCaptcha: Response token not found'));
+              }
+
+              // Remove temp token after submission with reCaptcha
+              return token.remove(() => resolve(true));
+            });
+          });
+        };
 
         // Validate the request.
         validator.validate(req.body, (err, data, visibleComponents) => {
