@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.35
+### Fixed
+ - FOR-2874: Added server side validation of recaptcha token.
+ - Adding expiring action items.
+
+### Changed
+ - Upgrade formiojs@4.12.2
+ - Upgrade config@3.3.3, nodemailer-mailgun-transport@2.0.2, semver@7.3.4, mongoose@5.11.4, eslint@7.15.0, adm-zip@0.5.1
+
 ## 2.0.0-rc.34
 ### Fixed
  - Issues with ResetPassword action not setting form object correctly within email parameters.
