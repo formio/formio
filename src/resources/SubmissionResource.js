@@ -27,6 +27,7 @@ module.exports = (router) => {
   ];
   handlers.beforeGet = [
     router.formio.middleware.permissionHandler,
+    router.formio.middleware.getMongoCollection,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
     handlers.beforeGet,
   ];
