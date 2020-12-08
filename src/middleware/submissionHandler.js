@@ -80,7 +80,12 @@ module.exports = (router, resourceName, resourceId) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const submissionModel = hook.invoke('submissionCollection', req);
+=======
+        const submissionModel = hook.alter('submissionCollection', req);
+
+>>>>>>> 4df7193... Added middleware that ensures that we are using proper collection for our request
 =======
         const submissionModel = hook.alter('submissionCollection', req);
 
