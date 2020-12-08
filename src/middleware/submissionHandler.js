@@ -75,7 +75,12 @@ module.exports = (router, resourceName, resourceId) => {
 
       // If this is a get method, then filter the model query.
       if (isGet) {
+<<<<<<< HEAD
         const submissionModel = hook.invoke('submissionCollection', req);
+=======
+        const submissionModel = hook.alter('submissionCollection', req);
+
+>>>>>>> 4df7193... Added middleware that ensures that we are using proper collection for our request
         req.countQuery = submissionModel || req.countQuery || req.model || this.model;
         req.modelQuery = submissionModel || req.modelQuery || req.model || this.model;
         if (req.handlerName !== 'beforeGet') {
