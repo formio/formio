@@ -1047,6 +1047,14 @@ class Validator {
       if (component.hasOwnProperty('key')) {
         components[path] = component;
       }
+      // Unset a password without value.
+      if (component.type === 'password') {
+        const compValue = _.get(submission.data, path);
+
+        if (!compValue) {
+          _.unset(submission.data, path);
+        }
+      }
     }, true, '', true);
 
     JoiX.validate(submission.data, schema, {stripUnknown: true, abortEarly: false}, (validateErr, value) => {
