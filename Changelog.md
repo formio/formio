@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.1-rc.1
+### Fixed
+ - FIO-934: Fixes an issue when changing an email address in the profile then unable to log back into the account. Had to use reset password.
+
 ## 1.91.0
 ### Fixed
  - FOR-2837: Fixes an issue where for validating a submission with a form revision always was getting the latest version of th form.
