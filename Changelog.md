@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.1-rc.2
+### Fixed
+ - FOR-2866: added middleware that ensures that we are using proper collection for our request
+
 ## 1.91.1-rc.1
 ### Fixed
  - FIO-934: Fixes an issue when changing an email address in the profile then unable to log back into the account. Had to use reset password.
