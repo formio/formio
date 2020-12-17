@@ -1,5 +1,3 @@
-'use strict';
-
 /* eslint-env mocha */
 const request = require('./formio-supertest');
 var assert = require('assert');
