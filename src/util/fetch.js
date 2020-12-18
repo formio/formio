@@ -76,7 +76,7 @@ module.exports = (url, options = {}) => {
   // Parse the request input information
   const input = parseUrl(url);
 
-  let { rejectUnauthorized } = options;
+  let {rejectUnauthorized} = options;
 
   // Check that the target url is a valid URL
   if (!input.host) {
