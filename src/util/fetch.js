@@ -76,6 +76,8 @@ module.exports = (url, options = {}) => {
   // Parse the request input information
   const input = parseUrl(url);
 
+  let { rejectUnauthorized } = options;
+
   // Check that the target url is a valid URL
   if (!input.host) {
     return Promise.reject(new TypeError('Only absolute URLs are supported'));
@@ -105,8 +107,10 @@ module.exports = (url, options = {}) => {
   // Check if using HTTPS
   const isHTTPS = input.protocol === 'https:';
 
-  // Check if system is forcing invalid tls rejection (should be rejected by default)
-  const rejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0';
+  if (typeof rejectUnauthorized === 'undefined') {
+     // Check if system is forcing invalid tls rejection (should be rejected by default)
+    rejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0';
+  }
 
   // Check if we need to use http(s) proxy or not
   if (!noProxy(input)) {
