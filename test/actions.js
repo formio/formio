@@ -1970,7 +1970,7 @@ module.exports = (app, template, hook) => {
               attemptWindow: 10,
               lockWait: 10,
             },
-          };
+          }
 
           request(app)
             .post(hook.alter('url', `/form/${authForm._id}/action`, template))
@@ -2069,7 +2069,7 @@ module.exports = (app, template, hook) => {
               done();
             });
         });
-      });
+      })
     });
 
     describe('Action Normalization', () => {
@@ -2440,7 +2440,7 @@ module.exports = (app, template, hook) => {
             assert(!submission.roles.includes(helper.template.roles.authenticated._id));
 
             done();
-          });
+          })
       });
 
       it('Should conditionally execute the add role action.', (done) => {
@@ -2459,7 +2459,7 @@ module.exports = (app, template, hook) => {
             assert(submission.roles.includes(helper.template.roles.authenticated._id));
 
             done();
-          });
+          })
       });
 
       it('Should conditionally execute the add role action.', (done) => {
@@ -2477,7 +2477,7 @@ module.exports = (app, template, hook) => {
             assert(!submission.roles.includes(helper.template.roles.authenticated._id));
 
             done();
-          });
+          })
       });
 
       it('Should conditionally execute the add role action.', (done) => {
@@ -2495,7 +2495,7 @@ module.exports = (app, template, hook) => {
             assert(submission.roles.includes(helper.template.roles.authenticated._id));
 
             done();
-          });
+          })
       });
 
       it('Should execute ALL role actions.', (done) => {
@@ -2514,39 +2514,23 @@ module.exports = (app, template, hook) => {
             assert(submission.roles.includes(helper.template.roles.authenticated._id));
 
             done();
-          });
+          })
       });
 
       it('Should NOT execute any role actions.', (done) => {
         helper
-          .submission(helper.contextName, {
+          .submission({
             email: 'test@example.com',
             roles: ['test'],
-          }, helper.owner, [
-            /json/,
-            400
-          ])
+          })
           .execute((err) => {
             if (err) {
               return done(err);
             }
 
-            const invalidRolesValueError = {
-              message: 'Roles is an invalid value.',
-              level: 'error',
-              path: ['roles'],
-              context: {
-                validator: 'onlyAvailableItems',
-                setting: true,
-                key: 'roles',
-                label: 'Roles',
-                value: 'test'
-              }
-            };
-
-            const responseBody = helper.lastResponse.body;
-            assert.strictEqual(responseBody.name, 'ValidationError', 'Should return validation error');
-            assert.deepStrictEqual(responseBody.details[0], invalidRolesValueError);
+            const submission = helper.getLastSubmission();
+            assert(!submission.roles.includes(helper.template.roles.administrator._id));
+            assert(!submission.roles.includes(helper.template.roles.authenticated._id));
 
             done();
           });
