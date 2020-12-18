@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.36
+### Fixed
+ - FOR-2868: Adds an ability to pass the rejectUnauthorized flag to the fetch method.
+ - FIO-994: Makes onlyAvailableItems validation optional
+
+### Changed
+ - Updated formiojs@4.12.3, html-entities@1.3.3, mongoose@5.11.8, nodemailer@6.4.17, mssql@6.3.0
+
 ## 2.0.0-rc.35
 ### Fixed
  - FOR-2874: Added server side validation of recaptcha token.
