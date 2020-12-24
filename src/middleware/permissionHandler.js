@@ -440,7 +440,7 @@ module.exports = function(router) {
               return callback(`No Form found with formId: ${req.formId}`);
             }
 
-            if (item.fieldMatchAccess) {
+            if (item.fieldMatchAccess && !_.isEmpty(item.fieldMatchAccess)) {
               req.submissionFieldMatchAccess = item.fieldMatchAccess;
             }
             return callback(null);
