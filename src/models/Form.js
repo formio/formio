@@ -151,7 +151,7 @@ module.exports = (formio) => {
         type: {
           read: [formio.schemas.FieldMatchAccessPermissionSchema],
           write: [formio.schemas.FieldMatchAccessPermissionSchema],
-          ceate: [formio.schemas.FieldMatchAccessPermissionSchema],
+          create: [formio.schemas.FieldMatchAccessPermissionSchema],
           admin: [formio.schemas.FieldMatchAccessPermissionSchema]
         },
         validate: [
