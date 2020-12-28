@@ -57,7 +57,7 @@ module.exports = (router) => {
           data: {url: `${basePath}?type=resource&limit={{ limit }}`},
           valueProperty: '_id',
           template: '<span>{{ item.title }}</span>',
-          limit: 4294967295,
+          limit: 10000,
           multiple: true,
           validate: {
             required: true,
