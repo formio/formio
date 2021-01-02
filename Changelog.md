@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.37
+### Changed
+ - Removed the LegacyValidator.
+ - Decreased limit for resource select to avoid error
+ - Fixed typo in fieldMatchAccess
+ - FIO-853: Added check if fieldMatchAccess object is not empty
+ - FIO-1035: Fixes an issue when a nested form inside the nested Form was receiving "Too many recursive requests." on submit.
+
 ## 2.0.0-rc.36
 ### Fixed
  - FOR-2868: Adds an ability to pass the rejectUnauthorized flag to the fetch method.
