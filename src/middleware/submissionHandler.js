@@ -234,6 +234,9 @@ module.exports = (router, resourceName, resourceId) => {
           if (!_.isEqual(visibleComponents, req.currentForm.components)) {
             req.currentFormComponents = visibleComponents;
           }
+          else if (req.hasOwnProperty('currentFormComponents') && req.currentFormComponents) {
+            delete req.currentFormComponents;
+          }
           done();
         });
       });
