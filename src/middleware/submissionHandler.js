@@ -3,7 +3,6 @@
 const _ = require('lodash');
 const async = require('async');
 const util = require('../util/util');
-const LegacyValidator = require('../resources/LegacyValidator');
 const Validator = require('../resources/Validator');
 const setDefaultProperties = require('../actions/properties/setDefaultProperties');
 
@@ -187,25 +186,12 @@ module.exports = (router, resourceName, resourceId) => {
 
       // Next we need to validate the input.
       hook.alter('validateSubmissionForm', req.currentForm, req.body, async form => { // eslint-disable-line max-statements
-        // Allow use of the legacy validator
-        const useLegacyValidator = (
-          process.env.LEGACY_VALIDATOR ||
-          req.headers['legacy-validator'] ||
-          req.query.legacy_validator
-        );
-
         // Get the submission model.
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
         // Next we need to validate the input.
         const token = util.getRequestValue(req, 'x-jwt-token');
-        const _Validator = useLegacyValidator ? LegacyValidator : Validator;
-
-        if (useLegacyValidator) {
-          _Validator.setHook(hook);
-        }
-
-        const validator = new _Validator(req.currentForm, submissionModel, token, req.token, hook);
+        const validator = new Validator(req.currentForm, submissionModel, token, req.token, hook);
         validator.validateReCaptcha = (responseToken) => {
           return new Promise((resolve, reject) => {
             router.formio.mongoose.models.token.findOne({value: responseToken}, (err, token) => {
