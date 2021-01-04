@@ -739,17 +739,18 @@ const Utils = {
       if (Array.isArray(component.components)) {
         // If tree type is an array of objects like datagrid and editgrid.
         if (['datagrid', 'editgrid', 'dynamicWizard'].includes(component.type) || component.arrayTree) {
-          let value = _.get(data, component.key) || [];
-          value = Array.isArray(value) ? value : [value];
-          value.forEach((row, index) => {
-            this.eachValue(
-              component.components,
-              row,
-              fn,
-              context,
-              this.valuePath(path, `${component.key}[${index}]`),
-            );
-          });
+          const value = _.get(data, component.key) || [];
+          if (Array.isArray(value)) {
+            value.forEach((row, index) => {
+              this.eachValue(
+                component.components,
+                row,
+                fn,
+                context,
+                this.valuePath(path, `${component.key}[${index}]`),
+              );
+            });
+          }
         }
         else if (['form'].includes(component.type)) {
           this.eachValue(
