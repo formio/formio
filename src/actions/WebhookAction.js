@@ -137,13 +137,14 @@ module.exports = function(router) {
        */
       const handleError = (data, response) => {
         setActionItemMessage('Webhook failed', response);
-        logerr(data.message || data || response.statusMessage);
+        const message = data ? (data.message || data) : response.statusMessage;
+        logerr(message);
 
         if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
           return;
         }
 
-        return next(data.message || data || response.statusMessage);
+        return next(message);
       };
 
       try {
@@ -191,6 +192,13 @@ module.exports = function(router) {
           url = this.settings.url;
         }
 
+        const onParseError = (err, response) => {
+          if (response.status === 404) {
+            return handleError(null, response);
+          }
+          throw err;
+        };
+
         // Make the request.
         setActionItemMessage('Making request', {
           method: req.method,
@@ -199,18 +207,30 @@ module.exports = function(router) {
         });
         switch (req.method.toLowerCase()) {
           case 'get':
-            rest.get(url, options).on('success', handleSuccess).on('fail', handleError);
+            rest.get(url, options)
+              .on('success', handleSuccess)
+              .on('fail', handleError)
+              .on('error', onParseError);
             break;
           case 'post':
-            rest.postJson(url, payload, options).on('success', handleSuccess).on('fail', handleError);
+            rest.postJson(url, payload, options)
+              .on('success', handleSuccess)
+              .on('fail', handleError)
+              .on('error', onParseError);
             break;
           case 'patch':
           case 'put':
-            rest.putJson(url, payload, options).on('success', handleSuccess).on('fail', handleError);
+            rest.putJson(url, payload, options)
+              .on('success', handleSuccess)
+              .on('fail', handleError)
+              .on('error', onParseError);
             break;
           case 'delete':
             options.query = req.params;
-            rest.del(url, options).on('success', handleSuccess).on('fail', handleError);
+            rest.del(url, options)
+              .on('success', handleSuccess)
+              .on('fail', handleError)
+              .on('error', onParseError);
             break;
           default:
             return handleError(`Could not match request method: ${req.method.toLowerCase()}`);

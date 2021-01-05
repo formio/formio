@@ -1558,6 +1558,7 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(submission.details, [
               {
                 context: {
+                  hasLabel: true,
                   key: 'requiredField',
                   setting: true,
                   validator: 'required',
@@ -1926,6 +1927,7 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(submission.details, [
               {
                 context: {
+                  hasLabel: true,
                   key: 'requiredField',
                   label: 'Required Field',
                   setting: true,
@@ -2634,6 +2636,7 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(submission.details, [
               {
                 context: {
+                  hasLabel: true,
                   key: 'textField',
                   label: 'Text Field',
                   setting: false,
@@ -3468,6 +3471,7 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(submission.details, [
               {
                 context: {
+                  hasLabel: true,
                   key: 'changeme',
                   label: 'Two',
                   setting: true,
@@ -3679,6 +3683,7 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(res.body.details, [
               {
                 context: {
+                  hasLabel: true,
                   key: 'test',
                   label: 'Test',
                   setting: true,
