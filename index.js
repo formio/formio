@@ -7,13 +7,16 @@ const router = express.Router();
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 const bodyParser = require('body-parser');
-const methodOverride = require('method-override');
 const _ = require('lodash');
 const events = require('events');
 const Q = require('q');
 const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
+
+const originalGetToken = util.Formio.getToken;
+const originalEvalContext = util.Formio.Components.components.component.prototype.evalContext;
+
 // Keep track of the formio interface.
 router.formio = {};
 
@@ -48,6 +51,16 @@ module.exports = function(config) {
     }
   };
 
+  router.formio.audit = (event, req, ...info) => {
+    if (config.audit) {
+      const result = router.formio.hook.alter('audit', info, event, req);
+
+      if (result) {
+        console.log(...result);
+      }
+    }
+  };
+
   /**
    * Initialize the formio server.
    */
@@ -62,6 +75,8 @@ module.exports = function(config) {
 
     // Get the hook system.
     router.formio.hook = require('./src/util/hook')(router.formio);
+
+    router.formio.hook.alter('configFormio', {Formio: util.Formio});
 
     // Get the encryption system.
     router.formio.encrypt = require('./src/util/encrypt');
@@ -82,6 +97,22 @@ module.exports = function(config) {
       // Add the database connection to the router.
       router.formio.db = db;
 
+      // Ensure we do not have memory leaks in core renderer
+      router.use((req, res, next) => {
+        util.Formio.forms = {};
+        util.Formio.cache = {};
+        util.Formio.Components.components.component.Validator.config = {
+          db: null,
+          token: null,
+          form: null,
+          submission: null
+        };
+        util.Formio.getToken = originalGetToken;
+        util.Formio.Components.components.component.prototype.evalContext = originalEvalContext;
+
+        next();
+      });
+
       // Establish our url alias middleware.
       if (!router.formio.hook.invoke('init', 'alias', router.formio)) {
         router.use(router.formio.middleware.alias);
@@ -100,7 +131,6 @@ module.exports = function(config) {
       router.use(bodyParser.json({
         limit: '16mb'
       }));
-      router.use(methodOverride('X-HTTP-Method-Override'));
 
       // Error handler for malformed JSON
       router.use((err, req, res, next) => {
@@ -159,7 +189,7 @@ module.exports = function(config) {
       }
 
       let mongoUrl = config.mongo;
-      const mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
+      let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
       if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
         mongoConfig.connectTimeoutMS = 300000;
       }
@@ -179,13 +209,20 @@ module.exports = function(config) {
         mongoUrl = config.mongo.join(',');
         mongoConfig.mongos = true;
       }
-      if (config.mongoSA) {
+      if (config.mongoSA || config.mongoCA) {
         mongoConfig.sslValidate = true;
-        mongoConfig.sslCA = config.mongoSA;
+        mongoConfig.sslCA = config.mongoSA || config.mongoCA;
       }
 
       mongoConfig.useUnifiedTopology = true;
       mongoConfig.useCreateIndex = true;
+
+      if (config.mongoSSL) {
+        mongoConfig = {
+          ...mongoConfig,
+          ...config.mongoSSL,
+        };
+      }
 
       // Connect to MongoDB.
       mongoose.connect(mongoUrl, mongoConfig);
@@ -210,7 +247,8 @@ module.exports = function(config) {
 
         router.formio.schemas = {
           PermissionSchema: require('./src/models/PermissionSchema')(router.formio),
-          AccessSchema: require('./src/models/AccessSchema')(router.formio)
+          AccessSchema: require('./src/models/AccessSchema')(router.formio),
+          FieldMatchAccessPermissionSchema: require('./src/models/FieldMatchAccessPermissionSchema')(router.formio),
         };
 
         // Get the models for our project.

@@ -6,8 +6,6 @@ const debug = {
   error: require('debug')('formio:error')
 };
 
-let hook = null;
-
 /**
  * @TODO: Isomorphic validation system.
  *
@@ -16,10 +14,11 @@ let hook = null;
  * @constructor
  */
 class Validator {
-  constructor(form, model, token, decodedToken) {
+  constructor(form, model, token, decodedToken, hook) {
     this.model = model;
     this.form = form;
     this.token = token;
+    this.hook = hook;
 
     const self = this;
     const evalContext = Formio.Components.components.component.prototype.evalContext;
@@ -37,11 +36,7 @@ class Validator {
   evalContext(context) {
     context = context || {};
     context.form = this.form;
-    return hook.alter('evalContext', context, this.form);
-  }
-
-  static setHook(_hook) {
-    hook = _hook;
+    return this.hook.alter('evalContext', context, this.form);
   }
 
   /**
@@ -64,11 +59,15 @@ class Validator {
     }
 
     const unsets = [];
+    const conditionallyInvisibleComponents = [];
     const emptyData = _.isEmpty(submission.data);
     let unsetsEnabled = false;
 
+    const {validateReCaptcha} = this;
+
     // Create the form, then check validity.
     Formio.createForm(this.form, {
+      server: true,
       hooks: {
         setDataValue: function(value, key, data) {
           if (!unsetsEnabled) {
@@ -85,10 +84,22 @@ class Validator {
             (!this.component.hasOwnProperty('clearOnHide') || this.component.clearOnHide) &&
             (!this.conditionallyVisible() || !this.parentVisible)
           ) {
+            conditionallyInvisibleComponents.push({component: this, key, data});
+          }
+          else if (
+            this.component.type === 'password' && value === this.defaultValue
+          ) {
             unsets.push({key, data});
           }
           return value;
-        }
+        },
+        validateReCaptcha(responseToken) {
+          if (validateReCaptcha) {
+            return validateReCaptcha(responseToken);
+          }
+
+          return true;
+        },
       }
     }).then((form) => {
       // Set the validation config.
@@ -115,13 +126,21 @@ class Validator {
         sanitize: true
       });
 
+      // Check the visibility of conditionally visible components after unconditionally visible
+      _.forEach(conditionallyInvisibleComponents, ({component, key, data}) => {
+        if (!component.conditionallyVisible() || !component.parentVisible) {
+          unsets.push({key, data});
+        }
+      });
+
       // Check the validity of the form.
       form.checkAsyncValidity(null, true).then((valid) => {
         if (valid) {
           // Clear the non-persistent fields.
           unsets.forEach((unset) => _.unset(unset.data, unset.key));
           submission.data = emptyData ? {} : form.data;
-          return next(null, submission.data);
+          const visibleComponents = (form.getComponents() || []).map(comp => comp.component);
+          return next(null, submission.data, visibleComponents);
         }
 
         const details = [];

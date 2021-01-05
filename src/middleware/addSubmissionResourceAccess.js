@@ -6,24 +6,31 @@ const util = require('../util/util');
 /**
  * Go through each field and if Submission Resource Access is defined on it, add it to the submissionAccess array.
  */
-module.exports = function(router) {
-  const grabIds = function(input) {
+module.exports = (router) => {
+  const grabIds = (input, roles = []) => {
     if (!input) {
       return [];
     }
 
-    if (!(input instanceof Array)) {
+    if (!Array.isArray(input)) {
       input = [input];
     }
 
-    const final = [];
-    input.forEach(function(element) {
-      if (element && element._id) {
-        final.push(element._id);
-      }
-    });
+    if (!Array.isArray(roles)) {
+      roles = [roles];
+    }
 
-    return final;
+    roles = roles.filter(_.identity);
+
+    return input.flatMap((element) => {
+      if (!element || !element._id) {
+        return [];
+      }
+
+      return roles.length
+        ? roles.map((role) => (`${element._id}:${role}`))
+        : element._id;
+    });
   };
 
   return function addSubmissionResourceAccess(req, res, next) {
@@ -40,30 +47,42 @@ module.exports = function(router) {
 
       /* eslint-disable max-depth */
       util.FormioUtils.eachComponent(form.components, (component, path) => {
-        if (component && component.key && component.defaultPermission) {
+        if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
+          if (!component.submissionAccess) {
+            component.submissionAccess = [
+              {
+                type: component.defaultPermission,
+                roles: [],
+              },
+            ];
+          }
+
           let value = _.get(req.body.data, path);
           if (value) {
-            if (!(value instanceof Array)) {
+            if (!Array.isArray(value)) {
               value = [value];
             }
-            const ids = grabIds(value);
-            if (ids.length) {
-              const perm = _.find(req.body.access, {
-                type: component.defaultPermission
-              });
-              if (perm) {
-                if (!perm.resources) {
-                  perm.resources = [];
-                }
-                perm.resources = perm.resources.concat(ids);
-              }
-              else {
-                req.body.access.push({
-                  type: component.defaultPermission,
-                  resources: ids
+
+            component.submissionAccess.map((access) => {
+              const ids = grabIds(value, access.roles);
+              if (ids.length) {
+                const perm = _.find(req.body.access, {
+                  type: access.type,
                 });
+                if (perm) {
+                  if (!perm.resources) {
+                    perm.resources = [];
+                  }
+                  perm.resources = perm.resources.concat(ids);
+                }
+                else {
+                  req.body.access.push({
+                    type: access.type,
+                    resources: ids,
+                  });
+                }
               }
-            }
+            });
           }
         }
       });

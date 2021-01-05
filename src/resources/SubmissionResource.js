@@ -70,6 +70,7 @@ module.exports = (router) => {
     }),
     router.formio.middleware.ownerFilter,
     router.formio.middleware.submissionResourceAccessFilter,
+    router.formio.middleware.submissionFieldMatchAccessFilter,
     handlers.beforeIndex,
   ];
   handlers.afterIndex = [

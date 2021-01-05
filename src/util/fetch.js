@@ -4,6 +4,8 @@ const {Agent} = require('https');
 const {parse} = require('url');
 const fetch = require('node-fetch');
 const HttpsProxyAgent = require('https-proxy-agent');
+const AbortController = require('abort-controller');
+const _ = require('lodash');
 
 /**
  * Parses a value to a UrlWithStringQuery object
@@ -54,28 +56,49 @@ const noProxyDomains = (process.env.no_proxy || process.env.NO_PROXY || '')
  * @returns {boolean} Wether the url should be excluded from proxying or not.
  */
 function noProxy(url) {
-  const {protocol, host} = parseUrl(url);
+  const {protocol, hostname, host} = parseUrl(url);
   // If invalid url, just return true
-  if (!protocol || !host) {
+  if (!protocol || !host || !hostname) {
     return true;
   }
-  // Check if protocol does not match the available proxy
   if (protocol === 'http:' && httpProxy.host === null) {
     return true;
   }
   if (protocol === 'https:' && httpsProxy.host === null) {
     return true;
   }
-  return noProxyDomains.some((domain) => host.endsWith(domain));
+  return noProxyDomains.some(
+    (domain) => (host.endsWith(domain) || hostname.endsWith(domain))
+  );
 }
 
 module.exports = (url, options = {}) => {
   // Parse the request input information
   const input = parseUrl(url);
 
+  let {rejectUnauthorized} = options;
+
   // Check that the target url is a valid URL
   if (!input.host) {
     return Promise.reject(new TypeError('Only absolute URLs are supported'));
+  }
+
+  // Convert timeout into abort controller;
+  let keepAlive = () => {};
+  if (options.timeout) {
+    const ctrl = new AbortController();
+    keepAlive = _.debounce(() => {
+      ctrl.abort();
+    }, options.timeout);
+    options.signal = ctrl.signal;
+    delete options.timeout;
+    // Start the timer
+    keepAlive();
+  }
+
+  let qs = '';
+  if (options.qs) {
+    qs = Object.keys(options.qs).reduce((str, q) => `${str}${(str ? '&' : '?')}${q}=${options.qs[q]}`, '');
   }
 
   // Shallow clone the request init options
@@ -84,8 +107,10 @@ module.exports = (url, options = {}) => {
   // Check if using HTTPS
   const isHTTPS = input.protocol === 'https:';
 
-  // Check if system is forcing invalid tls rejection (should be rejected by default)
-  const rejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0';
+  if (typeof rejectUnauthorized === 'undefined') {
+     // Check if system is forcing invalid tls rejection (should be rejected by default)
+    rejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0';
+  }
 
   // Check if we need to use http(s) proxy or not
   if (!noProxy(input)) {
@@ -102,5 +127,11 @@ module.exports = (url, options = {}) => {
     });
   }
 
-  return fetch(url, init);
+  return fetch(`${url}${qs}`, init)
+    .then((response) => {
+      if (response.ok) {
+        response.body.on('data', keepAlive);
+      }
+      return response;
+    });
 };

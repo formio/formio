@@ -147,6 +147,42 @@ module.exports = (formio) => {
       },
       access: [formio.schemas.PermissionSchema],
       submissionAccess: [formio.schemas.PermissionSchema],
+      fieldMatchAccess: {
+        type: {
+          read: [formio.schemas.FieldMatchAccessPermissionSchema],
+          write: [formio.schemas.FieldMatchAccessPermissionSchema],
+          create: [formio.schemas.FieldMatchAccessPermissionSchema],
+          admin: [formio.schemas.FieldMatchAccessPermissionSchema]
+        },
+        validate: [
+          {
+            validator: function(accessLevels) {
+              const roles = {};
+              Object.entries(accessLevels).forEach(([accessLevel, permissions]) => {
+                permissions.forEach((permission) => {
+                  permission.roles.forEach((role) => {
+                    if (!roles[role]) {
+                      roles[role] = {};
+                    }
+                    roles[role][accessLevel] = true;
+                  });
+                });
+              });
+              let errMsg = '';
+              Object.entries(roles).forEach(([role, accessLevels]) => {
+                if (Object.keys(accessLevels).length > 1) {
+                  const levelsWithTheSameRole = Object.keys(accessLevels).join(', ');
+                  errMsg += `The ${role} role has an access on multiple levels: ${levelsWithTheSameRole} /n`;
+                }
+              });
+              if (errMsg) {
+                throw new Error(errMsg);
+              }
+              return true;
+            }
+          }
+        ]
+    },
       owner: {
         type: formio.mongoose.Schema.Types.Mixed,
         ref: 'submission',
@@ -213,6 +249,9 @@ module.exports = (formio) => {
       }
     })
   });
+
+  model.schema.index(hook.alter('schemaIndex', {type: 1, deleted: 1, modified: -1}));
+  model.schema.index(hook.alter('schemaIndex', {name: 1, deleted: 1}));
 
   // Add a partial index for deleted forms.
   model.schema.index({

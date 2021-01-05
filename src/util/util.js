@@ -24,10 +24,20 @@ global.document          = {
   createElement: () => ({}),
   cookie: '',
   getElementsByTagName: () => [],
-  documentElement: {style: []}
+  documentElement: {
+    style: [],
+    firstElementChild: {appendChild: () => {}}
+  }
 };
 global.window            = {addEventListener: () => {}, Event: {}, navigator: global.navigator};
+global.btoa = (str) => {
+  return (str instanceof Buffer) ?
+    str.toString('base64') :
+    Buffer.from(str.toString(), 'binary').toString('base64');
+};
+global.self = global;
 const Formio = require('formiojs/formio.form.js');
+global.Formio = Formio.Formio;
 
 // Remove onChange events from all renderer displays.
 _.each(Formio.Displays.displays, (display) => {
@@ -58,7 +68,7 @@ Formio.Utils.Evaluator.evaluator = function(func, args) {
 const Utils = {
   Formio: Formio.Formio,
   FormioUtils: Formio.Utils,
-  deleteProp,
+  deleteProp: deleteProp,
 
   /**
    * A wrapper around console.log that gets ignored by eslint.
@@ -513,7 +523,6 @@ const Utils = {
     }
     catch (e) {
       debug.idToBson(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
-      _id = false;
     }
 
     return _id;
@@ -682,6 +691,25 @@ const Utils = {
     });
   },
 
+  castValue(valueType, value) {
+    switch (valueType) {
+      case 'string':
+        return value.toString();
+      case 'number':
+        return Number(value);
+      case 'boolean':
+        return value === 'true';
+      case '[number]':
+        return value.replace(/(^,)|(,$)/g, '')
+                         .split(',')
+                         .map(val => Number(val));
+      case '[string]':
+        return value.replace(/(^,)|(,$)/g, '')
+                         .split(',')
+                         .map(val => val.toString());
+    }
+  },
+
   /**
    * Application error codes.
    */
@@ -710,8 +738,8 @@ const Utils = {
     components.forEach((component) => {
       if (Array.isArray(component.components)) {
         // If tree type is an array of objects like datagrid and editgrid.
-        if (['datagrid', 'editgrid'].includes(component.type) || component.arrayTree) {
-          _.get(data, component.key, []).forEach((row, index) => {
+        if (['datagrid', 'editgrid', 'dynamicWizard'].includes(component.type) || component.arrayTree) {
+          (_.get(data, component.key) || []).forEach((row, index) => {
             this.eachValue(
               component.components,
               row,

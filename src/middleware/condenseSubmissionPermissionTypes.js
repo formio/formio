@@ -27,7 +27,7 @@ module.exports = function(router) {
     _.each(req.body.access, function(permission) {
       if (
         _.has(permission, 'type')
-        && _.includes(['read', 'create', 'write', 'admin'], permission.type)
+        && _.includes(['read', 'create', 'update', 'delete', 'write', 'admin'], permission.type)
         && _.has(permission, 'resources')
         && (_.get(permission, 'resources') instanceof Array)
       ) {

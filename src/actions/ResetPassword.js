@@ -287,44 +287,52 @@ module.exports = (router) => {
           type: 'resetpass',
         };
 
-        // Look up the user.
-        this.getSubmission(req, token, (err, submission) => {
-          if (err || !submission) {
-            log(req, ecode.user.ENOUSER, err);
-            return res.status(400).send(ecode.user.ENOUSER);
+        // Load the form for this request.
+        router.formio.cache.loadCurrentForm(req, (err, form) => {
+          if (err) {
+            log(req, ecode.cache.EFORMLOAD, err);
+            return next(err);
           }
 
-          // Generate a temporary token for resetting their password.
-          const resetToken = jwt.sign(token, router.formio.config.jwt.secret, {
-            expiresIn: 5 * 60,
-          });
-
-          // Create the reset link and add it to the email parameters.
-          const params = {
-            resetlink: `${this.settings.url}?x-jwt-token=${resetToken}`,
-          };
-
-          const {
-            transport,
-            from,
-            subject,
-            message,
-          } = this.settings;
-
-          // Now send them an email.
-          emailer.send(req, res, {
-            transport,
-            from,
-            emails: username,
-            subject,
-            message,
-          }, _.assign(params, req.body), (err) => {
-            if (err) {
-              log(req, ecode.emailer.ESENDMAIL, err);
+          // Look up the user.
+          this.getSubmission(req, token, (err, submission) => {
+            if (err || !submission) {
+              log(req, ecode.user.ENOUSER, err);
+              return res.status(400).send(ecode.user.ENOUSER);
             }
-            // Let them know an email is on its way.
-            res.status(200).json({
-              message: 'Password reset email was sent.',
+
+            // Generate a temporary token for resetting their password.
+            const resetToken = jwt.sign(token, router.formio.config.jwt.secret, {
+              expiresIn: 5 * 60,
+            });
+
+            // Create the reset link and add it to the email parameters.
+            const params = {
+              resetlink: `${this.settings.url}?x-jwt-token=${resetToken}`,
+            };
+
+            const {
+              transport,
+              from,
+              subject,
+              message,
+            } = this.settings;
+
+            // Now send them an email.
+            emailer.send(req, res, {
+              transport,
+              from,
+              emails: username,
+              subject,
+              message,
+            }, _.assign(params, req.body, {form}), (err) => {
+              if (err) {
+                log(req, ecode.emailer.ESENDMAIL, err);
+              }
+              // Let them know an email is on its way.
+              res.status(200).json({
+                message: 'Password reset email was sent.',
+              });
             });
           });
         });

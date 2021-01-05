@@ -45,9 +45,18 @@ module.exports = function(formio) {
       // The roles associated with this submission, if any.
       // Useful for complex custom resources.
       roles: {
-        type: [formio.mongoose.Schema.Types.ObjectId],
+        type: [formio.mongoose.Schema.Types.Mixed],
         ref: 'role',
-        index: true
+        index: true,
+        set(roles) {
+          // Attempt to convert to objectId.
+          return roles.map(formio.util.ObjectId);
+        },
+        get(roles) {
+          return Array.isArray(roles)
+            ? roles.map((role) => role.toString())
+            : roles;
+        }
       },
 
       // The access associated with this submission.
@@ -73,6 +82,10 @@ module.exports = function(formio) {
       }
     }))
   });
+
+  model.schema.index(hook.alter('schemaIndex', {deleted: 1}));
+  model.schema.index(hook.alter('schemaIndex', {form: 1, deleted: 1}));
+  model.schema.index(hook.alter('schemaIndex', {form: 1, deleted: 1, created: -1}));
 
   // Ensure that all _id's within the data are ObjectId's
   model.schema.pre('save', function(next) {

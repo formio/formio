@@ -14,7 +14,9 @@ module.exports = (router) => {
     }
 
     // Get the submission object.
-    const subSubmission = _.get(data, component.key, {});
+    let subSubmission = _.get(data, component.key, {});
+    const id = subSubmission._id ? subSubmission._id.toString() : null;
+    subSubmission = _.cloneDeep(_.get(req, `resources.${id}`, subSubmission));
 
     // if there isn't a sub-submission or the sub-submission has an _id, don't submit.
     // Should be submitted from the frontend.
@@ -35,7 +37,7 @@ module.exports = (router) => {
     }
 
     let url = '/form/:formId/submission';
-    if (req.method === 'PUT') {
+    if (['PUT', 'PATCH'].includes(req.method)) {
       url += '/:submissionId';
     }
     const childRes = router.formio.util.createSubResponse((err) => {
@@ -74,14 +76,25 @@ module.exports = (router) => {
 
     // Make the child request.
     const method = (req.method === 'POST') ? 'post' : 'put';
+
+    if (req.method === 'PATCH') {
+      childReq.subPatch = true;
+    }
+
     router.resourcejs[url][method](childReq, childRes, function(err) {
       if (err) {
         return next(err);
       }
 
       if (!req.query.dryrun) {
-        if (childRes.resource && childRes.resource.item) {
-          _.set(data, component.key, childRes.resource.item);
+        if (childRes.resource && childRes.resource.item && childRes.resource.item._id) {
+          // Set resources to return full submission on response
+          if (!req.resources) {
+            req.resources = {};
+          }
+          req.resources[childRes.resource.item._id.toString()] = childRes.resource.item;
+          // Set child submission to { _id } to save only the reference
+          _.set(data, component.key, {_id: childRes.resource.item._id});
         }
       }
       next();

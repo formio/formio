@@ -145,11 +145,12 @@ module.exports = function(router) {
 
       const formRevs = {};
       async.each(revs, (rev, next) => {
-        debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${rev.formRevision}`);
+        const formRevision = parseInt(rev.revision || rev.formRevision);
+        debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${formRevision}`);
         router.formio.resources.formrevision.model.findOne(
           hook.alter('formQuery', {
             _rid: util.idToBson(rev.form),
-            _vid: rev.formRevision,
+            _vid: formRevision,
             deleted: {$eq: null}
           }, req)
         ).lean().exec((err, result) => {
@@ -158,12 +159,14 @@ module.exports = function(router) {
             return next(err);
           }
           if (!result) {
-            debug.loadSubForms(`Cannot find form revision for form ${util.idToBson(rev.form)} revision ${rev.formRevision}`);
+            debug.loadSubForms(
+              `Cannot find form revision for form ${rev.form} revision ${formRevision}`,
+            );
             return next();
           }
 
-          debug.loadSubForms(`Loaded revision for form ${util.idToBson(rev.form)} revision ${rev.formRevision}`);
-          formRevs[result._id.toString()] = result;
+          debug.loadSubForms(`Loaded revision for form ${rev.form} revision ${formRevision}`);
+          formRevs[rev.form.toString()] = result;
           next();
         });
       }, (err) => {
@@ -182,7 +185,7 @@ module.exports = function(router) {
       if (req.params.formId) {
         formId = req.params.formId;
       }
-      else if (req.body.data.formId) {
+      else if (req.body.data && req.body.data.formId) {
         formId = req.body.data.formId;
       }
       else if (req.query.formId) {
@@ -192,6 +195,7 @@ module.exports = function(router) {
         return '';
       }
       req.formId = formId;
+      req.params.formId = formId;
       return formId;
     },
 
@@ -420,9 +424,9 @@ module.exports = function(router) {
           const formId = component.form.toString();
           formIds.push(formId);
           debug.loadSubForms(`Found subform ${formId}`);
-          if (component.formRevision) {
+          // TO-DO: Figure out why there are two revisions here?...
+          if (component.revision || component.formRevision) {
             formRevs.push(component);
-            debug.loadSubForms(`Using subform ${formId} revision ${component.formRevision}`);
           }
         }
       }, true);
