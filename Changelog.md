@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased]
+### Fixed
+ - FIO-847: Fixes an issue when in post submission data where any datagrid or editgrid are some not empty string, the server was crashing.
+ - FIO-761: Fixes an issue when the server throws 'Error: cyclic dependency detected' when calling Webhook action
+
 ## 2.0.0-rc.37
 ### Changed
  - Removed the LegacyValidator.
