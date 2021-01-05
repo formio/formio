@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.38
+### Fixed
+ - FIO-847: Fixes an issue when in post submission data where any datagrid or editgrid are some not empty string, the server was crashing.
+ - FIO-761: Fixes an issue when the server throws 'Error: cyclic dependency detected' when calling Webhook action
+
+### Changed
+ - Upgrade formiojs@4.13.0-rc.5
+ - Upgrade mongoose@5.11.10
+
 ## 2.0.0-rc.37
 ### Changed
  - Removed the LegacyValidator.
