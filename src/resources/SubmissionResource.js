@@ -124,10 +124,10 @@ module.exports = (router) => {
         const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
 
         if (withoutPermissions) {
-        // Send only the id as a response if the submission exists.
-        return res.status(200).json({
-          _id: submission._id.toString(),
-        });
+          // Send only the id as a response if the submission exists.
+          return res.status(200).json({
+            _id: submission._id.toString(),
+          });
         }
         else {
         req.subId = submission._id.toString();
