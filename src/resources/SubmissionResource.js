@@ -130,16 +130,16 @@ module.exports = (router) => {
           });
         }
         else {
-        req.subId = submission._id.toString();
-        req.permissionsChecked = false;
-        return next();
+          req.subId = submission._id.toString();
+          req.permissionsChecked = false;
+          return next();
         }
       });
     });
   }, router.formio.middleware.permissionHandler, (req, res, next) => {
     return res.status(200).json({
-          _id: req.subId,
-        });
+      _id: req.subId,
+    });
   });
 
   class SubmissionResource extends Resource {
