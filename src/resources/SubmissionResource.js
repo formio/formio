@@ -120,13 +120,26 @@ module.exports = (router) => {
         if (!submission || !submission._id) {
           return res.status(404).send('Not found');
         }
+        // By default check permissions to access the endpoint.
+        const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
 
+        if (withoutPermissions) {
         // Send only the id as a response if the submission exists.
         return res.status(200).json({
           _id: submission._id.toString(),
         });
+        }
+        else {
+        req.subId = submission._id.toString();
+        req.permissionsChecked = false;
+        return next();
+        }
       });
     });
+  }, router.formio.middleware.permissionHandler, (req, res, next) => {
+    return res.status(200).json({
+          _id: req.subId,
+        });
   });
 
   class SubmissionResource extends Resource {

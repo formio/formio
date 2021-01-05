@@ -1613,6 +1613,7 @@ module.exports = function(app, template, hook) {
           it('Test if a submissions exists', function(done) {
             request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=foo&owner=' + template.users.user1._id.toString(), template))
+              .set('x-jwt-token', template.users.admin.token)
               .expect(200)
               .end(function(err, res) {
                 if (err) {
@@ -1634,6 +1635,7 @@ module.exports = function(app, template, hook) {
           it('Test if a submissions exists', function(done) {
             request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=foo&owner=' + template.users.user2._id.toString(), template))
+              .set('x-jwt-token', template.users.admin.token)
               .expect(200)
               .end(function(err, res) {
                 if (err) {
@@ -1645,9 +1647,17 @@ module.exports = function(app, template, hook) {
               });
           });
 
+          it('Should give an unuthorized error for anonymous', function(done) {
+            request(app)
+              .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=foo&owner=' + template.users.user2._id.toString(), template))
+              .expect(401)
+              .end(done);
+          });
+
           it('Test if a submissions exists', function(done) {
             request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=foo', template))
+              .set('x-jwt-token', template.users.admin.token)
               .expect(200)
               .end(done);
           });
@@ -1655,6 +1665,7 @@ module.exports = function(app, template, hook) {
           it('Test if a submissions exists', function(done) {
             request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/exists?owner=' + template.users.user2._id.toString(), template))
+              .set('x-jwt-token', template.users.admin.token)
               .expect(200)
               .end(function(err, res) {
                 if (err) {
@@ -1669,6 +1680,7 @@ module.exports = function(app, template, hook) {
           it('Should 404 if it does not exist', function(done) {
             request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=test&owner=' + template.users.user2._id.toString(), template))
+              .set('x-jwt-token', template.users.admin.token)
               .expect(404)
               .end(done);
           });
@@ -1676,6 +1688,7 @@ module.exports = function(app, template, hook) {
           it('Should 404 if it does not exist', function(done) {
             request(app)
               .get(hook.alter('url', '/form/' + tempForm._id + '/exists?data.value=test', template))
+              .set('x-jwt-token', template.users.admin.token)
               .expect(404)
               .end(done);
           });
