@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.38
+### Breaking Change
+ - FIO-1027: Adds an ability to switch on/off permissions to access the EXISTS endpoint. Makes access with permissions by default.
+
+### Fixed
+ - FIO-847: Fixes an issue when in post submission data where any datagrid or editgrid are some not empty string, the server was crashing.
+ - FIO-761: Fixes an issue when the server throws 'Error: cyclic dependency detected' when calling Webhook action
+
+### Changed
+ - Upgrade formiojs@4.13.0-rc.5
+ - Upgrade mongoose@5.11.10
+
+## 2.0.0-rc.37
+### Changed
+ - Removed the LegacyValidator.
+ - Decreased limit for resource select to avoid error
+ - Fixed typo in fieldMatchAccess
+ - FIO-853: Added check if fieldMatchAccess object is not empty
+ - FIO-1035: Fixes an issue when a nested form inside the nested Form was receiving "Too many recursive requests." on submit.
+
+## 2.0.0-rc.36
+### Fixed
+ - FOR-2868: Adds an ability to pass the rejectUnauthorized flag to the fetch method.
+ - FIO-994: Makes onlyAvailableItems validation optional
+
+### Changed
+ - Updated formiojs@4.12.3, html-entities@1.3.3, mongoose@5.11.8, nodemailer@6.4.17, mssql@6.3.0
+
 ## 2.0.0-rc.35
 ### Fixed
  - FOR-2874: Added server side validation of recaptcha token.
