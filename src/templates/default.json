@@ -516,5 +516,31 @@
         "lockWait": 1800
       }
     }
-  }
+  },
+  "access": [
+    {
+      "type": "create_all",
+      "roles": [
+        "administrator"
+      ]
+    },
+    {
+      "type": "read_all",
+      "roles": [
+        "administrator"
+      ]
+    },
+    {
+      "type": "update_all",
+      "roles": [
+        "administrator"
+      ]
+    },
+    {
+      "type": "delete_all",
+      "roles": [
+        "administrator"
+      ]
+    }
+  ]
 }
