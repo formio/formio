@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.1-rc.3
+### Changed
+ - Upgrade formiojs@4.12.4, mongoose@5.11.10, nodemailer@6.4.17, resourcejs@2.3.3, nodemon@2.0.7, mssql@6.3.1, prompt@1.1.0, eslint@7.17.0
+
 ## 1.91.1-rc.2
 ### Fixed
  - FOR-2866: added middleware that ensures that we are using proper collection for our request
