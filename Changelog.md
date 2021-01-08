@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.39
+### Changed
+ - FOR-2762: Changes default permissions for a new project
+
 ## 2.0.0-rc.38
 ### Breaking Change
  - FIO-1027: Adds an ability to switch on/off permissions to access the EXISTS endpoint. Makes access with permissions by default.
