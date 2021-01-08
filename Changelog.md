@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 2.0.0-rc.39
 ### Changed
  - FOR-2762: Changes default permissions for a new project
+ - Upgrade formio-workers@1.14.10, mongoose@5.11.11, resourcejs@2.3.3
 
 ## 2.0.0-rc.38
 ### Breaking Change
