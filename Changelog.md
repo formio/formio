@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.40
+### Fixed
+ - FIO-1125: Unable to download a CSV report with Select component
+
+### Changed
+ - Upgrade formiojs@4.13.0-rc.6
+
 ## 2.0.0-rc.39
 ### Changed
  - FOR-2762: Changes default permissions for a new project
