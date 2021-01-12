@@ -5,7 +5,7 @@ const util = require('../../util/util');
 const through = require('through');
 const csv = require('csv');
 const _ = require('lodash');
-const Entities = require('html-entities').AllHtmlEntities;
+const Entities = require('html-entities');
 const moment = require('moment-timezone');
 const {conformToMask} = require('vanilla-text-mask');
 const Formio = require('formiojs/formio.form');
@@ -241,7 +241,7 @@ class CSVExporter extends Exporter {
               }
               return _.isObject(value)
                 ? valuesExtractor(value)
-                : primitiveValueHandler(value);
+                : primitiveValueHandler(value.toString());
             }
           });
         }
