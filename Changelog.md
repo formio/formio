@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.41
+### Changed
+ - Temporarily reverted the expiring action logs. Will wait for 2.1.0 to release this feature.
+ - Changed field match access schema to have splitted permissions instead
+
 ## 2.0.0-rc.40
 ### Fixed
  - FIO-1125: Unable to download a CSV report with Select component
