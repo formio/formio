@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.0-rc.42
+### Fixed
+ - FIO-1175: User is being automatically logged out on remote server
+ - Fix: add a token for resources select components
+
+### Changed
+ - Upgrade mongoose@5.11.12, fs-extra@9.1.0, eslint@7.18.0, supertest@6.1.1
+
 ## 2.0.0-rc.41
 ### Changed
  - Temporarily reverted the expiring action logs. Will wait for 2.1.0 to release this feature.
