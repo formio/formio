@@ -57,6 +57,7 @@ module.exports = (router) => {
             placeholder: 'Select the resources we should reset password against.',
             dataSrc: 'url',
             data: {url: `${basePath}?type=resource`},
+            authenticate: true,
             valueProperty: '_id',
             template: '<span>{{ item.title }}</span>',
             multiple: true,
