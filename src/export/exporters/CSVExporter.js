@@ -145,7 +145,12 @@ class CSVExporter extends Exporter {
           });
         }
         else if (component.type === 'checkbox') {
-          items.push({type: 'boolean'});
+          if (component.name && component.inputType === 'radio') {
+            items.push({name: component.name});
+          }
+          else {
+            items.push({type: 'boolean'});
+          }
         }
         else if (component.type === 'survey') {
           _.each(component.questions, (question) => {
@@ -427,7 +432,8 @@ class CSVExporter extends Exporter {
   getSubmissionData(submission) {
     const updatedSubmission = {};
     const result = this.fields.map((column) => {
-      const componentData = _.get(submission.data, column.path);
+      const path = column.name || column.path;
+      const componentData = _.get(submission.data, path);
 
       // If the path had no results and the component specifies a path, check for a datagrid component
       if (_.isUndefined(componentData) && column.path.includes('.')) {

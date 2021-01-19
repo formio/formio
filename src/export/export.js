@@ -121,6 +121,20 @@ module.exports = (router) => {
         return Promise.all(newComponents);
       };
 
+      //Replace duplicates from form.components if they form a group
+      const handleGroupComponents = (components) => {
+          let name;
+          return components.filter(component => {
+              if (!name && component.name) {
+                  name = component.name;
+                  component.key = component.name;
+                  return true;
+              }
+
+              return !(name && component.name === name);
+          });
+      };
+
       // Replace form components to populated subforms
       /* eslint-disable require-atomic-updates */
       if (form.display === 'wizard') {
@@ -130,6 +144,8 @@ module.exports = (router) => {
       else {
         form.components = await getSubForms(form.components);
       }
+
+      form.components = handleGroupComponents(form.components);
       /* eslint-enable require-atomic-updates */
 
       // Create the exporter.
