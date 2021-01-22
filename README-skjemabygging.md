@@ -15,6 +15,26 @@ Vi har derfor "hacket" til deployment ved å gjøre manuelle steg og så bygge d
 Man må først kjøre opp appen lokalt sånn at client folder lastes ned og installeres før man bygger docker
 
 ## Docker deployment på Heroku
+Kjør kommandoene i prosjektfilen. Pass på branch.
+```bash
+heroku login
+```
+Sjekk om du har installert docker.
+```bash
+docker ps
+```
+Logg inn heroku.
+```bash
+heroku container:login
+```
+Build docker image og push the docker image.
+```bash
+heroku container:push web --app #Application name at heroku#
+```
+Release docker image for å deploye ny endringer i den branchen.
+```bash
+heroku container:release web --app #Application name at heroku#
+```
 
 
 
