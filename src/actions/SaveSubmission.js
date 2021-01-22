@@ -15,16 +15,6 @@ module.exports = function(router) {
   const logOutput = router.formio.log || debug;
   const log = (...args) => logOutput(LOG_EVENT, ...args);
 
-  // Execute a pre-save method for the SaveSubmission action.
-  Action.schema.pre('save', function(next) {
-    if (this.name === 'save') {
-      // Ensure that save actions with resource associations are always executed
-      // before the ones without resource association.
-      this.priority = (this.settings && this.settings.resource) ? 11 : 10;
-    }
-    next();
-  });
-
   class SaveSubmission extends Action {
     static info(req, res, next) {
       next(null, {
