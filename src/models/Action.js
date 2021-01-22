@@ -117,5 +117,15 @@ module.exports = function(formio) {
       });
   };
 
+   // Execute a pre-save method for the SaveSubmission action.
+   Action.schema.pre('save', function(next) {
+    if (this.name === 'save') {
+      // Ensure that save actions with resource associations are always executed
+      // before the ones without resource association.
+      this.priority = (this.settings && this.settings.resource) ? 11 : 10;
+    }
+    next();
+  });
+
   return Action;
 };
