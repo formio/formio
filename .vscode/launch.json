@@ -8,7 +8,12 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/main.js"  
+            "program": "${workspaceFolder}/main.js"  ,
+            "env": {
+                "ROOT_EMAIL": "admin@example.com",
+                "ROOT_PASSWORD": "CHANGEME",
+                "API_KEYS": "abcdef"
+            }   
         }
     ]
 }

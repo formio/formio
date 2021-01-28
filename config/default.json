@@ -74,6 +74,11 @@
           "apiKey": ""
         }
       }
+    },
+    "fileUpload": {
+      "aws": {
+        "bucket": "stg-quintype-dropbox"
+      }
     }
   }
 }
