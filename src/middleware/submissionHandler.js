@@ -280,7 +280,8 @@ module.exports = (router, resourceName, resourceId) => {
         if (
           data &&
           component.hasOwnProperty('persistent') &&
-          !component.persistent
+          !component.persistent &&
+          !['columns', 'fieldset', 'panel', 'table', 'tabs'].includes(component.type)
         ) {
           util.deleteProp(component.key)(data);
         }
