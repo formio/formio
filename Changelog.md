@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased]
+## 2.0.0-rc.43
 ### Changed
  - FOR-2866: Single submission bug using different collection master
  - Upgrade mongoose@5.11.14, supertest@6.1.3, html-entities@2.1.0, eslint@7.19.0, adm-zip@0.5.2
