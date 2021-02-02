@@ -824,6 +824,13 @@ const Utils = {
       });
     });
   },
+  markModifiedParameters: (item, modifiedParameters)=>{
+    modifiedParameters.map((parameter)=>{
+      if (item[parameter]) {
+        item.markModified(parameter);
+      }
+    });
+  },
 };
 
 module.exports = Utils;
