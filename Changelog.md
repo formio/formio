@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## [Unreleased]
 ### Changed
  - FOR-2866: Single submission bug using different collection master
+ 
+### Fixed
+ - FIO-838: Fixes an issue when a "Save Submission to resource" action had an incorrect priority.
+ - FIO-854: Amazon DocumentDB to update default engine version to 4.0.0
+ - FIO-1163: fixed an issue where submission data is deleted for components with the same key as parent layout component
+ - FIO-911: Entire project JSON is dumped into the server logs
+ - FIO-128: Added markModifiedParameters method to utils.
 
 ## 2.0.0-rc.42
 ### Fixed
