@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased]
+### Changed
+ - FOR-2866: Single submission bug using different collection master
+
 ## 2.0.0-rc.42
 ### Fixed
  - FIO-1175: User is being automatically logged out on remote server
