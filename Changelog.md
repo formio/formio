@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## [Unreleased]
 ### Changed
  - FOR-2866: Single submission bug using different collection master
+ - Upgrade mongoose@5.11.14, supertest@6.1.3, html-entities@2.1.0, eslint@7.19.0, adm-zip@0.5.2
  
 ### Fixed
  - FIO-838: Fixes an issue when a "Save Submission to resource" action had an incorrect priority.
