@@ -473,7 +473,7 @@ class CSVExporter extends Exporter {
    */
   coerceToString(data, column, submission) {
     data = (column.preprocessor || _.identity)(data, submission);
-
+    let result = '';
     if (Array.isArray(data) && data.length > 0) {
       const fullPath = column.subpath
         ? `${column.key}.${column.subpath}`
@@ -481,21 +481,43 @@ class CSVExporter extends Exporter {
 
       return data.map((item) => `"${this.coerceToString(_.get(item, fullPath, item), column)}"`).join(',');
     }
-    if (_.isString(data)) {
+    else if (_.isString(data)) {
       if (column.type === 'boolean') {
-        return Boolean(data).toString();
+        result = Boolean(data).toString();
       }
-
-      return data.toString();
+      else {
+        result = data.toString();
+      }
     }
-    if (_.isNumber(data)) {
-      return data.toString();
+    else if (_.isNumber(data)) {
+      result = data.toString();
     }
-    if (_.isObject(data)) {
+    else if (_.isObject(data)) {
       return this.coerceToString(_.get(data, column.subpath, ''), column);
     }
+    else {
+      result = JSON.stringify(data);
+    }
 
-    return JSON.stringify(data);
+    return this.injectionProtector(result);
+  }
+
+  injectionProtector(data) {
+    if (!data) {
+      return data;
+    }
+
+    if (!_.isString(data)) {
+      data = data.toString();
+    }
+
+    const riskyChars = ['=', '+', '-', '@'];
+    const regexStr = `(?<=(?:^|"|“)\\s*)([${riskyChars.join('\\')}])`;
+    const regExp = new RegExp(regexStr, 'gm');
+
+    return _.replace(data, regExp, (char) => {
+      return `\`${char}`;
+    });
   }
 }
 
