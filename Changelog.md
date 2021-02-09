@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## 2.0.0-rc.43
+## 2.1.0-rc.1
 ### Changed
  - FOR-2866: Single submission bug using different collection master
  - Upgrade mongoose@5.11.14, supertest@6.1.3, html-entities@2.1.0, eslint@7.19.0, adm-zip@0.5.2
@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - FIO-1163: fixed an issue where submission data is deleted for components with the same key as parent layout component
  - FIO-911: Entire project JSON is dumped into the server logs
  - FIO-128: Added markModifiedParameters method to utils.
+
+## 2.0.0
+### Changed
+ - No changes. Released 2.0.0-rc.42 as official release.
 
 ## 2.0.0-rc.42
 ### Fixed
