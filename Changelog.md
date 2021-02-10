@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.1-rc.1
+### Changed
+ - Upgrade formiojs@4.13.0-rc.9
+ - Upgrade mongodb@3.6.4, mongoose@5.11.15, supertest@6.1.3, html-entities@2.1.0, eslint@7.19.0, adm-zip@0.5.2, moment-timezone@0.5.33
+
 ## 2.0.0
 ### Changed
  - No changes. Released 2.0.0-rc.42 as official release.
