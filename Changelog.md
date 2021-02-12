@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.1-rc.2
+### Fixed
+ - FIO-832: fixed error code returned when trying to delete the Everyone role
+
+### Changed
+ - Upgrade nodemailer@6.4.18, mocha@8.3.0
+
 ## 2.0.1-rc.1
 ### Changed
  - Upgrade formiojs@4.13.0-rc.9
