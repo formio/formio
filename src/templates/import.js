@@ -35,6 +35,13 @@ module.exports = (router) => {
    */
   const baseAlter = (item, template, done) => done(null, item);
 
+  const updateRevisionProperty = (item, newValue) => {
+    if (item.hasOwnProperty('formRevision')) {
+      item.formRevision = newValue;
+    }
+    item.revision = newValue;
+  }
+
   /**
    * Converts an entities role id (machineName) to bson id.
    *
@@ -111,14 +118,14 @@ module.exports = (router) => {
     if (template.hasOwnProperty(`forms`) && template.forms.hasOwnProperty(entity.form)) {
       entity.form = template.forms[formName]._id.toString();
       if (template.forms[formName].hasOwnProperty('_vid') && template.forms[formName]._vid) {
-        entity.formRevision = template.forms[formName]._vid.toString();
+        updateRevisionProperty(entity, template.forms[formName]._vid.toString());
       }
       return true;
     }
     if (template.hasOwnProperty(`resources`) && template.resources.hasOwnProperty(entity.form)) {
       entity.form = template.resources[formName]._id.toString();
       if (template.resources[formName].hasOwnProperty('_vid') && template.resources[formName]._vid) {
-        entity.formRevision = template.resources[formName]._vid.toString();
+        updateRevisionProperty(entity, template.resources[formName]._vid.toString());
       }
       return true;
     }
@@ -147,11 +154,11 @@ module.exports = (router) => {
     if (template.forms && template.forms[entity.form] && template.forms[entity.form]._id) {
       entity.form = template.forms[formName]._id.toString();
       if (template.forms[formName].hasOwnProperty('_vid') && template.forms[formName]._vid) {
-        entity.formRevision = template.forms[formName]._vid.toString();
+        updateRevisionProperty(entity, template.forms[formName]._vid.toString());
       }
       else if (template.forms[formName].revisions) {
         // Make sure revision is set if revisions are enabled on the form
-        entity.formRevision = getFormRevision(template.forms[formName]._vid);
+        updateRevisionProperty(entity, getFormRevision(template.forms[formName]._vid));
       }
       changes = true;
     }
@@ -160,10 +167,10 @@ module.exports = (router) => {
     if (!changes && template.resources && template.resources[entity.form] && template.resources[entity.form]._id) {
       entity.form = template.resources[entity.form]._id.toString();
       if (template.resources[formName].hasOwnProperty('_vid') && template.resources[formName]._vid) {
-        entity.formRevision = template.resources[formName]._vid.toString();
+        updateRevisionProperty(entity, template.resources[formName]._vid.toString());
       }
       else if (template.resources[formName].revisions) {
-        entity.formRevision = getFormRevision(template.resources[formName]._vid);
+        updateRevisionProperty(entity, getFormRevision(template.resources[formName]._vid));
       }
       changes = true;
     }
