@@ -245,8 +245,6 @@ module.exports = function(formio) {
       };
     }
 
-    mongoConfig.useUnifiedTopology = true;
-
     // Establish a connection and continue with execution.
     MongoClient.connect(dbUrl, mongoConfig, function(err, client) {
       if (err) {

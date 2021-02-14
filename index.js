@@ -214,7 +214,6 @@ module.exports = function(config) {
         mongoConfig.sslCA = config.mongoSA || config.mongoCA;
       }
 
-      mongoConfig.useUnifiedTopology = true;
       mongoConfig.useCreateIndex = true;
 
       if (config.mongoSSL) {
@@ -225,7 +224,7 @@ module.exports = function(config) {
       }
 
       // Connect to MongoDB.
-      mongoose.connect(mongoUrl, mongoConfig);
+      mongoose.connect(mongoUrl,  mongoConfig );
       mongoose.set('useFindAndModify', false);
       mongoose.set('useCreateIndex', true);
 

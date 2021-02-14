@@ -33,6 +33,10 @@ module.exports = (router) => {
       return next();
     }
 
+    if (roleId === '000000000000000000000000') {
+      return res.sendStatus(405);
+    }
+
     // Load the role in question.
     router.formio.resources.role.model.findById(roleId).lean().exec(function(err, role) {
       if (err || !role) {

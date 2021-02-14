@@ -488,11 +488,11 @@ module.exports = (router) => {
       }
 
       alter = alter || baseAlter;
-      debug.items(items);
+      debug.items(Object.keys(items));
 
       // If the given items don't have a valid structure for this entity, skip the import.
       if (valid && !valid(items)) {
-        debug.install(`The given items were not valid: ${JSON.stringify(items)}`);
+        debug.install(`The given items were not valid: ${JSON.stringify(Object.keys(items))}`);
         return done();
       }
 
@@ -515,11 +515,11 @@ module.exports = (router) => {
           }
           // If no document was provided after the alter, skip the insertion.
           if (!document) {
-            debug.install(`No document was given to install after the alter ${item} (${machineName})`);
+            debug.install(`No document was given to install after the alter ${item.name} (${machineName})`);
             return next();
           }
 
-          debug.install(document);
+          debug.install(document.name);
           const query = entity.query ? entity.query(document, template) : {
             machineName: document.machineName,
             deleted: {$eq: null}
@@ -539,8 +539,7 @@ module.exports = (router) => {
                 }
 
                 items[machineName] = result.toObject();
-                debug.save(machineName);
-                debug.save(items[machineName]);
+                debug.save(items[machineName].machineName);
                 if (entity.hasOwnProperty('deleteAllActions')) {
                   return entity.deleteAllActions(updatedDoc._id, next);
                 }
@@ -565,7 +564,7 @@ module.exports = (router) => {
               debug.install(`Existing found`);
               doc = _.assign(doc, document);
               setVid(doc, 0);
-              debug.install(doc);
+              debug.install(doc.machineName);
               return saveDoc(doc);
             }
             else {

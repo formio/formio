@@ -4,6 +4,51 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.1.0-rc.2
+### Fixed
+ - FIO-832: fixed error code returned when trying to delete the Everyone role
+
+## 2.1.0-rc.1
+### Changed
+ - FOR-2866: Single submission bug using different collection master
+ - Upgrade mongoose@5.11.14, supertest@6.1.3, html-entities@2.1.0, eslint@7.19.0, adm-zip@0.5.2
+ 
+### Fixed
+ - FIO-838: Fixes an issue when a "Save Submission to resource" action had an incorrect priority.
+ - FIO-854: Amazon DocumentDB to update default engine version to 4.0.0
+ - FIO-1163: fixed an issue where submission data is deleted for components with the same key as parent layout component
+ - FIO-911: Entire project JSON is dumped into the server logs
+ - FIO-128: Added markModifiedParameters method to utils.
+
+## 2.0.1-rc.2
+### Fixed
+ - FIO-832: fixed error code returned when trying to delete the Everyone role
+
+### Changed
+ - Upgrade nodemailer@6.4.18, mocha@8.3.0
+
+## 2.0.1-rc.1
+### Changed
+ - Upgrade formiojs@4.13.0-rc.9
+ - Upgrade mongodb@3.6.4, mongoose@5.11.15, supertest@6.1.3, html-entities@2.1.0, eslint@7.19.0, adm-zip@0.5.2, moment-timezone@0.5.33
+
+## 2.0.0
+### Changed
+ - No changes. Released 2.0.0-rc.42 as official release.
+
+## 2.0.0-rc.42
+### Fixed
+ - FIO-1175: User is being automatically logged out on remote server
+ - Fix: add a token for resources select components
+
+### Changed
+ - Upgrade mongoose@5.11.12, fs-extra@9.1.0, eslint@7.18.0, supertest@6.1.1
+
+## 2.0.0-rc.41
+### Changed
+ - Temporarily reverted the expiring action logs. Will wait for 2.1.0 to release this feature.
+ - Changed field match access schema to have splitted permissions instead
+
 ## 2.0.0-rc.40
 ### Fixed
  - FIO-1125: Unable to download a CSV report with Select component

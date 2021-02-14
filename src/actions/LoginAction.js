@@ -55,6 +55,7 @@ module.exports = (router) => {
           placeholder: 'Select the resources we should login against.',
           dataSrc: 'url',
           data: {url: `${basePath}?type=resource&limit={{ limit }}`},
+          authenticate: true,
           valueProperty: '_id',
           template: '<span>{{ item.title }}</span>',
           limit: 10000,

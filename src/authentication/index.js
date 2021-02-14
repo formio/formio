@@ -28,11 +28,13 @@ module.exports = (router) => {
    *
    * @param payload {Object}
    *   The decoded JWT.
+   * @param customSecret {String}
+   *   Optional secret.
    *
    * @return {String|Boolean}
    *   The JWT from the given payload, or false if the jwt payload is still valid.
    */
-  const getToken = (tokenInfo) => {
+  const getToken = (tokenInfo, customSecret) => {
     // Clone to make sure we don't change original.
     const payload = Object.assign({}, tokenInfo);
     delete payload.iat;
@@ -43,7 +45,7 @@ module.exports = (router) => {
       secret,
     } = jwtConfig;
 
-    return jwt.sign(payload, secret, {
+    return jwt.sign(payload, customSecret || secret, {
       expiresIn: expireTime * 60,
     });
   };

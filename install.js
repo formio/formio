@@ -3,7 +3,6 @@
 const prompt = require('prompt');
 const async = require('async');
 const fs = require('fs-extra');
-const _ = require('lodash');
 const nunjucks = require('nunjucks');
 nunjucks.configure([], {watch: false});
 const util = require('./src/util/util');
@@ -16,12 +15,9 @@ module.exports = function(formio, items, done) {
 
   // The directory for the client application.
   const directories = {
-    client: path.join(__dirname, 'client'),
-    app: path.join(__dirname, 'app')
+    client: path.join(__dirname, 'client')
   };
 
-  // The application they wish to install.
-  let application = '';
   let templateFile = '';
 
   /**
@@ -180,91 +176,6 @@ module.exports = function(formio, items, done) {
       });
     },
 
-    // Allow them to select the application.
-    whatApp: function(done) {
-      if (process.env.ROOT_EMAIL) {
-        done();
-      }
-      const repos = [
-        'None',
-        'https://github.com/formio/formio-app-humanresources',
-        'https://github.com/formio/formio-app-servicetracker',
-        'https://github.com/formio/formio-app-todo',
-        'https://github.com/formio/formio-app-salesquote',
-        'https://github.com/formio/formio-app-basic'
-      ];
-      let message = '\nWhich Github application would you like to install?\n'.green;
-      _.each(repos, function(repo, index) {
-        message += `  ${index + 1}.) ${repo}\n`;
-      });
-      message += '\nOr, you can provide a custom Github repository...\n'.green;
-      util.log(message);
-      prompt.get([
-        {
-          name: 'app',
-          description: 'GitHub repository or selection?',
-          default: '1',
-          required: true
-        }
-      ], function(err, results) {
-        if (err) {
-          return done(err);
-        }
-
-        if (results.app.indexOf('https://github.com/') !== -1) {
-          application = results.app;
-        }
-        else {
-          const selection = parseInt(results.app, 10);
-          if (_.isNumber(selection)) {
-            if ((selection > 1) && (selection <= repos.length)) {
-              application = repos[selection - 1];
-            }
-          }
-        }
-
-        // Replace github.com url.
-        application = application.replace('https://github.com/', '');
-        done();
-      });
-    },
-
-    /**
-     * Download the application.
-     *
-     * @param done
-     * @returns {*}
-     */
-    downloadApp: function(done) {
-      if (!application) {
-        return done();
-      }
-
-      // Download the app.
-      download(
-        `https://codeload.github.com/${application}/zip/master`,
-        'app.zip',
-        'app',
-        done
-      );
-    },
-
-    /**
-     * Extract the application to the app folder.
-     *
-     * @param done
-     * @returns {*}
-     */
-    extractApp: function(done) {
-      if (!application) {
-        return done();
-      }
-
-      const parts = application.split('/');
-      const appDir = `${parts[1]}-master`;
-      extract('app.zip', appDir, 'app', done);
-    },
-
     /**
      * Download the Form.io admin client.
      *
@@ -306,10 +217,6 @@ module.exports = function(formio, items, done) {
      * @return {*}
      */
     whatTemplate: function(done) {
-      if (application) {
-        templateFile = 'app';
-        return done();
-      }
       if (process.env.ROOT_EMAIL) {
         templateFile = 'client';
         done();
@@ -463,9 +370,6 @@ module.exports = function(formio, items, done) {
   prompt.start();
   async.series([
     steps.areYouSure,
-    steps.whatApp,
-    steps.downloadApp,
-    steps.extractApp,
     steps.downloadClient,
     steps.extractClient,
     steps.whatTemplate,
