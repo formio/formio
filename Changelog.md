@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.1.0-rc.3
+### Added
+ - Added action logs to form context only.
+
+### Fixed
+ - FIO-1309: Fixed recalculation of field if calculateServer is disabled.
+ - FIO-888: Adds CSV Formula Injection Protection
+ - FIO-1140: Fixes an issue where deprecated formRevision property is added when deploying a version to a stage
+
 ## 2.1.0-rc.2
 ### Fixed
  - FIO-832: fixed error code returned when trying to delete the Everyone role
