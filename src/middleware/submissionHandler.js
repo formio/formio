@@ -116,10 +116,9 @@ module.exports = (router, resourceName, resourceId) => {
         // Allow them to alter the body.
         req.body = hook.alter('submissionRequest', req.body);
 
-        // See if they provided an update to the roles.
-        if (req.method === 'PUT' && req.params.submissionId && req.rolesUpdate && req.rolesUpdate.length) {
+        if (req.method === 'PUT' && req.params.submissionId) {
           router.formio.cache.loadCurrentSubmission(req, (err, current) => {
-            if (current.roles && current.roles.length) {
+            if (req.rolesUpdate && req.rolesUpdate.length && current.roles && current.roles.length) {
               const newRoles = _.intersection(
                 current.roles.map((role) => role.toString()),
                 req.rolesUpdate
@@ -128,6 +127,8 @@ module.exports = (router, resourceName, resourceId) => {
                 req.body.roles = newRoles.map((roleId) => util.idToBson(roleId));
               }
             }
+
+            req.currentSubmissionData = current && current.data;
             done();
           });
         }
@@ -276,6 +277,8 @@ module.exports = (router, resourceName, resourceId) => {
         action,
         path,
       }) => {
+        const componentPath = util.valuePath(path, component.key);
+
         // Remove not persistent data
         if (
           data &&
@@ -285,10 +288,19 @@ module.exports = (router, resourceName, resourceId) => {
         ) {
           util.deleteProp(component.key)(data);
         }
+        else if (req.method === 'PUT') {
+          // Restore value of components with calculated value and disabled server calculation
+          // if they don't present in submission data
+          const newCompData = _.get(submissionData, componentPath, undefined);
+          const currentCompData = _.get(req.currentSubmissionData, componentPath);
+
+          if (component.calculateValue && !component.calculateServer && currentCompData && newCompData === undefined) {
+            _.set(submissionData, componentPath, _.get(req.currentSubmissionData, componentPath));
+          }
+        }
 
         const fieldActions = hook.alter('fieldActions', fActions);
         const propertyActions = hook.alter('propertyActions', pActions);
-        const componentPath = util.valuePath(path, component.key);
 
         // Execute the property handlers after validation has occurred.
         const handlerArgs = [
