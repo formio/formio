@@ -8,7 +8,7 @@ const Q = require('q');
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/util');
 const errorCodes = require('./error-codes.js');
-const vm = require('vm');
+const {VM} = require('vm2');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
@@ -42,21 +42,21 @@ _.each(Formio.Displays.displays, (display) => {
 Formio.Utils.Evaluator.noeval = true;
 Formio.Utils.Evaluator.evaluator = function(func, args) {
   return function() {
-    const params = _.keys(args);
-    const sandbox = vm.createContext({
-      result: null,
-      args
-    });
+    let result = null;
     /* eslint-disable no-empty */
     try {
-      const script = new vm.Script(`result = (function({${params.join(',')}}) {${func}})(args);`);
-      script.runInContext(sandbox, {
-        timeout: 250
-      });
+      result = (new VM({
+        timeout: 250,
+        sandbox: {
+          result: null,
+          args
+        },
+        fixAsync: true
+      })).run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
     }
     catch (err) {}
     /* eslint-enable no-empty */
-    return sandbox.result;
+    return result;
   };
 };
 
