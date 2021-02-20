@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.0.1-rc.4
+### Fixed
+ - Automated tests.
+
 ## 2.0.1-rc.3
 ### Changed
  - Upgrade formio-workers@1.14.12, lodash@4.17.21, mongoose@5.11.17, eslint@7.20.0, adm-zip@0.5.3
