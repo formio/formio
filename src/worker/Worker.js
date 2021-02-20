@@ -9,7 +9,7 @@ module.exports = (formio) => {
     constructor(type) {
       this.worker = hook.alter('worker', type);
       if (!this.worker || (this.worker === type)) {
-        this.worker = new Thread(Thread.Tasks[type]);
+        this.worker = new Thread(type);
       }
     }
 
