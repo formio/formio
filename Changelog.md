@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.1.0-rc.4
+### Changed
+ - Upgrade mongoose@5.11.17, eslint@7.20.0, adm-zip@0.5.3
+ - Using vm2 for added security.
+
+### Fixed
+ - FIO-476: Fixes an issue when Sketch Pad didn't show data on CSV export - showed a list of empty strings.
+ - fix: allow Docker to load git npm paths 
+
 ## 2.1.0-rc.3
 ### Added
  - Added action logs to form context only.
