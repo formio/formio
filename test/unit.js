@@ -15,7 +15,7 @@ module.exports = function(app, template, hook) {
    */
   describe('Nunjucks Rendering', function() {
     it('Should render a string with tokens', function(done) {
-      new Thread(Thread.Tasks.nunjucks).start({
+      new Thread('nunjucks').start({
         render: '{{ data.firstName }} {{ data.lastName }}',
         context: {
           data: {
@@ -41,7 +41,7 @@ module.exports = function(app, template, hook) {
     });
 
     it('Should timeout if someone puts bad code in the template', function(done) {
-      new Thread(Thread.Tasks.nunjucks).start({
+      new Thread('nunjucks').start({
         render: '{{ callme() }}',
         context: {
           callme: function() {
@@ -52,15 +52,17 @@ module.exports = function(app, template, hook) {
       })
       .then(test => {
         // FA-857 - No email will be sent if bad code is given.
-        assert.equal(test, null);
+        assert.equal(test, 'Script execution timed out after 15000ms');
         done();
       })
-      .catch(done);
+      .catch((err) => {
+        done();
+      });
     });
 
     it('email template threads wont block eachother', function(done) {
       let request1 = new Promise((resolve, reject) => {
-        new Thread(Thread.Tasks.nunjucks).start({
+        new Thread('nunjucks').start({
           render: '{{ callme() }}',
           context: {
             callme: function() {
@@ -71,14 +73,14 @@ module.exports = function(app, template, hook) {
         })
         .then(test => {
           // FA-857 - No email will be sent if bad code is given.
-          assert.equal(test, null);
+          assert.equal(test, 'Script execution timed out after 15000ms');
           resolve();
         })
         .catch(reject);
       });
       let request2 = new Promise((resolve, reject) => {
         setTimeout(() => {
-          new Thread(Thread.Tasks.nunjucks).start({
+          new Thread('nunjucks').start({
             render: '{{ callme2() }}',
             context: {
               callme2: function() {
@@ -87,7 +89,6 @@ module.exports = function(app, template, hook) {
             }
           })
           .then(test => {
-            // FA-857 - No email will be sent if bad code is given.
             assert.equal(test, `hello world`);
             resolve();
           })
@@ -107,7 +108,7 @@ module.exports = function(app, template, hook) {
       let finished = [];
       let request1 = new Promise((resolve, reject) => {
         started.push('request1');
-        new Thread(Thread.Tasks.nunjucks).start({
+        new Thread('nunjucks').start({
           render: '{{ callme() }}',
           context: {
             callme: function() {
@@ -119,7 +120,7 @@ module.exports = function(app, template, hook) {
         .then(test => {
           finished.push('request1');
           // FA-857 - No email will be sent if bad code is given.
-          assert.equal(test, null);
+          assert.equal(test, 'Script execution timed out after 15000ms');
           resolve();
         })
         .catch(reject);
@@ -181,7 +182,7 @@ module.exports = function(app, template, hook) {
     });
 
     it('Should not allow them to modify parameters in the template', function(done) {
-      new Thread(Thread.Tasks.nunjucks).start({
+      new Thread('nunjucks').start({
         render: '{% set form = "246" %}{{ form | test1 }} {{ data.firstName }} {{ data.lastName }}',
         context: {
           form: '123',
@@ -204,7 +205,7 @@ module.exports = function(app, template, hook) {
     });
 
     it('Should not expose private context variables.', function(done) {
-      new Thread(Thread.Tasks.nunjucks).start({
+      new Thread('nunjucks').start({
         render: '{{ _private.secret }}',
         context: {
           _private: {
@@ -234,7 +235,7 @@ module.exports = function(app, template, hook) {
     });
 
     it('Should allow filters to have access to secret variables.', function(done) {
-      new Thread(Thread.Tasks.nunjucks).start({
+      new Thread('nunjucks').start({
         render: '{{ "test" | secret }}',
         context: {
           _private: {

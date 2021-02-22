@@ -40,7 +40,7 @@ module.exports = (router) => {
       item.formRevision = newValue;
     }
     item.revision = newValue;
-  }
+  };
 
   /**
    * Converts an entities role id (machineName) to bson id.
