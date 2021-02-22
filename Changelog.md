@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.1.0-rc.4
+### Fixed
+ - FIO-1179: Fixed For 2866 single submission bug using different collection master
+ - FIO-1163: fixed an issue where submission data is deleted for components with same key as parent layout component
+ - FIO-911: Entire project JSON is dumped into the server logs
+ - FIO-128: Added markModifiedParameters method to utils.
+
 ## 2.1.0-rc.3
 ### Added
  - Added action logs to form context only.
