@@ -207,6 +207,10 @@ class CSVExporter extends Exporter {
                   return tempVal;
                 }
                 else if (component.type === 'select') {
+                  // eslint-disable-next-line max-depth
+                  if (form.name === 'license2' && component.key === 'user') {
+                    return value.map(item => _.get(item, 'data.email', ''));
+                  }
                   return value;
                 }
               }
