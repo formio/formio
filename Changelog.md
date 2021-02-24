@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.2
+### Changed
+ - official build
+
+## 1.91.2-rc.2
+### Changed
+ - Upgrade formio-workers@1.14.12, lodash@4.17.21, mongodb@3.6.4, mongoose@5.11.17, nodemailer@6.4.18, fs-extra@9.1.0, eslint@7.20.0, mocha@8.3.0, adm-zip@0.5.3, moment-timezone@0.5.33
+ - FIO-1277: Changed vm to vm2 to added security.
+
+### Fixed
+ - FIO-838: Fixes an issue when a "Save Submission to resource" action had an incorrect priority. For 6.x server
+
 ## 1.91.2-rc.1
 ### Changed
  - Upgrade formiojs@4.12.7

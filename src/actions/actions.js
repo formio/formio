@@ -2,7 +2,7 @@
 
 const Resource = require('resourcejs');
 const async = require('async');
-const vm = require('vm');
+const {VM} = require('vm2');
 const _ = require('lodash');
 const debug = {
   error: require('debug')('formio:error'),
@@ -269,28 +269,26 @@ module.exports = (router) => {
         }
 
         try {
-          const script = new vm.Script(json
-            ? `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })`
-            : condition.custom);
-
-          const sandbox = await hook.alter('actionContext', {
-            jsonLogic: util.FormioUtils.jsonLogic,
-            data: req.body.data,
-            form: req.form,
-            query: req.query,
-            util: util.FormioUtils,
-            moment: moment,
-            submission: req.body,
-            previous: req.previousSubmission,
-            execute: false,
-            _
-          }, req);
-
-          script.runInContext(vm.createContext(sandbox), {
-            timeout: 500
-          });
-
-          return sandbox.execute;
+          return (new VM({
+            timeout: 500,
+            sandbox: await hook.alter('actionContext', {
+              jsonLogic: util.FormioUtils.jsonLogic,
+              data: req.body.data,
+              form: req.form,
+              query: req.query,
+              util: util.FormioUtils,
+              moment: moment,
+              submission: req.body,
+              previous: req.previousSubmission,
+              execute: false,
+              _
+            }, req),
+            eval: false,
+            fixAsync: true
+          })).run(json ?
+            `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
+            condition.custom
+          );
         }
         catch (err) {
           router.formio.log(
