@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 2.1.0-rc.8
 ### Changes
  - Changed vm to vm2 to add additional security.
+ - Upgrade formiojs@4.13.0-rc.11
 
 ## 2.1.0-rc.7
 ### Fixed
