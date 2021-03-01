@@ -694,14 +694,28 @@ module.exports = (router) => {
         template = JSON.parse(template);
       }
 
-      template = hook.alter('importOptions', template, req, res);
-      importTemplate(template, alters, (err, data) => {
-        if (err) {
-          return next(err.message || err);
-        }
-
-        return res.status(200).send('Ok');
+      const isTemplateValid = Object.values(template.forms).concat(Object.values(template.resources)).every(form=>{
+        return form.components.every(component=>{
+          if (component.hasOwnProperty('form')) {
+            return template.forms.hasOwnProperty(component.form) || template.resources.hasOwnProperty(component.form);
+          }
+          return true;
+        });
       });
+
+      if (isTemplateValid) {
+        template = hook.alter('importOptions', template, req, res);
+        importTemplate(template, alters, (err, data) => {
+          if (err) {
+            return next(err.message || err);
+          }
+
+          return res.status(200).send('Ok');
+        });
+      }
+ else {
+        res.status(500).send('Incorrect project template');
+      }
     });
   }
 
