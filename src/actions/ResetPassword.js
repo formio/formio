@@ -140,7 +140,7 @@ module.exports = (router) => {
             label: 'From:',
             key: 'from',
             inputType: 'email',
-            defaultValue: 'no-reply@form.io',
+            defaultValue: router.formio.config.defaultEmailSource,
             input: true,
             placeholder: 'Send the email from the following address',
             type: 'textfield',
