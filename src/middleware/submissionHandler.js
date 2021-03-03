@@ -154,6 +154,48 @@ module.exports = (router, resourceName, resourceId) => {
       router.formio.actions.initialize(method.name, req, res, done);
     }
 
+    function validateReCaptcha(req, res, done) {
+      // No need to validate on GET requests.
+      if (!(['POST', 'PUT', 'PATCH'].includes(req.method) && req.body && !req.noValidate)) {
+        return done();
+      }
+
+      let reCaptchaFound = false;
+      util.eachComponent(req.currentForm.components, (component, path) => {
+        if (component.type !== 'recaptcha' || reCaptchaFound) {
+          return;
+        }
+
+        const reCaptchaValue = _.get(req.submission.data, path);
+        if (!reCaptchaValue || !reCaptchaValue.token) {
+          return done('ReCaptcha: Token is not specified in submission');
+        }
+
+        router.formio.mongoose.models.token.findOne({value: reCaptchaValue.token}, (err, token) => {
+          if (err) {
+            reCaptchaFound = true;
+            return done('ReCaptcha: find token error');
+          }
+
+          if (!token) {
+            reCaptchaFound = true;
+            return done('ReCaptcha: Response token not found');
+          }
+
+          // Remove temp token after submission with reCaptcha and unset reCaptcha value
+          return token.remove(() => {
+            _.unset(req.submission.data, path);
+            reCaptchaFound = true;
+            return done();
+          });
+        });
+      }, true);
+
+      if (!reCaptchaFound) {
+        return done();
+      }
+    }
+
     /**
      * Validate a submission.
      *
@@ -421,6 +463,7 @@ module.exports = (router, resourceName, resourceId) => {
         async.apply(initializeActions, req, res),
         async.apply(executeFieldHandlers, false, req, res),
         async.apply(validateSubmission, req, res),
+        async.apply(validateReCaptcha, req, res),
         async.apply(executeFieldHandlers, true, req, res),
         async.apply(alterSubmission, req, res),
         async.apply(executeActions('before'), req, res)
