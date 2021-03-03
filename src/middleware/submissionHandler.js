@@ -160,8 +160,9 @@ module.exports = (router, resourceName, resourceId) => {
         return done();
       }
 
+      let reCaptchaFound = false;
       util.eachComponent(req.currentForm.components, (component, path) => {
-        if (component.type !== 'recaptcha') {
+        if (component.type !== 'recaptcha' || reCaptchaFound) {
           return;
         }
 
@@ -172,20 +173,27 @@ module.exports = (router, resourceName, resourceId) => {
 
         router.formio.mongoose.models.token.findOne({value: reCaptchaValue.token}, (err, token) => {
           if (err) {
+            reCaptchaFound = true;
             return done('ReCaptcha: find token error');
           }
 
           if (!token) {
+            reCaptchaFound = true;
             return done('ReCaptcha: Response token not found');
           }
 
           // Remove temp token after submission with reCaptcha and unset reCaptcha value
           return token.remove(() => {
             _.unset(req.submission.data, path);
+            reCaptchaFound = true;
             return done();
           });
         });
       }, true);
+
+      if (!reCaptchaFound) {
+        return done();
+      }
     }
 
     /**
