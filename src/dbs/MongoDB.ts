@@ -18,7 +18,7 @@ export class MongoDB extends Database {
     this.dbs = {};
 
     this.ready = new Promise((resolve, reject) => {
-      MongoClient.connect(this.config.connectionString, (err, client) => {
+      MongoClient.connect(this.config.connectionString, config.mongoConfig || {}, (err, client) => {
         if (err) {
           log('error', err);
           return reject(err);
