@@ -10,7 +10,7 @@ export const config: any = {
 
 // See if they provided the database in the connection string.
 let defaultDb = 'formio';
-if (!process.env.DEFAULT_DATABASE || !process.env.MONGO_DATABASE && process.env.MONGO) {
+if ((!process.env.DEFAULT_DATABASE || !process.env.MONGO_DATABASE) && process.env.MONGO) {
   const dbMatches = process.env.MONGO.match(/\/\/.*\/(.*)\?+/);
   if (dbMatches && dbMatches[1]) {
     defaultDb = dbMatches[1];
