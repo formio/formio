@@ -1,5 +1,5 @@
 'use strict';
-const fetch = require('../util/fetch');
+const fetch = require('@formio/node-fetch-http-proxy');
 
 const LOG_EVENT = 'Email Action';
 
