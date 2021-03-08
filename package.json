@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "2.0.1-rc.5",
+  "version": "2.0.1-rc.6",
   "description": "The formio server application.",
   "license": "OSL-3.0",
   "main": "index.js",
@@ -35,7 +35,7 @@
     "event-chain": "^0.0.1",
     "express": "^4.17.1",
     "fast-json-patch": "^2.2.1",
-    "formio-workers": "^1.14.12",
+    "formio-workers": "^1.14.13",
     "formiojs": "^4.13.0-rc.9",
     "fs-extra": "^9.1.0",
     "html-entities": "^2.1.0",
