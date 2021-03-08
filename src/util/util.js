@@ -47,10 +47,10 @@ Formio.Utils.Evaluator.evaluator = function(func, args) {
     try {
       result = (new VM({
         timeout: 250,
-        sandbox: {
+        sandbox: _.cloneDeep({
           result: null,
           args
-        },
+        }),
         fixAsync: true
       })).run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
     }

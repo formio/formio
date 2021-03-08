@@ -271,7 +271,7 @@ module.exports = (router) => {
         try {
           return (new VM({
             timeout: 500,
-            sandbox: await hook.alter('actionContext', {
+            sandbox: _.cloneDeep(await hook.alter('actionContext', {
               jsonLogic: util.FormioUtils.jsonLogic,
               data: req.body.data,
               form: req.form,
@@ -282,7 +282,7 @@ module.exports = (router) => {
               previous: req.previousSubmission,
               execute: false,
               _
-            }, req),
+            }, req)),
             eval: false,
             fixAsync: true
           })).run(json ?
