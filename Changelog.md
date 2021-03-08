@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.3-rc.2
+### Fixed
+ - Added cloneDeep to vm sandboxes
+
 ## 1.91.3-rc.1
 ### Fixed
  - FIO-838: Fixes an issue when a "Save Submission to resource" action had an incorrect priority. For 6.x server
