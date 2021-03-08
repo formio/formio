@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.1.0-rc.7
+### Changed
+ - Using @formio/node-fetch-http-proxy instead of local file.
+ - FIO-1528: FIO-1528: change default 'from' email address domain to use example in the deployment environment variable
+ - Ensure we cloneDeep vm context for added protection.
+
 ## 2.1.0-rc.6
 ### Fixed
  - Automated tests.
