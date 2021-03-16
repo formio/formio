@@ -29,7 +29,7 @@ module.exports = (router) => (settings, callback) => (req, res, next) => {
   res.resource.item = multi ? list : list[0];
 
   /* eslint-disable callback-return */
-  if (callback) {
+  if (callback && typeof callback === 'function') {
     callback(req, res);
   }
 
