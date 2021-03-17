@@ -4,24 +4,45 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.1.0-rc.13
+### Fixed
+ - Updated html-entities@2.1.1, mongodb@3.6.5, mocha@8.3.2, csv@5.4.0, mongoose@5.12.0, eslint@7.22.0
+
+## 2.1.0-rc.12
+### Fixed
+ - FIO-1555: fixed an issue where server validation errors do not come from the server if component with error is not on the first wizard page
+
+### Changed
+ - Upgrade formiojs@4.13.0-rc.19
+
 ## 2.1.0-rc.10
-### Changes
- - Upgrade formiojs@4.13.0-rc.18
-
-## 2.1.0-rc.9
-### Changes
- - Upgrade formiojs@4.13.0-rc.11
-
-## 2.1.0-rc.8
-### Changes
- - Changed vm to vm2 to add additional security.
+### Changed
+ - Using cloneDeep on vm sandboxes.
+ - Updated dependencies.
 
 ## 2.1.0-rc.7
+### Changed
+ - Using @formio/node-fetch-http-proxy instead of local file.
+ - FIO-1528: FIO-1528: change default 'from' email address domain to use example in the deployment environment variable
+ - Ensure we cloneDeep vm context for added protection.
+
+## 2.1.0-rc.6
 ### Fixed
- - FIO-1179: Fixed For 2866 single submission bug using different collection master
- - FIO-1163: fixed an issue where submission data is deleted for components with same key as parent layout component
- - FIO-911: Entire project JSON is dumped into the server logs
- - FIO-128: Added markModifiedParameters method to utils.
+ - Automated tests.
+
+## 2.1.0-rc.5
+### Changed
+ - Fixed serer to work with latest formio-workers.
+
+## 2.1.0-rc.4
+### Changed
+ - Upgrade mongoose@5.11.17, eslint@7.20.0, adm-zip@0.5.3
+ - Using vm2 for added security.
+
+### Fixed
+ - FIO-476: Fixes an issue when Sketch Pad didn't show data on CSV export - showed a list of empty strings.
+ - fix: allow Docker to load git npm paths
+>>>>>>> origin/master
 
 ## 2.1.0-rc.3
 ### Added
@@ -40,7 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - FOR-2866: Single submission bug using different collection master
  - Upgrade mongoose@5.11.14, supertest@6.1.3, html-entities@2.1.0, eslint@7.19.0, adm-zip@0.5.2
- 
+
 ### Fixed
  - FIO-838: Fixes an issue when a "Save Submission to resource" action had an incorrect priority.
  - FIO-854: Amazon DocumentDB to update default engine version to 4.0.0
@@ -136,7 +157,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ## 2.0.0-rc.32
 ### Added
- - FJS-1380: Adds field actions for Select and Radio which allow onlyAvailableItems validation 
+ - FJS-1380: Adds field actions for Select and Radio which allow onlyAvailableItems validation
 
 ### Fixed
  - FJS-1297: fix submission of nested wizards

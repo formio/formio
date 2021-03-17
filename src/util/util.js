@@ -7,7 +7,7 @@ const nodeUrl = require('url');
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/workers/util');
 const errorCodes = require('./error-codes.js');
-const fetch = require('./fetch');
+const fetch = require('@formio/node-fetch-http-proxy');
 const {VM} = require('vm2');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
@@ -52,10 +52,10 @@ Formio.Utils.Evaluator.evaluator = function(func, args) {
     try {
       result = (new VM({
         timeout: 250,
-        sandbox: {
+        sandbox: _.cloneDeep({
           result: null,
           args
-        },
+        }),
         fixAsync: true
       })).run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
     }

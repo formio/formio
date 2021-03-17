@@ -8,6 +8,7 @@ var async = require('async');
 var chance = new (require('chance'))();
 var docker = process.env.DOCKER;
 var customer = process.env.CUSTOMER;
+const defaultEmail = process.env.DEFAULT_EMAIL_SOURCE || 'no-reply@example.com';
 let EventEmitter = require('events');
 
 module.exports = function(app, template, hook) {
@@ -296,7 +297,7 @@ module.exports = function(app, template, hook) {
           }
         })
           .then(email => {
-            assert.equal(email.from, 'no-reply@form.io');
+            assert.equal(email.from, defaultEmail);
             assert.equal(email.to, template.users.user1.data.email);
             assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
             assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
