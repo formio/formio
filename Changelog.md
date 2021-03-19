@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.1.0-rc.14
+### Fixed
+ - Upgrade formiojs@4.13.0-rc.20
+
 ## 2.1.0-rc.13
 ### Fixed
  - Updated html-entities@2.1.1, mongodb@3.6.5, mocha@8.3.2, csv@5.4.0, mongoose@5.12.0, eslint@7.22.0
