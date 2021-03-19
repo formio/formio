@@ -13,6 +13,7 @@ const Q = require('q');
 const cors = require('cors');
 const test = process.env.TEST_SUITE;
 const noInstall = process.env.NO_INSTALL;
+const generateFileSignature = require('./src/resources/FileUpload');
 
 module.exports = function(options) {
   options = options || {};
@@ -70,6 +71,9 @@ module.exports = function(options) {
   app.use('/', express.static(path.join(__dirname, '/client/dist')));
 
   app.get('/ping', (req, res) => res.send("Pong"));
+
+  // Route to handle file upload for form submissions
+  app.post('/form/:formid/storage/s3', express.json(), generateFileSignature);
 
   // Load the form.io server.
   const server = options.server || require('./index')(config);

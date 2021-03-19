@@ -1,4 +1,5 @@
 'use strict';
+const fs = require('fs');
 const fetch = require('../util/fetch');
 
 const LOG_EVENT = 'Email Action';
@@ -202,21 +203,14 @@ module.exports = (router) => {
                 if (owner) {
                   params.owner = owner;
                 }
-
-                if (!this.settings.template) {
+                params.content = this.settings.message;
+                try {
+                  const templateFilePath = router.formio.config.email.templates.formSubmission;
+                  const template = fs.readFileSync(templateFilePath, 'utf8');
+                  return template;
+                } catch(err) {
                   return this.settings.message;
                 }
-
-                return fetch(this.settings.template)
-                    .then((response) => response.ok ? response.text() : null)
-                    .then((body) => {
-                      if (body) {
-                        // Save the content before overwriting the message.
-                        params.content = this.settings.message;
-                      }
-                      return body || this.settings.message;
-                    })
-                    .catch(() => this.settings.message);
               })
               .then((template) => {
                 this.settings.message = template;

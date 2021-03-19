@@ -289,6 +289,15 @@ class CSVExporter extends Exporter {
             }
           });
         }
+        else if (component.type === 'file') {
+          items.push({
+            preprocessor: (value, submission) => {
+              if (value && _.isArray(value) && value.length > 0) {
+                return value.map(file => file.url).join('|');
+              }
+            }
+          });
+        }
         else if (component.type === 'signature') {
           items.push({
             preprocessor: (value) => {

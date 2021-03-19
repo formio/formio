@@ -28,9 +28,10 @@
     "expireTime": 240
   },
   "email": {
-    "type": "sendgrid",
-    "username": "sendgrid-user",
-    "password": "sendgrid-pass"
+    "defaultProvider": "sendgrid",
+    "templates": {
+      "formSubmission": "config/templates/formio_submission_email.html"
+    }
   },
   "settings": {
     "office365": {
@@ -65,7 +66,7 @@
       },
       "sendgrid": {
         "auth": {
-          "api_user": "",
+          "api_user": "apikey",
           "api_key": ""
         }
       },
@@ -73,6 +74,11 @@
         "auth": {
           "apiKey": ""
         }
+      }
+    },
+    "fileUpload": {
+      "aws": {
+        "bucket": "stg-quintype-dropbox"
       }
     }
   }

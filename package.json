@@ -7,7 +7,7 @@
   "scripts": {
     "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000 --exit",
     "start": "node main.js",
-    "start:dev": "nodemon main.js",
+    "start:dev": "export $(cat .env | xargs) && nodemon main.js",
     "lint": "eslint ."
   },
   "author": "support@form.io",
@@ -21,6 +21,7 @@
     "abort-controller": "^3.0.0",
     "adm-zip": "^0.4.16",
     "async": "^3.2.0",
+    "aws-sdk": "^2.817.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "chance": "^1.1.7",
