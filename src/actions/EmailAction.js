@@ -18,9 +18,14 @@ module.exports = (router) => {
    */
   class EmailAction extends Action {
     static info(req, res, next) {
+      /*
       if (req.projectLicense && req.projectLicense.terms.plan==='basic') {
         return next(null);
       }
+      */
+     if (!hook.alter('hasEmailAccess', req)) {
+       return next(null);
+     }
       next(null, {
         name: 'email',
         title: 'Email',
