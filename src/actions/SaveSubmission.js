@@ -206,10 +206,10 @@ module.exports = function(router) {
           try {
             const newData = (new VM({
               timeout: 500,
-              sandbox: {
+              sandbox: _.cloneDeep({
                 submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
                 data: submission.data,
-              },
+              }),
               eval: false,
               fixAsync: true
             })).run(this.settings.transform);
