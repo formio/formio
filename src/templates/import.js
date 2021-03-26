@@ -669,6 +669,50 @@ module.exports = (router) => {
     });
   };
 
+  const tryToLoadComponent = (component, template) => {
+    const query = {
+      name: component.form,
+      deleted: {$eq: null}
+    };
+    return formio.resources.form.model.find(query).exec().then((results)=>{
+      if (results.length!==1) {
+       throw 'Incorrect project template';
+      }
+      const result = results[0];
+
+      const newItem = {
+          "title": result.title ,
+          "type": result.type,
+          "name": result.name,
+          "path": result.path,
+          "tags": result.tags,
+          "components": result.components
+      };
+
+      if (result.type==='form') {
+        template.forms[newItem.name]=newItem;
+      }
+ else {
+        template.resources[newItem.name]=newItem;
+      }
+    });
+  };
+
+  const checkTemplate = (template) => {
+    const test = Object.values(template.forms).concat(Object.values(template.resources));
+    const resultArr = [];
+    test.forEach(form=>{
+      return form.components.forEach(component=>{
+          if (component.hasOwnProperty('form') &&
+              !(template.forms.hasOwnProperty(component.form) ||
+              template.resources.hasOwnProperty(component.form))) {
+               resultArr.push(tryToLoadComponent(component, template));
+        }
+      });
+    });
+    return resultArr;
+};
+
   // Implement an import endpoint.
   if (router.post) {
     router.post('/import', (req, res, next) => {
@@ -679,16 +723,9 @@ module.exports = (router) => {
         template = JSON.parse(template);
       }
 
-      const isTemplateValid = Object.values(template.forms).concat(Object.values(template.resources)).every(form=>{
-        return form.components.every(component=>{
-          if (component.hasOwnProperty('form')) {
-            return template.forms.hasOwnProperty(component.form) || template.resources.hasOwnProperty(component.form);
-          }
-          return true;
-        });
-      });
+      const addingAdditionalComponents = checkTemplate(template);
 
-      if (isTemplateValid) {
+        Promise.all(addingAdditionalComponents).then(()=>{
         template = hook.alter('importOptions', template, req, res);
         importTemplate(template, alters, (err, data) => {
           if (err) {
@@ -697,10 +734,10 @@ module.exports = (router) => {
 
           return res.status(200).send('Ok');
         });
-      }
- else {
-        res.status(500).send('Incorrect project template');
-      }
+       })
+       .catch(err=>{
+        return next(err.message || err);
+       });
     });
   }
 
