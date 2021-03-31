@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.1.0-rc.16
+ - Upgrade formiojs@4.13.0-rc.25
+
 ## 2.1.0-rc.15
 ### Fixed
  - FIO-2634: Fixes an issue where Signatures/Files values are excluded from the response when load subForms submissions by a reference
