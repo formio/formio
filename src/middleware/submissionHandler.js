@@ -96,6 +96,14 @@ module.exports = (router, resourceName, resourceId) => {
           req.body.data = {};
         }
 
+        if (req.method === 'POST') {
+          const reqHeaders = _.omitBy(req.headers, (value, key) => {
+            return ['x-admin', 'x-jwt-token'].includes(key) || key.match(/auth/gi);
+          });
+
+          _.set(req.body, 'metadata.headers', reqHeaders);
+        }
+
         // Ensure that the _fvid is a number.
         if (req.body.hasOwnProperty('_fvid') && !_.isNaN(parseInt(req.body._fvid))) {
           req.body._fvid = parseInt(req.body._fvid);
