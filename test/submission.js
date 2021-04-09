@@ -3148,7 +3148,8 @@ module.exports = function(app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(submission.data, {name: 'testing'});
-            assert.deepEqual(submission.metadata, {testing: 'hello'});
+            assert(submission.metadata.hasOwnProperty('headers') && !_.isEmpty(submission.metadata.headers), 'Submission metadata should include post headers');
+            assert.deepEqual(_.omit(submission.metadata, ['headers']), {testing: 'hello'});
             done();
           });
       });
