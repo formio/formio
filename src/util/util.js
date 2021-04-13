@@ -584,7 +584,7 @@ const Utils = {
     return changed;
   },
 
-  removeProtectedFields(form, action, submissions) {
+  removeProtectedFields(form, action, submissions, doNotMinify) {
     if (!Array.isArray(submissions)) {
       submissions = [submissions];
     }
@@ -599,13 +599,13 @@ const Utils = {
         debug.removeProtectedFields('Removing protected field:', component.key);
         modifyFields.push(deleteProp(path));
       }
-      else if ((component.type === 'signature') && (action === 'index')) {
+      else if ((component.type === 'signature') && (action === 'index') && !doNotMinify) {
         modifyFields.push(((submission) => {
           const data = _.get(submission, path);
           _.set(submission, path, (!data || (data.length < 25)) ? '' : 'YES');
         }));
       }
-      else if (component.type === 'file' && action === 'index') {
+      else if (component.type === 'file' && action === 'index' && !doNotMinify) {
         modifyFields.push(((submission) => {
           const data = _.map(
             _.get(submission, path),

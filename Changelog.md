@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.1.0-rc.12
+### Fixed
+ - FIO-1555: fixed an issue where server validation errors do not come from the server if component with error is not on the first wizard page
+
+### Changed
+ - Upgrade formiojs@4.13.0-rc.19
+
 ## 2.1.0-rc.10
 ### Changed
  - Using cloneDeep on vm sandboxes.
