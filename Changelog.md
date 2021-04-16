@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.1.1-rc.1
+### Changed
+ - Adding try/catch around expiring indexes for DB's that don't support it.
+
 ## 2.1.0
 ### Changed
  - Upgrade formiojs@4.13.0
