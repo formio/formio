@@ -51,7 +51,12 @@ module.exports = function(formio) {
     }
   }));
 
-  TokenSchema.index({expireAt: 1}, {expireAfterSeconds: 0});
+  try {
+    TokenSchema.index({expireAt: 1}, {expireAfterSeconds: 0});
+  }
+  catch (err) {
+    console.log(err.message);
+  }
 
   const model = require('./BaseModel')({
     schema: TokenSchema
