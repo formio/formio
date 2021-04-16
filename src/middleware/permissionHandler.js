@@ -454,8 +454,13 @@ module.exports = function(router) {
             return callback(null);
           }
 
-          if (req.submissionFieldMatchAccess) {
-            req.submissionFieldMatchAccessFilter = true;
+          if (req.submissionFieldMatchAccess && _.isObject(req.submissionFieldMatchAccess)) {
+            const hasRoles = Object.keys(req.submissionFieldMatchAccess).some(accessKey=>{
+              return req.submissionFieldMatchAccess[accessKey].some(item=>{
+                return item.roles.some(role=>req.accessRoles.includes(role));
+              });
+            });
+            req.submissionFieldMatchAccessFilter = hasRoles;
           }
           return callback(null);
         },
