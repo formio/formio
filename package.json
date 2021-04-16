@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "2.2.0-rc.1",
+  "version": "2.2.0-rc.2",
   "description": "The formio server application.",
   "license": "OSL-3.0",
   "main": "index.js",
@@ -45,7 +45,7 @@
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.33",
     "mongodb": "^3.6.5",
-    "mongoose": "^5.12.3",
+    "mongoose": "^5.12.4",
     "mssql": "^6.3.1",
     "mysql": "^2.18.1",
     "nodemailer": "^6.4.18",
