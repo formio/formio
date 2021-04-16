@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = (schema, options = {}) => {
+module.exports = (schema) => {
   const created = {
     type: Date,
     index: true,
@@ -8,10 +8,6 @@ module.exports = (schema, options = {}) => {
     default: Date.now,
     __readonly: true,
   };
-
-  if (options.expires) {
-    created.expires = options.expires;
-  }
 
   // Add the created and modified params.
   schema.add({
