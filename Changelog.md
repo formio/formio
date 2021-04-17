@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Fixed
  - FIO-2484: Implements Split Roles PR with Group permission
 
+## 2.1.1
+### Changed
+ - No changes. Official Release.
+
 ## 2.1.1-rc.2
 ### Fixed
  - Modified the expiring indexes to have try/caches around all instances.
