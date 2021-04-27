@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 'use strict';
 
 const request = require('./formio-supertest');
@@ -1100,6 +1101,75 @@ module.exports = function(app) {
         return done(err, res);
       }
       done(null, this);
+    });
+  };
+
+  Helper.prototype.getSubmissions = function(form, user, expect, done) {
+    if (typeof form === 'object') {
+      form = this.contextName;
+    }
+
+    if (typeof user === 'function') {
+      done = user;
+      user = this.owner;
+    }
+
+    if (typeof expect === 'function') {
+      done = expect;
+      expect = [];
+    }
+
+    expect = expect || [];
+    if (typeof user === 'string') {
+      user = this.template.users[user];
+    }
+
+    if (user === undefined) {
+      user = this.owner;
+    }
+
+    if (!this.template.forms.hasOwnProperty(form)) {
+      return done('Form not found');
+    }
+
+    let url = '';
+    if (this.template.project && this.template.project._id) {
+      url += `/project/${  this.template.project._id}`;
+    }
+    url += `/form/${  this.template.forms[form]._id  }/submission?limit=10&skip=0`;
+
+    let currentRequest = request(app).get(url).send();
+    if (user) {
+      currentRequest = currentRequest.set('x-jwt-token', user.token);
+    }
+    if (expect.length) {
+      currentRequest = currentRequest.expect('Content-Type', expect[0]).expect(expect[1]);
+    }
+    else {
+      currentRequest = currentRequest.expect('Content-Type', /json/).expect(200);
+    }
+    currentRequest.end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      this.lastResponse = res;
+      if (expect.length && expect[1] > 299) {
+        return done();
+      }
+
+      if (user && res.headers['x-jwt-token']) {
+        user.token = res.headers['x-jwt-token'];
+      }
+      this.template.submissions = this.template.submissions || {};
+      if (this.template.submissions[form]) {
+        this.template.submissions[form] = res.body;
+      }
+      else {
+        this.template.submissions[form] = [];
+      }
+
+      done(null, res.body);
     });
   };
 

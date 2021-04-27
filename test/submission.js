@@ -1,3 +1,5 @@
+/* eslint-disable strict */
+/* eslint-disable max-len */
 /* eslint-env mocha */
 const request = require('./formio-supertest');
 var assert = require('assert');
@@ -9,6 +11,21 @@ var docker = process.env.DOCKER;
 module.exports = function(app, template, hook) {
   var Helper = require('./helper')(app);
   var helper = null;
+
+  function updateFormAngdGetSubmissions(form, done) {
+    helper.updateForm(form, (err) => {
+      if (err) {
+        done(err);
+      }
+
+      helper.getSubmissions(form.name, (err, formsubs) => {
+        if (err) {
+          done(err);
+        }
+        done(null, formsubs);
+      });
+    });
+  }
 
   describe('Form Submissions', function() {
     it('Sets up a default project', function(done) {
@@ -4054,6 +4071,89 @@ module.exports = function(app, template, hook) {
           done();
         });
     });
+
+    if (app.hasProjects || docker) {
+      describe('Custom Submission collections', function() {
+        before((done) => {
+          if (helper.getForm('fruits')) {
+            return done();
+          }
+          // Create a resource to keep records.
+          helper
+            .form('fruits', [
+              {
+                "input": true,
+                "tableView": true,
+                "inputType": "text",
+                "inputMask": "",
+                "label": "Name",
+                "key": "name",
+                "placeholder": "",
+                "prefix": "",
+                "suffix": "",
+                "multiple": false,
+                "defaultValue": "",
+                "protected": false,
+                "unique": false,
+                "persistent": true,
+                "validate": {
+                  "required": false,
+                  "minLength": "",
+                  "maxLength": "",
+                  "pattern": "",
+                  "custom": "",
+                  "customPrivate": false
+                },
+                "conditional": {
+                  "show": null,
+                  "when": null,
+                  "eq": ""
+                },
+                "type": "textfield"
+              }
+            ])
+            .submission('fruits', {name: 'Apple'})
+            .submission('fruits', {name: 'Pear'})
+            .submission('fruits', {name: 'Banana'})
+            .submission('fruits', {name: 'Orange'})
+            .execute(function(err) {
+              if (err) {
+                return done(err);
+              }
+
+              done();
+            });
+        });
+
+        it('Should allow to use a custom submission collection', done => {
+          helper.getSubmissions('fruits', (err, formsubs) => {
+            if (err) {
+              return done(err);
+            }
+
+            assert.equal(formsubs.length, 4);
+            const form = helper.getForm('fruits');
+            assert.equal(!!form, true);
+            _.set(form, 'settings.collection', 'testCollection');
+            updateFormAngdGetSubmissions(form, (err, submissions) => {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(submissions.length, 0);
+              _.unset(form, 'settings.collection');
+              updateFormAngdGetSubmissions(form, (err, subs) => {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(subs.length, 4);
+                assert.equal(_.isEqual(formsubs, subs), true);
+                done();
+              });
+            });
+          });
+        });
+      });
+    }
 
     // if (app.hasProjects || docker)
     // it('Should allow an update to the submission where all sub-submissions are also updated.', (done) => {
