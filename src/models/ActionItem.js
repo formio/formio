@@ -28,15 +28,15 @@ module.exports = function(formio) {
     },
     action: {
       type: String,
-      require: true
+      required: true
     },
     handler: {
       type: String,
-      require: true
+      required: true
     },
     method: {
       type: String,
-      require: true
+      required: true
     },
     state: {
       type: String,
