@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 2.2.1-rc.1
 ### Fixed
  - FIO-2823: Fixes an issue when custom mongodb collection on a resource breaks the resource and the submission data cannot be accessed
+ - Changed action items "require" to "required"
+ - Added extra check to prevent server crashes
 
 ## 2.2.0
 ### Changed
