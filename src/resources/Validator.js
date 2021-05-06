@@ -63,14 +63,12 @@ class Validator {
     const emptyData = _.isEmpty(submission.data);
     let unsetsEnabled = false;
 
-    const isDisabledAutofill = !!_.get(this.form, 'settings.notUseDefaultData', false);
-
     const {validateReCaptcha} = this;
 
     // Create the form, then check validity.
     Formio.createForm(this.form, {
       server: true,
-      noDefaults: isDisabledAutofill,
+      noDefaults: true,
       hooks: {
         setDataValue: function(value, key, data) {
           if (!unsetsEnabled) {
