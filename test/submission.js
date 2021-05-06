@@ -4191,4 +4191,92 @@ module.exports = function(app, template, hook) {
     //   });
     // });
   });
+
+  describe('Submissions with/without Default Values', (done) => {
+    before((done) => {
+      // Create a resource to keep records.
+      helper
+        .form('defaultValuesForm', [
+          {
+            "label": "Text Field",
+            "tableView": true,
+            "key": "textField",
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "label": "Checkbox",
+            "tableView": false,
+            "key": "checkbox",
+            "type": "checkbox",
+            "input": true
+          }
+        ])
+        .execute(function(err) {
+          if (err) {
+            return done(err);
+          }
+          done();
+        });
+    });
+
+    it('Should set submission with default value', (done) => {
+      helper
+        .submission('defaultValuesForm', {
+          data: {
+            textField: '123'
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          const expectedData = {
+            textField: '123',
+            checkbox: false
+          };
+
+          assert.equal(JSON.stringify(submission.data), JSON.stringify(expectedData));
+          done();
+        });
+    });
+
+    it('Update form with notUseDefaultData option', (done) => {
+      const form = helper.getForm('defaultValuesForm');
+      _.set(form, 'settings.notUseDefaultData', true);
+
+      helper.updateForm(form, (err, modifiedForm) => {
+        if (err) {
+          done(err);
+        }
+        const hasOption = _.has(modifiedForm, 'settings.notUseDefaultData');
+        assert.equal(hasOption, true);
+        done();
+      });
+    });
+
+    it('Should set submission without default value', (done) => {
+      helper
+        .submission('defaultValuesForm', {
+          data: {
+            textField: '123'
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          const expectedData = {
+            textField: '123'
+          };
+
+          assert.equal(JSON.stringify(submission.data), JSON.stringify(expectedData));
+          done();
+        });
+    });
+  });
 };

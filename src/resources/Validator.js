@@ -63,31 +63,23 @@ class Validator {
     const emptyData = _.isEmpty(submission.data);
     let unsetsEnabled = false;
 
-    const isDisabledAutofill = _.get(this.form, 'settings.notUseDefaultData', false);
+    const isDisabledAutofill = !!_.get(this.form, 'settings.notUseDefaultData', false);
 
     const {validateReCaptcha} = this;
 
     // Create the form, then check validity.
     Formio.createForm(this.form, {
       server: true,
+      noDefaults: isDisabledAutofill,
       hooks: {
         setDataValue: function(value, key, data) {
           if (!unsetsEnabled) {
             return value;
           }
 
-          const isDefaultDataDisabled = () => {
-            const submissionValue = _.get(submission.data, this.path);
-            return isDisabledAutofill &&
-              this.isEmpty &&
-              this.isEmpty(value) &&
-              submissionValue === undefined;
-          };
-
           // Check if this component is not persistent.
           if (this.component.hasOwnProperty('persistent') &&
-            (!this.component.persistent || this.component.persistent === 'client-only') ||
-            isDefaultDataDisabled()
+            (!this.component.persistent || this.component.persistent === 'client-only')
           ) {
             unsets.push({key, data});
           }
