@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Changed action items "require" to "required"
  - Added extra check to prevent server crashes
 
+### Changed
+ - Upgrade formiojs@4.13.2-rc.2
+
 ## 2.2.0
 ### Changed
  - Official release of 2.2.0-rc.2
