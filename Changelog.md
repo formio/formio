@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ### Changed
  - Upgrade formiojs@4.13.2-rc.2
+ - Upgrade dependencies.
 
 ## 2.2.0
 ### Changed
