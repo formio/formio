@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.1-rc.2
+### Changed
+ - Upgrade formiojs@4.14.0-rc.5
+ - Upgrade mongodb@3.6.7, mongoose@5.12.10
+
 ## 2.2.1-rc.1
 ### Fixed
  - FIO-2823: Fixes an issue when custom mongodb collection on a resource breaks the resource and the submission data cannot be accessed
