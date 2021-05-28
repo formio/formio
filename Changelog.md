@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.3-rc.5
+### Changed
+ - Adding expiring action items.
+ - Upgrade dependencies.
+
 ## 1.91.3-rc.4
 ### Changed
  - Upgrade dependencies
