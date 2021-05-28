@@ -160,38 +160,42 @@ module.exports = (router, resourceName, resourceId) => {
         return done();
       }
 
-      let reCaptchaFound = false;
+      let reCaptchFound = false;
+      let findReCaptchaPromise;
       util.eachComponent(req.currentForm.components, (component, path) => {
-        if (component.type !== 'recaptcha' || reCaptchaFound) {
+        if (component.type !== 'recaptcha' || reCaptchFound) {
           return;
         }
 
-        const reCaptchaValue = _.get(req.submission.data, path);
-        if (!reCaptchaValue || !reCaptchaValue.token) {
-          return done('ReCaptcha: Token is not specified in submission');
-        }
-
-        router.formio.mongoose.models.token.findOne({value: reCaptchaValue.token}, (err, token) => {
-          if (err) {
-            reCaptchaFound = true;
-            return done('ReCaptcha: find token error');
+        reCaptchFound = true;
+        findReCaptchaPromise = new Promise((resolve, reject) => {
+          const reCaptchaValue = _.get(req.submission.data, path);
+          if (!reCaptchaValue || !reCaptchaValue.token) {
+            return reject('ReCaptcha: Token is not specified in submission');
           }
 
-          if (!token) {
-            reCaptchaFound = true;
-            return done('ReCaptcha: Response token not found');
-          }
+          router.formio.mongoose.models.token.findOne({value: reCaptchaValue.token}, (err, token) => {
+            if (err) {
+              return reject('ReCaptcha: find token error');
+            }
 
-          // Remove temp token after submission with reCaptcha and unset reCaptcha value
-          return token.remove(() => {
-            _.unset(req.submission.data, path);
-            reCaptchaFound = true;
-            return done();
+            if (!token) {
+              return reject('ReCaptcha: Response token not found');
+            }
+
+            // Remove temp token after submission with reCaptcha and unset reCaptcha value
+            return token.remove(() => {
+              _.unset(req.submission.data, path);
+              return resolve();
+            });
           });
         });
       }, true);
 
-      if (!reCaptchaFound) {
+      if (reCaptchFound && findReCaptchaPromise) {
+        findReCaptchaPromise.then(done).catch(done);
+      }
+      else {
         return done();
       }
     }
