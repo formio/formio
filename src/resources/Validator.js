@@ -19,6 +19,13 @@ const getErrorMessage = (component, message) => {
   return _.get(component, 'validate.customMessage', message);
 };
 
+const setCustomMessages = (componentValidate) => (errors)=> errors.map((error) =>{
+    if (componentValidate.customMessage) {
+      error.message = componentValidate.customMessage;
+    }
+    return error;
+ });
+
 /*
  * Returns true or false based on visibility.
  *
@@ -822,14 +829,16 @@ class Validator {
       if (componentKey && (componentKey.indexOf('.') === -1) && component.validate) {
         // Add required validator.
         if (component.validate.required) {
-          fieldValidator = fieldValidator.required().empty().disallow('', null);
+          fieldValidator = fieldValidator.required().empty().disallow('', null)
+          .error(setCustomMessages(component.validate));
         }
 
         // Add regex validator
         if (component.validate.pattern) {
           try {
             const regex = new RegExp(component.validate.pattern);
-            fieldValidator = fieldValidator.regex(regex);
+            fieldValidator = fieldValidator.regex(regex)
+            .error(setCustomMessages(component.validate));
           }
           catch (err) {
             debug.error(err);
@@ -838,12 +847,14 @@ class Validator {
 
         // Add the custom validations.
         if (component.validate && component.validate.custom) {
-          fieldValidator = fieldValidator.custom(component, submission.data, this.form);
+          fieldValidator = fieldValidator.custom(component, submission.data, this.form)
+          .error(setCustomMessages(component.validate));
         }
 
         // Add the json logic validations.
         if (component.validate && component.validate.json) {
-          fieldValidator = fieldValidator.json(component, submission.data);
+          fieldValidator = fieldValidator.json(component, submission.data)
+          .error(setCustomMessages(component.validate));
         }
       }
 
@@ -860,7 +871,7 @@ class Validator {
         });
         //additionally apply required rule to the field itself
         if (component.validate && component.validate.required) {
-          fieldValidator = fieldValidator.required();
+          fieldValidator = fieldValidator.required().error(setCustomMessages(component.validate));
         }
       }
 
@@ -872,13 +883,15 @@ class Validator {
         if (component.validate) {
           // If a multi-value is required, make sure there is at least one.
           if (component.validate.required && !component.validate.minItems) {
-            fieldValidator = fieldValidator.min(1).required();
+            fieldValidator = fieldValidator.min(1).required().error(setCustomMessages(component.validate));
           }
           else if (component.validate.minItems) {
-            fieldValidator = fieldValidator.min(component.validate.minItems).required();
+            fieldValidator = fieldValidator.min(component.validate.minItems).required()
+            .error(setCustomMessages(component.validate));
           }
           if (component.validate.maxItems) {
-            fieldValidator = fieldValidator.max(component.validate.maxItems);
+            fieldValidator = fieldValidator.max(component.validate.maxItems)
+            .error(setCustomMessages(component.validate));
           }
         }
       }
