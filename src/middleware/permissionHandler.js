@@ -280,7 +280,6 @@ module.exports = function(router) {
 
   // Add this access handlers for all to use.
   router.formio.access = {
-
     /**
      * Get the access for all defined entities.
      *
@@ -458,8 +457,13 @@ module.exports = function(router) {
             return callback(null);
           }
 
-          if (req.submissionFieldMatchAccess) {
-            req.submissionFieldMatchAccessFilter = true;
+          if (req.submissionFieldMatchAccess && _.isObject(req.submissionFieldMatchAccess)) {
+            const hasRoles = Object.keys(req.submissionFieldMatchAccess).some(accessKey=>{
+              return req.submissionFieldMatchAccess[accessKey].some(item=>{
+                return item.roles.some(role=>req.accessRoles.includes(role));
+              });
+            });
+            req.submissionFieldMatchAccessFilter = hasRoles;
           }
           return callback(null);
         },
@@ -573,6 +577,9 @@ module.exports = function(router) {
                 }
 
                 userRoles.forEach(function(roleEntity) {
+                  if ( typeof roleEntity !== 'string') {
+                    return;
+                  }
                   const role = roleEntity.split(':')[1];
 
                   if (role && readBlockingRoles.includes(role)) {
