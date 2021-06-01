@@ -4,6 +4,121 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.1
+### Changed
+ - No changes. Released 2.2.1-rc.2 as official release.
+
+## 2.2.1-rc.2
+### Changed
+ - Upgrade formiojs@4.14.0-rc.5
+ - Upgrade mongodb@3.6.7, mongoose@5.12.10
+
+## 2.2.1-rc.1
+### Fixed
+ - FIO-2823: Fixes an issue when custom mongodb collection on a resource breaks the resource and the submission data cannot be accessed
+ - Changed action items "require" to "required"
+ - Added extra check to prevent server crashes
+
+### Changed
+ - Upgrade formiojs@4.13.2-rc.2
+ - Upgrade dependencies.
+
+## 2.2.0
+### Changed
+ - Official release of 2.2.0-rc.2
+
+## 2.2.0-rc.2
+### Fixed
+ - FIO-2766: preventing unathorized users from viewing form definition
+
+## 2.2.0-rc.1
+### Changed
+ - Upgrade formiojs@4.13.1-rc.1
+
+### Fixed
+ - FIO-2484: Implements Split Roles PR with Group permission
+
+## 2.1.1
+### Changed
+ - No changes. Official Release.
+
+## 2.1.1-rc.2
+### Fixed
+ - Modified the expiring indexes to have try/caches around all instances.
+
+## 2.1.1-rc.1
+### Changed
+ - Adding try/catch around expiring indexes for DB's that don't support it.
+
+## 2.1.0
+### Changed
+ - Upgrade formiojs@4.13.0
+
+## 2.1.0-rc.18
+### Changed
+ - Upgrade formiojs@4.13.0-rc.27
+
+## 2.1.0-rc.17
+### Changed
+ - Upgrade formiojs@4.13.0-rc.26
+ - Upgrade resourcejs@2.3.4
+ - Upgrade other dependencies.
+
+## 2.1.0-rc.16
+ - Upgrade formiojs@4.13.0-rc.25
+
+## 2.1.0-rc.15
+### Fixed
+ - FIO-2634: Fixes an issue where Signatures/Files values are excluded from the response when load subForms submissions by a reference
+
+### Changed
+ - Upgrade formiojs@4.13.0-rc.23
+ - Upgrade other dependencies.
+
+## 2.1.0-rc.14
+### Fixed
+ - Upgrade formiojs@4.13.0-rc.20
+
+## 2.1.0-rc.13
+### Fixed
+ - Updated html-entities@2.1.1, mongodb@3.6.5, mocha@8.3.2, csv@5.4.0, mongoose@5.12.0, eslint@7.22.0
+
+## 2.1.0-rc.12
+### Fixed
+ - FIO-1555: fixed an issue where server validation errors do not come from the server if component with error is not on the first wizard page
+
+### Changed
+ - Upgrade formiojs@4.13.0-rc.19
+
+## 2.1.0-rc.10
+### Changed
+ - Using cloneDeep on vm sandboxes.
+ - Updated dependencies.
+
+## 2.1.0-rc.7
+### Changed
+ - Using @formio/node-fetch-http-proxy instead of local file.
+ - FIO-1528: FIO-1528: change default 'from' email address domain to use example in the deployment environment variable
+ - Ensure we cloneDeep vm context for added protection.
+
+## 2.1.0-rc.6
+### Fixed
+ - Automated tests.
+
+## 2.1.0-rc.5
+### Changed
+ - Fixed serer to work with latest formio-workers.
+
+## 2.1.0-rc.4
+### Changed
+ - Upgrade mongoose@5.11.17, eslint@7.20.0, adm-zip@0.5.3
+ - Using vm2 for added security.
+
+### Fixed
+ - FIO-476: Fixes an issue when Sketch Pad didn't show data on CSV export - showed a list of empty strings.
+ - fix: allow Docker to load git npm paths
+>>>>>>> origin/master
+
 ## 2.1.0-rc.3
 ### Added
  - Added action logs to form context only.
@@ -21,7 +136,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - FOR-2866: Single submission bug using different collection master
  - Upgrade mongoose@5.11.14, supertest@6.1.3, html-entities@2.1.0, eslint@7.19.0, adm-zip@0.5.2
- 
+
 ### Fixed
  - FIO-838: Fixes an issue when a "Save Submission to resource" action had an incorrect priority.
  - FIO-854: Amazon DocumentDB to update default engine version to 4.0.0
@@ -117,7 +232,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ## 2.0.0-rc.32
 ### Added
- - FJS-1380: Adds field actions for Select and Radio which allow onlyAvailableItems validation 
+ - FJS-1380: Adds field actions for Select and Radio which allow onlyAvailableItems validation
 
 ### Fixed
  - FJS-1297: fix submission of nested wizards

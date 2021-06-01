@@ -319,6 +319,17 @@ class CSVExporter extends Exporter {
             }
           });
         }
+        else if (component.type === 'sketchpad') {
+          items.push({
+            preprocessor: (value) => {
+              if (_.isObject(value)) {
+                return _.isEmpty(value) ? '' : '[Visual Data]';
+              }
+
+              return value;
+            }
+          });
+        }
         else {
           // Default to the current component item.
           items.push({});

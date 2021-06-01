@@ -61,6 +61,11 @@ module.exports = function(router) {
       return res.sendStatus(401);
     }
 
+    if (req.modelQuery) {
+      const orCondition = _.get(req.modelQuery, '_conditions["$or"]', []);
+      query['$or'].push(...orCondition);
+    }
+
     req.modelQuery = req.modelQuery || req.model || this.model;
     req.modelQuery = req.modelQuery.find(query);
 

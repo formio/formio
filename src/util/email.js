@@ -437,7 +437,7 @@ module.exports = (formio) => {
       } = message;
 
       const mail = {
-        from: from || 'no-reply@form.io',
+        from: from || formio.config.defaultEmailSource,
         to: formatNodemailerEmailAddress(emails),
         subject,
         html,

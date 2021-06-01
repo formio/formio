@@ -1,6 +1,7 @@
 'use strict';
 
 let _ = require('lodash');
+const defaultEmail = process.env.DEFAULT_EMAIL_SOURCE || 'no-reply@example.com';
 
 module.exports = () => {
   // The default project template.
@@ -86,7 +87,7 @@ module.exports = () => {
     handler: ['after'],
     settings: {
       transport: 'test',
-      from: 'no-reply@form.io',
+      from: defaultEmail,
       emails: '{{ data.email }}',
       subject: 'New user {{ _id }} created',
       message: 'Email: {{ data.email }}'
