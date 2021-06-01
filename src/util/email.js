@@ -461,6 +461,7 @@ module.exports = (formio) => {
       };
 
       nunjucksInjector(mail, options)
+        .then((email) => hook.alter('checkEmailPermission', email, params.form))
         .then((email) => {
           let emails = [];
 
