@@ -478,17 +478,27 @@ module.exports = (app, template, hook) => {
       let port = 4002;
       let webhookSubmission = null;
       let webhookHandler = () => {};
+      let webhookServer = null;
 
       // Create a new server.
       const newServer = (ready) => {
-        const server = http.createServer((request) => {
+        const server = http.createServer((request, response) => {
           let body = [];
-          request.on('data', (chunk) => {
-            body.push(chunk);
-          }).on('end', () => {
-            body = Buffer.concat(body).toString();
-            webhookHandler(body ? JSON.parse(body) : body, url.parse(request.url, true));
-          });
+
+          if (request.url === '/plain-text') {
+            response.setHeader('Content-Type', 'text/plain; charset=utf-8;');
+            response.write('200 OK');
+            response.statusCode = 200;
+            response.end();
+          }
+          else {
+            request.on('data', (chunk) => {
+              body.push(chunk);
+            }).on('end', () => {
+              body = Buffer.concat(body).toString();
+              webhookHandler(body ? JSON.parse(body) : body, url.parse(request.url, true));
+            });
+          }
         });
         server.port = port++;
         server.url = `http://localhost:${server.port}`;
@@ -504,6 +514,8 @@ module.exports = (app, template, hook) => {
           if (err) {
             return done(err);
           }
+
+          webhookServer = server;
 
           request(app)
             .post(hook.alter('url', '/form', template))
@@ -660,6 +672,163 @@ module.exports = (app, template, hook) => {
             }
           });
       });
+
+     if (app.hasProject) {
+      describe('Webhook with non JSON response', () => {
+        if (docker) {
+          return;
+        }
+
+        // The temp form with the add RoleAction for existing submissions.
+        let webhookForm2 = {
+          title: 'Webhook Form 2',
+          name: 'webhookform2',
+          path: 'webhookform2',
+          type: 'form',
+          access: [],
+          submissionAccess: [],
+          components: [
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false,
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'foo',
+              key: 'firstName',
+              label: 'First Name',
+              inputMask: '',
+              inputType: 'text',
+              input: true,
+            },
+            {
+              type: 'textfield',
+              validate: {
+                custom: '',
+                pattern: '',
+                maxLength: '',
+                minLength: '',
+                required: false,
+              },
+              defaultValue: '',
+              multiple: false,
+              suffix: '',
+              prefix: '',
+              placeholder: 'foo',
+              key: 'lastName',
+              label: 'Last Name',
+              inputMask: '',
+              inputType: 'text',
+              input: true,
+            },
+            {
+              type: 'email',
+              persistent: true,
+              unique: false,
+              protected: false,
+              defaultValue: '',
+              suffix: '',
+              prefix: '',
+              placeholder: 'Enter your email address',
+              key: 'email',
+              label: 'Email',
+              inputType: 'email',
+              tableView: true,
+              input: true,
+            },
+            {
+              type: 'password',
+              persistent: true,
+              unique: false,
+              protected: false,
+              defaultValue: '',
+              suffix: '',
+              prefix: '',
+              placeholder: 'Enter your password',
+              key: 'password',
+              label: 'Password',
+              inputType: 'password',
+              tableView: true,
+              input: true,
+            },
+          ],
+        };
+
+        it('Should create the form and action for the webhook tests 2', (done) => {
+          request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(webhookForm2)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            webhookForm2 = res.body;
+            template.users.admin.token = res.headers['x-jwt-token'];
+            request(app)
+              .post(hook.alter('url', `/form/${webhookForm2._id}/action`, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send({
+                title: 'Webhook',
+                name: 'webhook',
+                form: webhookForm2._id.toString(),
+                handler: ['after'],
+                method: ['create', 'update', 'delete'],
+                priority: 1,
+                settings: {
+                  url: `${webhookServer.url}/plain-text`,
+                  username: '',
+                  password: '',
+                  block: true
+                },
+              })
+              .expect('Content-Type', /json/)
+              .expect(201)
+              .end((err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+        });
+
+        it('Should send a webhook with create data and receive a 400 error.', (done) => {
+          request(app)
+            .post(hook.alter('url', `/form/${webhookForm2._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                firstName: 'Test',
+                lastName: 'Person',
+                email: 'test@example.com',
+                password: '123testing',
+              },
+            })
+            .expect(400)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(res.text.indexOf('invalid json response body'), 0);
+              done();
+            });
+        });
+      });
+     }
     });
 
     describe('EmailAction Functionality tests', () => {
