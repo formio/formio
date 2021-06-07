@@ -214,6 +214,7 @@ module.exports = function(config) {
         mongoConfig.sslCA = config.mongoSA || config.mongoCA;
       }
 
+      mongoConfig.useUnifiedTopology = true;
       mongoConfig.useCreateIndex = true;
 
       if (config.mongoSSL) {
