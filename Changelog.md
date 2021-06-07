@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.3
+### Changed
+ - No changes. Released 1.91.3 as official release.
+
 ## 1.91.3-rc.6
 ### Fixed
  - FIO-2602: fixed custom validation messages displaying
