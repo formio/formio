@@ -143,6 +143,11 @@ class Validator {
           return next(null, submission.data, visibleComponents);
         }
 
+        if (form.form.display === 'wizard') {
+          // Wizard errors object contains all wizard errors only on last page
+          form.page = form.pages.length - 1;
+        }
+
         const details = [];
         form.errors.forEach((error) => error.messages.forEach((message) => details.push(message)));
 
