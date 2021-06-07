@@ -667,6 +667,17 @@ module.exports = (app, template, hook) => {
         return;
       }
 
+      const adminUser = (token) => {
+        const user = template.users.formioAdmin ? 'formioAdmin' : 'admin';
+
+        if (token) {
+          template.users[user].token = token;
+        }
+        else {
+          return template.users[user];
+        }
+      };
+
       // The temp form with the add RoleAction for existing submissions.
       const emailForm = {
         title: 'Email Form',
@@ -723,7 +734,7 @@ module.exports = (app, template, hook) => {
         // Create the form.
         request(app)
           .post(hook.alter('url', '/form', template))
-          .set('x-jwt-token', template.users.admin.token)
+          .set('x-jwt-token', adminUser().token)
           .send(testForm)
           .expect('Content-Type', /json/)
           .expect(201)
@@ -734,12 +745,12 @@ module.exports = (app, template, hook) => {
 
             testForm = res.body;
             testAction.form = testForm._id;
-            template.users.admin.token = res.headers['x-jwt-token'];
+            adminUser(res.headers['x-jwt-token']);
 
             // Add the action to the form.
             request(app)
               .post(hook.alter('url', `/form/${testForm._id}/action`, template))
-              .set('x-jwt-token', template.users.admin.token)
+              .set('x-jwt-token', adminUser().token)
               .send(testAction)
               .expect('Content-Type', /json/)
               .expect(201)
@@ -749,7 +760,7 @@ module.exports = (app, template, hook) => {
                 }
 
                 testAction = res.body;
-                template.users.admin.token = res.headers['x-jwt-token'];
+                adminUser(res.headers['x-jwt-token']);
 
                 done(null, testForm, testAction);
               });
@@ -781,7 +792,7 @@ module.exports = (app, template, hook) => {
 
           request(app)
             .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
-            .set('x-jwt-token', template.users.admin.token)
+            .set('x-jwt-token', adminUser().token)
             .send({
               data: {
                 firstName: 'Test',
@@ -823,7 +834,7 @@ module.exports = (app, template, hook) => {
 
           request(app)
             .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
-            .set('x-jwt-token', template.users.admin.token)
+            .set('x-jwt-token', adminUser().token)
             .send({
               data: {
                 firstName: 'Joe',
@@ -870,7 +881,7 @@ module.exports = (app, template, hook) => {
 
           request(app)
             .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
-            .set('x-jwt-token', template.users.admin.token)
+            .set('x-jwt-token', adminUser().token)
             .send({
               data: {
                 firstName: 'Test',
@@ -924,7 +935,7 @@ module.exports = (app, template, hook) => {
 
           request(app)
             .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
-            .set('x-jwt-token', template.users.admin.token)
+            .set('x-jwt-token', adminUser().token)
             .send({
               data: {
                 firstName: 'Test',
@@ -940,6 +951,147 @@ module.exports = (app, template, hook) => {
             });
         });
       });
+
+      if (template.users.formioAdmin) {
+        describe('EmailAction form.io domain permissions', () => {
+          if (docker) {
+            return;
+          }
+
+          // The temp form with the add RoleAction for existing submissions.
+          const emailForm = {
+            title: 'Email Form',
+            name: 'emailform2',
+            path: 'emailform2',
+            type: 'form',
+            access: [],
+            submissionAccess: [],
+            components: [
+              {
+                type: 'textfield',
+                key: 'firstName',
+                label: 'First Name',
+                input: true,
+              },
+              {
+                type: 'textfield',
+                key: 'lastName',
+                label: 'Last Name',
+                input: true,
+              },
+              {
+                type: 'email',
+                key: 'email',
+                label: 'Email',
+                input: true,
+              },
+            ],
+          };
+
+          // The temp role add action for existing submissions.
+          const emailAction = {
+            title: 'Email',
+            name: 'email',
+            handler: ['after'],
+            method: ['create'],
+            priority: 1,
+            settings: {},
+          };
+
+          let numTests = 0;
+          const newEmailTest = (settings, done) => {
+            numTests++;
+            settings.transport = 'test';
+            let testForm = _.assign(_.cloneDeep(emailForm), {
+              title: (emailForm.title + numTests),
+              name: (emailForm.name + numTests),
+              path: (emailForm.path + numTests),
+            });
+            let testAction = _.assign(_.cloneDeep(emailAction), {
+              settings,
+            });
+
+            // Create the form.
+            request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(testForm)
+              .expect('Content-Type', /json/)
+              .expect(201)
+              .end((err, res) => {
+                if (err) {
+                  return done(err);
+                }
+
+                testForm = res.body;
+                testAction.form = testForm._id;
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                // Add the action to the form.
+                request(app)
+                  .post(hook.alter('url', `/form/${testForm._id}/action`, template))
+                  .set('x-jwt-token', template.users.admin.token)
+                  .send(testAction)
+                  .expect('Content-Type', /json/)
+                  .expect(201)
+                  .end((err, res) => {
+                    if (err) {
+                      return done(err);
+                    }
+
+                    testAction = res.body;
+                    template.users.admin.token = res.headers['x-jwt-token'];
+
+                    done(null, testForm, testAction);
+                  });
+              });
+          };
+
+          it('Shouldn\'t send an email from form.io domain if owner is not related to form.io domain.', (done) => {
+            newEmailTest({
+              from: 'travis@form.io',
+              emails: '{{ data.email }}',
+              sendEach: false,
+              subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
+              message: 'Howdy, {{ id }}',
+            }, (err, testForm) => {
+              if (err) {
+                return done(err);
+              }
+
+              // Check for an email.
+              const event = template.hooks.getEmitter();
+              event.once('newMail', (email) => {
+                done('Shouldn\'t send an email from form.io domain if owner is not related to form.io domain.');
+              });
+
+              request(app)
+                .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send({
+                  data: {
+                    firstName: 'Test',
+                    lastName: 'Person',
+                    email: 'test@example.com',
+                  },
+                })
+                .expect(201)
+                .expect('Content-Type', /json/)
+                .end((err) => {
+                  if (err) {
+                    event.removeAllListeners('newMail');
+                    return done(err);
+                  }
+                  console.log('Script execution timed out after 15000ms');
+                  setTimeout(() => {
+                    event.removeAllListeners('newMail');
+                    done();
+                  }, 15000);
+                });
+            });
+          });
+        });
+      }
     });
 
     describe('RoleAction Functionality tests', () => {
