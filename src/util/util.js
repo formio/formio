@@ -45,14 +45,19 @@ Formio.Utils.Evaluator.evaluator = function(func, args) {
     let result = null;
     /* eslint-disable no-empty */
     try {
-      result = (new VM({
+      let vm = new VM({
         timeout: 250,
         sandbox: _.cloneDeep({
           result: null,
-          args
         }),
         fixAsync: true
-      })).run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
+      });
+
+      vm.freeze(args, 'args');
+
+      result = vm.run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
+
+      vm = null;
     }
     catch (err) {}
     /* eslint-enable no-empty */

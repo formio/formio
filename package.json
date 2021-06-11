@@ -32,6 +32,7 @@
     "delete-property": "0.0.4",
     "eslint-config-formio": "^1.1.2",
     "event-chain": "^0.0.1",
+    "expose-gc": "^1.0.0",
     "express": "^4.17.1",
     "fast-json-patch": "^2.2.1",
     "formio-workers": "^1.14.13",
