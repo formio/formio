@@ -13,6 +13,7 @@ const Q = require('q');
 const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
+const gc = require('expose-gc/function');
 
 const originalGetToken = util.Formio.getToken;
 const originalEvalContext = util.Formio.Components.components.component.prototype.evalContext;
@@ -109,6 +110,19 @@ module.exports = function(config) {
         };
         util.Formio.getToken = originalGetToken;
         util.Formio.Components.components.component.prototype.evalContext = originalEvalContext;
+
+        try {
+          if (config.maxOldSpace) {
+            const heap = process.memoryUsage().heapTotal / 1024 / 1024;
+
+            if ((config.maxOldSpace * 0.8) < heap) {
+              gc();
+            }
+          }
+        }
+        catch (error) {
+          console.log(error);
+        }
 
         next();
       });
