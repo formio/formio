@@ -614,7 +614,12 @@ const Utils = {
         modifyFields.push(((submission) => {
           const data = _.map(
             _.get(submission, path),
-            file => (file.url || '').startsWith('data:') ? _.omit(file, 'url') : file
+            (file) => {
+              if (file && file.url && file.url.startsWith('data:')) {
+                return _.omit(file, 'url');
+              }
+              return file;
+            }
           );
           _.set(submission, path, data);
         }));
