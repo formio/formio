@@ -309,21 +309,21 @@ module.exports = (router) => {
 
           let vm = new VM({
             timeout: 500,
-            sandbox: _.cloneDeep({
+            sandbox: {
               execute: params.execute,
               query: params.query,
-            }),
+              data: params.data,
+              form: params.form,
+              submission: params.body,
+              previous: params.previousSubmission,
+            },
             eval: false,
             fixAsync: true
           });
 
           vm.freeze(params.jsonLogic, 'jsonLogic');
-          vm.freeze(params.data, 'data');
-          vm.freeze(params.form, 'form');
           vm.freeze(params.FormioUtils, 'util');
           vm.freeze(params.moment, 'moment');
-          vm.freeze(params.body, 'submission');
-          vm.freeze(params.previousSubmission, 'previous');
           vm.freeze(params._, '_');
 
           const result = vm.run(json ?

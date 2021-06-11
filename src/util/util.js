@@ -47,9 +47,9 @@ Formio.Utils.Evaluator.evaluator = function(func, args) {
     try {
       let vm = new VM({
         timeout: 250,
-        sandbox: _.cloneDeep({
+        sandbox: {
           result: null,
-        }),
+        },
         fixAsync: true
       });
 
