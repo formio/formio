@@ -293,26 +293,46 @@ module.exports = (router) => {
         }
 
         try {
-          return (new VM({
+          const params = await hook.alter('actionContext', {
+            jsonLogic: util.FormioUtils.jsonLogic,
+            data: req.body.data,
+            form: req.form,
+            query: req.query,
+            util: util.FormioUtils,
+            moment: moment,
+            submission: req.body,
+            previous: req.previousSubmission,
+            execute: false,
+            _
+          }, req);
+
+          let vm = new VM({
             timeout: 500,
-            sandbox: _.cloneDeep(await hook.alter('actionContext', {
-              jsonLogic: util.FormioUtils.jsonLogic,
-              data: req.body.data,
-              form: req.form,
-              query: req.query,
-              util: util.FormioUtils,
-              moment: moment,
-              submission: req.body,
-              previous: req.previousSubmission,
-              execute: false,
-              _
-            }, req)),
+            sandbox: {
+              execute: params.execute,
+              query: params.query,
+              data: params.data,
+              form: params.form,
+              submission: params.body,
+              previous: params.previousSubmission,
+            },
             eval: false,
             fixAsync: true
-          })).run(json ?
+          });
+
+          vm.freeze(params.jsonLogic, 'jsonLogic');
+          vm.freeze(params.FormioUtils, 'util');
+          vm.freeze(params.moment, 'moment');
+          vm.freeze(params._, '_');
+
+          const result = vm.run(json ?
             `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
             condition.custom
           );
+
+          vm = null;
+
+          return result;
         }
         catch (err) {
           router.formio.log(
