@@ -75,7 +75,6 @@ module.exports = (router, resourceName, resourceId) => {
 
       // If this is a get method, then filter the model query.
       if (isGet) {
-        hook.invoke('submissionCollection', req);
         req.countQuery = req.countQuery || req.model || this.model;
         req.modelQuery = req.modelQuery || req.model || this.model;
         if (req.handlerName !== 'beforeGet') {
