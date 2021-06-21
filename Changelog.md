@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased]
+### Fixed
+ - FIO-3369: Removed the submissionCollection hook which was messing up submission collection.
+
 ## 2.2.3-rc.1
 ### Changed
  - FIO-3099: Adds a hook for the Access-Control-Expose-Headers
