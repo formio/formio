@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "2.2.2-rc.2",
+  "version": "2.2.2-rc.3",
   "description": "The formio server application.",
   "license": "OSL-3.0",
   "main": "index.js",
@@ -36,7 +36,7 @@
     "expose-gc": "^1.0.0",
     "express": "^4.17.1",
     "fast-json-patch": "^2.2.1",
-    "formio-workers": "^1.14.15",
+    "formio-workers": "^1.14.16",
     "formiojs": "^4.14.0-rc.11",
     "fs-extra": "^10.0.0",
     "html-entities": "^2.3.2",
@@ -46,10 +46,10 @@
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.33",
     "mongodb": "^3.6.9",
-    "mongoose": "^5.12.13",
+    "mongoose": "^5.12.14",
     "mssql": "6.3.1",
     "mysql": "^2.18.1",
-    "nodemailer": "^6.6.1",
+    "nodemailer": "^6.6.2",
     "nodemailer-mailgun-transport": "2.0.2",
     "nodemailer-mandrill-transport": "^1.2.0",
     "nodemailer-sendgrid-transport": "^0.2.0",
@@ -65,7 +65,7 @@
     "vm2": "^3.9.2"
   },
   "devDependencies": {
-    "eslint": "^7.28.0",
+    "eslint": "^7.29.0",
     "mocha": "^8.4.0",
     "nodemon": "^2.0.7",
     "pre-commit": "^1.2.2",
