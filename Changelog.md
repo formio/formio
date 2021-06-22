@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.1-patch.1
+### Fixed
+ - FIO-3099: Adds a hook for the Access-Control-Expose-Headers
+
 ## 2.2.1
 ### Changed
  - No changes. Released 2.2.1-rc.2 as official release.
