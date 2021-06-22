@@ -4072,7 +4072,7 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    if (app.hasProjects || docker) {
+    if (app.hasProjects && !docker) {
       describe('Custom Submission collections', function() {
         before((done) => {
           if (helper.getForm('fruits')) {

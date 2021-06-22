@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.2-rc.7
+### Fixed
+ - Fixing tests further.
+
 ## 2.2.2-rc.6
 ### Fixed
  - Custom submission collection tests.
@@ -31,7 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 2.2.2-rc.1
 ### Fixed
  - FIO-3091: added automatic useUnifiedTopology parameter setting
- - FIO-3095: Allow for checking email accounts before sending emails. 
+ - FIO-3095: Allow for checking email accounts before sending emails.
  - FIO-3040: Adds tests for FIO-3040 when wasn't handle the Webhook error and respond instead of spinning forever.
 
 ## 2.2.1
