@@ -12,15 +12,15 @@ module.exports = function(app, template, hook) {
   var Helper = require('./helper')(app);
   var helper = null;
 
-  function updateFormAngdGetSubmissions(form, done) {
+  function updateFormAndGetSubmissions(form, done) {
     helper.updateForm(form, (err) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       helper.getSubmissions(form.name, (err, formsubs) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         done(null, formsubs);
       });
@@ -4126,29 +4126,83 @@ module.exports = function(app, template, hook) {
         });
 
         it('Should allow to use a custom submission collection', done => {
+          const hosted = process.env.FORMIO_HOSTED;
+          process.env.FORMIO_HOSTED = false;
+          const isDone = function(err) {
+            process.env.FORMIO_HOSTED = hosted;
+            done(err);
+          };
           helper.getSubmissions('fruits', (err, formsubs) => {
             if (err) {
-              return done(err);
+              return isDone(err);
             }
 
             assert.equal(formsubs.length, 4);
+            assert.equal(formsubs[0].data.name, 'Apple');
+            assert.equal(formsubs[1].data.name, 'Pear');
+            assert.equal(formsubs[2].data.name, 'Banana');
+            assert.equal(formsubs[3].data.name, 'Orange');
             const form = helper.getForm('fruits');
             assert.equal(!!form, true);
             _.set(form, 'settings.collection', 'testCollection');
-            updateFormAngdGetSubmissions(form, (err, submissions) => {
-              if (err) {
-                return done(err);
-              }
-              assert.equal(submissions.length, 0);
-              _.unset(form, 'settings.collection');
-              updateFormAngdGetSubmissions(form, (err, subs) => {
-                if (err) {
-                  return done(err);
-                }
-                assert.equal(subs.length, 4);
-                assert.equal(_.isEqual(formsubs, subs), true);
-                done();
-              });
+            updateFormAndGetSubmissions(form, (err) => {
+              assert(err && err.message && err.message.indexOf('Only Enterprise projects can set different form collections') !== -1);
+              request(app)
+                .post('/project/' + helper.template.project._id + '/upgrade')
+                .set('x-jwt-token', helper.owner.token)
+                .send({plan: 'commercial'})
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return isDone(err);
+                  }
+                  updateFormAndGetSubmissions(form, (err, submissions) => {
+                    assert.equal(submissions.length, 0);
+                    helper
+                    .submission('fruits', {name: 'Peach'})
+                    .submission('fruits', {name: 'Blueberry'})
+                    .submission('fruits', {name: 'Strawberry'})
+                    .execute(function(err) {
+                      if (err) {
+                        return isDone(err);
+                      }
+                      helper.getSubmissions('fruits', (err, formsubs) => {
+                        if (err) {
+                          isDone(err);
+                        }
+                        assert.equal(formsubs.length, 3);
+                        assert.equal(formsubs[0].data.name, 'Peach');
+                        assert.equal(formsubs[1].data.name, 'Blueberry');
+                        assert.equal(formsubs[2].data.name, 'Strawberry');
+                        helper.deleteSubmission(formsubs[2], (err) => {
+                          if (err) {
+                            isDone(err);
+                          }
+                          helper.getSubmissions('fruits', (err, formsubs) => {
+                            if (err) {
+                              isDone(err);
+                            }
+                            assert.equal(formsubs.length, 2);
+                            assert.equal(formsubs[0].data.name, 'Peach');
+                            assert.equal(formsubs[1].data.name, 'Blueberry');
+                            _.unset(form, 'settings.collection');
+                            updateFormAndGetSubmissions(form, (err, formsubs) => {
+                              if (err) {
+                                return isDone(err);
+                              }
+                              assert.equal(formsubs.length, 4);
+                              assert.equal(formsubs[0].data.name, 'Apple');
+                              assert.equal(formsubs[1].data.name, 'Pear');
+                              assert.equal(formsubs[2].data.name, 'Banana');
+                              assert.equal(formsubs[3].data.name, 'Orange');
+                              isDone();
+                            });
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
             });
           });
         });
