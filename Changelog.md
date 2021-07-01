@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.2
+### Changed
+ - No changes. Released 2.2.2-rc.8 as official release.
+
 ## 2.2.2-rc.8
 ### Fixed
  - Issue where upgrading mailgun-transport causes server to crash.
