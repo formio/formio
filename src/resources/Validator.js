@@ -771,7 +771,7 @@ class Validator {
           fieldValidator = JoiX.string().email().allow('');
           break;
         case 'number':
-          fieldValidator = JoiX.number().empty(null);
+          fieldValidator = JoiX.number().allow('').empty(null);
           if (component.validate) {
             // If the step is provided... we can infer float vs. integer.
             if (component.validate.step && (component.validate.step !== 'any')) {
