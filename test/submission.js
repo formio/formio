@@ -1,3 +1,5 @@
+/* eslint-disable strict */
+/* eslint-disable max-len */
 /* eslint-env mocha */
 const request = require('./formio-supertest');
 var assert = require('assert');
@@ -9,6 +11,21 @@ var docker = process.env.DOCKER;
 module.exports = function(app, template, hook) {
   var Helper = require('./helper')(app);
   var helper = null;
+
+  function updateFormAndGetSubmissions(form, done) {
+    helper.updateForm(form, (err) => {
+      if (err) {
+        return done(err);
+      }
+
+      helper.getSubmissions(form.name, (err, formsubs) => {
+        if (err) {
+          return done(err);
+        }
+        done(null, formsubs);
+      });
+    });
+  }
 
   describe('Form Submissions', function() {
     it('Sets up a default project', function(done) {
@@ -4054,6 +4071,154 @@ module.exports = function(app, template, hook) {
           done();
         });
     });
+
+    if (app.hasProjects && !docker) {
+      describe('Custom Submission collections', function() {
+        before((done) => {
+          if (helper.getForm('fruits')) {
+            return done();
+          }
+          // Create a resource to keep records.
+          helper
+            .form('fruits', [
+              {
+                "input": true,
+                "tableView": true,
+                "inputType": "text",
+                "inputMask": "",
+                "label": "Name",
+                "key": "name",
+                "placeholder": "",
+                "prefix": "",
+                "suffix": "",
+                "multiple": false,
+                "defaultValue": "",
+                "protected": false,
+                "unique": false,
+                "persistent": true,
+                "validate": {
+                  "required": false,
+                  "minLength": "",
+                  "maxLength": "",
+                  "pattern": "",
+                  "custom": "",
+                  "customPrivate": false
+                },
+                "conditional": {
+                  "show": null,
+                  "when": null,
+                  "eq": ""
+                },
+                "type": "textfield"
+              }
+            ])
+            .submission('fruits', {name: 'Apple'})
+            .submission('fruits', {name: 'Pear'})
+            .submission('fruits', {name: 'Banana'})
+            .submission('fruits', {name: 'Orange'})
+            .execute(function(err) {
+              if (err) {
+                return done(err);
+              }
+
+              done();
+            });
+        });
+
+        it('Should allow to use a custom submission collection', done => {
+          const hosted = process.env.FORMIO_HOSTED;
+          process.env.FORMIO_HOSTED = false;
+          const isDone = function(err) {
+            process.env.FORMIO_HOSTED = hosted;
+            done(err);
+          };
+          const setProjectCollection = function(form, next) {
+            _.set(form, 'settings.collection', 'testCollection');
+            updateFormAndGetSubmissions(form, (err, submissions) => {
+              if (err) {
+                assert(err && err.message && err.message.indexOf('Only Enterprise projects can set different form collections') !== -1);
+                request(app)
+                  .post('/project/' + helper.template.project._id + '/upgrade')
+                  .set('x-jwt-token', helper.owner.token)
+                  .send({plan: 'commercial'})
+                  .expect(200)
+                  .end(function(err) {
+                    if (err) {
+                      return next(err);
+                    }
+                    setProjectCollection(form, next);
+                  });
+              }
+              else {
+                next(null, submissions);
+              }
+            });
+          };
+          helper.getSubmissions('fruits', (err, formsubs) => {
+            if (err) {
+              return isDone(err);
+            }
+
+            assert.equal(formsubs.length, 4);
+            assert.equal(formsubs[0].data.name, 'Apple');
+            assert.equal(formsubs[1].data.name, 'Pear');
+            assert.equal(formsubs[2].data.name, 'Banana');
+            assert.equal(formsubs[3].data.name, 'Orange');
+            const form = helper.getForm('fruits');
+            assert.equal(!!form, true);
+            setProjectCollection(form, (err, submissions) => {
+              if (err) {
+                return isDone(err);
+              }
+              assert.equal(submissions.length, 0);
+              helper
+                .submission('fruits', {name: 'Peach'})
+                .submission('fruits', {name: 'Blueberry'})
+                .submission('fruits', {name: 'Strawberry'})
+                .execute(function(err) {
+                  if (err) {
+                    return isDone(err);
+                  }
+                  helper.getSubmissions('fruits', (err, formsubs) => {
+                    if (err) {
+                      isDone(err);
+                    }
+                    assert.equal(formsubs.length, 3);
+                    assert.equal(formsubs[0].data.name, 'Peach');
+                    assert.equal(formsubs[1].data.name, 'Blueberry');
+                    assert.equal(formsubs[2].data.name, 'Strawberry');
+                    helper.deleteSubmission(formsubs[2], (err) => {
+                      if (err) {
+                        isDone(err);
+                      }
+                      helper.getSubmissions('fruits', (err, formsubs) => {
+                        if (err) {
+                          isDone(err);
+                        }
+                        assert.equal(formsubs.length, 2);
+                        assert.equal(formsubs[0].data.name, 'Peach');
+                        assert.equal(formsubs[1].data.name, 'Blueberry');
+                        _.unset(form, 'settings.collection');
+                        updateFormAndGetSubmissions(form, (err, formsubs) => {
+                          if (err) {
+                            return isDone(err);
+                          }
+                          assert.equal(formsubs.length, 4);
+                          assert.equal(formsubs[0].data.name, 'Apple');
+                          assert.equal(formsubs[1].data.name, 'Pear');
+                          assert.equal(formsubs[2].data.name, 'Banana');
+                          assert.equal(formsubs[3].data.name, 'Orange');
+                          isDone();
+                        });
+                      });
+                    });
+                  });
+              });
+            });
+          });
+        });
+      });
+    }
 
     // if (app.hasProjects || docker)
     // it('Should allow an update to the submission where all sub-submissions are also updated.', (done) => {

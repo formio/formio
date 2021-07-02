@@ -3,7 +3,7 @@
 const async = require('async');
 const MongoClient = require('mongodb').MongoClient;
 const semver = require('semver');
-const fetch = require('../util/fetch');
+const fetch = require('@formio/node-fetch-http-proxy');
 const _ = require('lodash');
 const fs = require('fs');
 const debug = {
@@ -244,6 +244,8 @@ module.exports = function(formio) {
         ...config.mongoSSL,
       };
     }
+
+    mongoConfig.useUnifiedTopology = true;
 
     // Establish a connection and continue with execution.
     MongoClient.connect(dbUrl, mongoConfig, function(err, client) {

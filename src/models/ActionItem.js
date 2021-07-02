@@ -28,15 +28,15 @@ module.exports = function(formio) {
     },
     action: {
       type: String,
-      require: true
+      required: true
     },
     handler: {
       type: String,
-      require: true
+      required: true
     },
     method: {
       type: String,
-      require: true
+      required: true
     },
     state: {
       type: String,
@@ -55,9 +55,14 @@ module.exports = function(formio) {
 
   const model = require('./BaseModel')({
     schema: ActionItemSchema
-  }, {
-    expires: '30d'
   });
+
+  try {
+    model.schema.index({created: 1}, {expireAfterSeconds: 2592000});
+  }
+  catch (err) {
+    console.log(err.message);
+  }
 
   // Add indexes to speed up the action items pages.
   model.schema.index(hook.alter('schemaIndex', {state: 1, deleted: 1, modified: -1}));

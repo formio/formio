@@ -24,6 +24,7 @@ module.exports = (router) => {
     sub.req.noResponse = true;
     sub.req.skipOwnerFilter = false;
     sub.req.formId = sub.req.params.formId = formId;
+    sub.req.doNotMinify = true;
 
     // Make sure to change the submission id.
     if (subQuery && subQuery._id) {

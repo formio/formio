@@ -7,7 +7,7 @@ const nodeUrl = require('url');
 const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/workers/util');
 const errorCodes = require('./error-codes.js');
-const fetch = require('./fetch');
+const fetch = require('@formio/node-fetch-http-proxy');
 const {VM} = require('vm2');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
@@ -50,14 +50,19 @@ Formio.Utils.Evaluator.evaluator = function(func, args) {
     let result = null;
     /* eslint-disable no-empty */
     try {
-      result = (new VM({
+      let vm = new VM({
         timeout: 250,
         sandbox: {
           result: null,
-          args
         },
         fixAsync: true
-      })).run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
+      });
+
+      vm.freeze(args, 'args');
+
+      result = vm.run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
+
+      vm = null;
     }
     catch (err) {}
     /* eslint-enable no-empty */
@@ -584,7 +589,7 @@ const Utils = {
     return changed;
   },
 
-  removeProtectedFields(form, action, submissions) {
+  removeProtectedFields(form, action, submissions, doNotMinify) {
     if (!Array.isArray(submissions)) {
       submissions = [submissions];
     }
@@ -599,17 +604,22 @@ const Utils = {
         debug.removeProtectedFields('Removing protected field:', component.key);
         modifyFields.push(deleteProp(path));
       }
-      else if ((component.type === 'signature') && (action === 'index')) {
+      else if ((component.type === 'signature') && (action === 'index') && !doNotMinify) {
         modifyFields.push(((submission) => {
           const data = _.get(submission, path);
           _.set(submission, path, (!data || (data.length < 25)) ? '' : 'YES');
         }));
       }
-      else if (component.type === 'file' && action === 'index') {
+      else if (component.type === 'file' && action === 'index' && !doNotMinify) {
         modifyFields.push(((submission) => {
           const data = _.map(
             _.get(submission, path),
-            file => (file.url || '').startsWith('data:') ? _.omit(file, 'url') : file
+            (file) => {
+              if (file && file.url && file.url.startsWith('data:')) {
+                return _.omit(file, 'url');
+              }
+              return file;
+            }
           );
           _.set(submission, path, data);
         }));
