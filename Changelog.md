@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - FIO-3223: Fixes an error with out of memory
  - FIO-1453: added check of imported template for nested resources
 
+### Changed
+ - Upgrade formio-workers@1.14.16, formiojs@4.13.3, nodemailer@6.6.2, nodemon@2.0.9, mongoose@5.13.0, eslint@7.29.0
+
 ## 1.91.3
 ### Changed
  - No changes. Released 1.91.3 as official release.
