@@ -11,6 +11,33 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 2.2.3-rc.1
 ### Changed
  - FIO-3099: Adds a hook for the Access-Control-Expose-Headers
+## 2.2.2
+### Changed
+ - No changes. Released 2.2.2-rc.8 as official release.
+
+## 2.2.2-rc.8
+### Fixed
+ - Issue where upgrading mailgun-transport causes server to crash.
+
+## 2.2.2-rc.7
+### Fixed
+ - Fixing tests further.
+
+## 2.2.2-rc.6
+### Fixed
+ - Custom submission collection tests.
+
+## 2.2.2-rc.5
+### Fixed
+ - Custom submission collection tests.
+
+## 2.2.2-rc.4
+### Fixed
+ - FIO-3369: Removed the submissionCollection hook which was messing up the submission collection.
+
+## 2.2.2-rc.3
+### Changed
+ - Upgrade formio-workers@1.14.16
 
 ## 2.2.2-rc.2
 ### Fixed
@@ -23,7 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 2.2.2-rc.1
 ### Fixed
  - FIO-3091: added automatic useUnifiedTopology parameter setting
- - FIO-3095: Allow for checking email accounts before sending emails. 
+ - FIO-3095: Allow for checking email accounts before sending emails.
  - FIO-3040: Adds tests for FIO-3040 when wasn't handle the Webhook error and respond instead of spinning forever.
 
 ## 2.2.1
