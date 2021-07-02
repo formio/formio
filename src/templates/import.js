@@ -133,7 +133,7 @@ module.exports = (router) => {
     return false;
   };
 
-  const setFormProperty = (template, entity) => {
+  const setFormProperty = (template, entity, fallbacks) => {
     if (
       !entity ||
       !entity.form ||
@@ -151,16 +151,22 @@ module.exports = (router) => {
 
     const formName = entity.form;
     // Attempt to add a form.
-    if (template.forms && template.forms[entity.form] && template.forms[entity.form]._id) {
-      entity.form = template.forms[formName]._id.toString();
-      if (template.forms[formName].hasOwnProperty('_vid') && template.forms[formName]._vid) {
-        updateRevisionProperty(entity, template.forms[formName]._vid.toString());
+    if (template.forms && template.forms[entity.form]) {
+      // Form has been already imported
+      if (template.forms[entity.form]._id) {
+        entity.form = template.forms[formName]._id.toString();
+        if (template.forms[formName].hasOwnProperty('_vid') && template.forms[formName]._vid) {
+          updateRevisionProperty(entity, template.forms[formName]._vid.toString());
+        }
+        else if (template.forms[formName].revisions) {
+          // Make sure revision is set if revisions are enabled on the form
+          updateRevisionProperty(entity, getFormRevision(template.forms[formName]._vid));
+        }
+        changes = true;
       }
-      else if (template.forms[formName].revisions) {
-        // Make sure revision is set if revisions are enabled on the form
-        updateRevisionProperty(entity, getFormRevision(template.forms[formName]._vid));
+      else {
+        fallbacks.push(entity);
       }
-      changes = true;
     }
 
     // Attempt to add a resource
@@ -231,7 +237,7 @@ module.exports = (router) => {
    * @returns {boolean}
    *   Whether or not the any changes were made.
    */
-  const componentMachineNameToId = (template, components) => {
+  const componentMachineNameToId = (template, components, fallbacks = []) => {
     let changed = false;
     util.eachComponent(components, (component) => {
       // Update resource machineNames for resource components.
@@ -240,7 +246,7 @@ module.exports = (router) => {
       }
 
       // Update the form property on the form component.
-      if ((component.type === 'form') && setFormProperty(template, component)) {
+      if ((component.type === 'form') && setFormProperty(template, component, fallbacks)) {
         changed = true;
       }
 
@@ -368,10 +374,10 @@ module.exports = (router) => {
 
         return false;
       },
-      transform: (template, form) => {
+      transform: (template, form, fallbacks) => {
         roleMachineNameToId(template, form.submissionAccess);
         roleMachineNameToId(template, form.access);
-        componentMachineNameToId(template, form.components);
+        componentMachineNameToId(template, form.components, fallbacks);
         return form;
       },
       cleanUp: (template, forms, done) => {
@@ -425,7 +431,45 @@ module.exports = (router) => {
         prun.action(null, form).then(() => {
           done();
         });
-      }
+      },
+      fallBack: (nestedForms, form, template, done) => {
+        return async.forEach(nestedForms, (nestedForm, next) => {
+          const query = {
+            $or: [
+              {
+                name: nestedForm.form,
+                deleted: {$eq: null},
+                project: formio.util.idToBson(template._id),
+              },
+              {
+                path: nestedForm.form,
+                deleted: {$eq: null},
+                project: formio.util.idToBson(template._id),
+              },
+              {
+                machineName: nestedForm.form,
+                deleted: {$eq: null},
+                project: formio.util.idToBson(template._id),
+              },
+            ]
+          };
+          formio.resources.form.model.findOne(query).exec((err, doc) => {
+            if (err) {
+              debug.install(err);
+              return next(err);
+            }
+            if (doc) {
+              nestedForm.form = formio.util.idToString(doc._id);
+            }
+            next();
+          });
+        }, (err) => {
+          if (err) {
+            done(err);
+          }
+          done();
+        });
+      },
     },
     action: {
       model: formio.actions.model,
@@ -503,17 +547,7 @@ module.exports = (router) => {
         return done();
       }
 
-      async.forEachOfSeries(items, (item, machineName, next) => {
-        const document = transform
-          ? transform(template, item)
-          : item;
-
-        // If no document was provided before the alter, skip the insertion.
-        if (!document) {
-          debug.items(`Skipping item ${item}`);
-          return next();
-        }
-
+      const performInstall = (document, machineName, item, next) => {
         // Set the document machineName using the import value.
         document.machineName = machineName;
         alter(document, template, (err, document) => {
@@ -581,6 +615,28 @@ module.exports = (router) => {
             }
           });
         });
+      };
+
+      async.forEachOfSeries(items, (item, machineName, next) => {
+        const fallbacks = [];
+        const document = transform
+          ? transform(template, item, fallbacks)
+          : item;
+
+        // If no document was provided before the alter, skip the insertion.
+        if (!document) {
+          debug.items(`Skipping item ${item}`);
+          return next();
+        }
+
+        if (fallbacks.length && typeof entity.fallBack === 'function') {
+          entity.fallBack(fallbacks, document, template, () => {
+            performInstall(document, machineName, item, next);
+          });
+        }
+        else {
+          performInstall(document, machineName, item, next);
+        }
       }, (err) => {
         if (err) {
           debug.install(err);
