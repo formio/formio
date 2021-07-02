@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.4-rc.2
+### Changed
+ - Fixed tests.
+
 ## 1.91.4-rc.1
 ### Fixed
  - FIO-3223: Fixes an error with out of memory
