@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.4-rc.1
+### Fixed
+ - FIO-3223: Fixes an error with out of memory
+ - FIO-1453: added check of imported template for nested resources
+
 ## 1.91.3
 ### Changed
  - No changes. Released 1.91.3 as official release.
