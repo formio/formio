@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased]
+## 2.2.3-rc.2
 ### Fixed
  - FIO-3369: Removed the submissionCollection hook which was messing up submission collection.
 
