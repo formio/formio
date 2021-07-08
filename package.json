@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "2.2.3-rc.1",
+  "version": "2.2.3-rc.2",
   "description": "The formio server application.",
   "license": "OSL-3.0",
   "main": "index.js",
@@ -29,7 +29,7 @@
     "config": "^3.3.6",
     "cors": "^2.8.5",
     "csv": "^5.4.0",
-    "debug": "^4.3.1",
+    "debug": "^4.3.2",
     "delete-property": "0.0.4",
     "eslint-config-formio": "^1.1.2",
     "event-chain": "^0.0.1",
@@ -46,7 +46,7 @@
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.33",
     "mongodb": "^3.6.9",
-    "mongoose": "^5.12.14",
+    "mongoose": "^5.13.2",
     "mssql": "6.3.1",
     "mysql": "^2.18.1",
     "nodemailer": "^6.6.2",
@@ -65,9 +65,9 @@
     "vm2": "^3.9.2"
   },
   "devDependencies": {
-    "eslint": "^7.29.0",
-    "mocha": "^8.4.0",
-    "nodemon": "^2.0.7",
+    "eslint": "^7.30.0",
+    "mocha": "^9.0.2",
+    "nodemon": "^2.0.9",
     "pre-commit": "^1.2.2",
     "superagent-use": "^0.1.0",
     "supertest": "^6.1.3",
