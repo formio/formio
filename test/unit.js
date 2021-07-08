@@ -46,9 +46,11 @@ module.exports = function(app, template, hook) {
       return;
     }
 
+    let hasComponentsPath = false;
+
     var formio = hook.alter('formio', app.formio);
     var email = require('../src/util/email')(formio);
-    var sendMessage = function(to, from, message, content, cb) {
+    var sendMessage = function(to, from, message, content, cb, attachFiles = false) {
       var dirName = 'fixtures/email/' + message + '/';
       var submission = require('./' + dirName + 'submission.json');
       var form = require('./' + dirName + 'form.json');
@@ -81,11 +83,13 @@ module.exports = function(app, template, hook) {
         sendEach: false,
         subject: 'New submission for {{ form.title }}.',
         template: '',
-        message: messageText
+        message: messageText,
+        attachFiles
       };
 
       email.getParams(req, res, form, submission)
       .then(params => {
+        hasComponentsPath = !!params.componentsWithPath;
         params.content = content;
         email.send(req, res, message, params, (err, response) => {
           if (err) {
@@ -130,7 +134,9 @@ module.exports = function(app, template, hook) {
         assert.equal(getValue('lastName', email.html), 'Smith');
         assert.equal(getLabel('birthdate', email.html), 'Birth Date');
         //assert.equal(getValue('birthdate', email.html), '2016-06-17');
+
         assert.equal(getValue('vehicles', email.html), '<table border="1" style="width:100%"><tr><th style="padding: 5px 10px;">Make</th><th style="padding: 5px 10px;">Model</th><th style="padding: 5px 10px;">Year</th></tr><tr><td style="padding:5px 10px;">Chevy</td><td style="padding:5px 10px;">Suburban</td><td style="padding:5px 10px;">2014</td></tr><tr><td style="padding:5px 10px;">Chevy</td><td style="padding:5px 10px;">Tahoe</td><td style="padding:5px 10px;">2014</td></tr><tr><td style="padding:5px 10px;">Ford</td><td style="padding:5px 10px;">F150</td><td style="padding:5px 10px;">2011</td></tr></table>');
+
         assert.equal(getValue('house', email.html), '<table border="1" style="width:100%"><tr><th style="text-align:right;padding: 5px 10px;">Area</th><td style="width:100%;padding:5px 10px;">2500</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Single Family</th><td style="width:100%;padding:5px 10px;">true</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Rooms</th><td style="width:100%;padding:5px 10px;">Master, Bedroom, Full Bath, Half Bath, Kitchen, Dining, Living, Garage</td></tr><tr><th style="text-align:right;padding: 5px 10px;">Address</th><td style="width:100%;padding:5px 10px;">1234 Main, Hampton, AR 71744, USA</td></tr></table>');
         done();
       });
@@ -148,6 +154,24 @@ module.exports = function(app, template, hook) {
         assert(email.html.indexOf('<div><p>Hello Joe Smith</p></div>') !== -1, 'Email content rendering failed.');
         done();
       });
+    });
+
+    it('Should render an email with attached files inside containers and editFrids.', function(done) {
+      template.hooks.reset();
+      sendMessage(['test@example.com'], 'me@example.com', 'test3', '<p>Hello</p>', (err, emails) => {
+        if (err) {
+          return done(err);
+        }
+
+        const email = emails[0];
+        assert.equal(email.subject, 'New submission for Test Form.');
+
+        if (hasComponentsPath) {
+          assert(email.attachments.length === 4, 'Email should have all attachments');
+        }
+
+        done();
+      }, true);
     });
   });
 };
