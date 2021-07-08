@@ -140,12 +140,15 @@ module.exports = (formio) => {
 
     // The form components.
     params.components = {};
+    params.componentsWithPath = {};
 
     const replacements = [];
 
     // Flatten the resource data.
-    util.eachComponent(form.components, (component) => {
+    util.eachComponent(form.components, (component, path) => {
       params.components[component.key] = component;
+      params.componentsWithPath[path] = component;
+      params.componentsWithPath[path].compPath = path;
       if (component.type === 'resource' && params.data[component.key]) {
         params.data[`${component.key}Obj`] = params.data[component.key];
         replacements.push(
