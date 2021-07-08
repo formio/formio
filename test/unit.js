@@ -46,8 +46,6 @@ module.exports = function(app, template, hook) {
       return;
     }
 
-    let hasComponentsPath = false;
-
     var formio = hook.alter('formio', app.formio);
     var email = require('../src/util/email')(formio);
     var sendMessage = function(to, from, message, content, cb, attachFiles = false) {
@@ -89,7 +87,6 @@ module.exports = function(app, template, hook) {
 
       email.getParams(req, res, form, submission)
       .then(params => {
-        hasComponentsPath = !!params.componentsWithPath;
         params.content = content;
         email.send(req, res, message, params, (err, response) => {
           if (err) {
@@ -156,6 +153,7 @@ module.exports = function(app, template, hook) {
       });
     });
 
+   if (app.hasProjects) {
     it('Should render an email with attached files inside containers and editFrids.', function(done) {
       template.hooks.reset();
       sendMessage(['test@example.com'], 'me@example.com', 'test3', '<p>Hello</p>', (err, emails) => {
@@ -166,12 +164,11 @@ module.exports = function(app, template, hook) {
         const email = emails[0];
         assert.equal(email.subject, 'New submission for Test Form.');
 
-        if (hasComponentsPath) {
-          assert(email.attachments.length === 4, 'Email should have all attachments');
-        }
+        assert(email.attachments.length === 4, 'Email should have all attachments');
 
         done();
       }, true);
     });
+   }
   });
 };
