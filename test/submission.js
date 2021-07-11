@@ -1579,7 +1579,6 @@ module.exports = function(app, template, hook) {
                   key: 'requiredField',
                   setting: true,
                   validator: 'required',
-                  value: '',
                   label: 'Required Field'
                 },
                 message: 'Required Field is required',
@@ -1589,7 +1588,6 @@ module.exports = function(app, template, hook) {
             ]);
             done();
           });
-
       });
 
       it('Doesn\'t require a conditionally hidden field', function(done) {
@@ -1949,7 +1947,6 @@ module.exports = function(app, template, hook) {
                   label: 'Required Field',
                   setting: true,
                   validator: 'required',
-                  value: ''
                 },
                 message: 'Required Field is required',
                 level: 'error',
@@ -1958,7 +1955,6 @@ module.exports = function(app, template, hook) {
             ]);
             done();
           });
-
       });
 
       it('Doesn\'t require a conditionally hidden field in a panel', function(done) {
@@ -2776,9 +2772,11 @@ module.exports = function(app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
-            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details.length, 2);
             assert.equal(helper.lastResponse.body.details[0].message, 'Text Field is required');
+            assert.equal(helper.lastResponse.body.details[1].message, 'Text Field must be a non-empty array');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+            assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
             done();
           });
       });
@@ -3493,7 +3491,6 @@ module.exports = function(app, template, hook) {
                   label: 'Two',
                   setting: true,
                   validator: 'required',
-                  value: ''
                 },
                 level: 'error',
                 message: 'Two is required',
@@ -3705,7 +3702,6 @@ module.exports = function(app, template, hook) {
                   label: 'Test',
                   setting: true,
                   validator: 'required',
-                  value: ''
                 },
                 level: 'error',
                 message: 'Test is required',
@@ -4255,5 +4251,56 @@ module.exports = function(app, template, hook) {
     //     done();
     //   });
     // });
+  });
+
+  describe('Submissions without Default Values', (done) => {
+    before((done) => {
+      // Create a resource to keep records.
+      helper
+        .form('defaultValuesForm', [
+          {
+            "label": "Text Field",
+            "tableView": true,
+            "key": "textField",
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "label": "Checkbox",
+            "tableView": false,
+            "key": "checkbox",
+            "type": "checkbox",
+            "input": true
+          }
+        ])
+        .execute(function(err) {
+          if (err) {
+            return done(err);
+          }
+          done();
+        });
+    });
+
+    it('Should set submission without default value', (done) => {
+      helper
+        .submission('defaultValuesForm', {
+          data: {
+            textField: '123'
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          const expectedData = {
+            textField: '123'
+          };
+
+          assert.equal(JSON.stringify(submission.data), JSON.stringify(expectedData));
+          done();
+        });
+    });
   });
 };
