@@ -10,7 +10,7 @@ const _ = require('lodash');
  *
  * @returns {Function}
  */
-module.exports = (router) => (settings) => (req, res, next) => {
+module.exports = (router) => (settings, callback) => (req, res, next) => {
   if (!Array.isArray(settings) || !res || !res.resource || !res.resource.item) {
     return next();
   }
@@ -27,6 +27,11 @@ module.exports = (router) => (settings) => (req, res, next) => {
   });
 
   res.resource.item = multi ? list : list[0];
+
+  /* eslint-disable callback-return */
+  if (callback && typeof callback === 'function') {
+    callback(req, res);
+  }
 
   next();
 };
