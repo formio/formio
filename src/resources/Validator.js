@@ -114,8 +114,8 @@ class Validator {
       form.data = submission.data;
 
       // Perform calculations and conditions.
-      form.calculateValue();
       form.checkConditions();
+      form.calculateValue();
 
       // Reset the data
       form.data = {};
