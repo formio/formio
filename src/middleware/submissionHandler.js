@@ -74,13 +74,11 @@ module.exports = (router, resourceName, resourceId) => {
 
       // If this is a get method, then filter the model query.
       if (isGet) {
+        const submissionQuery = hook.alter('submissionQuery', {form: req.currentForm._id}, req);
         req.countQuery = req.countQuery || req.model || this.model;
         req.modelQuery = req.modelQuery || req.model || this.model;
-        if (req.handlerName !== 'beforeGet') {
-          // Set the model query to filter based on the ID.
-          req.countQuery = req.countQuery.find({form: req.currentForm._id});
-          req.modelQuery = req.modelQuery.find({form: req.currentForm._id});
-        }
+        req.countQuery = req.countQuery.find(submissionQuery);
+        req.modelQuery = req.modelQuery.find(submissionQuery);
       }
 
       // If the request has a body.

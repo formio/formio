@@ -47,10 +47,8 @@ module.exports = function(router) {
       const formQuery = hook.alter('formQuery', {}, req);
       req.countQuery = req.countQuery || req.model || this.model;
       req.modelQuery = req.modelQuery || req.model || this.model;
-      if (!req.params.formId) {
-        req.countQuery = req.countQuery.find(formQuery);
-        req.modelQuery = req.modelQuery.find(formQuery);
-      }
+      req.countQuery = req.countQuery.find(formQuery);
+      req.modelQuery = req.modelQuery.find(formQuery);
     }
     next();
   };
