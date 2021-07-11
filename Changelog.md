@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.5-rc.1
+### Fixed
+ - fix(import templates): nested forms "form" property is not set properly when it comes after the parent form inside a template
+ - Ensure that the queries include all indexes to speed up performance.
+ - FIO-3089: fixed as issue where server validation error appears when submitting empty value of number/currancy components 
+ - FIO-3082: Unable to submit form with a required field
+
+### Added
+ - FIO-644: Add filter resource response middleware callback
+
 ## 1.91.4
 ### Changed
  - No changes. Official release.
