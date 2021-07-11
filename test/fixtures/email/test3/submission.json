@@ -1,0 +1,72 @@
+{
+  "_id": "5762f53b65901601001cc657",
+  "modified": "2016-06-16T18:51:39.375Z",
+  "data": {
+    "file": [
+      {
+        "storage": "s3",
+        "name": "BMW_logo_-gray-.svg-fca9e4cf-f105-4a33-9bfa-8faa0e211c90.png",
+        "bucket": "formio",
+        "key": "BMW_logo_-gray-.svg-fca9e4cf-f105-4a33-9bfa-8faa0e211c90.png",
+        "url": "http://localhost:9000/BMW_logo_-gray-.svg-fca9e4cf-f105-4a33-9bfa-8faa0e211c90.png",
+        "acl": "private",
+        "size": 180493,
+        "type": "image/png",
+        "originalName": "BMW_logo_(gray).svg.png"
+      }
+    ],
+    "container": {
+      "file": [
+        {
+          "storage": "s3",
+          "name": "BMW_logo_-gray-.svg-db4c6d8a-b87a-4153-9152-85a51e3cc448.png",
+          "bucket": "formio",
+          "key": "BMW_logo_-gray-.svg-db4c6d8a-b87a-4153-9152-85a51e3cc448.png",
+          "url": "http://localhost:9000/BMW_logo_-gray-.svg-db4c6d8a-b87a-4153-9152-85a51e3cc448.png",
+          "acl": "private",
+          "size": 180493,
+          "type": "image/png",
+          "originalName": "BMW_logo_(gray).svg.png"
+        }
+      ]
+    },
+    "editGrid": [
+      {
+        "file": [
+          {
+            "storage": "s3",
+            "name": "dirrected by-5dc0e228-bda3-483e-83fe-314edec1cea6.jpg",
+            "bucket": "formio",
+            "key": "dirrected by-5dc0e228-bda3-483e-83fe-314edec1cea6.jpg",
+            "url": "http://localhost:9000/dirrected by-5dc0e228-bda3-483e-83fe-314edec1cea6.jpg",
+            "acl": "private",
+            "size": 11360,
+            "type": "image/jpeg",
+            "originalName": "dirrected by.jpg"
+          }
+        ]
+      },
+      {
+        "file": [
+          {
+            "storage": "s3",
+            "name": "dirrected by-ab9d0f62-d7b4-4858-9be6-a50217eca094.png",
+            "bucket": "formio",
+            "key": "dirrected by-ab9d0f62-d7b4-4858-9be6-a50217eca094.png",
+            "url": "http://localhost:9000/dirrected by-ab9d0f62-d7b4-4858-9be6-a50217eca094.png",
+            "acl": "private",
+            "size": 24794,
+            "type": "image/png",
+            "originalName": "dirrected by.png"
+          }
+        ]
+      }
+    ]
+  },
+  "form": "5762cbed65901601001cc5c8",
+  "created": "2016-06-16T18:51:39.374Z",
+  "externalIds": [],
+  "access": [],
+  "roles": [],
+  "owner": "57605b5965901601001cbbd2"
+}
