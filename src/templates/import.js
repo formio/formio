@@ -684,6 +684,50 @@ module.exports = (router) => {
     });
   };
 
+  const tryToLoadComponent = (component, template) => {
+    const query = {
+      name: component.form,
+      deleted: {$eq: null}
+    };
+    return formio.resources.form.model.find(query).exec().then((results)=>{
+      if (results.length!==1) {
+       throw 'Incorrect project template';
+      }
+      const result = results[0];
+
+      const newItem = {
+          "title": result.title ,
+          "type": result.type,
+          "name": result.name,
+          "path": result.path,
+          "tags": result.tags,
+          "components": result.components
+      };
+
+      if (result.type==='form') {
+        template.forms[newItem.name]=newItem;
+      }
+ else {
+        template.resources[newItem.name]=newItem;
+      }
+    });
+  };
+
+  const checkTemplate = (template) => {
+    const test = Object.values(template.forms).concat(Object.values(template.resources));
+    const resultArr = [];
+    test.forEach(form=>{
+      return form.components.forEach(component=>{
+          if (component.hasOwnProperty('form') &&
+              !(template.forms.hasOwnProperty(component.form) ||
+              template.resources.hasOwnProperty(component.form))) {
+               resultArr.push(tryToLoadComponent(component, template));
+        }
+      });
+    });
+    return resultArr;
+};
+
   // Implement an import endpoint.
   if (router.post) {
     router.post('/import', (req, res, next) => {
@@ -694,14 +738,21 @@ module.exports = (router) => {
         template = JSON.parse(template);
       }
 
-      template = hook.alter('importOptions', template, req, res);
-      importTemplate(template, alters, (err, data) => {
-        if (err) {
-          return next(err.message || err);
-        }
+      const addingAdditionalComponents = checkTemplate(template);
 
-        return res.status(200).send('Ok');
-      });
+        Promise.all(addingAdditionalComponents).then(()=>{
+        template = hook.alter('importOptions', template, req, res);
+        importTemplate(template, alters, (err, data) => {
+          if (err) {
+            return next(err.message || err);
+          }
+
+          return res.status(200).send('Ok');
+        });
+       })
+       .catch(err=>{
+        return next(err.message || err);
+       });
     });
   }
 
