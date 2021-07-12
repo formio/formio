@@ -101,8 +101,15 @@ module.exports = (router, resourceName, resourceId) => {
         }
 
         if (req.method === 'POST') {
+          const blackList = [
+            'x-admin',
+            'x-jwt-token',
+            'x-token',
+            'x-remote-token'
+          ];
+
           const reqHeaders = _.omitBy(req.headers, (value, key) => {
-            return ['x-admin', 'x-jwt-token'].includes(key) || key.match(/auth/gi);
+            return blackList.includes(key) || key.match(/auth/gi);
           });
 
           _.set(req.body, 'metadata.headers', reqHeaders);
