@@ -4729,5 +4729,115 @@ module.exports = function(app, template, hook) {
           });
       });
     });
+
+    describe('Form with checkboxes grouped as radio', () => {
+      let formId;
+      it('Create form with checkboxes grouped as radio', (done) => {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            "title":"test1",
+            "display":"form",
+            "type":"form",
+            "components":[
+              {
+                "label": "One",
+                "inputType": "radio",
+                "tableView": false,
+                "defaultValue": false,
+                "key": "checkbox",
+                "type": "checkbox",
+                "name": "check",
+                "value": "one",
+                "input": true
+            },
+            {
+                "label": "Two",
+                "inputType": "radio",
+                "tableView": false,
+                "defaultValue": false,
+                "key": "checkbox1",
+                "type": "checkbox",
+                "name": "check",
+                "value": "two",
+                "input": true
+            },
+            {
+                "label": "Three",
+                "inputType": "radio",
+                "tableView": false,
+                "defaultValue": false,
+                "key": "checkbox2",
+                "type": "checkbox",
+                "name": "check",
+                "value": "three",
+                "input": true
+            },
+            {
+              "type":"button",
+              "label":"Submit",
+              "key":"submit",
+              "disableOnInvalid":true,
+              "input":true,
+              "tableView":false
+              }
+            ],
+            "access":[],
+            "submissionAccess":[],
+            "controller":"",
+            "properties":{},
+            "settings":{},
+            "builder":false,
+            "name":"test1",
+            "path":"test1"
+          })
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            formId = res.body._id;
+            done()
+          })
+      });
+
+      it('Submit form', (done) => {
+        request(app)
+        .post(hook.alter('url', '/form/' + formId + '/submission', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          "data": {
+              "submit": true,
+              "check": "two"
+          },
+          "state": "submitted"
+      })
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          done()
+        })
+      });
+
+      it('Checkboxes data grouped as radio', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form/' + formId + '/export', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(_.isEqual(res.body[0].data, { check: 'two' }), true)
+            done()
+          })
+      });
+    });
   });
 };
