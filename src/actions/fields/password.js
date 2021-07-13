@@ -37,7 +37,7 @@ module.exports = (formio) => {
                   }
 
                   if (!req.skipTokensInvalidation) {
-                    _.set(req.body, 'metadata.jwtIssuedAfter', req.tokenIssued || (Date.now() / 1000));
+                    _.set(req.body, 'metadata.jwtIssuedAfter', req.tokenIssued || Math.trunc(Date.now() / 1000));
                   }
                   resolve();
                 });
