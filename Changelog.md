@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.6
+### Fixed
+ - Fixed it so that the importer does not throw an error when importing.
+
 ## 1.91.5
 ### Changed
  - No changes. Official release.
