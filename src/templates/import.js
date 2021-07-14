@@ -731,25 +731,23 @@ module.exports = (router) => {
       deleted: {$eq: null}
     };
     return formio.resources.form.model.find(query).exec().then((results)=>{
-      if (results.length!==1) {
-       throw 'Incorrect project template';
-      }
-      const result = results[0];
+      if (results.length) {
+        const result = results[0];
+        const newItem = {
+            "title": result.title ,
+            "type": result.type,
+            "name": result.name,
+            "path": result.path,
+            "tags": result.tags,
+            "components": result.components
+        };
 
-      const newItem = {
-          "title": result.title ,
-          "type": result.type,
-          "name": result.name,
-          "path": result.path,
-          "tags": result.tags,
-          "components": result.components
-      };
-
-      if (result.type==='form') {
-        template.forms[newItem.name]=newItem;
-      }
- else {
-        template.resources[newItem.name]=newItem;
+        if (result.type==='form') {
+          template.forms[newItem.name]=newItem;
+        }
+        else {
+          template.resources[newItem.name]=newItem;
+        }
       }
     });
   };
