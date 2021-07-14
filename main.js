@@ -1,5 +1,4 @@
 'use strict';
-require('mailgun.js');
 
 const util = require('./src/util/util');
 require('colors');
