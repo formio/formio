@@ -248,6 +248,42 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('Server Calculated', function() {
+          it('Recalculate value on server', function(done) {
+              var test = require('./fixtures/forms/servercalculate.js');
+              helper
+                  .form('test', test.components)
+                  .submission(test.submission)
+                  .execute(function(err) {
+                      if (err) {
+                          return done(err);
+                      }
+
+                      var submission = helper.getLastSubmission();
+                      assert.deepEqual(test.submission, submission.data);
+
+                      done();
+                  });
+          });
+
+        it('Fails to recalculate value because of corrupted submission', function(done) {
+            var test = require('./fixtures/forms/servercalculate.js');
+            helper
+                .form('test', test.components)
+                .submission(test.falseSubmission)
+                .execute(function(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    var submission = helper.getLastSubmission();
+                    assert.deepEqual(test.falseSubmission, submission.data);
+
+                    done();
+                });
+        });
+      });
+
     describe('Fieldset nesting', function() {
       it('Nests single value components in a fieldset', function(done) {
         var test = require('./fixtures/forms/singlecomponents1.js');
