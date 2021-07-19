@@ -62,7 +62,7 @@ module.exports = function(router) {
           defaultValue: false,
           key: 'block',
           label: 'Block request for Webhook feedback',
-          hideLabel: true,
+          hideLabel: false,
           tableView: true,
           inputType: 'checkbox',
           input: true

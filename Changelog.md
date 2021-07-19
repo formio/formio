@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.3-rc.4
+### Fixed
+ - FIO-2834: Fixes an issue where File's values are shown in CSV as empty
+ - Unhid block component label in webhook action settings form
+ - FIO-3099: Implements the oAuthM2M Token hook to the Login Action
+ - FIO-3116: Fixes an issue files inside containers and editgrids weren't attaching to an email. Added tests
+ - FIO-3251 fix: values which should be cleared on hide are used in calculations before it happened
+
+### Changed
+ - Upgrade formiojs@4.14.0-rc.14
+ - Upgrade mongodb@3.6.10, nodemon@2.0.12
+ - FIO-2764: Adds an ability to have the submission contain only data that you submitted.
+ - Added indexes to queries to improve performance of resource load times.
+
 ## 2.2.3-rc.2
 ### Fixed
  - FIO-3369: Removed the submissionCollection hook which was messing up submission collection.
