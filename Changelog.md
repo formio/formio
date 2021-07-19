@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.3-rc.6
+### Fixed
+ - Resolved broken test.
+
 ## 2.2.3-rc.5
 ### Changed
  - Upgrade mongoose@5.13.3, nodemailer@6.6.3, mailgun.js@3.5.2, eslint@7.31.0
