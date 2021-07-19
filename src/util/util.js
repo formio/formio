@@ -50,14 +50,19 @@ Formio.Utils.Evaluator.evaluator = function(func, args) {
     let result = null;
     /* eslint-disable no-empty */
     try {
-      result = (new VM({
+      let vm = new VM({
         timeout: 250,
-        sandbox: _.cloneDeep({
+        sandbox: {
           result: null,
-          args
-        }),
+        },
         fixAsync: true
-      })).run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
+      });
+
+      vm.freeze(args, 'args');
+
+      result = vm.run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
+
+      vm = null;
     }
     catch (err) {}
     /* eslint-enable no-empty */
@@ -609,7 +614,12 @@ const Utils = {
         modifyFields.push(((submission) => {
           const data = _.map(
             _.get(submission, path),
-            file => (file.url || '').startsWith('data:') ? _.omit(file, 'url') : file
+            (file) => {
+              if (file && file.url && file.url.startsWith('data:')) {
+                return _.omit(file, 'url');
+              }
+              return file;
+            }
           );
           _.set(submission, path, data);
         }));

@@ -43,7 +43,8 @@ module.exports = (router) => {
 
     // Set the headers if they haven't been sent yet.
     if (!res.headersSent) {
-      res.setHeader('Access-Control-Expose-Headers', 'x-jwt-token');
+      const headers = router.formio.hook.alter('accessControlExposeHeaders', 'x-jwt-token');
+      res.setHeader('Access-Control-Expose-Headers', headers);
       res.setHeader('x-jwt-token', res.token);
     }
   };
