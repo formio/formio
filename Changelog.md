@@ -4,6 +4,129 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.3-rc.4
+### Fixed
+ - FIO-2834: Fixes an issue where File's values are shown in CSV as empty
+ - Unhid block component label in webhook action settings form
+ - FIO-3099: Implements the oAuthM2M Token hook to the Login Action
+ - FIO-3116: Fixes an issue files inside containers and editgrids weren't attaching to an email. Added tests
+ - FIO-3251 fix: values which should be cleared on hide are used in calculations before it happened
+
+### Changed
+ - Upgrade formiojs@4.14.0-rc.14
+ - Upgrade mongodb@3.6.10, nodemon@2.0.12
+ - FIO-2764: Adds an ability to have the submission contain only data that you submitted.
+ - Added indexes to queries to improve performance of resource load times.
+
+## 2.2.3-rc.2
+### Fixed
+ - FIO-3369: Removed the submissionCollection hook which was messing up submission collection.
+
+## 2.2.3-rc.1
+### Changed
+ - FIO-3099: Adds a hook for the Access-Control-Expose-Headers
+## 2.2.2
+### Changed
+ - No changes. Released 2.2.2-rc.8 as official release.
+
+## 2.2.2-rc.8
+### Fixed
+ - Issue where upgrading mailgun-transport causes server to crash.
+
+## 2.2.2-rc.7
+### Fixed
+ - Fixing tests further.
+
+## 2.2.2-rc.6
+### Fixed
+ - Custom submission collection tests.
+
+## 2.2.2-rc.5
+### Fixed
+ - Custom submission collection tests.
+
+## 2.2.2-rc.4
+### Fixed
+ - FIO-3369: Removed the submissionCollection hook which was messing up the submission collection.
+
+## 2.2.2-rc.3
+### Changed
+ - Upgrade formio-workers@1.14.16
+
+## 2.2.2-rc.2
+### Fixed
+ - FIO-3223: Fixes an error with out of memory
+ - Fixing potential references to null variables.
+
+### Changed
+ - Upgrade formio-workers@1.14.15
+
+## 2.2.2-rc.1
+### Fixed
+ - FIO-3091: added automatic useUnifiedTopology parameter setting
+ - FIO-3095: Allow for checking email accounts before sending emails.
+ - FIO-3040: Adds tests for FIO-3040 when wasn't handle the Webhook error and respond instead of spinning forever.
+
+## 2.2.1
+### Changed
+ - No changes. Released 2.2.1-rc.2 as official release.
+
+## 2.2.1-rc.2
+### Changed
+ - Upgrade formiojs@4.14.0-rc.5
+ - Upgrade mongodb@3.6.7, mongoose@5.12.10
+
+## 2.2.1-rc.1
+### Fixed
+ - FIO-2823: Fixes an issue when custom mongodb collection on a resource breaks the resource and the submission data cannot be accessed
+ - Changed action items "require" to "required"
+ - Added extra check to prevent server crashes
+
+### Changed
+ - Upgrade formiojs@4.13.2-rc.2
+ - Upgrade dependencies.
+
+## 2.2.0
+### Changed
+ - Official release of 2.2.0-rc.2
+
+## 2.2.0-rc.2
+### Fixed
+ - FIO-2766: preventing unathorized users from viewing form definition
+
+## 2.2.0-rc.1
+### Changed
+ - Upgrade formiojs@4.13.1-rc.1
+
+### Fixed
+ - FIO-2484: Implements Split Roles PR with Group permission
+
+## 2.1.1
+### Changed
+ - No changes. Official Release.
+
+## 2.1.1-rc.2
+### Fixed
+ - Modified the expiring indexes to have try/caches around all instances.
+
+## 2.1.1-rc.1
+### Changed
+ - Adding try/catch around expiring indexes for DB's that don't support it.
+
+## 2.1.0
+### Changed
+ - Upgrade formiojs@4.13.0
+
+## 2.1.0-rc.18
+### Changed
+ - Upgrade formiojs@4.13.0-rc.27
+
+## 2.1.0-rc.17
+### Changed
+ - Upgrade formiojs@4.13.0-rc.26
+ - Upgrade resourcejs@2.3.4
+ - Upgrade other dependencies.
+
 ## 2.1.0-rc.16
  - Upgrade formiojs@4.13.0-rc.25
 

@@ -827,6 +827,104 @@ module.exports = function(app, template, hook) {
           .expect(401)
           .end(done);
       });
+
+        it('Delete Anonymous role from Read Form Definition', function(done) {
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            ...tempForm,
+            access: [{type: 'read_all', roles: [template.roles.authenticated._id.toString(), template.roles.administrator._id.toString()]}]
+          })
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }             
+            done();
+          });  
+      });
+  
+      it('An Anonymous user should not be able to Read a Form for a User-Created Project after deleting Anonymous role from Read Form Definition', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .expect(401)
+          .end(done);
+      });
+
+      it('Add Field Match Based Access for not Anonymous users', function(done) {
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            ...tempForm,
+            fieldMatchAccess: {
+              read: [{
+                  formFieldPath:"data.textField",
+                  valueType:"string",
+                  value:"test1",
+                  operator:"$eq",
+                  roles: [template.roles.authenticated._id.toString()]
+              }]
+            }
+          })
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            done();
+          });  
+      });
+
+      it('An Anonymous user should not be able to Read a Form for a User-Created Project after deleting Anonymous role from Read Form Definition', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .expect(401)
+          .end(done);
+      });
+
+      it('Add Field Match Based Access for Anonimys users', function(done) {
+        request(app)
+          .put(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            ...tempForm,
+            fieldMatchAccess: {
+              read: [{
+                  formFieldPath:"data.textField",
+                  valueType:"string",
+                  value:"test1",
+                  operator:"$eq",
+                  roles: [template.roles.anonymous._id.toString()]
+                }]
+              }
+            })
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+             var response = res.body;
+            template.forms.tempForm = response;
+            done();
+          });  
+      });
+
+      it('An Anonymous user should not be able to Read a Form with Match Based Access for Anonimys users', function(done) {
+        request(app)
+          .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            var response = res.body;
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.forms.tempForm, ignoreFields));
+            done();
+          });
+      });
     });
 
     describe('Form Normalization', function() {

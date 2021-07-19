@@ -1,0 +1,99 @@
+{
+  "_id": "5762cbed65901601001cc5c8",
+  "modified": "2016-06-16T18:49:57.831Z",
+  "title": "Test Form",
+  "display": "form",
+  "type": "form",
+  "name": "testForm",
+  "path": "test",
+  "project": "5762cb1365901601001cc5b5",
+  "created": "2016-06-16T15:55:25.495Z",
+  "components": [
+    {
+      "label": "Upload",
+      "tableView": false,
+      "storage": "s3",
+      "webcam": false,
+      "fileTypes": [
+        {
+          "label": "",
+          "value": ""
+        }
+      ],
+      "key": "file",
+      "type": "file",
+      "input": true
+    },
+    {
+      "label": "Container",
+      "tableView": false,
+      "key": "container",
+      "type": "container",
+      "input": true,
+      "components": [
+        {
+          "label": "Upload in container",
+          "tableView": false,
+          "storage": "s3",
+          "webcam": false,
+          "fileTypes": [
+            {
+              "label": "",
+              "value": ""
+            }
+          ],
+          "key": "file",
+          "type": "file",
+          "input": true
+        }
+      ]
+    },
+    {
+      "label": "Edit Grid",
+      "tableView": false,
+      "rowDrafts": false,
+      "key": "editGrid",
+      "type": "editgrid",
+      "displayAsTable": false,
+      "input": true,
+      "components": [
+        {
+          "label": "Upload",
+          "tableView": false,
+          "storage": "s3",
+          "webcam": false,
+          "fileTypes": [
+            {
+              "label": "",
+              "value": ""
+            }
+          ],
+          "key": "file",
+          "type": "file",
+          "input": true
+        }
+      ]
+    },
+    {
+      "type": "button",
+      "label": "Submit",
+      "key": "submit",
+      "disableOnInvalid": true,
+      "input": true,
+      "tableView": false
+    }
+  ],
+  "owner": "57605b5965901601001cbbd2",
+  "submissionAccess": [],
+  "access": [
+    {
+      "type": "read_all",
+      "roles": [
+        "5762cb1365901601001cc5b6",
+        "5762cb1365901601001cc5b7",
+        "5762cb1365901601001cc5b8"
+      ]
+    }
+  ],
+  "tags": []
+}
