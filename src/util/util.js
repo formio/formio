@@ -44,25 +44,23 @@ _.each(Formio.Displays.displays, (display) => {
   display.prototype.onChange = _.noop;
 });
 
+const vm = new VM({
+  timeout: 250,
+  sandbox: {
+    result: null,
+  },
+  fixAsync: true
+});
+
 Formio.Utils.Evaluator.noeval = true;
 Formio.Utils.Evaluator.evaluator = function(func, args) {
   return function() {
     let result = null;
     /* eslint-disable no-empty */
     try {
-      let vm = new VM({
-        timeout: 250,
-        sandbox: {
-          result: null,
-        },
-        fixAsync: true
-      });
-
       vm.freeze(args, 'args');
 
       result = vm.run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
-
-      vm = null;
     }
     catch (err) {}
     /* eslint-enable no-empty */
