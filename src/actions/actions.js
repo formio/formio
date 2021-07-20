@@ -313,8 +313,8 @@ module.exports = (router) => {
               query: params.query,
               data: params.data,
               form: params.form,
-              submission: params.body,
-              previous: params.previousSubmission,
+              submission: params.submission,
+              previous: params.previous,
             },
             eval: false,
             fixAsync: true
