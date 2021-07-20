@@ -68,11 +68,13 @@ class Validator {
     // Create the form, then check validity.
     Formio.createForm(this.form, {
       server: true,
+      noDefaults: true,
       hooks: {
         setDataValue: function(value, key, data) {
           if (!unsetsEnabled) {
             return value;
           }
+
           // Check if this component is not persistent.
           if (this.component.hasOwnProperty('persistent') &&
             (!this.component.persistent || this.component.persistent === 'client-only')
