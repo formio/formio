@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.3-rc.8
+### Fixed
+ - Fixed issues with action conditions not working when "submission" or "previous" were used in the conditional.
+
+### Changed
+ - Upgrade formiojs@4.14.0-rc.15
+
+## 2.2.3-rc.7
+### Fixed
+ - Tests to make them more robust.
+
+## 2.2.3-rc.6
+### Fixed
+ - Resolved broken test.
+
+## 2.2.3-rc.5
+### Changed
+ - Upgrade mongoose@5.13.3, nodemailer@6.6.3, mailgun.js@3.5.2, eslint@7.31.0
+
+### Fixed
+ - Improve validation performance by moving VM instance outside Evaluator
+ - FIO-1453: Add import fallbacks
+ - FIO-3441: resolve vulnerabilities
+ - Ensure we truncate the jwtIssuedAfter.
+ - FIO-3471: Ensure that the queries include all indexes to speed up performance.
+
 ## 2.2.3-rc.4
 ### Fixed
  - FIO-2834: Fixes an issue where File's values are shown in CSV as empty

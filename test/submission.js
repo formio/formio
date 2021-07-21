@@ -4158,10 +4158,10 @@ module.exports = function(app, template, hook) {
         });
 
         it('Should allow to use a custom submission collection', done => {
-          const hosted = process.env.FORMIO_HOSTED;
-          process.env.FORMIO_HOSTED = false;
+          const hosted = template.config.formio.hosted;
+          template.config.formio.hosted = false;
           const isDone = function(err) {
-            process.env.FORMIO_HOSTED = hosted;
+            template.config.formio.hosted = hosted;
             done(err);
           };
           const setProjectCollection = function(form, next) {
@@ -4192,10 +4192,9 @@ module.exports = function(app, template, hook) {
             }
 
             assert.equal(formsubs.length, 4);
-            assert.equal(formsubs[0].data.name, 'Apple');
-            assert.equal(formsubs[1].data.name, 'Pear');
-            assert.equal(formsubs[2].data.name, 'Banana');
-            assert.equal(formsubs[3].data.name, 'Orange');
+            assert.deepEqual(formsubs.map((sub) => {
+              return sub.data.name;
+            }).sort(), ['Apple', 'Banana', 'Orange', 'Pear']);
             const form = helper.getForm('fruits');
             assert.equal(!!form, true);
             setProjectCollection(form, (err, submissions) => {
@@ -4216,10 +4215,10 @@ module.exports = function(app, template, hook) {
                       isDone(err);
                     }
                     assert.equal(formsubs.length, 3);
-                    assert.equal(formsubs[0].data.name, 'Peach');
-                    assert.equal(formsubs[1].data.name, 'Blueberry');
-                    assert.equal(formsubs[2].data.name, 'Strawberry');
-                    helper.deleteSubmission(formsubs[2], (err) => {
+                    assert.deepEqual(formsubs.map((sub) => {
+                      return sub.data.name;
+                    }).sort(), ['Blueberry', 'Peach', 'Strawberry']);
+                    helper.deleteSubmission(formsubs.find(sub => (sub.data.name === 'Strawberry')), (err) => {
                       if (err) {
                         isDone(err);
                       }
@@ -4228,18 +4227,18 @@ module.exports = function(app, template, hook) {
                           isDone(err);
                         }
                         assert.equal(formsubs.length, 2);
-                        assert.equal(formsubs[0].data.name, 'Peach');
-                        assert.equal(formsubs[1].data.name, 'Blueberry');
+                        assert.deepEqual(formsubs.map((sub) => {
+                          return sub.data.name;
+                        }).sort(), ['Blueberry', 'Peach']);
                         _.unset(form, 'settings.collection');
                         updateFormAndGetSubmissions(form, (err, formsubs) => {
                           if (err) {
                             return isDone(err);
                           }
                           assert.equal(formsubs.length, 4);
-                          assert.equal(formsubs[0].data.name, 'Apple');
-                          assert.equal(formsubs[1].data.name, 'Pear');
-                          assert.equal(formsubs[2].data.name, 'Banana');
-                          assert.equal(formsubs[3].data.name, 'Orange');
+                          assert.deepEqual(formsubs.map((sub) => {
+                            return sub.data.name;
+                          }).sort(), ['Apple', 'Banana', 'Orange', 'Pear']);
                           isDone();
                         });
                       });
