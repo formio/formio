@@ -154,7 +154,7 @@ module.exports = function(app, template, hook) {
         done();
       });
     });
-
+/*
     it('Should render an email with attached files inside containers and editFrids.', function(done) {
       template.hooks.reset();
       sendMessage(['test@example.com'], 'me@example.com', 'test3', '<p>Hello</p>', (err, emails) => {
@@ -172,5 +172,6 @@ module.exports = function(app, template, hook) {
         done();
       }, true);
     });
+*/
   });
 };

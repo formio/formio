@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.7
+### Fixed
+ - FIO-3116: Fixes an issue files inside containers and editgrids weren't attaching to an email.
+ - FIO-898: Implements keeping POST request headers in submission.metadata.headers.
+ - Fixing issues with the action execution not triggering due to undefined variables.
+
+### Changed
+ - Upgrade mongoose@5.13.3, nodemailer@6.6.3, eslint@7.31.0
+
 ## 1.91.6
 ### Fixed
  - Fixed it so that the importer does not throw an error when importing.

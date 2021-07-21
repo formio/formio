@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "1.91.6",
+  "version": "1.91.7",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
@@ -47,10 +47,10 @@
     "moment": "^2.29.0",
     "moment-timezone": "^0.5.33",
     "mongodb": "^3.6.10",
-    "mongoose": "^5.13.2",
+    "mongoose": "^5.13.3",
     "mssql": "^6.3.1",
     "mysql": "^2.18.1",
-    "nodemailer": "^6.6.2",
+    "nodemailer": "^6.6.3",
     "nodemailer-mailgun-transport": "2.0.2",
     "nodemailer-mandrill-transport": "^1.2.0",
     "nodemailer-sendgrid-transport": "^0.2.0",
@@ -67,7 +67,7 @@
     "vm2": "^3.9.3"
   },
   "devDependencies": {
-    "eslint": "^7.30.0",
+    "eslint": "^7.31.0",
     "mocha": "^8.4.0",
     "nodemon": "^2.0.12",
     "pre-commit": "^1.2.2",
