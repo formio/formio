@@ -54,7 +54,7 @@
     "nodemailer": "^6.6.3",
     "nodemailer-mailgun-transport": "2.1.3",
     "nodemailer-mandrill-transport": "^1.2.0",
-    "nodemailer-sendgrid-transport": "^0.2.0",
+    "nodemailer-sendgrid-transport": "https://github.com/formio/nodemailer-sendgrid-transport.git",
     "progress": "^2.0.3",
     "prompt": "^1.1.0",
     "q": "^1.5.0",
