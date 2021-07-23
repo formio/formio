@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.3-rc.9
+### Fixed
+ - FIO-3441: resolve vulnerabilities
+ - FIO-898: Implements keeping POST request headers in submission.metadata.headers.
+
 ## 2.2.3-rc.8
 ### Fixed
  - Fixed issues with action conditions not working when "submission" or "previous" were used in the conditional.
