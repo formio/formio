@@ -1,6 +1,6 @@
 'use strict';
 
-const rest = require('restler');
+const fetch = require('@formio/node-fetch-http-proxy');
 const _ = require('lodash');
 const util = require('../util/util');
 
@@ -62,7 +62,7 @@ module.exports = function(router) {
           defaultValue: false,
           key: 'block',
           label: 'Block request for Webhook feedback',
-          hideLabel: true,
+          hideLabel: false,
           tableView: true,
           inputType: 'checkbox',
           input: true
@@ -199,42 +199,55 @@ module.exports = function(router) {
           throw err;
         };
 
+      const makeRequest = (url, method, credentials, payload)=> {
+        const options = {
+          method,
+          headers: {
+            'content-type': 'application/json',
+            'accept': 'application/json',
+          },
+        };
+        if (credentials.username) {
+        // eslint-disable-next-line max-len
+        options.headers.Authorization = `Basic ${Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')}`;
+        }
+
+        if (payload) {
+          options.body = JSON.stringify(payload);
+        }
+
+        fetch(url, options)
+        .then((response) => {
+          if (!response.bodyUsed && method === 'DELETE') {
+            if (response.ok) {
+              return handleSuccess({}, response);
+            }
+            else {
+              return handleError({}, response);
+            }
+          }
+          else {
+            if (response.ok) {
+              return response.json().then((body) => handleSuccess(body, response));
+            }
+            else {
+              return response.json().then((body) => handleError(body, response));
+            }
+          }
+        })
+        .catch((err) => {
+          handleError(err);
+        });
+    };
+
         // Make the request.
         setActionItemMessage('Making request', {
           method: req.method,
           url,
           options
         });
-        switch (req.method.toLowerCase()) {
-          case 'get':
-            rest.get(url, options)
-              .on('success', handleSuccess)
-              .on('fail', handleError)
-              .on('error', onParseError);
-            break;
-          case 'post':
-            rest.postJson(url, payload, options)
-              .on('success', handleSuccess)
-              .on('fail', handleError)
-              .on('error', onParseError);
-            break;
-          case 'patch':
-          case 'put':
-            rest.putJson(url, payload, options)
-              .on('success', handleSuccess)
-              .on('fail', handleError)
-              .on('error', onParseError);
-            break;
-          case 'delete':
-            options.query = req.params;
-            rest.del(url, options)
-              .on('success', handleSuccess)
-              .on('fail', handleError)
-              .on('error', onParseError);
-            break;
-          default:
-            return handleError(`Could not match request method: ${req.method.toLowerCase()}`);
-        }
+        url = req.method!=='DELETE' ? url: `${url}?${new URLSearchParams(req.params).toString()}`;
+        makeRequest(url, req.method, options, payload);
       }
       catch (e) {
         setActionItemMessage('Error occurred', e, 'error');

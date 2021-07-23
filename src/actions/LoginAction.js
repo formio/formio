@@ -293,14 +293,17 @@ module.exports = (router) => {
             req.token = response.token.decoded;
             res.token = response.token.token;
             req['x-jwt-token'] = response.token.token;
-            router.formio.auth.currentUser(req, res, (err) => {
-              if (err) {
-                log(req, ecode.auth.EAUTH, err);
-                return res.status(401).send(err.message);
-              }
-              hook.alter('currentUserLoginAction', req, res);
 
-              next();
+            hook.alter('oAuthResponse', req, res, () => {
+              router.formio.auth.currentUser(req, res, (err) => {
+                if (err) {
+                  log(req, ecode.auth.EAUTH, err);
+                  return res.status(401).send(err.message);
+                }
+                hook.alter('currentUserLoginAction', req, res);
+
+                next();
+              });
             });
           });
         },

@@ -1,4 +1,8 @@
 'use strict';
+// Force load mailgun first before anything else
+// Mailgun doesn't play nice when it loads with pollution in global variables
+require('mailgun.js');
+require('@azure/ms-rest-nodeauth');
 
 const mongoose = require('mongoose');
 const ObjectID = require('mongodb').ObjectID;
@@ -44,20 +48,23 @@ _.each(Formio.Displays.displays, (display) => {
   display.prototype.onChange = _.noop;
 });
 
+const vm = new VM({
+  timeout: 250,
+  sandbox: {
+    result: null,
+  },
+  fixAsync: true
+});
+
 Formio.Utils.Evaluator.noeval = true;
 Formio.Utils.Evaluator.evaluator = function(func, args) {
   return function() {
     let result = null;
     /* eslint-disable no-empty */
     try {
-      result = (new VM({
-        timeout: 250,
-        sandbox: _.cloneDeep({
-          result: null,
-          args
-        }),
-        fixAsync: true
-      })).run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
+      vm.freeze(args, 'args');
+
+      result = vm.run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
     }
     catch (err) {}
     /* eslint-enable no-empty */
@@ -609,7 +616,12 @@ const Utils = {
         modifyFields.push(((submission) => {
           const data = _.map(
             _.get(submission, path),
-            file => (file.url || '').startsWith('data:') ? _.omit(file, 'url') : file
+            (file) => {
+              if (file && file.url && file.url.startsWith('data:')) {
+                return _.omit(file, 'url');
+              }
+              return file;
+            }
           );
           _.set(submission, path, data);
         }));
