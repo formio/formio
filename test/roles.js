@@ -293,7 +293,7 @@ module.exports = function(app, template, hook) {
 
     describe('Role Normalization', function() {
       it('A Form.io Project Owner should be able to Delete a Role', function(done) {
-        request(app)
+         request(app)
           .delete(hook.alter('url', '/role/' + template.roles.tempRole._id, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect(200)
@@ -943,17 +943,37 @@ module.exports = function(app, template, hook) {
       });
     });
 
-    it('Should allow the manager to remove a role, but not add one.', (done) => {
+    it('Should not allow the manager to add role.', (done) => {
       manager.roles = [
+        accessHelper.template.roles['access-employee']._id.toString(),
         accessHelper.template.roles['access-manager']._id.toString(),
         accessHelper.template.roles.authenticated._id.toString()
       ];
+    
       accessHelper.submission('access-manager', manager, manager).execute((err) => {
         if (err) {
           return done(err);
         }
-
         const updated = accessHelper.getLastSubmission();
+        assert.deepEqual(updated.roles, [
+          accessHelper.template.roles['access-employee']._id.toString(),
+          accessHelper.template.roles['access-manager']._id.toString(),
+        ]);
+        _.assign(manager, updated);
+        done();
+      });
+    });
+    
+    it('Should allow the manager to remove a role.', (done) => {
+      manager.roles = [
+        accessHelper.template.roles['access-manager']._id.toString(),
+      ];
+    
+      accessHelper.submission('access-manager', manager, manager).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+        const updated = accessHelper.getLastSubmission();       
         assert.deepEqual(updated.roles, [
           accessHelper.template.roles['access-manager']._id.toString()
         ]);
@@ -993,7 +1013,7 @@ module.exports = function(app, template, hook) {
 
           async.series(
             [
-              (next) => accessHelper.deleteRole('access-manager', next),
+              (next) => accessHelper.deleteRole('access-manager', next), 
               (next) => accessHelper.deleteRole('access-employee', next)
             ],
             (err) => {
