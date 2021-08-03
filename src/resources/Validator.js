@@ -158,14 +158,8 @@ class Validator {
           name: 'ValidationError',
           details: details
         });
-      }).catch((err) => {
-        console.log(err);
-        next();
-      });
-    }).catch((err) => {
-      console.log(err);
-      next();
-    });
+      }).catch(next);
+    }).catch(next);
   }
 }
 
