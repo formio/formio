@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.3-rc.10
+### Changed
+ - Upgrade formiojs@4.14.0-rc.16
+ - Upgrade mongoose@5.13.5, mocha@9.0.3, supertest@6.1.4, mssql@7.2.0, eslint@7.32.0
+
+## 2.2.3-rc.9
+### Fixed
+ - FIO-3441: resolve vulnerabilities
+ - FIO-898: Implements keeping POST request headers in submission.metadata.headers.
+
 ## 2.2.3-rc.8
 ### Fixed
  - Fixed issues with action conditions not working when "submission" or "previous" were used in the conditional.
