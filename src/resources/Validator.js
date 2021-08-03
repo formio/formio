@@ -113,7 +113,7 @@ class Validator {
       };
 
       // Set the submission data
-      form.data = submission.data;
+      form.data = Formio.Utils.fastCloneDeep(submission.data);
 
       // Perform calculations and conditions.
       form.checkConditions();
