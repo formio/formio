@@ -75,14 +75,11 @@ module.exports = (router, resourceName, resourceId) => {
 
       // If this is a get method, then filter the model query.
       if (isGet) {
-        hook.invoke('submissionCollection', req);
+        const submissionQuery = hook.alter('submissionQuery', {form: req.currentForm._id}, req);
         req.countQuery = req.countQuery || req.model || this.model;
         req.modelQuery = req.modelQuery || req.model || this.model;
-        if (req.handlerName !== 'beforeGet') {
-          // Set the model query to filter based on the ID.
-          req.countQuery = req.countQuery.find({form: req.currentForm._id});
-          req.modelQuery = req.modelQuery.find({form: req.currentForm._id});
-        }
+        req.countQuery = req.countQuery.find(submissionQuery);
+        req.modelQuery = req.modelQuery.find(submissionQuery);
       }
 
       // If the request has a body.
@@ -98,6 +95,21 @@ module.exports = (router, resourceName, resourceId) => {
         // Ensure there is always data provided on POST.
         if (req.method === 'POST' && !req.body.data) {
           req.body.data = {};
+        }
+
+        if (req.method === 'POST') {
+          const blackList = [
+            'x-admin',
+            'x-jwt-token',
+            'x-token',
+            'x-remote-token'
+          ];
+
+          const reqHeaders = _.omitBy(req.headers, (value, key) => {
+            return blackList.includes(key) || key.match(/auth/gi);
+          });
+
+          _.set(req.body, 'metadata.headers', reqHeaders);
         }
 
         // Ensure that the _fvid is a number.
