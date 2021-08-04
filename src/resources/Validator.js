@@ -68,11 +68,13 @@ class Validator {
     // Create the form, then check validity.
     Formio.createForm(this.form, {
       server: true,
+      noDefaults: true,
       hooks: {
         setDataValue: function(value, key, data) {
           if (!unsetsEnabled) {
             return value;
           }
+
           // Check if this component is not persistent.
           if (this.component.hasOwnProperty('persistent') &&
             (!this.component.persistent || this.component.persistent === 'client-only')
@@ -111,11 +113,11 @@ class Validator {
       };
 
       // Set the submission data
-      form.data = submission.data;
+      form.data = Formio.Utils.fastCloneDeep(submission.data);
 
       // Perform calculations and conditions.
-      form.calculateValue();
       form.checkConditions();
+      form.calculateValue();
 
       // Reset the data
       form.data = {};

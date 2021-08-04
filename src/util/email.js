@@ -10,7 +10,7 @@ const debug = {
   error: require('debug')('formio:error'),
   nunjucksInjector: require('debug')('formio:email:nunjucksInjector')
 };
-const rest = require('restler');
+const fetch = require('@formio/node-fetch-http-proxy');
 const util = require('./util');
 const _ = require('lodash');
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
@@ -140,12 +140,15 @@ module.exports = (formio) => {
 
     // The form components.
     params.components = {};
+    params.componentsWithPath = {};
 
     const replacements = [];
 
     // Flatten the resource data.
-    util.eachComponent(form.components, (component) => {
+    util.eachComponent(form.components, (component, path) => {
       params.components[component.key] = component;
+      params.componentsWithPath[path] = component;
+      params.componentsWithPath[path].compPath = path;
       if (component.type === 'resource' && params.data[component.key]) {
         params.data[`${component.key}Obj`] = params.data[component.key];
         replacements.push(
@@ -385,21 +388,30 @@ module.exports = (formio) => {
           break;
         case 'custom':
           if (_.has(settings, 'email.custom')) {
-            transporter.sendMail = (mail, cb) => {
-              const options = {};
+            transporter.sendMail = async (mail, cb) => {
+              const authHeader = {};
               if (settings.email.custom.username) {
-                options.username = settings.email.custom.username;
-                options.password = settings.email.custom.password;
+                const payload = `${settings.email.custom.username}:${settings.email.custom.password}`;
+                authHeader.Authorization = `Basic ${Buffer.from(payload).toString('base64')}`;
               }
 
-              rest.postJson(settings.email.custom.url, mail, options)
-                .on('complete', (result, response) => {
-                  if (result instanceof Error) {
-                    return cb(result);
-                  }
+              const response = await fetch(settings.email.custom.url, {
+                  method: 'POST',
+                  headers: {
+                    'content-type': 'application/json',
+                    'accept': 'application/json',
+                    ...authHeader
+                  },
+                  body: JSON.stringify(mail),
+              });
 
-                  return cb(null, result);
-                });
+              if (response.ok) {
+                const result = await response.json();
+                return cb(null, result);
+              }
+              else {
+                return cb(new Error(`${response.status  }: ${  response.statusText}`));
+              }
             };
           }
           break;

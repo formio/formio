@@ -4,7 +4,57 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased]
+## 2.2.3-rc.10
+### Changed
+ - Upgrade formiojs@4.14.0-rc.16
+ - Upgrade mongoose@5.13.5, mocha@9.0.3, supertest@6.1.4, mssql@7.2.0, eslint@7.32.0
+
+## 2.2.3-rc.9
+### Fixed
+ - FIO-3441: resolve vulnerabilities
+ - FIO-898: Implements keeping POST request headers in submission.metadata.headers.
+
+## 2.2.3-rc.8
+### Fixed
+ - Fixed issues with action conditions not working when "submission" or "previous" were used in the conditional.
+
+### Changed
+ - Upgrade formiojs@4.14.0-rc.15
+
+## 2.2.3-rc.7
+### Fixed
+ - Tests to make them more robust.
+
+## 2.2.3-rc.6
+### Fixed
+ - Resolved broken test.
+
+## 2.2.3-rc.5
+### Changed
+ - Upgrade mongoose@5.13.3, nodemailer@6.6.3, mailgun.js@3.5.2, eslint@7.31.0
+
+### Fixed
+ - Improve validation performance by moving VM instance outside Evaluator
+ - FIO-1453: Add import fallbacks
+ - FIO-3441: resolve vulnerabilities
+ - Ensure we truncate the jwtIssuedAfter.
+ - FIO-3471: Ensure that the queries include all indexes to speed up performance.
+
+## 2.2.3-rc.4
+### Fixed
+ - FIO-2834: Fixes an issue where File's values are shown in CSV as empty
+ - Unhid block component label in webhook action settings form
+ - FIO-3099: Implements the oAuthM2M Token hook to the Login Action
+ - FIO-3116: Fixes an issue files inside containers and editgrids weren't attaching to an email. Added tests
+ - FIO-3251 fix: values which should be cleared on hide are used in calculations before it happened
+
+### Changed
+ - Upgrade formiojs@4.14.0-rc.14
+ - Upgrade mongodb@3.6.10, nodemon@2.0.12
+ - FIO-2764: Adds an ability to have the submission contain only data that you submitted.
+ - Added indexes to queries to improve performance of resource load times.
+
+## 2.2.3-rc.2
 ### Fixed
  - FIO-3369: Removed the submissionCollection hook which was messing up submission collection.
 
