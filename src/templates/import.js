@@ -322,36 +322,34 @@ module.exports = (router) => {
         },
       ]
     };
-    return formio.resources.role.model.find(query).exec((err, docs) => {
+    return formio.resources.role.model.find(query).exec((err, docs = []) => {
       if (err) {
         debug.install(err);
         return cb(err);
       }
       try {
-        if (docs && docs.length) {
-          const rolesMap = {};
-          docs.forEach((doc) => {
-            rolesMap[_.camelCase(doc.title)] = doc;
-          });
-          entities.forEach((entity) => {
-            if (entity && entity.role && rolesMap.hasOwnProperty(entity.role)) {
-              entity.role = rolesMap[entity.role]._id.toString();
-            }
-            else if (entity && entity.roles && entity.roles.length) {
-              entity.roles.forEach((role, i) => {
-                if (rolesMap.hasOwnProperty(role)) {
-                  entity.roles[i] = rolesMap[role]._id.toString();
-                }
-                else {
-                  entity.roles[i] = undefined;
-                }
-              });
-              // Filter any unknown roles from the pruning process.
-              entity.roles = _.filter(entity.roles);
-            }
-          });
-          return cb();
-        }
+        const rolesMap = {};
+        docs.forEach((doc) => {
+          rolesMap[_.camelCase(doc.title)] = doc;
+        });
+        entities.forEach((entity) => {
+          if (entity && entity.role && rolesMap.hasOwnProperty(entity.role)) {
+            entity.role = rolesMap[entity.role]._id.toString();
+          }
+          else if (entity && entity.roles && entity.roles.length) {
+            entity.roles.forEach((role, i) => {
+              if (rolesMap.hasOwnProperty(role)) {
+                entity.roles[i] = rolesMap[role]._id.toString();
+              }
+              else {
+                entity.roles[i] = undefined;
+              }
+            });
+            // Filter any unknown roles from the pruning process.
+            entity.roles = _.filter(entity.roles);
+          }
+        });
+        return cb();
       }
       catch (err) {
         return cb(err);
