@@ -740,47 +740,84 @@ module.exports = (router) => {
     });
   };
 
-  const tryToLoadComponent = (component, template) => {
-    const query = {
-      name: component.form,
-      deleted: {$eq: null}
-    };
-    return formio.resources.form.model.find(query).exec().then((results)=>{
-      if (results.length) {
-        const result = results[0];
-        const newItem = {
-            "title": result.title ,
-            "type": result.type,
-            "name": result.name,
-            "path": result.path,
-            "tags": result.tags,
-            "components": result.components
-        };
+  function tryToLoadComponents(components, template, projectId, isFormId) {
+    async.each(components, (component) => {
+      const query = {
+        deleted: {$eq: null}
+      };
 
-        if (result.type==='form') {
-          template.forms[newItem.name]=newItem;
-        }
-        else {
-          template.resources[newItem.name]=newItem;
-        }
+      if ( projectId ) {
+        query.project = projectId;
       }
-    });
-  };
 
-  const checkTemplate = (template) => {
-    const test = Object.values(template.forms).concat(Object.values(template.resources));
-    const resultArr = [];
-    test.forEach(form=>{
-      return form.components.forEach(component=>{
-          if (component.hasOwnProperty('form') &&
-              !(template.forms.hasOwnProperty(component.form) ||
-              template.resources.hasOwnProperty(component.form))) {
-               resultArr.push(tryToLoadComponent(component, template));
+      if (!isFormId) {
+        query.path = component.form;
+      }
+      else {
+        query._id = component.form;
+      }
+
+      return formio.resources.form.model.find(query).exec().then((results) => {
+        if (results.length) {
+          const result = results[0];
+          const newItem = {
+              "title": result.title ,
+              "type": result.type,
+              "name": result.name,
+              "path": result.path,
+              "tags": result.tags,
+              "components": result.components
+          };
+
+          if (isFormId) {
+            component.form = result.path;
+          }
+
+          if (result.type==='form') {
+            template.forms[newItem.name]=newItem;
+          }
+          else {
+            template.resources[newItem.name]=newItem;
+          }
+          const formComponents = checkTemplate(newItem.components, template);
+          if (formComponents.length !== 0) {
+            tryToLoadComponents(formComponents, template, projectId, true);
+          }
+          else {
+            return;
+          }
         }
+      })
+      .catch(err => {
+        debug.template(err);
       });
     });
+  }
+
+  function findProjectId(template) {
+    const query = {
+      deleted: {$eq: null},
+      name: template.name
+    };
+    return formio.resources.project.model.findOne(query).exec().then( project => {
+      return project._id;
+    })
+    .catch(err => {
+      debug.template(err);
+    });
+  }
+
+  function checkTemplate(components, template) {
+     const resultArr = [];
+      util.eachComponent(components, (component)=>{
+        if (component.hasOwnProperty('form') &&
+        !(template.forms.hasOwnProperty(component.form) ||
+        template.resources.hasOwnProperty(component.form))) {
+          resultArr.push(component);
+        }
+      });
     return resultArr;
-};
+}
 
   // Implement an import endpoint.
   if (router.post) {
@@ -792,21 +829,31 @@ module.exports = (router) => {
         template = JSON.parse(template);
       }
 
-      const addingAdditionalComponents = checkTemplate(template);
+      const components = Object.values(template.forms).concat(Object.values(template.resources));
 
-        Promise.all(addingAdditionalComponents).then(()=>{
+      const missingComponents = checkTemplate(components, template);
+      if (missingComponents.length !== 0 ) {
+        findProjectId(template)
+          .then((projectId) => {
+              tryToLoadComponents(missingComponents, template, projectId);
+                template = hook.alter('importOptions', template, req, res);
+                importTemplate(template, alters, (err, data) => {
+                  if (err) {
+                    return next(err.message || err);
+                  }
+                  return res.status(200).send('Ok');
+                });
+          });
+      }
+      else {
         template = hook.alter('importOptions', template, req, res);
         importTemplate(template, alters, (err, data) => {
           if (err) {
             return next(err.message || err);
           }
-
           return res.status(200).send('Ok');
         });
-       })
-       .catch(err=>{
-        return next(err.message || err);
-       });
+      }
     });
   }
 
