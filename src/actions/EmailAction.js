@@ -164,6 +164,10 @@ module.exports = (router) => {
         return next();
       }
 
+      if ( this.settings.from ) {
+        this.settings.replyTo = this.settings.from;
+      }
+
       // Load the form for this request.
       router.formio.cache.loadCurrentForm(req, (err, form) => {
         if (err) {
