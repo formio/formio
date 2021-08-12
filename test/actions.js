@@ -955,6 +955,7 @@ module.exports = (app, template, hook) => {
             assert.equal(email.to, 'test@example.com');
             assert(email.html.startsWith('Howdy, '));
             assert.equal(email.subject, 'Hello there Test Person');
+            assert.equal(email.replyTo, 'travis@form.io');
 
             done();
           });
@@ -997,6 +998,7 @@ module.exports = (app, template, hook) => {
             assert.equal(email.to, 'joe@example.com, gary@form.io');
             assert(email.html.startsWith('Howdy, '));
             assert.equal(email.subject, 'Hello there Joe Smith');
+            assert.equal(email.replyTo, 'joe@example.com');
 
             done();
           });
@@ -1042,6 +1044,7 @@ module.exports = (app, template, hook) => {
             delete emailTos[email.to];
             assert.equal(email.html.indexOf('Howdy, '), 0);
             assert.equal(email.subject, 'Hello there Test Person');
+            assert.equal(email.replyTo, 'travis@form.io');
             if (Object.keys(emailTos).length === 0) {
               event.removeAllListeners('newMail');
               done();
@@ -1071,7 +1074,7 @@ module.exports = (app, template, hook) => {
       it('Should send a giant email to large amount of people.', (done) => {
         const amountOfEmails = 10000;
         const addresses = _.range(amountOfEmails).map((index) => `test${index}@example.com`).join(',');
-        const message = chance.paragraph({ sentences: 1000 });
+        const message = chance.paragraph({sentences: 1000});
         let receivedEmails = 0;
 
         newEmailTest({
@@ -1088,11 +1091,11 @@ module.exports = (app, template, hook) => {
           // Check for an email.
           const event = template.hooks.getEmitter();
           event.on('newMail', (email) => {
-
             assert.equal(email.from, 'travis@form.io');
             // assert.equal(email.to, `test${receivedEmails}@example.com`);
             assert.equal(email.html, message);
             assert.equal(email.subject, 'Hello there Test Person');
+            assert.equal(email.replyTo, 'travis@form.io');
 
             receivedEmails += 1;
 
@@ -2291,7 +2294,7 @@ module.exports = (app, template, hook) => {
               attemptWindow: 10,
               lockWait: 10,
             },
-          }
+          };
 
           request(app)
             .post(hook.alter('url', `/form/${authForm._id}/action`, template))
@@ -2390,7 +2393,7 @@ module.exports = (app, template, hook) => {
               done();
             });
         });
-      })
+      });
     });
 
     describe('Action Normalization', () => {
@@ -2414,7 +2417,7 @@ module.exports = (app, template, hook) => {
           });
       });
 
-      if (!docker)
+      if (!docker) 
       it('A deleted Action should remain in the database', (done) => {
         const formio = hook.alter('formio', app.formio);
         formio.actions.model.findOne({_id: tempAction._id})
@@ -2492,7 +2495,7 @@ module.exports = (app, template, hook) => {
         request(app)
           .post(hook.alter('url', `/form/${template.forms.userLogin._id}/action`, template))
           .set('x-jwt-token', template.users.admin.token)
-          .send({ data: actionLogin })
+          .send({data: actionLogin})
           .expect('Content-Type', /json/)
           .expect(201)
           .end((err, res) => {
@@ -2547,7 +2550,7 @@ module.exports = (app, template, hook) => {
         request(app)
           .post(hook.alter('url', `/form/${template.forms.userRegister._id}/action`, template))
           .set('x-jwt-token', template.users.admin.token)
-          .send({ data: actionRegister })
+          .send({data: actionRegister})
           .expect('Content-Type', /json/)
           .expect(201)
           .end((err, res) => {
@@ -2599,7 +2602,7 @@ module.exports = (app, template, hook) => {
         request(app)
           .post(hook.alter('url', `/form/${template.forms.userRegister._id}/action`, template))
           .set('x-jwt-token', template.users.admin.token)
-          .send({ data: actionRole })
+          .send({data: actionRole})
           .expect('Content-Type', /json/)
           .expect(201)
           .end((err, res) => {
@@ -2761,7 +2764,7 @@ module.exports = (app, template, hook) => {
             assert(!submission.roles.includes(helper.template.roles.authenticated._id));
 
             done();
-          })
+          });
       });
 
       it('Should conditionally execute the add role action.', (done) => {
@@ -2780,7 +2783,7 @@ module.exports = (app, template, hook) => {
             assert(submission.roles.includes(helper.template.roles.authenticated._id));
 
             done();
-          })
+          });
       });
 
       it('Should conditionally execute the add role action.', (done) => {
@@ -2798,7 +2801,7 @@ module.exports = (app, template, hook) => {
             assert(!submission.roles.includes(helper.template.roles.authenticated._id));
 
             done();
-          })
+          });
       });
 
       it('Should conditionally execute the add role action.', (done) => {
@@ -2816,7 +2819,7 @@ module.exports = (app, template, hook) => {
             assert(submission.roles.includes(helper.template.roles.authenticated._id));
 
             done();
-          })
+          });
       });
 
       it('Should execute ALL role actions.', (done) => {
@@ -2835,7 +2838,7 @@ module.exports = (app, template, hook) => {
             assert(submission.roles.includes(helper.template.roles.authenticated._id));
 
             done();
-          })
+          });
       });
 
       it('Should NOT execute any role actions.', (done) => {
