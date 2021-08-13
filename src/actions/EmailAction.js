@@ -75,6 +75,12 @@ module.exports = (router) => {
             multiple: false,
           },
           {
+            label: 'Set Reply-To Header',
+            key: 'replyTo',
+            type: 'checkbox',
+            input: true,
+          },
+          {
             label: 'To: Email Address',
             key: 'emails',
             inputType: 'text',
@@ -162,10 +168,6 @@ module.exports = (router) => {
       if (!this.settings.emails || this.settings.emails.length === 0) {
         setActionItemMessage('No email addresses configured', this.settings, 'error');
         return next();
-      }
-
-      if ( this.settings.from ) {
-        this.settings.replyTo = this.settings.from;
       }
 
       // Load the form for this request.
