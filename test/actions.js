@@ -7,6 +7,7 @@ const _ = require('lodash');
 const chance = new (require('chance'))();
 const http = require('http');
 const url = require('url');
+const { UV_FS_O_FILEMAP } = require('constants');
 const docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
@@ -936,9 +937,54 @@ module.exports = (app, template, hook) => {
           });
       };
 
-      it('Should send an email with messages.', (done) => {
+      it('Should send an email with messages (without Reply-To header).', (done) => {
         newEmailTest({
           from: 'travis@form.io',
+          replyTo: false,
+          emails: '{{ data.email }}',
+          sendEach: false,
+          subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
+          message: 'Howdy, {{ id }}',
+        }, (err, testForm) => {
+          if (err) {
+            return done(err);
+          }
+
+          // Check for an email.
+          const event = template.hooks.getEmitter();
+          event.once('newMail', (email) => {
+            assert.equal(email.from, 'travis@form.io');
+            assert.equal(email.to, 'test@example.com');
+            assert(email.html.startsWith('Howdy, '));
+            assert.equal(email.subject, 'Hello there Test Person');
+
+            done();
+          });
+
+          request(app)
+            .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
+            .set('x-jwt-token', adminUser().token)
+            .send({
+              data: {
+                firstName: 'Test',
+                lastName: 'Person',
+                email: 'test@example.com',
+              },
+            })
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end((err) => {
+              if (err) {
+                return done(err);
+              }
+            });
+        });
+      });
+
+      it('Should send an email with messages (with Reply-To header).', (done) => {
+        newEmailTest({
+          from: 'travis@form.io',
+          replyTo: true,
           emails: '{{ data.email }}',
           sendEach: false,
           subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
@@ -980,9 +1026,53 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      it('Should send an email with multiple recipients.', (done) => {
+      it('Should send an email with multiple recipients (without Reply-To header).', (done) => {
         newEmailTest({
           from: '{{ data.email }}',
+          replyTo: false,
+          emails: '{{ data.email }}, gary@form.io',
+          subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
+          message: 'Howdy, {{ id }}',
+        }, (err, testForm) => {
+          if (err) {
+            return done(err);
+          }
+
+          // Check for an email.
+          const event = template.hooks.getEmitter();
+          event.once('newMail', (email) => {
+            assert.equal(email.from, 'joe@example.com');
+            assert.equal(email.to, 'joe@example.com, gary@form.io');
+            assert(email.html.startsWith('Howdy, '));
+            assert.equal(email.subject, 'Hello there Joe Smith');
+
+            done();
+          });
+
+          request(app)
+            .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
+            .set('x-jwt-token', adminUser().token)
+            .send({
+              data: {
+                firstName: 'Joe',
+                lastName: 'Smith',
+                email: 'joe@example.com',
+              },
+            })
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end((err) => {
+              if (err) {
+                return done(err);
+              }
+            });
+        });
+      });
+
+      it('Should send an email with multiple recipients (with Reply-To header).', (done) => {
+        newEmailTest({
+          from: '{{ data.email }}',
+          replyTo: true,
           emails: '{{ data.email }}, gary@form.io',
           subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
           message: 'Howdy, {{ id }}',
@@ -1023,9 +1113,58 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      it('Should send an email with multiple separate messages.', (done) => {
+      it('Should send an email with multiple separate messages (without Reply-To header).', (done) => {
         newEmailTest({
           from: 'travis@form.io',
+          replyTo: false,
+          emails: '{{ data.email }}, gary@form.io',
+          sendEach: true,
+          subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
+          message: 'Howdy, {{ id }}',
+        }, (err, testForm) => {
+          if (err) {
+            return done(err);
+          }
+
+          // Check for an email.
+          const event = template.hooks.getEmitter();
+          const emailTos = {'gary@form.io': true, 'test@example.com': true};
+          event.on('newMail', (email) => {
+            assert.equal(email.from, 'travis@form.io');
+            assert(emailTos[email.to]);
+            delete emailTos[email.to];
+            assert.equal(email.html.indexOf('Howdy, '), 0);
+            assert.equal(email.subject, 'Hello there Test Person');
+            if (Object.keys(emailTos).length === 0) {
+              event.removeAllListeners('newMail');
+              done();
+            }
+          });
+
+          request(app)
+            .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
+            .set('x-jwt-token', adminUser().token)
+            .send({
+              data: {
+                firstName: 'Test',
+                lastName: 'Person',
+                email: 'test@example.com',
+              },
+            })
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end((err) => {
+              if (err) {
+                done(err);
+              }
+            });
+        });
+      });
+
+      it('Should send an email with multiple separate messages (with Reply-To header).', (done) => {
+        newEmailTest({
+          from: 'travis@form.io',
+          replyTo: true,
           emails: '{{ data.email }}, gary@form.io',
           sendEach: true,
           subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
@@ -1071,7 +1210,7 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      it('Should send a giant email to large amount of people.', (done) => {
+      it('Should send a giant email to large amount of people (without Reply-To header).', (done) => {
         const amountOfEmails = 10000;
         const addresses = _.range(amountOfEmails).map((index) => `test${index}@example.com`).join(',');
         const message = chance.paragraph({sentences: 1000});
@@ -1079,6 +1218,60 @@ module.exports = (app, template, hook) => {
 
         newEmailTest({
           from: 'travis@form.io',
+          replyTo: false,
+          emails: addresses,
+          sendEach: true,
+          subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
+          message,
+        }, (err, testForm) => {
+          if (err) {
+            return done(err);
+          }
+
+          // Check for an email.
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            assert.equal(email.from, 'travis@form.io');
+            // assert.equal(email.to, `test${receivedEmails}@example.com`);
+            assert.equal(email.html, message);
+            assert.equal(email.subject, 'Hello there Test Person');
+
+            receivedEmails += 1;
+
+            if (receivedEmails === amountOfEmails) {
+              event.removeAllListeners('newMail');
+              done();
+            }
+          });
+
+          request(app)
+            .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
+            .set('x-jwt-token', adminUser().token)
+            .send({
+              data: {
+                firstName: 'Test',
+                lastName: 'Person',
+              },
+            })
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end((err) => {
+              if (err) {
+                done(err);
+              }
+            });
+        });
+      });
+
+      it('Should send a giant email to large amount of people (with Reply-To header).', (done) => {
+        const amountOfEmails = 10000;
+        const addresses = _.range(amountOfEmails).map((index) => `test${index}@example.com`).join(',');
+        const message = chance.paragraph({sentences: 1000});
+        let receivedEmails = 0;
+
+        newEmailTest({
+          from: 'travis@form.io',
+          replyTo: true,
           emails: addresses,
           sendEach: true,
           subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
