@@ -75,7 +75,7 @@ module.exports = (router) => {
             multiple: false,
           },
           {
-            label: 'Set Reply-To Header',
+            label: 'Reply-To: Email Address',
             key: 'replyTo',
             type: 'checkbox',
             input: true,
