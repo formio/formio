@@ -176,7 +176,7 @@ module.exports = (router) => {
     }
 
     let adminKey = false;
-    if (process.env.ADMIN_KEY && process.env.ADMIN_KEY === req.headers['x-admin-key']) {
+    if (process.env.ADMIN_KEY && process.env.ADMIN_KEY === req.headers['x-admin-key'] || req.isAdmin) {
       adminKey = true;
     }
     else if (!req.token) {
