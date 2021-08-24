@@ -145,7 +145,12 @@ class CSVExporter extends Exporter {
           });
         }
         else if (component.type === 'checkbox') {
-          items.push({type: 'boolean'});
+          if (component.name && component.inputType === 'radio') {
+            items.push({name: component.name, rename: component.name});
+          }
+          else {
+            items.push({type: 'boolean'});
+          }
         }
         else if (component.type === 'survey') {
           _.each(component.questions, (question) => {
@@ -368,6 +373,13 @@ class CSVExporter extends Exporter {
 
           if (item.hasOwnProperty('preprocessor')) {
             finalItem.preprocessor = item.preprocessor;
+          }
+
+          if (item.hasOwnProperty('name')) {
+            if (_.find(this.fields, {path: item.name})) {
+              return;
+            }
+            finalItem.path = item.name;
           }
 
           this.fields.push(finalItem);
