@@ -4,6 +4,117 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.4-rc.1
+### Changed
+ - Upgrade formiojs@4.14.0-rc.18
+
+## 2.2.3
+### Changed
+ - No changes. Official release.
+
+## 2.2.3-rc.11
+### Fixed
+ - Upgrade formiojs@4.14.0-rc.17
+
+## 2.2.3-rc.10
+### Changed
+ - Upgrade formiojs@4.14.0-rc.16
+ - Upgrade mongoose@5.13.5, mocha@9.0.3, supertest@6.1.4, mssql@7.2.0, eslint@7.32.0
+
+## 2.2.3-rc.9
+### Fixed
+ - FIO-3441: resolve vulnerabilities
+ - FIO-898: Implements keeping POST request headers in submission.metadata.headers.
+
+## 2.2.3-rc.8
+### Fixed
+ - Fixed issues with action conditions not working when "submission" or "previous" were used in the conditional.
+
+### Changed
+ - Upgrade formiojs@4.14.0-rc.15
+
+## 2.2.3-rc.7
+### Fixed
+ - Tests to make them more robust.
+
+## 2.2.3-rc.6
+### Fixed
+ - Resolved broken test.
+
+## 2.2.3-rc.5
+### Changed
+ - Upgrade mongoose@5.13.3, nodemailer@6.6.3, mailgun.js@3.5.2, eslint@7.31.0
+
+### Fixed
+ - Improve validation performance by moving VM instance outside Evaluator
+ - FIO-1453: Add import fallbacks
+ - FIO-3441: resolve vulnerabilities
+ - Ensure we truncate the jwtIssuedAfter.
+ - FIO-3471: Ensure that the queries include all indexes to speed up performance.
+
+## 2.2.3-rc.4
+### Fixed
+ - FIO-2834: Fixes an issue where File's values are shown in CSV as empty
+ - Unhid block component label in webhook action settings form
+ - FIO-3099: Implements the oAuthM2M Token hook to the Login Action
+ - FIO-3116: Fixes an issue files inside containers and editgrids weren't attaching to an email. Added tests
+ - FIO-3251 fix: values which should be cleared on hide are used in calculations before it happened
+
+### Changed
+ - Upgrade formiojs@4.14.0-rc.14
+ - Upgrade mongodb@3.6.10, nodemon@2.0.12
+ - FIO-2764: Adds an ability to have the submission contain only data that you submitted.
+ - Added indexes to queries to improve performance of resource load times.
+
+## 2.2.3-rc.2
+### Fixed
+ - FIO-3369: Removed the submissionCollection hook which was messing up submission collection.
+
+## 2.2.3-rc.1
+### Changed
+ - FIO-3099: Adds a hook for the Access-Control-Expose-Headers
+## 2.2.2
+### Changed
+ - No changes. Released 2.2.2-rc.8 as official release.
+
+## 2.2.2-rc.8
+### Fixed
+ - Issue where upgrading mailgun-transport causes server to crash.
+
+## 2.2.2-rc.7
+### Fixed
+ - Fixing tests further.
+
+## 2.2.2-rc.6
+### Fixed
+ - Custom submission collection tests.
+
+## 2.2.2-rc.5
+### Fixed
+ - Custom submission collection tests.
+
+## 2.2.2-rc.4
+### Fixed
+ - FIO-3369: Removed the submissionCollection hook which was messing up the submission collection.
+
+## 2.2.2-rc.3
+### Changed
+ - Upgrade formio-workers@1.14.16
+
+## 2.2.2-rc.2
+### Fixed
+ - FIO-3223: Fixes an error with out of memory
+ - Fixing potential references to null variables.
+
+### Changed
+ - Upgrade formio-workers@1.14.15
+
+## 2.2.2-rc.1
+### Fixed
+ - FIO-3091: added automatic useUnifiedTopology parameter setting
+ - FIO-3095: Allow for checking email accounts before sending emails.
+ - FIO-3040: Adds tests for FIO-3040 when wasn't handle the Webhook error and respond instead of spinning forever.
+
 ## 2.2.1
 ### Changed
  - No changes. Released 2.2.1-rc.2 as official release.

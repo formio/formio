@@ -204,16 +204,19 @@ module.exports = function(router) {
 
         if (this.settings.transform) {
           try {
-            const newData = (new VM({
+            let vm = new VM({
               timeout: 500,
-              sandbox: _.cloneDeep({
+              sandbox: {
                 submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
                 data: submission.data,
-              }),
+              },
               eval: false,
               fixAsync: true
-            })).run(this.settings.transform);
+            });
+
+            const newData = vm.run(this.settings.transform);
             submission.data = newData;
+            vm = null;
           }
           catch (err) {
             debug(`Error in submission transform: ${err.message}`);

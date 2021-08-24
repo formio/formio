@@ -12,15 +12,15 @@ module.exports = function(app, template, hook) {
   var Helper = require('./helper')(app);
   var helper = null;
 
-  function updateFormAngdGetSubmissions(form, done) {
+  function updateFormAndGetSubmissions(form, done) {
     helper.updateForm(form, (err) => {
       if (err) {
-        done(err);
+        return done(err);
       }
 
       helper.getSubmissions(form.name, (err, formsubs) => {
         if (err) {
-          done(err);
+          return done(err);
         }
         done(null, formsubs);
       });
@@ -247,6 +247,42 @@ module.exports = function(app, template, hook) {
           });
       });
     });
+
+    describe('Server Calculated', function() {
+          it('Recalculate value on server', function(done) {
+              var test = require('./fixtures/forms/servercalculate.js');
+              helper
+                  .form('test', test.components)
+                  .submission(test.submission)
+                  .execute(function(err) {
+                      if (err) {
+                          return done(err);
+                      }
+
+                      var submission = helper.getLastSubmission();
+                      assert.deepEqual(test.submission, submission.data);
+
+                      done();
+                  });
+          });
+
+        it('Fails to recalculate value because of corrupted submission', function(done) {
+            var test = require('./fixtures/forms/servercalculate.js');
+            helper
+                .form('test', test.components)
+                .submission(test.falseSubmission)
+                .execute(function(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    var submission = helper.getLastSubmission();
+                    assert.deepEqual(test.falseSubmission, submission.data);
+
+                    done();
+                });
+        });
+      });
 
     describe('Fieldset nesting', function() {
       it('Nests single value components in a fieldset', function(done) {
@@ -1579,7 +1615,6 @@ module.exports = function(app, template, hook) {
                   key: 'requiredField',
                   setting: true,
                   validator: 'required',
-                  value: '',
                   label: 'Required Field'
                 },
                 message: 'Required Field is required',
@@ -1589,7 +1624,6 @@ module.exports = function(app, template, hook) {
             ]);
             done();
           });
-
       });
 
       it('Doesn\'t require a conditionally hidden field', function(done) {
@@ -1949,7 +1983,6 @@ module.exports = function(app, template, hook) {
                   label: 'Required Field',
                   setting: true,
                   validator: 'required',
-                  value: ''
                 },
                 message: 'Required Field is required',
                 level: 'error',
@@ -1958,7 +1991,6 @@ module.exports = function(app, template, hook) {
             ]);
             done();
           });
-
       });
 
       it('Doesn\'t require a conditionally hidden field in a panel', function(done) {
@@ -2776,9 +2808,11 @@ module.exports = function(app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
-            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details.length, 2);
             assert.equal(helper.lastResponse.body.details[0].message, 'Text Field is required');
+            assert.equal(helper.lastResponse.body.details[1].message, 'Text Field must be a non-empty array');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+            assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
             done();
           });
       });
@@ -3165,7 +3199,8 @@ module.exports = function(app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(submission.data, {name: 'testing'});
-            assert.deepEqual(submission.metadata, {testing: 'hello'});
+            assert(submission.metadata.hasOwnProperty('headers') && !_.isEmpty(submission.metadata.headers), 'Submission metadata should include post headers');
+            assert.deepEqual(_.omit(submission.metadata, ['headers']), {testing: 'hello'});
             done();
           });
       });
@@ -3493,7 +3528,6 @@ module.exports = function(app, template, hook) {
                   label: 'Two',
                   setting: true,
                   validator: 'required',
-                  value: ''
                 },
                 level: 'error',
                 message: 'Two is required',
@@ -3705,7 +3739,6 @@ module.exports = function(app, template, hook) {
                   label: 'Test',
                   setting: true,
                   validator: 'required',
-                  value: ''
                 },
                 level: 'error',
                 message: 'Test is required',
@@ -4072,7 +4105,7 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    if (app.hasProjects || docker) {
+    if (app.hasProjects && !docker) {
       describe('Custom Submission collections', function() {
         before((done) => {
           if (helper.getForm('fruits')) {
@@ -4126,28 +4159,92 @@ module.exports = function(app, template, hook) {
         });
 
         it('Should allow to use a custom submission collection', done => {
+          const hosted = template.config.formio.hosted;
+          template.config.formio.hosted = false;
+          const isDone = function(err) {
+            template.config.formio.hosted = hosted;
+            done(err);
+          };
+          const setProjectCollection = function(form, next) {
+            _.set(form, 'settings.collection', 'testCollection');
+            updateFormAndGetSubmissions(form, (err, submissions) => {
+              if (err) {
+                assert(err && err.message && err.message.indexOf('Only Enterprise projects can set different form collections') !== -1);
+                request(app)
+                  .post('/project/' + helper.template.project._id + '/upgrade')
+                  .set('x-jwt-token', helper.owner.token)
+                  .send({plan: 'commercial'})
+                  .expect(200)
+                  .end(function(err) {
+                    if (err) {
+                      return next(err);
+                    }
+                    setProjectCollection(form, next);
+                  });
+              }
+              else {
+                next(null, submissions);
+              }
+            });
+          };
           helper.getSubmissions('fruits', (err, formsubs) => {
             if (err) {
-              return done(err);
+              return isDone(err);
             }
 
             assert.equal(formsubs.length, 4);
+            assert.deepEqual(formsubs.map((sub) => {
+              return sub.data.name;
+            }).sort(), ['Apple', 'Banana', 'Orange', 'Pear']);
             const form = helper.getForm('fruits');
             assert.equal(!!form, true);
-            _.set(form, 'settings.collection', 'testCollection');
-            updateFormAngdGetSubmissions(form, (err, submissions) => {
+            setProjectCollection(form, (err, submissions) => {
               if (err) {
-                return done(err);
+                return isDone(err);
               }
               assert.equal(submissions.length, 0);
-              _.unset(form, 'settings.collection');
-              updateFormAngdGetSubmissions(form, (err, subs) => {
-                if (err) {
-                  return done(err);
-                }
-                assert.equal(subs.length, 4);
-                assert.equal(_.isEqual(formsubs, subs), true);
-                done();
+              helper
+                .submission('fruits', {name: 'Peach'})
+                .submission('fruits', {name: 'Blueberry'})
+                .submission('fruits', {name: 'Strawberry'})
+                .execute(function(err) {
+                  if (err) {
+                    return isDone(err);
+                  }
+                  helper.getSubmissions('fruits', (err, formsubs) => {
+                    if (err) {
+                      isDone(err);
+                    }
+                    assert.equal(formsubs.length, 3);
+                    assert.deepEqual(formsubs.map((sub) => {
+                      return sub.data.name;
+                    }).sort(), ['Blueberry', 'Peach', 'Strawberry']);
+                    helper.deleteSubmission(formsubs.find(sub => (sub.data.name === 'Strawberry')), (err) => {
+                      if (err) {
+                        isDone(err);
+                      }
+                      helper.getSubmissions('fruits', (err, formsubs) => {
+                        if (err) {
+                          isDone(err);
+                        }
+                        assert.equal(formsubs.length, 2);
+                        assert.deepEqual(formsubs.map((sub) => {
+                          return sub.data.name;
+                        }).sort(), ['Blueberry', 'Peach']);
+                        _.unset(form, 'settings.collection');
+                        updateFormAndGetSubmissions(form, (err, formsubs) => {
+                          if (err) {
+                            return isDone(err);
+                          }
+                          assert.equal(formsubs.length, 4);
+                          assert.deepEqual(formsubs.map((sub) => {
+                            return sub.data.name;
+                          }).sort(), ['Apple', 'Banana', 'Orange', 'Pear']);
+                          isDone();
+                        });
+                      });
+                    });
+                  });
               });
             });
           });
@@ -4190,5 +4287,56 @@ module.exports = function(app, template, hook) {
     //     done();
     //   });
     // });
+  });
+
+  describe('Submissions without Default Values', (done) => {
+    before((done) => {
+      // Create a resource to keep records.
+      helper
+        .form('defaultValuesForm', [
+          {
+            "label": "Text Field",
+            "tableView": true,
+            "key": "textField",
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "label": "Checkbox",
+            "tableView": false,
+            "key": "checkbox",
+            "type": "checkbox",
+            "input": true
+          }
+        ])
+        .execute(function(err) {
+          if (err) {
+            return done(err);
+          }
+          done();
+        });
+    });
+
+    it('Should set submission without default value', (done) => {
+      helper
+        .submission('defaultValuesForm', {
+          data: {
+            textField: '123'
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.lastSubmission;
+          const expectedData = {
+            textField: '123'
+          };
+
+          assert.equal(JSON.stringify(submission.data), JSON.stringify(expectedData));
+          done();
+        });
+    });
   });
 };
