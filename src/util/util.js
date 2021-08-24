@@ -5,7 +5,7 @@ require('mailgun.js');
 require('@azure/ms-rest-nodeauth');
 
 const mongoose = require('mongoose');
-const ObjectID = require('mongodb').ObjectID;
+const ObjectID = require('mongodb').ObjectId;
 const _ = require('lodash');
 const nodeUrl = require('url');
 const deleteProp = require('delete-property').default;

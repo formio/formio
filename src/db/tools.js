@@ -17,10 +17,10 @@ module.exports = function(db, schema) {
      * @returns {Function}
      */
     updateLockVersion(version, callback) {
-      schema.findOneAndUpdate(
+      schema.updateOne(
         {key: 'formio'},
         {$set: {version: version}},
-        (err, document) => {
+        (err) => {
           if (err) {
             throw err;
           }

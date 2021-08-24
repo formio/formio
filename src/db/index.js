@@ -78,18 +78,21 @@ module.exports = function(formio) {
     }
 
     currentLock.isLocked = false;
-    schema.findOneAndUpdate(
+    schema.updateOne(
       {key: 'formio'},
       {$set: {isLocked: currentLock.isLocked}},
-      {returnOriginal: false},
-      (err, result) => {
+      (err) => {
         if (err) {
           return next(err);
         }
-
-        currentLock = result.value;
-        debug.db('Lock unlocked');
-        next();
+        schema.findOne({key: 'formio'}, (err, result) => {
+          if (err) {
+            return next(err);
+          }
+          currentLock = result.value;
+          debug.db('Lock unlocked');
+          next();
+        });
       }
     );
   };
@@ -248,7 +251,7 @@ module.exports = function(formio) {
     mongoConfig.useUnifiedTopology = true;
 
     // Establish a connection and continue with execution.
-    MongoClient.connect(dbUrl, mongoConfig, function(err, client) {
+    MongoClient.connect(dbUrl, mongoConfig, async function(err, client) {
       if (err) {
         debug.db(`Connection Error: ${err}`);
         unlock(function() {
@@ -256,22 +259,18 @@ module.exports = function(formio) {
         });
       }
       db = client.db(client.s.options.dbName);
-
       debug.db('Connection successful');
-
-      db.collection('schema', function(err, collection) {
+      try {
+        const collection = await db.collection('schema');
         debug.db('Schema collection opened');
-        if (err) {
-          return next(err);
-        }
-
-        // Store our reference to the Schema Collection.
         schema = collection;
-
-        // Load the tools available to help manage updates.
-        tools = require('./tools')(db, schema);
-        next();
-      });
+      }
+      catch (err) {
+        return next(err);
+      }
+      // Load the tools available to help manage updates.
+      tools = require('./tools')(db, schema);
+      next();
     });
   };
 
@@ -540,18 +539,22 @@ module.exports = function(formio) {
         }
         else {
           // Lock
-          schema.findOneAndUpdate(
+          schema.updateOne(
             {key: 'formio'},
             {$set: {isLocked: (new Date()).getTime()}},
-            {returnOriginal: false},
-            (err, result) => {
+            (err) => {
               if (err) {
                 throw err;
               }
 
-              currentLock = result.value;
-              debug.db('Lock engaged');
-              next();
+              schema.findOne({key: 'formio'}, (err, result) => {
+                if (err) {
+                  return next(err);
+                }
+                currentLock = result.value;
+                debug.db('Lock engaged');
+                next();
+              });
             }
           );
         }

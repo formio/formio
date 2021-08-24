@@ -3,7 +3,7 @@
 let async = require('async');
 let util = require('../../util/util');
 let _ = require('lodash');
-let ObjectId = require('mongodb').ObjectID;
+let ObjectId = require('mongodb').ObjectId;
 
 /**
  * Update 3.0.2
