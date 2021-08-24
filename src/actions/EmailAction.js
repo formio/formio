@@ -18,6 +18,9 @@ module.exports = (router) => {
    */
   class EmailAction extends Action {
     static info(req, res, next) {
+     if (!hook.alter('hasEmailAccess', req)) {
+       return next(null);
+     }
       next(null, {
         name: 'email',
         title: 'Email',
@@ -53,7 +56,8 @@ module.exports = (router) => {
             key: 'transport',
             placeholder: 'Select the email transport.',
             template: '<span>{{ item.title }}</span>',
-            defaultValue: 'default',
+            defaultValue: availableTransports.find(provider=>provider.transport==='default')?
+              'default':availableTransports[0].transport,
             dataSrc: 'json',
             data: {
               json: JSON.stringify(availableTransports),
@@ -73,6 +77,12 @@ module.exports = (router) => {
             placeholder: 'Send the email from the following address',
             type: 'textfield',
             multiple: false,
+          },
+          {
+            label: 'Reply-To: Email Address',
+            key: 'replyTo',
+            type: 'checkbox',
+            input: true,
           },
           {
             label: 'To: Email Address',

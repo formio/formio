@@ -84,6 +84,10 @@ module.exports = (router) => {
 
       // Populate all subform components
       const getSubForms = (components) => {
+        if (components.noRecurse) {
+          return Promise.resolve(components);
+        }
+        components.noRecurse = true;
         if (!components) {
           return Promise.resolve(components);
         }
@@ -203,7 +207,7 @@ module.exports = (router) => {
             cursor.on('error', (error) => {
               debug(error);
               router.formio.util.log(error);
-              res.status(400).send(error);
+              next(error);
             });
             // When the DB cursor ends, allow the output stream a tick to perform the last write,
             // then manually end it by pushing a null item to the output stream's queue
@@ -213,7 +217,7 @@ module.exports = (router) => {
           })
           .catch((error) => {
             // Send the error.
-            res.status(400).send(error);
+            next(error);
           });
       });
     });
