@@ -11,7 +11,7 @@ module.exports = (formio) => async (component, data, handler, action, {validatio
       }
 
       // Coerse the value into an empty string.
-      if (!value && value !== '') {
+      if (!value && value !== '' && value !== undefined) {
         _.set(data, component.key, '');
       }
       break;
@@ -24,7 +24,7 @@ module.exports = (formio) => async (component, data, handler, action, {validatio
       // of data that came from the index request (where the signature is not populated).
 
       // Coerse the value into an empty string.
-      if (!value && (value !== '')) {
+      if (!value && (value !== '') && value !== undefined) {
         value = '';
         _.set(data, component.key, '');
       }
