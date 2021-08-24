@@ -79,6 +79,12 @@ module.exports = (router) => {
             multiple: false,
           },
           {
+            label: 'Reply-To: Email Address',
+            key: 'replyTo',
+            type: 'checkbox',
+            input: true,
+          },
+          {
             label: 'To: Email Address',
             key: 'emails',
             inputType: 'text',
