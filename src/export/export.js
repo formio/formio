@@ -84,6 +84,10 @@ module.exports = (router) => {
 
       // Populate all subform components
       const getSubForms = (components) => {
+        if (components.noRecurse) {
+          return Promise.resolve(components);
+        }
+        components.noRecurse = true;
         if (!components) {
           return Promise.resolve(components);
         }

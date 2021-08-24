@@ -465,6 +465,10 @@ module.exports = function(router) {
     },
 
     setFormComponents(components, forms) {
+      if (components.noRecurse) {
+        return;
+      }
+      components.noRecurse = true;
       util.eachComponent(components, (component) => {
         if ((component.type === 'form') && component.form) {
           const formId = component.form.toString();
