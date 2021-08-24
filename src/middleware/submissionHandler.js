@@ -130,14 +130,12 @@ module.exports = (router, resourceName, resourceId) => {
 
         if (req.method === 'PUT' && req.params.submissionId) {
           router.formio.cache.loadCurrentSubmission(req, (err, current) => {
-            if (req.rolesUpdate && req.rolesUpdate.length && current.roles && current.roles.length) {
+            if ( req.rolesUpdate && req.rolesUpdate.length && current.roles && current.roles.length) {
               const newRoles = _.intersection(
                 current.roles.map((role) => role.toString()),
                 req.rolesUpdate
               );
-              if (newRoles.length !== req.rolesUpdate.length) {
                 req.body.roles = newRoles.map((roleId) => util.idToBson(roleId));
-              }
             }
 
             req.currentSubmissionData = current && current.data;

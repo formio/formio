@@ -528,6 +528,9 @@ module.exports = (router) => {
         const prun = require('../util/delete')(router);
         prun.action(null, form).then(() => {
           done();
+        })
+        .catch(error=>{
+          done(error);
         });
       },
       fallBack: ({nestedForms, roles}, form, template, done) => {

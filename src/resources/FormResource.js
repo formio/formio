@@ -76,6 +76,7 @@ module.exports = function(router) {
       after: [
         sanitizeValidations,
         router.formio.middleware.bootstrapFormAccess,
+        router.formio.middleware.revisionLoader,
         router.formio.middleware.formLoader,
         router.formio.middleware.formActionHandler('after'),
         router.formio.middleware.filterResourcejsResponse(['deleted', '__v']),

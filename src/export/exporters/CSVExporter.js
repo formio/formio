@@ -42,6 +42,8 @@ class CSVExporter extends Exporter {
     });
     this.fields = [];
 
+    this.customTransformers = {};
+
     const formattedView = req.query.view === 'formatted';
     this.formattedView = formattedView;
 
@@ -145,7 +147,12 @@ class CSVExporter extends Exporter {
           });
         }
         else if (component.type === 'checkbox') {
-          items.push({type: 'boolean'});
+          if (component.name && component.inputType === 'radio') {
+            items.push({name: component.name, rename: component.name});
+          }
+          else {
+            items.push({type: 'boolean'});
+          }
         }
         else if (component.type === 'survey') {
           _.each(component.questions, (question) => {
@@ -207,7 +214,8 @@ class CSVExporter extends Exporter {
                   return tempVal;
                 }
                 else if (component.type === 'select') {
-                  return value;
+                  // eslint-disable-next-line max-depth
+                  return this.customTransform(path, value);
                 }
               }
               else {
@@ -368,6 +376,13 @@ class CSVExporter extends Exporter {
 
           if (item.hasOwnProperty('preprocessor')) {
             finalItem.preprocessor = item.preprocessor;
+          }
+
+          if (item.hasOwnProperty('name')) {
+            if (_.find(this.fields, {path: item.name})) {
+              return;
+            }
+            finalItem.path = item.name;
           }
 
           this.fields.push(finalItem);
@@ -543,6 +558,19 @@ class CSVExporter extends Exporter {
     return _.replace(data, regExp, (char) => {
       return `\`${char}`;
     });
+  }
+
+  addCustomTransformer(path, fn) {
+    this.customTransformers[path] = fn;
+  }
+
+  customTransform(path, value, ...rest) {
+    const transformer = this.customTransformers[path];
+    if (transformer && typeof transformer === 'function') {
+      return transformer(value, ...rest);
+    }
+
+    return value;
   }
 }
 

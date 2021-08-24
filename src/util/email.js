@@ -39,12 +39,7 @@ module.exports = (formio) => {
       }
 
       // Build the list of available transports, based on the present project settings.
-      let availableTransports = [
-        {
-          transport: 'default',
-          title: 'Default (charges may apply)',
-        },
-      ];
+      let availableTransports = [];
       if (_.get(settings, 'email.custom.url')) {
         availableTransports.push({
           transport: 'custom',
