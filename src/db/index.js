@@ -89,7 +89,7 @@ module.exports = function(formio) {
           if (err) {
             return next(err);
           }
-          currentLock = result.value;
+          currentLock = result;
           debug.db('Lock unlocked');
           next();
         });
@@ -551,7 +551,7 @@ module.exports = function(formio) {
                 if (err) {
                   return next(err);
                 }
-                currentLock = result.value;
+                currentLock = result;
                 debug.db('Lock engaged');
                 next();
               });
