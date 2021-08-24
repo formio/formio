@@ -300,6 +300,7 @@ module.exports = (router) => {
                   log(req, ecode.auth.EAUTH, err);
                   return res.status(401).send(err.message);
                 }
+                hook.alter('currentUserLoginAction', req, res);
 
                 next();
               });
