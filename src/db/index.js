@@ -109,50 +109,8 @@ module.exports = function(formio) {
       return next();
     }
 
-    // If they provide the SA url, then fetch it from there.
-    if (CA.indexOf('http') === 0) {
-      debug.db(`Fetching MongoDB Public Key ${CA}`);
-      fetch(CA)
-        .then((response) => {
-          if (response.ok) {
-            return response.text();
-          }
-          throw new Error(response.statusText);
-        })
-        .then((body) => {
-          if (body) {
-            debug.db('Fetched MongoDB Public Key');
-            config.mongoSA = config.mongoCA = body;
-            return next();
-          }
-          throw new Error('Empty Body');
-        })
-        .catch((error) => {
-          debug.db(`Unable to fetch MongoDB Public Key: ${error}`);
-          unlock(() => {
-            throw new Error(`Unable to fetch the SA Certificate: ${CA}.`);
-          });
-          config.mongoSA = config.mongoCA = '';
-          return next();
-        });
-    }
-    else if (CA.indexOf('/') === 0) {
-      // This is a file path, load it directly.
-      try {
-        config.mongoSA = config.mongoCA = fs.readFileSync(CA);
-      }
-      catch (err) {
-        debug.db(`Unable to read MongoDB Public Key: ${err}`);
-        unlock(() => {
-          throw new Error(`Unable to read the MongoDB Public Key: ${CA}. ${err}`);
-        });
-        config.mongoSA = config.mongoCA = '';
-      }
-      return next();
-    }
-    else {
-      return next();
-    }
+    config.mongoSA = config.mongoCA = CA;
+    return next();
   };
 
   /**
