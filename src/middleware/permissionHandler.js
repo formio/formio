@@ -182,6 +182,9 @@ module.exports = function(router) {
 
     // Iterate through each permission level
     Object.entries(req.submissionFieldMatchAccess).forEach(([permissionLevel, conditions]) => {
+      if (!Array.isArray(conditions)) {
+        return;
+      }
       // Iterate through each condition within a permission level
       conditions.forEach((condition) => {
         // Get intersection of roles within condition and the user's roles
@@ -458,9 +461,12 @@ module.exports = function(router) {
           }
 
           if (req.submissionFieldMatchAccess && _.isObject(req.submissionFieldMatchAccess)) {
-            const hasRoles = Object.keys(req.submissionFieldMatchAccess).some(accessKey=>{
+            const hasRoles = Object.keys(req.submissionFieldMatchAccess).some(accessKey => {
+              if (!Array.isArray(req.submissionFieldMatchAccess[accessKey])) {
+                return false;
+              }
               return req.submissionFieldMatchAccess[accessKey].some(item=>{
-                return item.roles.some(role=>req.accessRoles.includes(role));
+                return item.roles.some(role => req.accessRoles.includes(role.toString()));
               });
             });
             req.submissionFieldMatchAccessFilter = hasRoles;

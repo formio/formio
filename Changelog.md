@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.3.0-rc.2
+### Fixed
+ - Issue with loading SSL CA file with latest mongodb driver.
+
+### Changed
+ - Upgrade mongodb@4.1.1, prompt@1.2.0, mongoose@6.0.2
+
 ## 2.3.0-rc.1
 ### Fixed
  - FIO-790: checkbox set as radio showing blank on CSV downloads issue
