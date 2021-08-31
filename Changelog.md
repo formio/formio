@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.4-rc.3
+### Fixed
+ - Issues with mailgun not required correctly.
+
 ## 2.2.4-rc.2
 ### Fixed
  - FIO-3624: fixed problem on sending get request to /token endpoint using x-token header
