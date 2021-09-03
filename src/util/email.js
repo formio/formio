@@ -13,6 +13,7 @@ const debug = {
 const fetch = require('@formio/node-fetch-http-proxy');
 const util = require('./util');
 const _ = require('lodash');
+
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
 const EMAIL_CHUNK_SIZE = process.env.EMAIL_CHUNK_SIZE || 100;
 
@@ -431,6 +432,8 @@ module.exports = (formio) => {
         return next();
       }
 
+      //
+
       const formatNodemailerEmailAddress = (addresses) => _.isString(addresses) ? addresses : addresses.join(', ');
 
       const {
@@ -471,7 +474,7 @@ module.exports = (formio) => {
         params,
       };
 
-      nunjucksInjector(mail, options)
+      const sendEmails = () => nunjucksInjector(mail, options)
         .then((email) => hook.alter('checkEmailPermission', email, params.form))
         .then((email) => {
           let emails = [];
@@ -533,11 +536,24 @@ module.exports = (formio) => {
             }));
           }, Promise.resolve());
         })
-        .then((response) => next(null, response))
         .catch((err) => {
           debug.error(err);
           return next(err);
         });
+
+        if (req.user) {
+          return sendEmails();
+        }
+     else {
+       // direct the sending of emails without user parameter to non-priority tasks queue
+        const sendWithTimeout = () => {
+           setTimeout(()=>{
+            sendEmails();
+            }, 10000);
+        };
+        formio.nonPriorityQueue.push(sendWithTimeout);
+        return next();
+        }
     });
   };
 
