@@ -16,6 +16,7 @@ const _ = require('lodash');
 
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
 const EMAIL_CHUNK_SIZE = process.env.EMAIL_CHUNK_SIZE || 100;
+const NON_PRIORITY_QUEUE_TIMEOUT = process.env.NON_PRIORITY_QUEUE_TIMEOUT || 1000;
 
 /**
  * The email sender for emails.
@@ -432,8 +433,6 @@ module.exports = (formio) => {
         return next();
       }
 
-      //
-
       const formatNodemailerEmailAddress = (addresses) => _.isString(addresses) ? addresses : addresses.join(', ');
 
       const {
@@ -535,22 +534,28 @@ module.exports = (formio) => {
               );
             }));
           }, Promise.resolve());
-        })
-        .catch((err) => {
-          debug.error(err);
-          return next(err);
         });
 
         if (req.user) {
-          return sendEmails();
+          return sendEmails()
+            .then((response) => next(null, response))
+            .catch((err) => {
+              debug.error(err);
+              return next(err);
+            });
         }
      else {
        // direct the sending of emails without user parameter to non-priority tasks queue
         const sendWithTimeout = () => {
            setTimeout(()=>{
-            sendEmails();
-            }, 10000);
+            sendEmails()
+              .catch((err) => {
+                debug.error(err);
+                return next(err);
+              });
+            }, NON_PRIORITY_QUEUE_TIMEOUT);
         };
+
         formio.nonPriorityQueue.push(sendWithTimeout);
         return next();
         }
