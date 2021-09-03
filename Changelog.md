@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.3.0-rc.4
+### Changed
+ - Adding an index to the key of the tokens collection to resolve performance issues.
+ - Upgrade chance@1.1.8, csv@5.5.3, mailgun.js@3.5.8, mongoose@6.0.4, mocha@9.1.1
+
+### Fixed
+ - Fixing issue with mailgun not working with latest version.
+ - Fixed an SSL Cert issue related to mongoose.
+
 ## 2.3.0-rc.3
 ### Changed
  - Upgrade dependencies and fixed tests.
