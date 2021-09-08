@@ -405,6 +405,10 @@ module.exports = function(router) {
               return roleId;
             }) : [];
 
+            if (access.primaryAdminRole) {
+              validRoles.push(access.primaryAdminRole);
+            }
+
             // Default the access roles.
             access.roles = [access.defaultRole];
 
@@ -671,6 +675,14 @@ module.exports = function(router) {
         return true;
       }
 
+      // Check to see if this user has an admin role of the primary project.
+      const hasPrimaryAdminRole = access.primaryAdminRole ? (_.indexOf(access.roles, access.primaryAdminRole) !== -1) : false;
+
+      if (hasPrimaryAdminRole) {
+        req.isAdmin = true;
+        return true;
+      }
+
       // There should be an entity at this point.
       if (!entity || !access.hasOwnProperty(entity.type)) {
         return false;
@@ -769,7 +781,7 @@ module.exports = function(router) {
     // Check for whitelisted paths.
     let skip = false;
     if (req.method === 'GET') {
-      const whitelist = ['/health', '/current', '/logout', '/access', '/token', '/recaptcha'];
+      const whitelist = ['/health', '/logout', '/access', '/token', '/recaptcha'];
       const url = req.url.split('?')[0];
       skip = _.some(whitelist, function(path) {
         if ((url === path) || (url === hook.alter('path', path, req))) {
