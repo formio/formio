@@ -2,7 +2,7 @@
 
 let _ = require('lodash');
 let async = require('async');
-let ObjectId = require('mongodb').ObjectID;
+let ObjectId = require('mongodb').ObjectId;
 
 /**
  * Update 2.3.0
@@ -78,7 +78,7 @@ module.exports = function(db, config, tools, done) {
   let updateAuthenticationAction = function(actionId, roleId, cb) {
     let query = {_id: ObjectId(actionId)};
     let update = {$set: {'settings.role': ObjectId(roleId)}};
-    actions.findOneAndUpdate(query, update, cb);
+    actions.updateOne(query, update, cb);
   };
 
   // Delete the roleAction with the given actionId;
@@ -208,7 +208,7 @@ module.exports = function(db, config, tools, done) {
   let addRoleToAuthAction = function(actionId, roleId, cb) {
     let query = {_id: ObjectId(actionId)};
     let update = {$set: {'settings.role': ObjectId(roleId.toString())}};
-    actions.findOneAndUpdate(query, update, function(err, result) {
+    actions.updateOne(query, update, function(err, result) {
       if (err) {
         return cb(err);
       }

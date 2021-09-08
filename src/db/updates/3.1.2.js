@@ -1,6 +1,6 @@
 'use strict';
 const _ = require('lodash');
-const ObjectID = require('mongodb').ObjectID;
+const ObjectID = require('mongodb').ObjectId;
 const util = require('../../util/util');
 
 /**

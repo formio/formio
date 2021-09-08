@@ -342,7 +342,15 @@ class CSVExporter extends Exporter {
                 return '';
               }
               const formatted = value
-                .map((file) => file && (file.name || file.originalName))
+                .map((file) => {
+                  const fileName = file && (file.name || file.originalName);
+
+                  if (req.googleSheetAction && typeof req.googleSheetAction === 'function') {
+                    return req.googleSheetAction(file, fileName);
+                  }
+
+                  return fileName;
+                })
                 .filter((val) => !!val)
                 .join(', ');
               return formatted;

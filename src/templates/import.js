@@ -415,21 +415,27 @@ module.exports = (router) => {
           }
 
           debug.cleanUp(`Need to update resource component _ids for`, machineName);
-          model.findOneAndUpdate(
+          model.updateOne(
             {_id: resource._id, deleted: {$eq: null}},
-            {components: resource.components},
-            {new: true}
-          ).lean().exec((err, doc) => {
+            {$set: {components: resource.components}}
+          ).exec((err) => {
             if (err) {
               return next(err);
             }
-            if (!doc) {
-              return next();
-            }
+            model.findOne(
+              {_id: resource._id, deleted: {$eq: null}}
+            ).lean().exec((err, doc) => {
+              if (err) {
+                return next(err);
+              }
+              if (!doc) {
+                return next();
+              }
 
-            resources[machineName] = doc;
-            debug.cleanUp(`Updated resource component _ids for`, machineName);
-            next();
+              resources[machineName] = doc;
+              debug.cleanUp(`Updated resource component _ids for`, machineName);
+              next();
+            });
           });
         }, done);
       },
@@ -487,21 +493,27 @@ module.exports = (router) => {
           }
 
           debug.cleanUp(`Need to update form component _ids for`, machineName);
-          model.findOneAndUpdate(
+          model.updateOne(
             {_id: form._id, deleted: {$eq: null}},
-            {components: form.components},
-            {new: true}
-          ).lean().exec((err, doc) => {
+            {$set: {components: form.components}},
+          ).exec((err) => {
             if (err) {
               return next(err);
             }
-            if (!doc) {
-              return next();
-            }
+            model.findOne(
+              {_id: form._id, deleted: {$eq: null}}
+            ).lean().exec((err, doc) => {
+              if (err) {
+                return next(err);
+              }
+              if (!doc) {
+                return next();
+              }
 
-            forms[machineName] = doc;
-            debug.cleanUp(`Updated form component _ids for`, machineName);
-            next();
+              forms[machineName] = doc;
+              debug.cleanUp(`Updated form component _ids for`, machineName);
+              next();
+            });
           });
         }, done);
       },

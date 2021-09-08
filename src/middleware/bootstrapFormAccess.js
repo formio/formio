@@ -46,22 +46,29 @@ module.exports = function(router) {
         });
 
         // Update the form.
-        router.formio.resources.form.model.findOneAndUpdate(
+        router.formio.resources.form.model.updateOne(
           {_id: res.resource.item._id, deleted: {$eq: null}},
-          {$set: {access: [{type: 'read_all', roles: roles}]}},
-          {new: true}
-        ).lean().exec((err, form) => {
+          {$set: {access: [{type: 'read_all', roles: roles}]}}
+        ).exec((err) => {
           if (err) {
             debug(err);
             return next(err);
           }
-          if (!form) {
-            return next();
-          }
-          // Update the response to reflect the access changes.
-          // Filter the response to have no __v and deleted key.
-          res.resource.item = _.omit(_.omit(form, 'deleted'), '__v');
-          next();
+          router.formio.resources.form.model.findOne(
+            {_id: res.resource.item._id, deleted: {$eq: null}}
+          ).lean().exec((err, form) => {
+            if (err) {
+              debug(err);
+              return next(err);
+            }
+            if (!form) {
+              return next();
+            }
+            // Update the response to reflect the access changes.
+            // Filter the response to have no __v and deleted key.
+            res.resource.item = _.omit(_.omit(form, 'deleted'), '__v');
+            next();
+          });
         });
       });
   };

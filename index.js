@@ -14,6 +14,7 @@ const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
+const fs = require('fs');
 
 const originalGetToken = util.Formio.getToken;
 const originalEvalContext = util.Formio.Components.components.component.prototype.evalContext;
@@ -214,7 +215,7 @@ module.exports = function(config) {
         mongoConfig.useNewUrlParser = true;
       }
       if (!mongoConfig.hasOwnProperty('keepAlive')) {
-        mongoConfig.keepAlive = 120;
+        mongoConfig.keepAlive = true;
       }
       if (process.env.MONGO_HIGH_AVAILABILITY) {
         mongoConfig.mongos = true;
@@ -226,10 +227,10 @@ module.exports = function(config) {
       if (config.mongoSA || config.mongoCA) {
         mongoConfig.sslValidate = true;
         mongoConfig.sslCA = config.mongoSA || config.mongoCA;
+        mongoConfig.sslCA = fs.readFileSync(mongoConfig.sslCA);
       }
 
       mongoConfig.useUnifiedTopology = true;
-      mongoConfig.useCreateIndex = true;
 
       if (config.mongoSSL) {
         mongoConfig = {
@@ -240,8 +241,6 @@ module.exports = function(config) {
 
       // Connect to MongoDB.
       mongoose.connect(mongoUrl,  mongoConfig );
-      mongoose.set('useFindAndModify', false);
-      mongoose.set('useCreateIndex', true);
 
       // Trigger when the connection is made.
       mongoose.connection.on('error', function(err) {

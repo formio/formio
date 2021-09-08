@@ -1612,6 +1612,7 @@ module.exports = function(app, template, hook) {
               {
                 context: {
                   hasLabel: true,
+                  index: 0,
                   key: 'requiredField',
                   setting: true,
                   validator: 'required',
@@ -1979,6 +1980,7 @@ module.exports = function(app, template, hook) {
               {
                 context: {
                   hasLabel: true,
+                  index: 0,
                   key: 'requiredField',
                   label: 'Required Field',
                   setting: true,
@@ -2686,6 +2688,7 @@ module.exports = function(app, template, hook) {
               {
                 context: {
                   hasLabel: true,
+                  index: 0,
                   key: 'textField',
                   label: 'Text Field',
                   setting: false,
@@ -3524,6 +3527,7 @@ module.exports = function(app, template, hook) {
               {
                 context: {
                   hasLabel: true,
+                  index: 0,
                   key: 'changeme',
                   label: 'Two',
                   setting: true,
@@ -3735,6 +3739,7 @@ module.exports = function(app, template, hook) {
               {
                 context: {
                   hasLabel: true,
+                  index: 0,
                   key: 'test',
                   label: 'Test',
                   setting: true,

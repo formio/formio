@@ -25,10 +25,9 @@ module.exports = function(db, config, tools, done) {
       }
       async.forEachOf(docs, function(project, key, next) {
         let machineName = project.name.toLowerCase().replace(/\W/g, '');
-        projects.findOneAndUpdate(
+        projects.updateOne(
           {_id: project._id},
           {$set: {machineName: machineName}},
-          {returnOriginal: false},
           function (err) {
             if (err) {
               return next(err);
@@ -63,10 +62,9 @@ module.exports = function(db, config, tools, done) {
             machineName = project.machineName + ':';
           }
           machineName = machineName + form.name;
-          forms.findOneAndUpdate(
+          forms.updateOne(
             {_id: form._id},
             {$set: {machineName: machineName}},
-            {returnOriginal: false},
             function (err) {
               if (err) { return next(err); }
               next();
@@ -100,10 +98,9 @@ module.exports = function(db, config, tools, done) {
             machineName = form.machineName + ':';
           }
           machineName = machineName + action.name;
-          actions.findOneAndUpdate(
+          actions.updateOne(
             {_id: action._id},
             {$set: {machineName: machineName}},
-            {returnOriginal: false},
             function (err) {
               if (err) { return next(err); }
               next();
@@ -137,10 +134,9 @@ module.exports = function(db, config, tools, done) {
             machineName = project.machineName + ':';
           }
           machineName = machineName + _.camelCase(role.title);
-          roles.findOneAndUpdate(
+          roles.updateOne(
             {_id: role._id},
             {$set: {machineName: machineName}},
-            {returnOriginal: false},
             function (err) {
               if (err) { return next(err); }
               next();
