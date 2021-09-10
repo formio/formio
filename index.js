@@ -14,7 +14,6 @@ const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
-const fs = require('fs');
 
 const originalGetToken = util.Formio.getToken;
 const originalEvalContext = util.Formio.Components.components.component.prototype.evalContext;
@@ -227,7 +226,6 @@ module.exports = function(config) {
       if (config.mongoSA || config.mongoCA) {
         mongoConfig.sslValidate = true;
         mongoConfig.sslCA = config.mongoSA || config.mongoCA;
-        mongoConfig.sslCA = fs.readFileSync(mongoConfig.sslCA);
       }
 
       mongoConfig.useUnifiedTopology = true;

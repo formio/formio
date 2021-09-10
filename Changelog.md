@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.3.0-rc.6
+### Fixed
+ - Problem where the MongoDB sslCA was reading it as a string and messing up the mongo driver.
+
 ## 2.3.0-rc.5
 ### Changed
  - Fixed the field based access.
