@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.3.0-rc.7
+### Changed
+ - Upgrade formiojs@4.14.0-rc.25
+
+### Fixed
+ - Bootup race conditions.
+ - FIO-3403: feat(import): search for existing roles in DB when importing an incomplete template
+ - FIO-1453: fixed search for missing resources
+
 ## 2.3.0-rc.6
 ### Fixed
  - Problem where the MongoDB sslCA was reading it as a string and messing up the mongo driver.
