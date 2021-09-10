@@ -182,6 +182,9 @@ module.exports = function(router) {
 
     // Iterate through each permission level
     Object.entries(req.submissionFieldMatchAccess).forEach(([permissionLevel, conditions]) => {
+      if (!Array.isArray(conditions)) {
+        return;
+      }
       // Iterate through each condition within a permission level
       conditions.forEach((condition) => {
         // Get intersection of roles within condition and the user's roles
@@ -407,7 +410,8 @@ module.exports = function(router) {
 
             // Ensure the user only has valid roles.
             if (req.user) {
-              access.roles = _(req.user.roles || [])
+              let userRoles = _.clone(access.roles);
+              userRoles = _(req.user.roles || [])
                 .filter()
                 .map(util.idToString)
                 .intersection(validRoles)
@@ -415,8 +419,11 @@ module.exports = function(router) {
                 .value();
 
               if (req.user._id && (req.user._id !== 'external')) {
-                access.roles.push(req.user._id.toString());
+                userRoles.push(req.user._id.toString());
               }
+
+              userRoles = hook.alter('userRoles', userRoles, access.defaultRole, req);
+              access.roles =_.clone( userRoles);
             }
 
             // Add the EVERYONE role.
@@ -454,9 +461,12 @@ module.exports = function(router) {
           }
 
           if (req.submissionFieldMatchAccess && _.isObject(req.submissionFieldMatchAccess)) {
-            const hasRoles = Object.keys(req.submissionFieldMatchAccess).some(accessKey=>{
+            const hasRoles = Object.keys(req.submissionFieldMatchAccess).some(accessKey => {
+              if (!Array.isArray(req.submissionFieldMatchAccess[accessKey])) {
+                return false;
+              }
               return req.submissionFieldMatchAccess[accessKey].some(item=>{
-                return item.roles.some(role=>req.accessRoles.includes(role));
+                return item.roles.some(role => req.accessRoles.includes(role.toString()));
               });
             });
             req.submissionFieldMatchAccessFilter = hasRoles;
@@ -621,8 +631,9 @@ module.exports = function(router) {
     /* eslint-disable max-statements */
     hasAccess(req, access, entity, res) {
       const method = req.method.toUpperCase();
-      const user = req.user ? util.idToString(req.user._id) : null;
+      let user = req.user ? util.idToString(req.user._id) : null;
 
+      user = hook.alter('twoFAuthenticatedUser', user, req);
       // Setup some flags for other handlers.
       req.isAdmin = false;
 

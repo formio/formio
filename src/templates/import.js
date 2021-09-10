@@ -53,8 +53,8 @@ module.exports = (router) => {
    * @returns {boolean}
    *   Whether or not the conversion was successful.
    */
-  const roleMachineNameToId = (template, entity) => {
-    if (!entity || !template.hasOwnProperty(`roles`)) {
+  const roleMachineNameToId = (template, entity, fallbacks = []) => {
+    if (!entity) {
       return false;
     }
 
@@ -64,9 +64,12 @@ module.exports = (router) => {
           entity.role = EVERYONE;
           return true;
         }
-        else if (template.roles.hasOwnProperty(entity.role)) {
+        else if (template.roles && template.roles.hasOwnProperty(entity.role)) {
           entity.role = template.roles[entity.role]._id.toString();
           return true;
+        }
+        else {
+          fallbacks.push(entity);
         }
       }
 
@@ -77,23 +80,23 @@ module.exports = (router) => {
 
     // Used for permissions arrays.
     _.each(entity, (access) => {
+      let accessPushedToFallback = false;
       _.each(access.roles, (role, i) => {
         if (role === 'everyone') {
           access.roles[i] = EVERYONE;
           changes = true;
         }
-        else if (template.roles.hasOwnProperty(role) && template.roles[role]._id) {
+        else if (template.roles && template.roles.hasOwnProperty(role) && template.roles[role]._id) {
           access.roles[i] = template.roles[role]._id.toString();
           changes = true;
         }
         else {
-          // Remove any unknown roles, they should always be known at this point of the import.
-          delete access.roles[i];
+          if (!accessPushedToFallback) {
+            fallbacks.push(access);
+          }
+          accessPushedToFallback = true;
         }
       });
-
-      // Filter any unknown roles from the pruning process.
-      access.roles = _.filter(access.roles);
     });
 
     return changes;
@@ -269,6 +272,91 @@ module.exports = (router) => {
     return changed;
   };
 
+  const fallbackNestedForms = (nestedForms, template, cb) => {
+    return async.forEach(nestedForms, (nestedForm, next) => {
+      const query = {
+        $or: [
+          {
+            name: nestedForm.form,
+            deleted: {$eq: null},
+            project: formio.util.idToBson(template._id),
+          },
+          {
+            path: nestedForm.form,
+            deleted: {$eq: null},
+            project: formio.util.idToBson(template._id),
+          },
+          {
+            machineName: nestedForm.form,
+            deleted: {$eq: null},
+            project: formio.util.idToBson(template._id),
+          },
+        ]
+      };
+      formio.resources.form.model.findOne(query).exec((err, doc) => {
+        if (err) {
+          debug.install(err);
+          return next(err);
+        }
+        if (doc) {
+          nestedForm.form = formio.util.idToString(doc._id);
+        }
+        next();
+      });
+    }, (err) => {
+      if (err) {
+        return cb(err);
+      }
+      else {
+        return cb();
+      }
+    });
+  };
+
+  const fallbackRoles = (entities, template, cb) => {
+    const query = {
+      $or: [
+        {
+          deleted: {$eq: null},
+          project: formio.util.idToBson(template._id),
+        },
+      ]
+    };
+    return formio.resources.role.model.find(query).exec((err, docs = []) => {
+      if (err) {
+        debug.install(err);
+        return cb(err);
+      }
+      try {
+        const rolesMap = {};
+        docs.forEach((doc) => {
+          rolesMap[_.camelCase(doc.title)] = doc;
+        });
+        entities.forEach((entity) => {
+          if (entity && entity.role && rolesMap.hasOwnProperty(entity.role)) {
+            entity.role = rolesMap[entity.role]._id.toString();
+          }
+          else if (entity && entity.roles && entity.roles.length) {
+            entity.roles.forEach((role, i) => {
+              if (rolesMap.hasOwnProperty(role)) {
+                entity.roles[i] = rolesMap[role]._id.toString();
+              }
+              else {
+                entity.roles[i] = undefined;
+              }
+            });
+            // Filter any unknown roles from the pruning process.
+            entity.roles = _.filter(entity.roles);
+          }
+        });
+        return cb();
+      }
+      catch (err) {
+        return cb(err);
+      }
+    });
+  };
+
   /**
    * The list of installable entities. Each entity must have a model and a transform.
    *
@@ -301,7 +389,7 @@ module.exports = (router) => {
           ]
         };
         return hook.alter(`importRoleQuery`, query, document, template);
-      }
+      },
     },
     resource: {
       model: formio.resources.form.model,
@@ -312,9 +400,9 @@ module.exports = (router) => {
 
         return false;
       },
-      transform: (template, resource) => {
-        roleMachineNameToId(template, resource.submissionAccess);
-        roleMachineNameToId(template, resource.access);
+      transform: (template, resource, fallbacks) => {
+        roleMachineNameToId(template, resource.submissionAccess, fallbacks.roles);
+        roleMachineNameToId(template, resource.access, fallbacks.roles);
         componentMachineNameToId(template, resource.components);
         return resource;
       },
@@ -327,21 +415,27 @@ module.exports = (router) => {
           }
 
           debug.cleanUp(`Need to update resource component _ids for`, machineName);
-          model.findOneAndUpdate(
+          model.updateOne(
             {_id: resource._id, deleted: {$eq: null}},
-            {components: resource.components},
-            {new: true}
-          ).lean().exec((err, doc) => {
+            {$set: {components: resource.components}}
+          ).exec((err) => {
             if (err) {
               return next(err);
             }
-            if (!doc) {
-              return next();
-            }
+            model.findOne(
+              {_id: resource._id, deleted: {$eq: null}}
+            ).lean().exec((err, doc) => {
+              if (err) {
+                return next(err);
+              }
+              if (!doc) {
+                return next();
+              }
 
-            resources[machineName] = doc;
-            debug.cleanUp(`Updated resource component _ids for`, machineName);
-            next();
+              resources[machineName] = doc;
+              debug.cleanUp(`Updated resource component _ids for`, machineName);
+              next();
+            });
           });
         }, done);
       },
@@ -363,7 +457,17 @@ module.exports = (router) => {
           ]
         };
         return hook.alter(`importFormQuery`, query, document, template);
-      }
+      },
+      fallBack: ({roles}, form, template, done) => {
+        return async.series([
+          (cb) => fallbackRoles(roles, template, cb),
+        ], (err) => {
+          if (err) {
+            return done(err);
+          }
+          return done();
+        });
+      },
     },
     form: {
       model: formio.resources.form.model,
@@ -375,9 +479,9 @@ module.exports = (router) => {
         return false;
       },
       transform: (template, form, fallbacks) => {
-        roleMachineNameToId(template, form.submissionAccess);
-        roleMachineNameToId(template, form.access);
-        componentMachineNameToId(template, form.components, fallbacks);
+        roleMachineNameToId(template, form.submissionAccess, fallbacks.roles);
+        roleMachineNameToId(template, form.access, fallbacks.roles);
+        componentMachineNameToId(template, form.components, fallbacks.nestedForms);
         return form;
       },
       cleanUp: (template, forms, done) => {
@@ -389,21 +493,27 @@ module.exports = (router) => {
           }
 
           debug.cleanUp(`Need to update form component _ids for`, machineName);
-          model.findOneAndUpdate(
+          model.updateOne(
             {_id: form._id, deleted: {$eq: null}},
-            {components: form.components},
-            {new: true}
-          ).lean().exec((err, doc) => {
+            {$set: {components: form.components}},
+          ).exec((err) => {
             if (err) {
               return next(err);
             }
-            if (!doc) {
-              return next();
-            }
+            model.findOne(
+              {_id: form._id, deleted: {$eq: null}}
+            ).lean().exec((err, doc) => {
+              if (err) {
+                return next(err);
+              }
+              if (!doc) {
+                return next();
+              }
 
-            forms[machineName] = doc;
-            debug.cleanUp(`Updated form component _ids for`, machineName);
-            next();
+              forms[machineName] = doc;
+              debug.cleanUp(`Updated form component _ids for`, machineName);
+              next();
+            });
           });
         }, done);
       },
@@ -430,44 +540,20 @@ module.exports = (router) => {
         const prun = require('../util/delete')(router);
         prun.action(null, form).then(() => {
           done();
+        })
+        .catch(error=>{
+          done(error);
         });
       },
-      fallBack: (nestedForms, form, template, done) => {
-        return async.forEach(nestedForms, (nestedForm, next) => {
-          const query = {
-            $or: [
-              {
-                name: nestedForm.form,
-                deleted: {$eq: null},
-                project: formio.util.idToBson(template._id),
-              },
-              {
-                path: nestedForm.form,
-                deleted: {$eq: null},
-                project: formio.util.idToBson(template._id),
-              },
-              {
-                machineName: nestedForm.form,
-                deleted: {$eq: null},
-                project: formio.util.idToBson(template._id),
-              },
-            ]
-          };
-          formio.resources.form.model.findOne(query).exec((err, doc) => {
-            if (err) {
-              debug.install(err);
-              return next(err);
-            }
-            if (doc) {
-              nestedForm.form = formio.util.idToString(doc._id);
-            }
-            next();
-          });
-        }, (err) => {
+      fallBack: ({nestedForms, roles}, form, template, done) => {
+        return async.series([
+          (cb) => fallbackNestedForms(nestedForms, template, cb),
+          (cb) => fallbackRoles(roles, template, cb),
+        ], (err) => {
           if (err) {
-            done(err);
+            return done(err);
           }
-          done();
+          return done();
         });
       },
     },
@@ -480,13 +566,13 @@ module.exports = (router) => {
 
         return false;
       },
-      transform: (template, action) => {
+      transform: (template, action, fallbacks) => {
         const isResourceChanged = resourceMachineNameToId(template, action.settings);
         if (!isResourceChanged && action.settings && action.settings.resource) {
           action.settings.resource = '';
         }
 
-        roleMachineNameToId(template, action.settings);
+        roleMachineNameToId(template, action.settings, fallbacks.roles);
 
         // If no changes were made, the form was invalid and we can't insert the action.
         if (formMachineNameToId(template, action) === false) {
@@ -505,7 +591,17 @@ module.exports = (router) => {
           ]
         };
         return hook.alter(`importActionQuery`, query, document, template);
-      }
+      },
+      fallBack: ({roles}, form, template, done) => {
+        return async.series([
+          (cb) => fallbackRoles(roles, template, cb),
+        ], (err) => {
+          if (err) {
+            return done(err);
+          }
+          return done();
+        });
+      },
     }
   };
 
@@ -618,7 +714,11 @@ module.exports = (router) => {
       };
 
       async.forEachOfSeries(items, (item, machineName, next) => {
-        const fallbacks = [];
+        const fallbacks = {
+          roles: [],
+          nestedForms: [],
+          nestedResources: [],
+        };
         const document = transform
           ? transform(template, item, fallbacks)
           : item;
@@ -629,7 +729,7 @@ module.exports = (router) => {
           return next();
         }
 
-        if (fallbacks.length && typeof entity.fallBack === 'function') {
+        if (typeof entity.fallBack === 'function' && Object.values(fallbacks).some((items) => !!items.length)) {
           entity.fallBack(fallbacks, document, template, () => {
             performInstall(document, machineName, item, next);
           });

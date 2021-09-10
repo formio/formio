@@ -24,10 +24,9 @@ module.exports = function(db, config, tools, done) {
 
     // Update each submission to be the owner of itself.
     async.forEachOf(docs, function(submission, key, next) {
-      submissions.findOneAndUpdate(
+      submissions.updateOne(
         {_id: submission._id},
         {$set: {owner: submission._id}},
-        {returnOriginal: false},
         function(err) {
           if (err) {
             return next(err);

@@ -78,18 +78,21 @@ module.exports = function(formio) {
     }
 
     currentLock.isLocked = false;
-    schema.findOneAndUpdate(
+    schema.updateOne(
       {key: 'formio'},
       {$set: {isLocked: currentLock.isLocked}},
-      {returnOriginal: false},
-      (err, result) => {
+      (err) => {
         if (err) {
           return next(err);
         }
-
-        currentLock = result.value;
-        debug.db('Lock unlocked');
-        next();
+        schema.findOne({key: 'formio'}, (err, result) => {
+          if (err) {
+            return next(err);
+          }
+          currentLock = result;
+          debug.db('Lock unlocked');
+          next();
+        });
       }
     );
   };
@@ -106,50 +109,8 @@ module.exports = function(formio) {
       return next();
     }
 
-    // If they provide the SA url, then fetch it from there.
-    if (CA.indexOf('http') === 0) {
-      debug.db(`Fetching MongoDB Public Key ${CA}`);
-      fetch(CA)
-        .then((response) => {
-          if (response.ok) {
-            return response.text();
-          }
-          throw new Error(response.statusText);
-        })
-        .then((body) => {
-          if (body) {
-            debug.db('Fetched MongoDB Public Key');
-            config.mongoSA = config.mongoCA = body;
-            return next();
-          }
-          throw new Error('Empty Body');
-        })
-        .catch((error) => {
-          debug.db(`Unable to fetch MongoDB Public Key: ${error}`);
-          unlock(() => {
-            throw new Error(`Unable to fetch the SA Certificate: ${CA}.`);
-          });
-          config.mongoSA = config.mongoCA = '';
-          return next();
-        });
-    }
-    else if (CA.indexOf('/') === 0) {
-      // This is a file path, load it directly.
-      try {
-        config.mongoSA = config.mongoCA = fs.readFileSync(CA);
-      }
-      catch (err) {
-        debug.db(`Unable to read MongoDB Public Key: ${err}`);
-        unlock(() => {
-          throw new Error(`Unable to read the MongoDB Public Key: ${CA}. ${err}`);
-        });
-        config.mongoSA = config.mongoCA = '';
-      }
-      return next();
-    }
-    else {
-      return next();
-    }
+    config.mongoSA = config.mongoCA = CA;
+    return next();
   };
 
   /**
@@ -248,7 +209,7 @@ module.exports = function(formio) {
     mongoConfig.useUnifiedTopology = true;
 
     // Establish a connection and continue with execution.
-    MongoClient.connect(dbUrl, mongoConfig, function(err, client) {
+    MongoClient.connect(dbUrl, mongoConfig, async function(err, client) {
       if (err) {
         debug.db(`Connection Error: ${err}`);
         unlock(function() {
@@ -256,22 +217,18 @@ module.exports = function(formio) {
         });
       }
       db = client.db(client.s.options.dbName);
-
       debug.db('Connection successful');
-
-      db.collection('schema', function(err, collection) {
+      try {
+        const collection = await db.collection('schema');
         debug.db('Schema collection opened');
-        if (err) {
-          return next(err);
-        }
-
-        // Store our reference to the Schema Collection.
         schema = collection;
-
-        // Load the tools available to help manage updates.
-        tools = require('./tools')(db, schema);
-        next();
-      });
+      }
+      catch (err) {
+        return next(err);
+      }
+      // Load the tools available to help manage updates.
+      tools = require('./tools')(db, schema);
+      next();
     });
   };
 
@@ -279,22 +236,24 @@ module.exports = function(formio) {
    * Test to see if the application has been installed. Install if not.
    */
   const checkSetup = function(next) {
+    setTimeout(() => {
     formio.util.log('Checking for db setup.');
-    db.listCollections().toArray().then(function(collections) {
-      debug.db(`Collections found: ${collections.length}`);
-      // 3 is an arbitrary length. We just want a general idea that things have been installed.
-      if (collections.length < 3) {
-        formio.util.log(' > No collections found. Starting new setup.');
-        require(path.join(__dirname, '/install'))(db, config, function() {
+      db.listCollections().toArray().then(function(collections) {
+        debug.db(`Collections found: ${collections.length}`);
+        // 3 is an arbitrary length. We just want a general idea that things have been installed.
+        if (collections.length < 3) {
+          formio.util.log(' > No collections found. Starting new setup.');
+          require(path.join(__dirname, '/install'))(db, config, function() {
+            formio.util.log(' > Setup complete.\n');
+            next();
+          });
+        }
+        else {
           formio.util.log(' > Setup complete.\n');
-          next();
-        });
-      }
-      else {
-        formio.util.log(' > Setup complete.\n');
-        return next();
-      }
-    });
+          return next();
+        }
+      });
+    },Math.random() * 1000);
   };
 
   const checkEncryption = function(next) {
@@ -540,18 +499,22 @@ module.exports = function(formio) {
         }
         else {
           // Lock
-          schema.findOneAndUpdate(
+          schema.updateOne(
             {key: 'formio'},
             {$set: {isLocked: (new Date()).getTime()}},
-            {returnOriginal: false},
-            (err, result) => {
+            (err) => {
               if (err) {
                 throw err;
               }
 
-              currentLock = result.value;
-              debug.db('Lock engaged');
-              next();
+              schema.findOne({key: 'formio'}, (err, result) => {
+                if (err) {
+                  return next(err);
+                }
+                currentLock = result;
+                debug.db('Lock engaged');
+                next();
+              });
             }
           );
         }

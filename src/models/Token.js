@@ -14,6 +14,7 @@ module.exports = (formio) => {
   const TokenSchema = hook.alter('tokenSchema', new formio.mongoose.Schema({
     key: {
       type: String,
+      index: true,
       required: true,
       default: () => chance.string({
         pool: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',

@@ -24,7 +24,7 @@ module.exports = function(db, config, tools, done) {
       comparison = form.path.toString() + (++iter).toString();
     }
 
-    forms.findOneAndUpdate({_id: form._id}, {$set: {path: comparison.toLowerCase()}}, function(err) {
+    forms.updateOne({_id: form._id}, {$set: {path: comparison.toLowerCase()}}, function(err) {
       if (err) {
         return cb(err);
       }
@@ -61,7 +61,7 @@ module.exports = function(db, config, tools, done) {
     .snapshot({$snapshot: true})
     .toArray(function(err, docs) {
       async.eachSeries(docs, function(form, cb) {
-        forms.findOneAndUpdate({_id: form._id}, {$set: {path: form.name.toLowerCase()}}, function(err) {
+        forms.updateOne({_id: form._id}, {$set: {path: form.name.toLowerCase()}}, function(err) {
           if (err) {
             return cb(err);
           }

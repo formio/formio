@@ -39,12 +39,7 @@ module.exports = (formio) => {
       }
 
       // Build the list of available transports, based on the present project settings.
-      let availableTransports = [
-        {
-          transport: 'default',
-          title: 'Default (charges may apply)',
-        },
-      ];
+      let availableTransports = [];
       if (_.get(settings, 'email.custom.url')) {
         availableTransports.push({
           transport: 'custom',
@@ -446,6 +441,7 @@ module.exports = (formio) => {
         subject,
         message: html,
         transport,
+        replyTo
       } = message;
 
       const mail = {
@@ -456,6 +452,9 @@ module.exports = (formio) => {
         msgTransport: transport,
         transport: emailType,
       };
+      if (replyTo) {
+        mail.replyTo = from || formio.config.defaultEmailSource;
+      }
 
       const cc = (rawCc || []).map(_.trim).filter(Boolean);
       const bcc = (rawBcc || []).map(_.trim).filter(Boolean);

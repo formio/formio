@@ -4,6 +4,56 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.3.0-rc.6
+### Fixed
+ - Problem where the MongoDB sslCA was reading it as a string and messing up the mongo driver.
+
+## 2.3.0-rc.5
+### Changed
+ - Fixed the field based access.
+
+## 2.3.0-rc.4
+### Changed
+ - Adding an index to the key of the tokens collection to resolve performance issues.
+ - Upgrade chance@1.1.8, csv@5.5.3, mailgun.js@3.5.8, mongoose@6.0.4, mocha@9.1.1
+
+### Fixed
+ - Fixing issue with mailgun not working with latest version.
+ - Fixed an SSL Cert issue related to mongoose.
+
+## 2.3.0-rc.3
+### Changed
+ - Upgrade dependencies and fixed tests.
+
+## 2.3.0-rc.2
+### Fixed
+ - Issue with loading SSL CA file with latest mongodb driver.
+
+### Changed
+ - Upgrade mongodb@4.1.1, prompt@1.2.0, mongoose@6.0.2
+
+## 2.3.0-rc.1
+### Fixed
+ - FIO-790: checkbox set as radio showing blank on CSV downloads issue
+ - FIO-1442: Adds an ability to set transformers for the specific fields in the csv exporter.
+ - FIO-3555, FIO-1538: Implements 2FA
+ - FIO-1038: limiting default email usage provider
+ - FIO-899: removing roles issue fix
+ - FIO-885: Import/Export database error handling
+ - FIO-2764: Fixes an issue when the signature component was set a default value with noDefaults option
+ - FIO-3624: fixed problem on sending get request to /token endpoint using x-token header
+ - FIO-3583: Fixed issue with recursion in the form load routines.
+ - Issues related to the MongoDB 4.1.0 upgrade.
+
+### Added
+ - FIO-3435: form definition downloading according query parameter
+ - FIO-3436: ability to set reply to header
+
+### Changed
+ - Upgrade formiojs@4.14.0-rc.19
+ - Upgrade mongodb@4.1.0
+ - Upgrade async@3.2.1, mailgun.js@3.5.7, mongoose@5.13.8, mssql@7.2.1, supertest@6.1.6, mocha@9.1.0, fast-json-patch@3.1.0
+
 ## 2.2.4-rc.1
 ### Changed
  - Upgrade formiojs@4.14.0-rc.18

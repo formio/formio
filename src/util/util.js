@@ -1,11 +1,8 @@
 'use strict';
-// Force load mailgun first before anything else
-// Mailgun doesn't play nice when it loads with pollution in global variables
-require('mailgun.js');
 require('@azure/ms-rest-nodeauth');
 
 const mongoose = require('mongoose');
-const ObjectID = require('mongodb').ObjectID;
+const ObjectID = require('mongodb').ObjectId;
 const _ = require('lodash');
 const nodeUrl = require('url');
 const deleteProp = require('delete-property').default;
@@ -33,7 +30,7 @@ global.document          = {
     firstElementChild: {appendChild: () => {}}
   }
 };
-global.window            = {addEventListener: () => {}, Event: {}, navigator: global.navigator};
+global.window            = {addEventListener: () => {}, Event: function() {}, navigator: global.navigator};
 global.btoa = (str) => {
   return (str instanceof Buffer) ?
     str.toString('base64') :

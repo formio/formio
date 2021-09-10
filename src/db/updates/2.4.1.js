@@ -2,7 +2,7 @@
 let Q = require('q');
 let util = require('../../util/util');
 let deleteProp = require('delete-property').default;
-let ObjectID = require('mongodb').ObjectID;
+let ObjectID = require('mongodb').ObjectId;
 let _ = require('lodash');
 /**
  * Update 2.4.1

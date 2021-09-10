@@ -97,10 +97,9 @@ module.exports = function(db, config, tools, done) {
               {type: 'delete_all', roles: [role._id]}
             ];
 
-            projects.findOneAndUpdate(
+            projects.updateOne(
               {_id: project._id, deleted: {$eq: null}},
               {$set: {access: access}},
-              {returnOriginal: false},
               function(err) {
                 if (err) {
                   return cb(err);
@@ -138,10 +137,9 @@ module.exports = function(db, config, tools, done) {
       }
 
       async.forEachOf(docs, function(project, key, next) {
-        projects.findOneAndUpdate(
+        projects.updateOne(
           {_id: project._id},
           {$set: {settings: null}},
-          {returnOriginal: false},
           function(err) {
             if (err) {
               return next(err);
@@ -226,7 +224,7 @@ module.exports = function(db, config, tools, done) {
     });
 
     // Finalize the updates to each forms component list (including forms that had layout component key changes).
-    forms.findOneAndUpdate({_id: form._id}, {$set: {components: form.components}}, function(err) {
+    forms.updateOne({_id: form._id}, {$set: {components: form.components}}, function(err) {
       if (err) {
         return then(err);
       }

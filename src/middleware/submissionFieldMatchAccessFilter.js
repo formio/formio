@@ -35,7 +35,7 @@ module.exports = function(router) {
 
     // Map permissions to array of Mongo conditions
     const fieldsToCheck = Object.entries(req.submissionFieldMatchAccess).flatMap(([, conditions]) => {
-      return conditions.map((condition) => {
+      return Array.isArray(conditions) ? conditions.map((condition) => {
         if (hasRolesIntersection(condition)) {
           const {formFieldPath, operator, value, valueType} = condition;
 
@@ -43,7 +43,7 @@ module.exports = function(router) {
             return {[formFieldPath]:  {[operator]: util.castValue(valueType, value)}};
           }
         }
-      });
+      }) : [];
     }).filter((condition) => !!condition);
 
     if (userId) {
