@@ -152,6 +152,27 @@ module.exports = (router) => {
             placeholder: 'Enter the message you would like to send.',
             input: true,
           },
+          {
+            label: 'Rendering Method',
+            key: 'renderingMethod',
+            type: 'radio',
+            defaultValue: 'dynamic',
+            values: [
+              {
+                label: 'Dynamic',
+                value: 'dynamic',
+              },
+              {
+                label: 'Static',
+                value: 'static',
+              }
+            ],
+            inline: true,
+            optionsLabelPosition: 'right',
+            // eslint-disable-next-line max-len
+            tooltip: 'Dynamic rendering uses formio.js to render email. While static relies on outdated set of mappers.\r\n\r\nStatic rendering considered deprecated and should not be used for most cases.',
+            input: true,
+          },
         ];
 
         next(null, settingsForm);
