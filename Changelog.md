@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.3.0-rc.8
+### Changed
+ - Upgrade mailgun.js@3.5.9, mongodb@4.1.2, mongoose@6.0.6, adm-zip@0.5.6
+
 ## 2.3.0-rc.7
 ### Changed
  - Upgrade formiojs@4.14.0-rc.25
