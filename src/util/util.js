@@ -29,7 +29,7 @@ global.document          = {
     firstElementChild: {appendChild: () => {}}
   }
 };
-global.window            = {addEventListener: () => {}, Event: {}, navigator: global.navigator};
+global.window            = {addEventListener: () => {}, Event: function() {}, navigator: global.navigator};
 global.self = global;
 const Formio = require('formiojs/formio.form.js');
 global.Formio = Formio.Formio;
