@@ -84,13 +84,13 @@ module.exports = (router) => {
 
       // Populate all subform components
       const getSubForms = (components) => {
+        if (!components) {
+          return Promise.resolve(components);
+        }
         if (components.noRecurse) {
           return Promise.resolve(components);
         }
         components.noRecurse = true;
-        if (!components) {
-          return Promise.resolve(components);
-        }
         const newComponents = components.map(component => {
           if (component.type === 'form' && component.form) {
             const subForm = router.formio.mongoose.models.form.findById(component.form)
