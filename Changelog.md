@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.5-rc.1
+### Changed
+ - FIO-3436: ability to set reply to header 
+ - Upgrade chance@1.1.8, csv@5.5.3, mailgun.js@3.5.9, nodemailer@6.6.5, @azure/ms-rest-nodeauth@3.1.0, fast-json-patch@3.1.0, adm-zip@0.5.6, resourcejs@2.4.0
+
 ## 2.2.4
 ### Changed
  - No changes. Official release.
