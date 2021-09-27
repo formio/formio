@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.8-rc.2
+### Fixed
+ - fix unable to download a CSV report when Select component is part of form JSON
+ - FIO-3950: Export JSON/CSV doesn't work
+
+### Changed
+ - Upgrade nodemailer@6.6.5, mocha@9.1.2, nodemon@2.0.13
+
 ## 1.91.7
 ### Fixed
  - FIO-3116: Fixes an issue files inside containers and editgrids weren't attaching to an email.
