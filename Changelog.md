@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 1.91.8
+### Changed
+ - No changes. Official release.
+
 ## 1.91.8-rc.2
 ### Fixed
  - fix unable to download a CSV report when Select component is part of form JSON
