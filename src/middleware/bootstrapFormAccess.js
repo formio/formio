@@ -40,6 +40,11 @@ module.exports = function(router) {
           return next();
         }
 
+        // Anonymous user shouldn't have access to read forms
+        roles = _.filter(roles, function(role) {
+          return role.title !== 'Anonymous';
+        });
+
         // Convert the roles to ObjectIds before saving.
         roles = _.map(roles, function(role) {
           return ObjectId(role._id);

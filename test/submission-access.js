@@ -97,8 +97,8 @@ module.exports = function(app, template, hook) {
                 assert.equal(response.type, 'form');
                 assert.equal(response.access.length, 1);
                 assert.equal(response.access[0].type, 'read_all');
-                assert.equal(response.access[0].roles.length, 3);
-                assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
+                assert.equal(response.access[0].roles.length, 2);
+                assert.equal(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
                 assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
                 assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
                 assert.deepEqual(response.submissionAccess, []);
@@ -800,8 +800,8 @@ module.exports = function(app, template, hook) {
                 assert.equal(response.type, 'form');
                 assert.equal(response.access.length, 1);
                 assert.equal(response.access[0].type, 'read_all');
-                assert.equal(response.access[0].roles.length, 3);
-                assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
+                assert.equal(response.access[0].roles.length, 2);
+                assert.equal(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
                 assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
                 assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
                 assert.deepEqual(response.submissionAccess, []);
@@ -6028,8 +6028,8 @@ module.exports = function(app, template, hook) {
               assert.equal(response.type, 'form');
               assert.equal(response.access.length, 1);
               assert.equal(response.access[0].type, 'read_all');
-              assert.equal(response.access[0].roles.length, 3);
-              assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
+              assert.equal(response.access[0].roles.length, 2);
+              assert.equal(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
               assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
               assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
               assert.deepEqual(response.submissionAccess, []);
@@ -6936,8 +6936,8 @@ module.exports = function(app, template, hook) {
               assert.equal(response.type, 'form');
               assert.equal(response.access.length, 1);
               assert.equal(response.access[0].type, 'read_all');
-              assert.equal(response.access[0].roles.length, 4);
-              assert(response.access[0].roles.includes(template.roles.anonymous._id.toString()));
+              assert.equal(response.access[0].roles.length, 3);
+              assert(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
               assert(response.access[0].roles.includes(template.roles.authenticated._id.toString()));
               assert(response.access[0].roles.includes(template.roles.administrator._id.toString()));
               assert(response.access[0].roles.includes(managerRole._id.toString()));
@@ -9687,8 +9687,8 @@ module.exports = function(app, template, hook) {
               assert.equal(response.type, 'form');
               assert.equal(response.access.length, 1);
               assert.equal(response.access[0].type, 'read_all');
-              assert.equal(response.access[0].roles.length, 3);
-              assert(response.access[0].roles.includes(template.roles.anonymous._id.toString()));
+              assert.equal(response.access[0].roles.length, 2);
+              assert(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
               assert(response.access[0].roles.includes(template.roles.authenticated._id.toString()));
               assert(response.access[0].roles.includes(template.roles.administrator._id.toString()));
               assert.deepEqual(response.submissionAccess, tempForm.submissionAccess);
