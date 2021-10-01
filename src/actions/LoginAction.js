@@ -294,15 +294,21 @@ module.exports = (router) => {
             res.token = response.token.token;
             req['x-jwt-token'] = response.token.token;
 
-            hook.alter('oAuthResponse', req, res, () => {
-              router.formio.auth.currentUser(req, res, (err) => {
-                if (err) {
-                  log(req, ecode.auth.EAUTH, err);
-                  return res.status(401).send(err.message);
-                }
-                hook.alter('currentUserLoginAction', req, res);
+            hook.alter('getPrimaryProjectAdminRole', req, res, (err, role) => {
+              if (req.user.roles.includes(role)) {
+                req.isAdmin = true;
+              }
 
-                next();
+              hook.alter('oAuthResponse', req, res, () => {
+                router.formio.auth.currentUser(req, res, (err) => {
+                  if (err) {
+                    log(req, ecode.auth.EAUTH, err);
+                    return res.status(401).send(err.message);
+                  }
+                  hook.alter('currentUserLoginAction', req, res);
+
+                  next();
+                });
               });
             });
           });
