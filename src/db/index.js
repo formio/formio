@@ -236,22 +236,24 @@ module.exports = function(formio) {
    * Test to see if the application has been installed. Install if not.
    */
   const checkSetup = function(next) {
+    setTimeout(() => {
     formio.util.log('Checking for db setup.');
-    db.listCollections().toArray().then(function(collections) {
-      debug.db(`Collections found: ${collections.length}`);
-      // 3 is an arbitrary length. We just want a general idea that things have been installed.
-      if (collections.length < 3) {
-        formio.util.log(' > No collections found. Starting new setup.');
-        require(path.join(__dirname, '/install'))(db, config, function() {
+      db.listCollections().toArray().then(function(collections) {
+        debug.db(`Collections found: ${collections.length}`);
+        // 3 is an arbitrary length. We just want a general idea that things have been installed.
+        if (collections.length < 3) {
+          formio.util.log(' > No collections found. Starting new setup.');
+          require(path.join(__dirname, '/install'))(db, config, function() {
+            formio.util.log(' > Setup complete.\n');
+            next();
+          });
+        }
+        else {
           formio.util.log(' > Setup complete.\n');
-          next();
-        });
-      }
-      else {
-        formio.util.log(' > Setup complete.\n');
-        return next();
-      }
-    });
+          return next();
+        }
+      });
+    },Math.random() * 1000);
   };
 
   const checkEncryption = function(next) {
