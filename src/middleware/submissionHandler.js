@@ -5,6 +5,7 @@ const async = require('async');
 const util = require('../util/util');
 const Validator = require('../resources/Validator');
 const setDefaultProperties = require('../actions/properties/setDefaultProperties');
+const post = require('request').post;
 
 module.exports = (router, resourceName, resourceId) => {
   const hook = require('../util/hook')(router.formio);
@@ -206,7 +207,38 @@ module.exports = (router, resourceName, resourceId) => {
         const validator = new Validator(req.currentForm, submissionModel, token, req.token, hook);
         validator.validateReCaptcha = (responseToken) => {
           return new Promise((resolve, reject) => {
-            router.formio.mongoose.models.token.findOne({value: responseToken}, (err, token) => {
+            router.formio.mongoose.models.token.findOne({value: responseToken}, async (err, token) => {
+              const validateRecaptchaResponse = (token) => {
+                return new Promise((resolve, reject) => {
+                  const secret = this.settings.recaptcha.secretKey;
+                  if (!secret) {
+                    console.warn('There is no Secret Key specified in settings in form JSON');
+                    return reject(false);
+                  }
+
+                  post(
+                      {
+                        url: 'https://www.google.com/recaptcha/api/siteverify',
+                        form: {
+                          secret,
+                          response: token
+                          // remoteip: req.ip OPTIONAL
+                        }
+                      },
+                      (err, httpResponse, body) => {
+                        if (err) {
+                          reject(err);
+                        }
+                        else {
+                          resolve(JSON.parse(body));
+                        }
+                      }
+                  );
+                });
+              };
+
+              const responseValidation = await validateRecaptchaResponse(token);
+
               if (err) {
                 return reject(err);
               }
@@ -216,7 +248,9 @@ module.exports = (router, resourceName, resourceId) => {
               }
 
               // Remove temp token after submission with reCaptcha
-              return token.remove(() => resolve(true));
+              await token.remove();
+
+              responseValidation ? resolve(true) : reject(new Error('ReCaptcha: Could not validate token'));
             });
           });
         };
