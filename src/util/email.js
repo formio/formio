@@ -458,7 +458,7 @@ module.exports = (formio) => {
         transport: emailType,
       };
       if (replyTo) {
-        mail.replyTo = from || formio.config.defaultEmailSource;
+        mail.replyTo = replyTo || from;
       }
 
       const cc = (rawCc || []).map(_.trim).filter(Boolean);
