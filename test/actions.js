@@ -71,8 +71,8 @@ module.exports = (app, template, hook) => {
             assert.equal(response.type, 'form');
             assert.equal(response.access.length, 1);
             assert.equal(response.access[0].type, 'read_all');
-            assert.equal(response.access[0].roles.length, 3);
-            assert(response.access[0].roles.includes(template.roles.anonymous._id.toString()));
+            assert.equal(response.access[0].roles.length, 2);
+            assert.equal(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
             assert(response.access[0].roles.includes(template.roles.authenticated._id.toString()));
             assert(response.access[0].roles.includes(template.roles.administrator._id.toString()));
             assert.deepEqual(response.submissionAccess, []);
@@ -1632,8 +1632,8 @@ module.exports = (app, template, hook) => {
                 assert.equal(response.type, addForm.type);
                 assert.equal(response.access.length, 1);
                 assert.equal(response.access[0].type, 'read_all');
-                assert.equal(response.access[0].roles.length, 4);
-                assert(response.access[0].roles.includes(template.roles.anonymous._id.toString()));
+                assert.equal(response.access[0].roles.length, 3);
+                assert.equal(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
                 assert.equal(response.submissionAccess.length, 0);
                 assert.deepEqual(response.components, addForm.components);
                 addForm = response;
@@ -1698,8 +1698,8 @@ module.exports = (app, template, hook) => {
                 assert.equal(response.type, removeForm.type);
                 assert.equal(response.access.length, 1);
                 assert.equal(response.access[0].type, 'read_all');
-                assert.equal(response.access[0].roles.length, 4);
-                assert(response.access[0].roles.includes(template.roles.anonymous._id.toString()));
+                assert.equal(response.access[0].roles.length, 3);
+                assert.equal(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
                 assert(response.access[0].roles.includes(template.roles.authenticated._id.toString()));
                 assert(response.access[0].roles.includes(template.roles.administrator._id.toString()));
                 assert(response.access[0].roles.includes(dummyRole._id));
@@ -2332,8 +2332,8 @@ module.exports = (app, template, hook) => {
               assert.equal(response.type, dummyResource.type);
               assert.equal(response.access.length, 1);
               assert.equal(response.access[0].type, 'read_all');
-              assert.equal(response.access[0].roles.length, 3);
-              assert(response.access[0].roles.includes(template.roles.anonymous._id.toString()));
+              assert.equal(response.access[0].roles.length, 2);
+              assert.equal(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
               assert(response.access[0].roles.includes(template.roles.authenticated._id.toString()));
               assert(response.access[0].roles.includes(template.roles.administrator._id.toString()));
               assert.deepEqual(response.submissionAccess, []);
@@ -2413,8 +2413,8 @@ module.exports = (app, template, hook) => {
               assert.equal(response.type, authForm.type);
               assert.equal(response.access.length, 1);
               assert.equal(response.access[0].type, 'read_all');
-              assert.equal(response.access[0].roles.length, 3);
-              assert(response.access[0].roles.includes(template.roles.anonymous._id.toString()));
+              assert.equal(response.access[0].roles.length, 2);
+              assert.equal(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
               assert(response.access[0].roles.includes(template.roles.authenticated._id.toString()));
               assert(response.access[0].roles.includes(template.roles.administrator._id.toString()));
               assert.deepEqual(response.submissionAccess, []);
