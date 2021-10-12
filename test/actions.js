@@ -940,7 +940,7 @@ module.exports = (app, template, hook) => {
       it('Should send an email with messages (without Reply-To header).', (done) => {
         newEmailTest({
           from: 'travis@form.io',
-          replyTo: false,
+          replyTo: '',
           emails: '{{ data.email }}',
           sendEach: false,
           subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
@@ -984,7 +984,7 @@ module.exports = (app, template, hook) => {
       it('Should send an email with messages (with Reply-To header).', (done) => {
         newEmailTest({
           from: 'travis@form.io',
-          replyTo: true,
+          replyTo: 'reply@example.com',
           emails: '{{ data.email }}',
           sendEach: false,
           subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
@@ -1001,7 +1001,7 @@ module.exports = (app, template, hook) => {
             assert.equal(email.to, 'test@example.com');
             assert(email.html.startsWith('Howdy, '));
             assert.equal(email.subject, 'Hello there Test Person');
-            assert.equal(email.replyTo, 'travis@form.io');
+            assert.equal(email.replyTo, 'reply@example.com');
 
             done();
           });
@@ -1029,7 +1029,7 @@ module.exports = (app, template, hook) => {
       it('Should send an email with multiple recipients (without Reply-To header).', (done) => {
         newEmailTest({
           from: '{{ data.email }}',
-          replyTo: false,
+          replyTo: '',
           emails: '{{ data.email }}, gary@form.io',
           subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
           message: 'Howdy, {{ id }}',
@@ -1072,7 +1072,7 @@ module.exports = (app, template, hook) => {
       it('Should send an email with multiple recipients (with Reply-To header).', (done) => {
         newEmailTest({
           from: '{{ data.email }}',
-          replyTo: true,
+          replyTo: 'reply@example.com',
           emails: '{{ data.email }}, gary@form.io',
           subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
           message: 'Howdy, {{ id }}',
@@ -1088,7 +1088,7 @@ module.exports = (app, template, hook) => {
             assert.equal(email.to, 'joe@example.com, gary@form.io');
             assert(email.html.startsWith('Howdy, '));
             assert.equal(email.subject, 'Hello there Joe Smith');
-            assert.equal(email.replyTo, 'joe@example.com');
+            assert.equal(email.replyTo, 'reply@example.com');
 
             done();
           });
@@ -1116,7 +1116,7 @@ module.exports = (app, template, hook) => {
       it('Should send an email with multiple separate messages (without Reply-To header).', (done) => {
         newEmailTest({
           from: 'travis@form.io',
-          replyTo: false,
+          replyTo: '',
           emails: '{{ data.email }}, gary@form.io',
           sendEach: true,
           subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
@@ -1164,7 +1164,7 @@ module.exports = (app, template, hook) => {
       it('Should send an email with multiple separate messages (with Reply-To header).', (done) => {
         newEmailTest({
           from: 'travis@form.io',
-          replyTo: true,
+          replyTo: 'reply@example.com',
           emails: '{{ data.email }}, gary@form.io',
           sendEach: true,
           subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
@@ -1183,7 +1183,7 @@ module.exports = (app, template, hook) => {
             delete emailTos[email.to];
             assert.equal(email.html.indexOf('Howdy, '), 0);
             assert.equal(email.subject, 'Hello there Test Person');
-            assert.equal(email.replyTo, 'travis@form.io');
+            assert.equal(email.replyTo, 'reply@example.com');
             if (Object.keys(emailTos).length === 0) {
               event.removeAllListeners('newMail');
               done();
@@ -1271,7 +1271,7 @@ module.exports = (app, template, hook) => {
 
         newEmailTest({
           from: 'travis@form.io',
-          replyTo: true,
+          replyTo: 'reply@example.com',
           emails: addresses,
           sendEach: true,
           subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
@@ -1288,7 +1288,7 @@ module.exports = (app, template, hook) => {
             // assert.equal(email.to, `test${receivedEmails}@example.com`);
             assert.equal(email.html, message);
             assert.equal(email.subject, 'Hello there Test Person');
-            assert.equal(email.replyTo, 'travis@form.io');
+            assert.equal(email.replyTo, 'reply@example.com');
 
             receivedEmails += 1;
 
