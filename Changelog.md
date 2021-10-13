@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.3.0-rc.10
+### Changed
+ - Upgrade formio-workers@1.16.0-rc.1
+ - Upgrade mongodb@4.1.3, mongoose@6.0.10, vm2@3.9.4, mocha@9.1.2, nodemon@2.0.13, @azure/ms-
+rest-nodeauth@3.1.0, mailgun.js@3.6.0, nodemailer@6.7.0, adm-zip@0.5.9
+
 ## 2.3.0-rc.9
 ### Fixed
  - FIO-3436: Refactored so that any email address can be set as Reply-To
