@@ -14,7 +14,6 @@ const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
-const queue = require('queue');
 const fs = require('fs');
 
 const originalGetToken = util.Formio.getToken;
@@ -36,8 +35,6 @@ module.exports = function(config) {
 
   // Add the middleware.
   router.formio.middleware = require('./src/middleware/middleware')(router);
-
-  router.formio.nonPriorityQueue = queue({autostart: true});
 
   // Configure nunjucks to not watch any files
   nunjucks.configure([], {

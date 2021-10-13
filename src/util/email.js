@@ -536,6 +536,8 @@ module.exports = (formio) => {
           }, Promise.resolve());
         });
 
+        const throttledSendEmails = _.throttle(sendEmails , NON_PRIORITY_QUEUE_TIMEOUT);
+
         if (req.user) {
           return sendEmails()
             .then((response) => next(null, response))
@@ -545,20 +547,13 @@ module.exports = (formio) => {
             });
         }
      else {
-       // direct the sending of emails without user parameter to non-priority tasks queue
-        const sendWithTimeout = () => {
-           setTimeout(()=>{
-            sendEmails()
-              .catch((err) => {
-                debug.error(err);
-                return next(err);
-              });
-            }, NON_PRIORITY_QUEUE_TIMEOUT);
-        };
-
-        formio.nonPriorityQueue.push(sendWithTimeout);
+      throttledSendEmails()
+        .catch((err) => {
+          debug.error(err);
+          return next(err);
+        });
         return next();
-        }
+     }
     });
   };
 
