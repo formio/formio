@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - Upgrade formio@4.14.0-rc.29
  - Upgrade mongoose@6.0.11, mocha@9.1.3
+ - Revert "FIO-3783 Added renderingMethod option to Email action."
 
 ## 2.3.0-rc.10
 ### Changed
