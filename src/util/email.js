@@ -441,8 +441,7 @@ module.exports = (formio) => {
         subject,
         message: html,
         transport,
-        replyTo,
-        renderingMethod,
+        replyTo
       } = message;
 
       const mail = {
@@ -452,7 +451,6 @@ module.exports = (formio) => {
         html,
         msgTransport: transport,
         transport: emailType,
-        renderingMethod,
       };
       if (replyTo) {
         mail.replyTo = replyTo || from;
