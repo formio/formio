@@ -195,8 +195,8 @@ module.exports = function(app, template, hook) {
             assert.notEqual(response.access, []);
             assert.equal(response.access.length, 1);
             assert.equal(response.access[0].type, 'read_all');
-            assert.equal(response.access[0].roles.length, 2);
-            assert.equal(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
+            assert.equal(response.access[0].roles.length, 3);
+            assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
             assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
             assert.notEqual(response.access[0].roles.indexOf(template.roles.administrator._id.toString()), -1);
             assert.deepEqual(response.submissionAccess, []);
@@ -764,11 +764,20 @@ module.exports = function(app, template, hook) {
           .end(done);
       });
 
-      it('An Anonymous user should not be able to Read a Form for a User-Created Project', function(done) {
+      it('An Anonymous user should be able to Read a Form for a User-Created Project', function(done) {
         request(app)
           .get(hook.alter('url', '/form/' + template.forms.tempForm._id, template))
-          .expect(401)
-          .end(done);
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.forms.tempForm, ignoreFields));
+            done();
+          });
       });
 
       it('An Anonymous user should not be able to Update a Form for a User-Created Project', function(done) {
@@ -796,8 +805,18 @@ module.exports = function(app, template, hook) {
       it('An Anonymous user should not be able to Read a Form for a User-Created Project using it alias', function(done) {
         request(app)
           .get(hook.alter('url', '/' + template.forms.tempForm.path, template))
-          .expect(401)
-          .end(done);
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.forms.tempForm, ignoreFields));
+
+            done();
+          });
       });
 
       it('An Anonymous user should not be able to Update a Form for a User-Created Project using it alias', function(done) {
@@ -4161,23 +4180,18 @@ module.exports = function(app, template, hook) {
             });
 
             it('Users should not see the custom private validations for a component', function(done) {
-              request(app)
-                .get(hook.alter('url', `/form/${form._id}`, template))
-                .set('x-jwt-token', template.users.user1.token)
-                .expect('Content-Type', /json/)
-                .expect(200)
-                .end((err, res) => {
-                  if (err) {
-                    return done(err);
-                  }
+              getForm((err, res) => {
+                if (err) {
+                  return done(err);
+                }
 
-                  let response = res.body;
-                  assert(response.hasOwnProperty('components'));
-                  assert.equal(response.components.length, 1);
-                  let component = response.components[0];
-                  assert.deepEqual(component.validate, templates.customPrivate.root.user.pass);
-                  return done();
-                });
+                let response = res.body;
+                assert(response.hasOwnProperty('components'));
+                assert.equal(response.components.length, 1);
+                let component = response.components[0];
+                assert.deepEqual(component.validate, templates.customPrivate.root.user.pass);
+                return done();
+              });
             });
           });
 
@@ -4205,25 +4219,20 @@ module.exports = function(app, template, hook) {
             });
 
             it('Users should not see the custom private validations for a component', function(done) {
-              request(app)
-                .get(hook.alter('url', `/form/${form._id}`, template))
-                .set('x-jwt-token', template.users.user1.token)
-                .expect('Content-Type', /json/)
-                .expect(200)
-                .end((err, res) => {
-                  if (err) {
-                    return done(err);
-                  }
+              getForm((err, res) => {
+                if (err) {
+                  return done(err);
+                }
 
-                  let response = res.body;
-                  assert(response.hasOwnProperty('components'));
-                  assert.equal(response.components.length, 1);
-                  assert(response.components[0].hasOwnProperty('components'));
-                  assert.equal(response.components[0].components.length, 1);
-                  let component = response.components[0].components[0];
-                  assert.deepEqual(component.validate, templates.customPrivate.nested.user.pass);
-                  return done();
-                });
+                let response = res.body;
+                assert(response.hasOwnProperty('components'));
+                assert.equal(response.components.length, 1);
+                assert(response.components[0].hasOwnProperty('components'));
+                assert.equal(response.components[0].components.length, 1);
+                let component = response.components[0].components[0];
+                assert.deepEqual(component.validate, templates.customPrivate.nested.user.pass);
+                return done();
+              });
             });
           });
         });
