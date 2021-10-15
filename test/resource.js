@@ -291,11 +291,21 @@ module.exports = function(app, template, hook) {
           .end(done);
       });
 
-      it('An Anonymous user should not be able to Read a Resource for a User-Created Project', function(done) {
+      it('An Anonymous user should be able to Read a Resource for a User-Created Project', function(done) {
         request(app)
           .get(hook.alter('url', '/form/' + template.resources.tempResource._id, template))
-          .expect(401)
-          .end(done);
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.resources.tempResource, ignoreFields));
+
+            done();
+          });
       });
 
       it('An Anonymous user should not be able to Update a Resource for a User-Created Project', function(done) {
@@ -321,8 +331,18 @@ module.exports = function(app, template, hook) {
       it('An Anonymous user should not be able to Read a Resource for a User-Created Project using it alias', function(done) {
         request(app)
           .get(hook.alter('url', '/' + template.resources.tempResource.path, template))
-          .expect(401)
-          .end(done);
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert.deepEqual(_.omit(response, ignoreFields), _.omit(template.resources.tempResource, ignoreFields));
+
+            done();
+          });
       });
 
       it('An Anonymous user should not be able to Update a Resource for a User-Created Project using it alias', function(done) {

@@ -431,7 +431,7 @@ module.exports = function(app, template, hook) {
               assert.notEqual(response.access, []);
               assert.equal(response.access.length, 1);
               assert.equal(response.access[0].type, 'read_all');
-              assert.equal(response.access[0].roles.length, 2);
+              assert.equal(response.access[0].roles.length, 3);
               f1 = response;
 
               // Store the JWT for future API calls.
@@ -477,7 +477,7 @@ module.exports = function(app, template, hook) {
               assert.notEqual(response.access, []);
               assert.equal(response.access.length, 1);
               assert.equal(response.access[0].type, 'read_all');
-              assert.equal(response.access[0].roles.length, 3);
+              assert.equal(response.access[0].roles.length, 4);
               assert.notEqual(response.access[0].roles.indexOf(r1._id), -1);
               f1 = response;
 
@@ -488,7 +488,7 @@ module.exports = function(app, template, hook) {
             });
         });
 
-        it('New forms should allow read access from all roles except Anonymous role', function(done) {
+        it('New forms should allow read access from all roles', function(done) {
           request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
@@ -504,7 +504,7 @@ module.exports = function(app, template, hook) {
               assert.notEqual(response.access, []);
               assert.equal(response.access.length, 1);
               assert.equal(response.access[0].type, 'read_all');
-              assert.equal(response.access[0].roles.length, 3);
+              assert.equal(response.access[0].roles.length, 4);
               assert.notEqual(response.access[0].roles.indexOf(r1._id), -1);
               f2 = response;
 
@@ -550,7 +550,7 @@ module.exports = function(app, template, hook) {
               assert.notEqual(response.access, []);
               assert.equal(response.access.length, 1);
               assert.equal(response.access[0].type, 'read_all');
-              assert.equal(response.access[0].roles.length, 2);
+              assert.equal(response.access[0].roles.length, 3);
               assert.equal(response.access[0].roles.indexOf(r1._id), -1);
               f1 = response;
 
@@ -576,7 +576,7 @@ module.exports = function(app, template, hook) {
               assert.notEqual(response.access, []);
               assert.equal(response.access.length, 1);
               assert.equal(response.access[0].type, 'read_all');
-              assert.equal(response.access[0].roles.length, 2);
+              assert.equal(response.access[0].roles.length, 3);
               assert.equal(response.access[0].roles.indexOf(r1._id), -1);
               f2 = response;
 
