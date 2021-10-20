@@ -192,6 +192,7 @@ module.exports = function(router) {
           url = this.settings.url;
         }
 
+        // eslint-disable-next-line
         const onParseError = (err, response) => {
           if (response.status === 404) {
             return handleError(null, response);

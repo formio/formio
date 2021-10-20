@@ -4,6 +4,46 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.3.0-rc.12
+ - Revert "FIO-3763 Close ability to hit a form with get request as an anonymous…"
+
+## 2.3.0-rc.11
+### Changed
+ - Upgrade formio@4.14.0-rc.29
+ - Upgrade mongoose@6.0.11, mocha@9.1.3
+ - Revert "FIO-3783 Added renderingMethod option to Email action."
+
+## 2.3.0-rc.10
+### Changed
+ - Upgrade formio-workers@1.16.0-rc.1
+ - Upgrade mongodb@4.1.3, mongoose@6.0.10, vm2@3.9.4, mocha@9.1.2, nodemon@2.0.13, @azure/ms-
+rest-nodeauth@3.1.0, mailgun.js@3.6.0, nodemailer@6.7.0, adm-zip@0.5.9
+
+## 2.3.0-rc.9
+### Fixed
+ - FIO-3436: Refactored so that any email address can be set as Reply-To
+ - FIO-3783: Added renderingMethod option to Email action. 
+ - FIO-3950: Export JSON/CSV doesn't work
+ - FIO-3763 Close ability to hit a form with get request as an anonymous user while form access turned off
+ - FIO-3561: Required field is showing as invalid and form can't be submitted
+
+## 2.3.0-rc.8
+### Changed
+ - Upgrade mailgun.js@3.5.9, mongodb@4.1.2, mongoose@6.0.6, adm-zip@0.5.6
+
+## 2.3.0-rc.7
+### Changed
+ - Upgrade formiojs@4.14.0-rc.25
+
+### Fixed
+ - Bootup race conditions.
+ - FIO-3403: feat(import): search for existing roles in DB when importing an incomplete template
+ - FIO-1453: fixed search for missing resources
+
+## 2.3.0-rc.6
+### Fixed
+ - Problem where the MongoDB sslCA was reading it as a string and messing up the mongo driver.
+
 ## 2.3.0-rc.5
 ### Changed
  - Fixed the field based access.
