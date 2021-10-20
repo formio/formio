@@ -13,8 +13,10 @@ const debug = {
 const fetch = require('@formio/node-fetch-http-proxy');
 const util = require('./util');
 const _ = require('lodash');
+
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
 const EMAIL_CHUNK_SIZE = process.env.EMAIL_CHUNK_SIZE || 100;
+const NON_PRIORITY_QUEUE_TIMEOUT = process.env.NON_PRIORITY_QUEUE_TIMEOUT || 1000;
 
 /**
  * The email sender for emails.
@@ -473,7 +475,7 @@ module.exports = (formio) => {
         params,
       };
 
-      nunjucksInjector(mail, options)
+      const sendEmails = () => nunjucksInjector(mail, options)
         .then((email) => hook.alter('checkEmailPermission', email, params.form))
         .then((email) => {
           let emails = [];
@@ -534,12 +536,26 @@ module.exports = (formio) => {
               );
             }));
           }, Promise.resolve());
-        })
-        .then((response) => next(null, response))
+        });
+
+        const throttledSendEmails = _.throttle(sendEmails , NON_PRIORITY_QUEUE_TIMEOUT);
+
+        if (req.user) {
+          return sendEmails()
+            .then((response) => next(null, response))
+            .catch((err) => {
+              debug.error(err);
+              return next(err);
+            });
+        }
+     else {
+      throttledSendEmails()
         .catch((err) => {
           debug.error(err);
           return next(err);
         });
+        return next();
+     }
     });
   };
 
