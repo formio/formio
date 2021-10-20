@@ -8,11 +8,15 @@ module.exports = function(formio) {
   return new formio.mongoose.Schema(hook.alter('fieldMatchAccessPermissionSchema', {
     formFieldPath: {
       type: String,
-      required: true
+      required: function() {
+        return (typeof this.formFieldPath === 'string') ? false : true;
+      }
     },
     value: {
       type: String,
-      required: true
+      required: function() {
+        return (typeof this.value === 'string') ? false : true;
+      }
     },
     operator: {
       type: String,
@@ -22,7 +26,9 @@ module.exports = function(formio) {
     valueType: {
       type: String,
       enum: ['string', 'number', 'boolean', '[string]', '[number]'],
-      required: true,
+      required: function() {
+        return (typeof this.valueType === 'string') ? false : true;
+      },
       default: 'string',
       validate: [
         {
