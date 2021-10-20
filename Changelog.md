@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased - 2.3.0-rc.13]
+### Fixed
+ - FIO-3783: Build fix
+ - FIO-3780: direct the sending of emails without user parameter to non-priority tasks queue
+
+### Changed
+ - FIO-3054: Add check of primary admin
+
 ## 2.3.0-rc.12
  - Revert "FIO-3763 Close ability to hit a form with get request as an anonymous…"
 
