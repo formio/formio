@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - Upgrade formio-workers@1.16.0-rc.2
 
+### Fixed
+ - FIO-805: empty stage creating issue fix
+
 ## 2.3.0-rc.13
 ### Fixed
  - FIO-3783: Build fix
