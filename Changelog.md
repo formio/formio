@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.3.0-rc.15
+### Fixed
+ - Issue where Reset Password was not calling next method.
+
 ## 2.3.0-rc.14
 ### Changed
  - Upgrade formio-workers@1.16.0-rc.2
