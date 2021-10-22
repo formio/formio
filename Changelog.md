@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ### Changed
  - FIO-3054: Add check of primary admin
- - Upgrade formio.js@4.14.0-rc.32
+ - Upgrade formio.js@4.14.0-rc.33
 
 ## 2.3.0-rc.12
  - Revert "FIO-3763 Close ability to hit a form with get request as an anonymous…"
