@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.3.0-rc.16
+### Fixed
+ - Adding /current back to permission whitelist.
+
 ## 2.3.0-rc.15
 ### Fixed
  - Issue where Reset Password was not calling next method.
@@ -42,7 +46,7 @@ rest-nodeauth@3.1.0, mailgun.js@3.6.0, nodemailer@6.7.0, adm-zip@0.5.9
 ## 2.3.0-rc.9
 ### Fixed
  - FIO-3436: Refactored so that any email address can be set as Reply-To
- - FIO-3783: Added renderingMethod option to Email action. 
+ - FIO-3783: Added renderingMethod option to Email action.
  - FIO-3950: Export JSON/CSV doesn't work
  - FIO-3763 Close ability to hit a form with get request as an anonymous user while form access turned off
  - FIO-3561: Required field is showing as invalid and form can't be submitted
