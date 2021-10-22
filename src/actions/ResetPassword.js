@@ -299,7 +299,7 @@ module.exports = (router) => {
           this.getSubmission(req, token, (err, submission) => {
             if (err || !submission) {
               log(req, ecode.user.ENOUSER, err);
-              return;
+              return next(ecode.user.ENOUSER);
             }
 
             // Generate a temporary token for resetting their password.
