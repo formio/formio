@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased: 2.2.6-rc.1]
+## 2.2.6-rc.1
+### Changed
+ - Upgrade formiojs@4.14.0-rc.34
+
 ### Fixed
  - Refactored so that any email address can be set as Reply-To.
 
