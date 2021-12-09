@@ -216,12 +216,9 @@ module.exports = function(config) {
       if (!mongoConfig.hasOwnProperty('keepAlive')) {
         mongoConfig.keepAlive = true;
       }
-      if (process.env.MONGO_HIGH_AVAILABILITY) {
-        mongoConfig.mongos = true;
-      }
+
       if (_.isArray(config.mongo)) {
         mongoUrl = config.mongo.join(',');
-        mongoConfig.mongos = true;
       }
       if (config.mongoSA || config.mongoCA) {
         mongoConfig.sslValidate = true;
