@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## [Unreleased: 2.3.2-rc.2]
 ### Changed
  - FIO-4088: added tests for patch submission
+ - FIO-4228: removed parsing of MONGO_HIGH_AVAILABILITY
 
 ## 2.3.2-rc.1
 ### Changed
