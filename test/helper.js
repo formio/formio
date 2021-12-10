@@ -702,6 +702,62 @@ module.exports = function(app) {
     });
   };
 
+  Helper.prototype.patchSubmission = function(submission, update ,user, expect, done) {
+    if (typeof user === 'function') {
+      done = user;
+      user = this.owner;
+    }
+
+    if (typeof expect === 'function') {
+      done = expect;
+      expect = [];
+    }
+
+    expect = expect || [];
+    if (typeof user === 'string') {
+      user = this.template.users[user];
+    }
+
+    if (user === undefined) {
+      user = this.owner;
+    }
+
+    var url = '';
+    if (this.template.project && this.template.project._id) {
+      url += `/project/${this.template.project._id}`;
+    }
+    url += `/form/${submission.form}/submission/${submission._id}`;
+
+    let currentRequest = request(app).patch(url).send(update);
+    if (user) {
+      currentRequest = currentRequest.set('x-jwt-token', user.token);
+    }
+    if (expect.length) {
+      currentRequest = currentRequest.expect('Content-Type', expect[0]).expect(expect[1]);
+    }
+    else {
+      currentRequest = currentRequest.expect('Content-Type', /json/).expect(200);
+    }
+    currentRequest.end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+      this.lastResponse = res;
+      if (expect.length && expect[1] > 299) {
+        return done(null, res.body);
+      }
+
+      user.token = res.headers['x-jwt-token'];
+      this.lastSubmission = res.body;
+      _.each(this.template.submissions, (sub, form) => {
+        if (sub._id === submission._id) {
+          this.template.submissions[form] = res.body;
+        }
+      });
+      done(null, res.body);
+    });
+  };
+
   Helper.prototype.createSubmission = function(form, data, user, expect, done) {
     // Two arguments.
     if (typeof form === 'object') {
