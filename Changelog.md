@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.3.2-rc.2
+### Changed
+ - Updated formiojs@4.14.1-rc.4
+
+### Changed
+ - FIO-4088: added tests for patch submission
+ - FIO-4228: removed parsing of MONGO_HIGH_AVAILABILITY
+
+## 2.3.2-rc.1
+### Changed
+ - Updated formiojs@4.14.1-rc.2
+ - FIO-4088: added tests for patch submission
+
+## 2.3.1
+### Changed
+ - Official Release
+ - Updated formiojs@4.14.0
+
+## 2.3.1-rc.1
+### Changed
+ - Updated formiojs@4.14.0-rc.38
+
 ## 2.3.0
 ### Changed
  - Official Release
