@@ -218,7 +218,6 @@ module.exports = function(config) {
       }
       if (_.isArray(config.mongo)) {
         mongoUrl = config.mongo.join(',');
-        mongoConfig.mongos = true;
       }
       if (config.mongoSA || config.mongoCA) {
         mongoConfig.sslValidate = true;
