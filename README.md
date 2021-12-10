@@ -93,7 +93,7 @@ npm run start:dev
 
 Deploy to Hosted Form.io
 --------------------
-If you wish to deploy all of your forms and resources into the Form.io Hosted platform @ https://form.io, you can do this by using the Form.io CLI command line tool.
+If you wish to deploy all of your forms and resources into the Form.io Hosted platform @ https://portal.form.io, you can do this by using the Form.io CLI command line tool.
 
 ```
 npm install -g formio-cli
