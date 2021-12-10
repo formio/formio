@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased: 2.3.2-rc.3]
+### Fixed
+ - FIO-3042: Return current endpoint to whitelist
+
 ## 2.3.2-rc.2
 ### Changed
  - Updated formiojs@4.14.1-rc.4
