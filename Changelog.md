@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - FIO-3042: Return current endpoint to whitelist
  - FIO-4216: 'Resource not found' when get submission form submission collection
  - FIO-3737: fixed reCAPTCHA submission protection issue
+ - FIO-1453: formio.template.import expanded
 
 ## 2.3.2-rc.2
 ### Changed
