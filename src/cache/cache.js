@@ -145,15 +145,20 @@ module.exports = function(router) {
 
       const formRevs = {};
       async.each(revs, (rev, next) => {
-        const formRevision = parseInt(rev.revision || rev.formRevision);
+        const formRevision = rev.revision || rev.formRevision;
         debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${formRevision}`);
+        const loadRevision = formRevision.length === 24 ? router.formio.resources.formrevision.model.findOne(
+            {_id: util.idToBson(rev.revision)}
+        ) :
         router.formio.resources.formrevision.model.findOne(
           hook.alter('formQuery', {
             _rid: util.idToBson(rev.form),
-            _vid: formRevision,
+            _vid: parseInt(formRevision),
             deleted: {$eq: null}
           }, req)
-        ).lean().exec((err, result) => {
+        );
+
+        loadRevision.lean().exec((err, result) => {
           if (err) {
             debug.loadSubForms(err);
             return next(err);
