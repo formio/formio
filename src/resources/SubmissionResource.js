@@ -34,6 +34,7 @@ module.exports = (router) => {
     handlers.afterGet,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
     router.formio.middleware.filterProtectedFields('get', (req) => router.formio.cache.getCurrentFormId(req)),
+    router.formio.middleware.submissionRevisionLoader
   ];
   handlers.beforePut = [
     router.formio.middleware.permissionHandler,
