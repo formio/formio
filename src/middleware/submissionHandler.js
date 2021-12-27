@@ -115,7 +115,7 @@ module.exports = (router, resourceName, resourceId) => {
         // Ensure that the _fvid is a number.
         if (req.body.hasOwnProperty('_fvid') && !_.isNaN(parseInt(req.body._fvid))) {
           if (req.body._fvid.length === 24) {
-            req.body.revisionId = req.body._fvid;
+            req.body._frid = req.body._fvid;
             delete req.body._fvid;
           }
           else {
