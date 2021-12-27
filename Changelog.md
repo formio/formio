@@ -385,7 +385,6 @@ rest-nodeauth@3.1.0, mailgun.js@3.6.0, nodemailer@6.7.0, adm-zip@0.5.9
 ### Fixed
  - FIO-476: Fixes an issue when Sketch Pad didn't show data on CSV export - showed a list of empty strings.
  - fix: allow Docker to load git npm paths
->>>>>>> origin/master
 
 ## 2.1.0-rc.3
 ### Added
