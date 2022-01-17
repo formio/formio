@@ -405,6 +405,10 @@ module.exports = function(router) {
               return roleId;
             }) : [];
 
+            if (access.primaryAdminRole) {
+              validRoles.push(access.primaryAdminRole);
+            }
+
             // Default the access roles.
             access.roles = [access.defaultRole];
 
@@ -667,6 +671,14 @@ module.exports = function(router) {
       // Check to see if this user has an admin role.
       const hasAdminRole = access.adminRole ? (_.indexOf(access.roles, access.adminRole) !== -1) : false;
       if (hasAdminRole || hook.alter('isAdmin', req.isAdmin, req)) {
+        req.isAdmin = true;
+        return true;
+      }
+
+      // Check to see if this user has an admin role of the primary project.
+      const hasPrimaryAdminRole = access.primaryAdminRole ? (_.indexOf(access.roles, access.primaryAdminRole) !== -1) : false;
+
+      if (hasPrimaryAdminRole) {
         req.isAdmin = true;
         return true;
       }

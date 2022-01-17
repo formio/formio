@@ -959,6 +959,9 @@ module.exports = (router) => {
 
   return {
     install,
-    template: importTemplate
+    template: importTemplate,
+    check: checkTemplate,
+    tryToLoadComponents,
+    findProjectId
   };
 };

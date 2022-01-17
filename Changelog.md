@@ -4,6 +4,97 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased: 2.4.0-rc.1]
+### Changed
+ - Upgrade @azure/ms-rest-nodeauth@3.1.1, async@3.2.3, body-parser@1.19.1, config@3.3.7, debug@4.3.3, express@4.17.2, nodemailer@6.7.2, prompt@1.2.1, mocha@9.1.4, nodemon@2.0.15, @sendgrid/mail@7.6.0, mongodb@4.3.0, mongoose@6.1.7, mssql@7.3.0, supertest@6.2.1, csv@6.0.5, mailgun.js@4.1.4, eslint@8.7.0, moment-timezone@0.5.34
+ - FIO-4003: added ability to use the revisionId
+
+### Fixed
+ - FIO-3853: fixed export json function freeze 
+
+## 2.3.3
+### Changed
+ - Official Release
+
+## 2.3.3-rc.3
+### Changed
+ - Upgrade formiojs@4.14.1-rc.6
+
+## 2.3.3-rc.2
+### Fixed
+ - FIO-4455: Fixes value calculation on conditionally shown field
+
+## 2.3.3-rc.1
+### Changed
+ - Updated formiojs@4.14.1-rc.5
+ - Updated formio-workers@1.16.1
+
+## 2.3.2
+### Changed
+ - Official Release
+
+## 2.3.2-rc.3
+### Fixed
+ - FIO-3042: Return current endpoint to whitelist
+ - FIO-4216: 'Resource not found' when get submission form submission collection
+ - FIO-3737: fixed reCAPTCHA submission protection issue
+ - FIO-1453: formio.template.import expanded
+
+## 2.3.2-rc.2
+### Changed
+ - Updated formiojs@4.14.1-rc.4
+
+### Changed
+ - FIO-4088: added tests for patch submission
+ - FIO-4228: removed parsing of MONGO_HIGH_AVAILABILITY
+
+## 2.3.2-rc.1
+### Changed
+ - Updated formiojs@4.14.1-rc.2
+ - FIO-4088: added tests for patch submission
+
+## 2.3.1
+### Changed
+ - Official Release
+ - Updated formiojs@4.14.0
+
+## 2.3.1-rc.1
+### Changed
+ - Updated formiojs@4.14.0-rc.38
+
+## 2.3.0
+### Changed
+ - Official Release
+ - Updated formio-workers@1.16.0
+
+## 2.3.0-rc.17
+### Changed
+ - Updated formiojs@4.14.0-rc.36
+
+## 2.3.0-rc.16
+### Fixed
+ - Adding /current back to permission whitelist.
+
+## 2.3.0-rc.15
+### Fixed
+ - Issue where Reset Password was not calling next method.
+
+## 2.3.0-rc.14
+### Changed
+ - Upgrade formio-workers@1.16.0-rc.2
+
+### Fixed
+ - FIO-805: empty stage creating issue fix
+
+## 2.3.0-rc.13
+### Fixed
+ - FIO-3783: Build fix
+ - FIO-3780: direct the sending of emails without user parameter to non-priority tasks queue
+
+### Changed
+ - FIO-3054: Add check of primary admin
+ - Upgrade formio.js@4.14.0-rc.33
+
 ## 2.3.0-rc.12
  - Revert "FIO-3763 Close ability to hit a form with get request as an anonymous…"
 
@@ -22,7 +113,7 @@ rest-nodeauth@3.1.0, mailgun.js@3.6.0, nodemailer@6.7.0, adm-zip@0.5.9
 ## 2.3.0-rc.9
 ### Fixed
  - FIO-3436: Refactored so that any email address can be set as Reply-To
- - FIO-3783: Added renderingMethod option to Email action. 
+ - FIO-3783: Added renderingMethod option to Email action.
  - FIO-3950: Export JSON/CSV doesn't work
  - FIO-3763 Close ability to hit a form with get request as an anonymous user while form access turned off
  - FIO-3561: Required field is showing as invalid and form can't be submitted
@@ -314,7 +405,6 @@ rest-nodeauth@3.1.0, mailgun.js@3.6.0, nodemailer@6.7.0, adm-zip@0.5.9
 ### Fixed
  - FIO-476: Fixes an issue when Sketch Pad didn't show data on CSV export - showed a list of empty strings.
  - fix: allow Docker to load git npm paths
->>>>>>> origin/master
 
 ## 2.1.0-rc.3
 ### Added
