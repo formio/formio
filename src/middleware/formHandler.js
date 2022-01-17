@@ -23,15 +23,8 @@ module.exports = function(router) {
     }
 
     if ((req.method === 'POST' || req.method === 'PUT') && req.body.components) {
-      /* eslint-disable no-useless-escape */
-      const badCharacters = /^[^A-Za-z_]+|[^A-Za-z0-9\-\._]+/g;
-      /* eslint-enable no-useless-escape */
       let error = false;
       formio.util.eachComponent(req.body.components, function(component) {
-        // Remove all unsupported characters from api keys.
-        if (component.hasOwnProperty('key')) {
-          component.key = component.key.replace(badCharacters, '');
-        }
         if (component.key === '' && !formio.util.isLayoutComponent(component)) {
           error = true;
         }
