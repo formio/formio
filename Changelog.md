@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ## [Unreleased: 2.3.4-rc.1]
+### Changed
+ - Upgrade @azure/ms-rest-nodeauth@3.1.1, async@3.2.3, body-parser@1.19.1, config@3.3.7, debug@4.3.3, express@4.17.2, nodemailer@6.7.2, prompt@1.2.1, mocha@9.1.4, nodemon@2.0.15, @sendgrid/mail@7.6.0, mongodb@4.3.0, mongoose@6.1.7, mssql@7.3.0, supertest@6.2.1, csv@6.0.5, mailgun.js@4.1.4, eslint@8.7.0, moment-timezone@0.5.34
+
 ### Fixed
  - FIO-3853: fixed export json function freeze 
 
