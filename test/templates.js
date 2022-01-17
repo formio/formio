@@ -11,7 +11,7 @@ module.exports = (app, template, hook) => {
       return;
     }
 
-    let formio = hook ? hook.alter('formio', app.formio) : app.formio;
+    let formio = hook.alter('formio', app.formio);
     let importer = formio.template;
 
     /**

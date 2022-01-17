@@ -2,8 +2,8 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:12
-      - image: mongo:3.4.16
+      - image: cimg/node:lts
+      - image: mongo:4.4
     steps:
       - checkout
       - restore_cache:
