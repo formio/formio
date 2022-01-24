@@ -117,6 +117,7 @@ class Validator {
 
       // Perform calculations and conditions.
       form.checkConditions();
+      form.clearOnHide();
       form.calculateValue();
 
       // Reset the data
