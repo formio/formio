@@ -89,7 +89,7 @@ module.exports = (router, resourceName, resourceId) => {
         req.skipResource = true;
 
         // Only allow the data to go through.
-        const properties = hook.alter('submissionParams', ['data', 'owner', 'access', 'metadata']);
+        const properties = hook.alter('submissionParams', ['data', 'owner', 'access', 'metadata', '_vnote']);
         req.rolesUpdate = req.body.roles;
         req.body = _.pick(req.body, properties);
 
