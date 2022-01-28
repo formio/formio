@@ -334,9 +334,11 @@ module.exports = (router) => {
             if (err) {
               return reject(err);
             }
-            util.removeProtectedFields(form, 'index', res.resource.item.map(submission => {
-              return _.get(submission, `data.${path}`);
-            }));
+            if( res.resource && Array.isArray(res.resource.item) ) {
+              util.removeProtectedFields(form, 'index', res.resource.item.map(submission => {
+                return _.get(submission, `data.${path}`);
+              }));
+            }
             resolve();
           });
         });
