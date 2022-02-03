@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## [Unreleased: 2.5.0-rc.2]
 ### Fixed
  - Fixed a crash in resource field removal.
+ - FIO-4359: submission revision issue fix
 
 ## 2.5.0-rc.1
 ### Fixed
