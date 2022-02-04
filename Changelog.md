@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased: 2.5.0-rc.3]
+### Fixed
+ - Revert "FIO-4216: 'Resource not found' when get submission form submission collection"
+
 ## 2.5.0-rc.2
 ### Changed
  - Updated formiojs@4.15.0-rc.2
