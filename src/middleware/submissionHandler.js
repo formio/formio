@@ -73,7 +73,6 @@ module.exports = (router, resourceName, resourceId) => {
     function initializeSubmission(req, done) {
       const isGet = (req.method === 'GET');
 
-      hook.invoke('submissionCollection', req);
       // If this is a get method, then filter the model query.
       if (isGet) {
         const submissionQuery = hook.alter('submissionQuery', {form: req.currentForm._id}, req);

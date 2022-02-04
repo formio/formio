@@ -253,7 +253,6 @@ module.exports = function(router) {
       debug.loadSubmission(`Searching for form: ${formId}, and submission: ${subId}`);
       const query = {_id: subId, form: formId, deleted: {$eq: null}};
       debug.loadSubmission(query);
-      hook.invoke('submissionCollection', req);
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
       submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec((err, submission) => {
         if (err) {
