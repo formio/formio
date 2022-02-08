@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "1.91.9-rc.3",
+  "version": "1.91.9-rc.4",
   "description": "The formio server application.",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "index.js",
@@ -36,7 +36,7 @@
     "express": "^4.17.1",
     "fast-json-patch": "^3.1.0",
     "formio-workers": "^1.14.16",
-    "formiojs": "^4.14.1-rc.2",
+    "formiojs": "^4.14.1-rc.12",
     "fs-extra": "^10.0.0",
     "html-entities": "^2.3.2",
     "joi": "~14.3.1",
@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "eslint": "^7.32.0",
-    "mocha": "^9.1.2",
+    "mocha": "^9.2.0",
     "nodemon": "^2.0.13",
     "pre-commit": "^1.2.2",
     "supertest": "^6.1.6"
