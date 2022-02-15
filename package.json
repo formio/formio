@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "2.4.0-rc.6",
+  "version": "2.4.0-rc.7",
   "description": "The formio server application.",
   "license": "OSL-3.0",
   "main": "index.js",
@@ -39,7 +39,7 @@
     "express": "^4.17.2",
     "fast-json-patch": "^3.1.0",
     "formio-workers": "^1.16.1",
-    "formiojs": "^4.14.1-rc.13",
+    "formiojs": "^4.14.1-rc.14",
     "fs-extra": "^10.0.0",
     "html-entities": "^2.3.2",
     "jsonwebtoken": "^8.5.1",
@@ -64,7 +64,7 @@
     "superagent-retry": "^0.6.0",
     "through": "^2.3.8",
     "vanilla-text-mask": "^5.1.1",
-    "vm2": "^3.9.5"
+    "vm2": "^3.9.7"
   },
   "devDependencies": {
     "eslint": "^8.7.0",
