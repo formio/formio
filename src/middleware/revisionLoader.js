@@ -14,7 +14,7 @@
 
   return (req, res, next) => {
     if ( req.query.formRevision && res.resource.item.revisions === 'original') {
-      hook.alter('loadRevision', res.resource.item, req.query.formRevision, (revision, err)=>{
+      hook.alter('loadRevision', res.resource.item, req.query.formRevision, (err, revision)=>{
         if ( err ) {
           return next(err);
         }
