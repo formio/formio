@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased: 1.91.11-rc.2]
+## 1.91.11-rc.2
+### Changed
+ - Updated formiojs@4.14.5-rc.1
+
 ### Fixed
  - FIO-4781: Fixing email pdf attachments.
 
