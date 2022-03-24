@@ -25,6 +25,18 @@ module.exports = function(router) {
           return next(err);
         }
 
+        const parseValues = function(values, action) {
+            if ( !_.isArray(values) ) {
+                return action(values);
+            }
+
+            for (const i in values) {
+                values[i] = action(values[i]);
+            }
+
+            return values;
+        };
+
         const prefix = 'data.';
         const prefixLength = prefix.length;
         _.assign(req.query, _(req.query)
@@ -44,19 +56,30 @@ module.exports = function(router) {
             if (component) {
               switch (component.type) {
                 case 'number':
-                  return Number(value);
-                case 'checkbox':
-                  return value !== 'false';
-                case 'datetime': {
-                  const date = moment.utc(value, ['YYYY-MM-DD', 'YYYY-MM', 'YYYY', 'x', moment.ISO_8601], true);
+                case 'currency':
+                      return parseValues(value,function(value) {
+                          return Number(value);
+                      });
+                  case 'checkbox':
+                      return parseValues(value,function(value) {
+                          return value !== 'false';
+                      });
+                  case 'datetime': {
+                      return parseValues(value,function(value) {
+                          value = (value === "" ? Number(value) : value);
+                          const date = moment.utc(value, ['YYYY-MM-DD', 'YYYY-MM', 'YYYY', 'x', moment.ISO_8601], true);
 
-                  if (date.isValid()) {
-                    return date.toDate();
+                          if (date.isValid()) {
+                              return date.toDate();
+                          }
+                      });
                   }
-                }
               }
             }
-            return value;
+
+            return parseValues(value,function(value) {
+              return value;
+            });
           })
           .value()
         );
