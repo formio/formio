@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Fixed
  - FIO-4781: Fixing email pdf attachments.
 
+### Changed
+ - Updated async@3.2.3, body-parser@1.19.2, config@3.3.7, debug@4.3.4, express@4.17.3, fs-extra@10.0.1, prompt@1.2.2, vm2@3.9.9, mocha@9.2.2, node
+mon@2.0.15, formio-workers@1.16.1, nodemailer@6.7.3, supertest@6.2.2, adm-zip@0.5.9, moment-timezone@0.5.34
+
 ## 1.91.11-rc.1
 ### Changed
  - Updated formiojs@4.14.4-rc.1
