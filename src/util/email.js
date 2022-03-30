@@ -1,7 +1,7 @@
 'use strict';
 
 const nodemailer = require('nodemailer');
-const sgTransport = require('nodemailer-sendgrid-transport');
+const sgTransport = require('nodemailer-sendgrid');
 const mandrillTransport = require('nodemailer-mandrill-transport');
 const mailgunTransport = require('nodemailer-mailgun-transport');
 const debug = {
@@ -284,24 +284,9 @@ module.exports = (formio) => {
       switch (emailType) {
         case 'default':
           if (_config && formio.config.email.type === 'sendgrid') {
-            /* eslint-disable camelcase */
-            // Check if the user has configured sendgrid for api key access.
-            if (!formio.config.email.username && formio.config.email.password) {
-              transporter = nodemailer.createTransport(sgTransport({
-                auth: {
-                  api_key: formio.config.email.password,
-                },
-              }));
-            }
-            else {
-              transporter = nodemailer.createTransport(sgTransport({
-                auth: {
-                  api_user: formio.config.email.username,
-                  api_key: formio.config.email.password,
-                },
-              }));
-            }
-            /* eslint-enable camelcase */
+            transporter = nodemailer.createTransport(sgTransport({
+              apiKey: formio.config.email.password
+            }));
           }
           else if (_config && formio.config.email.type === 'mandrill') {
             transporter = nodemailer.createTransport(mandrillTransport({
@@ -314,15 +299,9 @@ module.exports = (formio) => {
         case 'sendgrid':
           if (_.has(settings, 'email.sendgrid')) {
             debug.email(settings.email.sendgrid);
-            // Check if the user has configured sendgrid for api key access.
-            if (_.get(settings, 'email.sendgrid.auth.api_user')
-              && _.get(settings, 'email.sendgrid.auth.api_user').toString() === 'apikey'
-            ) {
-              settings.email.sendgrid.auth = _.omit(settings.email.sendgrid.auth, 'api_user');
-            }
-
-            debug.email(settings.email.sendgrid);
-            transporter = nodemailer.createTransport(sgTransport(settings.email.sendgrid));
+            transporter = nodemailer.createTransport(sgTransport({
+              apiKey: settings.email.sendgrid.auth.api_key
+            }));
           }
           break;
         case 'mandrill':
@@ -379,7 +358,6 @@ module.exports = (formio) => {
                 rejectUnauthorized: false,
               };
             }
-
             transporter = nodemailer.createTransport(_settings);
           }
           break;
@@ -475,6 +453,47 @@ module.exports = (formio) => {
         params,
       };
 
+      const sendEmail = (email) => {
+        // Replace all newline chars with empty strings, to fix newline support in html emails.
+        if (email.html && (typeof email.html === 'string')) {
+          email.html = email.html.replace(/\n/g, '');
+        }
+
+        return new Promise((resolve, reject) => {
+          // Allow anyone to hook the final email before sending.
+          return hook.alter('email', email, req, res, params, (err, email) => {
+            if (err) {
+              return reject(err);
+            }
+
+            // Allow anyone to hook the final destination settings before sending.
+            hook.alter('emailSend', true, email, (err, send) => {
+              if (err) {
+                return reject(err);
+              }
+              if (!send) {
+                return resolve(email);
+              }
+
+              try {
+                return transporter.sendMail(email, (err, info) => {
+                  if (err) {
+                    debug.error(err);
+                    return reject(err);
+                  }
+
+                  return resolve(info);
+                });
+              }
+              catch (err) {
+                console.log(err);
+                reject(err);
+              }
+            });
+          });
+        });
+      };
+
       const sendEmails = () => nunjucksInjector(mail, options)
         .then((email) => hook.alter('checkEmailPermission', email, params.form))
         .then((email) => {
@@ -497,42 +516,11 @@ module.exports = (formio) => {
           const chunks = _.chunk(emails, EMAIL_CHUNK_SIZE);
           return chunks.reduce((result, chunk) => {
             // Send each mail using the transporter.
-            return result.then(() => new Promise((resolve) => {
+            return result.then(() => new Promise((resolve, reject) => {
               setImmediate(
-                () => Promise.all(chunk.map((email) => {
-                  // Replace all newline chars with empty strings, to fix newline support in html emails.
-                  if (email.html && (typeof email.html === 'string')) {
-                    email.html = email.html.replace(/\n/g, '');
-                  }
-
-                  return new Promise((resolve, reject) => {
-                    // Allow anyone to hook the final email before sending.
-                    return hook.alter('email', email, req, res, params, (err, email) => {
-                      if (err) {
-                        return reject(err);
-                      }
-
-                      // Allow anyone to hook the final destination settings before sending.
-                      hook.alter('emailSend', true, email, (err, send) => {
-                        if (err) {
-                          return reject(err);
-                        }
-                        if (!send) {
-                          return resolve(email);
-                        }
-
-                        return transporter.sendMail(email, (err, info) => {
-                          if (err) {
-                            debug.error(err);
-                          }
-
-                          return resolve(info);
-                        });
-                      });
-                    });
-                  });
-                }))
-                  .then(resolve),
+                () => Promise.all(chunk.map((email) => sendEmail(email)))
+                  .then(resolve)
+                  .catch(reject),
               );
             }));
           }, Promise.resolve());
