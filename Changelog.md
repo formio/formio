@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ### Added
  - Add noValidate property to req object on submission validation
+ - Added public config support for OSS
 
 ## 2.5.0-rc.8
 ### Changed
