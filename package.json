@@ -37,7 +37,7 @@
     "event-chain": "^0.0.1",
     "expose-gc": "^1.0.0",
     "express": "^4.17.3",
-    "fast-json-patch": "^3.1.0",
+    "fast-json-patch": "^3.1.1",
     "formio-workers": "^1.16.1",
     "formiojs": "^4.15.0-rc.7",
     "fs-extra": "^10.0.1",
