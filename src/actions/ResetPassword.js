@@ -6,6 +6,10 @@ const _ = require('lodash');
 
 const LOG_EVENT = 'Reset Password Action';
 
+// Default allows for LONG passphrases, but not DoS big
+// Refrence: next line is ~70 characters
+const MAX_PASSWORD_LENGTH = process.env.MAX_PASSWORD_LENGTH || 200;
+
 module.exports = (router) => {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
@@ -219,6 +223,12 @@ module.exports = (router) => {
      * @param next
      */
     updatePassword(req, token, password, next) {
+      // Validate password matches length restrictions
+      // FIO-4741
+      if ( (password || '').length > MAX_PASSWORD_LENGTH) {
+        return next(ecode.auth.EPASSLENGTH);
+      }
+
       // Get the submission.
       this.getSubmission(req, token, (err, submission) => {
         // Make sure we found the user.
