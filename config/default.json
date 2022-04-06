@@ -40,22 +40,6 @@
       "cert": "",
       "thumbprint": ""
     },
-    "databases": {
-      "mysql": {
-        "host": "",
-        "port": "",
-        "database": "",
-        "user": "",
-        "password": ""
-      },
-      "mssql": {
-        "host": "",
-        "port": "",
-        "database": "",
-        "user": "",
-        "password": ""
-      }
-    },
     "email": {
       "gmail": {
         "auth": {
