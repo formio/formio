@@ -257,7 +257,9 @@ module.exports = (router) => {
                 setActionItemMessage('Sending message', this.message);
                 emailer.send(req, res, this.settings, params, (err) => {
                   if (err) {
-                    setActionItemMessage('Error sending message', err, 'error');
+                    setActionItemMessage('Error sending message', {
+                      message: err.message || err
+                    }, 'error');
                     log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
                   }
                   else {
