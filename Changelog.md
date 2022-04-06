@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ### Fixed
  - Fixed issues where form revisions with original configured would not
+ - FIO-4741: Added max password length for password reset
 
 ## 2.5.0-rc.8
 ### Changed
