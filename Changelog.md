@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Fixed issues where form revisions with original configured would not
  - FIO-4741: Added max password length for password reset
 
+### Added
+ - Add noValidate property to req object on submission validation
+
 ## 2.5.0-rc.8
 ### Changed
  - Updated formiojs@4.15.0-rc.7
