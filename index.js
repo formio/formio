@@ -197,6 +197,11 @@ module.exports = function(config) {
         router.get('/access', router.formio.middleware.accessHandler);
       }
 
+      // The public config handler.
+      if (!router.formio.hook.invoke('init', 'config', router.formio)) {
+        router.use('/config.json', router.formio.middleware.configHandler);
+      }
+
       // Authorize all urls based on roles and permissions.
       if (!router.formio.hook.invoke('init', 'perms', router.formio)) {
         router.use(router.formio.middleware.permissionHandler);
