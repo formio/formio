@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased: 3.0.0-rc.1]
+## 3.0.0-rc.1
 ### Breaking Change
  - Removed the SQL Action
 
@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ### Changed
  - Upgrade html-entities@2.3.3, mailgun.js@5.0.5, moment@2.29.2, mongoose@6.2.10, semver@7.3.6, body-parser@1.20.0, mongodb@4.5.0, eslint@8.12.0
+ - formio-workers@1.16.3, mailgun.js@5.2.0, eslint@8.13.0
 
 ## 2.5.0-rc.8
 ### Changed
