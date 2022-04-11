@@ -59,6 +59,7 @@ module.exports = function(formio) {
 
   try {
     model.schema.index({created: 1}, {expireAfterSeconds: 2592000});
+    model.schema.index({_ts: 1}, {expireAfterSeconds: 2592000});
   }
   catch (err) {
     console.log(err.message);
