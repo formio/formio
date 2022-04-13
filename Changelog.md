@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased: 2.5.0-rc.9]
+## 2.5.0-rc.9
+### Changed
+ - Updated formiojs@4.15.0-rc.10
+ - Updated formio-workers@1.16.4
+ - fixed processing of loadRevision execution results
+
 ### Fixed
  - Fixed issues where form revisions with original configured would not
 
