@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased: 3.0.0-rc.2]
+### Fixed
+ - fixed processing of loadRevision execution results
+
 ## 3.0.0-rc.1
 ### Breaking Change
  - Removed the SQL Action
