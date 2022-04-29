@@ -62,6 +62,7 @@ module.exports = (router) => {
 
       next();
     },
+    router.formio.middleware.reduceLimitQuery,
     router.formio.middleware.permissionHandler,
     router.formio.middleware.setFilterQueryTypes,
     router.formio.middleware.filterMongooseExists({

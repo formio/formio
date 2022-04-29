@@ -40,6 +40,7 @@ module.exports = function(router) {
     filterIndex: require('./filterIndex')(router),
     mongodbConnectionState: require('./mongodbConnectionState')(router),
     formRevisionLoader: require('./formRevisionLoader')(router),
-    submissionRevisionLoader: require('./submissionRevisionLoader')(router)
+    submissionRevisionLoader: require('./submissionRevisionLoader')(router),
+    reduceLimitQuery: require('./reduceLimitQuery')(router)
   };
 };
