@@ -194,7 +194,7 @@ module.exports = function(config) {
 
       // The access handler.
       if (!router.formio.hook.invoke('init', 'access', router.formio)) {
-        router.get('/access', router.formio.middleware.accessHandler);
+        router.get('/access', router.formio.middleware.tokenVerify,router.formio.middleware.accessHandler);
       }
 
       // Authorize all urls based on roles and permissions.
