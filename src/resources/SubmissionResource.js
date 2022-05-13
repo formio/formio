@@ -143,6 +143,16 @@ module.exports = (router) => {
     });
   });
 
+  router.delete('/form/:formId/submission',
+    ...handlers.beforeDelete.filter((_, idx) => idx !== 1),
+    ...handlers.afterDelete,
+    (req, res) => {
+      return res.resource
+        ? res.status(res.resource.status).json(res.resource.item)
+        : res.sendStatus(400);
+    }
+  );
+
   class SubmissionResource extends Resource {
     patch(options) {
       options = Resource.getMethodOptions('put', options);
