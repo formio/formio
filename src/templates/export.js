@@ -75,6 +75,7 @@ module.exports = (router) => {
     }
     if (entity.hasOwnProperty('form')) {
       if (_map.forms && _map.forms.hasOwnProperty(entity.form)) {
+        _.unset(entity, 'revision');
         entity.form = _map.forms[entity.form];
       }
     }
