@@ -122,7 +122,6 @@ module.exports = (router) => {
     }
 
     // Decode/refresh the token and store for later middleware.
-    
      jwt.verify(token, process.env.FORMIO_JWT_SECRET||jwtConfig.secret, (err, decoded) => {
       if (err || !decoded) {
         debug.handler(err || `Token could not decoded: ${token}`);
