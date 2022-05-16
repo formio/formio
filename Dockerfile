@@ -7,10 +7,10 @@
 FROM node:lts-alpine3.10
 
 # set working directory
-WORKDIR /forms-flow-forms/app
+WORKDIR /app
 
 RUN set -x \
-	&& chmod -R 777 /forms-flow-forms/app/
+	&& chmod -R 777 /app
 
 # "bcrypt" requires python/make/g++, all must be installed in alpine
 # (note: using pinned versions to ensure immutable build environment)
@@ -33,7 +33,7 @@ RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.co
 #RUN echo "prefix = $NPM_PACKAGES" >> ~/.npmrc
 
 # add `/app/node_modules/.bin` to $PATH
-ENV PATH /forms-flow-forms/app/node_modules/.bin:$PATH
+ENV PATH /app/node_modules/.bin:$PATH
 
 ## Include details of the required dependencies
 #COPY ./package.json $NPM_PACKAGES/
@@ -48,8 +48,8 @@ ENV PATH /forms-flow-forms/app/node_modules/.bin:$PATH
 #RUN ln -sf $NPM_PACKAGES/node_modules node_modules
 
 ## Include details of the required dependencies
-COPY package-lock.json /forms-flow-forms/app/package-lock.json
-COPY package.json /forms-flow-forms/app/package.json
+COPY package-lock.json /app/package-lock.json
+COPY package.json /app/package.json
 
 RUN npm install
 
@@ -58,7 +58,7 @@ RUN npm install
 #   DEBUG=formio:*
 ENV DEBUG=""
 
-COPY . /forms-flow-forms/app/
+COPY . /app
 
 
 # This will initialize the application based on
