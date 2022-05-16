@@ -126,6 +126,7 @@ module.exports = (router, resourceName, resourceId) => {
         // Ensure they cannot reset the submission id.
         if (req.params.submissionId) {
           req.body._id = req.params.submissionId;
+          req.subId = req.params.submissionId;
         }
 
         // Set the form to the current form.
