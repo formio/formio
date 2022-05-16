@@ -1,0 +1,138 @@
+{
+	"info": {
+		"_postman_id": "7e3f55f2-2b45-4fb9-91a8-bc2a8b14ba25",
+		"name": "form.io collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://localhost:3001/user/login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var  token = pm.response.headers.get(\"x-jwt-token\");\r",
+							"pm.collectionVariables.set(\"token\", token)\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJlQ0lyaHZTWkhoSU9ieVhiX2VqQUtUTVBkb0U3R1FibkpCNTE2XzhwQms4In0.eyJleHAiOjE2MjE5NTUwNjksImlhdCI6MTYyMTk1NDc2OSwianRpIjoiMTcxYTU4OTEtNzgzOC00MGQzLWI4ZWItZjEzZWU0ZDQ4ODg3IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2F1dGgvcmVhbG1zL2Zvcm1zZmxvdy1haSIsImF1ZCI6WyJjYW11bmRhLXJlc3QtYXBpIiwiZm9ybXMtZmxvdy13ZWIiLCJhY2NvdW50Il0sInN1YiI6ImEzZDY1ODZjLWExODctNDU4ZC1iYjA3LWE2N2Y0ZDFiYzkzMSIsInR5cCI6IkJlYXJlciIsImF6cCI6ImZvcm1zLWZsb3ctd2ViIiwic2Vzc2lvbl9zdGF0ZSI6IjIxNWNjMWIwLWM1ZDktNDJiZC1iMWYxLTY0YzgzNTdhNzk2ZiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImZvcm1zLWZsb3ctd2ViIjp7InJvbGVzIjpbImZvcm1zZmxvdy1kZXNpZ25lciJdfSwiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIGNhbXVuZGEtcmVzdC1hcGkiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsInJvbGUiOlsiZm9ybXNmbG93LWRlc2lnbmVyIl0sIm5hbWUiOiJEZXNpZ25lciBGRkEiLCJncm91cHMiOlsiL2NhbXVuZGEtYWRtaW4iLCIvZm9ybXNmbG93L2Zvcm1zZmxvdy1kZXNpZ25lciJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJmb3Jtc2Zsb3ctZGVzaWduZXIiLCJnaXZlbl9uYW1lIjoiRGVzaWduZXIiLCJmYW1pbHlfbmFtZSI6IkZGQSIsImVtYWlsIjoiZm9ybXNmbG93LWRlc2lnbmVyQGFvdC10ZWNobm9sb2dpZXMuY29tIn0.KMvEeyf9c3BO2sYPDCQkYcmvy_kg4-AxSk0JVVA4hHIVHIY0n00rGOgl_sSesfNzxjcGDU4w94hSp3AxrHjeV8YzTsrFr-QVdgfXKRbnuAm4KwFlcCTzJKanOPUpJ7kdqeEDs3RzXPZM31rapqh5ipjOy0vcEfBdOpDxtX_b0BefFAWK9Lzras8amWShxG99Xj38mBrgK-qFPrURnsTeRL0O5f1zuKcdV4nkv5jFTZkepBIBprXQNqn2gIYOBO7m5xt1qFNGqed_r-yOUOxHSTfxTX1LMkV-aL7_Cinyp6MMsaP5aAJ8Obka0V4m9G4aPWUDLEMZY0cES6cFxWlb3w",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"data\": {\r\n        \"email\": \"admin@example.com\",\r\n        \"password\": \"changeme\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3001/user/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3001",
+					"path": [
+						"user",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3001/role",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var Header = require('postman-collection').Header;\r",
+							"pm.request.headers.append(Header.create(pm.collectionVariables.get('token'),'x-jwt-token'));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3001/role",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3001",
+					"path": [
+						"role"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3001/user",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var Header = require('postman-collection').Header;\r",
+							"pm.request.headers.append(Header.create(pm.collectionVariables.get('token'),'x-jwt-token'));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3001/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3001",
+					"path": [
+						"user"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": ""
+		}
+	]
+}

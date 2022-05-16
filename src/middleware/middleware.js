@@ -39,5 +39,6 @@ module.exports = function(router) {
     filterIndex: require('./filterIndex')(router),
     mongodbConnectionState: require('./mongodbConnectionState')(router),
     revisionLoader: require('./revisionLoader')(router),
+    tokenVerify:require("./tokenVerify")(router)
   };
 };

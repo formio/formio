@@ -4,3 +4,5 @@ client/*
 src/db/updates/*
 node_modules/*
 bower_components/*
+src/*
+mongo_entrypoint/*
