@@ -44,8 +44,6 @@ services:
     ports:
       - '3001:3001'
     # The application wants to download things to the local directory
-    volumes:
-      - ./:/app:rw
     environment:
       DEBUG: formio:*
       NODE_CONFIG: "{\"mongo\":\"mongodb://${FORMIO_DB_USERNAME:-admin}:${FORMIO_DB_PASSWORD:-changeme}@forms-flow-forms-db:27017/${FORMIO_DB_NAME:-formio}?authSource=admin\"}"

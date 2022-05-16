@@ -10,7 +10,7 @@ FROM node:lts-alpine3.10
 WORKDIR /app
 
 RUN set -x \
-	&& chmod -R 777 /app
+	&& chmod -R 777 /app/
 
 # "bcrypt" requires python/make/g++, all must be installed in alpine
 # (note: using pinned versions to ensure immutable build environment)
@@ -58,7 +58,7 @@ RUN npm install
 #   DEBUG=formio:*
 ENV DEBUG=""
 
-COPY . /app
+COPY . /app/
 
 
 # This will initialize the application based on
