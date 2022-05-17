@@ -2,7 +2,7 @@ name: formsflow-forms to Docker Hub
 
 on:
   push:
-    branches: [formsflow-forms]
+    branches: [formsflow-forms, develop]
   workflow_dispatch:
   
 jobs:
