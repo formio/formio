@@ -1,8 +1,8 @@
-name: Forms-flow-forms to Docker Hub
+name: formsflow-forms to Docker Hub
 
 on:
   push:
-    branches: [formsflow.ai]
+    branches: [formsflow-forms]
   workflow_dispatch:
   
 jobs:
@@ -47,7 +47,7 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags: shuhaibzahir/forms-flow-forms:${{ env.VERSION }}
+          tags: formsflow/forms-flow-forms:${{ env.VERSION }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
