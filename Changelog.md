@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.5.0-rc.15
+### Changed
+ - Updated formiojs@4.14.8-rc.6
+ - FIO-4974: allowed to process all types of requests without a body for the webhook action
+ - FIO-5076: fixed subId parameter
+
 ## 2.5.0-rc.14
 ### Changed
  - Upgrade formio-workers@1.16.5-rc.2
