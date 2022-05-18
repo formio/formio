@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Fixed
  - fixed processing of loadRevision execution results
  - FIO-4974: allowed to process all types of requests without a body for the webhook action
+ - FIO-5076: fixed subId parameter
 
 ## 3.0.0-rc.1
 ### Breaking Change
