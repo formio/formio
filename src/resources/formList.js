@@ -10,9 +10,14 @@ const formList =(req,res,router)=>{
         query={...query,type,tags:tags.split(","),}
         let regex = title__regex?title__regex.split("/").filter(i=>i):''
         titleQuery =regex?{title:{$regex:`${regex[0]}`,$options:`${regex[1]}`}}:{}
-
     }
-    router.formio.resources.form.model.find({...query,...titleQuery}).skip(skipForm).limit(limitForm).sort({title:sortForm}).then(result=>{
+    let tenant = process.env.tenant
+    let tenantQuery={}
+    if(tenant&&req.token.tenantId){
+        const {tenantId} = req.token
+        tenantQuery={tenant:tenantId}
+    }
+    router.formio.resources.form.model.find({...query,...titleQuery,...tenant}).skip(skipForm).limit(limitForm).sort({title:sortForm}).then(result=>{
         res.json(result)
     }).catch(err=>{
         res.status(403).json(err)
