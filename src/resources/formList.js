@@ -11,11 +11,11 @@ const formList =(req,res,router)=>{
         let regex = title__regex?title__regex.split("/").filter(i=>i):''
         titleQuery =regex?{title:{$regex:`${regex[0]}`,$options:`${regex[1]}`}}:{}
     }
-    let tenant = process.env.tenant
+    let {MULTI_TENANCY_ENABLED} = process.env
     let tenantQuery={}
-    if(tenant&&req.token.tenantId){
+    if(MULTI_TENANCY_ENABLED&&req.token.tenantId){
         const {tenantId} = req.token
-        tenantQuery={tenant:tenantId}
+        tenantQuery={tenantId:tenantId}
     }
     router.formio.resources.form.model.find({...query,...titleQuery,...tenant}).skip(skipForm).limit(limitForm).sort({title:sortForm}).then(result=>{
         res.json(result)
