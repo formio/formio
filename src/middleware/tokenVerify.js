@@ -44,7 +44,7 @@ module.exports=(router)=>{
         if (!router.formio.auth.isTokenAllowed(req, decoded)) {
             res.status(401).send("unauthorized");
         }
-        if(decoded&&!err){
+        if(decoded && !err){
           req.token = decoded
         }
         // If this is a temporary token, then decode it and set it in the request.
