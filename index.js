@@ -14,6 +14,7 @@ const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
+const formList = require('./src/resources/formList');
 
 const originalGetToken = util.Formio.getToken;
 const originalEvalContext = util.Formio.Components.components.component.prototype.evalContext;
@@ -145,7 +146,10 @@ module.exports = function(config) {
       router.use(bodyParser.json({
         limit: '16mb'
       }));
-
+      // getting form list
+      router.get("/form",router.formio.middleware.tokenVerify,(req,res)=>{
+        formList(req,res,router);
+      });
       // Error handler for malformed JSON
       router.use((err, req, res, next) => {
         if (err instanceof SyntaxError) {
