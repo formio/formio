@@ -4113,6 +4113,7 @@ module.exports = function(app, template, hook) {
     if (app.hasProjects && !docker) {
       describe('Custom Submission collections', function() {
         before((done) => {
+          app.license = {terms: {options: {sac: true}}};
           if (helper.getForm('fruits')) {
             return done();
           }
@@ -4161,6 +4162,11 @@ module.exports = function(app, template, hook) {
 
               done();
             });
+        });
+
+        after((done) => {
+          app.license = false;
+          return done();
         });
 
         it('Should allow to use a custom submission collection', done => {
