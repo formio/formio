@@ -191,6 +191,9 @@ module.exports = function(router) {
       let formId = req.formId;
       if (req.params.formId) {
         formId = req.params.formId;
+        if (req.params.submissionId) {
+          req.subId = req.params.submissionId;
+        }
       }
       else if (req.body.data && req.body.data.formId) {
         formId = req.body.data.formId;
