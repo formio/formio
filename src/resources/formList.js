@@ -5,12 +5,10 @@ const formList = (req, res, router) => {
   const skipForm = req.query.skip || 0;
   const limitForm = req.query.limit || 0;
   const sortForm = req.query.sort && req.query.sort === "-title" ? -1 : 1;
-  console.log("tenantKey")
   let { type, tags, title__regex } = req.query;
   type = type ? { type } : {};
   tags = tags ? { tags: tags.split(",") } : {};
   query = { ...query, ...tags, ...type };
-  console.log("11111111111")
   let regex = title__regex ? title__regex.split("/").filter((i) => i) : "";
   titleQuery = regex
     ? { title: { $regex: `${regex[0]}`, $options: `${regex[1]}` } }
@@ -23,12 +21,9 @@ const formList = (req, res, router) => {
     const { tenantKey } = req.token;
     tenantQuery = {tenantKey };
   }
-  console.log("555555555555555")
-  console.log(query)
-  console.log(tenantQuery)
   
   router.formio.resources.form.model
-    .find({ ...query, ...titleQuery, ...tenant })
+    .find({ ...query, ...titleQuery, ...tenantQuery })
     .skip(skipForm)
     .limit(limitForm)
     .sort({ title: sortForm })
