@@ -141,7 +141,7 @@ module.exports = (formio) => {
         type: [String],
         index: true
       },
-      tenantId:{
+      tenantKey:{
         type: String,
         index: true
       },

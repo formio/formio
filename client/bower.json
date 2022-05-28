@@ -1,0 +1,22 @@
+{
+  "name": "formio-app-formio",
+  "version": "1.5.0",
+  "dependencies": {
+    "angular-sanitize": "1.7.5",
+    "jquery": "^3.3.1",
+    "angular-ui-router": "^0.4.2",
+    "angular-bootstrap": "^2.5.0",
+    "moment": "^2.24.0",
+    "angular": "1.7.5",
+    "ngmap": "^1.18.4",
+    "lodash": "^4.17.11",
+    "bootstrap-sass": "^3.3.7",
+    "angular-paginate-anything": "^4.2.0",
+    "ng-formio": "^2.37.3",
+    "ng-formio-builder": "^2.37.3",
+    "bootswatch": "^3.3.7",
+    "font-awesome": "^4.7.0",
+    "ng-formio-helper": "^1.8.3",
+    "ng-formio-grid": "^1.4.2"
+  }
+}

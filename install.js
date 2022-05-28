@@ -9,6 +9,7 @@ nunjucks.configure([], {watch: false});
 const util = require('./src/util/util');
 const debug = require('debug')('formio:error');
 const path = require('path');
+require('dotenv').config();
 
 module.exports = function(formio, items, done) {
   // The project that was created.
@@ -306,37 +307,10 @@ module.exports = function(formio, items, done) {
      * @return {*}
      */
     whatTemplate: function(done) {
-      if (application) {
-        templateFile = 'formsflow-template.json';
+      templateFile = 'formsflow-template.json';
         //templateFile = 'app';
         return done();
-      }
-      if (process.env.ROOT_EMAIL) {
-        templateFile = 'formsflow-template.json';
-        //templateFile="client";
-        done();
-      }
-
-      let message = '\nWhich project template would you like to install?\n'.green;
-      message += '\n   Please provide the local file path of the project.json file.'.yellow;
-      message += '\n   Or, just press '.yellow + 'ENTER'.green + ' to use the default template.\n'.yellow;
-      util.log(message);
-      prompt.get([
-        {
-          name: 'templateFile',
-          description: 'Local file path or just press Enter for default.',
-          default: 'client',
-          required: true
-        }
-      ], function(err, results) {
-        if (err) {
-          return done(err);
-        }
-
-        templateFile = results.templateFile ? results.templateFile : 'client';
-        done();
-      });
-    },
+      },
 
     /**
      * Import the template.
@@ -404,59 +378,42 @@ module.exports = function(formio, items, done) {
      * @param done
      */
     createRootUser: function(done) {
-      if (process.env.ROOT_EMAIL) {
-        prompt.override = {
-          email: process.env.ROOT_EMAIL,
-          password: process.env.ROOT_PASSWORD
-        };
-      }
+      // if (process.env.ROOT_EMAIL) {
+      //   prompt.override = {
+      //     email: process.env.ROOT_EMAIL,
+      //     password: process.env.ROOT_PASSWORD
+      //   };
+      // }
+      console.log(items);
       if (!items.user) {
         return done();
       }
-      util.log('Creating root user account...'.green);
-      prompt.get([
-        {
-          name: 'email',
-          description: 'Enter your email address for the root account.',
-          pattern: /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
-          message: 'Must be a valid email',
-          required: true
-        },
-        {
-          name: 'password',
-          description: 'Enter your password for the root account.',
-          require: true,
-          hidden: true
-        }
-      ], function(err, result) {
+      // util.log('Creating root user account...'.green);
+      const email = process.env.email|| 'admin@example.com';
+      const password = process.env.password ||'changeme';
+
+      formio.encrypt(password, function(err, hash) {
         if (err) {
           return done(err);
         }
 
-        util.log('Encrypting password');
-        formio.encrypt(result.password, function(err, hash) {
+        // Create the root user submission.
+        util.log('Creating root user account');
+        formio.resources.submission.model.create({
+          form: project.resources.admin._id,
+          data: {
+            email: email,
+            password: hash
+          },
+          roles: [
+            project.roles.administrator._id
+          ]
+        }, function(err, item) {
           if (err) {
             return done(err);
           }
 
-          // Create the root user submission.
-          util.log('Creating root user account');
-          formio.resources.submission.model.create({
-            form: project.resources.admin._id,
-            data: {
-              email: result.email,
-              password: hash
-            },
-            roles: [
-              project.roles.administrator._id
-            ]
-          }, function(err, item) {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+          done();
         });
       });
     }
@@ -465,12 +422,12 @@ module.exports = function(formio, items, done) {
   util.log('Installing...');
   prompt.start();
   async.series([
-    steps.areYouSure,
-    steps.whatApp,
-    steps.downloadApp,
-    steps.extractApp,
-    steps.downloadClient,
-    steps.extractClient,
+    // steps.areYouSure,
+    // steps.whatApp,
+    // steps.downloadApp,
+    // steps.extractApp,
+    // steps.downloadClient,
+    // steps.extractClient,
     steps.whatTemplate,
     steps.importTemplate,
     steps.createRootUser

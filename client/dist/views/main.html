@@ -1,0 +1,116 @@
+<div class="row">
+  <div class="col-sm-6">
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h3 class="panel-title">
+          <i class="fa fa-database"></i>
+          <span>Resources</span>
+          <a class="pull-right" href="http://help.form.io/userguide/#resources" target="_blank"><i class="glyphicon glyphicon-question-sign "></i></a>
+        </h3>
+      </div>
+      <div class="panel-body">
+        <i id="resource-loader" ng-if="resourcesLoading" style="font-size: 2em;" class="fa fa-spinner fa-pulse"></i>
+        <div class="well" ng-show="!resourcesLoading">
+          Resources are the objects within your Project. Example: User, Company, Vehicle, etc.
+        </div>
+        <div class="form-inline" style="margin-bottom: 20px;">
+          <div class="form-group" style="width:100%;">
+            <div class="input-group">
+              <div class="input-group-addon" style="width:20px;"><span class="glyphicon glyphicon-search"></span></div>
+              <input id="form-search-resource" class="form-control" ng-model="resourcesSearch" ng-model-options="{ debounce: 200 }" ng-change="updateResourceSearch()" placeholder="Find a resource..." type="text">
+              <span class="input-group-addon" style="padding-top: 0; padding-bottom: 0; width:100px;">
+                <select name="resourcesSearchType" id="resourcesSearchType" ng-model="resourcesSearchType" ng-change="updateResourceSearch()" class="form-control" ng-options="type.name as type.title for type in searchTypes" style="height: 2em; float:left; width:100%; padding:0;"></select>
+              </span>
+            </div>
+          </div>
+        </div>
+        <table class="table table-striped">
+          <tbody>
+          <tr data-ng-repeat="resource in resources">
+            <td>
+              <div class="row">
+                <div class="col-sm-8">
+                  <a ui-sref="form.view({formId: resource._id})"><h5>{{ resource.title }}</h5></a>
+                </div>
+                <div class="col-sm-4">
+                  <div class="button-group pull-right" style="display:flex;">
+                    <a ui-sref="form.edit({formId: resource._id})" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-edit"></span> Edit</a>&nbsp;
+                    <a ui-sref="form.delete({formId: resource._id, formType: 'resource'})" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-trash"></span></a>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+        <bgf-pagination
+          collection="resources"
+          url="resourcesUrl"
+          url-params="resourcesUrlParams"
+          per-page="formsPerPage"
+          template-url="formio-helper/pager.html"
+          ></bgf-pagination>
+      </div>
+      <div class="panel-footer text-right">
+        <a ui-sref="createForm({formType: 'resource'})" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> New Resource</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="panel panel-success">
+      <div class="panel-heading">
+        <h3 class="panel-title">
+          <i class="fa fa-file-text-o"></i>
+          <span>Forms</span>
+          <a class="pull-right" href="http://help.form.io/userguide/#forms" target="_blank"><i class="glyphicon glyphicon-question-sign "></i></a>
+        </h3>
+      </div>
+      <div class="panel-body">
+        <i id="form-loader" ng-if="formsLoading" style="font-size: 2em;" class="fa fa-spinner fa-pulse"></i>
+        <div class="well" ng-show="!formsLoading">
+          Forms serve as a composite input interface for Resources as well as free-form user input. Example: Login Form, Contact Form, etc.
+        </div>
+        <div class="form-inline" style="margin-bottom: 20px;width: 100%;">
+          <div class="form-group" style="width: 100%;">
+            <div class="input-group">
+              <span class="input-group-addon" style="width:20px;"><span class="glyphicon glyphicon-search"></span></span>
+              <input id="form-search-form" class="form-control" ng-model="formsSearch" ng-model-options="{ debounce: 200 }" ng-change="updateFormSearch()" placeholder="Find a form..." type="text">
+              <span class="input-group-addon" style="padding-top: 0;padding-bottom: 0;width:100px;">
+                <select name="formsSearchType" id="formsSearchType" ng-model="formsSearchType" ng-change="updateFormSearch()" class="form-control" ng-options="type.name as type.title for type in searchTypes" style="height:2em;float:left;width:100%;padding:0;"></select>
+              </span>
+            </div>
+          </div>
+        </div>
+        <table class="table table-striped">
+          <tbody>
+          <tr data-ng-repeat="form in forms">
+            <td>
+              <div class="row">
+                <div class="col-sm-8">
+                  <a ui-sref="form.view({formId: form._id})"><h5>{{ form.title }}</h5></a>
+                </div>
+                <div class="col-sm-4">
+                  <div class="button-group pull-right" style="display:flex;">
+                    <a ui-sref="form.edit({formId: form._id})" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-edit"></span> Edit</a>&nbsp;
+                    <a ui-sref="form.delete({formId: form._id, formType: 'form'})" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-trash"></span></a>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+        <bgf-pagination
+          collection="forms"
+          url="formsUrl"
+          url-params="formsUrlParams"
+          per-page="formsPerPage"
+          template-url="formio-helper/pager.html"
+          ></bgf-pagination>
+      </div>
+      <div class="panel-footer text-right">
+        <a ui-sref="createForm({formType: 'form'})" class="btn btn-primary"><span class="glyphicon glyphicon-plus"></span> New Form</a>
+      </div>
+    </div>
+  </div>
+</div>
