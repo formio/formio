@@ -17,30 +17,34 @@ const formList = (req, res, router) => {
   let { MULTI_TENANCY_ENABLED } = process.env;
   let tenantQuery = {};
   if (MULTI_TENANCY_ENABLED === "true" && req.token?.tenantKey) {
-      console.log('tis')
     const { tenantKey } = req.token;
     tenantQuery = {tenantKey };
   }
   
-  const allForms = new Promise((resolve,reject)=>{
-    router.formio.resources.form.model
+  // const allForms = new Promise((resolve,reject)=>{
+  //   router.formio.resources.form.model
+  //   .find({ ...query, ...titleQuery,...tenantQuery})
+  //   .skip(skipForm)
+  //   .limit(limitForm)
+  //   .sort({ title: sortForm })
+  //   .lean().then((result)=>resolve(result)).catch(err=>reject(err))
+  // })
+  // const formCount = new Promise((resolve,reject)=>{
+  //   router.formio.resources.form.model
+  //   .find({ ...query, ...titleQuery,...tenantQuery})
+  //   .count().then((result)=>resolve(result)).catch(err=>reject(err))
+  // })
+
+  router.formio.resources.form.model
     .find({ ...query, ...titleQuery,...tenantQuery})
     .skip(skipForm)
     .limit(limitForm)
     .sort({ title: sortForm })
-    .lean().then((result)=>resolve(result)).catch(err=>reject(err))
-  })
-  const formCount = new Promise((resolve,reject)=>{
-    router.formio.resources.form.model
-    .find({ ...query, ...titleQuery,...tenantQuery})
-    .count().then((result)=>resolve(result)).catch(err=>reject(err))
-  })
-
-  Promise.all[allForms,formCount].then((response)=>{
-    res.json(response[0])
-  }).catch((err)=>{
-    res.status(403).json(err)
-  })
+    .lean().then((result)=>{
+      res.json(result)
+    }).catch(err=>{
+      res.json(err)
+    })
      
 };
 
