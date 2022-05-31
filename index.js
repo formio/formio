@@ -148,7 +148,12 @@ module.exports = function(config) {
       }));
       // getting form list
       router.get("/form",router.formio.middleware.tokenVerify,(req,res)=>{
-        formList(req,res,router);
+        try {
+          formList(req,res,router);
+        }
+        catch (err) {
+          console.log(err);
+        }
       });
       // Error handler for malformed JSON
       router.use((err, req, res, next) => {
