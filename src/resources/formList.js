@@ -17,9 +17,16 @@ const formList = (req, res, router) => {
 
   let { MULTI_TENANCY_ENABLED } = process.env;
   let tenantQuery = {};
-  if (MULTI_TENANCY_ENABLED === "true" && req.token?.tenantKey) {
-    const { tenantKey } = req.token;
-    tenantQuery = {tenantKey };
+  
+  if (MULTI_TENANCY_ENABLED === "true" ) {
+    if(req.token?.tenantKey){
+      const { tenantKey } = req.token;
+      tenantQuery = {tenantKey };
+    }else{
+      res.json([])
+      return true
+    }
+   
   }
   
   const allForms = new Promise((resolve,reject)=>{
