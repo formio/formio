@@ -58,6 +58,13 @@ module.exports = function(formio) {
     admin: {
       type: Boolean,
       default: false
+    },
+    tenantKey: {
+      type: String,
+    },
+    designer: {
+      type: Boolean,
+      default: false
     }
   }));
 
