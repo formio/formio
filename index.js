@@ -14,6 +14,7 @@ const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
+const formList = require('./src/resources/formList');
 
 const originalGetToken = util.Formio.getToken;
 const originalEvalContext = util.Formio.Components.components.component.prototype.evalContext;
@@ -145,7 +146,15 @@ module.exports = function(config) {
       router.use(bodyParser.json({
         limit: '16mb'
       }));
-
+      // getting form list
+      router.get("/form",router.formio.middleware.tokenVerify,(req,res)=>{
+        try {
+          formList(req,res,router);
+        }
+        catch (err) {
+          console.log(err);
+        }
+      });
       // Error handler for malformed JSON
       router.use((err, req, res, next) => {
         if (err instanceof SyntaxError) {
@@ -194,7 +203,7 @@ module.exports = function(config) {
 
       // The access handler.
       if (!router.formio.hook.invoke('init', 'access', router.formio)) {
-        router.get('/access', router.formio.middleware.accessHandler);
+        router.get('/access', router.formio.middleware.tokenVerify,router.formio.middleware.accessHandler);
       }
 
       // Authorize all urls based on roles and permissions.

@@ -15,34 +15,52 @@
 
 version: '3.7'
 services:
-  mongo:
-    image: mongo:4.1
-    restart: always
-    volumes:
-      - mdb-data:/data/db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME:
-      MONGO_INITDB_ROOT_PASSWORD:
-
-  formio:
-    build: ./
-    # The app will restart until Mongo is listening
-    restart: always
-    links:
-      - mongo
+  forms-flow-forms-db:
+    image: mongo:5.0
+    restart: unless-stopped
+    hostname: forms-flow-forms-db
     ports:
-      - "3001:3001"
-    # The application wants to download things to the local directory
-    # TODO: really wish I could mount this as read-only
+      - '27018:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${FORMIO_DB_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${FORMIO_DB_PASSWORD:-changeme}
+      MONGO_INITDB_DATABASE: ${FORMIO_DB_NAME:-formio}
     volumes:
-      - ./:/app:rw
+      - ./mongo_entrypoint/001_user.js:/docker-entrypoint-initdb.d/001_user.js:ro
+      - ./mongodb/data/db/:/data/db/
+      - ./mongodb/data/log/:/var/log/mongodb/
+      - ./mongodb/mongod.conf:/etc/mongod.conf
+    networks:
+      - forms-flow-forms-network
+
+  forms-flow-forms:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    # The app will restart until Mongo is listening
+    restart: unless-stopped
+    links:
+      - forms-flow-forms-db
+    ports:
+      - '3001:3001'
+    # The application wants to download things to the local directory
     environment:
       DEBUG: formio:*
-      NODE_CONFIG: '{"mongo": "mongodb://mongo:27017/formio"}'
-      ROOT_EMAIL: admin@example.com
-      ROOT_PASSWORD: CHANGEME
-    stdin_open: true  # -i
-    tty: true         # -t
+      NODE_CONFIG: "{\"mongo\":\"mongodb://${FORMIO_DB_USERNAME:-admin}:${FORMIO_DB_PASSWORD:-changeme}@forms-flow-forms-db:27017/${FORMIO_DB_NAME:-formio}?authSource=admin\"}"
+      ROOT_EMAIL: ${FORMIO_ROOT_EMAIL:-admin@example.com}
+      ROOT_PASSWORD: ${FORMIO_ROOT_PASSWORD:-changeme}
+      FORMIO_DOMAIN: ${FORMIO_DEFAULT_PROJECT_URL}
+      FORMIO_JWT_SECRET: ${FORMIO_JWT_SECRET:---- change me now ---}
+      FORMIO_JWT_EXPIRE: ${FORMIO_JWT_EXPIRE:-240}
+      MULTI_TENANCY_ENABLED: ${MULTI_TENANCY_ENABLED:-false}
+    stdin_open: true # -i
+    tty: true # -t
+    networks:
+      - forms-flow-forms-network
+
+networks:
+  forms-flow-forms-network:
+    driver: 'bridge'
 
 volumes:
   mdb-data:

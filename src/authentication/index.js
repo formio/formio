@@ -45,17 +45,21 @@ module.exports = (router) => {
       secret,
     } = jwtConfig;
 
-    return jwt.sign(payload, customSecret || secret, {
-      expiresIn: expireTime * 60,
+    // changed the secret and expire to the env
+   
+
+    return jwt.sign(payload, customSecret ||process.env.FORMIO_JWT_SECRET||secret , {
+      expiresIn: (expireTime ||240) * 60,
     });
   };
-
+  // Number(process.env.FORMIO_JWT_EXPIRE)|| todo 
   /**
    * Checks to see if a decoded token is allowed to access this path.
    * @param req
    * @param decoded
    * @return {boolean}
    */
+
   const isTokenAllowed = (req, decoded) => {
     if (!decoded.allow) {
       return true;
@@ -147,9 +151,9 @@ module.exports = (router) => {
 
     // Delete the previous expiration so we can generate a new one.
     delete tempToken.exp;
-
+     
     // Sign the token.
-    jwt.sign(tempToken, jwtConfig.secret, {
+    jwt.sign(tempToken,process.env.FORMIO_JWT_SECRET||jwtConfig.secret, {
       expiresIn: expire,
     }, (err, token) => {
       if (err) {

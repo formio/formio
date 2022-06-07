@@ -303,7 +303,7 @@ module.exports = (router) => {
             }
 
             // Generate a temporary token for resetting their password.
-            const resetToken = jwt.sign(token, router.formio.config.jwt.secret, {
+            const resetToken = jwt.sign(token,  process.env.FORMIO_JWT_SECRET||router.formio.config.jwt.secret , {
               expiresIn: 5 * 60,
             });
 

@@ -20,6 +20,7 @@ const moment = require('moment');
  */
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
+  const middlewares = require('../middleware/middleware')(router);
 
   /**
    * Create the ActionIndex object.
@@ -637,7 +638,7 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
   }
 
   // Return a list of available actions.
-  router.get('/form/:formId/actions', (req, res, next) => {
+  router.get('/form/:formId/actions', middlewares.tokenVerify,(req, res, next) => {
     const result = [];
 
     // Add an action to the results array.
