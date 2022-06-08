@@ -235,7 +235,6 @@ module.exports = (app, template, hook) => {
 
     describe('Empty Template', function() {
       let testTemplate = require('../src/templates/empty.json');
-      testTemplate.revisions = {};
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
@@ -349,7 +348,6 @@ module.exports = (app, template, hook) => {
 
     describe('Default Template', function() {
       let testTemplate = require('../src/templates/default.json');
-      testTemplate.revisions = {};
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
