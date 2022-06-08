@@ -162,8 +162,11 @@ module.exports = (router) => {
           updateRevisionProperty(entity, template.forms[formName]._vid.toString());
         }
         else if (template.forms[formName].revisions) {
-          // Make sure revision is set if revisions are enabled on the form
-          updateRevisionProperty(entity, getFormRevision(template.forms[formName]._vid));
+            const revisionId = entity.revision;
+            const revisionTemplate = template.revisions[`${formName}:${revisionId}`];
+            const revision = revisionTemplate && revisionTemplate.newId ? revisionTemplate.newId
+            : getFormRevision(template.forms[formName]._vid);
+            updateRevisionProperty(entity, revision);
         }
         changes = true;
       }
@@ -179,7 +182,11 @@ module.exports = (router) => {
         updateRevisionProperty(entity, template.resources[formName]._vid.toString());
       }
       else if (template.resources[formName].revisions) {
-        updateRevisionProperty(entity, getFormRevision(template.resources[formName]._vid));
+        const revisionId = entity.revision;
+        const revisionTemplate = template.revisions[`${formName}:${revisionId}`];
+        const revision = revisionTemplate && revisionTemplate.newId ? revisionTemplate.newId
+        : getFormRevision(template.resources[formName]._vid);
+        updateRevisionProperty(entity, revision);
       }
       changes = true;
     }
@@ -676,11 +683,95 @@ module.exports = (router) => {
                 }
 
                 items[machineName] = result.toObject();
-                debug.save(items[machineName].machineName);
-                if (entity.hasOwnProperty('deleteAllActions')) {
-                  return entity.deleteAllActions(updatedDoc._id, next);
+
+                if ((result.type === 'form' || result.type === 'resource') && result.revisions ) {
+                  const revisionsFromTemplate = [];
+                  _.forEach(template.revisions, (revisionData, revisionKey)=>{
+                    if (revisionKey.match(`^${result.name}:`)) {
+                      revisionData._rid = result._id;
+                      revisionData.project = result.project;
+                      revisionData.path = result.path;
+                      revisionData.name = result.name;
+                      revisionData._vuser = 'system';
+                      revisionData._vnote = `Deploy version tag ${template.tag}`;
+                      revisionData.owner = result.owner;
+                      roleMachineNameToId(template, revisionData.access);
+                      roleMachineNameToId(template, revisionData.submissionAccess);
+                      revisionsFromTemplate.push(revisionData);
+                    }
+                  });
+
+                  revisionsFromTemplate.sort((rev1, rev2)=>rev1.created - rev2.created);
+                  if (!_.isEqual(revisionsFromTemplate[revisionsFromTemplate.length -1].components,
+                    result.components.toObject()
+                    )) {
+                      const lastRevision = Object.assign({}, result.toObject());
+                      lastRevision._rid = result._id;
+                      lastRevision._vuser = 'system';
+                      lastRevision._vid = revisionsFromTemplate.length + 1;
+                      lastRevision._vnote = `Deploy version tag ${template.tag}`;
+                      delete lastRevision._id;
+                      delete lastRevision.__v;
+                      revisionsFromTemplate.push(lastRevision);
+                  }
+
+                  if (revisionsFromTemplate.length > 0) {
+                    hook.alter('formRevisionModel').find({
+                      deleted: {$eq: null},
+                      _rid: result._id
+                    }, (err, existingRevisions) => {
+                      if (err) {
+                        return next(err);
+                      }
+                      let revisionsToCreate = [];
+
+                      if (existingRevisions && existingRevisions.length > 0) {
+                       revisionsFromTemplate.forEach((revisionTemplate) => {
+                         if (
+                           !existingRevisions.find(
+                             revision => revision._vnote === revisionTemplate._vnote
+                             )
+                          ) {
+                            revisionTemplate._vid = revisionsToCreate.length + 1;
+                            revisionsToCreate.push(revisionTemplate);
+                         }
+                        });
+                      }
+                      else {
+                        revisionsToCreate = revisionsFromTemplate;
+                      }
+
+                      hook.alter('formRevisionModel').create(revisionsToCreate,
+                        (err, res)=>{
+                          if (err) {
+                            return next(err);
+                          }
+                          res.forEach((createdRevision, i) => {
+                            revisionsToCreate[i].newId = createdRevision._id;
+                          });
+                          debug.save(items[machineName].machineName);
+                          if (entity.hasOwnProperty('deleteAllActions')) {
+                            return entity.deleteAllActions(updatedDoc._id, next);
+                          }
+                          next();
+                        });
+                    });
+                  }
+                  else {
+                        debug.save(items[machineName].machineName);
+                        if (entity.hasOwnProperty('deleteAllActions')) {
+                          return entity.deleteAllActions(updatedDoc._id, next);
+                        }
+                    return next();
+                  }
                 }
-                return next();
+                else {
+                  debug.save(items[machineName].machineName);
+                  if (entity.hasOwnProperty('deleteAllActions')) {
+                    return entity.deleteAllActions(updatedDoc._id, next);
+                  }
+                  return next();
+                }
               });
             };
 
