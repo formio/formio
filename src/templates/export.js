@@ -150,13 +150,6 @@ module.exports = (router) => {
             'submissionRevisions',
             ...includeFormFields,
           );
-          if (form.revisions) {
-            _map.revisions.formsWithEnabledRevisions.push({
-              machineName,
-              revisionType: form.revisions,
-              project: form.project
-            });
-          }
           _map.forms[form._id.toString()] = machineName;
         });
 
@@ -174,9 +167,6 @@ module.exports = (router) => {
               component.project = 'project';
             }
 
-            if (component.hasOwnProperty('form') && component.revision) {
-              _map.revisions.revisionsData.push(component);
-            }
             // Allow hooks to alter fields.
             hook.alter('exportComponent', component);
           });
@@ -185,76 +175,6 @@ module.exports = (router) => {
       });
   };
 
-  const exportRevisions = function(_export, _map, options, next) {
-    if (_map.revisions.revisionsData.length > 0) {
-      let includeFormFields = [];
-      if (options && options.includeFormFields) {
-        includeFormFields = options.includeFormFields;
-      }
-      const revisionsArray = [];
-      _.each(_map.revisions.revisionsData, (revision) => {
-        if (revision.revision.length === 24) {
-          revisionsArray.push({
-            _id: formio.util.idToBson(revision.revision)
-          });
-        }
-        else {
-         const project =  _map.revisions.formsWithEnabledRevisions
-          .find((form)=>form.machineName === revision.form).project;
-          revisionsArray.push({
-            project,
-            name: revision.form,
-            _vid: parseInt(revision.revision, 10)
-          });
-        }
-      });
-      const query = {
-        deleted: {$eq: null},
-        $or: revisionsArray
-      };
-      hook.alter('formRevisionModel').find(query)
-      .lean(true)
-      .exec((err, revisions) => {
-        if (err) {
-          return next(err);
-        }
-      if (revisions && revisions.length > 0) {
-        revisions.forEach(revision => {
-          const componentRevision = _map.revisions.revisionsData
-            .find(component => component.form === revision.name).revision;
-          assignRoles(_map, revision.access);
-          assignRoles(_map, revision.submissionAccess);
-          const machineName = revision.name;
-          _export.revisions[`${machineName}:${componentRevision}`] = _.pick(revision,
-            'title',
-            'type',
-            'name',
-            'path',
-            'display',
-            'action',
-            'tags',
-            'settings',
-            'components',
-            'access',
-            'submissionAccess',
-            'properties',
-            'controller',
-            'submissionRevisions',
-            '_vid',
-            ...includeFormFields
-          );
-
-          _export[`${revision.type}s`][machineName].revisions = _map.revisions.formsWithEnabledRevisions
-            .find((form)=>form.machineName === revision.name).revisionType;
-        });
-      }
-      return next();
-      });
-    }
-    else {
-      return next();
-    }
-  };
   // Export the roles.
   const exportRoles = function(_export, _map, options, next) {
     formio.resources.role.model
@@ -296,26 +216,20 @@ module.exports = (router) => {
       roles: {},
       forms: {},
       actions: {},
-      resources: {},
-      revisions: {}
+      resources: {}
     }, _.pick(options, ['title', 'version', 'description', 'name'])), options);
 
     // Memoize resource mapping.
     const map = {
       roles: {},
-      forms: {},
-      revisions: {
-        revisionsData: [],
-        formsWithEnabledRevisions: []
-      }
+      forms: {}
     };
 
     // Export the roles forms and actions.
     async.series(hook.alter(`templateExportSteps`, [
       async.apply(exportRoles, template, map, options),
       async.apply(exportForms, template, map, options),
-      async.apply(exportActions, template, map, options),
-      async.apply(exportRevisions, template, map, options)
+      async.apply(exportActions, template, map, options)
     ], template, map, options), (err) => {
       if (err) {
         return next(err);
