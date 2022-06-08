@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.5.0-rc.23
+### Changed
+ - Updated formiojs@4.14.8-rc.11
+ - Fio 5090 form revisions transfer for stage deployment
+ - Fio 5090 form revisions transfer for stage deployment
+ - Fio 5090 form revisions transfer for stage deployment
+
 ## 2.5.0-rc.22
 ### Changed
  - Updated formiojs@4.14.8-rc.10
