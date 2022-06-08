@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased: 2.5.0-rc.24]
+### Changed
+ - Reverted: FIO-5090: form revisions transfer for stage deployment.
+
 ## 2.5.0-rc.23
 ### Changed
  - Updated formiojs@4.14.8-rc.11
