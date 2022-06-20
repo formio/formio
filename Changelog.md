@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - FIO-5000: Change to use accept list for accepted headers.
  - FIO-4860: Added new index to action items
  - FIO-4859: Field based access for patch request fix
+ - FIO-4448: Adds route for deleting all form submissions with x-delete-confirm header check
 
 ## 3.0.0-rc.1
 ### Breaking Change
