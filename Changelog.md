@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - FIO-5076: fixed subId parameter
  - FIO-5076: synchronized form id and submission id
  - FIO-5090: form revisions transfer for stage deployment
+ - FIO-5000: Change to use accept list for accepted headers.
 
 ## 3.0.0-rc.1
 ### Breaking Change
