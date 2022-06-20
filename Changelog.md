@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - FIO-5090: form revisions transfer for stage deployment
  - FIO-5000: Change to use accept list for accepted headers.
  - FIO-4860: Added new index to action items
+ - FIO-4859: Field based access for patch request fix
 
 ## 3.0.0-rc.1
 ### Breaking Change
