@@ -113,6 +113,85 @@ module.exports = function(app, template, hook) {
           });
         });
 
+        describe('Project Owner Submission - Delete all submissions', function() {
+          var deleteTest = {data: {value: 'foo'}};
+          it('The Project Owner should be able to Create a submission without explicit permissions using the Form alias', function(done) {
+            request(app)
+              .post(hook.alter('url', '/' + tempForm.path + '/submission', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(deleteTest)
+              .expect(201)
+              .expect('Content-Type', /json/)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+                assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+                assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+                assert(response.hasOwnProperty('data'), 'The response should contain a submission `data` object.');
+                assert(response.data.hasOwnProperty('value'), 'The submission `data` should contain the `value`.');
+                assert.equal(response.data.value, deleteTest.data.value);
+                assert(response.hasOwnProperty('form'), 'The response should contain the `form` id.');
+                assert.equal(response.form, tempForm._id);
+                assert(response.hasOwnProperty('roles'), 'The response should contain the resource `roles`.');
+                assert.deepEqual(response.roles, []);
+                assert(res.headers.hasOwnProperty('x-jwt-token'), 'The response should contain a `x-jwt-token` header.');
+
+                // Update the submission data.
+                deleteTest = response;
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
+          it('The Project Owner should be able to Delete all form submissions with the confirmation header', function(done) {
+            request(app)
+              .delete(hook.alter('url', '/' + tempForm.path + '/submission', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .set('x-delete-confirm', tempForm._id)
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.deepEqual(response, {});
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+
+          it('The Project Owner should not be able to Delete all form submissions without the confirmation header', function(done) {
+            request(app)
+              .delete(hook.alter('url', '/' + tempForm.path + '/submission', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect(400)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+
+                var response = res.body;
+                assert.deepEqual(response, {error: 'No confirmation header provided'});
+
+                // Store the JWT for future API calls.
+                template.users.admin.token = res.headers['x-jwt-token'];
+
+                done();
+              });
+          });
+        });
+
         describe('Project Owner Submission', function() {
           it('The Project Owner should be able to Create a submission without explicit permissions', function(done) {
             // Test that roles can not be added on creation.
@@ -7272,15 +7351,15 @@ module.exports = function(app, template, hook) {
               const expected = _.clone(tempSubmission);
               expected.access = [
                 {
-                  type: 'read', 
+                  type: 'read',
                   resources: [template.users.admin._id]
                 },
                 {
-                  type: 'create', 
+                  type: 'create',
                   resources: [template.users.admin._id]
                 },
                 {
-                  type: 'update', 
+                  type: 'update',
                   resources: [template.users.admin._id]
                 },
               ];
@@ -7521,19 +7600,19 @@ module.exports = function(app, template, hook) {
               const expected = _.clone(tempSubmission);
               expected.access = [
                 {
-                  type: 'read', 
+                  type: 'read',
                   resources: [template.users.admin._id],
                 },
                 {
-                  type: 'create', 
+                  type: 'create',
                   resources: [template.users.admin._id],
                 },
                 {
-                  type: 'update', 
+                  type: 'update',
                   resources: [template.users.admin._id],
                 },
                 {
-                  type: 'delete', 
+                  type: 'delete',
                   resources: [template.users.admin._id],
                 },
               ];
@@ -8036,15 +8115,15 @@ module.exports = function(app, template, hook) {
               const expected = _.clone(tempSubmission);
               expected.access = [
                 {
-                  type: 'read', 
+                  type: 'read',
                   resources: [template.users.admin2._id],
                 },
                 {
-                  type: 'create', 
+                  type: 'create',
                   resources: [template.users.admin2._id],
                 },
                 {
-                  type: 'update', 
+                  type: 'update',
                   resources: [template.users.admin2._id],
                 },
               ];
@@ -8200,15 +8279,15 @@ module.exports = function(app, template, hook) {
               const expected = _.clone(tempSubmission);
               expected.access = [
                 {
-                  type: 'read', 
+                  type: 'read',
                   resources: [template.users.user2._id],
                 },
                 {
-                  type: 'create', 
+                  type: 'create',
                   resources: [template.users.user2._id],
                 },
                 {
-                  type: 'update', 
+                  type: 'update',
                   resources: [template.users.user2._id],
                 },
               ];
@@ -8298,19 +8377,19 @@ module.exports = function(app, template, hook) {
               const expected = _.clone(tempSubmission);
               expected.access = [
                 {
-                  type: 'read', 
+                  type: 'read',
                   resources: [template.users.admin2._id],
                 },
                 {
-                  type: 'create', 
+                  type: 'create',
                   resources: [template.users.admin2._id],
                 },
                 {
-                  type: 'update', 
+                  type: 'update',
                   resources: [template.users.admin2._id],
                 },
                 {
-                  type: 'delete', 
+                  type: 'delete',
                   resources: [template.users.admin2._id],
                 },
               ];
@@ -8466,19 +8545,19 @@ module.exports = function(app, template, hook) {
               const expected = _.clone(tempSubmission);
               expected.access = [
                 {
-                  type: 'read', 
+                  type: 'read',
                   resources: [template.users.user2._id],
                 },
                 {
-                  type: 'create', 
+                  type: 'create',
                   resources: [template.users.user2._id],
                 },
                 {
-                  type: 'update', 
+                  type: 'update',
                   resources: [template.users.user2._id],
                 },
                 {
-                  type: 'delete', 
+                  type: 'delete',
                   resources: [template.users.user2._id],
                 },
               ];
@@ -8864,15 +8943,15 @@ module.exports = function(app, template, hook) {
               const expected = _.clone(tempSubmission);
               expected.access = [
                 {
-                  type: 'read', 
+                  type: 'read',
                   resources: [template.users.user1._id],
                 },
                 {
-                  type: 'create', 
+                  type: 'create',
                   resources: [template.users.user1._id],
                 },
                 {
-                  type: 'update', 
+                  type: 'update',
                   resources: [template.users.user1._id],
                 },
               ];
@@ -9030,19 +9109,19 @@ module.exports = function(app, template, hook) {
               const expected = _.clone(tempSubmission);
               expected.access = [
                 {
-                  type: 'read', 
+                  type: 'read',
                   resources: [template.users.user1._id]
                 },
                 {
-                  type: 'create', 
+                  type: 'create',
                   resources: [template.users.user1._id]
                 },
                 {
-                  type: 'update', 
+                  type: 'update',
                   resources: [template.users.user1._id]
                 },
                 {
-                  type: 'delete', 
+                  type: 'delete',
                   resources: [template.users.user1._id]
                 },
               ];
@@ -9450,19 +9529,19 @@ module.exports = function(app, template, hook) {
               const expected = _.clone(tempSubmission);
               expected.access = [
                 {
-                  type: 'read', 
+                  type: 'read',
                   resources: [template.users.admin._id, template.users.admin2._id],
                 },
                 {
-                  type: 'create', 
+                  type: 'create',
                   resources: [template.users.admin._id, template.users.admin2._id],
                 },
                 {
-                  type: 'update', 
+                  type: 'update',
                   resources: [template.users.admin._id, template.users.admin2._id],
                 },
                 {
-                  type: 'delete', 
+                  type: 'delete',
                   resources: [template.users.admin._id, template.users.admin2._id],
                 },
               ];
@@ -9928,7 +10007,7 @@ module.exports = function(app, template, hook) {
                 {
                   type: 'delete',
                   roles: []
-                }  
+                }
               ]
             }
           ])
