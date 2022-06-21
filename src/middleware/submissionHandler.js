@@ -98,15 +98,35 @@ module.exports = (router, resourceName, resourceId) => {
         }
 
         if (req.method === 'POST') {
-          const blackList = [
-            'x-admin',
-            'x-jwt-token',
-            'x-token',
-            'x-remote-token'
+          const allowlist = [
+            "host",
+            "x-forwarded-scheme",
+            "x-forwarded-proto",
+            "x-forwarded-for",
+            "x-real-ip",
+            "connection",
+            "content-length",
+            "pragma",
+            "cache-control",
+            "sec-ch-ua",
+            "accept",
+            "content-type",
+            "sec-ch-ua-mobile",
+            "user-agent",
+            "sec-ch-ua-platform",
+            "origin",
+            "sec-fetch-site",
+            "sec-fetch-mode",
+            "sec-fetch-dest",
+            "referer",
+            "accept-encoding",
+            "accept-language",
+            "sec-gpc",
+            "dnt",
           ];
 
           const reqHeaders = _.omitBy(req.headers, (value, key) => {
-            return blackList.includes(key) || key.match(/auth/gi);
+            return !allowlist.includes(key) || key.match(/auth/gi);
           });
 
           _.set(req.body, 'metadata.headers', reqHeaders);
@@ -126,6 +146,7 @@ module.exports = (router, resourceName, resourceId) => {
         // Ensure they cannot reset the submission id.
         if (req.params.submissionId) {
           req.body._id = req.params.submissionId;
+          req.subId = req.params.submissionId;
         }
 
         // Set the form to the current form.
@@ -181,6 +202,8 @@ module.exports = (router, resourceName, resourceId) => {
      * @param done
      */
     function validateSubmission(req, res, done) {
+      req.noValidate = req.isAdmin && req.query.noValidate;
+
       // No need to validate on GET requests.
       if (!(['POST', 'PUT', 'PATCH'].includes(req.method) && req.body && !req.noValidate)) {
         return done();

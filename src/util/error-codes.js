@@ -29,6 +29,7 @@ module.exports = {
     ERESETTOKEN:   'Invalid reset password token.',
     ENOPASSP:      'No password provided.',
     ELOGINCOUNT:   'Unable to update login count.',
+    EPASSLENGTH:   'Password exceeds max length',
   },
   submission: {
     ENOSUB:        'Submission not found.',

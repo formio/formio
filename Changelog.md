@@ -4,6 +4,42 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased: 3.0.0-rc.2]
+### Fixed
+ - fixed processing of loadRevision execution results
+ - FIO-4974: allowed to process all types of requests without a body for the webhook action
+ - FIO-5076: fixed subId parameter
+ - FIO-5076: synchronized form id and submission id
+ - FIO-5090: form revisions transfer for stage deployment
+ - FIO-5000: Change to use accept list for accepted headers.
+ - FIO-4860: Added new index to action items
+ - FIO-4859: Field based access for patch request fix
+ - FIO-4448: Adds route for deleting all form submissions with x-delete-confirm header check
+
+## 3.0.0-rc.1
+### Breaking Change
+ - Removed the SQL Action
+
+### Fixed
+ - Fixed issues where form revisions with original configured would not
+ - FIO-4741: Added max password length for password reset
+
+### Added
+ - Add noValidate property to req object on submission validation
+ - Added public config support for OSS
+
+### Changed
+ - Upgrade html-entities@2.3.3, mailgun.js@5.0.5, moment@2.29.2, mongoose@6.2.10, semver@7.3.6, body-parser@1.20.0, mongodb@4.5.0, eslint@8.12.0
+ - formio-workers@1.16.3, mailgun.js@5.2.0, eslint@8.13.0
+
+## 2.5.0-rc.8
+### Changed
+ - Updated formiojs@4.15.0-rc.7
+
+## 2.5.0-rc.7
+### Fixed
+ - FIO-4781: Fixing email pdf attachments.
+
 ## 2.5.0-rc.6
 ### Changed
  - Updated formiojs@4.15.0-rc.6

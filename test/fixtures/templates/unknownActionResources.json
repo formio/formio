@@ -6,6 +6,7 @@
   "roles": {},
   "resources": {},
   "forms": {},
+  "revisions": {},
   "actions": {
     "a": {
       "title": "Save Submission",

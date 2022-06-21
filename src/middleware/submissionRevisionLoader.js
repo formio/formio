@@ -13,9 +13,8 @@
   const hook = require('../util/hook')(router.formio);
 
   return (req, res, next) => {
-      // res.resource.item.revisions ?
     if (req.query.submissionRevision) {
-        hook.alter('loadRevision', res.resource.item, req.query.submissionRevision, 'submission', (revision, err)=>{
+        hook.alter('loadRevision', res.resource.item, req.query.submissionRevision, 'submission', (err, revision)=>{
             if ( err ) {
               return next(err);
             }
