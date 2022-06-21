@@ -36,7 +36,6 @@ class Validator {
   evalContext(context) {
     context = context || {};
     context.form = this.form;
-    context.Formio = Formio;
     return this.hook.alter('evalContext', context, this.form);
   }
 
