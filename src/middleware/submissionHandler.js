@@ -202,7 +202,7 @@ module.exports = (router, resourceName, resourceId) => {
      * @param done
      */
     function validateSubmission(req, res, done) {
-      req.noValidate = req.isAdmin && req.query.noValidate;
+      req.noValidate = req.noValidate || (req.isAdmin && req.query.noValidate);
 
       // No need to validate on GET requests.
       if (!(['POST', 'PUT', 'PATCH'].includes(req.method) && req.body && !req.noValidate)) {
