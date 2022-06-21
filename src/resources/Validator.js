@@ -36,6 +36,7 @@ class Validator {
   evalContext(context) {
     context = context || {};
     context.form = this.form;
+    context.Formio = Formio;
     return this.hook.alter('evalContext', context, this.form);
   }
 
@@ -125,8 +126,9 @@ class Validator {
 
       // Set the value to the submission.
       unsetsEnabled = true;
+
       form.setValue(submission, {
-        sanitize: true
+        sanitize: form.allowAllSubmissionData ? false : true,
       });
 
       // Check the visibility of conditionally visible components after unconditionally visible
