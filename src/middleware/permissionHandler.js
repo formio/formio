@@ -518,12 +518,6 @@ module.exports = function(router) {
             return callback();
           }
 
-          const findSubmissionAccessByType = function(submissionAccess, type) {
-            return _.chain(submissionAccess)
-              .filter(access => access.type === type)
-              .value();
-          };
-
           // Load the form, and get its roles/permissions data.
           router.formio.cache.loadForm(req, null, req.formId, function(err, item) {
             if (err) {
@@ -536,55 +530,6 @@ module.exports = function(router) {
             // See if any of our components have "submissionAccess" or "defaultPermission" established.
             util.eachComponent(item.components, (component) => {
               if (component.submissionAccess || component.defaultPermission) {
-                if (!component.submissionAccess) {
-                  component.submissionAccess = [
-                    {
-                      type: component.defaultPermission,
-                      roles: [],
-                    },
-                  ];
-                }
-
-                //We need to know if there is read submission access
-                const [readAccess] = findSubmissionAccessByType(component.submissionAccess, 'read');
-                const [writeAccess] = findSubmissionAccessByType(component.submissionAccess, 'write');
-                const [adminAccess] = findSubmissionAccessByType(component.submissionAccess, 'admin');
-
-                if ((readAccess && readAccess.roles && !readAccess.roles.length) ||
-                  (writeAccess && writeAccess.roles && !writeAccess.roles.length) ||
-                  (adminAccess && adminAccess.roles && !adminAccess.roles.length)) {
-                  req.skipOwnerFilter = true;
-                  req.submissionResourceAccessFilter = true;
-                  return true;
-                }
-
-                const readBlockingRoles =  _.chain(component.submissionAccess)
-                  .filter(access => access && access.type !== 'read')
-                  .map(el => el.roles)
-                  .flattenDeep()
-                  .value();
-
-                if (writeAccess && writeAccess.roles && writeAccess.roles.length) {
-                  _.pullAll(readBlockingRoles, writeAccess.roles);
-                }
-
-                if (adminAccess && adminAccess.roles && adminAccess.roles.length) {
-                  _.pullAll(readBlockingRoles, adminAccess.roles);
-                }
-
-                userRoles.forEach(function(roleEntity) {
-                  if ( typeof roleEntity !== 'string') {
-                    return;
-                  }
-                  const role = roleEntity.split(':')[1];
-
-                  if (role && readBlockingRoles.includes(role)) {
-                    req.readBlockingRoles = roleEntity;
-                  }
-                });
-
-                // Since the access is now determined by the submission resource access, we
-                // can skip the owner filter.
                 req.skipOwnerFilter = true;
                 req.submissionResourceAccessFilter = true;
                 return true;
