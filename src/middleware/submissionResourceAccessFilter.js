@@ -37,15 +37,7 @@ module.exports = function(router) {
     }
 
     const userId = _.get(req, 'user._id');
-    const search = userRoles.filter(role => {
-      if (req.readBlockingRoles &&
-        req.readBlockingRoles.length &&
-        req.readBlockingRoles.includes(role)) {
-          return false;
-        }
-
-      return true;
-    }).map(util.idToBson.bind(util));
+    const search = userRoles.map(util.idToBson.bind(util));
     search.push(util.idToBson(EVERYONE));
     if (userId) {
       search.push(util.idToBson(userId));
@@ -75,7 +67,7 @@ module.exports = function(router) {
             {
               access: {
                 $elemMatch: {
-                  type: {$in: ['read', 'create', 'update', 'delete', 'write', 'admin']},
+                  type: {$in: ['read', 'write', 'admin']},
                   resources: {$in: newSearch},
                 },
               },
@@ -92,7 +84,7 @@ module.exports = function(router) {
           deleted: {$eq: null},
           access: {
             $elemMatch: {
-              type: {$in: ['read', 'create', 'update', 'delete', 'write', 'admin']},
+              type: {$in: ['read', 'write', 'admin']},
               resources: {$in: newSearch},
             },
           },
