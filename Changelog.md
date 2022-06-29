@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.2.7-rc.2
+### Changed
+ - Fixes Group Permissions issue
+
 ## 2.2.7-rc.1
 ### Changed
  - FIO-4455: Fixes value calculation on conditionally shown field
