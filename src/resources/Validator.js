@@ -1148,7 +1148,18 @@ class Validator {
           }
         }
 
-        submission.data = value;
+        let newSubmissionData = value;
+
+        if (this.form.allowAllSubmissionData) {
+          newSubmissionData = _.mergeWith(value, submission.data, (thisValue, thatValue) => {
+            if (Array.isArray(thisValue) && Array.isArray(thatValue) && thisValue.length !== thatValue.length) {
+              return thatValue;
+            }
+          });
+        }
+
+        submission.data = newSubmissionData;
+
         next(null, value);
       });
     });
