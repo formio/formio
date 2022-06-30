@@ -38,7 +38,7 @@
     "express": "^4.17.1",
     "fast-json-patch": "^3.1.0",
     "formio-workers": "1.14.16",
-    "formiojs": "^4.14.0-rc.34",
+    "formiojs": "^4.14.8",
     "fs-extra": "^10.0.0",
     "html-entities": "^2.3.2",
     "jsonwebtoken": "^8.5.1",
