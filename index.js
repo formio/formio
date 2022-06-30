@@ -196,7 +196,7 @@ module.exports = function(config) {
         mongoConfig.useNewUrlParser = true;
       }
       if (!mongoConfig.hasOwnProperty('keepAlive')) {
-        mongoConfig.keepAlive = 120;
+        mongoConfig.keepAlive = true;
       }
       if (process.env.MONGO_HIGH_AVAILABILITY) {
         mongoConfig.mongos = true;
@@ -211,7 +211,6 @@ module.exports = function(config) {
       }
 
       mongoConfig.useUnifiedTopology = true;
-      mongoConfig.useCreateIndex = true;
 
       if (config.mongoSSL) {
         mongoConfig = {
@@ -222,8 +221,6 @@ module.exports = function(config) {
 
       // Connect to MongoDB.
       mongoose.connect(mongoUrl, mongoConfig);
-      mongoose.set('useFindAndModify', false);
-      mongoose.set('useCreateIndex', true);
 
       // Trigger when the connection is made.
       mongoose.connection.on('error', function(err) {
