@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Fixed
  - Added support to the allowAllSubmissionData setting
 
+### Changed
+ - Upgrade async@3.2.4, fast-json-patch@3.1.1, formiojs@4.14.8, html-entities@2.3.3, moment@2.29.4, nodemailer@6.7.7, nodemailer-mailgun-transport@2.1.4, semver@7.3.7, vm2@3.9.10, nodemon@2.0.19, supertest@6.2.4, body-parser@1.20.0, express@4.18.1, fs-extra@10.1.0, prompt@1.3.0
+
 ## 1.91.12
 ### Changed
  - Official Release
