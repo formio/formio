@@ -546,6 +546,14 @@ const Utils = {
       ? _id.toString()
       : _id;
   },
+  toMongoId(id) {
+    id = id || '';
+    let str = '';
+    for (let i = 0; i < id.length; i++) {
+      str += id[i].charCodeAt(0).toString(16);
+    }
+    return _.padEnd(str.substr(0, 24), 24, '0');
+  },
 
   /**
    * Ensures that a submission data has MongoDB ObjectID's for all "id" fields.
