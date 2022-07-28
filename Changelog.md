@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## [Unreleased: 3.0.0-rc.5]
 ### Fixed
  - FIO-5199: Provided user information for external users
+ - FIO-5233: fixed an issue with incorrect values in different timezones
 
 ## 3.0.0-rc.4
 ### Fixed
