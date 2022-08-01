@@ -112,9 +112,6 @@ class Validator {
         submission: submission
       };
 
-      // Set the submission data
-      form.data = submission.data;
-
       // Perform calculations and conditions.
       form.checkConditions();
       form.clearOnHide();
