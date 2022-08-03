@@ -567,14 +567,20 @@ module.exports = function(router) {
 
       // Get all the subform data.
       const subs = {};
-      util.eachComponent(form.components, function(component, path) {
+      const getSubs = (components, outerPath) => util.eachComponent(components, function(component, path) {
+        const subData = _.get(submission.data, path);
+        if (Array.isArray(subData)) {
+          return subData.forEach((_, idx) => getSubs(component.components, `${path}[${idx}]`));
+        }
         if (component.type === 'form') {
           const subData = _.get(submission.data, path);
           if (subData && subData._id) {
             subs[subData._id.toString()] = {component, path, data: subData.data};
           }
         }
-      }, true);
+      }, true, outerPath);
+
+      getSubs(form.components);
 
       // Load all the submissions within this submission.
       this.loadSubmissions(req, Object.keys(subs), (err, submissions) => {
