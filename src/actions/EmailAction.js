@@ -122,7 +122,7 @@ module.exports = (router) => {
             inputType: 'text',
             defaultValue: '',
             input: true,
-            placeholder: 'Send blink copy of the email to the following email (other recipients will not see this)',
+            placeholder: 'Send blind copy of the email to the following email (other recipients will not see this)',
             type: 'textfield',
             multiple: true,
           },
