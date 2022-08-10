@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.5.1
+### Changed
+ - Official Release
+
 ## 2.5.1-rc.1
 ### Changed
  - Updated formiojs@4.14.9-rc.2
