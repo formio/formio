@@ -13,7 +13,8 @@
   const hook = require('../util/hook')(router.formio);
 
   return (req, res, next) => {
-    if ( req.query.formRevision && res.resource.item.revisions === 'original') {
+    if (req.query.formRevision &&
+      (res.resource.item.revisions === 'original' || req.query.formRevision.length === 24)) {
       hook.alter('loadRevision', res.resource.item, req.query.formRevision, (revision, err)=>{
         if ( err ) {
           return next(err);
