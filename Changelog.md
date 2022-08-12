@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased: 3.0.0-rc.6]
+## 3.0.0-rc.6
 ### Fixed
  - FIO-5334: fixed typo in the email action settings bcc placeholder
 
