@@ -56,8 +56,6 @@ module.exports = (router) => {
             key: 'transport',
             placeholder: 'Select the email transport.',
             template: '<span>{{ item.title }}</span>',
-            defaultValue: availableTransports.find(provider=>provider.transport==='default')?
-              'default':availableTransports[0].transport,
             dataSrc: 'json',
             data: {
               json: JSON.stringify(availableTransports),
