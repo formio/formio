@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 2.5.2-rc.1
+### Changed
+ - Updated formiojs@4.14.9-rc.7
+ - FIO-5233: fixed an issue with incorrect values in different timezones…
+ - FIO-5155: Fixes submissions not loaded for sub forms with array data structure
+
 ## 2.5.1
 ### Changed
  - Official Release
