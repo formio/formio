@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased: 3.0.0-rc.7]
+## 3.0.0-rc.7
 ### Fixed
  - FIO-5155: Fixes submissions not loaded for sub forms with array data structure
  - FIO-5363: deleted default value of transport select for email action settings
