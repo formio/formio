@@ -205,7 +205,7 @@ module.exports = (router, resourceName, resourceId) => {
       req.noValidate = req.noValidate || (req.isAdmin && req.query.noValidate);
 
       // No need to validate on GET requests.
-      if (!(['POST', 'PUT', 'PATCH'].includes(req.method) && req.body && !req.noValidate)) {
+      if (!(['POST', 'PUT', 'PATCH'].includes(req.method) && req.body)) {
         return done();
       }
 
@@ -252,6 +252,9 @@ module.exports = (router, resourceName, resourceId) => {
 
         // Validate the request.
         validator.validate(req.body, (err, data, visibleComponents) => {
+          if (req.noValidate) {
+            return done();
+          }
           if (err) {
             return res.status(400).json(err);
           }
