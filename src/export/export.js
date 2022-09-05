@@ -169,6 +169,10 @@ module.exports = (router) => {
                         return addSubData(result.data)
                           .then(res => newData[key] = {data: res});
                       })
+                      .catch((error) => {
+                        debug(error);
+                        newData[key] = field;
+                      })
                   );
                 }
                 else {

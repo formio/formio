@@ -28,6 +28,10 @@ module.exports = function(router) {
             throw new Error('No response from Google');
           }
 
+          if (!body.success) {
+            return res.send(body);
+          }
+
           const expirationTime = 600000; // 10 minutes
 
           // Create temp token with recaptcha response token as value

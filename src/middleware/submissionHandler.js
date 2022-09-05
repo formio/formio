@@ -54,7 +54,7 @@ module.exports = (router, resourceName, resourceId) => {
           return done('Form not found.');
         }
 
-        req.currentForm = hook.alter('currentForm', form, req.body);
+          req.currentForm = hook.alter('currentForm', form, req.body);
 
         // Load all subforms as well.
         router.formio.cache.loadSubForms(req.currentForm, req, () => {
@@ -73,6 +73,7 @@ module.exports = (router, resourceName, resourceId) => {
     function initializeSubmission(req, done) {
       const isGet = (req.method === 'GET');
 
+      hook.invoke('submissionCollection', req);
       // If this is a get method, then filter the model query.
       if (isGet) {
         const submissionQuery = hook.alter('submissionQuery', {form: req.currentForm._id}, req);
@@ -114,7 +115,13 @@ module.exports = (router, resourceName, resourceId) => {
 
         // Ensure that the _fvid is a number.
         if (req.body.hasOwnProperty('_fvid') && !_.isNaN(parseInt(req.body._fvid))) {
-          req.body._fvid = parseInt(req.body._fvid);
+          if (req.body._fvid.length === 24) {
+            req.body._frid = req.body._fvid;
+            delete req.body._fvid;
+          }
+          else {
+            req.body._fvid = parseInt(req.body._fvid);
+          }
         }
 
         // Ensure they cannot reset the submission id.
