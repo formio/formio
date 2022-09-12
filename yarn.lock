@@ -2699,7 +2699,7 @@ mongodb@4.9.1, mongodb@^4.1.1, mongodb@^4.7.0:
   optionalDependencies:
     saslprep "^1.0.3"
 
-mongoose@^6.4.0:
+mongoose@^6.4.6:
   version "6.6.0"
   resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-6.6.0.tgz#40cfef85e34fb6903fa5fc246d534bbd80da226e"
   integrity sha512-5sS0D7qbmfT4G/nODkJhx5l2qvhqLMplhMlp08Wea8eoi6O/B6b+o1ukUEKjjm1MV8dAS3w8kx47R/klYKLPpQ==
@@ -3246,10 +3246,10 @@ resolve-from@^4.0.0:
   resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-4.0.0.tgz#4abcd852ad32dd7baabfe9b40e00a36db5f392e6"
   integrity sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==
 
-resourcejs@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.4.0.tgz#464991c034f0a46db040f02e875d658334c21a06"
-  integrity sha512-UKu4l5D5GAjfDwspi5fYZoktblob7GKoU7HlteA//DCvfwWR5Vkw9NPtDRDM1GcvgjHAx7k+tQVBQcL50bODGA==
+resourcejs@^2.5.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.5.0.tgz#b1123c56691d4cee88c00158613ae99530e2a0e7"
+  integrity sha512-ckOW2Xo8m3XaSKSx/1nTctt2XaU0VkiT5vqPQfxErTMF5Pj4OgdtWGnirKvXuNfVKWYZkts9pZsmmzWEEYjv4A==
   dependencies:
     debug "^4.3.2"
     fast-json-patch "^3.1.0"
