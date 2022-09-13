@@ -239,10 +239,20 @@
   resolved "https://registry.yarnpkg.com/@formio/semantic/-/semantic-2.6.0.tgz#b506de32b6d8ec3fecb3ce6c59eca846c99ea858"
   integrity sha512-RwMEVXkyz+B6RivflrrKIqvvnGR/eZDLQs74u67StcrzO6n3/5D2J8XqTQRSUzQzr5QV6Wq0eZ51z/+mGm6THw==
 
+"@formio/text-mask-addons@^3.8.0-formio.2":
+  version "3.8.0-formio.2"
+  resolved "https://registry.yarnpkg.com/@formio/text-mask-addons/-/text-mask-addons-3.8.0-formio.2.tgz#b9489e68911c70a31997b97dd846d8a7cca6abdb"
+  integrity sha512-H4Sm+1Sx59jbrlKxtKbzethhp5OIcP8Oi4JBpsvH/SB8P/KCRmtjKbN5ACqURnXmYtBHLJC6Yr9KZibOVRGxpA==
+
 "@formio/vanilla-text-mask@^5.1.1":
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1.tgz#2bd690a34b0e191b7f23a589ff1c2497564307de"
   integrity sha512-7MhrbMypySPi7RLchg0ys7HnS3Wqddbq/btAijKB1nA94TE7AOOLhpZJWcNm3kOlX0Y3nHfoavj/HP7vsvF34Q==
+
+"@formio/vanilla-text-mask@^5.1.1-formio.1":
+  version "5.1.1-formio.1"
+  resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
+  integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
 "@humanwhocodes/config-array@^0.10.4":
   version "0.10.4"
@@ -1776,15 +1786,16 @@ formio-workers@^1.16.5-rc.2:
     nunjucks-date-filter "^0.1.1"
     vm2 "^3.9.5"
 
-formiojs@4.14.9-rc.9:
-  version "4.14.9-rc.9"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.14.9-rc.9.tgz#67a7dbfe8f788a78e6dce7761a6bcabe5c05940c"
-  integrity sha512-XVIq8Y/XGKw0EBMRiZS9cu7pHjA/rMxq3+3IlJyKeK9K4rVgUtL1vNlpsQNkhvVR59pqo1H3d836Oos+iMwq7w==
+formiojs@4.14.9-rc.14:
+  version "4.14.9-rc.14"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.14.9-rc.14.tgz#e21cd8c28c6982ef89c21ee321cae4eeac817bbf"
+  integrity sha512-NxDQ4sGKt0OfpL5O+ewxxivdnAKZnNH1L7iTIcDBLPcWtX9bnuPeYb/GgW3seRIUygfEzzTRAv7EX0LIiB5nxw==
   dependencies:
     "@formio/bootstrap3" "^2.12.2"
     "@formio/choices.js" "^9.0.1"
     "@formio/semantic" "^2.6.0"
-    "@formio/vanilla-text-mask" "^5.1.1"
+    "@formio/text-mask-addons" "^3.8.0-formio.2"
+    "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     autocompleter "^6.1.2"
     browser-cookies "^1.2.0"
     browser-md5-file "^1.1.1"
@@ -1813,7 +1824,6 @@ formiojs@4.14.9-rc.9:
     resize-observer-polyfill "^1.5.1"
     signature_pad "^4.0.4"
     string-hash "^1.1.3"
-    text-mask-addons "^3.8.0"
     tippy.js "^6.3.7"
     uuid "^8.3.2"
     vanilla-picker "^2.12.1"
@@ -3561,10 +3571,10 @@ resolve-from@^4.0.0:
   resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-4.0.0.tgz#4abcd852ad32dd7baabfe9b40e00a36db5f392e6"
   integrity sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==
 
-resourcejs@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.4.0.tgz#464991c034f0a46db040f02e875d658334c21a06"
-  integrity sha512-UKu4l5D5GAjfDwspi5fYZoktblob7GKoU7HlteA//DCvfwWR5Vkw9NPtDRDM1GcvgjHAx7k+tQVBQcL50bODGA==
+resourcejs@2.5.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.5.0.tgz#b1123c56691d4cee88c00158613ae99530e2a0e7"
+  integrity sha512-ckOW2Xo8m3XaSKSx/1nTctt2XaU0VkiT5vqPQfxErTMF5Pj4OgdtWGnirKvXuNfVKWYZkts9pZsmmzWEEYjv4A==
   dependencies:
     debug "^4.3.2"
     fast-json-patch "^3.1.0"
