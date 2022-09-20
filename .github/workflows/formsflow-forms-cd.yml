@@ -61,7 +61,7 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache
       - name: Build and push
         if: ${{ github.ref == 'refs/heads/formsflow-forms' }}
-        id: docker_build_main
+        id: docker_build
         uses: docker/build-push-action@v2
         with:
           context: ./
