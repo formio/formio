@@ -61,7 +61,7 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache
       - name: Build and push
         if: ${{ github.ref == 'refs/heads/formsflow-forms' }}
-        id: docker_build
+        id: docker_build_latest
         uses: docker/build-push-action@v2
         with:
           context: ./
@@ -70,9 +70,6 @@ jobs:
           tags: formsflow/forms-flow-forms:${{ env.VERSION }}, formsflow/forms-flow-forms:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
-
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
         
         
       
