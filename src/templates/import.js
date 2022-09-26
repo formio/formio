@@ -695,6 +695,7 @@ module.exports = (router) => {
                       revisionData._vuser = 'system';
                       revisionData._vnote = `Deploy version tag ${template.tag}`;
                       revisionData.owner = result.owner;
+                      revisionData._vid = revisionsFromTemplate.length + 1;
                       roleMachineNameToId(template, revisionData.access);
                       roleMachineNameToId(template, revisionData.submissionAccess);
                       revisionsFromTemplate.push(revisionData);
@@ -746,14 +747,24 @@ module.exports = (router) => {
                           if (err) {
                             return next(err);
                           }
-                          res.forEach((createdRevision, i) => {
-                            revisionsToCreate[i].newId = createdRevision._id;
-                          });
-                          debug.save(items[machineName].machineName);
-                          if (entity.hasOwnProperty('deleteAllActions')) {
-                            return entity.deleteAllActions(updatedDoc._id, next);
+                          formio.resources.form.model.updateOne({
+                            _id: result._id
+                          },
+                          {_vid: revisionsToCreate.length + existingRevisions.length},
+                          (err) => {
+                            if (err) {
+                              return next(err);
+                            }
+                            res.forEach((createdRevision, i) => {
+                              revisionsToCreate[i].newId = createdRevision._id;
+                            });
+                            debug.save(items[machineName].machineName);
+                            if (entity.hasOwnProperty('deleteAllActions')) {
+                              return entity.deleteAllActions(updatedDoc._id, next);
+                            }
+                            next();
                           }
-                          next();
+                          );
                         });
                     });
                   }
