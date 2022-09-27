@@ -703,7 +703,8 @@ module.exports = (router) => {
                   });
 
                   revisionsFromTemplate.sort((rev1, rev2)=>rev1.created - rev2.created);
-                  if (!_.isEqual(revisionsFromTemplate[revisionsFromTemplate.length -1].components,
+                  if (revisionsFromTemplate.length > 0
+                    && !_.isEqual(revisionsFromTemplate[revisionsFromTemplate.length -1].components,
                     result.components.toObject()
                     )) {
                       const lastRevision = Object.assign({}, result.toObject());
