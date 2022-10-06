@@ -101,40 +101,42 @@ module.exports = (router) => {
         return next(err);
       }
 
-      // Get the find query for this item.
-      const query = router.formio.resources.submission.getFindQuery(req);
-      if (_.isEmpty(query)) {
-        return res.status(400).send('Invalid query');
-      }
-
-      query.form = form._id;
-      query.deleted = {$eq: null};
-      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-
-      // Query the submissions for this submission.
-      submissionModel.findOne(hook.alter('submissionQuery', query, req), (err, submission) => {
-        if (err) {
-          return next(err);
+      hook.alter('getSubmissionModel', router.formio, req, form, false, (err, reqModel) => {
+        // Get the find query for this item.
+        const query = router.formio.resources.submission.getFindQuery(req);
+        if (_.isEmpty(query)) {
+          return res.status(400).send('Invalid query');
         }
 
-        // Return not found.
-        if (!submission || !submission._id) {
-          return res.status(404).send('Not found');
-        }
-        // By default check permissions to access the endpoint.
-        const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
+        query.form = form._id;
+        query.deleted = {$eq: null};
+        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
-        if (withoutPermissions) {
-          // Send only the id as a response if the submission exists.
-          return res.status(200).json({
-            _id: submission._id.toString(),
-          });
-        }
-        else {
-          req.subId = submission._id.toString();
-          req.permissionsChecked = false;
-          return next();
-        }
+        // Query the submissions for this submission.
+        submissionModel.findOne(hook.alter('submissionQuery', query, req), (err, submission) => {
+          if (err) {
+            return next(err);
+          }
+
+          // Return not found.
+          if (!submission || !submission._id) {
+            return res.status(404).send('Not found');
+          }
+          // By default check permissions to access the endpoint.
+          const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
+
+          if (withoutPermissions) {
+            // Send only the id as a response if the submission exists.
+            return res.status(200).json({
+              _id: submission._id.toString(),
+            });
+          }
+          else {
+            req.subId = submission._id.toString();
+            req.permissionsChecked = false;
+            return next();
+          }
+        });
       });
     });
   }, router.formio.middleware.permissionHandler, (req, res, next) => {
