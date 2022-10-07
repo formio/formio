@@ -1786,10 +1786,10 @@ formio-workers@^1.16.5-rc.2:
     nunjucks-date-filter "^0.1.1"
     vm2 "^3.9.5"
 
-formiojs@4.14.9-rc.17:
-  version "4.14.9-rc.17"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.14.9-rc.17.tgz#aaa9aa18d5e8ab524e50252323788930b472fb67"
-  integrity sha512-6FitWUoP5c+MHS80WOOtHGgEDQVmEqUJvFrKBp6FKfUl/RzSjhrLGPN/671GLYdMhCS/4gewERCDhx5GnTRYkg==
+formiojs@4.14.9:
+  version "4.14.9"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.14.9.tgz#cfc519a96436d1051face2ce7e930ae895b0e8e0"
+  integrity sha512-Cn+l1Y/vpDkJGcH79c3FVClZ7xIynf1Fa0zYW4Z5ahdd8vlN8rnGhbJ53woX9oWwpaO+vISKicWGxG5tM0K8Yw==
   dependencies:
     "@formio/bootstrap3" "^2.12.2"
     "@formio/choices.js" "^9.0.1"
