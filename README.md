@@ -1,6 +1,6 @@
 # Form Management Platform
 
-![Formio](https://img.shields.io/badge/formio-2.3.0-blue)
+![Formio](https://img.shields.io/badge/formio-2.4.1-blue)
 
 **formsflow.ai** leverages form.io to build "serverless" data management applications using a simple drag-and-drop form builder interface.
 
