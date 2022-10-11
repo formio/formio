@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased: 3.0.0-rc.10]
+## 3.0.0-rc.10
 ### Fixed
  - FIO-5435: fixed exists endpoint with submission collections
  - FIO-5090: vid numbering fix
