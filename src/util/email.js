@@ -502,7 +502,7 @@ module.exports = (formio) => {
           debug.send(`message.sendEach: ${message.sendEach}`);
           // debug.send(`email: ${JSON.stringify(email)}`);
           if (message.sendEach === true) {
-            const addresses = _.uniq(email.to.split(',').map(_.trim));
+            const addresses = _.uniq(email.to.split(',').map(_.trim)).filter(address=>address.length&&address.length>0);
             // debug.send(`addresses: ${JSON.stringify(addresses)}`);
             // Make a copy of the email for each recipient.
             emails = addresses.map((address) => Object.assign({}, email, {to: address}));
