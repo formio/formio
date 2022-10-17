@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## 2.5.3-rc.1
+## [Unreleased: 2.5.3-rc.1]
 ### Changed
  - FIO-5494: removed erroneous empty addresses
 
