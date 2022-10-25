@@ -14,7 +14,9 @@
 
   return (req, res, next) => {
     if (req.query.submissionRevision) {
-        hook.alter('loadRevision', res.resource.item, req.query.submissionRevision, 'submission', (err, revision)=>{
+      const model = req.submissionRevisionModel ? req.submissionRevisionModel
+      : router.formio.mongoose.models.submissionrevision;
+        hook.alter('loadRevision', res.resource.item, req.query.submissionRevision, model, (err, revision)=>{
             if ( err ) {
               return next(err);
             }

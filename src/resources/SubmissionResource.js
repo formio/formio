@@ -34,6 +34,11 @@ module.exports = (router) => {
     handlers.afterGet,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
     router.formio.middleware.filterProtectedFields('get', (req) => router.formio.cache.getCurrentFormId(req)),
+    (req, res, next) => {
+      router.formio.cache.loadCurrentForm(req, (err, currentForm) => {
+        return hook.alter('getSubmissionRevisionModel', router.formio, req, currentForm, false, next);
+      });
+    },
     router.formio.middleware.submissionRevisionLoader
   ];
   handlers.beforePut = [
