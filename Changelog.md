@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Fixed
  - FIO-5494: removed erroneous empty addresses
  - FIO-5774: added revisions of submissions collections
+ - FIO-5756: PDF | Regression | FFT 502 Bad gateway error after Click on submit
 
 ## 3.0.0-rc.10
 ### Fixed
