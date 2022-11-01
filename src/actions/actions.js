@@ -10,6 +10,7 @@ const debug = {
 };
 const util = require('../util/util');
 const moment = require('moment');
+const promisify = require('util').promisify;
 
 /**
  * The ActionIndex export.
@@ -292,14 +293,16 @@ module.exports = (router) => {
         }
 
         try {
+          const isDelete = req.method.toUpperCase() === 'DELETE';
+          const deletedSubmission = isDelete ? await getDeletedSubmission(req): false;
           const params = await hook.alter('actionContext', {
             jsonLogic: util.FormioUtils.jsonLogic,
-            data: req.body.data,
+            data: isDelete ? _.get(deletedSubmission, `data`, {}) : req.body.data,
             form: req.form,
             query: req.query,
             util: util.FormioUtils,
             moment: moment,
-            submission: req.body,
+            submission: isDelete ? deletedSubmission : req.body,
             previous: req.previousSubmission,
             execute: false,
             _
@@ -351,7 +354,10 @@ module.exports = (router) => {
         // See if a condition is not established within the action.
         const field = condition.field || '';
         const eq = condition.eq || '';
-        const value = String(_.get(req, `body.data.${field}`, ''));
+        const isDelete = req.method.toUpperCase() === 'DELETE';
+        const deletedSubmission = isDelete ? await getDeletedSubmission(req): false;
+        const value = isDelete? String(_.get(deletedSubmission, `data.${field}`, '')) :
+          String(_.get(req, `body.data.${field}`, ''));
         const compare = String(condition.value || '');
         debug.action(
           '\nfield', field,
@@ -633,6 +639,25 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
         settingsForm: settingsForm
       });
     });
+  }
+
+  async function getDeletedSubmission(req) {
+    try {
+      return await promisify(router.formio.cache.loadSubmission)(
+        req,
+        req.body.form,
+        req.body._id,
+      );
+    }
+    catch (err) {
+      router.formio.log(
+        'Error during executing action custom logic',
+        req,
+        err
+      );
+      debug.error(err);
+      return false;
+    }
   }
 
   // Return a list of available actions.
