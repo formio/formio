@@ -319,60 +319,62 @@ module.exports = (router, resourceName, resourceId) => {
         action,
         path,
       }) => {
-        const componentPath = util.valuePath(path, component.key);
+        if (component) {
+          const componentPath = util.valuePath(path, component.key);
 
-        // Remove not persistent data
-        if (
-          data &&
-          component.hasOwnProperty('persistent') &&
-          !component.persistent &&
-          !['columns', 'fieldset', 'panel', 'table', 'tabs'].includes(component.type)
-        ) {
-          util.deleteProp(component.key)(data);
-        }
-        else if (req.method === 'PUT') {
-          // Restore value of components with calculated value and disabled server calculation
-          // if they don't present in submission data
-          const newCompData = _.get(submissionData, componentPath, undefined);
-          const currentCompData = _.get(req.currentSubmissionData, componentPath);
-
-          if (component.calculateValue && !component.calculateServer && currentCompData && newCompData === undefined) {
-            _.set(submissionData, componentPath, _.get(req.currentSubmissionData, componentPath));
+          // Remove not persistent data
+          if (
+            data &&
+            component.hasOwnProperty('persistent') &&
+            !component.persistent &&
+            !['columns', 'fieldset', 'panel', 'table', 'tabs'].includes(component.type)
+          ) {
+            util.deleteProp(component.key)(data);
           }
-        }
+          else if (req.method === 'PUT') {
+            // Restore value of components with calculated value and disabled server calculation
+            // if they don't present in submission data
+            const newCompData = _.get(submissionData, componentPath, undefined);
+            const currentCompData = _.get(req.currentSubmissionData, componentPath);
 
-        const fieldActions = hook.alter('fieldActions', fActions);
-        const propertyActions = hook.alter('propertyActions', pActions);
-
-        // Execute the property handlers after validation has occurred.
-        const handlerArgs = [
-          component,
-          data,
-          handler,
-          action,
-          {
-            validation,
-            path: componentPath,
-            req,
-            res,
-          },
-        ];
-
-        if (validation) {
-          Object.keys(propertyActions).forEach((property) => {
-            // Set the default value of property if only minified schema of component is loaded
-            if (!component.hasOwnProperty(property) && setDefaultProperties.hasOwnProperty(property)) {
-             setDefaultProperties[property](component);
+            if (component.calculateValue && !component.calculateServer && currentCompData && newCompData === undefined) {
+              _.set(submissionData, componentPath, _.get(req.currentSubmissionData, componentPath));
             }
-            if (component.hasOwnProperty(property) && component[property]) {
-              promises.push(propertyActions[property](...handlerArgs));
-            }
-          });
-        }
+          }
 
-        // Execute the field handler.
-        if (fieldActions.hasOwnProperty(component.type)) {
-          promises.push(fieldActions[component.type](...handlerArgs));
+          const fieldActions = hook.alter('fieldActions', fActions);
+          const propertyActions = hook.alter('propertyActions', pActions);
+
+          // Execute the property handlers after validation has occurred.
+          const handlerArgs = [
+            component,
+            data,
+            handler,
+            action,
+            {
+              validation,
+              path: componentPath,
+              req,
+              res,
+            },
+          ];
+
+          if (validation) {
+            Object.keys(propertyActions).forEach((property) => {
+              // Set the default value of property if only minified schema of component is loaded
+              if (!component.hasOwnProperty(property) && setDefaultProperties.hasOwnProperty(property)) {
+              setDefaultProperties[property](component);
+              }
+              if (component.hasOwnProperty(property) && component[property]) {
+                promises.push(propertyActions[property](...handlerArgs));
+              }
+            });
+          }
+
+          // Execute the field handler.
+          if (fieldActions.hasOwnProperty(component.type)) {
+            promises.push(fieldActions[component.type](...handlerArgs));
+          }
         }
       }, {
         validation,
