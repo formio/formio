@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## [Unreleased: 3.0.0-rc.11]
 ### Fixed
  - FIO-5494: removed erroneous empty addresses
+ - FIO-5774: added revisions of submissions collections
 
 ## 3.0.0-rc.10
 ### Fixed
