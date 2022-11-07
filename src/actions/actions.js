@@ -201,17 +201,24 @@ module.exports = (router) => {
         req.actionItemPromise = Promise.resolve();
       }
       req.actionItemPromise = req.actionItemPromise.then(() => {
-        actionItem.messages.push({
-          datetime: new Date(),
-          info: message,
-          data
-        });
+        const update = {
+          $addToSet: {
+            messages: {
+              datetime: new Date(),
+              info: message,
+              data
+            }
+          }
+        };
 
         if (state) {
-          actionItem.state = state;
+          update.state = state;
         }
-
-        return actionItem.save();
+        return router.formio.mongoose.models.actionItem.updateOne({
+          _id: actionItem._id
+        },
+        update
+        );
       });
     },
 
