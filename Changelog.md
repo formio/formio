@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - Increment minor version.
 
+### Fixed
+ - FIO-4189: fixed advanced logic not working inside Nested Form
+
 ## 3.0.0-rc.11
 ### Fixed
  - FIO-5494: removed erroneous empty addresses
