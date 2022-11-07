@@ -115,20 +115,20 @@ class Validator {
       // Set the submission data
       form.data = submission.data;
 
+       // Reset the data
+      form.data = {};
+
+      form.setValue(submission, {
+        sanitize: form.allowAllSubmissionData ? false : true,
+      });
+
       // Perform calculations and conditions.
       form.checkConditions();
       form.clearOnHide();
       form.calculateValue();
 
-      // Reset the data
-      form.data = {};
-
       // Set the value to the submission.
       unsetsEnabled = true;
-
-      form.setValue(submission, {
-        sanitize: form.allowAllSubmissionData ? false : true,
-      });
 
       // Check the visibility of conditionally visible components after unconditionally visible
       _.forEach(conditionallyInvisibleComponents, ({component, key, data}) => {
