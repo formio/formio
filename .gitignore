@@ -1,3 +1,5 @@
+.DS_Store
+.dccache
 .vscode
 .idea
 bower_components

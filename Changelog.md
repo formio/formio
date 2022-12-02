@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased: 3.1.0-rc.1]
+### Changed
+ - Increment minor version.
+
+### Fixed
+ - FIO-4189: fixed advanced logic not working inside Nested Form
+ - FIO-5497: fixed DeprecationWarning for crypto.createDecipher
+ - FIO-5471: Removed mongoose.save from codebase
+
+## 3.0.0-rc.11
+### Fixed
+ - FIO-5494: removed erroneous empty addresses
+ - FIO-5774: added revisions of submissions collections
+ - FIO-5756: PDF | Regression | FFT 502 Bad gateway error after Click on submit
+ - FIO-5495: added submission data for delete req
+
+## 3.0.0-rc.10
+### Fixed
+ - FIO-5435: fixed exists endpoint with submission collections
+ - FIO-5090: vid numbering fix
+
+### Changed
+ - Upgrade dependencies: body-parser@1.20.1, express@4.18.2, mongoose@6.6.5, nodemailer-mailgun-transport@2.1.5, semver@7.3.8, nodemon@2.0.20, mongodb@4.10.0, nodemailer@6.8.0, eslint@8.
+25.0, supertest@6.3.0, mailgun.js@8.0.1
+
 ## 3.0.0-rc.9
 ### Fixed
  - FIO-5433: fixed (snyk) Prototype Pollution in mongoose

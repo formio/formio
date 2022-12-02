@@ -753,83 +753,85 @@ const Utils = {
     path = '',
   ) {
     components.forEach((component) => {
-      if (Array.isArray(component.components)) {
-        // If tree type is an array of objects like datagrid and editgrid.
-        if (['datagrid', 'editgrid', 'dynamicWizard'].includes(component.type) || component.arrayTree) {
-          const value = _.get(data, component.key) || [];
-          if (Array.isArray(value)) {
-            value.forEach((row, index) => {
-              this.eachValue(
-                component.components,
-                row,
-                fn,
-                context,
-                this.valuePath(path, `${component.key}[${index}]`),
-              );
-            });
+      if (component) {
+        if (Array.isArray(component.components)) {
+          // If tree type is an array of objects like datagrid and editgrid.
+          if (['datagrid', 'editgrid', 'dynamicWizard'].includes(component.type) || component.arrayTree) {
+            const value = _.get(data, component.key) || [];
+            if (Array.isArray(value)) {
+              value.forEach((row, index) => {
+                this.eachValue(
+                  component.components,
+                  row,
+                  fn,
+                  context,
+                  this.valuePath(path, `${component.key}[${index}]`),
+                );
+              });
+            }
+          }
+          else if (['form'].includes(component.type)) {
+            this.eachValue(
+              component.components,
+              _.get(data, `${component.key}.data`, {}),
+              fn,
+              context,
+              this.valuePath(path, `${component.key}.data`),
+            );
+          }
+          else if (
+            ['container'].includes(component.type) ||
+            (
+              component.tree &&
+              !this.layoutComponents.includes(component.type)
+            )
+          ) {
+            this.eachValue(
+              component.components,
+              _.get(data, component.key),
+              fn,
+              context,
+              this.valuePath(path, component.key),
+            );
+          }
+          else {
+            this.eachValue(
+              component.components,
+              data,
+              fn,
+              context,
+              path,
+            );
           }
         }
-        else if (['form'].includes(component.type)) {
-          this.eachValue(
-            component.components,
-            _.get(data, `${component.key}.data`, {}),
-            fn,
-            context,
-            this.valuePath(path, `${component.key}.data`),
-          );
+        else if (Array.isArray(component.columns)) {
+          // Handle column like layout components.
+          component.columns.forEach((column) => {
+            this.eachValue(
+              column.components,
+              data,
+              fn,
+              context,
+              path,
+            );
+          });
         }
-        else if (
-          ['container'].includes(component.type) ||
-          (
-            component.tree &&
-            !this.layoutComponents.includes(component.type)
-          )
-        ) {
-          this.eachValue(
-            component.components,
-            _.get(data, component.key),
-            fn,
-            context,
-            this.valuePath(path, component.key),
-          );
+        else if (Array.isArray(component.rows)) {
+          // Handle table like layout components.
+          component.rows.forEach((row) => {
+            if (Array.isArray(row)) {
+              row.forEach((column) => {
+                this.eachValue(
+                  column.components,
+                  data,
+                  fn,
+                  context,
+                  path,
+                );
+              });
+            }
+          });
         }
-        else {
-          this.eachValue(
-            component.components,
-            data,
-            fn,
-            context,
-            path,
-          );
-        }
-      }
-      else if (Array.isArray(component.columns)) {
-        // Handle column like layout components.
-        component.columns.forEach((column) => {
-          this.eachValue(
-            column.components,
-            data,
-            fn,
-            context,
-            path,
-          );
-        });
-      }
-      else if (Array.isArray(component.rows)) {
-        // Handle table like layout components.
-        component.rows.forEach((row) => {
-          if (Array.isArray(row)) {
-            row.forEach((column) => {
-              this.eachValue(
-                column.components,
-                data,
-                fn,
-                context,
-                path,
-              );
-            });
-          }
-        });
       }
 
       // Call the callback for each component.
