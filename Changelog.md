@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## [Unreleased: 3.1.0-rc.1]
 ### Changed
  - Increment minor version.
+ - Remove submission collection tests in open source core
 
 ### Fixed
  - FIO-4189: fixed advanced logic not working inside Nested Form
