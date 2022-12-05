@@ -178,7 +178,7 @@ module.exports = function(req, router, cb) {
             break;
           default:
             property = {
-              type: 'string'
+              type: 'object'
             };
         }
         if (property) {
