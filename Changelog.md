@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - FIO-4189: fixed advanced logic not working inside Nested Form
  - FIO-5497: fixed DeprecationWarning for crypto.createDecipher
  - FIO-5471: Removed mongoose.save from codebase
+ - FIO-5860: export error caused by old temp
 
 ## 3.0.0-rc.11
 ### Fixed
