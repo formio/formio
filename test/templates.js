@@ -3773,9 +3773,9 @@ module.exports = (app, template, hook) => {
       });
 
       it('All the forms should be imported', function(done) {
-        assert.deepEqual(_.omit(project.forms.inner, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access']), 
+        assert.deepEqual(_.omit(project.forms.inner, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', '_vid', 'project', 'revisions', 'submissionRevisions']), 
         _.omit(testTemplate.forms.inner, ['revisions']));
-        assert.deepEqual(_.omit(project.forms.outer, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', 'components']), 
+        assert.deepEqual(_.omit(project.forms.outer, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', 'components', '_vid', 'project', 'revisions', 'submissionRevisions']), 
         _.omit(testTemplate.forms.outer, ['revisions', 'components']));
         assert.deepEqual(_.omit(project.forms.outer.components[0], ['form']),
         _.omit(testTemplate.forms.outer.components[0], ['form']));
