@@ -225,7 +225,7 @@ module.exports = (formio) => {
    * @param next
    * @returns {*}
    */
-  const send = (req, res, message, params, next) => {
+  const send = (req, res, message, params, next, setActionItemMessage = () => {}) => {
     // The transporter object.
     let transporter = {sendMail: null};
 
@@ -490,7 +490,7 @@ module.exports = (formio) => {
                 reject(err);
               }
             });
-          });
+          }, setActionItemMessage);
         });
       };
 
