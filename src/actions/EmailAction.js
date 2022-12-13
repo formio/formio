@@ -263,7 +263,7 @@ module.exports = (router) => {
                   else {
                     setActionItemMessage('Message Sent');
                   }
-                });
+                }, setActionItemMessage);
               });
           })
           .catch((err) => {
