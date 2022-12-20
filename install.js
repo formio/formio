@@ -461,8 +461,8 @@ module.exports = function(formio, items, done) {
       });
     }
   };
-
-  util.log('Installing...');
+  if (process.env.FORMIO_CLIENT_UI === "true") {
+    util.log('Installing...');
   prompt.start();
   async.series([
     steps.areYouSure,
@@ -483,5 +483,9 @@ module.exports = function(formio, items, done) {
     util.log('Install successful!'.green);
     done();
   });
+  }
+  else {
+    done();
+  }
 };
 
