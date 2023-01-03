@@ -1599,17 +1599,17 @@ formidable@^2.0.1:
     once "1.4.0"
     qs "6.9.3"
 
-formio-workers@1.16.5:
-  version "1.16.5"
-  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.16.5.tgz#34e4dd8c2624314b706d21710ad732c0477da482"
-  integrity sha512-oKfJ5SjkX9u8ctPqTE/ls4fVdA2Qh2P3XD98/bC/u5GQcOI9qpLn4eYQQZyOY0He4ywsbAxTIwMPEMSIwXgVXQ==
+formio-workers@1.16.6-rc.2:
+  version "1.16.6-rc.2"
+  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.16.6-rc.2.tgz#61e54a09663e45ccdf0e212e996bda13c578a364"
+  integrity sha512-H8SA4sAwMmnXJT0toLjirh1CQanoXnHQxERxJa/IYk2C0JU7ybYGi7V6Stjpesto2ceNRNyIAn2v8Yhh1s4mDg==
   dependencies:
     aws-serverless-express "^3.4.0"
     body-parser "^1.19.1"
     core-js "^3.19.3"
     dotenv "^10.0.0"
     express "^4.17.1"
-    formiojs "4.14.11"
+    formiojs "4.14.12-rc.2"
     lodash "^4.17.21"
     method-override "^3.0.0"
     moment "^2.29.1"
@@ -1617,48 +1617,6 @@ formio-workers@1.16.5:
     nunjucks "^3.2.3"
     nunjucks-date-filter "^0.1.1"
     vm2 "^3.9.5"
-
-formiojs@4.14.11:
-  version "4.14.11"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.14.11.tgz#e3088c88b0196f15b285e55f9422dc7ac926d777"
-  integrity sha512-iw42BzQ8ytxujllcQ+hKPaXsbsyc4qrtWoMNdEaN8UG0r7sm0BLq/Z7i+c7dIJBFH13lDxk0XBOIUahH5mkudA==
-  dependencies:
-    "@formio/bootstrap3" "^2.12.2"
-    "@formio/choices.js" "^9.0.1"
-    "@formio/semantic" "^2.6.0"
-    "@formio/text-mask-addons" "^3.8.0-formio.2"
-    "@formio/vanilla-text-mask" "^5.1.1-formio.1"
-    autocompleter "^6.1.2"
-    browser-cookies "^1.2.0"
-    browser-md5-file "^1.1.1"
-    compare-versions "^4.1.3"
-    core-js "^3.21.1"
-    custom-event-polyfill "^1.0.7"
-    dialog-polyfill "^0.5.6"
-    dompurify "^2.3.4"
-    downloadjs "^1.4.7"
-    dragula "^3.7.3"
-    eventemitter3 "^4.0.7"
-    fast-deep-equal "^3.1.3"
-    fast-json-patch "^3.1.0"
-    fetch-ponyfill "^7.1.0"
-    i18next "^21.6.0"
-    idb "^6.1.5"
-    ismobilejs "^1.1.1"
-    json-logic-js "^2.0.0"
-    jstimezonedetect "^1.0.7"
-    jwt-decode "^3.1.2"
-    lodash "^4.17.21"
-    moment "^2.29.4"
-    moment-timezone "^0.5.40"
-    native-promise-only "^0.8.1"
-    quill "^2.0.0-dev.3"
-    resize-observer-polyfill "^1.5.1"
-    signature_pad "^4.0.4"
-    string-hash "^1.1.3"
-    tippy.js "^6.3.7"
-    uuid "^8.3.2"
-    vanilla-picker "^2.12.1"
 
 formiojs@4.14.12-rc.2:
   version "4.14.12-rc.2"
