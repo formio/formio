@@ -93,11 +93,8 @@ module.exports = function(formio) {
     next();
   });
 
-  // Add a partial index for deleted submissions.
   model.schema.index({
     deleted: 1
-  }, {
-    partialFilterExpression: {deleted: {$eq: null}}
   });
 
   // Add a "recommmended" combined index.
