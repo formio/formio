@@ -1,41 +1,23 @@
 # Form Management Platform
 
-![Formio](https://img.shields.io/badge/formio-2.3.0-blue)
+![Formio](https://img.shields.io/badge/formio-2.4.1-blue) ![Formsflow-forms](https://img.shields.io/docker/v/formsflow/forms-flow-forms?label=formsflow-forms-latest-image)
 
 **formsflow.ai** leverages form.io to build "serverless" data management applications using a simple drag-and-drop form builder interface.
 
 To know more about form.io, go to  <https://form.io>.
 
-## Table of Content
-
-1. [Prerequisites](#prerequisites)
-2. [Solution Setup](#solution-setup)
-   * [Step 1 : Keycloak Setup](#keycloak-setup)
-   * [Step 2 : Installation](#installation)
-   * [Step 3 : Running the Application](#running-the-application)
-   * [Step 4 : Health Check](#health-check)
-3. [Formsflow-forms API Requesting](#formsflow-forms-api-requesting)  
-   * [Using POSTMAN API client](#using-postman-api-client)
-   * [Using curl command](#using-curl-command)
-4. [Custom Components](#custom-components)
-5. [Adding new indexes](#adding-new-indexes)
-6. [LICENSE](#license)
-
+ 
 ## Prerequisites
 
 * For docker based installation [Docker](https://docker.com) need to be installed.
 
 ## Solution Setup
 
-### Keycloak Setup
-
-Not applicable.  
-**Please note that the forms-flow-forms server is accessed using root user account.**
-
+ 
 ### Installation
 
 * Make sure you have a Docker machine up and running.
-* Make sure your current working directory is "forms-flow-ai/forms-flow-forms".
+* Make sure your are in current working directory.
 * Rename the file [sample.env](./sample.env) to **.env**.
 * Modify the environment variables in the newly created **.env** file if needed. Environment variables are given in the table below,
 * **NOTE : `{your-ip-address}` given inside the .env file should be changed to your host system IP address. Please take special care to identify the correct IP address if your system has multiple network cards**
@@ -50,6 +32,7 @@ Not applicable.
 |`FORMIO_ROOT_EMAIL`|forms-flow-forms admin login|eg. admin@example.com|`admin@example.com`
 |`FORMIO_ROOT_PASSWORD`|forms-flow-forms admin password|eg.changeme|`changeme`
 |`FORMIO_CLIENT_UI`|To setup FORMIO client ui |true / false|`false`
+|`MULTI_TENANCY_ENABLED`|To enable multit tenancy |true / false|`false`
 |`FORMIO_DEFAULT_PROJECT_URL`:triangular_flag_on_post:|forms-flow-forms default url||`http://{your-ip-address}:3001`
 |`FORMIO_JWT_SECRET`|forms-flow-forms jwt secret| |`--- change me now ---`
 
@@ -61,7 +44,7 @@ Not applicable.
 ### Running the application
 
 * forms-flow-forms service uses port 3001, make sure the port is available.
-* `cd {Your Directory}/forms-flow-ai/forms-flow-forms`
+* `cd {Your Directory}/formio`
 
 * For Linux,
   * Run `docker-compose -f docker-compose-linux.yml up -d` to start.
@@ -86,55 +69,6 @@ Not applicable.
         User Name / Email : admin@example.com
         Password  : changeme
 
-## Formsflow-forms user/role API
-
-There are two ways in which you can access data from the formsflow-forms end points.
-
-* [Using curl command](#using-curl-command)
-* [Using POSTMAN API client](#using-postman-api-client)
-
-### Using curl command
-
-* Download and install [curl](https://curl.se/download.html).
-
-* [Step 1](#step-1) Go to `forms-flow-forms/script` directory.
-* [Step 2](#step-2)
-  * **For windows**
-    * Open command prompt and run `resourceId_windows.bat {user email} {password}` eg: `resourceId_windows.bat admin@example.com changeme`
-  * **For Linux and Mac**
-    * Open command prompt and run `./resourceId_linux.sh {user email} {password}` eg: `./resourceId_linux.sh admin@example.com changeme`
-* [Step 3](#step-3) Copy the ID corresponding to Role Name from [Step 2](./README.md#step-2) and paste it against the Environment Variable name from the below table.
-
-|Role Name | Environment Variable Name |
-|--- |---
-|Administrator | DESIGNER_ROLE_ID
-|Anonymous | ANONYMOUS_ID
-|formsflow Client | CLIENT_ROLE_ID
-|formsflow Reviewer | REVIEWER_ROLE_ID
-|User | USER_RESOURCE_ID
-
-> **curl requests are successfully completed. You can skip the remaining sections in this page and continue with other installation steps.**
-
-### Using POSTMAN API client
-
-* Download and install [Postman API client](https://www.postman.com/)
-* Import [formsflow-forms-postman-collection.json](./config/formsflow-forms-postman-collection.json) to your postman client.
-  * Open Postman -> Go to File
-    * Import -> Upload [formsflow-forms-postman-collection.json](./config/formsflow-forms-postman-collection.json) file
-    * Import successful.
-* Follow the instructions given below to fetch the role id's from [forms-flow-forms](http://localhost:3001)
-  * Open Postman ->  Go to Workspaces -> My Workspaces
-    * Collections -> Open form.io collection and send the API request in the following order.
-       * Get the jwt token using resource **<http://localhost:3001/user/login>**. (*Click on Send to make a server request*)
-       * Get the user resource id using resource **<http://localhost:3001/user>**. (*Click on Send to make a server request*)
-        * Copy the **_id** from Response body and replace value for **USER_RESOURCE_ID** in the **.env** file.
-       * Get the user role id's using resource **<http://localhost:3001/role>**. (*Click on Send to make a server request*)
-        * Copy the **_id** with title *Administrator* from Response body and replace value for **DESIGNER_ROLE_ID** in the **.env** file.
-        * Copy the **_id** with title *Anonymous* from Response body and replace value for **ANONYMOUS_ID** in the **.env** file.
-        * Copy the **_id** with title *formsflow Client* from Response body and replace value for **CLIENT_ROLE_ID** in the **.env** file.
-        * Copy the **_id** with title *formsflow Reviewer* from Response body and replace value for **REVIEWER_ROLE_ID** in the **.env** file.
-
-> **Postman API calls are successfully completed. You can skip the remaining sections in this page and continue with other installation steps.**
 
 ## Custom Components
 
