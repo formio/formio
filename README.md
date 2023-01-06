@@ -6,36 +6,18 @@
 
 To know more about form.io, go to  <https://form.io>.
 
-## Table of Content
-
-1. [Prerequisites](#prerequisites)
-2. [Solution Setup](#solution-setup)
-   * [Step 1 : Keycloak Setup](#keycloak-setup)
-   * [Step 2 : Installation](#installation)
-   * [Step 3 : Running the Application](#running-the-application)
-   * [Step 4 : Health Check](#health-check)
-3. [Formsflow-forms API Requesting](#formsflow-forms-api-requesting)  
-   * [Using POSTMAN API client](#using-postman-api-client)
-   * [Using curl command](#using-curl-command)
-4. [Custom Components](#custom-components)
-5. [Adding new indexes](#adding-new-indexes)
-6. [LICENSE](#license)
-
+ 
 ## Prerequisites
 
 * For docker based installation [Docker](https://docker.com) need to be installed.
 
 ## Solution Setup
 
-### Keycloak Setup
-
-Not applicable.  
-**Please note that the forms-flow-forms server is accessed using root user account.**
-
+ 
 ### Installation
 
 * Make sure you have a Docker machine up and running.
-* Make sure your current working directory is "forms-flow-ai/forms-flow-forms".
+* Make sure your are in current working directory.
 * Rename the file [sample.env](./sample.env) to **.env**.
 * Modify the environment variables in the newly created **.env** file if needed. Environment variables are given in the table below,
 * **NOTE : `{your-ip-address}` given inside the .env file should be changed to your host system IP address. Please take special care to identify the correct IP address if your system has multiple network cards**
@@ -50,6 +32,7 @@ Not applicable.
 |`FORMIO_ROOT_EMAIL`|forms-flow-forms admin login|eg. admin@example.com|`admin@example.com`
 |`FORMIO_ROOT_PASSWORD`|forms-flow-forms admin password|eg.changeme|`changeme`
 |`FORMIO_CLIENT_UI`|To setup FORMIO client ui |true / false|`false`
+|`MULTI_TENANCY_ENABLED`|To enable multit tenancy |true / false|`false`
 |`FORMIO_DEFAULT_PROJECT_URL`:triangular_flag_on_post:|forms-flow-forms default url||`http://{your-ip-address}:3001`
 |`FORMIO_JWT_SECRET`|forms-flow-forms jwt secret| |`--- change me now ---`
 
@@ -61,7 +44,7 @@ Not applicable.
 ### Running the application
 
 * forms-flow-forms service uses port 3001, make sure the port is available.
-* `cd {Your Directory}/forms-flow-ai/forms-flow-forms`
+* `cd {Your Directory}/formio`
 
 * For Linux,
   * Run `docker-compose -f docker-compose-linux.yml up -d` to start.
