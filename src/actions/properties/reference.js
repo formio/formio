@@ -334,7 +334,7 @@ module.exports = (router) => {
             if (err) {
               return reject(err);
             }
-            if( res.resource && Array.isArray(res.resource.item) ) {
+            if (res.resource && Array.isArray(res.resource.item)) {
               util.removeProtectedFields(form, 'index', res.resource.item.map(submission => {
                 return _.get(submission, `data.${path}`);
               }));

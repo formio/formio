@@ -216,19 +216,22 @@ module.exports = function(router) {
        *
        * @param submission
        */
-      const updateModel = function(submission, association) {
+      const updateModel = function(submission, association, update) {
         // Try to update the submission directly.
         debug.updateModel(association);
-        if (typeof submission.save === 'function') {
-          submission.save(function(err) {
-            if (err) {
-              log(req, ecode.submission.ESUBSAVE, err);
-              return next(err);
-            }
 
-            return next();
-          });
-        }
+        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+        submissionModel.updateOne({
+          _id: submission._id
+        },
+        update,
+        (err) => {
+          if (err) {
+            log(req, ecode.submission.ESUBSAVE, err);
+            return next(err);
+          }
+          return next();
+        });
       };
 
       /**
@@ -262,9 +265,12 @@ module.exports = function(router) {
         compare.map(util.idToBson);
         submission.roles = compare;
 
+        const update = {
+          roles: compare
+        };
         // Update the submission model.
         debug.addRole(submission);
-        updateModel(submission, association);
+        updateModel(submission, association, update);
       };
 
       /**
@@ -301,7 +307,11 @@ module.exports = function(router) {
 
         // Update the submission model.
         debug.removeRole(submission);
-        updateModel(submission, association);
+
+        const update = {
+          roles: compare
+        };
+        updateModel(submission, association, update);
       };
 
       /**

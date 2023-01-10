@@ -66,14 +66,16 @@ module.exports = function(router) {
           }
 
           // Save the updated permissions.
-          form.save(function(err, form) {
-            if (err) {
-              debug(err);
-              return formDone(err);
-            }
-
-            formDone(null, form);
-          });
+          router.formio.resources.form.model.updateOne({
+            _id: form._id},
+            {$set: {access: form.access}},
+            (err)=> {
+              if (err) {
+                debug(err);
+                return formDone(err);
+              }
+              formDone(null, form);
+            });
         }, done);
       });
     };

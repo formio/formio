@@ -141,10 +141,14 @@ module.exports = (router) => {
               type: 'parent',
               id: res.resource.item._id
             });
-            submission.save(function(err, submission) {
-              if (err) {
-                return router.formio.util.log(err);
-              }
+
+            submissionModel.updateOne({
+              _id: submission._id},
+              {$set: {externalIds: submission.externalIds}},
+              (err, res) => {
+                if (err) {
+                  return router.formio.util.log(err);
+                }
             });
           }
         });

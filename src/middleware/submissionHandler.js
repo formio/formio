@@ -98,15 +98,35 @@ module.exports = (router, resourceName, resourceId) => {
         }
 
         if (req.method === 'POST') {
-          const blackList = [
-            'x-admin',
-            'x-jwt-token',
-            'x-token',
-            'x-remote-token'
+          const allowlist = [
+            "host",
+            "x-forwarded-scheme",
+            "x-forwarded-proto",
+            "x-forwarded-for",
+            "x-real-ip",
+            "connection",
+            "content-length",
+            "pragma",
+            "cache-control",
+            "sec-ch-ua",
+            "accept",
+            "content-type",
+            "sec-ch-ua-mobile",
+            "user-agent",
+            "sec-ch-ua-platform",
+            "origin",
+            "sec-fetch-site",
+            "sec-fetch-mode",
+            "sec-fetch-dest",
+            "referer",
+            "accept-encoding",
+            "accept-language",
+            "sec-gpc",
+            "dnt",
           ];
 
           const reqHeaders = _.omitBy(req.headers, (value, key) => {
-            return blackList.includes(key) || key.match(/auth/gi);
+            return !allowlist.includes(key) || key.match(/auth/gi);
           });
 
           _.set(req.body, 'metadata.headers', reqHeaders);
@@ -126,6 +146,7 @@ module.exports = (router, resourceName, resourceId) => {
         // Ensure they cannot reset the submission id.
         if (req.params.submissionId) {
           req.body._id = req.params.submissionId;
+          req.subId = req.params.submissionId;
         }
 
         // Set the form to the current form.
@@ -181,10 +202,10 @@ module.exports = (router, resourceName, resourceId) => {
      * @param done
      */
     function validateSubmission(req, res, done) {
-      req.noValidate = req.isAdmin && req.query.noValidate;
+      req.noValidate = req.noValidate || (req.isAdmin && req.query.noValidate);
 
       // No need to validate on GET requests.
-      if (!(['POST', 'PUT', 'PATCH'].includes(req.method) && req.body && !req.noValidate)) {
+      if (!(['POST', 'PUT', 'PATCH'].includes(req.method) && req.body)) {
         return done();
       }
 
@@ -231,6 +252,9 @@ module.exports = (router, resourceName, resourceId) => {
 
         // Validate the request.
         validator.validate(req.body, (err, data, visibleComponents) => {
+          if (req.noValidate) {
+            return done();
+          }
           if (err) {
             return res.status(400).json(err);
           }
@@ -295,60 +319,62 @@ module.exports = (router, resourceName, resourceId) => {
         action,
         path,
       }) => {
-        const componentPath = util.valuePath(path, component.key);
+        if (component) {
+          const componentPath = util.valuePath(path, component.key);
 
-        // Remove not persistent data
-        if (
-          data &&
-          component.hasOwnProperty('persistent') &&
-          !component.persistent &&
-          !['columns', 'fieldset', 'panel', 'table', 'tabs'].includes(component.type)
-        ) {
-          util.deleteProp(component.key)(data);
-        }
-        else if (req.method === 'PUT') {
-          // Restore value of components with calculated value and disabled server calculation
-          // if they don't present in submission data
-          const newCompData = _.get(submissionData, componentPath, undefined);
-          const currentCompData = _.get(req.currentSubmissionData, componentPath);
-
-          if (component.calculateValue && !component.calculateServer && currentCompData && newCompData === undefined) {
-            _.set(submissionData, componentPath, _.get(req.currentSubmissionData, componentPath));
+          // Remove not persistent data
+          if (
+            data &&
+            component.hasOwnProperty('persistent') &&
+            !component.persistent &&
+            !['columns', 'fieldset', 'panel', 'table', 'tabs'].includes(component.type)
+          ) {
+            util.deleteProp(component.key)(data);
           }
-        }
+          else if (req.method === 'PUT') {
+            // Restore value of components with calculated value and disabled server calculation
+            // if they don't present in submission data
+            const newCompData = _.get(submissionData, componentPath, undefined);
+            const currentCompData = _.get(req.currentSubmissionData, componentPath);
 
-        const fieldActions = hook.alter('fieldActions', fActions);
-        const propertyActions = hook.alter('propertyActions', pActions);
-
-        // Execute the property handlers after validation has occurred.
-        const handlerArgs = [
-          component,
-          data,
-          handler,
-          action,
-          {
-            validation,
-            path: componentPath,
-            req,
-            res,
-          },
-        ];
-
-        if (validation) {
-          Object.keys(propertyActions).forEach((property) => {
-            // Set the default value of property if only minified schema of component is loaded
-            if (!component.hasOwnProperty(property) && setDefaultProperties.hasOwnProperty(property)) {
-             setDefaultProperties[property](component);
+            if (component.calculateValue && !component.calculateServer && currentCompData && newCompData === undefined) {
+              _.set(submissionData, componentPath, _.get(req.currentSubmissionData, componentPath));
             }
-            if (component.hasOwnProperty(property) && component[property]) {
-              promises.push(propertyActions[property](...handlerArgs));
-            }
-          });
-        }
+          }
 
-        // Execute the field handler.
-        if (fieldActions.hasOwnProperty(component.type)) {
-          promises.push(fieldActions[component.type](...handlerArgs));
+          const fieldActions = hook.alter('fieldActions', fActions);
+          const propertyActions = hook.alter('propertyActions', pActions);
+
+          // Execute the property handlers after validation has occurred.
+          const handlerArgs = [
+            component,
+            data,
+            handler,
+            action,
+            {
+              validation,
+              path: componentPath,
+              req,
+              res,
+            },
+          ];
+
+          if (validation) {
+            Object.keys(propertyActions).forEach((property) => {
+              // Set the default value of property if only minified schema of component is loaded
+              if (!component.hasOwnProperty(property) && setDefaultProperties.hasOwnProperty(property)) {
+              setDefaultProperties[property](component);
+              }
+              if (component.hasOwnProperty(property) && component[property]) {
+                promises.push(propertyActions[property](...handlerArgs));
+              }
+            });
+          }
+
+          // Execute the field handler.
+          if (fieldActions.hasOwnProperty(component.type)) {
+            promises.push(fieldActions[component.type](...handlerArgs));
+          }
         }
       }, {
         validation,

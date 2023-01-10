@@ -4,9 +4,78 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased: 3.0.0-rc.2]
+## [Unreleased: 3.1.0-rc.1]
+### Changed
+ - Increment minor version.
+ - Remove submission collection tests in open source core
+
+### Fixed
+ - FIO-4189: fixed advanced logic not working inside Nested Form
+ - FIO-5497: fixed DeprecationWarning for crypto.createDecipher
+ - FIO-5471: Removed mongoose.save from codebase
+ - FIO-5860: export error caused by old temp
+ - FIO-5860: fixed tests
+ - Revert "FIO-5233: fixed an issue with incorrect values in different timezones…"
+
+## 3.0.0-rc.11
+### Fixed
+ - FIO-5494: removed erroneous empty addresses
+ - FIO-5774: added revisions of submissions collections
+ - FIO-5756: PDF | Regression | FFT 502 Bad gateway error after Click on submit
+ - FIO-5495: added submission data for delete req
+
+## 3.0.0-rc.10
+### Fixed
+ - FIO-5435: fixed exists endpoint with submission collections
+ - FIO-5090: vid numbering fix
+
+### Changed
+ - Upgrade dependencies: body-parser@1.20.1, express@4.18.2, mongoose@6.6.5, nodemailer-mailgun-transport@2.1.5, semver@7.3.8, nodemon@2.0.20, mongodb@4.10.0, nodemailer@6.8.0, eslint@8.
+25.0, supertest@6.3.0, mailgun.js@8.0.1
+
+## 3.0.0-rc.9
+### Fixed
+ - FIO-5433: fixed (snyk) Prototype Pollution in mongoose
+ - Upgrade dependencies.
+
+## 3.0.0-rc.8
+### Fixed
+ - FIO-4433: fixed recalculation on server for draft submission
+
+## 3.0.0-rc.7
+### Fixed
+ - FIO-5155: Fixes submissions not loaded for sub forms with array data structure
+ - FIO-5363: deleted default value of transport select for email action settings
+
+## 3.0.0-rc.6
+### Fixed
+ - FIO-5334: fixed typo in the email action settings bcc placeholder
+
+## 3.0.0-rc.5
+### Fixed
+ - FIO-5199: Provided user information for external users
+ - FIO-5233: fixed an issue with incorrect values in different timezones
+
+## 3.0.0-rc.4
+### Fixed
+ - Fixes Group Permissions issue
+
+## 3.0.0-rc.3
+### Fixed
+ - Issue with the noValidate to allow the request object to set it before.
+
+## 3.0.0-rc.2
 ### Fixed
  - fixed processing of loadRevision execution results
+ - FIO-4974: allowed to process all types of requests without a body for the webhook action
+ - FIO-5076: fixed subId parameter
+ - FIO-5076: synchronized form id and submission id
+ - FIO-5090: form revisions transfer for stage deployment
+ - FIO-5000: Change to use accept list for accepted headers.
+ - FIO-4860: Added new index to action items
+ - FIO-4859: Field based access for patch request fix
+ - FIO-4448: Adds route for deleting all form submissions with x-delete-confirm header check
+ - Allow all submission data setting with form setting changes.
 
 ## 3.0.0-rc.1
 ### Breaking Change

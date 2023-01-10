@@ -235,6 +235,7 @@ module.exports = (app, template, hook) => {
 
     describe('Empty Template', function() {
       let testTemplate = require('../src/templates/empty.json');
+      testTemplate.revisions = {};
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
@@ -348,6 +349,7 @@ module.exports = (app, template, hook) => {
 
     describe('Default Template', function() {
       let testTemplate = require('../src/templates/default.json');
+      testTemplate.revisions = {};
       let _template = _.cloneDeep(testTemplate);
 
       describe('Import', function() {
@@ -3754,5 +3756,41 @@ module.exports = (app, template, hook) => {
         template.clearData(done);
       });
     });
+
+    describe('No Revisions Block Template', function() {
+      let testTemplate = require('./fixtures/templates/noRevisionsData.json');
+      let _template = _.cloneDeep(testTemplate);
+      let project;
+
+      it('Should be able to bootstrap the template', function(done) {
+        importer.import.template(_template, alters, (err, data) => {
+          if (err) {
+            return done(err);
+          }
+          project = data;
+          done();
+        });
+      });
+
+      it('All the forms should be imported', function(done) {
+        assert.deepEqual(_.omit(project.forms.inner, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', '_vid', 'project', 'revisions', 'submissionRevisions']), 
+        _.omit(testTemplate.forms.inner, ['revisions']));
+        assert.deepEqual(_.omit(project.forms.outer, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', 'components', '_vid', 'project', 'revisions', 'submissionRevisions']), 
+        _.omit(testTemplate.forms.outer, ['revisions', 'components']));
+        assert.deepEqual(_.omit(project.forms.outer.components[0], ['form']),
+        _.omit(testTemplate.forms.outer.components[0], ['form']));
+        assert.deepEqual(project.forms.outer.components[1], testTemplate.forms.outer.components[1]);
+       done();
+      });
+
+      before(function(done) {
+        template.clearData(done);
+      });
+
+      after(function(done) {
+        template.clearData(done);
+      });
+    });
+
   });
 };

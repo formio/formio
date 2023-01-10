@@ -56,8 +56,6 @@ module.exports = (router) => {
             key: 'transport',
             placeholder: 'Select the email transport.',
             template: '<span>{{ item.title }}</span>',
-            defaultValue: availableTransports.find(provider=>provider.transport==='default')?
-              'default':availableTransports[0].transport,
             dataSrc: 'json',
             data: {
               json: JSON.stringify(availableTransports),
@@ -122,7 +120,7 @@ module.exports = (router) => {
             inputType: 'text',
             defaultValue: '',
             input: true,
-            placeholder: 'Send blink copy of the email to the following email (other recipients will not see this)',
+            placeholder: 'Send blind copy of the email to the following email (other recipients will not see this)',
             type: 'textfield',
             multiple: true,
           },
@@ -265,7 +263,7 @@ module.exports = (router) => {
                   else {
                     setActionItemMessage('Message Sent');
                   }
-                });
+                }, setActionItemMessage);
               });
           })
           .catch((err) => {
