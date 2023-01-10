@@ -141,7 +141,7 @@ class Validator {
         if (valid) {
           // Clear the non-persistent fields.
           unsets.forEach((unset) => _.unset(unset.data, unset.key));
-          if (form.form.display === 'wizard' && form.prefixComps.length) {
+          if (form.form.display === 'wizard' && (form.prefixComps.length || form.suffixComps.length)) {
             submission.data = emptyData ? {} : {...submission.data, ...form.data};
           }
           else {
