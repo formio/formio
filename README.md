@@ -17,7 +17,7 @@ To know more about form.io, go to  <https://form.io>.
 ### Installation
 
 * Make sure you have a Docker machine up and running.
-* Make sure your are in current working directory.
+* Make sure your current working directory is "formio"
 * Rename the file [sample.env](./sample.env) to **.env**.
 * Modify the environment variables in the newly created **.env** file if needed. Environment variables are given in the table below,
 * **NOTE : `{your-ip-address}` given inside the .env file should be changed to your host system IP address. Please take special care to identify the correct IP address if your system has multiple network cards**
