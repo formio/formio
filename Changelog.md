@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 3.0.1-rc.1
+### Changed
+ - Updated formiojs@4.14.13-rc.1
+ - Updated formio-workers@1.16.7-rc.1
+ - FIO-5911: update email action steps
+
 ## 3.0.0
 ### Changed
  - Official Release
