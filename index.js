@@ -148,10 +148,12 @@ module.exports = function(config) {
       }));
 
       router.get("/checkpoint",(req,res)=>{
-        router.formio.resources.role.model.find().then((data)=>{
+        router.formio.resources.role.model.find().limit(5).then((data)=>{
           if (data.length) {
-            res.json({message:"formsflow-forms ready"});
+            return res.json({message:"formsflow-forms is ready"});
           }
+          res.status(500);
+          res.json({message:"formsflow-forms is down"});
         });
       });
 
