@@ -32,7 +32,7 @@ module.exports = function(router) {
   /* eslint-disable no-useless-escape */
   const formsRegEx = new RegExp(`\/(${router.formio.config.reservedForms.join('|')})($|\/.*)`, 'i');
   /* eslint-enable no-useless-escape */
-
+  
   // Handle the request.
   return function aliasHandler(req, res, next) {
     // Allow a base url to be provided to the alias handler.
@@ -44,7 +44,7 @@ module.exports = function(router) {
 
     // If this is normal request, then pass this middleware.
     /* eslint-disable no-useless-escape */
-    if (!alias || alias.match(/^(form$|form[\?\/])/) || alias === 'spec.json') {
+    if (!alias || alias.match(/^(form$|form[\?\/])/) || alias === 'spec.json' || alias === "checkpoint") {
       return next();
     }
     /* eslint-enable no-useless-escape */

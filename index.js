@@ -146,6 +146,17 @@ module.exports = function(config) {
       router.use(bodyParser.json({
         limit: '16mb'
       }));
+
+      router.get("/checkpoint",(req,res)=>{
+        router.formio.resources.role.model.find().limit(5).then((data)=>{
+          if (data.length) {
+            return res.json({message:"formsflow-forms is ready"});
+          }
+          res.status(500);
+          res.json({message:"formsflow-forms is down"});
+        });
+      });
+
       // getting form list
       router.get("/form",router.formio.middleware.tokenVerify,(req,res)=>{
         try {
