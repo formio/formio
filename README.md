@@ -46,10 +46,9 @@ To know more about form.io, go to  <https://form.io>.
 * forms-flow-forms service uses port 3001, make sure the port is available.
 * `cd {Your Directory}/formio`
 
-* For Linux,
-  * Run `docker-compose -f docker-compose-linux.yml up -d` to start.
-* For Windows,
-  * Run `docker-compose -f docker-compose-windows.yml up -d` to start.
+* Run this command,
+  * Run `docker-compose up -d` to start.
+
 
 *NOTE: Use --build command with the start command to reflect any future **.env** changes eg : `docker-compose -f docker-compose-windows.yml up --build -d`*
 
