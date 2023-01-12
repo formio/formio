@@ -307,6 +307,7 @@ module.exports = (router) => {
             data: isDelete ? _.get(deletedSubmission, `data`, {}) : req.body.data,
             form: req.form,
             query: req.query,
+            headers: req.headers,
             util: util.FormioUtils,
             moment: moment,
             submission: isDelete ? deletedSubmission : req.body,
@@ -322,6 +323,7 @@ module.exports = (router) => {
               query: params.query,
               data: params.data,
               form: params.form,
+              headers: params.headers,
               submission: params.submission,
               previous: params.previous,
             },
@@ -333,6 +335,10 @@ module.exports = (router) => {
           vm.freeze(params.FormioUtils, 'util');
           vm.freeze(params.moment, 'moment');
           vm.freeze(params._, '_');
+
+          vm.on('console.log', (logData) => {
+            this.updateActionItem(req, action,'VM Log Messages', logData, 'log');
+          });
 
           const result = vm.run(json ?
             `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
