@@ -479,13 +479,22 @@ module.exports = function(formio, items, done) {
       util.log(err);
       return done(err);
     }
-
     util.log('Install successful!'.green);
     done();
   });
   }
   else {
-    done();
+    async.series([
+      steps.whatTemplate,
+      steps.importTemplate,
+      steps.createRootUser
+    ], function(err, result) {
+      if (err) {
+        util.log(err);
+        return done(err);
+      }
+      done();
+    });
   }
 };
 
