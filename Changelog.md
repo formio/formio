@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - FIO-5860: export error caused by old temp
  - FIO-5860: fixed tests
  - Revert "FIO-5233: fixed an issue with incorrect values in different timezones…"
+ - FIO-5911: update email action steps
 
 ## 3.0.0-rc.11
 ### Fixed
