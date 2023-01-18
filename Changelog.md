@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 3.0.1-rc.3
+### Changed
+ - Updated formiojs@4.14.13-rc.2
+ - Updated formio-workers@1.16.7-rc.2
+ - upgrade jsonwebtoken dependency
+
 ## 3.0.1-rc.2
 ### Changed
  - Revert "FIO-5233: fixed an issue with incorrect values in different timezones…"
