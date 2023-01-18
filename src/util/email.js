@@ -225,7 +225,7 @@ module.exports = (formio) => {
    * @param next
    * @returns {*}
    */
-  const send = (req, res, message, params, next) => {
+  const send = (req, res, message, params, next, setActionItemMessage = () => {}) => {
     // The transporter object.
     let transporter = {sendMail: null};
 
@@ -461,7 +461,7 @@ module.exports = (formio) => {
 
         return new Promise((resolve, reject) => {
           // Allow anyone to hook the final email before sending.
-          return hook.alter('email', email, req, res, params, (err, email) => {
+          return hook.alter('email', email, req, res, params, setActionItemMessage, (err, email) => {
             if (err) {
               return reject(err);
             }
@@ -524,26 +524,26 @@ module.exports = (formio) => {
               );
             }));
           }, Promise.resolve());
-        });
+      });
 
-        const throttledSendEmails = _.throttle(sendEmails , NON_PRIORITY_QUEUE_TIMEOUT);
+      const throttledSendEmails = _.throttle(sendEmails , NON_PRIORITY_QUEUE_TIMEOUT);
 
-        if (req.user) {
-          return sendEmails()
-            .then((response) => next(null, response))
-            .catch((err) => {
-              debug.error(err);
-              return next(err);
-            });
-        }
-     else {
-      throttledSendEmails()
-        .catch((err) => {
-          debug.error(err);
-          return next(err);
-        });
+      if (req.user) {
+        return sendEmails()
+          .then((response) => next(null, response))
+          .catch((err) => {
+            debug.error(err);
+            return next(err);
+          });
+      }
+      else {
+        throttledSendEmails()
+          .catch((err) => {
+            debug.error(err);
+            return next(err);
+          });
         return next();
-     }
+      }
     });
   };
 
