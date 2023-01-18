@@ -227,11 +227,8 @@ module.exports = (formio) => {
   model.schema.index(hook.alter('schemaIndex', {type: 1, deleted: 1, modified: -1}));
   model.schema.index(hook.alter('schemaIndex', {name: 1, deleted: 1}));
 
-  // Add a partial index for deleted forms.
   model.schema.index({
     deleted: 1
-  }, {
-    partialFilterExpression: {deleted: {$eq: null}}
   });
 
   // Add machineName to the schema.
