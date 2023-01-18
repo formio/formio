@@ -199,13 +199,15 @@ module.exports = (router) => {
           });
         }
         else {
-         const project =  _map.revisions.formsWithEnabledRevisions
-          .find((form)=>form.machineName === revision.form).project;
-          revisionsArray.push({
-            project,
-            name: revision.form,
-            _vid: parseInt(revision.revision, 10)
-          });
+          if (_map.revisions.formsWithEnabledRevisions.length > 0) {
+            const project =  _map.revisions.formsWithEnabledRevisions
+            .find((form)=>form.machineName === revision.form).project;
+            revisionsArray.push({
+              project,
+              name: revision.form,
+              _vid: parseInt(revision.revision, 10)
+            });
+          }
         }
       });
       const query = {
@@ -218,7 +220,9 @@ module.exports = (router) => {
         if (err) {
           return next(err);
         }
-      if (revisions && revisions.length > 0) {
+      if (revisions && revisions.length > 0
+        && _map.revisions.revisionsData.length > 0
+        && _map.revisions.formsWithEnabledRevisions.length > 0) {
         revisions.forEach(revision => {
           const componentRevision = _map.revisions.revisionsData
             .find(component => component.form === revision.name).revision;

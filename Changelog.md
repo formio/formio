@@ -7,11 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## [Unreleased: 3.1.0-rc.1]
 ### Changed
  - Increment minor version.
+ - Remove submission collection tests in open source core
+ - upgrade jsonwebtoken dependency
 
 ### Fixed
  - FIO-4189: fixed advanced logic not working inside Nested Form
  - FIO-5497: fixed DeprecationWarning for crypto.createDecipher
  - FIO-5471: Removed mongoose.save from codebase
+ - FIO-5860: export error caused by old temp
+ - FIO-5860: fixed tests
+ - Revert "FIO-5233: fixed an issue with incorrect values in different timezones…"
 
 ## 3.0.0-rc.11
 ### Fixed
