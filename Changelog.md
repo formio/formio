@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - Increment minor version.
  - Remove submission collection tests in open source core
+ - upgrade jsonwebtoken dependency
 
 ### Fixed
  - FIO-4189: fixed advanced logic not working inside Nested Form
