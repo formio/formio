@@ -42,7 +42,7 @@
     "formiojs": "^4.15.0-rc.7",
     "fs-extra": "^10.1.0",
     "html-entities": "^2.3.3",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
     "mailgun.js": "^8.0.1",
     "memory-cache": "^0.2.0",
