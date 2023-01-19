@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Increment minor version.
  - Remove submission collection tests in open source core
  - upgrade jsonwebtoken dependency
- - Fixed a bug where data for form components wouldn't save if outside of a wizard
 
 ### Fixed
  - FIO-4189: fixed advanced logic not working inside Nested Form
@@ -21,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - FIO-5785 Fixed Select component submission showing id instead of template for URL data source
  - FIO-5904: fixed saving data for Components outside of Wizards
  - FIO-6069: document db restrictions handling
+ - FIO-5904: Fixed a bug where data for form components wouldn't save if outside of a wizard
 
 ## 3.0.0-rc.11
 ### Fixed
