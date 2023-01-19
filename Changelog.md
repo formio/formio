@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Increment minor version.
  - Remove submission collection tests in open source core
  - upgrade jsonwebtoken dependency
+ - Fixed a bug where data for form components wouldn't save if outside of a wizard
 
 ### Fixed
  - FIO-4189: fixed advanced logic not working inside Nested Form
