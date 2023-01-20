@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased: 1.91.3-patch.2]
+### Changes
+ - Update fast-json-patch to 3.1.1
+ -
 ## 1.91.3-patch.1
 ### Fixed
  - fix(import templates): nested forms "form" property is not set properly when it comes after the parent form inside a template
