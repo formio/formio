@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 3.1.0-rc.2
+### Changed
+ - Revert "FIO-5497: fixed DeprecationWarning for crypto.createDecipher"
+
 ## 3.1.0-rc.1
 ### Changed
  - Updated formiojs@4.15.0-rc.18
