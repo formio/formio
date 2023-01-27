@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased: 1.91.3-patch.2]
+## 1.91.3-patch.2
+### Changed
+ - Updated formiojs@4.13.2-patch.1
+ - Updated resourcejs@2.6.0-rc.1
+ - Updated formio-workers@1.14.13-patch.1
+
 ### Changes
  - Update fast-json-patch to 3.1.1
  - Update jsonwebtoken to 9.0.0
