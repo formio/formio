@@ -14,6 +14,7 @@ const fetch = require('@formio/node-fetch-http-proxy');
 const util = require('./util');
 const _ = require('lodash');
 
+const DEFAULT_TRANSPORT = process.env.DEFAULT_TRANSPORT;
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
 const EMAIL_CHUNK_SIZE = process.env.EMAIL_CHUNK_SIZE || 100;
 const NON_PRIORITY_QUEUE_TIMEOUT = process.env.NON_PRIORITY_QUEUE_TIMEOUT || 1000;
@@ -175,6 +176,18 @@ module.exports = (formio) => {
     .catch(reject);
   });
 
+  const getEnvSettings = (variable) => {
+    let settings = null;
+    try {
+      settings = JSON.parse(variable);
+    }
+    catch (err) {
+      console.log(`Cannot read ${variable}: ${err.message}`);
+      settings = null;
+    }
+    return settings;
+  };
+
   /**
    * Util function to run the email through nunjucks.
    *
@@ -265,19 +278,24 @@ module.exports = (formio) => {
       // Force the email type to custom for EMAIL_OVERRIDE which will allow
       // us to use ngrok to test emails out of test platform.
       if (EMAIL_OVERRIDE) {
-        try {
-          const override = JSON.parse(EMAIL_OVERRIDE);
-          if (override && override.hasOwnProperty('transport')) {
-            emailType = override.transport;
-            settings.email = {};
-            settings.email[emailType] = override.settings;
-          }
-          else {
-            emailType = 'custom';
-          }
+        const override = getEnvSettings(EMAIL_OVERRIDE);
+        if (override && override.hasOwnProperty('transport')) {
+          emailType = override.transport;
+          settings.email = {};
+          settings.email[emailType] = override.settings;
         }
-        catch (err) {
+        else {
           emailType = 'custom';
+        }
+      }
+
+      if (emailType === 'default' && DEFAULT_TRANSPORT) {
+        const defaultTransport = getEnvSettings(DEFAULT_TRANSPORT);
+        if (defaultTransport && defaultTransport.hasOwnProperty('transport')) {
+          emailType = defaultTransport.transport;
+          settings.email = {};
+          settings.email[emailType] = defaultTransport.settings;
+          settings.email[emailType].defaultTransport = true;
         }
       }
 
