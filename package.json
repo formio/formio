@@ -47,7 +47,7 @@
     "moment-timezone": "^0.5.40",
     "mongodb": "^3.6.9",
     "mongoose": "^5.12.12",
-    "mssql": "^6.3.1",
+    "mssql": "6.3.2",
     "mysql": "^2.18.1",
     "nodemailer": "^6.6.1",
     "nodemailer-mailgun-transport": "^2.1.5",
@@ -64,6 +64,11 @@
     "through": "^2.3.8",
     "vanilla-text-mask": "^5.1.1",
     "vm2": "^3.9.13"
+  },
+  "overrides": {
+    "mssql": {
+      "tedious": "6.7.0"
+    }
   },
   "devDependencies": {
     "eslint": "^7.27.0",
