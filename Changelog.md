@@ -4,13 +4,16 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased: 3.1.0-rc.1]
+## [Unreleased: 3.2.0-rc.1]
+### Fixed
+ - Revert "FIO-5497: fixed DeprecationWarning for crypto.createDecipher"
+
+## 3.1.0-rc.1
 ### Changed
  - Increment minor version.
  - Remove submission collection tests in open source core
  - upgrade jsonwebtoken dependency
  - Allow the display of all images and signatures in index when ?full=true is provided in the url
- - Revert "FIO-5497: fixed DeprecationWarning for crypto.createDecipher"
 
 ### Fixed
  - FIO-4189: fixed advanced logic not working inside Nested Form
