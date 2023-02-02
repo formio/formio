@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased: 1.91.3-patch.4]
+### Fixed
+ - Pin tedious to 6.7.1
+
 ## 1.91.3-patch.3
 ### Fixed
  - Override mssql to 6.3.2 and its nested tedious to 6.7.0
