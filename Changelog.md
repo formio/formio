@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ## 3.1.0-rc.2
 ### Changed
  - Revert "FIO-5497: fixed DeprecationWarning for crypto.createDecipher"
+ - FIO-5709: fix the response radio value in the CSV shows as blank
 
 ## 3.1.0-rc.1
 ### Changed
