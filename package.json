@@ -66,9 +66,7 @@
     "vm2": "^3.9.13"
   },
   "overrides": {
-    "mssql": {
-      "tedious": "6.7.0"
-    }
+    "tedious": "6.7.0"
   },
   "devDependencies": {
     "eslint": "^7.27.0",
