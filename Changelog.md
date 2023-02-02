@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## [Unreleased: 1.91.3-patch.7]
+### Changed
+ - No changes. rebuild.
+
 ## 1.91.3-patch.6
 ### Fixed
  - Forced versions of mssql and tedious to be happy with the build.
