@@ -47,7 +47,7 @@
     "moment-timezone": "^0.5.40",
     "mongodb": "^3.6.9",
     "mongoose": "^5.12.12",
-    "mssql": "6.3.2",
+    "mssql": "6.3.1",
     "mysql": "^2.18.1",
     "nodemailer": "^6.6.1",
     "nodemailer-mailgun-transport": "^2.1.5",
@@ -61,6 +61,7 @@
     "resourcejs": "2.6.0-rc.1",
     "restler": "^3.4.0",
     "semver": "^7.3.5",
+    "tedious": "6.7.0",
     "through": "^2.3.8",
     "vanilla-text-mask": "^5.1.1",
     "vm2": "^3.9.13"
