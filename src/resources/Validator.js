@@ -14,12 +14,12 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(form, model, token, decodedToken, hook) {
+  constructor(form, model, token, decodedToken, hook,sanitize) {
     this.model = model;
     this.form = form;
     this.token = token;
     this.hook = hook;
-
+    this.sanitize = sanitize;
     const self = this;
     const evalContext = Formio.Components.components.component.prototype.evalContext;
     Formio.Components.components.component.prototype.evalContext = function(additional) {
@@ -126,7 +126,7 @@ class Validator {
       // Set the value to the submission.
       unsetsEnabled = true;
       form.setValue(submission, {
-        sanitize: true
+        sanitize: this.sanitize
       });
 
       // Check the visibility of conditionally visible components after unconditionally visible
