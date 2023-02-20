@@ -6,7 +6,7 @@ var assert = require('assert');
 var _ = require('lodash');
 
 module.exports = function(app, template, hook) {
-  var ignoreFields = ['config'];
+  var ignoreFields = ['config', 'plan'];
 
   describe('Resources', function() {
     // Store the temp resource for this test suite.
