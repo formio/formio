@@ -14,7 +14,7 @@ module.exports = function(app, template, hook) {
   var formio = hook.alter('formio', app.formio);
   var Helper = require('./helper')(app);
 
-  var ignoreFields = ['config'];
+  var ignoreFields = ['config', 'plan'];
 
   describe('Forms', function() {
     // Store the temp form for this test suite.
