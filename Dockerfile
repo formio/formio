@@ -51,7 +51,7 @@ ENV PATH /app/node_modules/.bin:$PATH
 COPY package-lock.json /app/package-lock.json
 COPY package.json /app/package.json
 
-RUN npm install
+RUN npm install --production
 
 # Set this to inspect more from the application. Examples:
 #   DEBUG=formio:db (see index.js for more)
