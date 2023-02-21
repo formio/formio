@@ -2,6 +2,7 @@
 bower_components
 node_modules
 app*
+client
 npm-debug.log
 .env
 mongodb
