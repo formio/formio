@@ -12,7 +12,7 @@ require('colors');
 const Q = require('q');
 const cors = require('cors');
 const test = process.env.TEST_SUITE;
-const noInstall = process.env.NO_INSTALL;
+const noInstall = Number(process.env.NO_INSTALL);
 
 module.exports = function(options) {
   options = options || {};
