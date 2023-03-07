@@ -363,9 +363,9 @@ class CSVExporter extends Exporter {
               if (!value || !Array.isArray(value)) {
                 return value || '';
               }
-              const delimiter = component.delimeter || ',';
-              const formatted = value.join(component.delimeter)
-                  .join(`${delimiter} `);
+
+              const formatted = value.join(component.delimeter || ',');
+              
               return formatted;
             }
           });
