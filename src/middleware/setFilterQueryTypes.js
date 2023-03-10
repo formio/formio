@@ -55,6 +55,9 @@ module.exports = function(router) {
                   }
                 }
               }
+              if (component.type === 'select' && (Number(value) || value === "0")) {
+                return Number(value);
+              }
             }
             return value;
           })
