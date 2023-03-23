@@ -216,7 +216,7 @@ module.exports = (router) => {
           deleted: {$eq: null},
           $or: revisionsArray
         };
-        hook.alter('formRevisionModel').find(query)
+        return hook.alter('formRevisionModel').find(query)
           .lean(true)
           .exec((err, revisions) => {
             if (err) {
