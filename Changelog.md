@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 3.0.1-rc.16
+### Changed
+ - Updated formiojs@4.14.13-rc.15
+ - Updated formio-workers@1.16.7-rc.13
+
+### Fixed
+ - FIO 6579: Fix project template exports crashing the server
+
 ## 3.0.1-rc.15
 ### Changed
  - Updated formiojs@4.14.13-rc.14
