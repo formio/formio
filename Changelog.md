@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - FIO-6069: document db restrictions handling
  - FIO-5904: Fixed a bug where data for form components wouldn't save if outside of a wizard
  - FIO-5688: Allow for a DEFAULT_TRANSPORT to enable the default sending method for emails.
+ - FIO-6579: Fix project template exports crashing the server
 
 ## 3.0.0-rc.11
 ### Fixed
