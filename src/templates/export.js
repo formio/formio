@@ -200,60 +200,70 @@ module.exports = (router) => {
         }
         else {
           if (_map.revisions.formsWithEnabledRevisions.length > 0) {
-            const project =  _map.revisions.formsWithEnabledRevisions
-            .find((form)=>form.machineName === revision.form).project;
-            revisionsArray.push({
-              project,
-              name: revision.form,
-              _vid: parseInt(revision.revision, 10)
-            });
+            const form = _map.revisions.formsWithEnabledRevisions.find((form) => form.machineName === revision.form);
+            if (form) {
+              revisionsArray.push({
+                project: form.project,
+                name: revision.form,
+                _vid: parseInt(revision.revision, 10)
+              });
+            }
           }
         }
       });
-      const query = {
-        deleted: {$eq: null},
-        $or: revisionsArray
-      };
-      hook.alter('formRevisionModel').find(query)
-      .lean(true)
-      .exec((err, revisions) => {
-        if (err) {
-          return next(err);
-        }
-      if (revisions && revisions.length > 0
-        && _map.revisions.revisionsData.length > 0
-        && _map.revisions.formsWithEnabledRevisions.length > 0) {
-        revisions.forEach(revision => {
-          const componentRevision = _map.revisions.revisionsData
-            .find(component => component.form === revision.name).revision;
-          assignRoles(_map, revision.access);
-          assignRoles(_map, revision.submissionAccess);
-          const machineName = revision.name;
-          _export.revisions[`${machineName}:${componentRevision}`] = _.pick(revision,
-            'title',
-            'type',
-            'name',
-            'path',
-            'display',
-            'action',
-            'tags',
-            'settings',
-            'components',
-            'access',
-            'submissionAccess',
-            'properties',
-            'controller',
-            'submissionRevisions',
-            '_vid',
-            ...includeFormFields
-          );
-
-          _export[`${revision.type}s`][machineName].revisions = _map.revisions.formsWithEnabledRevisions
-            .find((form)=>form.machineName === revision.name).revisionType;
-        });
+      if (revisionsArray.length > 0) {
+        const query = {
+          deleted: {$eq: null},
+          $or: revisionsArray
+        };
+        return hook.alter('formRevisionModel').find(query)
+          .lean(true)
+          .exec((err, revisions) => {
+            if (err) {
+              return next(err);
+            }
+            if (
+              revisions && revisions.length > 0
+              && _map.revisions.revisionsData.length > 0
+              && _map.revisions.formsWithEnabledRevisions.length > 0
+            ) {
+              revisions.forEach(revision => {
+                const component = _map.revisions.revisionsData.find(component => component.form === revision.name);
+                if (component) {
+                  const componentRevision = component.revision;
+                  assignRoles(_map, revision.access);
+                  assignRoles(_map, revision.submissionAccess);
+                  const machineName = revision.name;
+                  _export.revisions[`${machineName}:${componentRevision}`] = _.pick(revision,
+                    'title',
+                    'type',
+                    'name',
+                    'path',
+                    'display',
+                    'action',
+                    'tags',
+                    'settings',
+                    'components',
+                    'access',
+                    'submissionAccess',
+                    'properties',
+                    'controller',
+                    'submissionRevisions',
+                    '_vid',
+                    ...includeFormFields
+                  );
+                  const form = _map.revisions.formsWithEnabledRevisions
+                    .find((form) => form.machineName === revision.name);
+                  if (form) {
+                    _export[`${revision.type}s`][machineName].revisions = form.revisionType;
+                  }
+                }
+              });
+            }
+            return next();
+          });
       }
       return next();
-      });
     }
     else {
       return next();

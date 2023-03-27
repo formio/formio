@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 ### Changed
  - Increment minor version.
  - Remove submission collection tests in open source core
+ - upgrade jsonwebtoken dependency
+ - Allow the display of all images and signatures in index when ?full=true is provided in the url
+ - Revert "FIO-5497: fixed DeprecationWarning for crypto.createDecipher"
 
 ### Fixed
  - FIO-4189: fixed advanced logic not working inside Nested Form
@@ -16,6 +19,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - FIO-5860: export error caused by old temp
  - FIO-5860: fixed tests
  - Revert "FIO-5233: fixed an issue with incorrect values in different timezones…"
+ - FIO-5911: update email action steps
+ - FIO-5785 Fixed Select component submission showing id instead of template for URL data source
+ - FIO-5904: fixed saving data for Components outside of Wizards
+ - FIO-6069: document db restrictions handling
+ - FIO-5904: Fixed a bug where data for form components wouldn't save if outside of a wizard
+ - FIO-5688: Allow for a DEFAULT_TRANSPORT to enable the default sending method for emails.
+ - FIO-6579: Fix project template exports crashing the server
 
 ## 3.0.0-rc.11
 ### Fixed
