@@ -34,6 +34,90 @@ module.exports = function(app, template, hook) {
       helper.project().user('user', 'user1').execute(done);
     });
 
+    describe('Submissions Collection', () => {
+      it('Should retrieve submissions for form with Select component with reference to a form with custom submissions collection', done => {
+        const test = require('./fixtures/forms/singlecomponents1.js');
+        const textFieldComponent = test.components.find(comp => comp.type === 'textfield');
+        const textFieldComponentSubmission = test.submission[textFieldComponent.key];
+
+        helper.form('textFieldResource', [textFieldComponent]).execute(err => {
+          if (err) {
+            return done(err);
+          }
+
+          const textFieldResource = helper.template.forms['textFieldResource'];
+
+          assert.ok(textFieldResource._id);
+          assert.ok(textFieldResource.components.length);
+          assert.ok(textFieldResource.components.some(comp => comp.key === 'textField1'));
+
+          textFieldResource.settings = {
+            collection: 'testCollection',
+          };
+
+          helper.submission('textFieldResource', { [textFieldComponent.key]: textFieldComponentSubmission }).execute(err => {
+            if (err) {
+              return done(err);
+            }
+
+            const textFieldResourceSubmission = helper.getLastSubmission();
+
+            assert.ok(textFieldResourceSubmission._id);
+            assert.deepEqual(textFieldResourceSubmission.data, { textField1: 'test value' });
+
+            const selectComponent = test.components.find(comp => comp.type === 'select');
+
+            selectComponent.data = {
+              resource: textFieldResource._id.toString()
+            };
+            selectComponent.dataSrc = 'resource';
+            selectComponent.template = '<span>{{ item.data.textField }}</span>';
+            selectComponent.reference = true;
+
+            helper.form('selectWithReference', [selectComponent]).execute(err => {
+              if (err) {
+                return done(err);
+              }
+
+              const selectWithReference = helper.template.forms['selectWithReference'];
+
+              assert.ok(selectWithReference._id);
+              assert.ok(selectWithReference.components.length);
+              assert.ok(selectWithReference.components.some(comp => comp.key === 'select1'));
+
+              helper.submission('selectWithReference', { [selectComponent.key]: textFieldResourceSubmission }).execute(err => {
+                if (err) {
+                  return done(err);
+                }
+
+                const selectWithReferenceSubmission = helper.getLastSubmission();
+
+                assert.ok(selectWithReferenceSubmission._id);
+                assert.deepEqual(selectWithReferenceSubmission.data, { select1: textFieldResourceSubmission });
+
+                request(app)
+                  .get(hook.alter('url', '/form/' + selectWithReference._id.toString() + '/submission', template))
+                  .set('x-jwt-token', helper.owner.token)
+                  .send()
+                  .expect(200)
+                  .end(function (err, res) {
+                    if (err) {
+                      return done(err);
+                    }
+
+                    const selectWithReferenceSubmissions = res.body;
+                    assert.ok(selectWithReferenceSubmissions.length);
+                    assert.deepEqual(selectWithReferenceSubmissions[0].data, { select1: { ...textFieldResourceSubmission, deleted: null, __v: 0 } });
+
+                    done();
+                  });
+              });
+            });
+          });
+        });
+      });
+    });
+
     describe('Unnested Submissions', function() {
       it('Saves values for each single value component type1', function(done) {
         var test = require('./fixtures/forms/singlecomponents1.js');
