@@ -97,7 +97,9 @@ module.exports = (router, resourceName, resourceId) => {
           req.body.data = {};
         }
 
-        if (req.method === 'POST') {
+        const isFullMetadata = _.get(req, 'currentForm.settings.collectMetadata', true);
+
+        if (req.method === 'POST' &&  isFullMetadata) {
           const allowlist = [
             "host",
             "x-forwarded-scheme",
@@ -130,6 +132,10 @@ module.exports = (router, resourceName, resourceId) => {
           });
 
           _.set(req.body, 'metadata.headers', reqHeaders);
+        }
+
+        if (req.body.metadata && !isFullMetadata && (req.method === 'POST' || req.method === 'PUT')) {
+           req.body.metadata = _.pick(req.body.metadata, ['selectData', 'offset', 'timezone']);
         }
 
         // Ensure that the _fvid is a number.

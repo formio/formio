@@ -2488,12 +2488,16 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Non Persistent fields dont persist', function() {
-      it('Doesn\'t save non-persistent single fields', function(done) {
-        var test = require('./fixtures/forms/singlecomponents1.js');
+
+      var test = require('./fixtures/forms/singlecomponents1.js');
+
+      before(()=> {
         test.components.forEach(function(component) {
           component.persistent = false;
         });
+      })
 
+      it('Doesn\'t save non-persistent single fields', function(done) {
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -2509,11 +2513,6 @@ module.exports = function(app, template, hook) {
       });
 
       it('Doesn\'t save non-persistent multi fields', function(done) {
-        var test = require('./fixtures/forms/multicomponents.js');
-        test.components.forEach(function(component) {
-          component.persistent = false;
-        });
-
         helper
           .form('test', test.components)
           .submission(test.submission)
@@ -2527,6 +2526,11 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
+      after(()=> {
+        test.components.forEach(function(component) {
+          component.persistent = true;
+        });
+      })
     });
 
     describe('Verify multiple values are multiple', function() {
@@ -3207,6 +3211,183 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
+
+
+      const testMetadata = {
+        selectData: {select1: 'one'},
+        timezone: 'Country/City',
+        offset: 60,
+        origin: 'http://origin.test',
+        referrer: 'http://referer.test',
+        browserName: 'Test Browser Name',
+        userAgent: 'Test User Agent',
+        pathName: '/',
+        onLine: true
+      };
+
+      const test = require('./fixtures/forms/singlecomponents1.js');
+
+      const formNameForShortMeta = "metaCheckShort";
+      const formNameForAllMeta = "metaCheckAll";
+
+      it('Should not collect browser metadata with POST method', done => {
+        const selectComponent = test.components.find(comp => comp.type === 'select');
+        const selectComponentSubmission = test.submission[selectComponent.key];
+
+
+        helper
+          .upsertForm({
+            title: chance.word(),
+            name: formNameForShortMeta,
+            path: chance.word(),
+            type: 'form',
+            components: [selectComponent],
+            settings: {
+              collectMetadata: false
+            }
+          }, (err, form) => {
+            if (err) {
+              return done(err);
+            }
+
+            assert.ok(form._id);
+            assert.equal(form.name, formNameForShortMeta);
+            assert.ok(form.settings && form.settings.hasOwnProperty('collectMetadata'));
+            assert.equal(form.settings.collectMetadata, false);
+
+            helper
+              .submission(formNameForShortMeta, {
+                data: { [selectComponent.key]: selectComponentSubmission },
+                metadata: testMetadata
+              })
+              .execute(err => {
+                if (err) {
+                  return done(err);
+                }
+
+                const submission = helper.getLastSubmission();
+
+                assert.ok(submission.data);
+                assert.equal(submission.data[selectComponent.key], selectComponentSubmission);
+                assert.ok(submission.metadata);
+                assert.deepEqual(submission.metadata, {
+                  selectData: testMetadata.selectData,
+                  offset: testMetadata.offset,
+                  timezone: testMetadata.timezone
+                });
+                done();
+              });
+          });
+      });
+
+      it('Should not collect browser metadata with PUT method', done => {
+        const selectComponent = test.components.find(comp => comp.type === 'select');
+        const selectComponentSubmission = test.submission[selectComponent.key];
+
+            const submission = helper.getLastSubmission();
+
+            helper
+              .submission(formNameForShortMeta, {
+                data: { [selectComponent.key]: selectComponentSubmission, _id: submission._id, form: submission.form },
+                metadata: testMetadata
+              })
+              .execute(err => {
+                if (err) {
+                  return done(err);
+                }
+
+                const submission = helper.getLastSubmission();
+
+                assert.ok(submission.data);
+                assert.equal(submission.data[selectComponent.key], selectComponentSubmission);
+                assert.ok(submission.metadata);
+                assert.deepEqual(submission.metadata, {
+                  selectData: testMetadata.selectData,
+                  offset: testMetadata.offset,
+                  timezone: testMetadata.timezone
+                });
+                done();
+              });
+          });
+
+
+      it('Should collect all browser metadata with POST method', done => {
+        const selectComponent = test.components.find(comp => comp.type === 'select');
+        const selectComponentSubmission = test.submission[selectComponent.key];
+
+
+        helper
+          .upsertForm({
+            title: chance.word(),
+            name: formNameForAllMeta,
+            path: chance.word(),
+            type: 'form',
+            components: [selectComponent],
+            settings: {
+              collectMetadata: true
+            }
+          }, (err, form) => {
+            if (err) {
+              return done(err);
+            }
+
+            assert.ok(form._id);
+            assert.equal(form.name, formNameForAllMeta);
+            assert.ok(form.settings && form.settings.hasOwnProperty('collectMetadata'));
+            assert.equal(form.settings.collectMetadata, true);
+
+            helper
+              .submission(formNameForAllMeta, {
+                data: { [selectComponent.key]: selectComponentSubmission },
+                metadata: testMetadata
+              })
+              .execute(err => {
+                if (err) {
+                  return done(err);
+                }
+
+                const submission = helper.getLastSubmission();
+
+                assert.ok(submission.data);
+                assert.equal(submission.data[selectComponent.key], selectComponentSubmission);
+                assert.ok(submission.metadata);
+                assert.ok(submission.metadata.headers);
+                assert.deepEqual(_.omit(submission.metadata, ['headers']), testMetadata);
+                done();
+              });
+          });
+      });
+
+      it('Should collect all browser metadata with PUT method', done => {
+
+        const selectComponent = test.components.find(comp => comp.type === 'select');
+        const selectComponentSubmission = test.submission[selectComponent.key];
+
+            const submission = helper.getLastSubmission();
+
+            helper
+              .submission(formNameForAllMeta, {
+                data: { [selectComponent.key]: selectComponentSubmission, _id: submission._id, form: submission.form },
+                metadata: testMetadata
+              })
+              .execute(err => {
+                if (err) {
+                  return done(err);
+                }
+
+                const submission = helper.getLastSubmission();
+
+                assert.ok(submission.data);
+                assert.equal(submission.data[selectComponent.key], selectComponentSubmission);
+                assert.ok(submission.metadata);
+                assert.ok(submission.metadata.headers);
+                assert.deepEqual(_.omit(submission.metadata, ['headers']), testMetadata);
+                done();
+              });
+        });
+
+
+
     });
 
     if (!docker)
