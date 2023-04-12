@@ -3398,6 +3398,24 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
+
+      it('Should filter data from submission', done => {
+        request(app)
+          .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission?data.fruit.data.name=Apple', helper.template))
+          .set('x-jwt-token', helper.template.users.user1.token)
+          .send()
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(res.body.length, 2);
+            res.body.forEach(item => {
+              assert.equal(item.data.fruit.data.name, 'Apple');
+            })
+            done();
+          });
+      });
     });
 
     describe('Advanced Conditions', () => {
