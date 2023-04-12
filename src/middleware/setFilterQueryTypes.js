@@ -53,7 +53,9 @@ module.exports = function(router) {
                   if (date.isValid()) {
                     return date.toDate();
                   }
+                  return value;
                 }
+                // TODO: fold the below into this switch
               }
               if (component.type === 'select' && (Number(value) || value === "0")) {
                 return Number(value);
