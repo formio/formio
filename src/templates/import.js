@@ -163,7 +163,7 @@ module.exports = (router) => {
         }
         else if (template.forms[formName].revisions) {
             const revisionId = entity.revision;
-            const revisionTemplate = template.revisions[`${formName}:${revisionId}`];
+            const revisionTemplate = template.revisions && template.revisions[`${formName}:${revisionId}`];
             const revision = revisionTemplate && revisionTemplate.newId ? revisionTemplate.newId
             : getFormRevision(template.forms[formName]._vid);
             updateRevisionProperty(entity, revision);
