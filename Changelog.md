@@ -2,9 +2,9 @@
 All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
-and this project adheres to [Semantic Versioning](http://semver.org/)//
+and this project adheres to [Semantic Versioning](http://semver.org/)
 
-## [Unreleased: 3.1.0-rc.6]
+## 3.1.0-rc.6
 ### Changed
  - Updated formiojs@4.15.0-rc.20
  - Updated resourcejs@2.6.0-rc.2
@@ -20,7 +20,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 ### Changed
  - Updated formiojs@4.15.0-rc.19
  - Updated formio-workers@1.17.0-rc.2
- 
 
 ### Fixed
  - FIO-5688: Allow for a DEFAULT_TRANSPORT to enable the default sending…
