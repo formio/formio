@@ -55,10 +55,12 @@ module.exports = function(router) {
                   }
                   return value;
                 }
-                // TODO: fold the below into this switch
-              }
-              if (component.type === 'select' && (Number(value) || value === "0")) {
-                return Number(value);
+                case 'select': {
+                  if (Number(value) || value === "0") {
+                    return Number(value);
+                  }
+                  return value;
+                }
               }
             }
             return value;

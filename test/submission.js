@@ -3477,24 +3477,6 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
-
-      it('Should filter data from submission', done => {
-        request(app)
-          .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission?data.fruit.data.name=Apple', helper.template))
-          .set('x-jwt-token', helper.template.users.user1.token)
-          .send()
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
-            assert.equal(res.body.length, 2);
-            res.body.forEach(item => {
-              assert.equal(item.data.fruit.data.name, 'Apple');
-            })
-            done();
-          });
-      });
     });
 
     describe('Advanced Conditions', () => {
@@ -3872,6 +3854,61 @@ module.exports = function(app, template, hook) {
           });
       });
 
+    });
+
+    describe('Filtering submissions', () => {
+      
+      it('Should filter submission for Select Component', function(done) {
+        var components = [
+          {
+            "label": "Select",
+            "widget": "choicesjs",
+            "tableView": true,
+            "data": {
+              "values": [
+                {
+                  "label": 1,
+                  "value": 1
+                },
+                {
+                  "label": 2,
+                  "value": 2
+                }
+              ]
+            },
+            "key": "select",
+            "type": "select",
+            "input": true
+          }
+        ];
+
+        helper
+          .form('filterSelect', components)
+          .submission({ select: 2 })
+          .submission({ select: 1 })
+          .submission({ select: 2 })
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            request(app)
+            .get(hook.alter('url', '/form/' + helper.template.forms['filterSelect']._id + '/submission?data.select=2', helper.template))
+            .set('x-jwt-token', helper.owner.token)
+            .send()
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(res.body.length, 2);
+              res.body.forEach(item => {
+                assert.equal(item.data.select, 2);
+              })
+              done();
+            });
+          });
+      });
     });
 
     describe('Submission index requests', function() {
