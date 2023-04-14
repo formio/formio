@@ -34,6 +34,85 @@ module.exports = function(app, template, hook) {
       helper.project().user('user', 'user1').execute(done);
     });
 
+    it('Should get the submission from separate mongo collection with api key', (done) => {
+      const test = require('./fixtures/forms/singlecomponents1.js');
+      const projectSettings = {
+        cors: '*',
+        allowConfig: true,
+        keys: [
+          {
+            name: 'Test Key',
+            key: '123testing123testing',
+          },
+        ],
+      };
+      const testProject = {
+        _id: 'testId',
+        title: 'testProject',
+        name: 'test_project',
+        type: 'project',
+        owner: template.users['user1']._id,
+        plan: 'commercial',
+        protect: false,
+        settings: projectSettings,
+        access: [
+          {
+            type: 'create_all',
+            roles: [template.roles.authenticated._id],
+          },
+          {
+            type: 'read_all',
+            roles: [template.roles.authenticated._id],
+          },
+          {
+            type: 'update_all',
+            roles: [template.roles.authenticated._id],
+          },
+          {
+            type: 'delete_all',
+            roles: [template.roles.authenticated._id],
+          },
+        ]
+      };
+      process.env.API_KEYS = '123testing123testing';
+
+      helper.form('test', test.components).execute(function (err) {
+        if (err) {
+          return done(err);
+        }
+
+        helper.template.forms['test'].settings = {
+          collection: 'testCollection',
+        };
+
+        helper.submission(test.submission).execute(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = helper.getLastSubmission();
+          helper.template.project = testProject;
+
+          request(app)
+            .get(hook.alter('url', '/form/' + helper.template.forms['test']._id + '/submission/' + submission._id, template))
+            .set('x-token', '123testing123testing')
+            .send()
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              assert.equal(res.body._id, submission._id);
+              assert.deepEqual(res.body.data, submission.data);
+
+              helper.template.project = null;
+              process.env.API_KEYS = '';
+              done();
+            });
+        });
+      });
+    });
+
     describe('Unnested Submissions', function() {
       it('Saves values for each single value component type1', function(done) {
         var test = require('./fixtures/forms/singlecomponents1.js');

@@ -4,7 +4,34 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 3.1.0-rc.1]
+## 3.1.0-rc.5
+### Fixed
+ - FIO 6579: another potential problem with legacy templates
+ - FIO-6424: fixed displaying of Select component with Save as reference property when download PDF
+
+## 3.1.0-rc.4
+### Changed
+ - TO-DO: ADD INFO HERE.
+
+## 3.1.0-rc.3
+### Changed
+ - Updated formiojs@4.15.0-rc.19
+ - Updated formio-workers@1.17.0-rc.2
+ 
+
+### Fixed
+ - FIO-5688: Allow for a DEFAULT_TRANSPORT to enable the default sending…
+
+## 3.1.0-rc.2
+### Changed
+ - Revert "FIO-5497: fixed DeprecationWarning for crypto.createDecipher"
+ - FIO-5709: fix the response radio value in the CSV shows as blank
+
+## 3.1.0-rc.1
+### Changed
+ - Updated formiojs@4.15.0-rc.18
+ - Updated formio-workers@1.17.0-rc.1
+
 ### Changed
  - Increment minor version.
  - Remove submission collection tests in open source core
@@ -25,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-6069: document db restrictions handling
  - FIO-5904: Fixed a bug where data for form components wouldn't save if outside of a wizard
  - FIO-5688: Allow for a DEFAULT_TRANSPORT to enable the default sending method for emails.
+ - FIO-6579: Fix project template exports crashing the server
 
 ## 3.0.0-rc.11
 ### Fixed
