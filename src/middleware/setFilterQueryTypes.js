@@ -53,13 +53,11 @@ module.exports = function(router) {
                   if (date.isValid()) {
                     return date.toDate();
                   }
-                  return value;
                 }
                 case 'select': {
                   if (Number(value) || value === "0") {
                     return Number(value);
                   }
-                  return value;
                 }
               }
             }
