@@ -4,10 +4,20 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 3.1.0-rc.5
+### Fixed
+ - FIO 6579: another potential problem with legacy templates
+ - FIO-6424: fixed displaying of Select component with Save as reference property when download PDF
+
+## 3.1.0-rc.4
+### Changed
+ - TO-DO: ADD INFO HERE.
+
 ## 3.1.0-rc.3
 ### Changed
  - Updated formiojs@4.15.0-rc.19
  - Updated formio-workers@1.17.0-rc.2
+ 
 
 ### Fixed
  - FIO-5688: Allow for a DEFAULT_TRANSPORT to enable the default sending…
