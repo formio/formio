@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 3.1.0-rc.7
+### Fixed
+ - Revert "FIO-4216: Fixes 'Resource not found' issue when using submission collection and trying to retrieve submission using x-token"
+
 ## 3.1.0-rc.6
 ### Changed
  - Updated formiojs@4.15.0-rc.20
