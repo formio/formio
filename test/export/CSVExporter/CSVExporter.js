@@ -5,6 +5,7 @@ module.exports = function(app, template, hook) {
   let helper = null;
   const test = require('../../fixtures/forms/datetime-format.js');
   const testFile = require('../../fixtures/forms/fileComponent.js');
+  const testRadio = require('../../fixtures/forms/radioComponent');
 
   function getComponentValue(exportedText, compKey, submissionIndex) {
     const rows = exportedText.split('\n');
@@ -95,6 +96,34 @@ module.exports = function(app, template, hook) {
             const expectedValue =
               '"myFilePrefix-sunil-naik-0eNs9-dO9jM-unsplash-91e11557-3e57-465f-acf7-2e6ae867f45b.jpg, ' +
               'myFilePrefix-szabolcs-toth-t6A2qw9gjAo-unsplash-e88df4aa-0de1-4f40-982c-12cf88974c51.jpg"';
+            assert.strictEqual(fileValue, expectedValue);
+            done();
+          });
+        });
+    });
+
+    it(`Test displaying File values in Radio component`, (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form('testRadio', testRadio.components)
+        .submission({
+          data: {
+            "radio": false
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(helper.template.forms.testRadio, 'csv', (error, result) => {
+            if (error) {
+              done(error);
+            }
+
+            const fileValue = getComponentValue(result.text, 'radio', 0);
+            const expectedValue = '"false"';
             assert.strictEqual(fileValue, expectedValue);
             done();
           });
