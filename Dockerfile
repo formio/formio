@@ -4,15 +4,17 @@
 
 # Use Node image, maintained by Docker:
 # hub.docker.com/r/_/node/
-FROM node:lts-alpine3.10
+# UPDATA LAST  NODE LTS
+FROM node:lts-alpine
 WORKDIR /app
 
 # "bcrypt" requires python/make/g++, all must be installed in alpine
 # (note: using pinned versions to ensure immutable build environment)
+# REMOVE PINNED VERSIONS TO OLD.....
 RUN apk update && \
-    apk upgrade && \
-    apk add make=4.2.1-r2 && \
-    apk add g++=8.3.0-r0
+  apk upgrade && \
+  apk add make && \
+  apk add g++
 
 # At least one buried package dependency is using a `git` path.
 # Hence we need to haul in git.
@@ -24,8 +26,8 @@ RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.co
 # to allow overwriting the /app folder at runtime
 # stackoverflow.com/a/13021677
 ENV NPM_PACKAGES=/.npm-packages \
-    PATH=$NPM_PACKAGES/bin:$PATH \
-    NODE_PATH=$NPM_PACKAGES/lib/node_modules:$NODE_PATH
+  PATH=$NPM_PACKAGES/bin:$PATH \
+  NODE_PATH=$NPM_PACKAGES/lib/node_modules:$NODE_PATH
 RUN echo "prefix = $NPM_PACKAGES" >> ~/.npmrc
 
 # Include details of the required dependencies
