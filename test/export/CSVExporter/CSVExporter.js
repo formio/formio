@@ -8,6 +8,7 @@ module.exports = function(app, template, hook) {
   const test = require('../../fixtures/forms/datetime-format.js');
   const testFile = require('../../fixtures/forms/fileComponent.js');
   const testTags = require('../../fixtures/forms/tagsWithDelimiter.js');
+  const testRadio = require('../../fixtures/forms/radioComponent');
 
   function getComponentValue(exportedText, compKey, submissionIndex) {
     const rows = exportedText.split('\n');
@@ -30,11 +31,11 @@ module.exports = function(app, template, hook) {
   }
 
   describe('CSVExporter', () => {
-    // it('Sets up a default project', (done) => {
-    //   let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
-    //   helper = new Helper(owner);
-    //   helper.project().user('user', 'user1').execute(done);
-    // });
+    it('Sets up a default project', (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper.project().user('user', 'user1').execute(done);
+    });
 
     it(`Export works in case when format is not set`, (done) => {
       let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
@@ -105,35 +106,63 @@ module.exports = function(app, template, hook) {
     });
 
     it(`Test using Tags delimiter`, (done) => {
+      let owner = (
+          app.hasProjects || docker
+      ) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form('testTags', testTags.components)
+        .submission({
+          data: {
+            tags: [
+              'tag1', 'tag2', 'tag3',
+            ],
+          },
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(helper.template.forms.testTags, 'csv', (error, result) => {
+            if (error) {
+              done(error);
+            }
+
+            const tagsValue = getComponentValue(result.text, 'tags', 0);
+            const expectedValue = '"tag1!tag2!tag3"';
+            assert.strictEqual(tagsValue, expectedValue);
+            done();
+          });
+        });
+    });
+
+    it(`Test displaying File values in Radio component`, (done) => {
       let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
-          .project()
-          .form('testTags', testTags.components)
-          .submission({
-            data: {
-              tags: [
-                'tag1',
-                'tag2',
-                'tag3',
-              ],
-            },
-          })
-          .execute((err) => {
-            if (err) {
-              return done(err);
+        .project()
+        .form('testRadio', testRadio.components)
+        .submission({
+          data: {
+            "radio": false
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(helper.template.forms.testRadio, 'csv', (error, result) => {
+            if (error) {
+              done(error);
             }
-            helper.getExport(helper.template.forms.testTags, 'csv', (error, result) => {
-              if (error) {
-                done(error);
-              }
 
-              const tagsValue = getComponentValue(result.text, 'tags', 0);
-              const expectedValue = '"tag1!tag2!tag3"';
-              assert.strictEqual(tagsValue, expectedValue);
-              done();
-            });
+            const fileValue = getComponentValue(result.text, 'radio', 0);
+            const expectedValue = '"false"';
+            assert.strictEqual(fileValue, expectedValue);
+            done();
           });
+        });
     });
   });
 };
