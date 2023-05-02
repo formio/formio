@@ -1,3 +1,5 @@
+const testFile = require('../../fixtures/forms/fileComponent.js');
+const assert = require('assert');
 module.exports = function(app, template, hook) {
   const docker = process.env.DOCKER;
   const assert = require('assert');
@@ -5,6 +7,7 @@ module.exports = function(app, template, hook) {
   let helper = null;
   const test = require('../../fixtures/forms/datetime-format.js');
   const testFile = require('../../fixtures/forms/fileComponent.js');
+  const testTags = require('../../fixtures/forms/tagsWithDelimiter.js');
 
   function getComponentValue(exportedText, compKey, submissionIndex) {
     const rows = exportedText.split('\n');
@@ -27,11 +30,11 @@ module.exports = function(app, template, hook) {
   }
 
   describe('CSVExporter', () => {
-    it('Sets up a default project', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
-      helper = new Helper(owner);
-      helper.project().user('user', 'user1').execute(done);
-    });
+    // it('Sets up a default project', (done) => {
+    //   let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+    //   helper = new Helper(owner);
+    //   helper.project().user('user', 'user1').execute(done);
+    // });
 
     it(`Export works in case when format is not set`, (done) => {
       let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
@@ -99,6 +102,38 @@ module.exports = function(app, template, hook) {
             done();
           });
         });
+    });
+
+    it(`Test using Tags delimiter`, (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+          .project()
+          .form('testTags', testTags.components)
+          .submission({
+            data: {
+              tags: [
+                'tag1',
+                'tag2',
+                'tag3',
+              ],
+            },
+          })
+          .execute((err) => {
+            if (err) {
+              return done(err);
+            }
+            helper.getExport(helper.template.forms.testTags, 'csv', (error, result) => {
+              if (error) {
+                done(error);
+              }
+
+              const tagsValue = getComponentValue(result.text, 'tags', 0);
+              const expectedValue = '"tag1!tag2!tag3"';
+              assert.strictEqual(tagsValue, expectedValue);
+              done();
+            });
+          });
     });
   });
 };

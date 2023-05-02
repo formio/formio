@@ -365,7 +365,7 @@ class CSVExporter extends Exporter {
               }
 
               const formatted = value.join(component.delimeter || ',');
-              
+
               return formatted;
             }
           });
