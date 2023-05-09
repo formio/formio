@@ -6,10 +6,6 @@ A combined form and API platform for Serverless applications
 Form.io is a revolutionary combined Form and API platform for Serverless applications. This repository serves as the core Form and API engine for https://form.io. This system allows you to build "serverless" data management applications using a simple drag-and-drop form builder interface. These forms can then easily be embedded within your Angular.js and React applications using the
 ```<formio>``` HTML element.
 
-Form.io is Hiring!
--------------------
-If you like what you see, and would like to come and work for a cutting edge, Open Source core company, then please apply online @ [https://form-talent.freshteam.com/jobs](https://form-talent.freshteam.com/jobs)!
-
 Walkthrough video and tutorial
 -------------------
 For a walkthrough tutorial on how to use this Open Source platform to build a Serverless application, watch the video [0 to M.E.A.N in 30 minutes](https://www.youtube.com/watch?v=d2gTYkPFhPI)
