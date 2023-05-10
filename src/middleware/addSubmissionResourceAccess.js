@@ -58,7 +58,7 @@ module.exports = (router) => {
           }
 
           let value = _.get(req.body.data, path);
-          if (req.method === 'PATCH') {
+          if (value && value.id && req.method === 'PATCH') {
             value._id = value.id.toString();
           }
           if (value) {
