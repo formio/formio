@@ -323,8 +323,7 @@ module.exports = function(config) {
 
         // Add the available templates.
         router.formio.templates = {
-          default: _.cloneDeep(require('./src/templates/default.json')),
-          empty: _.cloneDeep(require('./src/templates/empty.json'))
+          default: _.cloneDeep(require('./src/templates/default.json'))
         };
 
         // Add the template functions.
