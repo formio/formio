@@ -12,7 +12,7 @@ module.exports = (router, resourceName, resourceId) => {
   const pActions = require('../actions/properties')(router);
   const handlers = {};
 
-  // Iterate through the possible handlers.
+  // Iterate through the possible handlers.//
   [
     {
       name: 'read',
