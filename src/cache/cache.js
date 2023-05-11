@@ -572,7 +572,7 @@ module.exports = function(router) {
         if (Array.isArray(subData)) {
           return subData.forEach((_, idx) => getSubs(component.components, `${path}[${idx}]`));
         }
-        if (component.type === 'form') {
+        if (component.type === 'form' || component.reference) {
           const subData = _.get(submission.data, path);
           if (subData && subData._id) {
             subs[subData._id.toString()] = {component, path, data: subData.data};
