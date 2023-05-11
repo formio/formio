@@ -192,7 +192,8 @@ module.exports = function(router) {
             return res.status(400).send('No Submission was found with the given setting `submission`.');
           }
 
-          debug.loadUser(user);
+          const {data, ...userToLog} = user;
+          debug.loadUser(userToLog);
           return callback(user);
         });
       };

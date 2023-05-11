@@ -300,7 +300,8 @@ module.exports = (router) => {
             }
             else {
               // Update the user with the hook results.
-              debug.authenticate(user);
+              const {data, ...userToLog} = user;
+              debug.authenticate(userToLog);
               user = _user;
             }
 

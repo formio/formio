@@ -208,7 +208,8 @@ module.exports = (router) => {
             return next();
           }
 
-          debug.handler(user);
+          const {data, ...userToLog} = user;
+          debug.handler(userToLog);
 
           hook.alter('validateToken', req, decoded, user, (err) => {
             if (err) {
