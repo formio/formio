@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
 
 ### Fixed
  - FIO-6414 fixed filtering issues inside DT
+ - FIO-4500: Fixes an issue where specified in the component settings delimiter is not used for CSVExport of Tags component data
 
 ## 3.1.0-rc.8
 ### Changed
