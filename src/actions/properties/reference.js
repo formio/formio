@@ -208,7 +208,7 @@ module.exports = (router) => {
           resolve(form);
         })
       );
-      // Get the subquery.
+      // Get the subquery.//
       const subQuery = getSubQuery(formId, req.query, path);
       const subQueryReq = {query: subQuery.match};
       const subFindQuery = router.formio.resources.submission.getFindQuery(subQueryReq);
