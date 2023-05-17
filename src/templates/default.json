@@ -215,6 +215,1783 @@
           "input": true
         }
       ]
+    },
+    "reportingui": {
+      "title": "Reporting UI",
+      "type": "resource",
+      "name": "reportingui",
+      "path": "reportingui",
+      "display": "wizard",
+      "tags": [
+        "formioReports"
+      ],
+      "settings": {
+        "wizardHeaderType": "Vertical"
+      },
+      "components": [
+        {
+          "title": "Basic Settings",
+          "breadcrumbClickable": true,
+          "buttonSettings": {
+            "previous": true,
+            "cancel": true,
+            "next": true
+          },
+          "navigateOnEnter": false,
+          "saveOnEnter": false,
+          "scrollToTop": false,
+          "collapsible": false,
+          "key": "basic",
+          "type": "panel",
+          "label": "Page 6",
+          "input": false,
+          "tableView": false,
+          "components": [
+            {
+              "html": "<p><span class=\"text-big\"><strong>Basic Reporting Settings</strong></span></p>",
+              "label": "Basic Reporting Settings",
+              "refreshOnChange": false,
+              "key": "basicReportingSettings",
+              "type": "content",
+              "input": false,
+              "tableView": false
+            },
+            {
+              "label": "Columns",
+              "columns": [
+                {
+                  "components": [
+                    {
+                      "label": "Title",
+                      "placeholder": "Reporting Title",
+                      "applyMaskOn": "change",
+                      "tableView": true,
+                      "validate": {
+                        "required": true
+                      },
+                      "key": "title",
+                      "type": "textfield",
+                      "input": true
+                    }
+                  ],
+                  "width": 6,
+                  "offset": 0,
+                  "push": 0,
+                  "pull": 0,
+                  "size": "md",
+                  "currentWidth": 6
+                },
+                {
+                  "components": [
+                    {
+                      "label": "Name",
+                      "placeholder": "Reporting Name",
+                      "applyMaskOn": "change",
+                      "tableView": true,
+                      "calculateValue": "value = _.camelCase(data.title);\n\n",
+                      "allowCalculateOverride": true,
+                      "validate": {
+                        "pattern": "(\\w|\\w[\\w-.]*\\w)",
+                        "patternMessage": "The key must only contain alphanumeric characters, underscores, dots and dashes and should not be ended by dash or dot."
+                      },
+                      "key": "name",
+                      "logic": [
+                        {
+                          "name": "make required",
+                          "trigger": {
+                            "type": "javascript",
+                            "javascript": "result = data.title;"
+                          },
+                          "actions": [
+                            {
+                              "name": "make required",
+                              "type": "property",
+                              "property": {
+                                "label": "Required",
+                                "value": "validate.required",
+                                "type": "boolean"
+                              },
+                              "state": true
+                            }
+                          ]
+                        }
+                      ],
+                      "type": "textfield",
+                      "input": true
+                    }
+                  ],
+                  "width": 6,
+                  "offset": 0,
+                  "push": 0,
+                  "pull": 0,
+                  "size": "md",
+                  "currentWidth": 6
+                }
+              ],
+              "key": "columns1",
+              "type": "columns",
+              "input": false,
+              "tableView": false
+            },
+            {
+              "label": "Reporting Forms",
+              "persistent": "client-only",
+              "trigger": {
+                "init": false,
+                "server": false
+              },
+              "refreshOn": "forms",
+              "refreshOnEvent": "formsSet",
+              "event": "reportingFormsUpdated",
+              "dataSrc": "url",
+              "fetch": {
+                "url": "{{Formio.projectUrl}}/form?_id__in={{data.forms.join(\",\")}}",
+                "method": "get",
+                "headers": [
+                  {
+                    "key": "",
+                    "value": ""
+                  }
+                ],
+                "mapFunction": "value = _.isArray(responseData) ? responseData : [];",
+                "forwardHeaders": false,
+                "authenticate": true
+              },
+              "allowCaching": true,
+              "key": "reportingForms",
+              "type": "datasource",
+              "input": true,
+              "tableView": false
+            },
+            {
+              "label": "Share Settings",
+              "key": "shareSettings",
+              "type": "hidden",
+              "input": true,
+              "tableView": false
+            },
+            {
+              "label": "Container",
+              "tableView": false,
+              "key": "gridSettings",
+              "type": "container",
+              "input": true,
+              "components": [
+                {
+                  "html": "<p><span class=\"text-big\">Reporting Grid Basic Settings</span></p>",
+                  "label": "Reporting Grid Basic Settings",
+                  "refreshOnChange": false,
+                  "key": "basicReportingSettings3",
+                  "type": "content",
+                  "input": false,
+                  "tableView": false
+                },
+                {
+                  "label": "Items per page",
+                  "widget": "choicesjs",
+                  "tooltip": "Select how many records to display on each page of the Reporting Grid.",
+                  "tableView": true,
+                  "defaultValue": 10,
+                  "data": {
+                    "values": [
+                      {
+                        "label": "5",
+                        "value": 5
+                      },
+                      {
+                        "label": "10",
+                        "value": 10
+                      },
+                      {
+                        "label": "25",
+                        "value": 25
+                      },
+                      {
+                        "label": "50",
+                        "value": 50
+                      },
+                      {
+                        "label": "100",
+                        "value": 100
+                      },
+                      {
+                        "label": "All",
+                        "value": -1
+                      }
+                    ]
+                  },
+                  "key": "itemsPerPage",
+                  "type": "select",
+                  "input": true,
+                  "weight": 442
+                },
+                {
+                  "label": "Enable to Store Request Result in the Cache",
+                  "tooltip": "When checked, the requests and its results will be stored in the cache and if the Reporting will try to make the request to the same URL with the same paremetrs, the cached data will be returned. It allows to increase performance, but if the remote source's data is changing quite often and you always need to keep it up-to-date, uncheck this option.",
+                  "tableView": false,
+                  "defaultValue": true,
+                  "key": "allowCaching",
+                  "type": "checkbox",
+                  "input": true
+                },
+                {
+                  "label": "Cell max width",
+                  "tooltip": "It sets the maximum size of the Reporting Grid cells.",
+                  "applyMaskOn": "change",
+                  "tableView": true,
+                  "key": "cellMaxWidth",
+                  "type": "textfield",
+                  "input": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Data Source(s)",
+          "breadcrumbClickable": true,
+          "buttonSettings": {
+            "previous": true,
+            "cancel": true,
+            "next": true
+          },
+          "navigateOnEnter": false,
+          "saveOnEnter": false,
+          "scrollToTop": false,
+          "collapsible": false,
+          "key": "dataSourcePanel",
+          "type": "panel",
+          "label": "Page 1",
+          "input": false,
+          "tableView": false,
+          "components": [
+            {
+              "html": "<p><span class=\"text-big\"><strong>Reporting Data Sources</strong></span></p>",
+              "label": "Basic Reporting Settings",
+              "refreshOnChange": false,
+              "key": "basicReportingSettings1",
+              "type": "content",
+              "input": false,
+              "tableView": false
+            },
+            {
+              "label": "Form(s) to create Reporting UI",
+              "widget": "choicesjs",
+              "tooltip": "Select one or more related forms that will be the source of data for the Reporting Grid.",
+              "tableView": false,
+              "multiple": true,
+              "dataSrc": "url",
+              "data": {
+                "url": "{{Formio.projectUrl}}/form",
+                "headers": [
+                  {
+                    "key": "",
+                    "value": ""
+                  }
+                ]
+              },
+              "valueProperty": "_id",
+              "template": "<span>{{ item.title }}</span>",
+              "validate": {
+                "required": true,
+                "select": false
+              },
+              "key": "forms",
+              "type": "select",
+              "disableLimit": false,
+              "searchField": "title__regex",
+              "noRefreshOnScroll": false,
+              "authenticate": true,
+              "input": true
+            },
+            {
+              "label": "Forms Connections",
+              "tooltip": "Define the fields that are common for the pairs of forms. The fields will be used as connectors to join the submissions of source forms in the Reporting Grid.",
+              "tableView": false,
+              "templates": {
+                "header": "<div class=\"row\">\n      {% util.eachComponent(components, function(component) { %}\n        {% if (displayValue(component)) { %}\n          <div class=\"col-sm-6 font-weight-bold\">{{ t(component.label) }}</div>\n        {% } %}\n      {% }) %}\n    </div>",
+                "row": "<div class=\"row\">\n      {% util.eachComponent(components, function(component) { %}\n        {% if (displayValue(component)) { %}\n        {% if (component.key === 'baseForm') { %}\n          <div class=\"col-sm-6\">\n            {% } else { %}\n              <div class=\"col-sm-4\">\n                  {% } %}\n            {{ isVisibleInRow(component) ? getView(component, row[component.key]) : ''}}\n          </div>\n        {% } %}\n      {% }) %}\n      {% if (!instance.options.readOnly && !instance.disabled) { %}\n        <div class=\"col-sm-2\">\n          <div class=\"btn-group pull-right\">\n            <button class=\"btn btn-default btn-light btn-sm editRow\"><i class=\"{{ iconClass('edit') }}\"></i></button>\n            {% if (!instance.hasRemoveButtons || instance.hasRemoveButtons()) { %}\n              <button class=\"btn btn-danger btn-sm removeRow\"><i class=\"{{ iconClass('trash') }}\"></i></button>\n            {% } %}\n          </div>\n        </div>\n      {% } %}\n    </div>"
+              },
+              "addAnother": "Add Connection",
+              "redrawOn": "reportingForms",
+              "validate": {
+                "required": true
+              },
+              "rowDrafts": false,
+              "key": "connections",
+              "customConditional": "show = data.forms && data.forms.length > 1;",
+              "logic": [
+                {
+                  "name": "min max validation",
+                  "trigger": {
+                    "type": "javascript",
+                    "javascript": "result = !!data.reportingForms;"
+                  },
+                  "actions": [
+                    {
+                      "name": "min max validation",
+                      "type": "mergeComponentSchema",
+                      "schemaDefinition": "schema = {validate: {\n  maxLength: data.reportingForms.length - 1,\n  minLength: data.reportingForms.length - 1,\n}}"
+                    }
+                  ]
+                }
+              ],
+              "type": "editgrid",
+              "displayAsTable": false,
+              "reorder": false,
+              "addAnotherPosition": "bottom",
+              "layoutFixed": false,
+              "enableRowGroups": false,
+              "initEmpty": false,
+              "input": true,
+              "components": [
+                {
+                  "label": "Data Source Connections",
+                  "columns": [
+                    {
+                      "components": [
+                        {
+                          "label": "Base Form",
+                          "widget": "choicesjs",
+                          "placeholder": "Source Form",
+                          "tooltip": "Select the form that has a common field with the row Joining Form.",
+                          "tableView": true,
+                          "dataSrc": "custom",
+                          "data": {
+                            "custom": "var rowIndex = instance.rowIndex;\nvar connections = instance.root.data.connections;\n\nvalues = utils.reporting.getConnectionBaseFormOptions(data.reportingForms, connections, rowIndex)\n"
+                          },
+                          "valueProperty": "value",
+                          "validate": {
+                            "required": true
+                          },
+                          "key": "baseForm",
+                          "type": "select",
+                          "input": true
+                        },
+                        {
+                          "label": "Connecting Field of Base Form",
+                          "widget": "choicesjs",
+                          "placeholder": "Connecting Field",
+                          "tooltip": "Select the Base Form field that has a correcponding field in the row Joining Form.",
+                          "disabled": true,
+                          "tableView": false,
+                          "dataSrc": "custom",
+                          "data": {
+                            "custom": "values = utils.reporting.getConnectionFormComponentsAsOptions(row.baseForm, data.reportingForms);\n"
+                          },
+                          "valueProperty": "value",
+                          "validate": {
+                            "required": true
+                          },
+                          "key": "baseFormField",
+                          "logic": [
+                            {
+                              "name": "enable",
+                              "trigger": {
+                                "type": "javascript",
+                                "javascript": "result = row.baseForm"
+                              },
+                              "actions": [
+                                {
+                                  "name": "enable",
+                                  "type": "property",
+                                  "property": {
+                                    "label": "Disabled",
+                                    "value": "disabled",
+                                    "type": "boolean"
+                                  },
+                                  "state": false
+                                }
+                              ]
+                            },
+                            {
+                              "name": "clear value",
+                              "trigger": {
+                                "type": "javascript",
+                                "javascript": "result = !row.baseForm"
+                              },
+                              "actions": [
+                                {
+                                  "name": "clear value",
+                                  "type": "customAction",
+                                  "customAction": "instance.dataValue = instance.emptyValue"
+                                }
+                              ]
+                            }
+                          ],
+                          "type": "select",
+                          "input": true
+                        },
+                        {
+                          "label": "Base Form Path to Connecting Value",
+                          "placeholder": "Path",
+                          "applyMaskOn": "change",
+                          "tableView": false,
+                          "key": "baseFormValuePath",
+                          "customConditional": "show = !_.includes([utils.reporting.connectionByFullSubmissionObjectOptionValue], row.baseFormField);",
+                          "type": "textfield",
+                          "input": true
+                        }
+                      ],
+                      "width": 6,
+                      "offset": 0,
+                      "push": 0,
+                      "pull": 0,
+                      "size": "md",
+                      "currentWidth": 6
+                    },
+                    {
+                      "components": [
+                        {
+                          "label": "Joining Form",
+                          "widget": "choicesjs",
+                          "placeholder": "Source Form",
+                          "tooltip": "Select the form that has a common field with the row Base Form.",
+                          "tableView": true,
+                          "dataSrc": "custom",
+                          "data": {
+                            "custom": "var rowIndex = instance.rowIndex;\nvar connections = instance.root.data.connections;\n\nvalues = utils.reporting.getConnectionJoiningFormOptions(data.reportingForms, connections, rowIndex);\n\n"
+                          },
+                          "valueProperty": "value",
+                          "refreshOn": "connections.baseForm",
+                          "validate": {
+                            "required": true
+                          },
+                          "key": "joiningForm",
+                          "type": "select",
+                          "input": true
+                        },
+                        {
+                          "label": "Connecting Field of Joining Form",
+                          "widget": "choicesjs",
+                          "placeholder": "Connecting Field",
+                          "tooltip": "Select the Joining Form field that corresponds to the Connecting Field of the Base Form.",
+                          "disabled": true,
+                          "tableView": false,
+                          "dataSrc": "custom",
+                          "data": {
+                            "custom": "values = utils.reporting.getConnectionFormComponentsAsOptions(row.joiningForm, data.reportingForms);\n"
+                          },
+                          "valueProperty": "value",
+                          "validate": {
+                            "required": true
+                          },
+                          "key": "joiningFormField",
+                          "logic": [
+                            {
+                              "name": "enable",
+                              "trigger": {
+                                "type": "javascript",
+                                "javascript": "result = row.joiningForm"
+                              },
+                              "actions": [
+                                {
+                                  "name": "enable",
+                                  "type": "property",
+                                  "property": {
+                                    "label": "Disabled",
+                                    "value": "disabled",
+                                    "type": "boolean"
+                                  },
+                                  "state": false
+                                }
+                              ]
+                            },
+                            {
+                              "name": "clear value",
+                              "trigger": {
+                                "type": "javascript",
+                                "javascript": "result = !row.joiningForm"
+                              },
+                              "actions": [
+                                {
+                                  "name": "clear value",
+                                  "type": "customAction",
+                                  "customAction": "instance.dataValue = instance.emptyValue"
+                                }
+                              ]
+                            }
+                          ],
+                          "type": "select",
+                          "input": true
+                        },
+                        {
+                          "label": "Joining Form Path to Connecting Value",
+                          "placeholder": "Path",
+                          "applyMaskOn": "change",
+                          "tableView": false,
+                          "key": "joiningFormValuePath",
+                          "customConditional": "show = !_.includes([utils.reporting.connectionByFullSubmissionObjectOptionValue], row.joiningFormField);",
+                          "type": "textfield",
+                          "input": true
+                        }
+                      ],
+                      "width": 6,
+                      "offset": 0,
+                      "push": 0,
+                      "pull": 0,
+                      "size": "md",
+                      "currentWidth": 6
+                    }
+                  ],
+                  "hideLabel": true,
+                  "key": "columns",
+                  "type": "columns",
+                  "input": false,
+                  "tableView": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Calculated Extra Columns",
+          "breadcrumbClickable": true,
+          "buttonSettings": {
+            "previous": true,
+            "cancel": true,
+            "next": true
+          },
+          "navigateOnEnter": false,
+          "saveOnEnter": false,
+          "scrollToTop": false,
+          "collapsible": false,
+          "key": "extraColumnsPanel",
+          "type": "panel",
+          "label": "Page 7",
+          "input": false,
+          "tableView": false,
+          "components": [
+            {
+              "html": "<p><span class=\"text-big\"><strong>Calculated Extra Columns</strong></span></p><p><i>Here you can add columns to the Reporting Grid that does not exist in the the Data Source Forms. Those columns` value will be calculated based on the fields of the Data Source Forms.&nbsp;</i></p>",
+              "label": "Basic Reporting Settings",
+              "refreshOnChange": false,
+              "key": "basicReportingSettings4",
+              "type": "content",
+              "input": false,
+              "tableView": false
+            },
+            {
+              "label": "Calculated Extra Columns",
+              "hideLabel": true,
+              "tableView": false,
+              "templates": {
+                "header": "<div class=\"row\">\n      {% util.eachComponent(components, function(component) { %}\n        {% if (displayValue(component)) { %}\n          <div class=\"col-sm-4 font-weight-bold\">{{ t(component.label) }}</div>\n        {% } %}\n      {% }) %}\n    </div>",
+                "row": "<div class=\"row\">\n      {% util.eachComponent(components, function(component) { %}\n        {% if (displayValue(component)) { %}\n          <div class=\"col-sm-4\">\n            {{ isVisibleInRow(component) ? getView(component, row[component.key]) : ''}}\n          </div>\n        {% } %}\n      {% }) %}\n      {% if (!instance.options.readOnly && !instance.disabled) { %}\n        <div class=\"col-sm-4\">\n          <div class=\"btn-group pull-right\">\n            <button class=\"btn btn-default btn-light btn-sm editRow\"><i class=\"{{ iconClass('edit') }}\"></i></button>\n            {% if (!instance.hasRemoveButtons || instance.hasRemoveButtons()) { %}\n              <button class=\"btn btn-danger btn-sm removeRow\"><i class=\"{{ iconClass('trash') }}\"></i></button>\n            {% } %}\n          </div>\n        </div>\n      {% } %}\n    </div>"
+              },
+              "addAnother": "Add Column",
+              "redrawOn": "reportingForms",
+              "rowDrafts": false,
+              "key": "calculatedColumns",
+              "type": "editgrid",
+              "displayAsTable": false,
+              "input": true,
+              "components": [
+                {
+                  "label": "Columns",
+                  "columns": [
+                    {
+                      "components": [
+                        {
+                          "label": "Column Title",
+                          "applyMaskOn": "change",
+                          "tableView": true,
+                          "validate": {
+                            "required": true
+                          },
+                          "key": "name",
+                          "type": "textfield",
+                          "input": true
+                        }
+                      ],
+                      "width": 6,
+                      "offset": 0,
+                      "push": 0,
+                      "pull": 0,
+                      "size": "md",
+                      "currentWidth": 6
+                    },
+                    {
+                      "components": [
+                        {
+                          "label": "Column Key",
+                          "applyMaskOn": "change",
+                          "tableView": false,
+                          "calculateValue": "value = _.camelCase(row.name);",
+                          "allowCalculateOverride": true,
+                          "validate": {
+                            "pattern": "(\\w|\\w[\\w-.]*\\w)",
+                            "patternMessage": "The key must only contain alphanumeric characters, underscores, dots and dashes and should not be ended by dash or dot."
+                          },
+                          "key": "key",
+                          "logic": [
+                            {
+                              "name": "make required",
+                              "trigger": {
+                                "type": "javascript",
+                                "javascript": "result = row.title;"
+                              },
+                              "actions": [
+                                {
+                                  "name": "make required",
+                                  "type": "property",
+                                  "property": {
+                                    "label": "Required",
+                                    "value": "validate.required",
+                                    "type": "boolean"
+                                  },
+                                  "state": true
+                                }
+                              ]
+                            }
+                          ],
+                          "type": "textfield",
+                          "input": true
+                        }
+                      ],
+                      "width": 6,
+                      "offset": 0,
+                      "push": 0,
+                      "pull": 0,
+                      "size": "md",
+                      "currentWidth": 6
+                    }
+                  ],
+                  "key": "columns",
+                  "type": "columns",
+                  "input": false,
+                  "tableView": false
+                },
+                {
+                  "label": "Operator",
+                  "widget": "choicesjs",
+                  "tooltip": "Select operator to calculate column value.",
+                  "tableView": true,
+                  "dataSrc": "custom",
+                  "data": {
+                    "custom": "values = utils.reporting.getAggregationOperatorsOptions(false);\n"
+                  },
+                  "valueProperty": "value",
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "operator",
+                  "type": "select",
+                  "input": true
+                },
+                {
+                  "label": "Arguments",
+                  "widget": "choicesjs",
+                  "tableView": false,
+                  "multiple": true,
+                  "dataSrc": "custom",
+                  "defaultValue": [
+                    {}
+                  ],
+                  "data": {
+                    "custom": "var reportingForms = instance.root.data.reportingForms;\nvalues = utils.reporting.getReportingFormsComponentsAsOptions(reportingForms, row.operator);"
+                  },
+                  "valueProperty": "value",
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "args",
+                  "customConditional": "show = utils.reporting.showAggregationOperatorArg(instance.component.key, row.operator);",
+                  "type": "select",
+                  "input": true
+                },
+                {
+                  "label": "Argument",
+                  "widget": "choicesjs",
+                  "tableView": false,
+                  "dataSrc": "custom",
+                  "defaultValue": [
+                    {}
+                  ],
+                  "data": {
+                    "custom": "var reportingForms = instance.root.data.reportingForms;\nvalues = utils.reporting.getReportingFormsComponentsAsOptions(reportingForms, row.operator);"
+                  },
+                  "valueProperty": "value",
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "arg",
+                  "customConditional": "show = utils.reporting.showAggregationOperatorArg(instance.component.key, row.operator);",
+                  "type": "select",
+                  "input": true
+                },
+                {
+                  "label": "Arguments",
+                  "reorder": false,
+                  "addAnotherPosition": "bottom",
+                  "layoutFixed": false,
+                  "enableRowGroups": false,
+                  "initEmpty": false,
+                  "tableView": false,
+                  "defaultValue": [
+                    {
+                      "field": [
+                        {}
+                      ],
+                      "connector": ""
+                    }
+                  ],
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "concatArgs",
+                  "customConditional": "show = utils.reporting.showAggregationOperatorArg(instance.component.key, row.operator);",
+                  "type": "datagrid",
+                  "input": true,
+                  "components": [
+                    {
+                      "label": "Field",
+                      "widget": "choicesjs",
+                      "tableView": false,
+                      "dataSrc": "custom",
+                      "defaultValue": [
+                        {}
+                      ],
+                      "data": {
+                        "custom": "var reportingForms = instance.root.data.reportingForms;\nvalues = utils.reporting.getReportingFormsComponentsAsOptions(reportingForms, 'concat');"
+                      },
+                      "valueProperty": "value",
+                      "validate": {
+                        "required": true
+                      },
+                      "key": "field",
+                      "type": "select",
+                      "input": true
+                    },
+                    {
+                      "label": "Connector",
+                      "tooltip": "Enter the connector that will be added between this row field value and next row filed value. Whitespace is used by default.",
+                      "applyMaskOn": "change",
+                      "tableView": false,
+                      "key": "connector",
+                      "type": "textfield",
+                      "input": true
+                    }
+                  ]
+                },
+                {
+                  "label": "Columns",
+                  "columns": [
+                    {
+                      "components": [
+                        {
+                          "label": "Dividend",
+                          "widget": "choicesjs",
+                          "tableView": false,
+                          "dataSrc": "custom",
+                          "defaultValue": [
+                            {}
+                          ],
+                          "data": {
+                            "custom": "var reportingForms = instance.root.data.reportingForms;\nvalues = utils.reporting.getReportingFormsComponentsAsOptions(reportingForms, row.operator);"
+                          },
+                          "valueProperty": "value",
+                          "validate": {
+                            "required": true
+                          },
+                          "key": "dividend",
+                          "type": "select",
+                          "input": true
+                        }
+                      ],
+                      "width": 6,
+                      "offset": 0,
+                      "push": 0,
+                      "pull": 0,
+                      "size": "md",
+                      "currentWidth": 6
+                    },
+                    {
+                      "components": [
+                        {
+                          "label": "Divisor",
+                          "widget": "choicesjs",
+                          "tableView": false,
+                          "dataSrc": "custom",
+                          "defaultValue": [
+                            {}
+                          ],
+                          "data": {
+                            "custom": "var reportingForms = instance.root.data.reportingForms;\nvalues = utils.reporting.getReportingFormsComponentsAsOptions(reportingForms, row.operator);"
+                          },
+                          "valueProperty": "value",
+                          "validate": {
+                            "required": true
+                          },
+                          "key": "divisor",
+                          "type": "select",
+                          "input": true
+                        }
+                      ],
+                      "width": 6,
+                      "offset": 0,
+                      "push": 0,
+                      "pull": 0,
+                      "size": "md",
+                      "currentWidth": 6
+                    }
+                  ],
+                  "key": "columns1",
+                  "customConditional": "show = row.operator === 'divide'",
+                  "type": "columns",
+                  "input": false,
+                  "tableView": false
+                },
+                {
+                  "label": "Columns",
+                  "columns": [
+                    {
+                      "components": [
+                        {
+                          "label": "Start Date",
+                          "widget": "choicesjs",
+                          "tableView": false,
+                          "dataSrc": "custom",
+                          "defaultValue": [
+                            {}
+                          ],
+                          "data": {
+                            "custom": "var reportingForms = instance.root.data.reportingForms;\nvalues = utils.reporting.getReportingFormsComponentsAsOptions(reportingForms, row.operator);"
+                          },
+                          "valueProperty": "value",
+                          "validate": {
+                            "required": true
+                          },
+                          "key": "startDate",
+                          "type": "select",
+                          "input": true
+                        }
+                      ],
+                      "width": 4,
+                      "offset": 0,
+                      "push": 0,
+                      "pull": 0,
+                      "size": "md",
+                      "currentWidth": 4
+                    },
+                    {
+                      "components": [
+                        {
+                          "label": "End Date",
+                          "widget": "choicesjs",
+                          "tableView": false,
+                          "dataSrc": "custom",
+                          "defaultValue": [
+                            {}
+                          ],
+                          "data": {
+                            "custom": "var reportingForms = instance.root.data.reportingForms;\nvalues = utils.reporting.getReportingFormsComponentsAsOptions(reportingForms, row.operator);"
+                          },
+                          "valueProperty": "value",
+                          "validate": {
+                            "required": true
+                          },
+                          "key": "endDate",
+                          "type": "select",
+                          "input": true
+                        }
+                      ],
+                      "width": 4,
+                      "offset": 0,
+                      "push": 0,
+                      "pull": 0,
+                      "size": "md",
+                      "currentWidth": 4
+                    },
+                    {
+                      "components": [
+                        {
+                          "label": "Unit",
+                          "widget": "choicesjs",
+                          "tooltip": "Select the time measurement unit between the Start Date and End Date.",
+                          "tableView": false,
+                          "dataSrc": "custom",
+                          "data": {
+                            "custom": "values = utils.reporting.getDateDiffUnitOptions();"
+                          },
+                          "valueProperty": "value",
+                          "validate": {
+                            "required": true
+                          },
+                          "key": "unit",
+                          "type": "select",
+                          "input": true
+                        }
+                      ],
+                      "size": "md",
+                      "width": 4,
+                      "offset": 0,
+                      "push": 0,
+                      "pull": 0,
+                      "currentWidth": 4
+                    }
+                  ],
+                  "key": "columns2",
+                  "customConditional": "show = row.operator === 'dateDiff'",
+                  "type": "columns",
+                  "input": false,
+                  "tableView": false
+                },
+                {
+                  "label": "Date",
+                  "widget": "choicesjs",
+                  "tableView": false,
+                  "dataSrc": "custom",
+                  "defaultValue": [
+                    {}
+                  ],
+                  "data": {
+                    "custom": "var reportingForms = instance.root.data.reportingForms;\nvalues = utils.reporting.getReportingFormsComponentsAsOptions(reportingForms, row.operator);"
+                  },
+                  "valueProperty": "value",
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "date",
+                  "customConditional": "show = utils.reporting.showAggregationOperatorArg(instance.component.key, row.operator);",
+                  "type": "select",
+                  "input": true
+                },
+                {
+                  "label": "Decimal Places",
+                  "tooltip": "Enter the number of decimal places for the calculated value. If the original calculated value has more decimal places, the value will be rounded.",
+                  "applyMaskOn": "change",
+                  "mask": false,
+                  "tableView": false,
+                  "delimiter": false,
+                  "requireDecimal": false,
+                  "inputFormat": "plain",
+                  "truncateMultipleSpaces": false,
+                  "key": "decimalLimit",
+                  "customConditional": "show = utils.reporting.showAggregationOperatorArg(instance.component.key, row.operator);",
+                  "type": "number",
+                  "input": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Grouping",
+          "breadcrumbClickable": true,
+          "buttonSettings": {
+            "previous": true,
+            "cancel": true,
+            "next": true
+          },
+          "navigateOnEnter": false,
+          "saveOnEnter": false,
+          "scrollToTop": false,
+          "collapsible": false,
+          "key": "groupingPanel",
+          "type": "panel",
+          "label": "Page 8",
+          "input": false,
+          "tableView": false,
+          "components": [
+            {
+              "html": "<p><span class=\"text-big\"><strong>Grouping</strong></span></p><p><i>You can create a <strong>grouped report</strong> that is to group the Data Source Forms submissions by one or several fields (e.g. department ID or employee ID). Using the UI below, just select the fields that will be used as criteria for the grouping and add some columns to your Reporting Grid that will be calculated per group based on the existing Data Source Forms fields or the Grid Calculated Extra Fields.&nbsp;</i></p><p><i><strong>** Please note that only Grouping Fields and Group Calculated Columns will be available to display in the Reporting Grid for grouped reports.</strong></i></p>",
+              "label": "Content",
+              "refreshOnChange": false,
+              "key": "content",
+              "type": "content",
+              "input": false,
+              "tableView": false
+            },
+            {
+              "label": "Fields to group by",
+              "tooltip": "Select the fields that will be used as criteria for grouping the Data Source Forms` data.",
+              "reorder": false,
+              "addAnother": "Add Field",
+              "addAnotherPosition": "bottom",
+              "layoutFixed": false,
+              "enableRowGroups": false,
+              "initEmpty": true,
+              "tableView": false,
+              "defaultValue": [
+                {
+                  "field": ""
+                }
+              ],
+              "redrawOn": "reportingForms",
+              "key": "groups.groupingFields",
+              "type": "datagrid",
+              "input": true,
+              "components": [
+                {
+                  "label": "Field",
+                  "widget": "choicesjs",
+                  "placeholder": "Grouping Field",
+                  "hideLabel": true,
+                  "tableView": false,
+                  "dataSrc": "custom",
+                  "data": {
+                    "custom": "var reportingForms = instance.root.data.reportingForms;\nvar calculatedColumns = instance.root.data.calculatedColumns;\nvar selectedItems = _.chain(instance.root.data.groups.groupingFields || [])\n .map(col => col.field)\n .filter(col => col && !_.isEqual(instance.dataValue, col))\n .value();\n\nvalues = utils.reporting.getReportingFormsComponentsAndExtraComponentsAsOptions({ reportingForms, calculatedColumns, selectedItems});"
+                  },
+                  "valueProperty": "value",
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "field",
+                  "type": "select",
+                  "input": true
+                }
+              ]
+            },
+            {
+              "label": "Group Calculated Columns",
+              "tooltip": "Here you can add additional caclucaled columns to the Reporting Grid. ",
+              "tableView": false,
+              "templates": {
+                "header": "<div class=\"row\">\n      {% util.eachComponent(components, function(component) { %}\n        {% if (displayValue(component)) { %}\n          <div class=\"col-sm-4 font-weight-bold\">{{ t(component.label) }}</div>\n        {% } %}\n      {% }) %}\n    </div>",
+                "row": "<div class=\"row\">\n      {% util.eachComponent(components, function(component) { %}\n        {% if (displayValue(component)) { %}\n          <div class=\"col-sm-4\">\n            {{ isVisibleInRow(component) ? getView(component, row[component.key]) : ''}}\n          </div>\n        {% } %}\n      {% }) %}\n      {% if (!instance.options.readOnly && !instance.disabled) { %}\n        <div class=\"col-sm-4\">\n          <div class=\"btn-group pull-right\">\n            <button class=\"btn btn-default btn-light btn-sm editRow\"><i class=\"{{ iconClass('edit') }}\"></i></button>\n            {% if (!instance.hasRemoveButtons || instance.hasRemoveButtons()) { %}\n              <button class=\"btn btn-danger btn-sm removeRow\"><i class=\"{{ iconClass('trash') }}\"></i></button>\n            {% } %}\n          </div>\n        </div>\n      {% } %}\n    </div>"
+              },
+              "addAnother": "Add Column",
+              "rowDrafts": false,
+              "key": "groups.calculatedColumns",
+              "customConditional": "var groupingFields = _.get(data, 'groups.groupingFields', []);\nshow = _.some(groupingFields, field => !!field.field);",
+              "type": "editgrid",
+              "displayAsTable": false,
+              "input": true,
+              "components": [
+                {
+                  "label": "Columns",
+                  "columns": [
+                    {
+                      "components": [
+                        {
+                          "label": "Column Title",
+                          "applyMaskOn": "change",
+                          "tableView": true,
+                          "validate": {
+                            "required": true
+                          },
+                          "key": "name",
+                          "type": "textfield",
+                          "input": true
+                        }
+                      ],
+                      "width": 6,
+                      "offset": 0,
+                      "push": 0,
+                      "pull": 0,
+                      "size": "md",
+                      "currentWidth": 6
+                    },
+                    {
+                      "components": [
+                        {
+                          "label": "Column Key",
+                          "applyMaskOn": "change",
+                          "tableView": false,
+                          "calculateValue": "value = _.camelCase(row.name);",
+                          "allowCalculateOverride": true,
+                          "validate": {
+                            "pattern": "(\\w|\\w[\\w-.]*\\w)",
+                            "patternMessage": "The key must only contain alphanumeric characters, underscores, dots and dashes and should not be ended by dash or dot."
+                          },
+                          "key": "key",
+                          "logic": [
+                            {
+                              "name": "make required",
+                              "trigger": {
+                                "type": "javascript",
+                                "javascript": "result = row.title;"
+                              },
+                              "actions": [
+                                {
+                                  "name": "make required",
+                                  "type": "property",
+                                  "property": {
+                                    "label": "Required",
+                                    "value": "validate.required",
+                                    "type": "boolean"
+                                  },
+                                  "state": true
+                                }
+                              ]
+                            }
+                          ],
+                          "type": "textfield",
+                          "input": true
+                        }
+                      ],
+                      "width": 6,
+                      "offset": 0,
+                      "push": 0,
+                      "pull": 0,
+                      "size": "md",
+                      "currentWidth": 6
+                    }
+                  ],
+                  "key": "columns",
+                  "type": "columns",
+                  "input": false,
+                  "tableView": false
+                },
+                {
+                  "label": "Operator",
+                  "widget": "choicesjs",
+                  "tooltip": "Select operator to calculate column value",
+                  "tableView": true,
+                  "dataSrc": "custom",
+                  "data": {
+                    "custom": "values = utils.reporting.getAggregationOperatorsOptions(true);"
+                  },
+                  "valueProperty": "value",
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "operator",
+                  "type": "select",
+                  "input": true
+                },
+                {
+                  "label": "Argument",
+                  "widget": "choicesjs",
+                  "tableView": false,
+                  "dataSrc": "custom",
+                  "defaultValue": [
+                    {}
+                  ],
+                  "data": {
+                    "custom": "var reportingForms = instance.root.data.reportingForms;\nvalues = utils.reporting.getReportingFormsComponentsAndExtraComponentsAsOptions({reportingForms, calculatedColumns: instance.root.data.calculatedColumns, operator: row.operator});"
+                  },
+                  "valueProperty": "value",
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "argument",
+                  "customConditional": "show = row.operator && !_.includes(['count'], row.operator);",
+                  "type": "select",
+                  "input": true
+                },
+                {
+                  "label": "Decimal Places",
+                  "tooltip": "Enter the number of decimal places for the calculated value. If the original calculated value has more decimal places, the value will be rounded.",
+                  "applyMaskOn": "change",
+                  "mask": false,
+                  "tableView": false,
+                  "delimiter": false,
+                  "requireDecimal": false,
+                  "inputFormat": "plain",
+                  "truncateMultipleSpaces": false,
+                  "key": "decimalLimit",
+                  "customConditional": "show = utils.reporting.showAggregationOperatorArg(instance.component.key, row.operator);",
+                  "type": "number",
+                  "input": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Columns",
+          "breadcrumbClickable": true,
+          "buttonSettings": {
+            "previous": true,
+            "cancel": true,
+            "next": true
+          },
+          "navigateOnEnter": false,
+          "saveOnEnter": false,
+          "scrollToTop": false,
+          "collapsible": false,
+          "key": "columnsPanel",
+          "type": "panel",
+          "label": "Page 2",
+          "input": false,
+          "tableView": false,
+          "components": [
+            {
+              "html": "<p><span class=\"text-big\"><strong>Reporting Grid Columns</strong></span></p>",
+              "label": "Basic Reporting Settings",
+              "refreshOnChange": false,
+              "key": "basicReportingSettings2",
+              "type": "content",
+              "input": false,
+              "tableView": false
+            },
+            {
+              "label": "Columns List",
+              "persistent": false,
+              "redrawOn": "reportingForms",
+              "calculateValue": "value = utils.reporting.getColumnsListOptions(data.reportingForms, data.groups, data.calculatedColumns);",
+              "key": "columnsList",
+              "type": "hidden",
+              "input": true,
+              "tableView": false
+            },
+            {
+              "label": "Available Columns",
+              "tooltip": "Add columns that you would like to have available for display in the Reporting UI Grid. The columns will display in the Reproting Grid in the order, they are added here. ",
+              "reorder": true,
+              "addAnother": "Add Column",
+              "addAnotherPosition": "bottom",
+              "layoutFixed": false,
+              "enableRowGroups": false,
+              "initEmpty": true,
+              "tableView": false,
+              "defaultValue": [
+                {
+                  "column": [],
+                  "displayTitle": ""
+                }
+              ],
+              "validate": {
+                "required": true
+              },
+              "key": "availableColumns",
+              "logic": [
+                {
+                  "name": "disable",
+                  "trigger": {
+                    "type": "simple",
+                    "simple": {
+                      "show": true,
+                      "conjunction": "all",
+                      "conditions": [
+                        {
+                          "component": "allColumnsAvailable",
+                          "operator": "isEqual",
+                          "value": "true"
+                        }
+                      ]
+                    }
+                  },
+                  "actions": [
+                    {
+                      "name": "clean",
+                      "type": "customAction",
+                      "customAction": "instance.resetValue();"
+                    },
+                    {
+                      "name": "disable",
+                      "type": "property",
+                      "property": {
+                        "label": "Disabled",
+                        "value": "disabled",
+                        "type": "boolean"
+                      },
+                      "state": true
+                    }
+                  ]
+                }
+              ],
+              "type": "datagrid",
+              "input": true,
+              "components": [
+                {
+                  "label": "Column",
+                  "widget": "choicesjs",
+                  "tableView": true,
+                  "dataSrc": "custom",
+                  "data": {
+                    "custom": "var selectedItems = _.chain(instance.root.data.availableColumns || [])\n .map(col => col.column)\n .filter(col => col && !_.isEqual(instance.dataValue, col))\n .value();\n\nvalues = utils.reporting.getUnselectedColumnsOptions(instance.root.data.columnsList, selectedItems);\n"
+                  },
+                  "valueProperty": "value",
+                  "refreshOn": "columnsList",
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "column",
+                  "type": "select",
+                  "input": true
+                },
+                {
+                  "label": "Display Title",
+                  "tooltip": "This title will be shown in the Reporting UI. If not set, original component title will be used.",
+                  "applyMaskOn": "change",
+                  "tableView": true,
+                  "key": "displayTitle",
+                  "customConditional": "show = row.column && row.column.formId;",
+                  "type": "textfield",
+                  "input": true
+                }
+              ]
+            },
+            {
+              "label": "Default Columns",
+              "widget": "choicesjs",
+              "tooltip": "Default columns will be displayed in the Reporting UI Grid when it is just loaded. If not set, all available columns will be displayed.",
+              "tableView": false,
+              "multiple": true,
+              "dataSrc": "custom",
+              "data": {
+                "custom": "values = data.allColumnsAvailable ? data.columnsList : utils.reporting.getAvailableColumnsAsOptions(data.availableColumns, data.columnsList);"
+              },
+              "valueProperty": "value",
+              "refreshOn": "availableColumns",
+              "key": "defaultColumns",
+              "type": "select",
+              "input": true
+            }
+          ]
+        },
+        {
+          "title": "Controls Settings",
+          "breadcrumbClickable": true,
+          "buttonSettings": {
+            "previous": true,
+            "cancel": true,
+            "next": true
+          },
+          "navigateOnEnter": false,
+          "saveOnEnter": false,
+          "scrollToTop": false,
+          "collapsible": false,
+          "key": "controlsPanel",
+          "type": "panel",
+          "label": "Page 9",
+          "input": false,
+          "tableView": false,
+          "components": [
+            {
+              "html": "<p><span class=\"text-big\"><strong>Reporting Controls</strong></span></p>",
+              "label": "Basic Reporting Settings",
+              "refreshOnChange": false,
+              "key": "basicReportingSettings7",
+              "type": "content",
+              "input": false,
+              "tableView": false
+            },
+            {
+              "label": "Enable Controls",
+              "tooltip": "When checked, special Controls UI will display to manage the Reporting Grid. The Controls additional settings can be configured in the Filtering and Actions sections.  ",
+              "tableView": false,
+              "defaultValue": false,
+              "key": "enableControls",
+              "type": "checkbox",
+              "input": true
+            },
+            {
+              "label": "Controls Settings",
+              "tableView": false,
+              "key": "controlsSettings",
+              "customConditional": "show = data.enableControls;",
+              "type": "container",
+              "input": true,
+              "components": [
+                {
+                  "html": "<p><span class=\"text-big\">Reporting Controls Basic Settings</span></p>",
+                  "label": "Reporting Grid Basic Settings",
+                  "refreshOnChange": false,
+                  "key": "basicReportingSettings8",
+                  "type": "content",
+                  "input": false,
+                  "tableView": false
+                },
+                {
+                  "label": "Controls Title",
+                  "tooltip": "This title will be displayed for the Controls Panel.",
+                  "applyMaskOn": "change",
+                  "tableView": true,
+                  "key": "title",
+                  "type": "textfield",
+                  "input": true
+                },
+                {
+                  "label": "Controls Theme",
+                  "widget": "choicesjs",
+                  "tableView": true,
+                  "data": {
+                    "values": [
+                      {
+                        "label": "Default",
+                        "value": "default"
+                      },
+                      {
+                        "label": "Primary",
+                        "value": "primary"
+                      },
+                      {
+                        "label": "Info",
+                        "value": "info"
+                      },
+                      {
+                        "label": "Success",
+                        "value": "success"
+                      },
+                      {
+                        "label": "Danger",
+                        "value": "danger"
+                      },
+                      {
+                        "label": "Warning",
+                        "value": "warning"
+                      }
+                    ]
+                  },
+                  "key": "theme",
+                  "type": "select",
+                  "input": true,
+                  "defaultValue": "default"
+                },
+                {
+                  "label": "Collapse Controls Panel Initially ",
+                  "tooltip": "If checked, the Controls` Panel will initially be collapsed.",
+                  "tableView": false,
+                  "defaultValue": false,
+                  "key": "collapsePanel",
+                  "type": "checkbox",
+                  "input": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Controls Filters ",
+          "collapsible": false,
+          "key": "filtersPanel",
+          "conditional": {
+            "show": true,
+            "conjunction": "all",
+            "conditions": [
+              {
+                "component": "enableControls",
+                "operator": "isEqual",
+                "value": true
+              }
+            ]
+          },
+          "type": "panel",
+          "label": "Page 3",
+          "breadcrumbClickable": true,
+          "buttonSettings": {
+            "previous": true,
+            "cancel": true,
+            "next": true
+          },
+          "navigateOnEnter": false,
+          "saveOnEnter": false,
+          "scrollToTop": false,
+          "input": false,
+          "tableView": false,
+          "components": [
+            {
+              "html": "<p><span class=\"text-big\"><strong>Reporting Controls Filters</strong></span></p>",
+              "label": "Basic Reporting Settings",
+              "refreshOnChange": false,
+              "key": "basicReportingSettings5",
+              "type": "content",
+              "input": false,
+              "tableView": false
+            },
+            {
+              "label": "Number Of Filters Per Row",
+              "widget": "choicesjs",
+              "tableView": false,
+              "defaultValue": 2,
+              "data": {
+                "values": [
+                  {
+                    "label": "1",
+                    "value": "1"
+                  },
+                  {
+                    "label": "2",
+                    "value": "2"
+                  },
+                  {
+                    "label": "3",
+                    "value": "3"
+                  },
+                  {
+                    "label": "4",
+                    "value": "4"
+                  }
+                ]
+              },
+              "dataType": "number",
+              "key": "filtersPerRow",
+              "type": "select",
+              "input": true
+            },
+            {
+              "label": "Filter Label Position",
+              "widget": "choicesjs",
+              "tooltip": "Position for the labels of the Controls Filter Fields.",
+              "tableView": false,
+              "defaultValue": "top",
+              "data": {
+                "values": [
+                  {
+                    "label": "Top",
+                    "value": "top"
+                  },
+                  {
+                    "label": "Left",
+                    "value": "left-left"
+                  },
+                  {
+                    "label": "Right",
+                    "value": "right-right"
+                  }
+                ]
+              },
+              "key": "filterLabelPosition",
+              "type": "select",
+              "input": true
+            },
+            {
+              "label": "Reporting Filters",
+              "tooltip": "Add the fields by which you want to filter the Reporting Grid. Those filter will display in the Reporerting Controls UI.",
+              "reorder": true,
+              "addAnotherPosition": "bottom",
+              "layoutFixed": false,
+              "enableRowGroups": false,
+              "initEmpty": true,
+              "tableView": false,
+              "defaultValue": [
+                {
+                  "field": "",
+                  "filterTypes": [
+                    {}
+                  ],
+                  "filterType": [
+                    {}
+                  ],
+                  "filterTitle": ""
+                }
+              ],
+              "key": "filters",
+              "type": "datagrid",
+              "input": true,
+              "components": [
+                {
+                  "label": "Field",
+                  "widget": "choicesjs",
+                  "tableView": true,
+                  "dataSrc": "custom",
+                  "data": {
+                    "custom": "values = instance.root.data.columnsList;"
+                  },
+                  "valueProperty": "value",
+                  "refreshOn": "columnsList",
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "field",
+                  "type": "select",
+                  "input": true
+                },
+                {
+                  "label": "Filter Type",
+                  "widget": "choicesjs",
+                  "tooltip": "Select filter operator you want to apply for filtering the field.",
+                  "tableView": true,
+                  "dataSrc": "custom",
+                  "defaultValue": [
+                    {}
+                  ],
+                  "data": {
+                    "custom": "var calculatedExtraColumns = instance.root.data.calculatedColumns || [];\nvar calculatedGroupingColumns = _.get(instance, 'root.data.groups.calculatedColumns', []);\n\nvalues = utils.reporting.getControlsFilterOperators(row.field, instance.root.data.reportingForms, [...calculatedExtraColumns, ...calculatedGroupingColumns])"
+                  },
+                  "valueProperty": "value",
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "filterType",
+                  "type": "select",
+                  "input": true
+                },
+                {
+                  "label": "Filter Title",
+                  "tooltip": "This title will be displayed next to the filter. If not set, the label of the filter field is used.",
+                  "applyMaskOn": "change",
+                  "tableView": true,
+                  "key": "filterTitle",
+                  "type": "textfield",
+                  "input": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Controls Actions",
+          "collapsible": false,
+          "key": "actionsPanel",
+          "conditional": {
+            "show": true,
+            "conjunction": "all",
+            "conditions": [
+              {
+                "component": "enableControls",
+                "operator": "isEqual",
+                "value": true
+              }
+            ]
+          },
+          "type": "panel",
+          "label": "Page 4",
+          "breadcrumbClickable": true,
+          "buttonSettings": {
+            "previous": true,
+            "cancel": true,
+            "next": true
+          },
+          "navigateOnEnter": false,
+          "saveOnEnter": false,
+          "scrollToTop": false,
+          "input": false,
+          "tableView": false,
+          "components": [
+            {
+              "html": "<p><span class=\"text-big\"><strong>Reporting Controls Actions</strong></span></p>",
+              "label": "Basic Reporting Settings",
+              "refreshOnChange": false,
+              "key": "basicReportingSettings6",
+              "type": "content",
+              "input": false,
+              "tableView": false
+            },
+            {
+              "label": "Actions",
+              "tooltip": "Actions will be displayed in Actions of the Controls UI and will be applied for selected rows in the Reporting Grid.",
+              "tableView": false,
+              "templates": {
+                "header": "<div class=\"row\">\n      {% util.eachComponent(components, function(component) { %}\n        {% if (displayValue(component)) { %}\n          <div class=\"col-sm-4 font-weight-bold\">{{ t(component.label) }}</div>\n        {% } %}\n      {% }) %}\n    </div>",
+                "row": "<div class=\"row\">\n      {% util.eachComponent(components, function(component) { %}\n        {% if (displayValue(component)) { %}\n          <div class=\"col-sm-4\">\n            {{ isVisibleInRow(component) ? getView(component, row[component.key]) : ''}}\n          </div>\n        {% } %}\n      {% }) %}\n      {% if (!instance.options.readOnly && !instance.disabled) { %}\n        <div class=\"col-sm-4\">\n          <div class=\"btn-group pull-right\">\n            <button class=\"btn btn-default btn-light btn-sm editRow\"><i class=\"{{ iconClass('edit') }}\"></i></button>\n            {% if (!instance.hasRemoveButtons || instance.hasRemoveButtons()) { %}\n              <button class=\"btn btn-danger btn-sm removeRow\"><i class=\"{{ iconClass('trash') }}\"></i></button>\n            {% } %}\n          </div>\n        </div>\n      {% } %}\n    </div>"
+              },
+              "addAnother": "Add Action",
+              "rowDrafts": false,
+              "key": "actions",
+              "type": "editgrid",
+              "displayAsTable": false,
+              "input": true,
+              "components": [
+                {
+                  "label": "Title",
+                  "tooltip": "Action title that will be shown in the Controls UI.",
+                  "applyMaskOn": "change",
+                  "tableView": true,
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "title",
+                  "type": "textfield",
+                  "input": true
+                },
+                {
+                  "label": "Type",
+                  "widget": "choicesjs",
+                  "tableView": true,
+                  "data": {
+                    "values": [
+                      {
+                        "label": "Export CSV",
+                        "value": "csv"
+                      },
+                      {
+                        "label": "Download PDF",
+                        "value": "pdf"
+                      },
+                      {
+                        "label": "Custom",
+                        "value": "custom"
+                      }
+                    ]
+                  },
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "type",
+                  "type": "select",
+                  "input": true
+                },
+                {
+                  "label": "Apply action for:",
+                  "optionsLabelPosition": "right",
+                  "inline": true,
+                  "tableView": false,
+                  "defaultValue": "availableColumns",
+                  "values": [
+                    {
+                      "label": "All Available Columns",
+                      "value": "availableColumns",
+                      "shortcut": ""
+                    },
+                    {
+                      "label": "Visible Columns",
+                      "value": "visibleColumns",
+                      "shortcut": ""
+                    }
+                  ],
+                  "key": "applyFor",
+                  "customConditional": "show = _.includes(['csv', 'pdf'], row.type);",
+                  "type": "radio",
+                  "input": true
+                },
+                {
+                  "label": "Custom JS Code",
+                  "placeholder": "promise = new Formio.Promise.resolve(true);",
+                  "tooltip": "Enter custom JavaScript code that will be executed for selected rows. If you want the Reporting Grid to redraw and reload the page data after the custom action is performed, the promise should return true.",
+                  "applyMaskOn": "change",
+                  "editor": "ace",
+                  "autoExpand": false,
+                  "tableView": false,
+                  "validate": {
+                    "required": true
+                  },
+                  "key": "customCode",
+                  "conditional": {
+                    "conjunction": "all"
+                  },
+                  "customConditional": "show = row.type === 'custom';",
+                  "type": "textarea",
+                  "input": true
+                },
+                {
+                  "label": "HTML",
+                  "attrs": [
+                    {
+                      "attr": "",
+                      "value": ""
+                    }
+                  ],
+                  "content": "{{utils.reporting.getCustomScriptAvailableVarialbles()}}\n",
+                  "refreshOnChange": false,
+                  "key": "html",
+                  "customConditional": "show = row.type === 'custom';",
+                  "type": "htmlelement",
+                  "input": false,
+                  "tableView": false
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "access": [
+        {
+          "type": "read_all",
+          "roles": [
+            "administrator",
+            "authenticated",
+            "anonymous"
+          ]
+        }      
+      ],
+      "submissionAccess": [
+        {
+          "type": "read_all",
+          "roles": [
+            "administrator",
+            "authenticated",
+            "anonymous"
+          ]
+        }
+      ],
+      "properties": {},
+      "controller": "instance.submissionReady.then((subm) => {\n  instance.emit('formsSet');\n});\n",
+      "submissionRevisions": ""
     }
   },
   "forms": {
@@ -515,6 +2292,19 @@
         "attemptWindow": 30,
         "lockWait": 1800
       }
+    },
+    "reportingui:save": {
+      "title": "Save Submission",
+      "name": "save",
+      "form": "reportingui",
+      "priority": 10,
+      "method": [
+        "create",
+        "update"
+      ],
+      "handler": [
+        "before"
+      ]
     }
   },
   "access": [
