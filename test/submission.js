@@ -249,39 +249,39 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Server Calculated', function() {
-          it('Recalculate value on server', function(done) {
-              var test = require('./fixtures/forms/servercalculate.js');
-              helper
-                  .form('test', test.components)
-                  .submission(test.submission)
-                  .execute(function(err) {
-                      if (err) {
-                          return done(err);
-                      }
+      it('Recalculate value on server', function(done) {
+        var test = require('./fixtures/forms/servercalculate.js');
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
 
-                      var submission = helper.getLastSubmission();
-                      assert.deepEqual(test.submission, submission.data);
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(test.submission, submission.data);
 
-                      done();
-                  });
+            done();
           });
+      });
 
-        it('Fails to recalculate value because of corrupted submission', function(done) {
-            var test = require('./fixtures/forms/servercalculate.js');
-            helper
-                .form('test', test.components)
-                .submission(test.falseSubmission)
-                .execute(function(err) {
-                    if (err) {
-                        return done(err);
-                    }
+      it('Fails to recalculate value because of corrupted submission', function(done) {
+        var test = require('./fixtures/forms/servercalculate.js');
+        helper
+          .form('test', test.components)
+          .submission(test.falseSubmission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
 
-                    var submission = helper.getLastSubmission();
-                    assert.deepEqual(test.falseSubmission, submission.data);
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(test.falseSubmission, submission.data);
 
-                    done();
-                });
-        });
+            done();
+          });
+      });
     });
 
     describe('Fieldset nesting', function() {
@@ -3092,10 +3092,10 @@ module.exports = function(app, template, hook) {
       it('Should allow up to the maximum words', (done) => {
         const sentence = chance.sentence({words: 30});
         helper.submission('maxwords', {
-            data: {
-              test: sentence
-            }
-          })
+          data: {
+            test: sentence
+          }
+        })
           .execute(function(err) {
             if (err) {
               return done(err);
@@ -3110,11 +3110,11 @@ module.exports = function(app, template, hook) {
       });
 
       it('Should throw an error when minimum words has not been met.', (done) => {
-          helper.submission('maxwords', {
-            data: {
-              test: chance.sentence({words: 3})
-            }
-          })
+        helper.submission('maxwords', {
+          data: {
+            test: chance.sentence({words: 3})
+          }
+        })
           .expect(400)
           .execute(function(err) {
             if (err) {
@@ -3210,195 +3210,195 @@ module.exports = function(app, template, hook) {
     });
 
     if (!docker)
-    describe('Select validation', () => {
-      before((done) => {
-        // Create a resource to keep records.
-        helper
-          .form('fruits', [
-            {
-              "input": true,
-              "tableView": true,
-              "inputType": "text",
-              "inputMask": "",
-              "label": "Name",
-              "key": "name",
-              "placeholder": "",
-              "prefix": "",
-              "suffix": "",
-              "multiple": false,
-              "defaultValue": "",
-              "protected": false,
-              "unique": false,
-              "persistent": true,
-              "validate": {
-                "required": false,
-                "minLength": "",
-                "maxLength": "",
-                "pattern": "",
-                "custom": "",
-                "customPrivate": false
-              },
-              "conditional": {
-                "show": null,
-                "when": null,
-                "eq": ""
-              },
-              "type": "textfield"
-            }
-          ])
-          .submission('fruits', {name: 'Apple'})
-          .submission('fruits', {name: 'Pear'})
-          .submission('fruits', {name: 'Banana'})
-          .submission('fruits', {name: 'Orange'})
-          .execute(function(err) {
+      describe('Select validation', () => {
+        before((done) => {
+          // Create a resource to keep records.
+          helper
+            .form('fruits', [
+              {
+                "input": true,
+                "tableView": true,
+                "inputType": "text",
+                "inputMask": "",
+                "label": "Name",
+                "key": "name",
+                "placeholder": "",
+                "prefix": "",
+                "suffix": "",
+                "multiple": false,
+                "defaultValue": "",
+                "protected": false,
+                "unique": false,
+                "persistent": true,
+                "validate": {
+                  "required": false,
+                  "minLength": "",
+                  "maxLength": "",
+                  "pattern": "",
+                  "custom": "",
+                  "customPrivate": false
+                },
+                "conditional": {
+                  "show": null,
+                  "when": null,
+                  "eq": ""
+                },
+                "type": "textfield"
+              }
+            ])
+            .submission('fruits', {name: 'Apple'})
+            .submission('fruits', {name: 'Pear'})
+            .submission('fruits', {name: 'Banana'})
+            .submission('fruits', {name: 'Orange'})
+            .execute(function(err) {
+              if (err) {
+                return done(err);
+              }
+
+              let apiUrl = 'http://localhost:' + template.config.port;
+              apiUrl += hook.alter('url', '/form/' + helper.template.forms['fruits']._id + '/submission', helper.template);
+
+              helper
+                .form('fruitSelect', [
+                  {
+                    type: 'select',
+                    key: 'fruit',
+                    label: 'Select a fruit',
+                    dataSrc: 'url',
+                    searchField: 'data.name',
+                    authenticate: true,
+                    persistent: true,
+                    data: {
+                      url: apiUrl
+                    },
+                    validate: {
+                      select: true
+                    }
+                  }
+                ])
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  done();
+                });
+            });
+        });
+
+        it('Should perform a backend validation of the selected value', (done) => {
+          helper.submission('fruitSelect', {fruit: 'Apple'}).execute((err) => {
             if (err) {
               return done(err);
             }
 
-            let apiUrl = 'http://localhost:' + template.config.port;
-            apiUrl += hook.alter('url', '/form/' + helper.template.forms['fruits']._id + '/submission', helper.template);
+            var submission = helper.getLastSubmission();
+            assert.deepEqual({fruit: 'Apple'}, submission.data);
+            done();
+          });
+        });
 
-            helper
-              .form('fruitSelect', [
+        it('Should allow empty values', (done) => {
+          helper.submission('fruitSelect', {}).execute((err) => {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual({}, submission.data);
+            done();
+          });
+        });
+
+        it('Should throw an error when providing a value that is not available.', (done) => {
+          helper.submission('fruitSelect', {fruit: 'Foo'}).expect(400).execute(() => {
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Select a fruit contains an invalid selection');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
+            done();
+          });
+        });
+
+        it('Should allow saving select resource by reference', done => {
+          const submission = helper.template.submissions['fruits'][0];
+          helper
+            .form('myFruit', [{
+              input: true,
+              label: "Fruit",
+              key: "fruit",
+              data: {
+                resource: helper.template.forms['fruits']._id,
+                project: helper.template.project ? helper.template.project._id : ''
+              },
+              dataSrc: "resource",
+              reference: true,
+              valueProperty: "",
+              defaultValue: "",
+              template: "<span>{{ item.data.name }}</span>",
+              multiple: false,
+              persistent: true,
+              type: "select"
+            }], {
+              submissionAccess: [
                 {
-                  type: 'select',
-                  key: 'fruit',
-                  label: 'Select a fruit',
-                  dataSrc: 'url',
-                  searchField: 'data.name',
-                  authenticate: true,
-                  persistent: true,
-                  data: {
-                    url: apiUrl
-                  },
-                  validate: {
-                    select: true
-                  }
+                  type: 'read_all',
+                  roles: [helper.template.roles.authenticated._id.toString()]
                 }
-              ])
-              .execute((err) => {
+              ]
+            })
+            .submission('myFruit', {fruit: {_id: submission._id, form: helper.template.forms['fruits']._id}})
+            .execute(err => {
+              if (err) {
+                return done(err);
+              }
+              helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
                 if (err) {
                   return done(err);
                 }
-
+                assert.equal(submission._id, fromsub.data.fruit._id);
+                assert.equal(submission.data.name, fromsub.data.fruit.data.name);
                 done();
               });
-          });
-      });
-
-      it('Should perform a backend validation of the selected value', (done) => {
-        helper.submission('fruitSelect', {fruit: 'Apple'}).execute((err) => {
-          if (err) {
-            return done(err);
-          }
-
-          var submission = helper.getLastSubmission();
-          assert.deepEqual({fruit: 'Apple'}, submission.data);
-          done();
+            });
         });
-      });
 
-      it('Should allow empty values', (done) => {
-        helper.submission('fruitSelect', {}).execute((err) => {
-          if (err) {
-            return done(err);
-          }
-
-          var submission = helper.getLastSubmission();
-          assert.deepEqual({}, submission.data);
-          done();
-        });
-      });
-
-      it('Should throw an error when providing a value that is not available.', (done) => {
-        helper.submission('fruitSelect', {fruit: 'Foo'}).expect(400).execute(() => {
-          assert.equal(helper.lastResponse.statusCode, 400);
-          assert.equal(helper.lastResponse.body.name, 'ValidationError');
-          assert.equal(helper.lastResponse.body.details.length, 1);
-          assert.equal(helper.lastResponse.body.details[0].message, 'Select a fruit contains an invalid selection');
-          assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
-          done();
-        });
-      });
-
-      it('Should allow saving select resource by reference', done => {
-        const submission = helper.template.submissions['fruits'][0];
-        helper
-          .form('myFruit', [{
-            input: true,
-            label: "Fruit",
-            key: "fruit",
-            data: {
-              resource: helper.template.forms['fruits']._id,
-              project: helper.template.project ? helper.template.project._id : ''
-            },
-            dataSrc: "resource",
-            reference: true,
-            valueProperty: "",
-            defaultValue: "",
-            template: "<span>{{ item.data.name }}</span>",
-            multiple: false,
-            persistent: true,
-            type: "select"
-          }], {
-            submissionAccess: [
-              {
-                type: 'read_all',
-                roles: [helper.template.roles.authenticated._id.toString()]
-              }
-            ]
-          })
-          .submission('myFruit', {fruit: {_id: submission._id, form: helper.template.forms['fruits']._id}})
-          .execute(err => {
-            if (err) {
-              return done(err);
-            }
-            helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+        it('Should allow saving select resource with whole object by reference', done => {
+          const submission = helper.template.submissions['fruits'][0];
+          helper
+            .submission('myFruit', {fruit: submission})
+            .execute(err => {
               if (err) {
                 return done(err);
               }
-              assert.equal(submission._id, fromsub.data.fruit._id);
-              assert.equal(submission.data.name, fromsub.data.fruit.data.name);
-              done();
+              helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(submission._id, fromsub.data.fruit._id);
+                assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+                done();
+              });
             });
-          });
-      });
+        });
 
-      it('Should allow saving select resource with whole object by reference', done => {
-        const submission = helper.template.submissions['fruits'][0];
-        helper
-          .submission('myFruit', {fruit: submission})
-          .execute(err => {
-            if (err) {
-              return done(err);
-            }
-            helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+        it('Should check permissions when loading from reference', done => {
+          request(app)
+            .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+            .set('x-jwt-token', helper.template.users.user1.token)
+            .send()
+            // .expect(200)
+            .end(function(err, res) {
               if (err) {
                 return done(err);
               }
-              assert.equal(submission._id, fromsub.data.fruit._id);
-              assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+              assert(res.body.data.fruit.hasOwnProperty('_id'), 'Must contain the _id.');
+              assert.equal(1, Object.keys(res.body.data.fruit).length);
               done();
             });
-          });
+        });
       });
-
-      it('Should check permissions when loading from reference', done => {
-        request(app)
-          .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission/' + helper.lastSubmission._id, helper.template))
-          .set('x-jwt-token', helper.template.users.user1.token)
-          .send()
-          // .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
-            assert(res.body.data.fruit.hasOwnProperty('_id'), 'Must contain the _id.');
-            assert.equal(1, Object.keys(res.body.data.fruit).length);
-            done();
-          });
-      });
-    });
 
     describe('Advanced Conditions', () => {
       it('Requires a conditionally required field from advanced conditions', function(done) {
@@ -3651,6 +3651,28 @@ module.exports = function(app, template, hook) {
             assert.equal(submission.data.changeme, 'Foo');
             done();
           });
+      });
+
+      it('Should save submission for Wizard with advanced Conditions', function(done) {
+        var wizardForm = require('./fixtures/forms/wizardFormWithAdvancedConditions.js');
+        var wizardSubmission = {textField: 'Mary', textField1: 'gray'};
+        helper
+          .upsertForm(wizardForm, (err) => {
+            if (err) {
+              return done(err);
+            }
+            helper
+              .submission('wizardTest', wizardSubmission)
+              .expect(201)
+              .execute(function(err) {
+                if (err) {
+                  return done(err);
+                }
+                const submission = helper.lastSubmission;
+                assert.deepEqual(submission.data, wizardSubmission);
+                done()
+              })
+          })
       });
     });
 
@@ -3929,18 +3951,18 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
               request(app)
-              .get(hook.alter('url', '/form/' + helper.template.forms['filterCurrency']._id + '/submission?data.currency=10', helper.template))
-              .set('x-jwt-token', helper.owner.token)
-              .send()
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
-                assert.equal(res.body.length, 1);
-                assert.equal(res.body[0].data.currency, 10);
-                done();
-              });
+                .get(hook.alter('url', '/form/' + helper.template.forms['filterCurrency']._id + '/submission?data.currency=10', helper.template))
+                .set('x-jwt-token', helper.owner.token)
+                .send()
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+                  assert.equal(res.body.length, 1);
+                  assert.equal(res.body[0].data.currency, 10);
+                  done();
+                });
             });
         });
 
@@ -3981,19 +4003,19 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
               request(app)
-              .get(hook.alter('url', '/form/' + helper.template.forms['filterSelectBoxes']._id + '/submission?data.selectBoxes.a=true&data.selectBoxes.b=false', helper.template))
-              .set('x-jwt-token', helper.owner.token)
-              .send()
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
-                assert.equal(res.body.length, 1);
-                assert.equal(res.body[0].data.selectBoxes.a, true);
-                assert.equal(res.body[0].data.selectBoxes.b, false);
-                done();
-              });
+                .get(hook.alter('url', '/form/' + helper.template.forms['filterSelectBoxes']._id + '/submission?data.selectBoxes.a=true&data.selectBoxes.b=false', helper.template))
+                .set('x-jwt-token', helper.owner.token)
+                .send()
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+                  assert.equal(res.body.length, 1);
+                  assert.equal(res.body[0].data.selectBoxes.a, true);
+                  assert.equal(res.body[0].data.selectBoxes.b, false);
+                  done();
+                });
             });
         });
 
@@ -4047,18 +4069,18 @@ module.exports = function(app, template, hook) {
                 return done(err);
               }
               request(app)
-              .get(hook.alter('url', '/form/' + helper.template.forms['filter']._id + '/submission?data.currency=20&data.selectBoxes.b=false', helper.template))
-              .set('x-jwt-token', helper.owner.token)
-              .send()
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
-                assert.equal(res.body.length, 0);
-                assert.deepEqual(res.body, [])
-                done();
-              });
+                .get(hook.alter('url', '/form/' + helper.template.forms['filter']._id + '/submission?data.currency=20&data.selectBoxes.b=false', helper.template))
+                .set('x-jwt-token', helper.owner.token)
+                .send()
+                .expect(200)
+                .end(function(err, res) {
+                  if (err) {
+                    return done(err);
+                  }
+                  assert.equal(res.body.length, 0);
+                  assert.deepEqual(res.body, [])
+                  done();
+                });
             });
         });
       });
@@ -4102,20 +4124,20 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
             request(app)
-            .get(hook.alter('url', '/form/' + helper.template.forms['filterSelect']._id + '/submission?data.select=2', helper.template))
-            .set('x-jwt-token', helper.owner.token)
-            .send()
-            .expect(200)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
-              assert.equal(res.body.length, 2);
-              res.body.forEach(item => {
-                assert.equal(item.data.select, 2);
-              })
-              done();
-            });
+              .get(hook.alter('url', '/form/' + helper.template.forms['filterSelect']._id + '/submission?data.select=2', helper.template))
+              .set('x-jwt-token', helper.owner.token)
+              .send()
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(res.body.length, 2);
+                res.body.forEach(item => {
+                  assert.equal(item.data.select, 2);
+                })
+                done();
+              });
           });
       });
     });
@@ -4139,49 +4161,49 @@ module.exports = function(app, template, hook) {
           }
         };
         helper
-            .form('base64Test',testForm.components)
-            .submission(testSubmission)
-            .expect(201)
-            .execute(done);
+          .form('base64Test',testForm.components)
+          .submission(testSubmission)
+          .expect(201)
+          .execute(done);
       });
 
       it('Should not return images or signatures by default',function (done) {
         request(app)
-            .get(hook.alter('url',`/form/${helper.template.forms['base64Test']._id}/submission`,helper.template))
-            .set('x-jwt-token',helper.owner.token)
-            .expect(200)
-            .end((err,res) => {
-              if (err) {
-                done(err);
-              }
-              const submissionData = res.body[0].data.file[0];
-              assert(
-                  !submissionData.hasOwnProperty('url'),
-                  'Since we have not specificed full=true, we should not recieve base64 data'
-              );
-              done();
-            });
+          .get(hook.alter('url',`/form/${helper.template.forms['base64Test']._id}/submission`,helper.template))
+          .set('x-jwt-token',helper.owner.token)
+          .expect(200)
+          .end((err,res) => {
+            if (err) {
+              done(err);
+            }
+            const submissionData = res.body[0].data.file[0];
+            assert(
+              !submissionData.hasOwnProperty('url'),
+              'Since we have not specificed full=true, we should not recieve base64 data'
+            );
+            done();
+          });
       })
 
       it('Should return images or signatures with the query string "full=true"',function (done) {
         request(app)
-            .get(hook.alter('url',
-                `/form/${helper.template.forms['base64Test']._id}/submission?full=true`,
-                helper.template
-            ))
-            .set('x-jwt-token',helper.owner.token)
-            .expect(200)
-            .end((err,res) => {
-              if (err) {
-                done(err);
-              }
-              const submissionData = res.body[0].data.file[0];
-              assert(
-                  submissionData.hasOwnProperty('url'),
-                  'Since we have  specificed full=true, we should recieve base64 data'
-              );
-              done();
-            });
+          .get(hook.alter('url',
+            `/form/${helper.template.forms['base64Test']._id}/submission?full=true`,
+            helper.template
+          ))
+          .set('x-jwt-token',helper.owner.token)
+          .expect(200)
+          .end((err,res) => {
+            if (err) {
+              done(err);
+            }
+            const submissionData = res.body[0].data.file[0];
+            assert(
+              submissionData.hasOwnProperty('url'),
+              'Since we have  specificed full=true, we should recieve base64 data'
+            );
+            done();
+          });
       });
     });
 
@@ -4540,62 +4562,62 @@ module.exports = function(app, template, hook) {
     });
 
     if (app.hasProjects || docker)
-    it('Should allow a draft submission where all sub-submissions are also draft.', (done) => {
-      helper
-        .submission('parent', {
-          state: 'draft',
-          data: {
-            showA: true,
-            showB: true,
-            showC: true,
-            childA: {
-              data: {
-                a: 'One',
-                b: 'Two'
-              }
-            },
-            childB: {
-              data: {
-                c: 'Three',
-                d: 'Four'
-              }
-            },
-            childC: {
-              data: {
-                e: 'Five',
-                f: 'Six'
+      it('Should allow a draft submission where all sub-submissions are also draft.', (done) => {
+        helper
+          .submission('parent', {
+            state: 'draft',
+            data: {
+              showA: true,
+              showB: true,
+              showC: true,
+              childA: {
+                data: {
+                  a: 'One',
+                  b: 'Two'
+                }
+              },
+              childB: {
+                data: {
+                  c: 'Three',
+                  d: 'Four'
+                }
+              },
+              childC: {
+                data: {
+                  e: 'Five',
+                  f: 'Six'
+                }
               }
             }
-          }
-        })
-        .execute((err) => {
-          if (err) {
-            return done(err);
-          }
+          })
+          .execute((err) => {
+            if (err) {
+              return done(err);
+            }
 
-          const submission = helper.lastSubmission;
-          assert.equal(submission.state, 'draft');
-          assert(submission.data.childA.hasOwnProperty('_id'), 'The childA form was not submitted');
-          assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
-          assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
-          assert.equal(submission.data.childA.state, 'draft');
-          assert.equal(submission.data.childB.state, 'draft');
-          assert.equal(submission.data.childC.state, 'draft');
-          assert.deepEqual(submission.data.childA.data, {
-            a: 'One',
-            b: 'Two'
+            const submission = helper.lastSubmission;
+            assert.equal(submission.state, 'draft');
+            assert(submission.data.childA.hasOwnProperty('_id'), 'The childA form was not submitted');
+            assert(submission.data.childB.hasOwnProperty('_id'), 'The childB form was not submitted');
+            assert(submission.data.childC.hasOwnProperty('_id'), 'The childC form was not submitted');
+            assert.equal(submission.data.childA.state, 'draft');
+            assert.equal(submission.data.childB.state, 'draft');
+            assert.equal(submission.data.childC.state, 'draft');
+            assert.deepEqual(submission.data.childA.data, {
+              a: 'One',
+              b: 'Two'
+            });
+            assert.deepEqual(submission.data.childB.data, {
+              c: 'Three',
+              d: 'Four'
+            });
+            assert.deepEqual(submission.data.childC.data, {
+              e: 'Five',
+              f: 'Six'
+            });
+            done();
           });
-          assert.deepEqual(submission.data.childB.data, {
-            c: 'Three',
-            d: 'Four'
-          });
-          assert.deepEqual(submission.data.childC.data, {
-            e: 'Five',
-            f: 'Six'
-          });
-          done();
-        });
-    });
+      });
 
     // if (app.hasProjects || docker)
     // it('Should allow an update to the submission where all sub-submissions are also updated.', (done) => {
