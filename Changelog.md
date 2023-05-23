@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 3.1.0-rc.11
+### Changed
+ - Updated formiojs@4.15.0-rc.23
+ - Updated formio-workers@1.17.0-rc.6
+
 ## 3.1.0-rc.10
 ### Changed
  - Revert "FIO-6601: Fix getting submissions by reference from custom submissions collection"
