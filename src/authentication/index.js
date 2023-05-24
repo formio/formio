@@ -194,6 +194,22 @@ module.exports = (router) => {
     });
   };
 
+  /**
+   * Evaluate a user after querying the database.
+   *
+   * @param req {Object}
+   *   The express request object
+   * @param user {Object}
+   *   The user submission field that contains the username.
+   * @param password {String}
+   *   The user submission password
+   * @param passField {String}
+   *   The user submission field that contains the password.
+   * @param username {String}
+   *   The user submission username to login with.
+   * @param next {Function}
+   *   The callback function to call after authentication.
+   */
   const evaluateUser = (req, user, password, passField, username, next) => {
     if (!user) {
       return next('User or password was incorrect');
