@@ -3777,6 +3777,7 @@ module.exports = function(app, template, hook) {
 
     });
 
+<<<<<<< Updated upstream
     describe('Submission index requests', function() {
       before('Sets up a form and submissions with image or signature data', function(done) {
         const testForm = _.cloneDeep(require('./fixtures/forms/fileComponent'));
@@ -3828,6 +3829,82 @@ module.exports = function(app, template, hook) {
             }
             const submissionData = res.body[0].data.file[0];
             assert(submissionData.hasOwnProperty('url'), 'Since we have  specificed full=true, we should recieve base64 data');
+=======
+    describe('Wizard', () => {
+      it('Should save data of suffix/prefix components', (done) => {
+        helper
+          .form({
+            title: 'Wizard Suffix Components',
+            name: 'formWiz',
+            path: 'formwiz',
+            type: 'form',
+            display: 'wizard',
+            components: [
+              {
+                label: 'Text Field',
+                applyMaskOn: 'change',
+                tableView: true,
+                key: 'textField',
+                type: 'textfield',
+                input: true,
+              },{
+                title: 'Page 1',
+                collapsible: false,
+                key: 'panel',
+                type: 'panel',
+                label: 'Panel',
+                input: false,
+                tableView: false,
+                components: [
+                  {
+                    label: 'Page 1 text',
+                    applyMaskOn: 'change',
+                    tableView: true,
+                    key: 'page1Text',
+                    type: 'textfield',
+                    input: true,
+                  },
+                ],
+              },{
+                title: 'Page 2',
+                collapsible: false,
+                key: 'panel1',
+                type: 'panel',
+                label: 'Panel',
+                input: false,
+                tableView: false,
+                components: [
+                  {
+                    label: 'Page 2 text',
+                    applyMaskOn: 'change',
+                    tableView: true,
+                    key: 'page2Text',
+                    type: 'textfield',
+                    input: true,
+                  },
+                ],
+              },{
+                type: 'button',
+                label: 'Submit',
+                key: 'submit',
+                disableOnInvalid: true,
+                input: true,
+                tableView: false,
+              },
+            ],
+          })
+          .submission({
+            textField: 'text',
+            page1Text: 't1',
+            page2Text: 't2'
+          })
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            const submission = helper.getLastSubmission();
+            assert.equal(submission.data.textField, 'text');
+>>>>>>> Stashed changes
             done();
           });
       });
