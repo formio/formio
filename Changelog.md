@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-4500: Fixes an issue where specified in the component settings delimiter is not used for CSVExport of Tags component data
  - FIO-6414: fixed filtering issues inside DT
  - FIO-4216: Fixes 'Resource not found' issue when using submission collection and trying to retrieve submission using x-token
+ - FIO-6840: Refactor authentication to use case-insensitive query and fallback to $regex
 
 ## 3.1.0-rc.5
 ### Fixed
