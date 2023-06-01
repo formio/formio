@@ -34,7 +34,7 @@ module.exports = function(app, template, hook) {
       helper.project().user('user', 'user1').execute(done);
     });
 
-    if (app.hasProjects || docker)
+    if ((app.hasProjects || docker) && !_.get(template, 'config.formio.hosted'))
     describe('Submissions Collection', () => {
       const test = require('./fixtures/forms/singlecomponents1.js');
 
