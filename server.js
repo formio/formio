@@ -12,7 +12,7 @@ require('colors');
 const Q = require('q');
 const cors = require('cors');
 const test = process.env.TEST_SUITE;
-const noInstall = process.env.NO_INSTALL;
+const noInstall = Number(process.env.NO_INSTALL) || 0;
 
 module.exports = function(options) {
   options = options || {};
@@ -116,16 +116,19 @@ module.exports = function(options) {
 
     // See if they have any forms available.
     formio.db.collection('forms').estimatedDocumentCount(function(err, numForms) {
-      // If there are forms, then go ahead and start the server.
+      // If there are zero documents, then root user must be installed.
+      if (!err && numForms === 0) {
+        install.user = true;
+      }
+
+    // If there are forms, then go ahead and start the server.
       if ((!err && numForms > 0) || test || noInstall) {
-        if (!install.download && !install.extract) {
+        if (!install.download && !install.extract && !install.user) {
           return start();
         }
       }
 
-      // Import the project and create the user.
       install.import = true;
-      install.user = true;
 
       // Install.
       require('./install')(formio, install, function(err) {
