@@ -208,9 +208,6 @@ module.exports = (router) => {
             return next();
           }
 
-          const {data, ...userToLog} = user;
-          debug.handler(userToLog);
-
           hook.alter('validateToken', req, decoded, user, (err) => {
             if (err) {
               return res.status(440).send(err);

@@ -177,7 +177,6 @@ module.exports = function(router) {
        * @returns {*}
        */
       const loadUser = function(submission, callback) {
-        debug.loadUser(submission);
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         submissionModel.findOne(hook.alter('submissionQuery', {
           _id: util.idToBson(submission),
@@ -192,8 +191,6 @@ module.exports = function(router) {
             return res.status(400).send('No Submission was found with the given setting `submission`.');
           }
 
-          const {data, ...userToLog} = user;
-          debug.loadUser(userToLog);
           return callback(user);
         });
       };
@@ -270,7 +267,6 @@ module.exports = function(router) {
           roles: compare
         };
         // Update the submission model.
-        debug.addRole(submission);
         updateModel(submission, association, update);
       };
 
@@ -307,8 +303,6 @@ module.exports = function(router) {
         submission.roles = compare;
 
         // Update the submission model.
-        debug.removeRole(submission);
-
         const update = {
           roles: compare
         };
