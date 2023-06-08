@@ -362,8 +362,7 @@ module.exports = (router) => {
               if (err) {
                 return next(err);
               }
-              return 
-            (req, user, password, passField, username, next);
+              return evaluateUser(req, user, password, passField, username, next);
             });
         }
         else {
