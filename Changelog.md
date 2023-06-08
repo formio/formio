@@ -2,14 +2,50 @@
 All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
-and this project adheres to [Semantic Versioning](http://semver.org/)
+and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 3.1.0-rc.1]
+## [Unreleased: 3.1.0-rc.6]
+### Fixed
+ - FIO-6601: Fix getting submissions by reference from custom submissions collection
+ - FIO-4500: Fixes an issue where specified in the component settings delimiter is not used for CSVExport of Tags component data
+ - FIO-6414: fixed filtering issues inside DT
+ - FIO-4216: Fixes 'Resource not found' issue when using submission collection and trying to retrieve submission using x-token
+ - FIO-6840: Refactor authentication to use case-insensitive query and fallback to $regex
+ - FIO-6729: changed the output of data in the logs
+
+## 3.1.0-rc.5
+### Fixed
+ - FIO 6579: another potential problem with legacy templates
+ - FIO-6424: fixed displaying of Select component with Save as reference property when download PDF
+
+## 3.1.0-rc.4
+### Changed
+ - TO-DO: ADD INFO HERE.
+
+## 3.1.0-rc.3
+### Changed
+ - Updated formiojs@4.15.0-rc.19
+ - Updated formio-workers@1.17.0-rc.2
+
+### Fixed
+ - FIO-5688: Allow for a DEFAULT_TRANSPORT to enable the default sending…
+
+## 3.1.0-rc.2
+### Changed
+ - Revert "FIO-5497: fixed DeprecationWarning for crypto.createDecipher"
+ - FIO-5709: fix the response radio value in the CSV shows as blank
+
+## 3.1.0-rc.1
+### Changed
+ - Updated formiojs@4.15.0-rc.18
+ - Updated formio-workers@1.17.0-rc.1
+
 ### Changed
  - Increment minor version.
  - Remove submission collection tests in open source core
  - upgrade jsonwebtoken dependency
  - Allow the display of all images and signatures in index when ?full=true is provided in the url
+ - Revert "FIO-5497: fixed DeprecationWarning for crypto.createDecipher"
 
 ### Fixed
  - FIO-4189: fixed advanced logic not working inside Nested Form
@@ -23,6 +59,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - FIO-5904: fixed saving data for Components outside of Wizards
  - FIO-6069: document db restrictions handling
  - FIO-5904: Fixed a bug where data for form components wouldn't save if outside of a wizard
+ - FIO-5688: Allow for a DEFAULT_TRANSPORT to enable the default sending method for emails.
+ - FIO-6579: Fix project template exports crashing the server
 
 ## 3.0.0-rc.11
 ### Fixed
