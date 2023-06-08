@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-6414: fixed filtering issues inside DT
  - FIO-4216: Fixes 'Resource not found' issue when using submission collection and trying to retrieve submission using x-token
  - FIO-6840: Refactor authentication to use case-insensitive query and fallback to $regex
+ - FIO-6729: changed the output of data in the logs
 
 ## 3.1.0-rc.5
 ### Fixed
