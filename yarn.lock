@@ -2408,17 +2408,17 @@ formidable@^2.0.1:
     once "1.4.0"
     qs "6.9.3"
 
-formio-workers@1.17.0-rc.8:
-  version "1.17.0-rc.8"
-  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.17.0-rc.8.tgz#37b8449c2443c89dd035a4b247742cea7ecc1616"
-  integrity sha512-gmQQQKtQ74Xg2/x4knh5sQRmm94OhYp6VrOL0+/uUc/SYPp/QaicYXqoDf/KbjvY62+Z1gpcf0jH4NRci+fKAA==
+formio-workers@1.17.0-rc.9:
+  version "1.17.0-rc.9"
+  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.17.0-rc.9.tgz#d6bc3274454ae28c05437de4b7617809a3f83d31"
+  integrity sha512-lricvxqLV9xvYCxX7OpqWPK+GKLm9pXFU6mgB2tDPmKk8XarB989L0IyypbctgK2e8i2s1HwYCzFq4YlYdfFDA==
   dependencies:
     aws-serverless-express "^3.4.0"
     body-parser "^1.19.1"
     core-js "^3.19.3"
     dotenv "^10.0.0"
     express "^4.17.1"
-    formiojs "4.15.0-rc.25"
+    formiojs "4.15.0-rc.26"
     lodash "^4.17.21"
     method-override "^3.0.0"
     moment "^2.29.1"
@@ -2427,10 +2427,10 @@ formio-workers@1.17.0-rc.8:
     nunjucks-date-filter "^0.1.1"
     vm2 "^3.9.5"
 
-formiojs@4.15.0-rc.25:
-  version "4.15.0-rc.25"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.15.0-rc.25.tgz#4a943a7a02370726caf4374c9138f3ad3fe22d1b"
-  integrity sha512-eccE9/uVltpjvNhrHYA0hDbe0NTpORZIpWuiNW1CXnM0IrMB4QLFXuGpjzlKbpvY1gwF0RI689a860mGBut7ng==
+formiojs@4.15.0-rc.26:
+  version "4.15.0-rc.26"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.15.0-rc.26.tgz#077c84139b86c1b67b7a3f98e6cd26550333fe97"
+  integrity sha512-aog385xB+yxDsEwoIWvZUuihLwUQT7BZc/X5R/SLxF38Q5VlXRADq/uePWHlIbqnjMrnD90kI43O19sD3hxpcA==
   dependencies:
     "@formio/bootstrap3" "2.12.3-rc.1"
     "@formio/choices.js" "10.2.0"
@@ -2452,7 +2452,7 @@ formiojs@4.15.0-rc.25:
     fast-deep-equal "^3.1.3"
     fast-json-patch "^3.1.1"
     fetch-ponyfill "^7.1.0"
-    i18next "^22.4.3"
+    i18next "22.4.12"
     idb "^7.1.1"
     ismobilejs "^1.1.1"
     json-logic-js "^2.0.2"
@@ -2716,10 +2716,10 @@ https-proxy-agent@^5.0.0:
     agent-base "6"
     debug "4"
 
-i18next@^22.4.3:
-  version "22.4.9"
-  resolved "https://registry.yarnpkg.com/i18next/-/i18next-22.4.9.tgz#98c8384c6bd41ff937da98b1e809ba03d3b41053"
-  integrity sha512-8gWMmUz460KJDQp/ob3MNUX84cVuDRY9PLFPnV8d+Qezz/6dkjxwOaH70xjrCNDO+JrUL25iXfAIN9wUkInNZw==
+i18next@22.4.12:
+  version "22.4.12"
+  resolved "https://registry.yarnpkg.com/i18next/-/i18next-22.4.12.tgz#fde322c186501ea1adcdfac41b2d2552b26eab42"
+  integrity sha512-2lE+vRXxQ3lGLub1CVbwgO0IfkLHmUSDVOAVdPh22CsxttMXi+35n2qgxh2wZIkKl6t/NMzPfgFPRDiFQOmiCg==
   dependencies:
     "@babel/runtime" "^7.20.6"
 
