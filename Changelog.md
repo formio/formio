@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)
  - Updated formiojs@4.15.0-rc.26
  - Updated formio-workers@1.17.0-rc.9
  - Bump cookiejar from 2.1.3 to 2.1.4
+ 
+### Fixed
+ - FIO-6729: changed the output of data in the logs
 
 ## 3.1.0-rc.14
 ### Changed
