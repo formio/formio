@@ -2,7 +2,16 @@
 All notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
-and this project adheres to [Semantic Versioning](http://semver.org/)
+and this project adheres to [Semantic Versioning](http://semver.org/)//
+
+## [Unreleased: 3.1.0-rc.6]
+### Fixed
+ - FIO-6601: Fix getting submissions by reference from custom submissions collection
+ - FIO-4500: Fixes an issue where specified in the component settings delimiter is not used for CSVExport of Tags component data
+ - FIO-6414: fixed filtering issues inside DT
+ - FIO-4216: Fixes 'Resource not found' issue when using submission collection and trying to retrieve submission using x-token
+ - FIO-6840: Refactor authentication to use case-insensitive query and fallback to $regex
+ - FIO-6729: changed the output of data in the logs
 
 ## 3.1.0-rc.5
 ### Fixed
