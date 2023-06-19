@@ -3793,7 +3793,7 @@ module.exports = function(app, template, hook) {
               "delimiter": true
             }
           ];
-  
+
           helper
             .form('filterCurrency', components)
             .submission({ currency: 10 })
@@ -3845,7 +3845,7 @@ module.exports = function(app, template, hook) {
               }
             }
           ];
-  
+
           helper
             .form('filterSelectBoxes', components)
             .submission({ selectBoxes: {a: true, b: false} })
@@ -3911,7 +3911,7 @@ module.exports = function(app, template, hook) {
               }
             }
           ];
-  
+
           helper
             .form('filter', components)
             .submission({ currency: 10 , selectBoxes: {a: true, b: false}})
@@ -3940,7 +3940,6 @@ module.exports = function(app, template, hook) {
 
     });
 
-<<<<<<< Updated upstream
     describe('Submission index requests', function() {
       before('Sets up a form and submissions with image or signature data', function(done) {
         const testForm = _.cloneDeep(require('./fixtures/forms/fileComponent'));
@@ -3983,16 +3982,26 @@ module.exports = function(app, template, hook) {
 
       it('Should return images or signatures with the query string "full=true"', function(done) {
         request(app)
-          .get(hook.alter('url', `/form/${helper.template.forms['base64Test']._id}/submission?full=true`, helper.template))
-          .set('x-jwt-token', helper.owner.token)
+          .get(hook.alter(
+              'url',
+              `/form/${helper.template.forms['base64Test']._id}/submission?full=true`,
+              helper.template
+          ))
+          .set('x-jwt-token',helper.owner.token)
           .expect(200)
-          .end((err, res) => {
+          .end((err,res) => {
             if (err) {
               done(err);
             }
             const submissionData = res.body[0].data.file[0];
-            assert(submissionData.hasOwnProperty('url'), 'Since we have  specificed full=true, we should recieve base64 data');
-=======
+            assert(
+                submissionData.hasOwnProperty('url'),
+                'Since we have  specificed full=true, we should recieve base64 data'
+            );
+            done();
+          });
+      });
+
     describe('Wizard', () => {
       it('Should save data of suffix/prefix components', (done) => {
         helper
@@ -4067,7 +4076,6 @@ module.exports = function(app, template, hook) {
             }
             const submission = helper.getLastSubmission();
             assert.equal(submission.data.textField, 'text');
->>>>>>> Stashed changes
             done();
           });
       });
