@@ -808,10 +808,10 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
-"@formio/bootstrap3@2.12.3-rc.1":
-  version "2.12.3-rc.1"
-  resolved "https://registry.yarnpkg.com/@formio/bootstrap3/-/bootstrap3-2.12.3-rc.1.tgz#74327fd34002cc9b03b293ab524121a9bde1b690"
-  integrity sha512-Xe3LRv7wdsP3hwkwMeIi87X7u0bZORA+RFwqnXG7gLLH+ur+YF0df6YJURGw3lSMoXvo7eHxaJAx7Vky/F+raQ==
+"@formio/bootstrap3@2.12.3":
+  version "2.12.3"
+  resolved "https://registry.yarnpkg.com/@formio/bootstrap3/-/bootstrap3-2.12.3.tgz#afb3a91773161d77515628f8e9a031aa5104adc6"
+  integrity sha512-/jod5STUSz9wLnniCCZwKvqigLrzHt4jDZ07VUxmnqg1IcPcJKNX1UrY7tBAYWa2lWJ/p1j4bSerC6UWjbdYDQ==
   dependencies:
     resize-observer-polyfill "^1.5.1"
 
@@ -834,10 +834,10 @@
     lodash "^4.17.21"
     node-fetch "^2.6.1"
 
-"@formio/semantic@2.6.1-rc.1":
-  version "2.6.1-rc.1"
-  resolved "https://registry.yarnpkg.com/@formio/semantic/-/semantic-2.6.1-rc.1.tgz#26d40f52fb5767876443629831c3841d18498ecc"
-  integrity sha512-cvdjSkt1P6crWwZzjUhIK/3+yz6DjLSXxXqoPNvbYZt8tuxMS3cHDhPIy/psKnEXLAMEnGtm9I5i8gOQCcalFg==
+"@formio/semantic@2.6.1":
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/@formio/semantic/-/semantic-2.6.1.tgz#dd224e276da2f27b272131ed6678847a52be299d"
+  integrity sha512-obp1BT5UnzD+uYBbqmnsTfO2hGxI2A2iR/cj3P5JUFLYSBpnr3TS2ShQ7Ee5GCRRtJPu0JnljuJj+YSKLCMuhg==
 
 "@formio/text-mask-addons@^3.8.0-formio.2":
   version "3.8.0-formio.2"
@@ -2408,17 +2408,17 @@ formidable@^2.0.1:
     once "1.4.0"
     qs "6.9.3"
 
-formio-workers@1.17.0-rc.10:
-  version "1.17.0-rc.10"
-  resolved "https://registry.npmjs.org/formio-workers/-/formio-workers-1.17.0-rc.10.tgz#53dafc99a1fb431ef60d0c2f631f23033fe16e7c"
-  integrity sha512-7ZM+t/eChpZP8Qv0TFSwdXajzXoWJQGk5HLg+5Uyc1rGrMX6QgjXxzkeq0O+oBAOSzzrfADknRiccnN0JOKrFA==
+formio-workers@1.17.0:
+  version "1.17.0"
+  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.17.0.tgz#1f9afb480e1d15f72dffec34e8f1a8172cfefd39"
+  integrity sha512-F0VT9bnoDfdqddXBk0+cXwe239LyolHd5Y5dfw3IhLroOPaGjUMcHPdb5CsqrLdW6lOOYrkA7D6KE28pOOvgnw==
   dependencies:
     aws-serverless-express "^3.4.0"
     body-parser "^1.19.1"
     core-js "^3.19.3"
     dotenv "^10.0.0"
     express "^4.17.1"
-    formiojs "4.15.0-rc.27"
+    formiojs "4.15.0"
     lodash "^4.17.21"
     method-override "^3.0.0"
     moment "^2.29.1"
@@ -2427,14 +2427,14 @@ formio-workers@1.17.0-rc.10:
     nunjucks-date-filter "^0.1.1"
     vm2 "^3.9.5"
 
-formiojs@4.15.0-rc.27:
-  version "4.15.0-rc.27"
-  resolved "https://registry.npmjs.org/formiojs/-/formiojs-4.15.0-rc.27.tgz#f38332718bff4da217d74f147ffcfa3531b44e36"
-  integrity sha512-BLxigEWRspbSoHV/2wPn+Q+/NUZF+NFY11v+CQR17ENsg5aLQcVvb4TM+LTDMUdfEmfML4qEaO+0q7x+nDi7EA==
+formiojs@4.15.0:
+  version "4.15.0"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.15.0.tgz#262853b93c5d7e2f2cbe6e86cbcd9712c6966672"
+  integrity sha512-WatNcvb/zPcpQgzhbpKcFlvxyws1x7PrU+nQI9Uwg9uV7dBllQDhNl1j7nsZl3g+iYQLb3LcK9qRxHO3IzHhyw==
   dependencies:
-    "@formio/bootstrap3" "2.12.3-rc.1"
+    "@formio/bootstrap3" "2.12.3"
     "@formio/choices.js" "10.2.0"
-    "@formio/semantic" "2.6.1-rc.1"
+    "@formio/semantic" "2.6.1"
     "@formio/text-mask-addons" "^3.8.0-formio.2"
     "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     autocompleter "^7.0.1"
@@ -3995,10 +3995,10 @@ resolve-from@^4.0.0:
   resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-4.0.0.tgz#4abcd852ad32dd7baabfe9b40e00a36db5f392e6"
   integrity sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==
 
-resourcejs@2.6.0-rc.2:
-  version "2.6.0-rc.2"
-  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.0-rc.2.tgz#cc8ffd673f62bca4f20709daec006870f147b074"
-  integrity sha512-lUorlgftXQx2jbH7lhjtNq/CSYKwNdrXJvd1UJm9bbZMeuYsbwBss73XPLtu264/f6T+vVjAkVi7TGVSPVgbFg==
+resourcejs@2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.0.tgz#98287ca9698065cc282c015f7d78a78508f6ae18"
+  integrity sha512-0VsXqlh08TWJTuj1nUTUlUSuXZ7gmHmJfFyqzxJ6Io1k82bWQ8XlrMdHfnkRVXve+goW392vSRr6Wo70S87Qpw==
   dependencies:
     debug "^4.3.2"
     fast-json-patch "^3.1.1"
