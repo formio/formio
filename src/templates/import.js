@@ -165,8 +165,9 @@ module.exports = (router) => {
         entity.form = template.forms[formName]._id.toString();
         if (template.forms[formName].revisions) {
             const revisionId = entity.revision;
-            const revisionTemplate = template.revisions[`${formName}:${revisionId}`];
+            const revisionTemplate = template.revisions && template.revisions[`${formName}:${revisionId}`];
             const revision = revisionTemplate && revisionTemplate.newId ? revisionTemplate.newId : revisionId;
+
             updateRevisionProperty(entity, revision);
         }
         changes = true;
