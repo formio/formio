@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-6840: Refactor authentication to use case-insensitive query and fallback to $regex
  - FIO-6729: changed the output of data in the logs
  - FIO-3840: fixed swagger spec definition for components with obj type
+ - Bump json5 from 2.2.1 to 2.2.3
+ - Bump @xmldom/xmldom from 0.7.5 to 0.7.11
+ - Bump nunjucks from 3.2.3 to 3.2.4
+ - Bump vm2 from 3.9.11 to 3.9.18
+ - Bump semver from 7.3.8 to 7.5.2
+ - Bump cookiejar from 2.1.3 to 2.1.4
 
 ## 3.1.0-rc.5
 ### Fixed
