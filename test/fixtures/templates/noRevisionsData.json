@@ -1,0 +1,77 @@
+{
+    "title": "norevisionsdata",
+    "version": "2.0.0",
+    "name": "norevisionsdata",
+    "roles": {},
+    "forms": {
+      "outer": {
+        "title": "outer",
+        "type": "form",
+        "name": "outer",
+        "path": "outer",
+        "display": "form",
+        "tags": [],
+        "settings": {},
+        "components": [
+          {
+            "label": "Form",
+            "tableView": true,
+            "form": "inner",
+            "useOriginalRevision": false,
+            "key": "form",
+            "type": "form",
+            "input": true,
+            "revision": "1"
+          },
+          {
+            "type": "button",
+            "label": "Submit",
+            "key": "submit",
+            "disableOnInvalid": true,
+            "input": true,
+            "tableView": false
+          }
+        ],
+        "properties": {}
+      },
+      "inner": {
+        "title": "inner",
+        "type": "form",
+        "name": "inner",
+        "path": "inner",
+        "display": "form",
+        "tags": [],
+        "settings": {},
+        "components": [
+          {
+            "label": "Text Field",
+            "tableView": true,
+            "key": "textField",
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "label": "Text Area",
+            "autoExpand": false,
+            "tableView": true,
+            "key": "textArea",
+            "type": "textarea",
+            "input": true
+          },
+          {
+            "type": "button",
+            "label": "Submit",
+            "key": "submit",
+            "disableOnInvalid": true,
+            "input": true,
+            "tableView": false
+          }
+        ],
+        "properties": {},
+        "revisions": "original"
+      }
+    },
+    "actions": {},
+    "resources": {},
+    "excludeAccess": true
+  }

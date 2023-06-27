@@ -108,10 +108,6 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              if (!value) {
-                return '';
-              }
-
               const componentValue = component.values.find((v) => v.value === value.toString()) || '';
                 return componentValue && formattedView
                   ? componentValue.label
@@ -353,6 +349,19 @@ class CSVExporter extends Exporter {
                 })
                 .filter((val) => !!val)
                 .join(', ');
+              return formatted;
+            }
+          });
+        }
+        else if (component.type === 'tags') {
+          items.push({
+            preprocessor: (value) => {
+              if (!value || !Array.isArray(value)) {
+                return value || '';
+              }
+
+              const formatted = value.join(component.delimeter || ',');
+
               return formatted;
             }
           });

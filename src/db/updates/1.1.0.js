@@ -14,7 +14,7 @@ function encrypt(secret, mixed) {
     return undefined;
   }
 
-  let cipher = crypto.createCipheriv('aes-256-cbc', secret, Buffer.alloc(16, 0));
+  let cipher = crypto.createCipher('aes-256-cbc', secret);
   let decryptedJSON = JSON.stringify(mixed);
 
   return Buffer.concat([

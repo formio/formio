@@ -1,5 +1,4 @@
 'use strict';
-
 const _ = require('lodash');
 
 module.exports = (formio) => async (component, data, handler, action, {validation}) => {
@@ -7,9 +6,7 @@ module.exports = (formio) => async (component, data, handler, action, {validatio
   if (validation && ['put', 'post', 'patch'].includes(action)) {
     let value = _.get(data, component.key);
     if (value) {
-      if (_.isArray(value)) {
-        value = value.map(val => val ? val : '');
-      }
+      value = _.isArray(value) ? value.map(val => val ? new Date(val) : '') : new Date(value);
       _.set(data, component.key, value);
     }
     else if (value === '') {
