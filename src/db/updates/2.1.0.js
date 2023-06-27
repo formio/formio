@@ -13,7 +13,7 @@ function encrypt(secret, mixed) {
     return undefined;
   }
 
-  let cipher = crypto.createCipheriv('aes-256-cbc', secret, Buffer.alloc(16, 0));
+  let cipher = crypto.createCipher('aes-256-cbc', secret);
   let decryptedJSON = JSON.stringify(mixed);
 
   return Buffer.concat([
@@ -34,7 +34,7 @@ function decrypt(secret, cipherbuffer) {
     return undefined;
   }
 
-  let decipher = crypto.createDecipheriv('aes-256-cbc', secret, Buffer.alloc(16, 0));
+  let decipher = crypto.createDecipher('aes-256-cbc', secret);
   let decryptedJSON = Buffer.concat([
     decipher.update(cipherbuffer), // Buffer contains encrypted utf8
     decipher.final()
