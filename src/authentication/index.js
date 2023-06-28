@@ -195,6 +195,115 @@ module.exports = (router) => {
   };
 
   /**
+   * Evaluate a user after querying the database.
+   *
+   * @param req {Object}
+   *   The express request object
+   * @param user {Object}
+   *   The user submission field that contains the username.
+   * @param password {String}
+   *   The user submission password
+   * @param passField {String}
+   *   The user submission field that contains the password.
+   * @param username {String}
+   *   The user submission username to login with.
+   * @param next {Function}
+   *   The callback function to call after authentication.
+   */
+  const evaluateUser = (req, user, password, passField, username, next) => {
+    if (!user) {
+      return next('User or password was incorrect');
+    }
+
+    const hash = _.get(user.data, passField);
+    if (!hash) {
+      audit('EAUTH_BLANKPW', {
+        ...req,
+        userId: user._id,
+      }, username);
+      return next('Your account does not have a password. You must reset your password to login.');
+    }
+
+    // Compare the provided password.
+    bcrypt.compare(password, hash, (err, value) => {
+      if (err) {
+        audit('EAUTH_BCRYPT', {
+          ...req,
+          userId: user._id
+        }, username, err);
+        return next(err);
+      }
+
+      if (!value) {
+        audit('EAUTH_PASSWORD', req, user._id, username);
+        return next('User or password was incorrect', {user});
+      }
+
+      // Load the form associated with this user record.
+      router.formio.resources.form.model.findOne({
+        _id: user.form,
+        deleted: {$eq: null},
+      }).lean().exec((err, form) => {
+        if (err) {
+          audit('EAUTH_USERFORM', {
+            ...req,
+            userId: user._id,
+          }, user.form, err);
+          return next(err);
+        }
+
+        if (!form) {
+          audit('EAUTH_USERFORM', {
+            ...req,
+            userId: user._id,
+          }, user.form, {message: 'User form not found'});
+          return next('User form not found.');
+        }
+
+        // Allow anyone to hook and modify the user.
+        hook.alter('user', user, (err, _user) => {
+          if (err) {
+            // Attempt to fail safely and not update the user reference.
+            debug.authenticate(err);
+          }
+          else {
+            // Update the user with the hook results.
+            debug.authenticate(user);
+            user = _user;
+          }
+
+          hook.alter('login', user, req, (err) => {
+            if (err) {
+              return next(err);
+            }
+
+            // Allow anyone to hook and modify the token.
+            const token = hook.alter('token', {
+              user: {
+                _id: user._id,
+              },
+              form: {
+                _id: form._id,
+              },
+            }, form, req);
+
+            hook.alter('tokenDecode', token, req, (err, decoded) => {
+              // Continue with the token data.
+              next(err, {
+                user,
+                token: {
+                  token: getToken(token),
+                  decoded,
+                },
+              });
+            });
+          });
+        });
+      });
+    });
+  };
+
+  /**
    * Authenticate a user.
    *
    * @param forms {Mixed}
@@ -210,7 +319,7 @@ module.exports = (router) => {
    * @param next {Function}
    *   The callback function to call after authentication.
    */
-  const authenticate = (req, forms, userField, passField, username, password, next) => {
+  const authenticate = async (req, forms, userField, passField, username, password, next) => {
     // Make sure they have provided a username and password.
     if (!username) {
       audit('EAUTH_EMPTYUN', req);
@@ -235,105 +344,31 @@ module.exports = (router) => {
     }
 
     // Look for the user.
-    query[`data.${userField}`] = {$regex: new RegExp(`^${util.escapeRegExp(username)}$`), $options: 'i'};
+    query[`data.${userField}`] = username;
 
     // Find the user object.
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-    submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec((err, user) => {
-      if (err) {
-        return next(err);
-      }
-      if (!user) {
-        return next('User or password was incorrect');
-      }
-
-      const hash = _.get(user.data, passField);
-      if (!hash) {
-        audit('EAUTH_BLANKPW', {
-          ...req,
-          userId: user._id,
-        }, username);
-        return next('Your account does not have a password. You must reset your password to login.');
-      }
-
-      // Compare the provided password.
-      bcrypt.compare(password, hash, (err, value) => {
+    submissionModel
+      .findOne(hook.alter('submissionQuery', query, req))
+      .collation({locale: 'en', strength: 2})
+      .lean()
+      .exec((err, user) => {
         if (err) {
-          audit('EAUTH_BCRYPT', {
-            ...req,
-            userId: user._id
-          }, username, err);
-          return next(err);
-        }
-
-        if (!value) {
-          audit('EAUTH_PASSWORD', req, user._id, username);
-          return next('User or password was incorrect', {user});
-        }
-
-        // Load the form associated with this user record.
-        router.formio.resources.form.model.findOne({
-          _id: user.form,
-          deleted: {$eq: null},
-        }).lean().exec((err, form) => {
-          if (err) {
-            audit('EAUTH_USERFORM', {
-              ...req,
-              userId: user._id,
-            }, user.form, err);
-            return next(err);
-          }
-
-          if (!form) {
-            audit('EAUTH_USERFORM', {
-              ...req,
-              userId: user._id,
-            }, user.form, {message: 'User form not found'});
-            return next('User form not found.');
-          }
-
-          // Allow anyone to hook and modify the user.
-          hook.alter('user', user, (err, _user) => {
-            if (err) {
-              // Attempt to fail safely and not update the user reference.
-              debug.authenticate(err);
-            }
-            else {
-              // Update the user with the hook results.
-              debug.authenticate(user);
-              user = _user;
-            }
-
-            hook.alter('login', user, req, (err) => {
+          // Presume that the error comes from our database not supporting case-insensitive collation indexing/querying
+          // (e.g. DocumentDB) and retry as a case-insensitive regex search
+          query[`data.${userField}`] = {$regex: new RegExp(`^${util.escapeRegExp(username)}$`, 'i')};
+          submissionModel
+            .findOne(hook.alter('submissionQuery', query, req)).lean().exec((err, user) => {
               if (err) {
                 return next(err);
               }
-
-              // Allow anyone to hook and modify the token.
-              const token = hook.alter('token', {
-                user: {
-                  _id: user._id,
-                },
-                form: {
-                  _id: form._id,
-                },
-              }, form, req);
-
-              hook.alter('tokenDecode', token, req, (err, decoded) => {
-                // Continue with the token data.
-                next(err, {
-                  user,
-                  token: {
-                    token: getToken(token),
-                    decoded,
-                  },
-                });
-              });
+              return evaluateUser(req, user, password, passField, username, next);
             });
-          });
-        });
+        }
+        else {
+          return evaluateUser(req, user, password, passField, username, next);
+        }
       });
-    });
   };
 
   /**

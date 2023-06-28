@@ -208,8 +208,6 @@ module.exports = (router) => {
             return next();
           }
 
-          debug.handler(user);
-
           hook.alter('validateToken', req, decoded, user, (err) => {
             if (err) {
               return res.status(440).send(err);

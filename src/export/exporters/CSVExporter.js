@@ -353,6 +353,19 @@ class CSVExporter extends Exporter {
             }
           });
         }
+        else if (component.type === 'tags') {
+          items.push({
+            preprocessor: (value) => {
+              if (!value || !Array.isArray(value)) {
+                return value || '';
+              }
+
+              const formatted = value.join(component.delimeter || ',');
+
+              return formatted;
+            }
+          });
+        }
         else {
           // Default to the current component item.
           items.push({});
