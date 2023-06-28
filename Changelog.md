@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 3.2.0-rc.1]
+## 3.2.0-rc.1
+### Changed
+ - Updated formiojs@4.16.0-rc.2
+ - Updated formio-workers@1.18.0-rc.1
+
 ### Fixed
  - FIO-6601: Fix getting submissions by reference from custom submissions collection
  - FIO-4500: Fixes an issue where specified in the component settings delimiter is not used for CSVExport of Tags component data
