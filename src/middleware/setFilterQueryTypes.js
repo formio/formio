@@ -55,6 +55,11 @@ module.exports = function(router) {
                     return date.toDate();
                   }
                 }
+                case 'select': {
+                  if (Number(value) || value === "0") {
+                    return Number(value);
+                  }
+                }
               }
             }
             if (!component && ['true', 'false'].includes(value)) {
