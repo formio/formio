@@ -3793,7 +3793,7 @@ module.exports = function(app, template, hook) {
               "delimiter": true
             }
           ];
-  
+
           helper
             .form('filterCurrency', components)
             .submission({ currency: 10 })
@@ -3845,7 +3845,7 @@ module.exports = function(app, template, hook) {
               }
             }
           ];
-  
+
           helper
             .form('filterSelectBoxes', components)
             .submission({ selectBoxes: {a: true, b: false} })
@@ -3911,7 +3911,7 @@ module.exports = function(app, template, hook) {
               }
             }
           ];
-  
+
           helper
             .form('filter', components)
             .submission({ currency: 10 , selectBoxes: {a: true, b: false}})
@@ -3941,7 +3941,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Submission index requests', function() {
-      before('Sets up a form and submissions with image or signature data', function(done) {
+      before('Sets up a form and submissions with image or signature data',function (done) {
         const testForm = _.cloneDeep(require('./fixtures/forms/fileComponent'));
         const testSubmission = {
           data: {
@@ -3959,38 +3959,126 @@ module.exports = function(app, template, hook) {
           }
         };
         helper
-          .form('base64Test', testForm.components)
-          .submission(testSubmission)
-          .expect(201)
-          .execute(done);
+            .form('base64Test',testForm.components)
+            .submission(testSubmission)
+            .expect(201)
+            .execute(done);
       });
 
-      it('Should not return images or signatures by default', function(done) {
+      it('Should not return images or signatures by default',function (done) {
         request(app)
-          .get(hook.alter('url', `/form/${helper.template.forms['base64Test']._id}/submission`, helper.template))
-          .set('x-jwt-token', helper.owner.token)
-          .expect(200)
-          .end((err, res) => {
-            if (err) {
-              done(err);
-            }
-            const submissionData = res.body[0].data.file[0];
-            assert(!submissionData.hasOwnProperty('url'), 'Since we have not specificed full=true, we should not recieve base64 data');
-            done();
-          });
+            .get(hook.alter('url',`/form/${helper.template.forms['base64Test']._id}/submission`,helper.template))
+            .set('x-jwt-token',helper.owner.token)
+            .expect(200)
+            .end((err,res) => {
+              if (err) {
+                done(err);
+              }
+              const submissionData = res.body[0].data.file[0];
+              assert(
+                  !submissionData.hasOwnProperty('url'),
+                  'Since we have not specificed full=true, we should not recieve base64 data'
+              );
+              done();
+            });
       })
 
-      it('Should return images or signatures with the query string "full=true"', function(done) {
+      it('Should return images or signatures with the query string "full=true"',function (done) {
         request(app)
-          .get(hook.alter('url', `/form/${helper.template.forms['base64Test']._id}/submission?full=true`, helper.template))
-          .set('x-jwt-token', helper.owner.token)
-          .expect(200)
-          .end((err, res) => {
+            .get(hook.alter('url',
+                `/form/${helper.template.forms['base64Test']._id}/submission?full=true`,
+                helper.template
+            ))
+            .set('x-jwt-token',helper.owner.token)
+            .expect(200)
+            .end((err,res) => {
+              if (err) {
+                done(err);
+              }
+              const submissionData = res.body[0].data.file[0];
+              assert(
+                  submissionData.hasOwnProperty('url'),
+                  'Since we have  specificed full=true, we should recieve base64 data'
+              );
+              done();
+            });
+      });
+    });
+
+    describe('Wizard', () => {
+      it('Should save data of suffix/prefix components', (done) => {
+        helper
+          .form({
+            title: 'Wizard Suffix Components',
+            name: 'formWiz',
+            path: 'formwiz',
+            type: 'form',
+            display: 'wizard',
+            components: [
+              {
+                label: 'Text Field',
+                applyMaskOn: 'change',
+                tableView: true,
+                key: 'textField',
+                type: 'textfield',
+                input: true,
+              },{
+                title: 'Page 1',
+                collapsible: false,
+                key: 'panel',
+                type: 'panel',
+                label: 'Panel',
+                input: false,
+                tableView: false,
+                components: [
+                  {
+                    label: 'Page 1 text',
+                    applyMaskOn: 'change',
+                    tableView: true,
+                    key: 'page1Text',
+                    type: 'textfield',
+                    input: true,
+                  },
+                ],
+              },{
+                title: 'Page 2',
+                collapsible: false,
+                key: 'panel1',
+                type: 'panel',
+                label: 'Panel',
+                input: false,
+                tableView: false,
+                components: [
+                  {
+                    label: 'Page 2 text',
+                    applyMaskOn: 'change',
+                    tableView: true,
+                    key: 'page2Text',
+                    type: 'textfield',
+                    input: true,
+                  },
+                ],
+              },{
+                type: 'button',
+                label: 'Submit',
+                key: 'submit',
+                disableOnInvalid: true,
+                input: true,
+                tableView: false,
+              },
+            ],
+          })
+          .submission({
+            textField: 'text',
+            page1Text: 't1',
+            page2Text: 't2'
+          })
+          .execute(function(err) {
             if (err) {
-              done(err);
+              return done(err);
             }
-            const submissionData = res.body[0].data.file[0];
-            assert(submissionData.hasOwnProperty('url'), 'Since we have  specificed full=true, we should recieve base64 data');
+            const submission = helper.getLastSubmission();
+            assert.equal(submission.data.textField, 'text');
             done();
           });
       });
