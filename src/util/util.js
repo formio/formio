@@ -614,7 +614,9 @@ const Utils = {
       else if ((component.type === 'signature') && (action === 'index') && !doNotMinify) {
         modifyFields.push(((submission) => {
           const data = _.get(submission, path);
-          _.set(submission, path, (!data || (data.length < 25)) ? '' : 'YES');
+          if (!_.isUndefined(data)) {
+            _.set(submission, path, (!data || (data.length < 25)) ? '' : 'YES');
+          }
         }));
       }
       else if (component.type === 'file' && action === 'index' && !doNotMinify) {
