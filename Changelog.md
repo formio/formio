@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - Bump semver from 7.3.8 to 7.5.2
  - Bump cookiejar from 2.1.3 to 2.1.4
 
+### Changed
+ - FIO-6769: Removed the `empty` template
+
 ## 3.1.0-rc.5
 ### Fixed
  - FIO 6579: another potential problem with legacy templates
