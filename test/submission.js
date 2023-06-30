@@ -34,231 +34,6 @@ module.exports = function(app, template, hook) {
       helper.project().user('user', 'user1').execute(done);
     });
 
-    if (app.hasProjects || docker)
-    describe('Submissions Collection', () => {
-      const test = require('./fixtures/forms/singlecomponents1.js');
-
-      before(done => {
-        process.env.TEST_SIMULATE_SAC_PACKAGE = '1';
-        process.env.API_KEYS = '123testing123testing';
-
-        // Update project to be commercial and have API key set up in settings
-        request(app)
-          .put(`/project/${helper.template.project._id}`)
-          .set('x-jwt-token', template.formio.owner.token)
-          .send({
-            plan: 'commercial',
-            settings: {
-              keys: [
-                {
-                  name: 'Test Key',
-                  key: '123testing123testing',
-                },
-              ]
-            }
-          })
-          .expect(200)
-          .end((err, res) => {
-            if (err) {
-              return done(err);
-            }
-
-            const updatedProject = res.body;
-
-            assert.equal(updatedProject._id, helper.template.project._id);
-            assert.equal(updatedProject.plan, 'commercial');
-            assert.deepEqual(updatedProject.settings.keys, [
-              {
-                name: 'Test Key',
-                key: '123testing123testing',
-              },
-            ]);
-
-            helper.template.project = updatedProject;
-
-            done();
-          });
-      });
-
-      it('Should get the submission from separate mongo collection with api key', async () => {
-        // Create form with custom submissions collection
-        const collectionName = chance.word();
-        const formCreateRes = await request(app)
-          .post(`/project/${helper.template.project._id}/form`)
-          .set('x-jwt-token', template.formio.owner.token)
-          .send({
-            title: chance.word(),
-            name: chance.word(),
-            path: chance.word(),
-            type: 'form',
-            components: test.components,
-            settings: {
-              collection: collectionName
-            }
-          });
-
-        const createdForm = formCreateRes.body;
-
-        assert.ok(createdForm._id);
-        assert.equal(createdForm.project, helper.template.project._id);
-        assert.equal(createdForm.settings.collection, collectionName);
-
-        // Create form submission
-        const submissionCreateRes = await request(app)
-          .post(`/project/${helper.template.project._id}/form/${createdForm._id}/submission`)
-          .set('x-jwt-token', template.formio.owner.token)
-          .send({
-            data: test.submission
-          });
-
-        const createdSubmission = submissionCreateRes.body;
-
-        assert.ok(createdSubmission._id);
-        assert.equal(createdSubmission.form, createdForm._id);
-        assert.deepEqual(createdSubmission.data, test.submission);
-
-        // Try to get created submission with API key
-        const submissionRes = await request(app)
-          .get(`/project/${helper.template.project._id}/form/${createdForm._id}/submission/${createdSubmission._id}`)
-          .set('x-token', '123testing123testing');
-
-        const submission = submissionRes.body;
-
-        assert.equal(createdSubmission._id, submission._id);
-        assert.deepEqual(submission.data, test.submission);
-      });
-
-      it('Should retrieve submissions for form with Select component with reference to a form with custom submissions collection', async () => {
-        const textFieldComponent = test.components.find(comp => comp.type === 'textfield');
-        const textFieldComponentSubmission = test.submission[textFieldComponent.key];
-
-        // Create resource with Text Field and assign custom submissions collection in settings
-        const collectionName = chance.word();
-        const resourceCreateRes = await request(app)
-          .post(`/project/${helper.template.project._id}/form`)
-          .set('x-jwt-token', template.formio.owner.token)
-          .send({
-            title: chance.word(),
-            name: chance.word(),
-            path: chance.word(),
-            type: 'resource',
-            components: [textFieldComponent],
-            settings: {
-              collection: collectionName
-            }
-          });
-
-        const createdResource = resourceCreateRes.body;
-
-        assert.ok(createdResource._id);
-        assert.equal(createdResource.project, helper.template.project._id);
-        assert.equal(createdResource.components[0].key, textFieldComponent.key);
-        assert.equal(createdResource.settings.collection, collectionName);
-
-        // Create resource submission
-        const resourceSubmissionCreateRes = await request(app)
-          .post(`/project/${helper.template.project._id}/form/${createdResource._id}/submission`)
-          .set('x-jwt-token', template.formio.owner.token)
-          .send({
-            data: { [textFieldComponent.key]: textFieldComponentSubmission }
-          });
-
-        const resourceSubmission = resourceSubmissionCreateRes.body;
-
-        assert.ok(resourceSubmission._id);
-        assert.equal(resourceSubmission.form, createdResource._id);
-        assert.deepEqual(resourceSubmission.data, { [textFieldComponent.key]: textFieldComponentSubmission });
-
-        const selectComponent = test.components.find(comp => comp.type === 'select');
-
-        // Set up Select component to use the created resource
-        selectComponent.data = {
-          resource: createdResource._id
-        };
-        selectComponent.dataSrc = 'resource';
-        selectComponent.template = `<span>{{ item.data.${textFieldComponent.key} }}</span>`;
-        selectComponent.reference = true;
-
-        // Create form with Select component
-        const formCreateRes = await request(app)
-          .post(`/project/${helper.template.project._id}/form`)
-          .set('x-jwt-token', template.formio.owner.token)
-          .send({
-            title: chance.word(),
-            name: chance.word(),
-            path: chance.word(),
-            type: 'form',
-            components: [selectComponent]
-          });
-
-        const createdForm = formCreateRes.body;
-
-        assert.ok(createdForm._id);
-        assert.equal(createdForm.project, helper.template.project._id);
-        assert.equal(createdForm.components[0].key, selectComponent.key);
-        assert.equal(createdForm.components[0].data.resource, createdResource._id);
-
-        // Create form submission
-        const formSubmissionCreateRes = await request(app)
-          .post(`/project/${helper.template.project._id}/form/${createdForm._id}/submission`)
-          .set('x-jwt-token', template.formio.owner.token)
-          .send({
-            data: { [selectComponent.key]: resourceSubmission }
-          });
-
-        const formSubmission = formSubmissionCreateRes.body;
-
-        assert.ok(formSubmission._id);
-        assert.equal(formSubmission.form, createdForm._id);
-        assert.deepEqual(formSubmission.data, { [selectComponent.key]: resourceSubmission });
-
-        // Try to get form submissions
-        const formSubmissionsRes = await request(app)
-          .get(`/project/${helper.template.project._id}/form/${createdForm._id}/submission`)
-          .set('x-jwt-token', template.formio.owner.token);
-
-        const formSubmissions = formSubmissionsRes.body;
-
-        assert.equal(formSubmissions.length, 1);
-        assert.ok(formSubmissions[0].data.hasOwnProperty(selectComponent.key));
-
-        const firstSubmissionData = _.omit(formSubmissions[0].data[selectComponent.key], ['deleted', 'externalTokens', '__v']);
-
-        assert.deepEqual({ [selectComponent.key]: firstSubmissionData }, { [selectComponent.key]: resourceSubmission });
-      });
-
-      after(done => {
-        // Reset modified env values
-        process.env.TEST_SIMULATE_SAC_PACKAGE = false;
-        process.env.API_KEYS = '';
-
-        // Reset changes made to the project
-        request(app)
-          .put(`/project/${helper.template.project._id}`)
-          .set('x-jwt-token', template.formio.owner.token)
-          .send({
-            plan: 'trial',
-            settings: {}
-          })
-          .expect(200)
-          .end((err, res) => {
-            if (err) {
-              return done(err);
-            }
-
-            const resetProject = res.body;
-
-            assert.equal(resetProject._id, helper.template.project._id);
-            assert.equal(resetProject.plan, 'trial');
-            assert.deepEqual(resetProject.settings, {});
-
-            helper.template.project = resetProject;
-
-            done();
-          });
-      });
-    });
-
     describe('Unnested Submissions', function() {
       it('Saves values for each single value component type1', function(done) {
         var test = require('./fixtures/forms/singlecomponents1.js');
@@ -4018,7 +3793,7 @@ module.exports = function(app, template, hook) {
               "delimiter": true
             }
           ];
-  
+
           helper
             .form('filterCurrency', components)
             .submission({ currency: 10 })
@@ -4070,7 +3845,7 @@ module.exports = function(app, template, hook) {
               }
             }
           ];
-  
+
           helper
             .form('filterSelectBoxes', components)
             .submission({ selectBoxes: {a: true, b: false} })
@@ -4136,7 +3911,7 @@ module.exports = function(app, template, hook) {
               }
             }
           ];
-  
+
           helper
             .form('filter', components)
             .submission({ currency: 10 , selectBoxes: {a: true, b: false}})
@@ -4165,8 +3940,63 @@ module.exports = function(app, template, hook) {
 
     });
 
+    describe('Filtering submissions', () => {
+      
+      it('Should filter submission for Select Component', function(done) {
+        var components = [
+          {
+            "label": "Select",
+            "widget": "choicesjs",
+            "tableView": true,
+            "data": {
+              "values": [
+                {
+                  "label": 1,
+                  "value": 1
+                },
+                {
+                  "label": 2,
+                  "value": 2
+                }
+              ]
+            },
+            "key": "select",
+            "type": "select",
+            "input": true
+          }
+        ];
+
+        helper
+          .form('filterSelect', components)
+          .submission({ select: 2 })
+          .submission({ select: 1 })
+          .submission({ select: 2 })
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            request(app)
+            .get(hook.alter('url', '/form/' + helper.template.forms['filterSelect']._id + '/submission?data.select=2', helper.template))
+            .set('x-jwt-token', helper.owner.token)
+            .send()
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(res.body.length, 2);
+              res.body.forEach(item => {
+                assert.equal(item.data.select, 2);
+              })
+              done();
+            });
+          });
+      });
+    });
+
     describe('Submission index requests', function() {
-      before('Sets up a form and submissions with image or signature data', function(done) {
+      before('Sets up a form and submissions with image or signature data',function (done) {
         const testForm = _.cloneDeep(require('./fixtures/forms/fileComponent'));
         const testSubmission = {
           data: {
@@ -4184,38 +4014,126 @@ module.exports = function(app, template, hook) {
           }
         };
         helper
-          .form('base64Test', testForm.components)
-          .submission(testSubmission)
-          .expect(201)
-          .execute(done);
+            .form('base64Test',testForm.components)
+            .submission(testSubmission)
+            .expect(201)
+            .execute(done);
       });
 
-      it('Should not return images or signatures by default', function(done) {
+      it('Should not return images or signatures by default',function (done) {
         request(app)
-          .get(hook.alter('url', `/form/${helper.template.forms['base64Test']._id}/submission`, helper.template))
-          .set('x-jwt-token', helper.owner.token)
-          .expect(200)
-          .end((err, res) => {
-            if (err) {
-              done(err);
-            }
-            const submissionData = res.body[0].data.file[0];
-            assert(!submissionData.hasOwnProperty('url'), 'Since we have not specificed full=true, we should not recieve base64 data');
-            done();
-          });
+            .get(hook.alter('url',`/form/${helper.template.forms['base64Test']._id}/submission`,helper.template))
+            .set('x-jwt-token',helper.owner.token)
+            .expect(200)
+            .end((err,res) => {
+              if (err) {
+                done(err);
+              }
+              const submissionData = res.body[0].data.file[0];
+              assert(
+                  !submissionData.hasOwnProperty('url'),
+                  'Since we have not specificed full=true, we should not recieve base64 data'
+              );
+              done();
+            });
       })
 
-      it('Should return images or signatures with the query string "full=true"', function(done) {
+      it('Should return images or signatures with the query string "full=true"',function (done) {
         request(app)
-          .get(hook.alter('url', `/form/${helper.template.forms['base64Test']._id}/submission?full=true`, helper.template))
-          .set('x-jwt-token', helper.owner.token)
-          .expect(200)
-          .end((err, res) => {
+            .get(hook.alter('url',
+                `/form/${helper.template.forms['base64Test']._id}/submission?full=true`,
+                helper.template
+            ))
+            .set('x-jwt-token',helper.owner.token)
+            .expect(200)
+            .end((err,res) => {
+              if (err) {
+                done(err);
+              }
+              const submissionData = res.body[0].data.file[0];
+              assert(
+                  submissionData.hasOwnProperty('url'),
+                  'Since we have  specificed full=true, we should recieve base64 data'
+              );
+              done();
+            });
+      });
+    });
+
+    describe('Wizard', () => {
+      it('Should save data of suffix/prefix components', (done) => {
+        helper
+          .form({
+            title: 'Wizard Suffix Components',
+            name: 'formWiz',
+            path: 'formwiz',
+            type: 'form',
+            display: 'wizard',
+            components: [
+              {
+                label: 'Text Field',
+                applyMaskOn: 'change',
+                tableView: true,
+                key: 'textField',
+                type: 'textfield',
+                input: true,
+              },{
+                title: 'Page 1',
+                collapsible: false,
+                key: 'panel',
+                type: 'panel',
+                label: 'Panel',
+                input: false,
+                tableView: false,
+                components: [
+                  {
+                    label: 'Page 1 text',
+                    applyMaskOn: 'change',
+                    tableView: true,
+                    key: 'page1Text',
+                    type: 'textfield',
+                    input: true,
+                  },
+                ],
+              },{
+                title: 'Page 2',
+                collapsible: false,
+                key: 'panel1',
+                type: 'panel',
+                label: 'Panel',
+                input: false,
+                tableView: false,
+                components: [
+                  {
+                    label: 'Page 2 text',
+                    applyMaskOn: 'change',
+                    tableView: true,
+                    key: 'page2Text',
+                    type: 'textfield',
+                    input: true,
+                  },
+                ],
+              },{
+                type: 'button',
+                label: 'Submit',
+                key: 'submit',
+                disableOnInvalid: true,
+                input: true,
+                tableView: false,
+              },
+            ],
+          })
+          .submission({
+            textField: 'text',
+            page1Text: 't1',
+            page2Text: 't2'
+          })
+          .execute(function(err) {
             if (err) {
-              done(err);
+              return done(err);
             }
-            const submissionData = res.body[0].data.file[0];
-            assert(submissionData.hasOwnProperty('url'), 'Since we have  specificed full=true, we should recieve base64 data');
+            const submission = helper.getLastSubmission();
+            assert.equal(submission.data.textField, 'text');
             done();
           });
       });
