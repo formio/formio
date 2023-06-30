@@ -1,6 +1,6 @@
 'use strict';
 
-// Setup the Form.IO server.
+// Setup the Form.IO server.//
 const express = require('express');
 const cors = require('cors');
 const router = express.Router();
@@ -323,8 +323,7 @@ module.exports = function(config) {
 
         // Add the available templates.
         router.formio.templates = {
-          default: _.cloneDeep(require('./src/templates/default.json')),
-          empty: _.cloneDeep(require('./src/templates/empty.json'))
+          default: _.cloneDeep(require('./src/templates/default.json'))
         };
 
         // Add the template functions.
