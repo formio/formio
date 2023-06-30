@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 3.0.3-rc.2
+### Changed
+ - Updated formiojs@4.14.15-rc.1
+ - Updated formio-workers@1.16.9-rc.1
+ - FIO-6840: change to allow case insensitive exists endpoint
+
 ## 3.0.3-rc.1
 ### Changed
  - FIO-6840: Refactor authentication to use case-insensitive query and fallback to $regex
