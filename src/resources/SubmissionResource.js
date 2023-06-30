@@ -100,6 +100,11 @@ module.exports = (router) => {
 
   // Register an exists endpoint to see if a submission exists.
   router.get('/form/:formId/exists', (req, res, next) => {
+    const {ignoreCase = false} = req.query;
+    // We need to strip the ignoreCase query out so resourcejs does not use it as a filter
+    if (ignoreCase) {
+      delete req.query['ignoreCase'];
+    }
     // First load the form.
     router.formio.cache.loadCurrentForm(req, (err, form) => {
       if (err) {
@@ -118,30 +123,35 @@ module.exports = (router) => {
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
         // Query the submissions for this submission.
-        submissionModel.findOne(hook.alter('submissionQuery', query, req), (err, submission) => {
-          if (err) {
-            return next(err);
-          }
+        submissionModel.findOne(
+          hook.alter('submissionQuery', query, req),
+          null,
+          ignoreCase ? {collation: {locale: 'en', strength: 2}} : {},
+          (err, submission) => {
+            if (err) {
+              return next(err);
+            }
 
-          // Return not found.
-          if (!submission || !submission._id) {
-            return res.status(404).send('Not found');
-          }
-          // By default check permissions to access the endpoint.
-          const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
+            // Return not found.
+            if (!submission || !submission._id) {
+              return res.status(404).send('Not found');
+            }
+            // By default check permissions to access the endpoint.
+            const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
 
-          if (withoutPermissions) {
-            // Send only the id as a response if the submission exists.
-            return res.status(200).json({
-              _id: submission._id.toString(),
-            });
+            if (withoutPermissions) {
+              // Send only the id as a response if the submission exists.
+              return res.status(200).json({
+                _id: submission._id.toString(),
+              });
+            }
+            else {
+              req.subId = submission._id.toString();
+              req.permissionsChecked = false;
+              return next();
+            }
           }
-          else {
-            req.subId = submission._id.toString();
-            req.permissionsChecked = false;
-            return next();
-          }
-        });
+        );
       });
     });
   }, router.formio.middleware.permissionHandler, (req, res, next) => {
