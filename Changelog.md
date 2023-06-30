@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - Bump vm2 from 3.9.11 to 3.9.18
  - Bump semver from 7.3.8 to 7.5.2
  - Bump cookiejar from 2.1.3 to 2.1.4
+ - FIO-6840: change to allow case insensitive exists endpoint
 
 ### Changed
  - FIO-6769: Removed the `empty` template
