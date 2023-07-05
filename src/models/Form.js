@@ -141,6 +141,10 @@ module.exports = (formio) => {
         type: [String],
         index: true
       },
+      isBundle:{
+        type: Boolean,
+        default: false
+      },
       tenantKey:{
         type: String,
         index: true
