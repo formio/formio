@@ -35,6 +35,10 @@ module.exports = function(router) {
 
   // Handle the request.
   return function aliasHandler(req, res, next) {
+    // Skip alias handler for PDF proxy requests
+    if (req.url.includes('pdf-proxy')) {
+      return next();
+    }
     // Allow a base url to be provided to the alias handler.
     const baseUrl = aliasHandler.baseUrl ? aliasHandler.baseUrl(req) : '';
 
