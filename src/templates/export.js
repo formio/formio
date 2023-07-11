@@ -340,7 +340,7 @@ module.exports = (router) => {
    * Note: This is all of the core entities, not submission data.
    */
   const exportTemplate = (options, next) => {
-    const template = hook.alter('defaultTemplate', Object.assign({
+    const basicTemplate = {
       title: 'Export',
       version: '2.0.0',
       description: '',
@@ -350,8 +350,17 @@ module.exports = (router) => {
       actions: {},
       resources: {},
       revisions: {},
-      reports: {}
-    }, _.pick(options, ['title', 'version', 'description', 'name'])), options);
+    };
+
+    if (hook.alter('includeReports')) {
+      basicTemplate.reports = {};
+    }
+
+    const template = hook.alter(
+      'defaultTemplate',
+      Object.assign(basicTemplate, _.pick(options, ['title', 'version', 'description', 'name'])),
+      options
+    );
 
     // Memoize resource mapping.
     const map = {
