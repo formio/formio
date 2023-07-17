@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 3.2.0-rc.2
+### Changed
+ - Updated formiojs@4.16.0-rc.5
+ - Updated formio-workers@1.18.0-rc.2
+ - FIO-6769: Removes empty template
+ - FIO-6840: change to allow case insensitive exists endpoint
+ - FIO-6406 fixed filter for Select inside DT (#1537)
+
 ## 3.2.0-rc.1
 ### Changed
  - Updated formiojs@4.16.0-rc.2
