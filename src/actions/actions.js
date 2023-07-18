@@ -513,7 +513,6 @@ module.exports = (router) => {
       const valueComponentsByComponentPath = getValueComponentsForEachFormComponent(flattenedComponentsForConditional);
       const valueComponent = getValueComponentRequiredSettings(valueComponentsByComponentPath);
 
-      const components = [{key: ''}].concat(filteredComponents);
       const customPlaceholder = `
         // Example: Only execute if submitted roles has 'authenticated'.
         JavaScript: execute = (data.roles.indexOf('authenticated') !== -1);
