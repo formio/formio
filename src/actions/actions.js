@@ -367,7 +367,7 @@ module.exports = (router) => {
         // See if a condition is not established within the action.
         const field = condition.field || '';
         const eq = condition.eq || '';
-        const value = await getComponentValueFromRequest(req, field);
+        const value = String(await getComponentValueFromRequest(req, field));
         const compare = String(condition.value || '');
         debug.action(
           '\nfield', field,
@@ -739,8 +739,8 @@ module.exports = (router) => {
   async function getComponentValueFromRequest(req, field) {
     const isDelete = req.method.toUpperCase() === 'DELETE';
     const deletedSubmission = isDelete ? await getDeletedSubmission(req): false;
-    const value = isDelete? String(_.get(deletedSubmission, `data.${field}`, '')) :
-        String(_.get(req, `body.data.${field}`, ''));
+    const value = isDelete? _.get(deletedSubmission, `data.${field}`, '') :
+      _.get(req, `body.data.${field}`, '');
     return value;
   }
 
