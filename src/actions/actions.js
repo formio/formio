@@ -430,8 +430,6 @@ module.exports = (router) => {
       }
 
       const flattenedComponents = router.formio.util.flattenComponents(form.components);
-      const filteredComponents = _.filter(flattenedComponents,
-        (component) => component.key && component.input === true);
 
       const componentsOptionsForExtendedUi = filterComponentsForConditionComponentFieldOptions(flattenedComponents);
       const flattenedComponentsForConditional = _.pick(
@@ -849,7 +847,7 @@ module.exports = (router) => {
   // Add specific middleware to individual endpoints.
   handlers['beforeDelete'] = handlers['beforeDelete'].concat([router.formio.middleware.deleteActionHandler]);
   handlers['afterIndex'] = handlers['afterIndex'].concat([indexPayload]);
-  handlers['afterGet'] = handlers['afterIndex'].concat([
+  handlers['afterGet'] = handlers['afterGet'].concat([
     (req, res, next) => {
       if (req.params && req.params.actionId && res.resource && res.resource.item) {
         const action = res.resource.item;
