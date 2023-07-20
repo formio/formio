@@ -24,10 +24,10 @@ module.exports = class IsEmptyValue extends ConditionOperator {
     const isSimpleEmptyValue = (v) => v === null || v === undefined || v === '';
 
     if (isSimpleEmptyValue(value) ||
-        (_.isObject(value) && _.isEmpty(value)) ||
-        (typeof value === 'string' && value.trim() === '') ||
-        (_.isArray(value) && value.length === 1 && isSimpleEmptyValue(value[0])) ||
-        (component && component.type === 'checkbox' && value === false)) {
+      (_.isObject(value) && _.isEmpty(value)) ||
+      (typeof value === 'string' && value.trim() === '') ||
+      (_.isArray(value) && value.length === 1 && isSimpleEmptyValue(value[0]))
+    ) {
       return true;
     }
     else if (component && component.type === 'selectboxes') {
