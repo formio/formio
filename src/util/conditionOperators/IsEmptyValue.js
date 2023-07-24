@@ -22,11 +22,17 @@ module.exports = class IsEmptyValue extends ConditionOperator {
     component,
   }) {
     const isSimpleEmptyValue = (v) => v === null || v === undefined || v === '';
+    // lodash treats Date as an empty object
+    const isEmptyObject = _.isObject(value) && _.isEmpty(value) && !(value instanceof Date);
+    const isEmptyString = typeof value === 'string' && value.trim() === '';
+    const isEmptyArray = _.isArray(value) && value.length === 1 && isSimpleEmptyValue(value[0]);
+    const isEmptyDate = value instanceof Date && value.toString() === 'Invalid Date';
 
     if (isSimpleEmptyValue(value) ||
-      (_.isObject(value) && _.isEmpty(value)) ||
-      (typeof value === 'string' && value.trim() === '') ||
-      (_.isArray(value) && value.length === 1 && isSimpleEmptyValue(value[0]))
+      isEmptyObject ||
+      isEmptyString ||
+      isEmptyArray ||
+      isEmptyDate
     ) {
       return true;
     }

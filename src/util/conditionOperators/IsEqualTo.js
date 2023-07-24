@@ -29,6 +29,6 @@ module.exports = class IsEqualTo extends ConditionOperator {
       return value[comparedValue];
     }
 
-    return _.isEqual(value,comparedValue);
+    return _.isEqual(value, comparedValue);
   }
 };
