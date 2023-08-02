@@ -236,7 +236,7 @@ module.exports = function(formio) {
    */
   const checkSetup = function(next) {
     setTimeout(() => {
-    formio.util.log('Checking for db setup.');
+      formio.util.log('Checking for db setup.');
       db.listCollections().toArray().then(function(collections) {
         debug.db(`Collections found: ${collections.length}`);
         // 3 is an arbitrary length. We just want a general idea that things have been installed.
@@ -252,7 +252,7 @@ module.exports = function(formio) {
           return next();
         }
       });
-    },Math.random() * 1000);
+    }, Math.random() * 1000);
   };
 
   const checkEncryption = function(next) {
@@ -290,6 +290,30 @@ module.exports = function(formio) {
     else {
       return next();
     }
+  };
+
+  /**
+   * Check for certain mongodb features.
+   * @param {*} next.
+   */
+  const checkFeatures = function(next) {
+    formio.util.log('Determine MongoDB compatibility.');
+    (async () => {
+      config.mongoFeatures = formio.mongoFeatures = {
+        collation: true
+      };
+      try {
+        const collationTest = db.collection('formio-collation-test');
+        await collationTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
+        await collationTest.drop();
+        formio.util.log('Collation indexes are supported.');
+      }
+      catch (err) {
+        formio.util.log('Collation indexes are not supported.');
+        config.mongoFeatures.collation = formio.mongoFeatures.collation = false;
+      }
+      next();
+    })();
   };
 
   /**
@@ -688,6 +712,7 @@ module.exports = function(formio) {
       connection,
       checkSetup,
       checkEncryption,
+      checkFeatures,
       getUpdates,
       lock,
       doUpdates,

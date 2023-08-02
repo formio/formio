@@ -11,6 +11,13 @@ const debug = require('debug')('formio:db');
  * @param done
  */
 module.exports = async function(db, config, tools, done) {
+  done();
+
+  // If collation is not allowed, then skip this update.
+  if (!config.mongoFeatures?.collation) {
+    return;
+  }
+
   let submissionsCollection = db.collection('submissions');
   // Check if an index already exists on the submissions collection for the data.email field
   let indexExists = await submissionsCollection.indexExists('form_1_project_1_data.email_1_deleted_1');
@@ -38,6 +45,4 @@ module.exports = async function(db, config, tools, done) {
       debug('Index creation failed with error above, skipping');
     }
   }
-
-  done();
 };

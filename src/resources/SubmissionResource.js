@@ -126,7 +126,7 @@ module.exports = (router) => {
         submissionModel.findOne(
           hook.alter('submissionQuery', query, req),
           null,
-          ignoreCase ? {collation: {locale: 'en', strength: 2}} : {},
+          (ignoreCase && router.formio.mongoFeatures.collation) ? {collation: {locale: 'en', strength: 2}} : {},
           (err, submission) => {
             if (err) {
               return next(err);
