@@ -344,7 +344,8 @@ module.exports = (router) => {
     }
 
     // Look for the user.
-    query[`data.${userField}`] = username;
+    // eslint-disable-next-line max-len
+    query[`data.${userField}`] = router.formio.mongoFeatures.collation ? username : {$regex: new RegExp(`^${util.escapeRegExp(username)}$`, 'i')};
 
     // Find the user object.
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
@@ -352,20 +353,9 @@ module.exports = (router) => {
     subQuery = router.formio.mongoFeatures.collation ? subQuery.collation({locale: 'en', strength: 2}) : subQuery;
     subQuery.lean().exec((err, user) => {
       if (err) {
-        // Presume that the error comes from our database not supporting case-insensitive collation indexing/querying
-        // (e.g. DocumentDB) and retry as a case-insensitive regex search
-        query[`data.${userField}`] = {$regex: new RegExp(`^${util.escapeRegExp(username)}$`, 'i')};
-        submissionModel
-          .findOne(hook.alter('submissionQuery', query, req)).lean().exec((err, user) => {
-            if (err) {
-              return next(err);
-            }
-            return evaluateUser(req, user, password, passField, username, next);
-          });
+        return next(err);
       }
-      else {
-        return evaluateUser(req, user, password, passField, username, next);
-      }
+      return evaluateUser(req, user, password, passField, username, next);
     });
   };
 
