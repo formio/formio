@@ -155,74 +155,6 @@ module.exports = (router) => {
     },
 
     /**
-     * Create an action item if the form is enabled with action logs.
-     * @param req
-     * @param res
-     * @param action
-     * @param handler
-     * @param method
-     * @param done
-     */
-    createActionItem(req, res, action, handler, method, done) {
-      // Only trigger if they have logs enabled for this form.
-      if (!_.get(req.currentForm, 'settings.logs', false)) {
-        return done(null, {});
-      }
-      // Instantiate ActionItem here.
-      router.formio.mongoose.models.actionItem.create(hook.alter('actionItem', {
-        title: action.title,
-        form: req.formId,
-        submission: res.resource ? res.resource.item._id : req.body._id,
-        action: action.name,
-        handler,
-        method,
-        state: 'inprogress',
-        messages: [
-          {
-            datetime: new Date(),
-            info: 'Starting Action',
-            data: {}
-          }
-        ]
-      }, req), (err, actionItem) => {
-        if (err) {
-          return done(err);
-        }
-        return done(null, actionItem);
-      });
-    },
-
-    updateActionItem(req, actionItem, message, data = {}, state = null) {
-      // Only trigger if they have logs enabled for this form.
-      if (!_.get(req.currentForm, 'settings.logs', false)) {
-        return;
-      }
-      if (!req.actionItemPromise) {
-        req.actionItemPromise = Promise.resolve();
-      }
-      req.actionItemPromise = req.actionItemPromise.then(() => {
-        const update = {
-          $addToSet: {
-            messages: {
-              datetime: new Date(),
-              info: message,
-              data
-            }
-          }
-        };
-
-        if (state) {
-          update.state = state;
-        }
-        return router.formio.mongoose.models.actionItem.updateOne({
-          _id: actionItem._id
-        },
-        update
-        );
-      });
-    },
-
-    /**
      * Execute an action provided a handler, form, and request params.
      *
      * @param handler
@@ -250,28 +182,19 @@ module.exports = (router) => {
             if (!execute) {
               return cb();
             }
-
             // Resolve the action.
             router.formio.log('Action', req, handler, method, action.name, action.title);
 
-            // Create a new action item.
-            this.createActionItem(req, res, action, handler, method, (err, actionItem) => {
+            const logAction = hook.alter('logAction', req, res, action, handler, method, cb);
+            // if logs are allowed, the logging logic resolves the action. If logs are not allowed, the action is to be resolved here.
+            if (!logAction) {
               action.resolve(handler, method, req, res, (err) => {
                 if (err) {
-                  // Error has occurred.
-                  this.updateActionItem(req, actionItem,'Error Occurred', err, 'error');
-                  return cb(err);
+                    return cb(err);
                 }
-
-                // Action has completed successfully
-                this.updateActionItem(req, actionItem,
-                  'Action Resolved (no longer blocking)',
-                  {},
-                  actionItem.state === 'inprogress' ? 'complete' : actionItem.state,
-                );
                 return cb();
-              }, (...args) => this.updateActionItem(req, actionItem, ...args));
-            });
+              }, () => {});
+            }
           });
         }, (err) => {
           if (err) {
