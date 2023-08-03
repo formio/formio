@@ -31,6 +31,8 @@ module.exports = function(app, template, hook) {
             return done(err);
           }
 
+
+          
           var response = res.body;
           assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
           assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
