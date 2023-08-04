@@ -185,16 +185,21 @@ module.exports = (router) => {
             // Resolve the action.
             router.formio.log('Action', req, handler, method, action.name, action.title);
 
-            const logAction = hook.alter('logAction', req, res, action, handler, method, () => cb);
-            // if logs are allowed, the logging logic resolves the action. If logs are not allowed, the action is to be resolved here.
-            if (!logAction) {
+            hook.performAsync('logAction', req, res, action, handler, method).then(logAction => {
+              // if logs are allowed and performed, the logging logic resolves the action that is why skip it here.
+              if (logAction) {
+                return cb();
+              }
               action.resolve(handler, method, req, res, (err) => {
                 if (err) {
                   return cb(err);
                 }
                 return cb();
               }, () => {});
-            }
+            })
+            .catch((err) => {
+              return cb(err);
+            });
           });
         }, (err) => {
           if (err) {
