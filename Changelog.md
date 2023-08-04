@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)
 
+## 3.1.2
+### Changed
+ - Official Release
+
 ## 3.1.2-rc.1
 ### Changed
  - FIO-7161: fixed issue with possible undefined value for radio component in csv …
