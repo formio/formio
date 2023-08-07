@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-6840: change to allow case insensitive exists endpoint
  - FIO-7161: fixed issue with possible undefined value for radio component in csv export
  - FIO-7067: fixed issue with empty value for patch request
+ - FIO-7166: Adding a mongodb feature check to core
+ - FIO-4216 | FIO-6601 - Fixes no custom submission collection lookup when getting submissions
 
 ### Changed
  - FIO-6769: Removed the `empty` template
