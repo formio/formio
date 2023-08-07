@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - Bump semver from 7.3.8 to 7.5.2
  - Bump cookiejar from 2.1.3 to 2.1.4
  - FIO-6840: change to allow case insensitive exists endpoint
+ - FIO-7161: fixed issue with possible undefined value for radio component in csv export
+ - FIO-7067: fixed issue with empty value for patch request
 
 ### Changed
  - FIO-6769: Removed the `empty` template
