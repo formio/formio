@@ -696,12 +696,14 @@ module.exports = function(formio) {
    */
   const initialize = function(next) {
     if (process.env.TEST_SUITE) {
-      return connection(function(err) {
+      return async.series([
+        connection,
+        checkFeatures
+      ], (err) => {
         if (err) {
           debug.db(err);
           return next(err);
         }
-
         next(null, db);
       });
     }
