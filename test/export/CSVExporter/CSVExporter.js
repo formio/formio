@@ -142,7 +142,7 @@ module.exports = function(app, template, hook) {
       helper = new Helper(owner);
       helper
         .project()
-        .form('testRadio', testRadio.components)
+        .form('testRadio', testRadio.form1.components)
         .submission({
           data: {
             "radio": false
@@ -160,6 +160,33 @@ module.exports = function(app, template, hook) {
             const fileValue = getComponentValue(result.text, 'radio', 0);
             const expectedValue = '"false"';
             assert.strictEqual(fileValue, expectedValue);
+            done();
+          });
+        });
+    });
+
+    it('Should export csv with conditional radio component', (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form('radioWithCondition', testRadio.form2.components)
+        .submission({
+          data: {
+            select: [2]
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(helper.template.forms.radioWithCondition, 'csv', (error, result) => {
+            if (error) {
+              return done(error);
+            }
+
+            const fileValue = getComponentValue(result.text, 'radio', 0);
+            assert.strictEqual(fileValue, undefined);
             done();
           });
         });
