@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 3.2.0-rc.6
+### Changed
+ - FIO-4216 | FIO-6601 - Fixes no custom submission collection lookup when getting submissions
+ - FIO-7166: Adding a mongodb feature check to core
+
 ## 3.2.0-rc.5
 ### Changed
  - FIO-7161: fixed issue with possible undefined value for radio component in csv …
