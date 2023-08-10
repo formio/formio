@@ -39,6 +39,7 @@ module.exports = (router) => {
       role: require('./RoleAction')(router),
       save: require('./SaveSubmission')(router),
       webhook: require('./WebhookAction')(router),
+      secureSubmissionUpdate: require('./SecureSubmissionUpdate')(router),
     }),
 
     /**
