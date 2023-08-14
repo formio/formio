@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-7067: fixed issue with empty value for patch request
  - FIO-7166: Adding a mongodb feature check to core
  - FIO-4216 | FIO-6601 - Fixes no custom submission collection lookup when getting submissions
+ - FIO-6919: fixed value for Signature submission in Data Tab
 
 ### Changed
  - FIO-6769: Removed the `empty` template
