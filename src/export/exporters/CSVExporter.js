@@ -115,6 +115,10 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
+              if (_.isNil(value)) {
+                return '';
+              }
+
               const componentValue = component.values.find((v) => v.value === value.toString()) || '';
                 return componentValue && formattedView
                   ? componentValue.label

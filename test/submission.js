@@ -3775,6 +3775,131 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      let selectWithResourceSubmission = {};
+      it('Create a form with resource and submission for testing', function(done) {
+        const components = [{
+          type: 'textfield',
+          label: 'Text Field',
+          'key': 'text',
+          'type': 'textfield',
+          'input': true,
+        }, {
+          label: 'Select',
+          widget: 'choicesjs',
+          tableView: true,
+          dataSrc: 'resource',
+          data: {
+            resource: '5692b920d1028f01000407e7',
+          },
+          key: 'select',
+          type: 'select',
+          input: true,
+          submissionAccess: [{
+            type: 'read',
+            roles: [],
+          }],
+        }];
+
+        const values = {
+          text: 'Test',
+          select: {
+            _id: '64afea722fd6bd056a081cc4',
+          },
+        };
+
+        helper
+          .form('patchform', components)
+          .submission(values)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            selectWithResourceSubmission = helper.getLastSubmission();
+            done();
+          });
+      });
+
+      it('Allows updating a submission with submission access using PATCH', function(done) {
+        request(app)
+          .patch(hook.alter('url', '/form/' + helper.template.forms['patchform']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .send([{
+            op: 'replace',
+            path: '/data/text',
+            value: 'Patched',
+          }])
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(res.body.data.text, 'Patched');
+            done();
+          });
+      });
+
+      it('Create a form with resource and submission with empty select for testing', function(done) {
+        const components = [{
+          type: 'textfield',
+          label: 'Text Field',
+          'key': 'text',
+          'type': 'textfield',
+          'input': true,
+        }, {
+          label: 'Select',
+          widget: 'choicesjs',
+          tableView: true,
+          dataSrc: 'resource',
+          data: {
+            resource: '5692b920d1028f01000407e7',
+          },
+          key: 'select',
+          type: 'select',
+          input: true,
+          submissionAccess: [{
+            type: 'read',
+            roles: [],
+          }],
+        }];
+
+        const values = {
+          text: 'Test',
+          select: {},
+        };
+
+        helper
+          .form('pathWithEmptySelect', components)
+          .submission(values)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            done();
+          });
+      });
+
+      it('Allows updating a empty select submission with submission access using PATCH', function(done) {
+        request(app)
+          .patch(hook.alter('url', '/form/' + helper.template.forms['pathWithEmptySelect']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .send([{
+            op: 'replace',
+            path: '/data/text',
+            value: 'Patched',
+          }])
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(res.body.data.text, 'Patched');
+            done();
+          });
+      });
+
       describe('Filtering submissions', () => {
 
         it('Should filter submission for Currency Component', function(done) {
@@ -3941,7 +4066,7 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Filtering submissions', () => {
-      
+
       it('Should filter submission for Select Component', function(done) {
         var components = [
           {
