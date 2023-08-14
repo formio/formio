@@ -337,7 +337,10 @@ module.exports = (router, resourceName, resourceId) => {
             const newCompData = _.get(submissionData, componentPath, undefined);
             const currentCompData = _.get(req.currentSubmissionData, componentPath);
 
-            if (component.calculateValue && !component.calculateServer && currentCompData && newCompData === undefined) {
+            if (component.calculateValue &&
+                !component.calculateServer &&
+                currentCompData &&
+                newCompData === undefined) {
               _.set(submissionData, componentPath, _.get(req.currentSubmissionData, componentPath));
             }
           }
