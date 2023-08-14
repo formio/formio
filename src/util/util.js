@@ -747,6 +747,7 @@ const Utils = {
     'tabs',
   ],
 
+  /*eslint max-depth: ["error", 4]*/
   eachValue(
     components,
     data,

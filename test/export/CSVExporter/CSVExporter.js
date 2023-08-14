@@ -1,5 +1,3 @@
-const testFile = require('../../fixtures/forms/fileComponent.js');
-const assert = require('assert');
 module.exports = function(app, template, hook) {
   const docker = process.env.DOCKER;
   const assert = require('assert');
@@ -9,6 +7,9 @@ module.exports = function(app, template, hook) {
   const testFile = require('../../fixtures/forms/fileComponent.js');
   const testTags = require('../../fixtures/forms/tagsWithDelimiter.js');
   const testRadio = require('../../fixtures/forms/radioComponent');
+  const testAzureAddress= require('../../fixtures/forms/azureAddressComponent');
+  const testGoogleAddress= require('../../fixtures/forms/googleAddressComponent');
+  const testNominatimAddress= require('../../fixtures/forms/nominatimAddressComponent');
 
   function getComponentValue(exportedText, compKey, submissionIndex) {
     const rows = exportedText.split('\n');
@@ -16,7 +17,7 @@ module.exports = function(app, template, hook) {
     const headings = headerRow.split(/,(?=")/);
     const compColIndex = headings.indexOf(`"${compKey}"`);
     const submissionRow = rows[submissionIndex + 1];
-    const submissionRowValues = submissionRow.split(/,(?=")/);;
+    const submissionRowValues = submissionRow.split(/,(?=")/);
     const compValue = submissionRowValues[compColIndex];
     console.log({
       rows,
@@ -142,7 +143,7 @@ module.exports = function(app, template, hook) {
       helper = new Helper(owner);
       helper
         .project()
-        .form('testRadio', testRadio.components)
+        .form('testRadio', testRadio.form1.components)
         .submission({
           data: {
             "radio": false
@@ -160,6 +161,129 @@ module.exports = function(app, template, hook) {
             const fileValue = getComponentValue(result.text, 'radio', 0);
             const expectedValue = '"false"';
             assert.strictEqual(fileValue, expectedValue);
+            done();
+          });
+        });
+    });
+
+    it('Should export csv with conditional radio component', (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form('radioWithCondition', testRadio.form2.components)
+        .submission({
+          data: {
+            select: [2]
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(helper.template.forms.radioWithCondition, 'csv', (error, result) => {
+            if (error) {
+              return done(error);
+            }
+
+            const fileValue = getComponentValue(result.text, 'radio', 0);
+            assert.strictEqual(fileValue, undefined);
+            done();
+          });
+        });
+    });
+
+    it(`Test Azure address data`, (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .form('testAzureAddress', testAzureAddress.components)
+        .submission(testAzureAddress.submission)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          helper.getExport(helper.template.forms.testAzureAddress, 'csv', (error, result) => {
+            if (error) {
+              done(error);
+            }
+
+            const addressLat = getComponentValue(result.text, 'address.lat', 0);
+            const addressLng = getComponentValue(result.text, 'address.lng', 0);
+            const addressName = getComponentValue(result.text, 'address.formatted', 0);
+
+            const expectedAddressLat = '"35.68696"';
+            const expectedAddressLng = '"139.74946"';
+            const expectedAddressName = '"Tokyo, Kanto"';
+
+            assert.strictEqual(addressLat, expectedAddressLat);
+            assert.strictEqual(addressLng, expectedAddressLng);
+            assert.strictEqual(addressName, expectedAddressName);
+            done();
+          });
+        });
+    });
+
+    it(`Test Google address data`, (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .form('testGoogleAddress', testGoogleAddress.components)
+        .submission(testGoogleAddress.submission)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          helper.getExport(helper.template.forms.testGoogleAddress, 'csv', (error, result) => {
+            if (error) {
+              done(error);
+            }
+
+            const addressLat = getComponentValue(result.text, 'address.lat', 0);
+            const addressLng = getComponentValue(result.text, 'address.lng', 0);
+            const addressName = getComponentValue(result.text, 'address.formatted', 0);
+
+            const expectedAddressLat = '"35.6761919"';
+            const expectedAddressLng = '"139.6503106"';
+            const expectedAddressName = '"Tokyo, Japan"';
+
+            assert.strictEqual(addressLat, expectedAddressLat);
+            assert.strictEqual(addressLng, expectedAddressLng);
+            assert.strictEqual(addressName, expectedAddressName);
+            done();
+          });
+        });
+    });
+
+    it(`Test OpenStreetMap Nominatim address data`, (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .form('testNominatimAddress', testNominatimAddress.components)
+        .submission(testNominatimAddress.submission)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          helper.getExport(helper.template.forms.testNominatimAddress, 'csv', (error, result) => {
+            if (error) {
+              done(error);
+            }
+
+            const addressLat = getComponentValue(result.text, 'address.lat', 0);
+            const addressLng = getComponentValue(result.text, 'address.lng', 0);
+            const addressName = getComponentValue(result.text, 'address.formatted', 0);
+
+            const expectedAddressLat = '"35.6840574"';
+            const expectedAddressLng = '"139.7744912"';
+            const expectedAddressName = '"Tokyo, Japan"';
+
+            assert.strictEqual(addressLat, expectedAddressLat);
+            assert.strictEqual(addressLng, expectedAddressLng);
+            assert.strictEqual(addressName, expectedAddressName);
             done();
           });
         });
