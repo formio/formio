@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 ## [Unreleased: 3.2.0-rc.1]
 ### Fixed
+ - FIO-5731: fixed validation error for wizard forms with advanced conditions
+ - FIO-6966: Fixes empty address component data in CSV
  - FIO-6601: Fix getting submissions by reference from custom submissions collection
  - FIO-4500: Fixes an issue where specified in the component settings delimiter is not used for CSVExport of Tags component data
  - FIO-6414: fixed filtering issues inside DT
