@@ -392,7 +392,8 @@ module.exports = function(app) {
       type: form.type,
       access: form.access,
       submissionAccess: form.submissionAccess,
-      components: form.components
+      components: form.components,
+      display: form.display || 'form'
     };
     if (this.template.forms.hasOwnProperty(form.name)) {
       method = 'put';

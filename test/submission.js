@@ -3652,6 +3652,28 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
+
+      it('Should save submission for Wizard with advanced Conditions', function(done) {
+        var wizardForm = require('./fixtures/forms/wizardFormWithAdvancedConditions.js');
+        var wizardSubmission = {textField: 'Mary', textField1: 'gray'};
+        helper
+          .upsertForm(wizardForm, (err) => {
+            if (err) {
+              return done(err);
+            }
+            helper
+              .submission('wizardTest', wizardSubmission)
+              .expect(201)
+              .execute(function(err) {
+                if (err) {
+                  return done(err);
+                }
+                const submission = helper.lastSubmission;
+                assert.deepEqual(submission.data, wizardSubmission);
+                done()
+              })
+          })
+      });
     });
 
     describe('Submission patching', () => {
