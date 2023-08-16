@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 3.3.0-rc.1]
+## 3.3.0-rc.1
+### Changed
+ - Updated formiojs@4.17.0-rc.2
+ - Updated formio-workers@1.19.0-rc.1
+ - FIO-6919: fixed value for Signature submission in Data Tab
+ - FIO-5731: fixed validation error for wizard forms with advanced conditions
+ - FIO-6966: Fixes empty address component data in CSV
 
 ## 3.2.0-rc.1
 ### Changed
