@@ -1,44 +1,12 @@
-name: Repo
+name: Test
 
 on:
   push:
-    branches:
-      - '*' # This will make sure all push events on any branch triggers this workflow.
-    tags:
-      - '*' # This will make sure tag creations also trigger the workflow.
-
-env:
-  NODE_VERSION: 18.x
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Triggered by ${{ github.event_name }} event."
-
-      - name: Check out repository code ${{ github.repository }} on ${{ github.ref }}
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Cache node modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Installing dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install --frozen-lockfile
-
   test:
     runs-on: ubuntu-latest
     services:
@@ -46,15 +14,18 @@ jobs:
         image: mongo:4.4
         ports:
           - 27017:27017
+
     strategy:
       matrix:
-        node-version: [$NODE_VERSION]
+        node-version: [18.x]
+
     steps:
     - run: echo "Triggered by ${{ github.event_name }} event."
+
     - name: Check out repository code ${{ github.repository }} on ${{ github.ref }}
       uses: actions/checkout@v3
-      
-    - name: Restore node modules from cache
+
+    - name: Cache node modules
       uses: actions/cache@v3
       with:
         path: node_modules
@@ -62,8 +33,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-
 
-    - name: Test
-      if: true ## Disables Tests
+    - name: Installing dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: borales/actions-yarn@v4
       with:
-        cmd: test
+        cmd: install --frozen-lockfile
+    - run: yarn test
