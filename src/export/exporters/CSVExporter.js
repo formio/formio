@@ -68,7 +68,10 @@ class CSVExporter extends Exporter {
               }
 
               const address = (value && value.address) || value || {};
-              return address.formatted_address || '';
+
+              // OpenStreetMap || Azure || Google
+              // eslint-disable-next-line max-len
+              return address.display_name || _.get(address, 'address.freeformAddress') || address.formatted_address || '';
             },
           });
           items.push({
@@ -79,7 +82,9 @@ class CSVExporter extends Exporter {
               }
 
               const address = (value && value.address) || value || {};
-              return _.get(address, 'geometry.location.lat', '');
+
+              // OpenStreetMap || Azure || Google
+              return address.lat || _.get(address, 'position.lat') || _.get(address, 'geometry.location.lat') || '';
             },
           });
           items.push({
@@ -90,7 +95,9 @@ class CSVExporter extends Exporter {
               }
 
               const address = (value && value.address) || value || {};
-              return _.get(address, 'geometry.location.lng', '');
+
+              // OpenStreetMap || Azure || Google
+              return address.lon || _.get(address, 'position.lon') || _.get(address, 'geometry.location.lng') || '';
             },
           });
 
@@ -106,6 +113,10 @@ class CSVExporter extends Exporter {
             preprocessor: (value) => {
               if (_.isObject(value)) {
                 return value;
+              }
+
+              if (_.isNil(value)) {
+                return '';
               }
 
               const componentValue = component.values.find((v) => v.value === value.toString()) || '';

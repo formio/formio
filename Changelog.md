@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 ## [Unreleased: 3.2.0-rc.1]
 ### Fixed
+ - FIO-5731: fixed validation error for wizard forms with advanced conditions
+ - FIO-6966: Fixes empty address component data in CSV
  - FIO-6601: Fix getting submissions by reference from custom submissions collection
  - FIO-4500: Fixes an issue where specified in the component settings delimiter is not used for CSVExport of Tags component data
  - FIO-6414: fixed filtering issues inside DT
@@ -22,6 +24,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - Bump semver from 7.3.8 to 7.5.2
  - Bump cookiejar from 2.1.3 to 2.1.4
  - FIO-6840: change to allow case insensitive exists endpoint
+ - FIO-7161: fixed issue with possible undefined value for radio component in csv export
+ - FIO-7067: fixed issue with empty value for patch request
+ - FIO-7166: Adding a mongodb feature check to core
+ - FIO-4216 | FIO-6601 - Fixes no custom submission collection lookup when getting submissions
+ - FIO-6919: fixed value for Signature submission in Data Tab
 
 ### Changed
  - FIO-6769: Removed the `empty` template
