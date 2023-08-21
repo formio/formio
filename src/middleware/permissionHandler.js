@@ -621,7 +621,9 @@ module.exports = function(router) {
       }
 
       // Check to see if this user has an admin role of the primary project.
-      const hasPrimaryAdminRole = access.primaryAdminRole ? (_.indexOf(access.roles, access.primaryAdminRole) !== -1) : false;
+      const hasPrimaryAdminRole = access.primaryAdminRole
+        ? (_.indexOf(access.roles, access.primaryAdminRole) !== -1)
+        : false;
 
       if (hasPrimaryAdminRole) {
         req.isAdmin = true;

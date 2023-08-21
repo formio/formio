@@ -54,7 +54,6 @@ class Validator {
     // Skip validation if no data is provided.
     if (!submission.data) {
       debug.validator('No data skipping validation');
-      debug.validator(submission);
       return next();
     }
 
@@ -120,7 +119,7 @@ class Validator {
 
       form.setValue(submission, {
         sanitize: form.allowAllSubmissionData ? false : true,
-      });
+      }, true);
 
       // Perform calculations and conditions.
       form.checkConditions();

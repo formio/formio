@@ -3833,6 +3833,28 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
+
+      it('Should save submission for Wizard with advanced Conditions', function(done) {
+        var wizardForm = require('./fixtures/forms/wizardFormWithAdvancedConditions.js');
+        var wizardSubmission = {textField: 'Mary', textField1: 'gray'};
+        helper
+          .upsertForm(wizardForm, (err) => {
+            if (err) {
+              return done(err);
+            }
+            helper
+              .submission('wizardTest', wizardSubmission)
+              .expect(201)
+              .execute(function(err) {
+                if (err) {
+                  return done(err);
+                }
+                const submission = helper.lastSubmission;
+                assert.deepEqual(submission.data, wizardSubmission);
+                done()
+              })
+          })
+      });
     });
 
     describe('Submission patching', () => {
@@ -3956,6 +3978,131 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      let selectWithResourceSubmission = {};
+      it('Create a form with resource and submission for testing', function(done) {
+        const components = [{
+          type: 'textfield',
+          label: 'Text Field',
+          'key': 'text',
+          'type': 'textfield',
+          'input': true,
+        }, {
+          label: 'Select',
+          widget: 'choicesjs',
+          tableView: true,
+          dataSrc: 'resource',
+          data: {
+            resource: '5692b920d1028f01000407e7',
+          },
+          key: 'select',
+          type: 'select',
+          input: true,
+          submissionAccess: [{
+            type: 'read',
+            roles: [],
+          }],
+        }];
+
+        const values = {
+          text: 'Test',
+          select: {
+            _id: '64afea722fd6bd056a081cc4',
+          },
+        };
+
+        helper
+          .form('patchform', components)
+          .submission(values)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            selectWithResourceSubmission = helper.getLastSubmission();
+            done();
+          });
+      });
+
+      it('Allows updating a submission with submission access using PATCH', function(done) {
+        request(app)
+          .patch(hook.alter('url', '/form/' + helper.template.forms['patchform']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .send([{
+            op: 'replace',
+            path: '/data/text',
+            value: 'Patched',
+          }])
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(res.body.data.text, 'Patched');
+            done();
+          });
+      });
+
+      it('Create a form with resource and submission with empty select for testing', function(done) {
+        const components = [{
+          type: 'textfield',
+          label: 'Text Field',
+          'key': 'text',
+          'type': 'textfield',
+          'input': true,
+        }, {
+          label: 'Select',
+          widget: 'choicesjs',
+          tableView: true,
+          dataSrc: 'resource',
+          data: {
+            resource: '5692b920d1028f01000407e7',
+          },
+          key: 'select',
+          type: 'select',
+          input: true,
+          submissionAccess: [{
+            type: 'read',
+            roles: [],
+          }],
+        }];
+
+        const values = {
+          text: 'Test',
+          select: {},
+        };
+
+        helper
+          .form('pathWithEmptySelect', components)
+          .submission(values)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            done();
+          });
+      });
+
+      it('Allows updating a empty select submission with submission access using PATCH', function(done) {
+        request(app)
+          .patch(hook.alter('url', '/form/' + helper.template.forms['pathWithEmptySelect']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .send([{
+            op: 'replace',
+            path: '/data/text',
+            value: 'Patched',
+          }])
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(res.body.data.text, 'Patched');
+            done();
+          });
+      });
+
       describe('Filtering submissions', () => {
 
         it('Should filter submission for Currency Component', function(done) {
@@ -3974,7 +4121,7 @@ module.exports = function(app, template, hook) {
               "delimiter": true
             }
           ];
-  
+
           helper
             .form('filterCurrency', components)
             .submission({ currency: 10 })
@@ -4026,7 +4173,7 @@ module.exports = function(app, template, hook) {
               }
             }
           ];
-  
+
           helper
             .form('filterSelectBoxes', components)
             .submission({ selectBoxes: {a: true, b: false} })
@@ -4092,7 +4239,7 @@ module.exports = function(app, template, hook) {
               }
             }
           ];
-  
+
           helper
             .form('filter', components)
             .submission({ currency: 10 , selectBoxes: {a: true, b: false}})
@@ -4121,8 +4268,63 @@ module.exports = function(app, template, hook) {
 
     });
 
+    describe('Filtering submissions', () => {
+
+      it('Should filter submission for Select Component', function(done) {
+        var components = [
+          {
+            "label": "Select",
+            "widget": "choicesjs",
+            "tableView": true,
+            "data": {
+              "values": [
+                {
+                  "label": 1,
+                  "value": 1
+                },
+                {
+                  "label": 2,
+                  "value": 2
+                }
+              ]
+            },
+            "key": "select",
+            "type": "select",
+            "input": true
+          }
+        ];
+
+        helper
+          .form('filterSelect', components)
+          .submission({ select: 2 })
+          .submission({ select: 1 })
+          .submission({ select: 2 })
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            request(app)
+            .get(hook.alter('url', '/form/' + helper.template.forms['filterSelect']._id + '/submission?data.select=2', helper.template))
+            .set('x-jwt-token', helper.owner.token)
+            .send()
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(res.body.length, 2);
+              res.body.forEach(item => {
+                assert.equal(item.data.select, 2);
+              })
+              done();
+            });
+          });
+      });
+    });
+
     describe('Submission index requests', function() {
-      before('Sets up a form and submissions with image or signature data', function(done) {
+      before('Sets up a form and submissions with image or signature data',function (done) {
         const testForm = _.cloneDeep(require('./fixtures/forms/fileComponent'));
         const testSubmission = {
           data: {
@@ -4140,38 +4342,126 @@ module.exports = function(app, template, hook) {
           }
         };
         helper
-          .form('base64Test', testForm.components)
-          .submission(testSubmission)
-          .expect(201)
-          .execute(done);
+            .form('base64Test',testForm.components)
+            .submission(testSubmission)
+            .expect(201)
+            .execute(done);
       });
 
-      it('Should not return images or signatures by default', function(done) {
+      it('Should not return images or signatures by default',function (done) {
         request(app)
-          .get(hook.alter('url', `/form/${helper.template.forms['base64Test']._id}/submission`, helper.template))
-          .set('x-jwt-token', helper.owner.token)
-          .expect(200)
-          .end((err, res) => {
-            if (err) {
-              done(err);
-            }
-            const submissionData = res.body[0].data.file[0];
-            assert(!submissionData.hasOwnProperty('url'), 'Since we have not specificed full=true, we should not recieve base64 data');
-            done();
-          });
+            .get(hook.alter('url',`/form/${helper.template.forms['base64Test']._id}/submission`,helper.template))
+            .set('x-jwt-token',helper.owner.token)
+            .expect(200)
+            .end((err,res) => {
+              if (err) {
+                done(err);
+              }
+              const submissionData = res.body[0].data.file[0];
+              assert(
+                  !submissionData.hasOwnProperty('url'),
+                  'Since we have not specificed full=true, we should not recieve base64 data'
+              );
+              done();
+            });
       })
 
-      it('Should return images or signatures with the query string "full=true"', function(done) {
+      it('Should return images or signatures with the query string "full=true"',function (done) {
         request(app)
-          .get(hook.alter('url', `/form/${helper.template.forms['base64Test']._id}/submission?full=true`, helper.template))
-          .set('x-jwt-token', helper.owner.token)
-          .expect(200)
-          .end((err, res) => {
+            .get(hook.alter('url',
+                `/form/${helper.template.forms['base64Test']._id}/submission?full=true`,
+                helper.template
+            ))
+            .set('x-jwt-token',helper.owner.token)
+            .expect(200)
+            .end((err,res) => {
+              if (err) {
+                done(err);
+              }
+              const submissionData = res.body[0].data.file[0];
+              assert(
+                  submissionData.hasOwnProperty('url'),
+                  'Since we have  specificed full=true, we should recieve base64 data'
+              );
+              done();
+            });
+      });
+    });
+
+    describe('Wizard', () => {
+      it('Should save data of suffix/prefix components', (done) => {
+        helper
+          .form({
+            title: 'Wizard Suffix Components',
+            name: 'formWiz',
+            path: 'formwiz',
+            type: 'form',
+            display: 'wizard',
+            components: [
+              {
+                label: 'Text Field',
+                applyMaskOn: 'change',
+                tableView: true,
+                key: 'textField',
+                type: 'textfield',
+                input: true,
+              },{
+                title: 'Page 1',
+                collapsible: false,
+                key: 'panel',
+                type: 'panel',
+                label: 'Panel',
+                input: false,
+                tableView: false,
+                components: [
+                  {
+                    label: 'Page 1 text',
+                    applyMaskOn: 'change',
+                    tableView: true,
+                    key: 'page1Text',
+                    type: 'textfield',
+                    input: true,
+                  },
+                ],
+              },{
+                title: 'Page 2',
+                collapsible: false,
+                key: 'panel1',
+                type: 'panel',
+                label: 'Panel',
+                input: false,
+                tableView: false,
+                components: [
+                  {
+                    label: 'Page 2 text',
+                    applyMaskOn: 'change',
+                    tableView: true,
+                    key: 'page2Text',
+                    type: 'textfield',
+                    input: true,
+                  },
+                ],
+              },{
+                type: 'button',
+                label: 'Submit',
+                key: 'submit',
+                disableOnInvalid: true,
+                input: true,
+                tableView: false,
+              },
+            ],
+          })
+          .submission({
+            textField: 'text',
+            page1Text: 't1',
+            page2Text: 't2'
+          })
+          .execute(function(err) {
             if (err) {
-              done(err);
+              return done(err);
             }
-            const submissionData = res.body[0].data.file[0];
-            assert(submissionData.hasOwnProperty('url'), 'Since we have  specificed full=true, we should recieve base64 data');
+            const submission = helper.getLastSubmission();
+            assert.equal(submission.data.textField, 'text');
             done();
           });
       });
