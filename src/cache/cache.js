@@ -8,6 +8,7 @@ const debug = {
   loadFormByName: require('debug')('formio:cache:loadFormByName'),
   loadFormByAlias: require('debug')('formio:cache:loadFormByAlias'),
   loadSubmission: require('debug')('formio:cache:loadSubmission'),
+  loadSubmissionAsync: require('debug')('formio:cache:loadSubmissionAsync'),
   loadSubmissionRevision: require('debug')('formio:cache:loadSubmissionRevision'),
   loadSubmissions: require('debug')('formio:cache:loadSubmissions'),
   loadSubForms: require('debug')('formio:cache:loadSubForms'),
@@ -275,6 +276,52 @@ module.exports = function(router) {
           cb(null, submission);
         });
       });
+    },
+
+    /**
+     * Load a submission using caching async.
+     *
+     * @param req {Object}
+     *   The Express request object.
+     * @param formId {Object|String}
+     *   The submission form id, as BSON or string.
+     * @param subId {Object|String}
+     *   The submission id, as BSON or string.
+     */
+    async loadSubmissionAsync(req, formId, subId) {
+      const cache = this.cache(req);
+
+      if (cache.submissions[subId]) {
+        debug.loadSubmissionAsync(`Cache hit: ${subId}`);
+        return cache.submissions[subId];
+      }
+
+      debug.loadSubmissionAsync(`Searching for form: ${formId}, and submission: ${subId}`);
+      const query = {
+        _id: util.idToBson(subId),
+        form: util.idToBson(formId),
+        deleted: {$eq: null}
+      };
+      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+
+      try {
+        let submission = await submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec();
+
+        if (!submission) {
+          debug.loadSubmissionAsync('No submission found for the given query.');
+          return null;
+        }
+
+        submission = await hook.alter('loadSubmission', submission, req);
+
+        cache.submissions[subId] = submission;
+
+        return submission;
+      }
+      catch (err) {
+        debug.loadSubmissionAsync(err);
+        throw new Error(err);
+      }
     },
 
     loadSubmissionRevision(req, cb) {
