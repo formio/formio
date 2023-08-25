@@ -10,7 +10,6 @@ const debug = {
 };
 const util = require('../util/util');
 const moment = require('moment');
-const promisify = require('util').promisify;
 
 /**
  * The ActionIndex export.
@@ -650,7 +649,7 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
 
   async function getDeletedSubmission(req) {
     try {
-      return await promisify(router.formio.cache.loadSubmission)(
+      return await router.formio.cache.loadSubmissionAsync(
         req,
         req.body.form,
         req.body._id,
