@@ -54,6 +54,7 @@ module.exports = function(router) {
                   if (date.isValid()) {
                     return date.toDate();
                   }
+                  return;
                 }
                 case 'select': {
                   if (Number(value) || value === "0") {

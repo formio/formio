@@ -58,10 +58,11 @@ module.exports = (router) => {
           }
 
           let value = _.get(req.body.data, path);
-          if (req.method === 'PATCH') {
-            value._id = value.id.toString();
-          }
-          if (value) {
+          if (!_.isEmpty(value)) {
+            if (req.method === 'PATCH') {
+              value._id = value._id.toString();
+            }
+
             if (!Array.isArray(value)) {
               value = [value];
             }
