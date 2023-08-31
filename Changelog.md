@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 ## [Unreleased: 3.4.0-rc.1]
 ### Changed
  - FIO-6493: added reporting-ui form for project template
+ - FIO-7124: replaced action logging with hook
    
 ## 3.3.0-rc.2
 ### Changed
