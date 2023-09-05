@@ -16,8 +16,10 @@ const {
   filterComponentsForConditionComponentFieldOptions,
   conditionOperatorsByComponentType,
   allConditionOperatorsOptions,
-  getValueComponentsForEachFormComponent,
+  getValueComponentsForEachField,
   getValueComponentRequiredSettings,
+  rootLevelProperties,
+  rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
 
 /**
@@ -305,14 +307,19 @@ module.exports = (router) => {
 
         // Check all the conditions and save results to array
         const conditionsResults = await Promise.all(conditions.map(async (cond) => {
-          const {value: comparedValue, operator, component: conditionComponentPath} = cond;
+          const {value: comparedValue, operator} = cond;
+          let {component: conditionComponentPath} = cond;
+          const isRootLevelProperty = conditionComponentPath && conditionComponentPath.startsWith('(submission).');
+          conditionComponentPath = isRootLevelProperty ?
+            conditionComponentPath.replace('(submission).', '') :
+            conditionComponentPath;
           const ConditionOperator = ConditionOperators[operator];
           if (!conditionComponentPath || !ConditionOperator) {
             return true;
           }
-          const value = await getComponentValueFromRequest(req, conditionComponentPath);
+          const value = await getComponentValueFromRequest(req, conditionComponentPath, isRootLevelProperty);
           let component;
-          if (req.currentFormComponents) {
+          if (req.currentFormComponents && !isRootLevelProperty) {
             component = util.FormioUtils.getComponent(req.currentFormComponents, conditionComponentPath);
           }
           return new ConditionOperator().getResult({value, comparedValue, component});
@@ -424,12 +431,16 @@ module.exports = (router) => {
       const flattenedComponents = router.formio.util.flattenComponents(form.components);
 
       const componentsOptionsForExtendedUi = filterComponentsForConditionComponentFieldOptions(flattenedComponents);
+      const fieldsOptionsForExtendedUi = [
+        ...componentsOptionsForExtendedUi,
+        ...rootLevelProperties.map(({value, label}) => ({value, label})),
+      ];
       const flattenedComponentsForConditional = _.pick(
           flattenedComponents,
           componentsOptionsForExtendedUi.map(({value}) => value)
       );
-      const valueComponentsByComponentPath = getValueComponentsForEachFormComponent(flattenedComponentsForConditional);
-      const valueComponent = getValueComponentRequiredSettings(valueComponentsByComponentPath);
+      const valueComponentsByFieldPath = getValueComponentsForEachField(flattenedComponentsForConditional);
+      const valueComponent = getValueComponentRequiredSettings(valueComponentsByFieldPath);
 
       const customPlaceholder = `
         // Example: Only execute if submitted roles has 'authenticated'.
@@ -490,7 +501,7 @@ module.exports = (router) => {
                         valueProperty: 'value',
                         placeholder: 'Select Form Component',
                         lazyLoad: false,
-                        data: {json: JSON.stringify(componentsOptionsForExtendedUi)},
+                        data: {json: JSON.stringify(fieldsOptionsForExtendedUi)},
                         key: 'component',
                         type: 'select',
                         input: true,
@@ -508,9 +519,17 @@ module.exports = (router) => {
                         data: {
                           custom:`
                             const formComponents = ${JSON.stringify(flattenedComponents)};
+                            const rootLevelProperties = ${JSON.stringify(rootLevelPropertiesOperatorsByPath)};
+                            const isRootLevelProperty = row.component && row.component.startsWith('(submission).'); 
                             const conditionComponent = formComponents[row.component];
-                            const componentType = conditionComponent ? conditionComponent.type : 'base';
-                            const operatorsByComponentType = ${JSON.stringify(conditionOperatorsByComponentType)};
+                            let componentType = conditionComponent ? conditionComponent.type : 'base';
+                            if (isRootLevelProperty) {
+                              componentType = row.component;
+                            }
+                            const operatorsByComponentType = ${JSON.stringify({
+                              ...conditionOperatorsByComponentType,
+                              ...rootLevelPropertiesOperatorsByPath
+                            })};
                             let operators = operatorsByComponentType[componentType];
                             if (!operators || !operators.length) {
                               operators = operatorsByComponentType.base;
@@ -654,11 +673,12 @@ module.exports = (router) => {
     }
   }
 
-  async function getComponentValueFromRequest(req, field) {
+  async function getComponentValueFromRequest(req, field, isRootLevelProperty) {
     const isDelete = req.method.toUpperCase() === 'DELETE';
     const deletedSubmission = isDelete ? await getDeletedSubmission(req): false;
-    const value = isDelete? _.get(deletedSubmission, `data.${field}`, '') :
-      _.get(req, `body.data.${field}`, '');
+    const fieldPath = isRootLevelProperty ? '' : 'data.';
+    const value = isDelete ? _.get(deletedSubmission, `${fieldPath}${field}`, '') :
+      _.get(req, `body.${fieldPath}${field}`, '');
     return value;
   }
 
