@@ -58,50 +58,128 @@ Object.keys(Formio.Components.components).forEach((type) => {
   }
 });
 
+// (submission) prefix is required to differ form fields data paths from root level properties
+const rootLevelProperties = [
+  {
+    label: 'Created',
+    value: '(submission).created',
+    operators: [
+      'isDateEqual',
+      'isNotDateEqual',
+      'dateLessThan',
+      'dateGreaterThan',
+      'dateLessThanOrEqual',
+      'dateGreaterThanOrEqual',
+    ],
+    valueComponent: Formio.Components.components.datetime.schema() || {type: 'datetime'},
+  },
+  {
+    label: 'Modified',
+    value: '(submission).modified',
+    operators: [
+      'isDateEqual',
+      'isNotDateEqual',
+      'dateLessThan',
+      'dateGreaterThan',
+      'dateLessThanOrEqual',
+      'dateGreaterThanOrEqual',
+    ],
+    valueComponent: Formio.Components.components.datetime.schema() || {type: 'datetime'},
+  },
+  {
+    label: 'State',
+    value: '(submission).state',
+    operators: [
+      'isDateEqual',
+      'isNotDateEqual',
+      'dateLessThan',
+      'dateGreaterThan',
+      'dateLessThanOrEqual',
+      'dateGreaterThanOrEqual',
+    ],
+    valueComponent: {
+      valueType: 'string',
+      data: {
+        values: [
+          {
+            label: 'Draft',
+            value: 'draft',
+          },
+          {
+            label: 'Submitted',
+            value: 'submitted',
+          },
+        ],
+      },
+      type: 'select',
+    },
+  }
+];
+
+const rootLevelPropertiesOperatorsByPath = rootLevelProperties.reduce((acc,
+  {
+    value,
+    operators,
+  },
+) => {
+  acc[value] = operators;
+  return acc;
+}, {});
+
+const valueComponentsForRootLevelProperties = rootLevelProperties.reduce((acc,
+  {
+    value,
+    valueComponent,
+  },
+) => {
+  acc[value] = valueComponent || {type: 'textfield'};
+  return acc;
+}, {});
+
 const filterComponentsForConditionComponentFieldOptions = (flattenedComponents) => _.map(
-    flattenedComponents,
-    (component,path) => ({
-      ...component,
-      path,
-    }),
+  flattenedComponents,
+  (component, path) => ({
+    ...component,
+    path,
+  }),
 )
-    // Hide components without key, layout components, data components and form, datasource, button components
-    .filter((component) => {
-      let allowed = component.key &&
-          component.input === true &&
-          !component.hasOwnProperty('components') &&
-          ![
-            'form',
-            'datasource',
-            'button',
-          ].includes(component.type);
+  // Hide components without key, layout components, data components and form, datasource, button components
+  .filter((component) => {
+    let allowed = component.key &&
+      component.input === true &&
+      !component.hasOwnProperty('components') &&
+      ![
+        'form',
+        'datasource',
+        'button',
+      ].includes(component.type);
 
-      const pathArr = component.path.split('.');
+    const pathArr = component.path.split('.');
 
-      // Do not show component if it is inside dataGrid, editGrid, dataMap or tagpad
-      if (pathArr.length > 1) {
-        let subPath = pathArr[0];
-        for (let i = 1; i < pathArr.length; i++) {
-          const parent = flattenedComponents[subPath];
-          if (parent && ['datagrid','editgrid','tagpad','datamap'].includes(parent.type)) {
-            allowed = false;
-            break;
-          }
-          else {
-            subPath += `.${pathArr[i]}`;
-          }
+    // Do not show component if it is inside dataGrid, editGrid, dataMap or tagpad
+    if (pathArr.length > 1) {
+      let subPath = pathArr[0];
+      for (let i = 1; i < pathArr.length; i++) {
+        const parent = flattenedComponents[subPath];
+        if (parent && ['datagrid', 'editgrid', 'tagpad', 'datamap'].includes(parent.type)) {
+          allowed = false;
+          break;
+        }
+        else {
+          subPath += `.${pathArr[i]}`;
         }
       }
-      return allowed;
-    })
-    .map(({
-      path,
-      key,
-      label,
-    }) => ({
-      value: path,
-      label: `${label || key} (${path})`,
-    }));
+    }
+    return allowed;
+  })
+  .map(({
+    path,
+    key,
+    label,
+  }) => ({
+    value: path,
+    label: `${label || key} (data.${path})`,
+  }));
 
 const allConditionOperatorsOptions = Object.keys(ConditionOperators).map((operatorKey) => ({
   value: operatorKey,
@@ -152,7 +230,14 @@ const getValueComponentsForEachFormComponent = (flattenedComponents) => {
   return valueComponentSettingsByComponentPath;
 };
 
-const getValueComponentRequiredSettings = (valueComponentsByComponentPath) => {
+const getValueComponentsForEachField = (flattenedComponents) => {
+  return {
+    ...getValueComponentsForEachFormComponent(flattenedComponents),
+    ...valueComponentsForRootLevelProperties,
+  };
+};
+
+const getValueComponentRequiredSettings = (valueComponentsByFieldPath) => {
   return {
     label: 'Value:',
     key: 'value',
@@ -171,12 +256,8 @@ const getValueComponentRequiredSettings = (valueComponentsByComponentPath) => {
             name: 'change value component',
             type: 'mergeComponentSchema',
             schemaDefinition: `
-            const valueComponentsByComponentPath = ${JSON.stringify(valueComponentsByComponentPath)};
-            const valueComponent = valueComponentsByComponentPath[row.component] || { type: 'textfield' };
-            
-            if (valueComponent.type !== 'datetime') {
-              valueComponent.widget = null;
-            }
+            const valueComponentsByFieldPath = ${JSON.stringify(valueComponentsByFieldPath)};
+            const valueComponent = valueComponentsByFieldPath[row.component] || { type: 'textfield' };
             
             schema = {
               ...valueComponent,
@@ -217,5 +298,9 @@ module.exports = {
   allConditionOperatorsOptions,
   operatorsWithNoValue,
   getValueComponentsForEachFormComponent,
+  getValueComponentsForEachField,
   getValueComponentRequiredSettings,
+  rootLevelProperties,
+  valueComponentsForRootLevelProperties,
+  rootLevelPropertiesOperatorsByPath,
 };
