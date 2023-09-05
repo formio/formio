@@ -11,6 +11,20 @@ module.exports = function(formio) {
       // Load the settings directly.
       cb(null, settings);
     },
+    performAsync() {
+      const name = arguments[0];
+      if (
+        formio.hooks &&
+        formio.hooks.performAsync &&
+        formio.hooks.performAsync[name]
+      ) {
+        return formio.hooks.performAsync[name].apply(
+          formio.hooks.performAsync,
+          Array.prototype.slice.call(arguments, 1)
+        );
+      }
+      return Promise.resolve();
+    },
     invoke() {
       const name = arguments[0];
       if (
