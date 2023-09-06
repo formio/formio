@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 ### Changed
  - FIO-6493: added reporting-ui form for project template
  - FIO-7124: replaced action logging with hook
+ - FIO-6493: fixed formio-server tests that were broken by reporting ui PR
+ - FIO-6630: Expanded Actions Logic UI
    
 ## 3.3.0-rc.2
 ### Changed
