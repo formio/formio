@@ -80,10 +80,10 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
-"@formio/bootstrap3@2.12.3-rc.1":
-  version "2.12.3-rc.1"
-  resolved "https://registry.yarnpkg.com/@formio/bootstrap3/-/bootstrap3-2.12.3-rc.1.tgz#74327fd34002cc9b03b293ab524121a9bde1b690"
-  integrity sha512-Xe3LRv7wdsP3hwkwMeIi87X7u0bZORA+RFwqnXG7gLLH+ur+YF0df6YJURGw3lSMoXvo7eHxaJAx7Vky/F+raQ==
+"@formio/bootstrap3@2.12.3":
+  version "2.12.3"
+  resolved "https://registry.yarnpkg.com/@formio/bootstrap3/-/bootstrap3-2.12.3.tgz#afb3a91773161d77515628f8e9a031aa5104adc6"
+  integrity sha512-/jod5STUSz9wLnniCCZwKvqigLrzHt4jDZ07VUxmnqg1IcPcJKNX1UrY7tBAYWa2lWJ/p1j4bSerC6UWjbdYDQ==
   dependencies:
     resize-observer-polyfill "^1.5.1"
 
@@ -106,10 +106,10 @@
     lodash "^4.17.21"
     node-fetch "^2.6.1"
 
-"@formio/semantic@2.6.1-rc.1":
-  version "2.6.1-rc.1"
-  resolved "https://registry.yarnpkg.com/@formio/semantic/-/semantic-2.6.1-rc.1.tgz#26d40f52fb5767876443629831c3841d18498ecc"
-  integrity sha512-cvdjSkt1P6crWwZzjUhIK/3+yz6DjLSXxXqoPNvbYZt8tuxMS3cHDhPIy/psKnEXLAMEnGtm9I5i8gOQCcalFg==
+"@formio/semantic@2.6.1":
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/@formio/semantic/-/semantic-2.6.1.tgz#dd224e276da2f27b272131ed6678847a52be299d"
+  integrity sha512-obp1BT5UnzD+uYBbqmnsTfO2hGxI2A2iR/cj3P5JUFLYSBpnr3TS2ShQ7Ee5GCRRtJPu0JnljuJj+YSKLCMuhg==
 
 "@formio/text-mask-addons@^3.8.0-formio.2":
   version "3.8.0-formio.2"
@@ -1661,33 +1661,33 @@ formidable@^2.0.1:
     once "1.4.0"
     qs "6.9.3"
 
-formio-workers@1.17.0-rc.2:
-  version "1.17.0-rc.2"
-  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.17.0-rc.2.tgz#9dcb4e19dca13f83b3ac73f4480d49c013cf5c2d"
-  integrity sha512-pOxG90auZJ0T+Sz3FM7XHnhaRVxWt1+lbnM81DBv2poVVwtCnykkIKXJR6R3qgsFkbPYaQ+7511OXD3jkDpvNA==
+formio-workers@1.20.0-rc.1:
+  version "1.20.0-rc.1"
+  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.20.0-rc.1.tgz#965a1e41ab101e4601800186ab3d4f0c0e4825fb"
+  integrity sha512-glVXl/Jrtd6Fk7FnyuEbVca7xN/ya742Azfsj5KNYDtX2OtlwY9LourSsAP8AN4dS0J/7o7ZGX/lqis9rF0nkw==
   dependencies:
     aws-serverless-express "^3.4.0"
     body-parser "^1.19.1"
     core-js "^3.19.3"
     dotenv "^10.0.0"
     express "^4.17.1"
-    formiojs "4.15.0-rc.19"
+    formiojs "4.17.0-rc.6"
     lodash "^4.17.21"
     method-override "^3.0.0"
     moment "^2.29.1"
-    moment-timezone "^0.5.40"
+    moment-timezone "^0.5.35"
     nunjucks "^3.2.3"
     nunjucks-date-filter "^0.1.1"
     vm2 "^3.9.5"
 
-formiojs@4.15.0-rc.19:
-  version "4.15.0-rc.19"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.15.0-rc.19.tgz#caf1e243eeb1dd6c6e71ca4fd6ef97c49320a1c4"
-  integrity sha512-57QB5a8f2HyUKcZvwAhVN3/P3HDtI5tOdWsJ2qjCbswPlwQdOGik2pN7Rj+6m6UNKYrXs4V9J+NxXJmpypul1g==
+formiojs@4.17.0-rc.6:
+  version "4.17.0-rc.6"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.17.0-rc.6.tgz#47cbbebc8efaae5418ee808f362a81e4bfb6a81b"
+  integrity sha512-KqPsv2NtHginQQw58uqgHZ1qjXlL/K9nUbXGpaBRoqpqxNqS4jby5U/reWhAMuyYnDoIjKXsA2ArxUWoHf2eZQ==
   dependencies:
-    "@formio/bootstrap3" "2.12.3-rc.1"
+    "@formio/bootstrap3" "2.12.3"
     "@formio/choices.js" "10.2.0"
-    "@formio/semantic" "2.6.1-rc.1"
+    "@formio/semantic" "2.6.1"
     "@formio/text-mask-addons" "^3.8.0-formio.2"
     "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     autocompleter "^7.0.1"
@@ -1705,7 +1705,7 @@ formiojs@4.15.0-rc.19:
     fast-deep-equal "^3.1.3"
     fast-json-patch "^3.1.1"
     fetch-ponyfill "^7.1.0"
-    i18next "^22.4.3"
+    i18next "22.4.12"
     idb "^7.1.1"
     ismobilejs "^1.1.1"
     json-logic-js "^2.0.2"
@@ -1969,10 +1969,10 @@ https-proxy-agent@^5.0.0:
     agent-base "6"
     debug "4"
 
-i18next@^22.4.3:
-  version "22.4.9"
-  resolved "https://registry.yarnpkg.com/i18next/-/i18next-22.4.9.tgz#98c8384c6bd41ff937da98b1e809ba03d3b41053"
-  integrity sha512-8gWMmUz460KJDQp/ob3MNUX84cVuDRY9PLFPnV8d+Qezz/6dkjxwOaH70xjrCNDO+JrUL25iXfAIN9wUkInNZw==
+i18next@22.4.12:
+  version "22.4.12"
+  resolved "https://registry.yarnpkg.com/i18next/-/i18next-22.4.12.tgz#fde322c186501ea1adcdfac41b2d2552b26eab42"
+  integrity sha512-2lE+vRXxQ3lGLub1CVbwgO0IfkLHmUSDVOAVdPh22CsxttMXi+35n2qgxh2wZIkKl6t/NMzPfgFPRDiFQOmiCg==
   dependencies:
     "@babel/runtime" "^7.20.6"
 
@@ -2649,6 +2649,13 @@ moment-timezone@^0.5.34:
   integrity sha512-uEDzDNFhfaywRl+vwXxffjjq1q0Vzr+fcQpQ1bU0kbzorfS7zVtZnCnGc8mhWmF39d4g4YriF6kwA75mJKE/Zg==
   dependencies:
     moment ">= 2.9.0"
+
+moment-timezone@^0.5.35:
+  version "0.5.43"
+  resolved "https://registry.yarnpkg.com/moment-timezone/-/moment-timezone-0.5.43.tgz#3dd7f3d0c67f78c23cd1906b9b2137a09b3c4790"
+  integrity sha512-72j3aNyuIsDxdF1i7CEgV2FfxM1r6aaqJyLB2vwb33mXYyoyLly+F1zbWqhA3/bVIoJ4szlUoMbUnVdid32NUQ==
+  dependencies:
+    moment "^2.29.4"
 
 moment-timezone@^0.5.40:
   version "0.5.40"

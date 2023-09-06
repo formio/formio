@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 
 
-## [Unreleased: 3.4.0-rc.1]
+## 3.4.0-rc.1
+### Changed
+ - Updated formiojs@4.17.0-rc.6
+ - Updated formio-workers@1.20.0-rc.1
+ - FIO-6630: Expanded Actions Logic UI
+ - FIO-7124: replaced action logging with hook
+ - FIO-6493: fixed formio-server tests that were broken by reporting ui PR
+
 ### Changed
 
 ## 3.3.0-rc.2
