@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 3.4.0-rc.1]
+## [Unreleased: 3.5.0-rc.1]
+### Changed
+ - Increment minor version.
+
 ### Changed
  - Increment minor version.
 
