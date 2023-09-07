@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 
 
+## 3.4.0-rc.2
+### Changed
+ - Updated formiojs@4.18.0-rc.1
+ - Updated formio-workers@1.20.0-rc.2
+ - FIO-6493: added reporting-ui form for project template
+
 ## 3.4.0-rc.1
 ### Changed
  - Updated formiojs@4.17.0-rc.6
