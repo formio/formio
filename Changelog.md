@@ -5,7 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 
-
+## [Unreleased: 3.4.0-rc.3]
+### Changed
+ - Revert - FIO-6630: Expanded Actions Logic UI
 
 ## 3.4.0-rc.2
 ### Changed
