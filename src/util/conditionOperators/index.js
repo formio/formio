@@ -50,8 +50,8 @@ const conditionOperatorsByComponentType = {
     IsNotEmptyValue.operatorKey,
   ]};
 
-Object.keys(Formio.Components.components).forEach((type) => {
-  const component = Formio.Components.components[type];
+Object.keys(Formio.AllComponents).forEach((type) => {
+  const component = Formio.AllComponents[type];
   const operators = component && component.serverConditionSettings ? component.serverConditionSettings.operators : null;
   if (operators) {
     conditionOperatorsByComponentType[type] = operators;
@@ -71,7 +71,28 @@ const rootLevelProperties = [
       'dateLessThanOrEqual',
       'dateGreaterThanOrEqual',
     ],
-    valueComponent: Formio.Components.components.datetime.schema() || {type: 'datetime'},
+    valueComponent: {
+      type: 'datetime',
+      widget: {
+        type: 'calendar',
+        displayInTimezone: 'viewer',
+        locale: 'en',
+        useLocaleSettings: false,
+        allowInput: true,
+        mode: 'single',
+        enableTime: true,
+        noCalendar: false,
+        format: 'yyyy-MM-dd hh:mm a',
+        hourIncrement: 1,
+        minuteIncrement: 1,
+        // eslint-disable-next-line camelcase
+        time_24hr: false,
+        minDate: null,
+        disableWeekends: false,
+        disableWeekdays: false,
+        maxDate: null,
+      },
+    },
   },
   {
     label: 'Modified',
@@ -84,18 +105,35 @@ const rootLevelProperties = [
       'dateLessThanOrEqual',
       'dateGreaterThanOrEqual',
     ],
-    valueComponent: Formio.Components.components.datetime.schema() || {type: 'datetime'},
+    valueComponent: {
+  type: 'datetime',
+    widget: {
+    type: 'calendar',
+      displayInTimezone: 'viewer',
+      locale: 'en',
+      useLocaleSettings: false,
+      allowInput: true,
+      mode: 'single',
+      enableTime: true,
+      noCalendar: false,
+      format: 'yyyy-MM-dd hh:mm a',
+      hourIncrement: 1,
+      minuteIncrement: 1,
+      // eslint-disable-next-line camelcase
+      time_24hr: false,
+      minDate: null,
+      disableWeekends: false,
+      disableWeekdays: false,
+      maxDate: null,
+  },
+},
   },
   {
     label: 'State',
     value: '(submission).state',
     operators: [
-      'isDateEqual',
-      'isNotDateEqual',
-      'dateLessThan',
-      'dateGreaterThan',
-      'dateLessThanOrEqual',
-      'dateGreaterThanOrEqual',
+      'isEqual',
+      'isNotEqual',
     ],
     valueComponent: {
       valueType: 'string',
@@ -201,7 +239,7 @@ const getValueComponentsForEachFormComponent = (flattenedComponents) => {
   Object.keys(flattenedComponents).forEach((path) => {
     const componentSchema = flattenedComponents[path];
     const component = componentSchema && componentSchema.type
-      ? Formio.Components.components[componentSchema.type]
+      ? Formio.AllComponents[componentSchema.type]
       : null;
     const getValueComponent = component && component.serverConditionSettings ?
       component.serverConditionSettings.valueComponent :
@@ -249,7 +287,7 @@ const getValueComponentRequiredSettings = (valueComponentsByFieldPath) => {
         name: 'check if row component is defined',
         trigger: {
           type: 'javascript',
-          javascript: 'result = true || row.component;',
+          javascript: 'result = !!row.component;',
         },
         actions: [
           {
@@ -258,6 +296,10 @@ const getValueComponentRequiredSettings = (valueComponentsByFieldPath) => {
             schemaDefinition: `
             const valueComponentsByFieldPath = ${JSON.stringify(valueComponentsByFieldPath)};
             const valueComponent = valueComponentsByFieldPath[row.component] || { type: 'textfield' };
+            
+            if (valueComponent.type !== 'datetime') {
+              valueComponent.widget = null;
+            }
             
             schema = {
               ...valueComponent,
