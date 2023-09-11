@@ -188,7 +188,7 @@ module.exports = (router) => {
         }
 
         async.eachSeries(actions, (action, cb) => {
-          this.shouldExecute(action, req).then(execute => {
+          this.shouldExecute(action, req, res).then(execute => {
             if (!execute) {
               return cb();
             }
@@ -222,7 +222,7 @@ module.exports = (router) => {
       });
     },
 
-    async shouldExecute(action, req) {
+    async shouldExecute(action, req, res) {
       const condition = action.condition;
       if (!condition) {
         return true;
@@ -289,7 +289,7 @@ module.exports = (router) => {
         // See if a condition is not established within the action.
         const field = condition.field || '';
         const eq = condition.eq || '';
-        const value = String(await getComponentValueFromRequest(req, field));
+        const value = String(await getComponentValueFromRequest(req, res, field));
         const compare = String(condition.value || '');
         debug.action(
           '\nfield', field,
@@ -317,7 +317,7 @@ module.exports = (router) => {
           if (!conditionComponentPath || !ConditionOperator) {
             return true;
           }
-          const value = await getComponentValueFromRequest(req, conditionComponentPath, isRootLevelProperty);
+          const value = await getComponentValueFromRequest(req, res, conditionComponentPath, isRootLevelProperty);
           let component;
           if (req.currentFormComponents && !isRootLevelProperty) {
             component = util.FormioUtils.getComponent(req.currentFormComponents, conditionComponentPath);
@@ -505,6 +505,49 @@ module.exports = (router) => {
                         key: 'component',
                         type: 'select',
                         input: true,
+                        logic: [
+                          {
+                            name: 'Show a tip when submission.created property is selected',
+                            trigger: {
+                              type: 'javascript',
+                              javascript: 'result = row.component === \'(submission).created\';\n',
+                            },
+                            actions: [
+                              {
+                                name: 'Show a tip',
+                                type: 'property',
+                                property: {
+                                  label: 'Description',
+                                  value: 'description',
+                                  type: 'string',
+                                },
+                                text: 'Notice that \'created\' property is not available when action is' +
+                                  ' triggered Before Create, so it won\'t be executed',
+                              },
+                            ],
+                          },
+                          {
+                            name: 'Show a tip when submission.modified property is selected',
+                            trigger: {
+                              type: 'javascript',
+                              javascript: 'result = row.component === \'(submission).modified\';\n',
+                            },
+                            actions: [
+                              {
+                                name: 'Show a tip',
+                                type: 'property',
+                                property: {
+                                  label: 'Description',
+                                  value: 'description',
+                                  type: 'string',
+                                },
+                                text: 'Notice that \'modified\' property is not available Before/After Create. It' +
+                                  ' also is not available or is equal to the last edit date Before Update and' +
+                                  ' Before/After Read. So make sure that you configure it properly.',
+                              },
+                            ],
+                          },
+                        ],
                       },
                       {
                         label: 'Is:',
@@ -520,7 +563,9 @@ module.exports = (router) => {
                           custom:`
                             const formComponents = ${JSON.stringify(flattenedComponents)};
                             const rootLevelProperties = ${JSON.stringify(rootLevelPropertiesOperatorsByPath)};
-                            const isRootLevelProperty = row.component && row.component.startsWith('(submission).'); 
+                            const isRootLevelProperty = row.component &&
+                              row.component.startsWith &&
+                              row.component.startsWith('(submission).'); 
                             const conditionComponent = formComponents[row.component];
                             let componentType = conditionComponent ? conditionComponent.type : 'base';
                             if (isRootLevelProperty) {
@@ -673,12 +718,15 @@ module.exports = (router) => {
     }
   }
 
-  async function getComponentValueFromRequest(req, field, isRootLevelProperty) {
+  async function getComponentValueFromRequest(req, res, field, isRootLevelProperty) {
     const isDelete = req.method.toUpperCase() === 'DELETE';
     const deletedSubmission = isDelete ? await getDeletedSubmission(req): false;
     const fieldPath = isRootLevelProperty ? '' : 'data.';
+
     const value = isDelete ? _.get(deletedSubmission, `${fieldPath}${field}`, '') :
+      _.get(res, `resource.item.${fieldPath}${field}`, '') ||
       _.get(req, `body.${fieldPath}${field}`, '');
+
     return value;
   }
 
