@@ -1,9 +1,7 @@
 'use strict';
 
 const nodemailer = require('nodemailer');
-const sgTransport = require('nodemailer-sendgrid');
 const mandrillTransport = require('nodemailer-mandrill-transport');
-const mailgunTransport = require('nodemailer-mailgun-transport');
 const debug = {
   email: require('debug')('formio:settings:email'),
   send: require('debug')('formio:settings:send'),
@@ -333,9 +331,14 @@ module.exports = (formio) => {
           if (_config && formio.config.email.type === 'sendgrid') {
             // https://formio.atlassian.net/browse/FIO-7329
             printDeprecationWarning(emailType);
-            transporter = nodemailer.createTransport(sgTransport({
-              apiKey: formio.config.email.password
-            }));
+            transporter = nodemailer.createTransport({
+              host: 'smtp.sendgrid.net',
+              port: 587,
+              auth: {
+                user: 'apikey',
+                pass: settings.email.sendgrid.auth.api_key
+              }
+            });
           }
           else if (_config && formio.config.email.type === 'mandrill') {
             transporter = nodemailer.createTransport(mandrillTransport({
@@ -350,9 +353,14 @@ module.exports = (formio) => {
             // https://formio.atlassian.net/browse/FIO-7329
             printDeprecationWarning(emailType);
             debug.email(settings.email.sendgrid);
-            transporter = nodemailer.createTransport(sgTransport({
-              apiKey: settings.email.sendgrid.auth.api_key
-            }));
+            transporter = nodemailer.createTransport({
+              host: 'smtp.sendgrid.net',
+              port: 587,
+              auth: {
+                user: 'apikey',
+                pass: settings.email.sendgrid.auth.api_key
+              }
+            });
           }
           break;
         case 'mandrill':
@@ -364,7 +372,7 @@ module.exports = (formio) => {
           if (_.has(settings, 'email.mailgun')) {
             // https://formio.atlassian.net/browse/FIO-7329
             printDeprecationWarning(emailType);
-            transporter = nodemailer.createTransport(mailgunTransport(settings.email.mailgun));
+            transporter = nodemailer.createTransport(settings.email.mailgun);
           }
           break;
         case 'smtp':
