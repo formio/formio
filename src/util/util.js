@@ -9,7 +9,8 @@ const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/workers/util');
 const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
-const {VM} = require('vm2');
+const vmUtil = require('formio-workers/vmUtil');
+const {Isolate} = require('formio-workers/vmUtil');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
@@ -45,23 +46,20 @@ _.each(Formio.Displays.displays, (display) => {
   display.prototype.onChange = _.noop;
 });
 
-const vm = new VM({
-  timeout: 250,
-  sandbox: {
-    result: null,
-  },
-  fixAsync: true
-});
-
 Formio.Utils.Evaluator.noeval = true;
 Formio.Utils.Evaluator.evaluator = function(func, args) {
   return function() {
     let result = null;
     /* eslint-disable no-empty */
     try {
-      vm.freeze(args, 'args');
-
-      result = vm.run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
+      const isolate = new Isolate({memoryLimit: 8});
+      const context = isolate.createContextSync();
+      vmUtil.transferSync('result', null, context);
+      vmUtil.freezeSync('args', args, context);
+      result = context.evalSync(
+        `result = (function({${_.keys(args).join(',')}}) {${func}})(args);`,
+        {timeout: 250, copy: true}
+      );
     }
     catch (err) {}
     /* eslint-enable no-empty */
