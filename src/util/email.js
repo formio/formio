@@ -19,6 +19,35 @@ const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
 const EMAIL_CHUNK_SIZE = process.env.EMAIL_CHUNK_SIZE || 100;
 const NON_PRIORITY_QUEUE_TIMEOUT = process.env.NON_PRIORITY_QUEUE_TIMEOUT || 1000;
 
+const printDeprecationWarning = (type) => {
+  if (type === 'mailgun') {
+    process.emitWarning(
+      'Deprecation Warning: nodemailer-mailgun will deprecated in future versions due to '+
+      'security vulnerabilities. We recommend migrating over to SMTP for Mailgun to '+
+      'enhance security and maintainability.',
+      {
+        code: 'NODEMAILER-MAILGUN',
+        type: 'DeprecationWarning',
+        detail: 'More details can be found at ' +
+                'https://www.cve.org/CVERecord?id=CVE-2023-28155 & https://www.cve.org/CVERecord?id=CVE-2023-26136'
+      }
+    );
+  }
+  if (type === 'sendgrid') {
+    process.emitWarning(
+      'Deprecation Warning: nodemailer-sendgrid will deprecated in future versions due to '+
+      'security vulnerabilities. We recommend migrating over to SMTP for Sendgrid to '+
+      'enhance security and maintainability.',
+      {
+        code: 'NODEMAILER-SENDGRID',
+        type: 'DeprecationWarning',
+        detail: 'More details can be found at ' +
+                'https://www.cve.org/CVERecord?id=CVE-2023-28155 & https://www.cve.org/CVERecord?id=CVE-2023-26136'
+      }
+    );
+  }
+};
+
 /**
  * The email sender for emails.
  * @param formio
@@ -302,6 +331,8 @@ module.exports = (formio) => {
       switch (emailType) {
         case 'default':
           if (_config && formio.config.email.type === 'sendgrid') {
+            // https://formio.atlassian.net/browse/FIO-7329
+            printDeprecationWarning(emailType);
             transporter = nodemailer.createTransport(sgTransport({
               apiKey: formio.config.email.password
             }));
@@ -316,6 +347,8 @@ module.exports = (formio) => {
           break;
         case 'sendgrid':
           if (_.has(settings, 'email.sendgrid')) {
+            // https://formio.atlassian.net/browse/FIO-7329
+            printDeprecationWarning(emailType);
             debug.email(settings.email.sendgrid);
             transporter = nodemailer.createTransport(sgTransport({
               apiKey: settings.email.sendgrid.auth.api_key
@@ -329,6 +362,8 @@ module.exports = (formio) => {
           break;
         case 'mailgun':
           if (_.has(settings, 'email.mailgun')) {
+            // https://formio.atlassian.net/browse/FIO-7329
+            printDeprecationWarning(emailType);
             transporter = nodemailer.createTransport(mailgunTransport(settings.email.mailgun));
           }
           break;
