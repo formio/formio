@@ -80,10 +80,10 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
-"@formio/bootstrap3@2.12.3":
-  version "2.12.3"
-  resolved "https://registry.yarnpkg.com/@formio/bootstrap3/-/bootstrap3-2.12.3.tgz#afb3a91773161d77515628f8e9a031aa5104adc6"
-  integrity sha512-/jod5STUSz9wLnniCCZwKvqigLrzHt4jDZ07VUxmnqg1IcPcJKNX1UrY7tBAYWa2lWJ/p1j4bSerC6UWjbdYDQ==
+"@formio/bootstrap3@2.12.4-rc.1":
+  version "2.12.4-rc.1"
+  resolved "https://registry.yarnpkg.com/@formio/bootstrap3/-/bootstrap3-2.12.4-rc.1.tgz#f192d01ed7eb4f9f2779126edfe6a876a0f8873f"
+  integrity sha512-4B5rs+w9tAk5i+wbdw2/NrTxPqnDX7/W19tiTd9lfXnIGQmaj0ecMEVqDmOJg8pIlyU02g3c4ih6JnA/JVmUbA==
   dependencies:
     resize-observer-polyfill "^1.5.1"
 
@@ -1661,17 +1661,17 @@ formidable@^2.0.1:
     once "1.4.0"
     qs "6.9.3"
 
-formio-workers@1.20.0-rc.2:
-  version "1.20.0-rc.2"
-  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.20.0-rc.2.tgz#05a0b5145caba7a18ed76358bff2c58f3af5a920"
-  integrity sha512-RC93XPLXj7alI9zLngQ1GDU8f8lBW2e7ssGnF/1ZHiGVdMkw9kie7DH6Cv92lRlEEUpHK0bE4eft4hAVyIentg==
+formio-workers@1.20.0-rc.3:
+  version "1.20.0-rc.3"
+  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.20.0-rc.3.tgz#5a89526cb7d72abee47a4203e00489c41dc937ba"
+  integrity sha512-Lfmy7a6EXpnMHPENZLtUfnRQsRZJCcgZQJPFiuGFIwN0PBSBhXvrda2VxGwdfjyRZ6+FaVUBq8ZlnqRtFg6qBA==
   dependencies:
     aws-serverless-express "^3.4.0"
     body-parser "^1.19.1"
     core-js "^3.19.3"
     dotenv "^10.0.0"
     express "^4.17.1"
-    formiojs "4.18.0-rc.1"
+    formiojs "4.18.0-rc.2"
     lodash "^4.17.21"
     method-override "^3.0.0"
     moment "^2.29.1"
@@ -1680,12 +1680,12 @@ formio-workers@1.20.0-rc.2:
     nunjucks-date-filter "^0.1.1"
     vm2 "^3.9.5"
 
-formiojs@4.18.0-rc.1:
-  version "4.18.0-rc.1"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.18.0-rc.1.tgz#509406616c826f0575362b279e4f6afa3521d58b"
-  integrity sha512-JBYAU2Sjdu0i+y388UFg5Uj/ZHkAIRErNOLnQSf6XMWLCqtHHAkVhEKbfCvqBJvgBQ5CBIV4JfROEoVK5QKIzg==
+formiojs@4.18.0-rc.2:
+  version "4.18.0-rc.2"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.18.0-rc.2.tgz#2b0ff6db697a91742a5a86ad6b11a2f25d22be4d"
+  integrity sha512-f274w1f6Y4GO7iixzaq6fDcfZD2J/+StM1lbUhm5RMNYR9JYvXDZ24R8RnOQ7cxH/03EmmlNKC/djba7Tjwz2w==
   dependencies:
-    "@formio/bootstrap3" "2.12.3"
+    "@formio/bootstrap3" "2.12.4-rc.1"
     "@formio/choices.js" "10.2.0"
     "@formio/semantic" "2.6.1"
     "@formio/text-mask-addons" "^3.8.0-formio.2"
