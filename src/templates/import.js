@@ -764,12 +764,124 @@ module.exports = (router) => {
               return next(err);
             }
 
-            const saveDoc = function(updatedDoc) {
-              updatedDoc.save((err, result) => {
-                if (err) {
-                  debug.install(err.errors || err);
-                  return next(err);
-                }
+            // const saveDoc = function(updatedDoc) {
+            //   updatedDoc.save((err, result) => {
+            //     if (err) {
+            //       debug.install(err.errors || err);
+            //       return next(err);
+            //     }
+
+            //     items[machineName] = result.toObject();
+
+            //     if ((result.type === 'form' || result.type === 'resource') && result.revisions ) {
+            //       const revisionsFromTemplate = [];
+            //       _.forEach(template.revisions, (revisionData, revisionKey)=>{
+            //         if (revisionKey.match(`^${result.name}:`)) {
+            //           revisionData._rid = result._id;
+            //           revisionData.project = result.project;
+            //           revisionData.path = result.path;
+            //           revisionData.name = result.name;
+            //           revisionData._vuser = 'system';
+            //           revisionData._vnote = `Deploy version tag ${template.tag}`;
+            //           revisionData.owner = result.owner;
+            //           revisionData._vid = revisionsFromTemplate.length + 1;
+            //           roleMachineNameToId(template, revisionData.access);
+            //           roleMachineNameToId(template, revisionData.submissionAccess);
+            //           revisionsFromTemplate.push(revisionData);
+            //         }
+            //       });
+
+            //       revisionsFromTemplate.sort((rev1, rev2)=>rev1.created - rev2.created);
+            //       if (revisionsFromTemplate.length > 0
+            //         && !_.isEqual(revisionsFromTemplate[revisionsFromTemplate.length -1].components,
+            //         result.components.toObject()
+            //         )) {
+            //           const lastRevision = Object.assign({}, result.toObject());
+            //           lastRevision._rid = result._id;
+            //           lastRevision._vuser = 'system';
+            //           lastRevision._vid = revisionsFromTemplate.length + 1;
+            //           lastRevision._vnote = `Deploy version tag ${template.tag}`;
+            //           delete lastRevision._id;
+            //           delete lastRevision.__v;
+            //           revisionsFromTemplate.push(lastRevision);
+            //       }
+
+            //       if (revisionsFromTemplate.length > 0) {
+            //         hook.alter('formRevisionModel').find({
+            //           deleted: {$eq: null},
+            //           _rid: result._id
+            //         }, (err, existingRevisions) => {
+            //           if (err) {
+            //             return next(err);
+            //           }
+            //           let revisionsToCreate = [];
+
+            //           if (existingRevisions && existingRevisions.length > 0) {
+            //            revisionsFromTemplate.forEach((revisionTemplate) => {
+            //              if (
+            //                !existingRevisions.find(
+            //                  revision => revision._vnote === revisionTemplate._vnote
+            //                  )
+            //               ) {
+            //                 revisionTemplate._vid = revisionsToCreate.length + 1;
+            //                 revisionsToCreate.push(revisionTemplate);
+            //              }
+            //             });
+            //           }
+            //           else {
+            //             revisionsToCreate = revisionsFromTemplate;
+            //           }
+
+            //           hook.alter('formRevisionModel').create(revisionsToCreate,
+            //             (err, res)=>{
+            //               if (err) {
+            //                 return next(err);
+            //               }
+            //               formio.resources.form.model.updateOne({
+            //                 _id: result._id
+            //               },
+            //               {_vid: revisionsToCreate.length + existingRevisions.length},
+            //               (err) => {
+            //                 if (err) {
+            //                   return next(err);
+            //                 }
+            //                 res.forEach((createdRevision, i) => {
+            //                   revisionsToCreate[i].newId = createdRevision._id;
+            //                 });
+            //                 debug.save(items[machineName].machineName);
+            //                 if (entity.hasOwnProperty('deleteAllActions')) {
+            //                   return entity.deleteAllActions(updatedDoc._id, next);
+            //                 }
+            //                 next();
+            //               }
+            //               );
+            //             });
+            //         });
+            //       }
+            //       else {
+            //             debug.save(items[machineName].machineName);
+            //             if (entity.hasOwnProperty('deleteAllActions')) {
+            //               return entity.deleteAllActions(updatedDoc._id, next);
+            //             }
+            //         return next();
+            //       }
+            //     }
+            //     else {
+            //       debug.save(items[machineName].machineName);
+            //       if (entity.hasOwnProperty('deleteAllActions')) {
+            //         return entity.deleteAllActions(updatedDoc._id, next);
+            //       }
+            //       return next();
+            //     }
+            //   });
+            // };
+            const saveDoc = async function(updatedDoc, isNew = false) {
+              try {
+               const result =isNew? await model.create(updatedDoc):
+               await model.findOneAndUpdate({
+                _id: updatedDoc._id
+              },
+              {$set: updatedDoc});
 
                 items[machineName] = result.toObject();
 
@@ -860,6 +972,7 @@ module.exports = (router) => {
                   }
                   else {
                         debug.save(items[machineName].machineName);
+                        // eslint-disable-next-line max-depth
                         if (entity.hasOwnProperty('deleteAllActions')) {
                           return entity.deleteAllActions(updatedDoc._id, next);
                         }
@@ -873,7 +986,13 @@ module.exports = (router) => {
                   }
                   return next();
                 }
-              });
+              }
+
+              catch (err) {
+                debug.install(err.errors || err);
+                return next(err);
+                    }
+              // });
             };
 
             const setVid = (document, _vid) => {
@@ -886,7 +1005,7 @@ module.exports = (router) => {
               debug.install(`Existing not found (${document.machineName})`);
               setVid(document, 0);
               /* eslint-disable new-cap */
-              return saveDoc(new model(document));
+              return saveDoc(new model(document), true);
               /* eslint-enable new-cap */
             }
             else if (!createOnly) {
