@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 
+## 3.4.0-rc.4
+### Changed
+ - Updated formiojs@4.18.0-rc.3
+ - Updated formio-workers@1.20.0-rc.4
+
 ## 3.4.0-rc.3
 ### Changed
  - Updated formiojs@4.18.0-rc.2
