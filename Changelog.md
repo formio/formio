@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 
+## 3.4.0-rc.5
+### Changed
+ - bugfix: add catch block to nunjucks injection
+
 ## 3.4.0-rc.4
 ### Changed
  - Updated formiojs@4.18.0-rc.3
