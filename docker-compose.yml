@@ -16,7 +16,7 @@
 version: '3.7'
 services:
   mongo:
-    image: mongo:4.1
+    image: mongo
     restart: always
     volumes:
       - mdb-data:/data/db
