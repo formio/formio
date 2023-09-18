@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-6493: added reporting-ui form for project template
  - FIO-7124: replaced action logging with hook
  - FIO-6493: fixed formio-server tests that were broken by reporting ui PR
+ - bugfix: add catch block to nunjucks injection
    
 ## 3.3.0-rc.2
 ### Changed
