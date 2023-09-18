@@ -373,7 +373,15 @@ module.exports = (formio) => {
           // https://formio.atlassian.net/browse/FIO-7329
           printDeprecationWarning(emailType);
           if (_.has(settings, 'email.mailgun')) {
-            transporter = nodemailer.createTransport(settings.email.mailgun);
+            transporter = nodemailer.createTransport({
+              host: 'smtp.mailgun.org',
+              port: 465,
+              secure: true,
+              auth: {
+                user: settings.email.mailgun.auth.domain,
+                pass: settings.email.mailgun.auth.api_key
+              }
+            });
           }
           break;
         case 'smtp':
