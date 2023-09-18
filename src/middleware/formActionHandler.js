@@ -39,15 +39,6 @@ module.exports = function(router) {
             }
             next();
           });
-          // (new Action({
-          //   name: 'save',
-          //   title: 'Save Submission',
-          //   form: res.resource.item._id,
-          //   priority: 10,
-          //   handler: ['before'],
-          //   method: ['create', 'update'],
-          //   settings: {}
-          // })).save(next);
         }
         else {
           return next();
