@@ -20,19 +20,19 @@ const NON_PRIORITY_QUEUE_TIMEOUT = process.env.NON_PRIORITY_QUEUE_TIMEOUT || 100
 const printDeprecationWarning = (type) => {
   if (type === 'mailgun') {
     process.emitWarning(
-      'nodemailer-mailgun is deprecated in future versions due to '+
+      'nodemailer-mailgun-transport has been deprecated due to '+
       'security vulnerabilities. We recommend migrating over to SMTP for Mailgun to '+
       'enhance security and maintainability. More info can be found at ' +
       'https://github.com/formio/formio/pull/1627',
       {
-        code: 'NODEMAILER-MAILGUN',
+        code: 'NODEMAILER-MAILGUN-TRANSPORT',
         type: 'DeprecationWarning'
       }
     );
   }
   if (type === 'sendgrid') {
     process.emitWarning(
-      'nodemailer-sendgrid is deprecated in future versions due to '+
+      'nodemailer-sendgrid has been deprecated due to due to '+
       'security vulnerabilities. We recommend migrating over to SMTP for Sendgrid to '+
       'enhance security and maintainability. More info can be found at ' +
       'https://github.com/formio/formio/pull/1627',
