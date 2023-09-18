@@ -24,7 +24,6 @@ module.exports = function(router) {
           const Action = router.formio.actions.model;
 
           // Insert the save submission action for new forms.
-
           Action.create({
             name: 'save',
             title: 'Save Submission',
@@ -33,7 +32,7 @@ module.exports = function(router) {
             handler: ['before'],
             method: ['create', 'update'],
             settings: {}
-          }, function(err) {
+          }, (err) => {
             if (err) {
               return next(err);
             }

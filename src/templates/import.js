@@ -707,7 +707,7 @@ module.exports = (router) => {
     const createOnly = entity.createOnly;
     const requiredAttributes = entity.requiredAttributes;
 
-    return  async (template, items, alter, done) => {
+    return async (template, items, alter, done) => {
       // Normalize arguments.
       if (!done) {
         done = alter;
@@ -766,11 +766,13 @@ module.exports = (router) => {
 
             const saveDoc = async function(updatedDoc, isNew = false) {
               try {
-               const result =isNew? await model.create(updatedDoc):
-               await model.findOneAndUpdate({
-                _id: updatedDoc._id
-              },
-              {$set: updatedDoc});
+               const result = isNew
+                ? await model.create(updatedDoc)
+                : await model.findOneAndUpdate({
+                  _id: updatedDoc._id
+                }, {
+                  $set: updatedDoc
+                });
 
                 items[machineName] = result.toObject();
 
@@ -876,11 +878,10 @@ module.exports = (router) => {
                   return next();
                 }
               }
-
               catch (err) {
                 debug.install(err.errors || err);
                 return next(err);
-                    }
+              }
             };
 
             const setVid = (document, _vid) => {
