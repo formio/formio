@@ -164,6 +164,16 @@ const Utils = {
   },
 
   /**
+   * Checks if string is 'undefined' or 'null'.
+   *
+   * @param {String} str
+   * @returns {Boolean}
+   */
+  checkIsUndefinedOrNullString(str) {
+    return ['undefined', 'null'].includes(str);
+  },
+
+  /**
    * Create a sub response object that only handles errors.
    *
    * @param res

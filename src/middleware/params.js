@@ -11,20 +11,26 @@ module.exports = (router) => {
     // Split the request url into its corresponding parameters.
     const params = _.assign(util.getUrlParams(req.url), util.getUrlParams(req.baseUrl));
 
-    // Get the formId from the request url.
-    const formId = params.hasOwnProperty('form') && params.form !== 'undefined'
-      ? params.form
-      : null;
+    if (params.hasOwnProperty('form') && util.checkIsUndefinedOrNullString(params.form)) {
+      return res.status(400).send('Invalid form id provided.');
+    }
 
     // Get the formId from the request url.
-    let subId = params.hasOwnProperty('submission') && params.form !== 'undefined'
-      ? params.submission
-      : null;
+    const formId = params.form ?? null;
+
+    if (params.hasOwnProperty('submission') && util.checkIsUndefinedOrNullString(params.submission)) {
+      return res.status(400).send('Invalid submission id provided.');
+    }
+
+    // Get the subId from the request url.
+    let subId = params.submission ?? null;
+
+    if (params.hasOwnProperty('role') && util.checkIsUndefinedOrNullString(params.role)) {
+      return res.status(400).send('Invalid role id provided.');
+    }
 
     // Get the roleId from the request url.
-    const roleId = params.hasOwnProperty('role') && params.role !== 'undefined'
-      ? params.role
-      : null;
+    const roleId = params.role ?? null;
 
     // FA-993 - Update the request to check submission index in the case of submission exports.
     if (subId === null && formId !== null && params.hasOwnProperty('export')) {
