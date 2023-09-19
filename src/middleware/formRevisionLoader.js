@@ -15,16 +15,21 @@
   return (req, res, next) => {
     if (req.query.formRevision &&
       (res.resource.item.revisions === 'original' || req.query.formRevision.length === 24)) {
-      hook.alter('loadRevision', res.resource.item, req.query.formRevision, router.formio.mongoose.models.formrevision, (err, revision)=>{
-        if ( err ) {
-          return next(err);
-        }
-        res.resource.item = revision;
-        if ( revision===null ) {
-          res.resource.status = 404;
-        }
-        return next();
-      });
+      hook.alter(
+        'loadRevision',
+        res.resource.item,
+        req.query.formRevision,
+        router.formio.mongoose.models.formrevision,
+        (err, revision)=>{
+          if ( err ) {
+            return next(err);
+          }
+          res.resource.item = revision;
+          if ( revision===null ) {
+            res.resource.status = 404;
+          }
+          return next();
+        });
     }
     else {
       return next();
