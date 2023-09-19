@@ -4285,6 +4285,27 @@ module.exports = function(app, template, hook) {
           });
       });
     });
+
+    describe('Check errors appearing for undefined/null submission ids', function() {
+      it('Should return error if undefined submission id provided', done => {
+        request(app)
+          .get(hook.alter('url', '/submission/undefined'))
+          .set('x-jwt-token', helper.owner.token)
+          .expect(400)
+          .expect('Invalid submission id provided.')
+          .end(done);
+      });
+
+      it('Should return error if null submission id provided', done => {
+        request(app)
+          .get(hook.alter('url', '/submission/null'))
+          .set('x-jwt-token', helper.owner.token)
+          .expect(400)
+          .expect('Invalid submission id provided.')
+          .end(done);
+      })
+    })
+
   });
 
   describe('Nested Submissions', function() {

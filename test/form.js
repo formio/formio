@@ -672,6 +672,24 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('Should return error if undefined form id provided', done => {
+        request(app)
+          .get(hook.alter('url', '/form/undefined', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(400)
+          .expect('Invalid form id provided.')
+          .end(done);
+      });
+
+      it('Should return error if null form id provided', done => {
+        request(app)
+          .get(hook.alter('url', '/form/null', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(400)
+          .expect('Invalid form id provided.')
+          .end(done);
+      });
+
       it('Cant make a Form with invalid Form component keys', function(done) {
         async.each([
           '', 'è', 'é', 'ê', 'ë', 'ē', 'ė', 'ę', 'ÿ', 'û',
