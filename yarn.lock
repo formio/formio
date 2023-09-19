@@ -304,11 +304,6 @@ adal-node@^0.2.2:
     uuid "^3.1.0"
     xpath.js "~1.1.0"
 
-addressparser@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/addressparser/-/addressparser-1.0.1.tgz#47afbe1a2a9262191db6838e4fd1d39b40821746"
-  integrity sha512-aQX7AISOMM7HFE0iZ3+YnD07oIeJqWGVnJ+ZIKaBZAk03ftmVYVqsGas/rbXKR21n4D/hKCSHypvcyOkds/xzg==
-
 adm-zip@^0.5.9:
   version "0.5.9"
   resolved "https://registry.yarnpkg.com/adm-zip/-/adm-zip-0.5.9.tgz#b33691028333821c0cf95c31374c5462f2905a83"
@@ -2360,11 +2355,6 @@ mailgun.js@^8.0.1:
     base-64 "^1.0.0"
     url-join "^4.0.1"
 
-mandrill-api@^1.0.45:
-  version "1.0.45"
-  resolved "https://registry.yarnpkg.com/mandrill-api/-/mandrill-api-1.0.45.tgz#163939cf486bd18277b0f3baf412c3e65d84a72d"
-  integrity sha512-Hbr6z1AeReym0uVfGXNwyfGmyd7wZ81lsJg/iaogSDycI8J1lVjTx91u4pr4VSW3+fRqVASqre17ebHOr7yNKQ==
-
 media-typer@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/media-typer/-/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"
@@ -2604,15 +2594,6 @@ node-paginate-anything@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/node-paginate-anything/-/node-paginate-anything-1.0.0.tgz#591fe30b0d6bf09ffbcab97d113b76cfa99d1d9b"
   integrity sha512-L3eCybrEpnBbcG8ey+IqcsxlNOiV+fjyUqVaeGN/Wq95RUBmEktRQIXe2fC9cfmCpKbq5m/QhQ/lPehgUC1i8w==
-
-nodemailer-mandrill-transport@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/nodemailer-mandrill-transport/-/nodemailer-mandrill-transport-1.2.0.tgz#69969029d259b46921cc12db70ca1551bf394b04"
-  integrity sha512-Dli7B8D0Q2EkLi01ajSS4zaSfB1Vpv0s5539Dgjr6/XmQaXX7zVtzUvicWg38brgmFAaQ3HyXNFK6lWsF5I27A==
-  dependencies:
-    addressparser "^1.0.1"
-    extend "^3.0.0"
-    mandrill-api "^1.0.45"
 
 nodemailer@^6.8.0:
   version "6.8.0"
