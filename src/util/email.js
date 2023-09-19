@@ -1,7 +1,6 @@
 'use strict';
 
 const nodemailer = require('nodemailer');
-const mandrillTransport = require('nodemailer-mandrill-transport');
 const debug = {
   email: require('debug')('formio:settings:email'),
   send: require('debug')('formio:settings:send'),
@@ -64,12 +63,6 @@ module.exports = (formio) => {
         availableTransports.push({
           transport: 'sendgrid',
           title: 'SendGrid',
-        });
-      }
-      if (_.get(settings, 'email.mandrill.auth.apiKey')) {
-        availableTransports.push({
-          transport: 'mandrill',
-          title: 'Mandrill',
         });
       }
       if (_.get(settings, 'email.mailgun.auth.api_key')) {
@@ -311,13 +304,6 @@ module.exports = (formio) => {
               }
             });
           }
-          else if (_config && formio.config.email.type === 'mandrill') {
-            transporter = nodemailer.createTransport(mandrillTransport({
-              auth: {
-                apiKey: formio.config.email.apiKey,
-              },
-            }));
-          }
           break;
         case 'sendgrid':
           if (_.has(settings, 'email.sendgrid')) {
@@ -331,11 +317,6 @@ module.exports = (formio) => {
                 pass: settings.email.sendgrid.auth.api_key
               }
             });
-          }
-          break;
-        case 'mandrill':
-          if (_.has(settings, 'email.mandrill')) {
-            transporter = nodemailer.createTransport(mandrillTransport(settings.email.mandrill));
           }
           break;
         case 'mailgun':
