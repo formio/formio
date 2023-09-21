@@ -1,6 +1,7 @@
 'use strict';
 
 const util = require('../util/util');
+const _ = require('lodash');
 
 /**
  * Middleware function to filter protected fields from a submission response.
@@ -12,7 +13,7 @@ const util = require('../util/util');
 module.exports = function(router) {
   return function(action, getForm) {
     return function(req, res, next) {
-      if (!res || !res.resource || !res.resource.item) {
+      if (!_.get(res, 'resource.item') || router.formio.hook.alter('rawDataAccess', req, next)) {
         return next();
       }
 
