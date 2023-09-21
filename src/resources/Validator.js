@@ -119,7 +119,7 @@ class Validator {
 
       form.setValue(submission, {
         sanitize: form.allowAllSubmissionData ? false : true,
-      }, true);
+      });
 
       // Perform calculations and conditions.
       form.checkConditions();
