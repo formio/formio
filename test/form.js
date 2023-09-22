@@ -674,7 +674,7 @@ module.exports = function(app, template, hook) {
 
       it('Should return error if undefined form id provided', done => {
         request(app)
-          .get(hook.alter('url', '/form/undefined', template))
+          .get('/form/undefined')
           .set('x-jwt-token', template.users.admin.token)
           .expect(400)
           .expect('Invalid form id provided.')
@@ -683,7 +683,7 @@ module.exports = function(app, template, hook) {
 
       it('Should return error if null form id provided', done => {
         request(app)
-          .get(hook.alter('url', '/form/null', template))
+          .get('/form/null')
           .set('x-jwt-token', template.users.admin.token)
           .expect(400)
           .expect('Invalid form id provided.')

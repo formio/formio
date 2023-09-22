@@ -292,23 +292,21 @@ module.exports = function(app, template, hook) {
 
       it('Should return error if undefined role id provided', done => {
         request(app)
-          .get(hook.alter('url', '/role/undefined'))
+          .get('/role/undefined')
           .set('x-jwt-token', template.users.admin.token)
           .expect(400)
           .expect('Invalid role id provided.')
           .end(done);
       });
-
 
       it('Should return error if null role id provided', done => {
         request(app)
-          .get(hook.alter('url', '/role/null'))
+          .get('/role/null')
           .set('x-jwt-token', template.users.admin.token)
           .expect(400)
           .expect('Invalid role id provided.')
           .end(done);
       });
-
     });
 
     describe('Role Normalization', function() {
