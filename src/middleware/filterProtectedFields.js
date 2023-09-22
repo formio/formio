@@ -13,7 +13,10 @@ const _ = require('lodash');
 module.exports = function(router) {
   return function(action, getForm) {
     return function(req, res, next) {
-      if (!_.get(res, 'resource.item') || router.formio.hook.alter('rawDataAccess', req, next)) {
+      if (
+        !_.get(res, 'resource.item') ||
+        router.formio.hook.alter('rawDataAccess', req, next, util.skipHookIfNotExists)
+      ) {
         return next();
       }
 
