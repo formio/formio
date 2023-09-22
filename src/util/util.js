@@ -866,6 +866,9 @@ const Utils = {
       }
     });
   },
+  // Skips hook execution in case of no hook by provided name found
+  // Pass as the last argument to formio.hook.alter() function
+  skipHookIfNotExists: () => _.noop(),
 };
 
 module.exports = Utils;
