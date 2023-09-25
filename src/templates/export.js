@@ -3,7 +3,7 @@
 const async = require('async');
 const _ = require('lodash');
 const util = require('../util/util');
-const EVERYONE = '000000000000000000000000';
+const EVERYONE_ROLE = {_id: '000000000000000000000000', title: 'Everyone', machineName: 'everyone'};
 
 /**
  * Perform an export of a specified template.
@@ -20,7 +20,7 @@ module.exports = (router) => {
     _.each(perms, function(access) {
       _.each(access.roles, function(roleId, i) {
         roleId = roleId.toString();
-        if (roleId === EVERYONE) {
+        if (roleId === EVERYONE_ROLE._id) {
           access.roles[i] = 'everyone';
         }
         else if (_map.roles && _map.roles.hasOwnProperty(roleId)) {
@@ -37,7 +37,7 @@ module.exports = (router) => {
     }
 
     if (entity.hasOwnProperty('role')) {
-      if (entity.role.toString() === EVERYONE) {
+      if (entity.role.toString() === EVERYONE_ROLE._id) {
         entity.role = 'everyone';
       }
       else if (_map.roles && _map.roles.hasOwnProperty(entity.role)) {
@@ -316,17 +316,19 @@ module.exports = (router) => {
         if (err) {
           return next(err);
         }
-        _.each(roles, function(role) {
+        _.each([...roles, EVERYONE_ROLE], function(role) {
           if (!role || !role._id) {
             return;
           }
           const machineName = role.machineName = hook.alter('machineNameExport', role.machineName);
-          _export.roles[machineName] = _.pick(role,
-            'title',
-            'description',
-            'admin',
-            'default'
-          );
+          if (role._id !== EVERYONE_ROLE._id) {
+            _export.roles[machineName] = _.pick(role,
+              'title',
+              'description',
+              'admin',
+              'default'
+            );
+          }
           _map.roles[role._id.toString()] = machineName;
         });
 
