@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-7124: replaced action logging with hook
  - FIO-6493: fixed formio-server tests that were broken by reporting ui PR
  - bugfix: add catch block to nunjucks injection
+ - FIO-7351 fixed submitting data using Wizard with conditionals for Panel component
    
 ## 3.3.0-rc.2
 ### Changed
