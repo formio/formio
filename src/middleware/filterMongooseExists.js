@@ -33,10 +33,11 @@ module.exports = (router) => (settings) => function(req, res, next) {
     query[settings.field] = exists;
   }
 
-  req.modelQuery = req.modelQuery || req.model || req.submissionModel || this.model;
+  const submissionModel = this.model.modelName === 'submission' ? req.submissionModel : null;
+  req.modelQuery = req.modelQuery || req.model || submissionModel || this.model;
   req.modelQuery = req.modelQuery.find(query);
 
-  req.countQuery = req.countQuery || req.model || req.submissionModel || this.model;
+  req.countQuery = req.countQuery || req.model || submissionModel || this.model;
   req.countQuery = req.countQuery.find(query);
 
   next();
