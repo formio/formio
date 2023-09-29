@@ -4,8 +4,81 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 3.2.0-rc.1]
+## [Unreleased: 3.4.0-rc.1]
+### Changed
+ - FIO-6493: added reporting-ui form for project template
+ - FIO-7124: replaced action logging with hook
+ - FIO-6493: fixed formio-server tests that were broken by reporting ui PR
+ - bugfix: add catch block to nunjucks injection
+ - FIO-7351 fixed submitting data using Wizard with conditionals for Panel component
+   
+## 3.3.0-rc.2
+### Changed
+ - Updated formiojs@4.17.0-rc.3
+ - Updated formio-workers@1.19.0-rc.2
+
+## 3.3.0-rc.1
+### Changed
+ - Updated formiojs@4.17.0-rc.2
+ - Updated formio-workers@1.19.0-rc.1
+ - FIO-6919: fixed value for Signature submission in Data Tab
+ - FIO-5731: fixed validation error for wizard forms with advanced conditions
+ - FIO-6966: Fixes empty address component data in CSV
+   
+## 3.2.0
+### Changed
+ - Official Release
+ - Updated formiojs@4.16.0
+ - Updated formio-workers@1.18.0
+
+## 3.2.0-rc.9
+### Changed
+ - Updated formiojs@4.16.0-rc.11
+ - Updated formio-workers@1.18.0-rc.7
+
+## 3.2.0-rc.8
+### Changed
+ - Updated formiojs@4.16.0-rc.10
+ - Updated formio-workers@1.18.0-rc.6
+
+## 3.2.0-rc.7
+### Changed
+ - Updated formiojs@4.16.0-rc.9
+ - Updated formio-workers@1.18.0-rc.5
+
+## 3.2.0-rc.6
+### Changed
+ - FIO-4216 | FIO-6601 - Fixes no custom submission collection lookup when getting submissions
+ - FIO-7166: Adding a mongodb feature check to core
+
+## 3.2.0-rc.5
+### Changed
+ - FIO-7161: fixed issue with possible undefined value for radio component in csv …
+ - FIO-7067: fixed issue with empty value for patch request
+
+## 3.2.0-rc.4
+### Changed
+ - Updated formiojs@4.16.0-rc.8
+ - Updated formio-workers@1.18.0-rc.4
+ - FIO-7067: fixed issue with id parsing and eslint warnings
+
+## 3.2.0-rc.3
+### Changed
+ - Updated formiojs@4.16.0-rc.7
+ - Updated formio-workers@1.18.0-rc.3
+   
+## 3.2.0-rc.2
+### Changed
+ - Updated formiojs@4.16.0-rc.5
+ - Updated formio-workers@1.18.0-rc.2
+ - FIO-6769: Removes empty template
+ - FIO-6840: change to allow case insensitive exists endpoint
+ - FIO-6406 fixed filter for Select inside DT (#1537)
+   
+## 3.2.0-rc.1
 ### Fixed
+ - FIO-5731: fixed validation error for wizard forms with advanced conditions
+ - FIO-6966: Fixes empty address component data in CSV
  - FIO-6601: Fix getting submissions by reference from custom submissions collection
  - FIO-4500: Fixes an issue where specified in the component settings delimiter is not used for CSVExport of Tags component data
  - FIO-6414: fixed filtering issues inside DT
@@ -13,7 +86,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-6840: Refactor authentication to use case-insensitive query and fallback to $regex
  - FIO-6729: changed the output of data in the logs
  - FIO-3840: fixed swagger spec definition for components with obj type
- - FIO-6406: fixed filter for Select inside DT
  - FIO-4809: Added tests for Wizard suffix/prefix
  - Bump json5 from 2.2.1 to 2.2.3
  - Bump @xmldom/xmldom from 0.7.5 to 0.7.11
@@ -21,12 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - Bump vm2 from 3.9.11 to 3.9.18
  - Bump semver from 7.3.8 to 7.5.2
  - Bump cookiejar from 2.1.3 to 2.1.4
- - FIO-6840: change to allow case insensitive exists endpoint
- - FIO-7161: fixed issue with possible undefined value for radio component in csv export
- - FIO-7067: fixed issue with empty value for patch request
-
-### Changed
- - FIO-6769: Removed the `empty` template
+ - FIO-6919: fixed value for Signature submission in Data Tab
 
 ## 3.1.0-rc.5
 ### Fixed
