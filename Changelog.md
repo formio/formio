@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - bugfix: add catch block to nunjucks injection
  - FIO-7351 fixed submitting data using Wizard with conditionals for Panel component
  - Fixing 'Resource not found' when saving a form with submission collections enabled
+ - FIO-7125: Added password protected update feature to the SaveSubmission action and async variations of cache methods
    
 ## 3.3.0-rc.2
 ### Changed
