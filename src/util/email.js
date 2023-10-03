@@ -216,7 +216,8 @@ module.exports = (formio) => {
       }
 
       return resolve(injectedEmail);
-    });
+    })
+    .catch(reject);
   });
 
   /**
