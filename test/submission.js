@@ -3655,7 +3655,7 @@ module.exports = function(app, template, hook) {
 
       it('Should save submission for Wizard with advanced Conditions', function(done) {
         var wizardForm = require('./fixtures/forms/wizardFormWithAdvancedConditions.js');
-        var wizardSubmission = {textField: 'Mary', textField1: 'gray'};
+        var wizardSubmission = {number: 2, textField: 'Mary', textArea: 'gray'};
         helper
           .upsertForm(wizardForm, (err) => {
             if (err) {
