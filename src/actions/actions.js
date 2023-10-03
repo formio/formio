@@ -10,7 +10,6 @@ const debug = {
 };
 const util = require('../util/util');
 const moment = require('moment');
-const promisify = require('util').promisify;
 const {
   ConditionOperators,
   filterComponentsForConditionComponentFieldOptions,
@@ -644,7 +643,7 @@ module.exports = (router) => {
 
   async function getDeletedSubmission(req) {
     try {
-      return await promisify(router.formio.cache.loadSubmission)(
+      return await router.formio.cache.loadSubmissionAsync(
         req,
         req.body.form,
         req.body._id,
