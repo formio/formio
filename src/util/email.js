@@ -295,8 +295,8 @@ module.exports = (formio) => {
           if (_config && formio.config.email.type === 'sendgrid') {
             transporter = nodemailer.createTransport({
               host: 'smtp.sendgrid.net',
-              port: 465,
-              secure: true,
+              port: 587,
+              secure: false,
               auth: {
                 user: 'apikey',
                 pass: settings.email.sendgrid.auth.api_key
@@ -309,8 +309,8 @@ module.exports = (formio) => {
             debug.email(settings.email.sendgrid);
             transporter = nodemailer.createTransport({
               host: 'smtp.sendgrid.net',
-              port: 465,
-              secure: true,
+              port: 587,
+              secure: false,
               auth: {
                 user: 'apikey',
                 pass: settings.email.sendgrid.auth.api_key
@@ -322,8 +322,8 @@ module.exports = (formio) => {
           if (_.has(settings, 'email.mailgun')) {
             transporter = nodemailer.createTransport({
               host: 'smtp.mailgun.org',
-              port: 465,
-              secure: true,
+              port: 587,
+              secure: false,
               auth: {
                 user: settings.email.mailgun.auth.domain,
                 pass: settings.email.mailgun.auth.api_key
