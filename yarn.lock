@@ -4087,7 +4087,13 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-vm2@^3.9.5, vm2@^3.9.9:
+"vm-utils@https://github.com/formio/vm-utils.git#1.0.0":
+  version "1.0.0"
+  resolved "https://github.com/formio/vm-utils.git#cf2d501366405adfcd94b46ac83117974beda951"
+  dependencies:
+    isolated-vm "^4.6.0"
+
+vm2@^3.9.5:
   version "3.9.18"
   resolved "https://registry.yarnpkg.com/vm2/-/vm2-3.9.18.tgz#d919848bee191a0410c5cc1c5aac58adfd03ce9a"
   integrity sha512-iM7PchOElv6Uv6Q+0Hq7dcgDtWWT6SizYqVcvol+1WQc+E9HlgTCnPozbQNSP3yDV9oXHQOEQu530w2q/BCVZg==
