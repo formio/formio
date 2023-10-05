@@ -4,11 +4,22 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 3.4.0-rc.1]
+## [Unreleased: 3.5.0-rc.1]
+### Changed
+ - FIO-7344 Changed Rendering method tooltip
+ - FIO-7351 fixed submitting data using Wizard with conditionals for Panel component
+ - Re-implement FIO-6630: Expanded Actions Logic UI
+ - FIO-6630: Adds root level properties to action conditions
+   
+## 3.4.0-rc.1
 ### Changed
  - FIO-6493: added reporting-ui form for project template
  - FIO-7124: replaced action logging with hook
  - FIO-6493: fixed formio-server tests that were broken by reporting ui PR
+ - bugfix: add catch block to nunjucks injection
+ - FIO-7351 fixed submitting data using Wizard with conditionals for Panel component
+ - Fixing 'Resource not found' when saving a form with submission collections enabled
+ - FIO-7125: Added password protected update feature to the SaveSubmission action and async variations of cache methods
    
 ## 3.3.0-rc.2
 ### Changed
