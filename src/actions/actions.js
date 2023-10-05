@@ -2,8 +2,8 @@
 
 const Resource = require('resourcejs');
 const async = require('async');
-const vmUtil = require('formio-workers/vmUtil');
-const {Isolate} = require('formio-workers/vmUtil');
+const vmUtil = require('vm-utils');
+const {Isolate} = require('vm-utils');
 const _ = require('lodash');
 const debug = {
   error: require('debug')('formio:error'),

@@ -103,6 +103,24 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
+"@formio/core@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.npmjs.org/@formio/core/-/core-1.2.0.tgz#5f046bc5d536f2ece321b0785f5c423dc6d447f2"
+  integrity sha512-Emt64RzWnCg+HCcC8LNzLaTf96fOYjz4xVE6CPkhCcIcpMOVsZrUlIsTaxnaQn3lNPvt7bCp1uCcyy5dRJUK9Q==
+  dependencies:
+    "@formio/lodash" "0.0.9"
+    core-js "^3.21.1"
+    dayjs "^1.10.8"
+    dompurify "^2.3.6"
+    eventemitter3 "^4.0.7"
+    fetch-ponyfill "^7.1.0"
+    json-logic-js "^2.0.2"
+
+"@formio/lodash@0.0.9":
+  version "0.0.9"
+  resolved "https://registry.npmjs.org/@formio/lodash/-/lodash-0.0.9.tgz#60c57131e960aeb87194e3420c642c9d4ee07fae"
+  integrity sha512-g/mcs0WOjcivqXFtc148jrfuSdZiwbX/CWHSTzPDwMCJzJIy7iftO9G6jyewELsKG2DGzqLRHxbDW/jnr4WjPw==
+
 "@formio/node-fetch-http-proxy@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@formio/node-fetch-http-proxy/-/node-fetch-http-proxy-1.1.0.tgz#a281686f3982a6e07cb1721ffbdbcce0096f538f"
@@ -888,6 +906,11 @@ core-js@^3.19.3:
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.25.1.tgz#5818e09de0db8956e16bf10e2a7141e931b7c69c"
   integrity sha512-sr0FY4lnO1hkQ4gLDr24K0DGnweGO1QwSj5BpfQjpSJPdqWalja4cTps29Y/PJVG/P7FYlPDkH3hO+Tr0CvDgQ==
 
+core-js@^3.21.1:
+  version "3.32.2"
+  resolved "https://registry.npmjs.org/core-js/-/core-js-3.32.2.tgz#172fb5949ef468f93b4be7841af6ab1f21992db7"
+  integrity sha512-pxXSw1mYZPDGvTQqEc5vgIb83jGQKFGYWY76z4a7weZXUolw3G+OvpZqSRcfYOoOVUQJYEPsWeQK8pKEnUtWxQ==
+
 core-js@^3.26.1:
   version "3.27.2"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.27.2.tgz#85b35453a424abdcacb97474797815f4d62ebbf7"
@@ -994,6 +1017,11 @@ date-utils@*:
   version "1.2.21"
   resolved "https://registry.yarnpkg.com/date-utils/-/date-utils-1.2.21.tgz#61fb16cdc1274b3c9acaaffe9fc69df8720a2b64"
   integrity sha512-wJMBjqlwXR0Iv0wUo/lFbhSQ7MmG1hl36iuxuE91kW+5b5sWbase73manEqNH9sOLFAMG83B4ffNKq9/Iq0FVA==
+
+dayjs@^1.10.8:
+  version "1.11.10"
+  resolved "https://registry.npmjs.org/dayjs/-/dayjs-1.11.10.tgz#68acea85317a6e164457d6d6947564029a6a16a0"
+  integrity sha512-vjAczensTgRcqDERK0SR2XMwsF/tSvnvlv6VcF2GIhg6Sx4yOIt/irsr1RDJsKiIyBzJDpCoXiWWq28MqH2cnQ==
 
 debug@2.6.9, debug@^2.2.0:
   version "2.6.9"
@@ -1187,6 +1215,11 @@ dom-set@^1.0.1:
     array-from "^2.1.1"
     is-array "^1.0.1"
     iselement "^1.1.4"
+
+dompurify@^2.3.6:
+  version "2.4.7"
+  resolved "https://registry.npmjs.org/dompurify/-/dompurify-2.4.7.tgz#277adeb40a2c84be2d42a8bcd45f582bfa4d0cfc"
+  integrity sha512-kxxKlPEDa6Nc5WJi+qRgPbOAbgTpSULL+vI3NUXsZMlkJxTqYI9wg5ZTay2sFrdZRWHPWNi+EdAhcJf81WtoMQ==
 
 dompurify@^2.4.1:
   version "2.4.3"

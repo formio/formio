@@ -9,8 +9,9 @@ const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/workers/util');
 const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
-const vmUtil = require('formio-workers/vmUtil');
-const {Isolate} = require('formio-workers/vmUtil');
+const vmUtil = require('vm-utils');
+const {Isolate} = require('vm-utils');
+const { InstanceProxy, FormProxy } = require('@formio/core');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
@@ -50,7 +51,21 @@ Formio.Utils.Evaluator.noeval = true;
 Formio.Utils.Evaluator.evaluator = function(func, args) {
   return function() {
     let result = null;
-    /* eslint-disable no-empty */
+    // Apply InstanceProxy and FromProxy to sanitize object before passing them to sandbox
+    if (args.instance) {
+      args.instance = new InstanceProxy(args.instance);
+    }
+    if (args.self) {
+      args.self = new InstanceProxy(args.self);
+    }
+    if (args.root) {
+      args.root = new FormProxy(args.root);
+    }
+    // Remove `options` object as it has vulnerable data
+    // And not actually widely used
+    if (args.options) {
+      args.options = {};
+    }
     try {
       const isolate = new Isolate({memoryLimit: 8});
       const context = isolate.createContextSync();
