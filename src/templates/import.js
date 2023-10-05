@@ -843,7 +843,8 @@ module.exports = (router) => {
                           formio.resources.form.model.updateOne({
                             _id: result._id
                           },
-                          {_vid: revisionsToCreate.length + existingRevisions.length},
+                          {$set:
+                            {_vid: revisionsToCreate.length + existingRevisions.length}},
                           (err) => {
                             if (err) {
                               return next(err);
