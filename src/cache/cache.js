@@ -4,13 +4,19 @@ const _ = require('lodash');
 const debug = {
   form: require('debug')('formio:cache:form'),
   loadForm: require('debug')('formio:cache:loadForm'),
+  loadFormAsync: require('debug')('formio:cache:loadFormAsync'),
   loadForms: require('debug')('formio:cache:loadForms'),
+  loadFormsAsync: require('debug')('formio:cache:loadFormsAsync'),
   loadFormByName: require('debug')('formio:cache:loadFormByName'),
+  loadFormByNameAsync: require('debug')('formio:cache:loadFormByNameAsync'),
   loadFormByAlias: require('debug')('formio:cache:loadFormByAlias'),
+  loadFormByAliasAsync: require('debug')('formio:cache:loadFormByAliasAsync'),
   loadSubmission: require('debug')('formio:cache:loadSubmission'),
-  loadSubmissionRevision: require('debug')('formio:cache:loadSubmissionRevision'),
+  loadSubmissionAsync: require('debug')('formio:cache:loadSubmissionAsync'),
   loadSubmissions: require('debug')('formio:cache:loadSubmissions'),
+  loadSubmissionsAsync: require('debug')('formio:cache:loadSubmissionsAsync'),
   loadSubForms: require('debug')('formio:cache:loadSubForms'),
+  loadSubFormsAsync: require('debug')('formio:cache:loadSubFormsAsync'),
   error: require('debug')('formio:error')
 };
 
@@ -109,6 +115,49 @@ module.exports = function(router) {
     },
 
     /**
+     * Load a form, given its id.
+     *
+     * @param req {Request}
+     * @param type {string}
+     * @param id {String}
+     */
+    async loadFormAsync(req, type, id) {
+      const cache = this.cache(req);
+
+      if (cache.forms[id]) {
+        debug.loadFormAsync(`Cache hit: ${id}`);
+        return cache.forms[id];
+      }
+
+      debug.loadFormAsync(`${typeof id}: ${id}`);
+
+      const query = {
+        _id: util.idToBson(id),
+        deleted: {$eq: null}
+      };
+
+      if (type) {
+        query.type = type;
+      }
+
+      let form = await router.formio.resources.form.model.findOne(
+        hook.alter('formQuery', query, req)
+      ).lean().exec();
+
+      if (!form) {
+        debug.loadFormAsync('Resource not found for the query');
+        return null;
+      }
+
+      form = await hook.alter('loadForm', form, req);
+
+      debug.loadForm('Caching result');
+      this.updateCache(req, cache, form);
+
+      return form;
+    },
+
+    /**
      * Loads an array of form ids.
      *
      * @param req
@@ -137,6 +186,39 @@ module.exports = function(router) {
 
         cb(null, result);
       });
+    },
+
+    /**
+     * Loads an array of forms for provided array with ids.
+     *
+     * @param req {Request}
+     * @param formIds {Array}
+     * @returns Array
+     */
+    async loadFormsAsync(req, formIds) {
+      if (!Array.isArray(formIds)) {
+        throw new Error('Expected to receive an array of form ids');
+      }
+
+      if (!formIds.length) {
+        // Shortcut if no form ids are provided.
+        return [];
+      }
+
+      const query = {
+        _id: {$in: formIds.map(util.idToBson)},
+        deleted: {$eq: null}
+      };
+
+      const forms = await router.formio.resources.form.model.find(
+        hook.alter('formQuery', query, req)
+      ).lean().exec();
+
+      if (!forms || !forms.length) {
+        return [];
+      }
+
+      return forms;
     },
 
     loadFormRevisions(req, revs, cb) {
@@ -187,6 +269,51 @@ module.exports = function(router) {
       });
     },
 
+    async loadFormRevisionsAsync(req, revs) {
+      if (!Array.isArray(revs)) {
+        throw new Error('Expected to receive an array of form revisions');
+      }
+
+      if (!revs.length || !router.formio.resources.formrevision) {
+        debug.loadSubFormsAsync('Form revisions not used.');
+        return;
+      }
+
+      const revisionModel = router.formio.resources.formrevision.model;
+      const formRevs = {};
+
+      for (const rev of revs) {
+        const formRevision = rev.revision || rev.formRevision;
+        debug.loadSubFormsAsync(`Loading form ${util.idToBson(rev.form)} revision ${formRevision}`);
+        const query =
+          formRevision.length === 24
+            ? {_id: util.idToBson(rev.revision)}
+            : hook.alter(
+                'formQuery',
+                {
+                  _rid: util.idToBson(rev.form),
+                  _vid: parseInt(formRevision),
+                  deleted: {$eq: null}
+                },
+                req
+              );
+
+        const revision = await revisionModel.findOne(query).lean().exec();
+
+        if (!revision) {
+          debug.loadSubFormsAsync(
+            `Cannot find form revision for form ${rev.form} revision ${formRevision}`,
+          );
+          continue;
+        }
+
+        debug.loadSubFormsAsync(`Loaded revision for form ${rev.form} revision ${formRevision}`);
+        formRevs[rev.form.toString()] = revision;
+      }
+
+      return formRevs;
+    },
+
     getCurrentFormId(req) {
       let formId = req.formId;
       if (req.params.formId) {
@@ -222,6 +349,22 @@ module.exports = function(router) {
         return cb('No form found.');
       }
       this.loadForm(req, null, formId, cb);
+    },
+
+    /**
+     * Loads the current form.
+     *
+     * @param req
+     * @returns {*}
+     */
+    async loadCurrentFormAsync(req) {
+      const formId = this.getCurrentFormId(req);
+
+      if (!formId) {
+        throw new Error('No form id provided.');
+      }
+
+      return await this.loadFormAsync(req, null, formId);
     },
 
     /**
@@ -277,49 +420,50 @@ module.exports = function(router) {
       });
     },
 
-    loadSubmissionRevision(req, cb) {
-      let submissionRevisionId = req.query.submissionRevision;
-
-      if (!submissionRevisionId) {
-        const err = new Error('No submission revision id provided');
-        debug.loadSubmissionRevision(err);
-        return cb(err);
-      }
-
-      if (!req.params.formId) {
-        const err = new Error('No form id provided');
-        debug.loadSubmissionRevision(err);
-        return cb(err);
-      }
+    /**
+     * Load a submission using caching async.
+     *
+     * @param req {Object}
+     *   The Express request object.
+     * @param formId {Object|String}
+     *   The submission form id, as BSON or string.
+     * @param subId {Object|String}
+     *   The submission id, as BSON or string.
+     */
+    async loadSubmissionAsync(req, formId, subId) {
       const cache = this.cache(req);
 
-      if (cache.submissionRevisions[submissionRevisionId]) {
-        debug.loadSubmissionRevision(`Cache hit: ${submissionRevisionId}`);
-        return cb(null, cache.submissionRevisions[submissionRevisionId]);
+      if (cache.submissions[subId]) {
+        debug.loadSubmissionAsync(`Cache hit: ${subId}`);
+        return cache.submissions[subId];
       }
 
-      submissionRevisionId = util.idToBson(submissionRevisionId);
-      if (submissionRevisionId === false) {
-        return cb('Invalid submission revision _id given.');
+      debug.loadSubmissionAsync(`Searching for form: ${formId}, and submission: ${subId}`);
+      const query = {
+        _id: util.idToBson(subId),
+        form: util.idToBson(formId),
+        deleted: {$eq: null}
+      };
+      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+
+      try {
+        let submission = await submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec();
+
+        if (!submission) {
+          debug.loadSubmissionAsync('No submission found for the given query.');
+          return null;
+        }
+
+        submission = await hook.alter('loadSubmission', submission, req);
+
+        cache.submissions[subId] = submission;
+
+        return submission;
       }
-      debug.loadSubmissionRevision(`Searching for form: ${req.params.formId}, and submission: ${submissionRevisionId}`);
-
-      const query = {_id: submissionRevisionId, form: req.params.formId, deleted: {$eq: null}};
-
-      const submissionRevisionModel = req.submissionRevisionModel || router.formio.resources.submissionrevision.model;
-
-      submissionRevisionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec((err, revision) => {
-        if (err) {
-          debug.loadSubmissionRevision(err);
-          return cb(err);
-        }
-        if (!revision) {
-          debug.loadSubmissionRevision('No submission found for the given query.');
-          return cb(null, null);
-        }
-        cache.submissionRevisions[submissionRevisionId] = revision;
-        cb(null, revision);
-      });
+      catch (err) {
+        debug.loadSubmissionAsync(err);
+        throw new Error(err);
+      }
     },
 
     /**
@@ -354,6 +498,37 @@ module.exports = function(router) {
     },
 
     /**
+     * Load an array of submissions.
+     *
+     * @param req {Request}
+     * @param subs {Array}
+     */
+    async loadSubmissionsAsync(req, subs) {
+      if (!Array.isArray(subs)) {
+        throw new Error('Expected to receive an array of submission ids');
+      }
+
+      if (!subs || !subs.length) {
+        // Shortcut if no subs are provided.
+        return [];
+      }
+
+      const query = {
+        _id: {$in: subs.map(util.idToBson)},
+        deleted: {$eq: null}
+      };
+      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+
+      const submissions = await submissionModel.find(hook.alter('submissionQuery', query, req)).lean().exec();
+
+      if (!submissions) {
+        return [];
+      }
+
+      return submissions;
+    },
+
+    /**
      * Load a submission into the request.
      *
      * @param req
@@ -367,6 +542,25 @@ module.exports = function(router) {
         return cb(new Error('No form provided'));
       }
       this.loadSubmission(req, req.params.formId, req.params.submissionId, cb);
+    },
+
+    /**
+     * Load a submission into the request.
+     *
+     * @param req
+     */
+    async loadCurrentSubmissionAsync(req) {
+      const {formId, submissionId} = req.params;
+
+      if (!formId) {
+        throw new Error('No form id provided.');
+      }
+
+      if (!submissionId) {
+        throw new Error('No submission id provided.');
+      }
+
+      return await this.loadSubmissionAsync(req, req.params.formId, req.params.submissionId);
     },
 
     /**
@@ -414,7 +608,51 @@ module.exports = function(router) {
     },
 
     /**
+     * Load a resource by name.
+     *
+     * @param req {Object}
+     *   The Express request object.
+     * @param name {String}
+     *   The resource name to search for.
+     */
+    async loadFormByNameAsync(req, name) {
+      const cache = this.cache(req);
+
+      if (cache.names[name]) {
+        debug.loadFormByNameAsync(`Cache hit: ${name}`);
+        return await this.loadFormAsync(req, 'resource', cache.names[name]);
+      }
+      else {
+        const query = hook.alter('formQuery', {
+          name: name,
+          deleted: {$eq: null}
+        }, req);
+
+        let form = await router.formio.resources.form.model.findOne(query).lean().exec();
+
+        if (!form) {
+          debug.loadFormByNameAsync('Resource not found for the query');
+          return null;
+        }
+
+        form = await hook.alter('loadForm', form, req);
+
+        debug.loadFormByNameAsync('Caching result');
+        this.updateCache(req, cache, form);
+
+        return form;
+      }
+    },
+
+    /**
      * Load a resource by alias
+     *
+     * @param req {Request}
+     *   The Express request object.
+     * @param alias {String}
+     *   The resource alias to search for.
+     * @param cb {Function}
+     *   The callback function to run when complete.
      */
     loadFormByAlias(req, alias, cb) {
       const cache = this.cache(req);
@@ -447,6 +685,43 @@ module.exports = function(router) {
             cb(null, result);
           });
         });
+      }
+    },
+
+    /**
+     * Load a resource by alias
+     *
+     * @param req {Request}
+     *   The Express request object.
+     * @param alias {String}
+     *   The resource alias to search for.
+     */
+    async loadFormByAliasAsync(req, alias) {
+      const cache = this.cache(req);
+
+      if (cache.aliases[alias]) {
+        debug.loadFormByAliasAsync(`Cache hit: ${alias}`);
+        return await this.loadFormAsync(req, 'resource', cache.aliases[alias]);
+      }
+      else {
+        const query = hook.alter('formQuery', {
+          path: alias,
+          deleted: {$eq: null}
+        }, req);
+
+        let form = await router.formio.resources.form.model.findOne(query).lean().exec();
+
+        if (!form) {
+          debug.loadFormByAliasAsync('Resource not found for the query');
+          return null;
+        }
+
+        form = await hook.alter('loadForm', form, req);
+
+        debug.loadFormByAliasAsync('Caching result');
+        this.updateCache(req, cache, form);
+
+        return form;
       }
     },
 
@@ -517,6 +792,62 @@ module.exports = function(router) {
       });
     },
 
+    /**
+     * Load all subforms in a form recursively.
+     *
+     * @param form
+     * @param req
+     * @param depth
+     * @returns {*}
+     */
+    async loadAllFormsAsync(form, req, depth = 0, forms = {}) {
+      debug.loadSubFormsAsync(`Loading subforms for ${form._id}`);
+      // Only allow 5 deep.
+      if (depth >= 5) {
+        return forms;
+      }
+
+      // Get all of the form components.
+      const formIds = [];
+      const formRevs = [];
+      util.eachComponent(form.components, component => {
+        if ((component.type === 'form') && component.form) {
+          const formId = component.form.toString();
+
+          debug.loadSubFormsAsync(`Found subform ${formId}`);
+          formIds.push(formId);
+          // 'formRevision' was used in the older builder versions
+          if (component.revision || component.formRevision) {
+            formRevs.push(component);
+          }
+        }
+      }, true);
+
+      // Only proceed if we have form components.
+      if (!formIds.length) {
+        return forms;
+      }
+
+      // Load all subforms in this form.
+      debug.loadSubFormsAsync(`Loading subforms ${formIds.join(', ')}`);
+      const subForms = await this.loadFormsAsync(req, formIds);
+      const revisions = await this.loadFormRevisionsAsync(req, formRevs);
+
+      for (const form of subForms) {
+        const formId = form._id.toString();
+
+        if (forms[formId]) {
+          debug.loadSubFormsAsync(`Subforms already loaded for ${formId}.`);
+          continue;
+        }
+
+        forms[formId] = revisions[formId] ? revisions[formId] : form;
+        await this.loadAllFormsAsync(form, req, depth + 1, forms);
+      }
+
+      return forms;
+    },
+
     setFormComponents(components, forms) {
       if (components.noRecurse) {
         return;
@@ -542,6 +873,12 @@ module.exports = function(router) {
         this.setFormComponents(form.components, forms);
         next(null, form);
       }, 0, forms);
+    },
+
+    async loadSubFormsAsync(form, req) {
+      const forms = await this.loadAllFormsAsync(form, req);
+
+      this.setFormComponents(form.components, forms);
     },
 
     /**
@@ -600,6 +937,66 @@ module.exports = function(router) {
           }
         }, next);
       });
+    },
+
+    /**
+     * Loads sub submissions from a nested subform hierarchy.
+     *
+     * @param form
+     * @param submission
+     * @param req
+     * @param depth
+     * @return {*}
+     */
+    async loadSubSubmissionsAsync(form, submission, req, depth = 0) {
+      // Only allow 5 deep.
+      if (depth >= 5) {
+        return submission;
+      }
+
+      // Get all the subform data.
+      const subs = {};
+      const getSubs = (components, outerPath) => util.eachComponent(components, (component, path) => {
+        const subData = _.get(submission.data, path);
+
+        if (Array.isArray(subData)) {
+          return subData.forEach((_, idx) => getSubs(component.components, `${path}[${idx}]`));
+        }
+
+        if (component.type === 'form' || component.reference) {
+          const subData = _.get(submission.data, path);
+
+          if (subData && subData._id) {
+            subs[subData._id.toString()] = {component, path, data: subData.data};
+          }
+        }
+      }, true, outerPath);
+
+      getSubs(form.components);
+
+      const submissions = await this.loadSubmissionsAsync(req, Object.keys(subs));
+
+      if (!submissions || !submissions.length) {
+        return submission;
+      }
+
+      for (const sub of submissions) {
+        if (!sub || !sub._id) {
+          continue;
+        }
+
+        const subId = sub._id.toString();
+
+        if (subs[subId]) {
+          // Set the subform data if it contains more data... legacy renderers don't fare well with sub-data.
+          if (!subs[subId].data || (Object.keys(sub.data).length > Object.keys(subs[subId].data).length)) {
+            _.set(submission.data, subs[subId].path, sub);
+          }
+
+          // Load all subdata within this submission.
+          await this.loadSubSubmissionsAsync(subs[subId].component, sub, req, depth + 1);
+        }
+      }
     }
   };
 };
