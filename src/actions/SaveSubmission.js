@@ -3,7 +3,6 @@
 const _ = require('lodash');
 const async = require('async');
 const vmUtil = require('vm-utils');
-const {Isolate} = require('vm-utils');
 const util = require('../util/util');
 
 const LOG_EVENT = 'Save Submission Action';
@@ -205,7 +204,7 @@ module.exports = function(router) {
 
         if (this.settings.transform) {
           try {
-            const isolate = new Isolate({memoryLimit: 8});
+            const isolate = vmUtil.newIsolate();
             const context = await isolate.createContext();
             vmUtil.transfer(
               'submission',
