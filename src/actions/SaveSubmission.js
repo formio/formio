@@ -204,7 +204,7 @@ module.exports = function(router) {
 
         if (this.settings.transform) {
           try {
-            const isolate = vmUtil.newIsolate();
+            const isolate = vmUtil.getIsolate();
             const context = await isolate.createContext();
             vmUtil.transfer(
               'submission',
