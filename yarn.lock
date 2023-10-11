@@ -1145,10 +1145,10 @@ dom-set@^1.0.1:
     is-array "^1.0.1"
     iselement "^1.1.4"
 
-dompurify@^2.4.1:
-  version "2.4.3"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.4.3.tgz#f4133af0e6a50297fc8874e2eaedc13a3c308c03"
-  integrity sha512-q6QaLcakcRjebxjg8/+NP+h0rPfatOgOzc46Fst9VAA3jF2ApfKBNKMzdP4DYTqtUMXSCd5pRS/8Po/OmoCHZQ==
+dompurify@^3.0.5:
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.0.6.tgz#925ebd576d54a9531b5d76f0a5bef32548351dae"
+  integrity sha512-ilkD8YEnnGh1zJ240uJsW7AzE+2qpbOUYjacomn3AvJ6J4JhKGSZ2nh4wUIXPZrEPppaCLx5jFe8T89Rk8tQ7w==
 
 dotenv@^10.0.0:
   version "10.0.0"
@@ -1661,17 +1661,17 @@ formidable@^2.0.1:
     once "1.4.0"
     qs "6.9.3"
 
-formio-workers@1.20.0-rc.4:
-  version "1.20.0-rc.4"
-  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.20.0-rc.4.tgz#72c4a4d357656c5169319ed39dfa71821062b0af"
-  integrity sha512-GPEXiEwOiIztyd++Q+QzIxosmdHpwoZqFF62tcxpt++jVRJAw49ne+NyVT7owiF3/0q1uNAb7qfttUoUvjpXpg==
+formio-workers@1.20.0-rc.5:
+  version "1.20.0-rc.5"
+  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.20.0-rc.5.tgz#42d29aa4e6a9fb5bf7ecdd1520d5941dfde22810"
+  integrity sha512-vwJS/yVlW+1+Iu6oFjRZ0/EXqCpQilH10HlnL3aWhhXULiD90HZyacILdfxKqGOEdjL182Zuw9InlvQFGCoQFw==
   dependencies:
     aws-serverless-express "^3.4.0"
     body-parser "^1.19.1"
     core-js "^3.19.3"
     dotenv "^10.0.0"
     express "^4.17.1"
-    formiojs "4.18.0-rc.3"
+    formiojs "4.18.0-rc.4"
     lodash "^4.17.21"
     method-override "^3.0.0"
     moment "^2.29.1"
@@ -1680,10 +1680,10 @@ formio-workers@1.20.0-rc.4:
     nunjucks-date-filter "^0.1.1"
     vm2 "^3.9.5"
 
-formiojs@4.18.0-rc.3:
-  version "4.18.0-rc.3"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.18.0-rc.3.tgz#5753d25b2de4493affd6493ab2a55daf70509fd5"
-  integrity sha512-sZUnC3hO2os05TzPKYIJ6yCtPJu4GIisplZiPC3XXZeLgCxCOrFUUED30IA9T3yQuo4peFvUYqKJpxlLJLv2ww==
+formiojs@4.18.0-rc.4:
+  version "4.18.0-rc.4"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.18.0-rc.4.tgz#c57476c2069f2c8ac38e90812d34e46d7a7fd543"
+  integrity sha512-E/CxLFZPRzGOKLOLwowXbe/WOACVRVNrXmULYbN5LLI/bFLnKOXKGMs+cM21C/Hqgedm+vPLgp1AX8vvEIlOdg==
   dependencies:
     "@formio/bootstrap3" "2.12.4-rc.1"
     "@formio/choices.js" "10.2.0"
@@ -1698,7 +1698,7 @@ formiojs@4.18.0-rc.3:
     custom-event-polyfill "^1.0.7"
     dialog-polyfill "^0.5.6"
     dom-autoscroller "^2.3.4"
-    dompurify "^2.4.1"
+    dompurify "^3.0.5"
     downloadjs "^1.4.7"
     dragula "^3.7.3"
     eventemitter3 "^4.0.7"
