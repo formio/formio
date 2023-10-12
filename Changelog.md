@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-7351 fixed submitting data using Wizard with conditionals for Panel component
  - Re-implement FIO-6630: Expanded Actions Logic UI
  - FIO-6630: Adds root level properties to action conditions
+ - FIO-7167: Isolated vm
    
 ## 3.4.0-rc.1
 ### Changed
