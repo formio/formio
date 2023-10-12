@@ -10,7 +10,7 @@ const workerUtils = require('formio-workers/workers/util');
 const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
 const vmUtil = require('vm-utils');
-const { InstanceProxy, FormProxy } = require('@formio/core');
+const {InstanceProxy, FormProxy} = require('@formio/core');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
@@ -75,8 +75,9 @@ Formio.Utils.Evaluator.evaluator = function(func, args) {
         {timeout: 250, copy: true}
       );
     }
-    catch (err) {}
-    /* eslint-enable no-empty */
+    catch (err) {
+      return result;
+    }
     return result;
   };
 };
