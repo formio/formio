@@ -604,24 +604,6 @@
     fetch-ponyfill "^7.1.0"
     json-logic-js "^2.0.2"
 
-"@formio/core@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-1.2.0.tgz#5f046bc5d536f2ece321b0785f5c423dc6d447f2"
-  integrity sha512-Emt64RzWnCg+HCcC8LNzLaTf96fOYjz4xVE6CPkhCcIcpMOVsZrUlIsTaxnaQn3lNPvt7bCp1uCcyy5dRJUK9Q==
-  dependencies:
-    "@formio/lodash" "0.0.9"
-    core-js "^3.21.1"
-    dayjs "^1.10.8"
-    dompurify "^2.3.6"
-    eventemitter3 "^4.0.7"
-    fetch-ponyfill "^7.1.0"
-    json-logic-js "^2.0.2"
-
-"@formio/lodash@0.0.9":
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/@formio/lodash/-/lodash-0.0.9.tgz#60c57131e960aeb87194e3420c642c9d4ee07fae"
-  integrity sha512-g/mcs0WOjcivqXFtc148jrfuSdZiwbX/CWHSTzPDwMCJzJIy7iftO9G6jyewELsKG2DGzqLRHxbDW/jnr4WjPw==
-
 "@formio/lodash@0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@formio/lodash/-/lodash-0.1.0.tgz#6f837423d33e45a022211eb98bfc683dd8bee9a8"
@@ -1941,11 +1923,6 @@ dom-set@^1.0.1:
     is-array "^1.0.1"
     iselement "^1.1.4"
 
-dompurify@^2.3.6:
-  version "2.4.7"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.4.7.tgz#277adeb40a2c84be2d42a8bcd45f582bfa4d0cfc"
-  integrity sha512-kxxKlPEDa6Nc5WJi+qRgPbOAbgTpSULL+vI3NUXsZMlkJxTqYI9wg5ZTay2sFrdZRWHPWNi+EdAhcJf81WtoMQ==
-
 dompurify@^3.0.1, dompurify@^3.0.5:
   version "3.0.6"
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.0.6.tgz#925ebd576d54a9531b5d76f0a5bef32548351dae"
@@ -2352,12 +2329,12 @@ formidable@^2.1.2:
     once "^1.4.0"
     qs "^6.11.0"
 
-formio-workers@1.19.3-rc.2:
-  version "1.19.3-rc.2"
-  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.19.3-rc.2.tgz#49afe8953d6d5e7524219a3357f215fa970491ad"
-  integrity sha512-SY4XR+Sydb7LciLT4AJc+3VHvb2kcjULUnAV7pS4BFQvbPFTrBsBs/gCXMMte0m15ZFm+jUAw9ZNBu4NcxnY1A==
+formio-workers@1.19.3-rc.3:
+  version "1.19.3-rc.3"
+  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.19.3-rc.3.tgz#539ea7d5c84462f0fafc25b2cb8ca231f354661c"
+  integrity sha512-KkD2LsatB7FypTGPH4Wh6vHcFHzl4xy1Wp9DGJT+HEKdagLxudBiS2+J2NfKbQUXHAUsH2n3UappUJ/tyQv9Mg==
   dependencies:
-    "@formio/core" "^1.2.0"
+    "@formio/core" "1.3.0-rc.22"
     aws-serverless-express "^3.4.0"
     body-parser "^1.19.1"
     core-js "^3.19.3"
