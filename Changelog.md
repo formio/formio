@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-7344 Changed Rendering method tooltip
  - FIO-7371: Adds checks to define if raw DB data should be returned in response
  - FIO-7329: remove nodemailer sendgrid and mailgun
+ - FIO-7167: Isolated VM
 
 ## 3.3.3
 ### Changed
