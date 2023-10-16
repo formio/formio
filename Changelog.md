@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 ## [Unreleased: 3.3.4-rc.1]
 ### Changed
+ - Updated formiojs@4.17.3-rc.1
+ - Updated formio-workers@1.19.3-rc.1
+ - Updated @formio/core@1.3.0-rc.22
+ - FIO-7344 Changed Rendering method tooltip
+ - FIO-7371: Adds checks to define if raw DB data should be returned in response
  - FIO-7329: remove nodemailer sendgrid and mailgun
 
 ## 3.3.3
