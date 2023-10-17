@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 
+## 3.4.0-rc.8
+### Changed
+ - Updated formiojs@4.18.0-rc.5
+ - Updated formio-workers@1.20.0-rc.6
+ - Updated @formio/core@1.3.0-rc.22
+ - FIO-7344 Changed Rendering method tooltip
+ - FIO-7371: Adds checks to define if raw DB data should be returned in response
+ - FIO-7167: Isolated vm
+ - FIO-7329: remove nodemailer sendgrid and mailgun
+
 ## 3.4.0-rc.7
 ### Changed
  - FIO-7125: Adds password protected update feature to the SaveSubmission action and async variations of cache methods
