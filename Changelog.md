@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 3.3.4-rc.4]
+## 3.3.4-rc.4
 ### Changed
  - FIO-7351 fixed submitting data using Wizard with conditionals for Panel component
    

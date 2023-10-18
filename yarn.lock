@@ -4400,12 +4400,6 @@ vary@^1, vary@~1.1.2:
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
 
-"vm-utils@git+https://github.com/formio/vm-utils.git#main":
-  version "1.0.0"
-  resolved "git+https://github.com/formio/vm-utils.git#9279f301b5b30a9a7810d3d61ff7a57f3546d007"
-  dependencies:
-    isolated-vm "^4.6.0"
-
 "vm-utils@https://github.com/formio/vm-utils.git#main":
   version "1.0.0"
   resolved "https://github.com/formio/vm-utils.git#9279f301b5b30a9a7810d3d61ff7a57f3546d007"
