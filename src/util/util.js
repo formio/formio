@@ -10,6 +10,7 @@ const workerUtils = require('formio-workers/workers/util');
 const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
 const vmUtil = require('vm-utils');
+const {Isolate} = require('vm-utils');
 const { InstanceProxy, FormProxy } = require('@formio/core');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
@@ -66,7 +67,7 @@ Formio.Utils.Evaluator.evaluator = function(func, args) {
       args.options = {};
     }
     try {
-      const isolate = vmUtil.newIsolate();
+      const isolate = new Isolate({memoryLimit: 8});
       const context = isolate.createContextSync();
       vmUtil.transferSync('result', null, context);
       vmUtil.freezeSync('args', args, context);

@@ -3,6 +3,7 @@
 const Resource = require('resourcejs');
 const async = require('async');
 const vmUtil = require('vm-utils');
+const {Isolate} = require('vm-utils');
 const _ = require('lodash');
 const debug = {
   error: require('debug')('formio:error'),
@@ -244,7 +245,7 @@ module.exports = (router) => {
             _
           }, req);
 
-          const isolate = vmUtil.newIsolate();
+          const isolate = new Isolate({memoryLimit: 8});
           const context = await isolate.createContext();
           await vmUtil.transfer('execute', params.execute, context);
           await vmUtil.transfer('query', params.query, context);
