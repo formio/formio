@@ -2,8 +2,7 @@
 
 const _ = require('lodash');
 const async = require('async');
-const vmUtil = require('formio-workers/vmUtil');
-const {Isolate} = require('formio-workers/vmUtil');
+const {VM} = require('vm2');
 const util = require('../util/util');
 
 const LOG_EVENT = 'Save Submission Action';
@@ -58,7 +57,7 @@ module.exports = function(router) {
      * @param next
      * @returns {*}
      */
-    async resolve(handler, method, req, res, next) {
+    resolve(handler, method, req, res, next) {
       // Return if this is not a PUT or POST.
       if (req.skipSave || !req.body || (req.method !== 'POST' && req.method !== 'PUT' && req.method !== 'PATCH')) {
         return next();
@@ -189,7 +188,7 @@ module.exports = function(router) {
        * @param req
        * @returns {*}
        */
-      const updateSubmission = async function(submission) {
+      const updateSubmission = function(submission) {
         submission = submission || {};
         submission.data = submission.data || {};
 
@@ -205,16 +204,19 @@ module.exports = function(router) {
 
         if (this.settings.transform) {
           try {
-            const isolate = new Isolate({memoryLimit: 8});
-            const context = await isolate.createContext();
-            vmUtil.transfer(
-              'submission',
-              (res.resource && res.resource.item) ? res.resource.item : req.body,
-              context
-            );
-            vmUtil.transfer('data', submission.data, context);
+            let vm = new VM({
+              timeout: 500,
+              sandbox: {
+                submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
+                data: submission.data,
+              },
+              eval: false,
+              fixAsync: true
+            });
 
-            submission.data = await context.eval(this.settings.transform, {timeout: 500, copy: true});
+            const newData = vm.run(this.settings.transform);
+            submission.data = newData;
+            vm = null;
           }
           catch (err) {
             debug(`Error in submission transform: ${err.message}`);
@@ -230,12 +232,12 @@ module.exports = function(router) {
        * @param form
        * @param then
        */
-      const loadSubmission = async function(cache, then) {
+      const loadSubmission = function(cache, then) {
         const submission = {data: {}, roles: []};
 
         // For new submissions, just populate the empty submission.
         if (req.method !== 'PUT') {
-          cache.submission = await updateSubmission(submission);
+          cache.submission = updateSubmission(submission);
           return then();
         }
 
@@ -269,13 +271,13 @@ module.exports = function(router) {
               req,
               this.settings.resource,
               external.id,
-              async function(err, submission) {
+              function(err, submission) {
                 if (err) {
                   log(req, ecode.submission.ESUBLOAD, err, '#resolve');
                   return then();
                 }
 
-                cache.submission = await updateSubmission(submission);
+                cache.submission = updateSubmission(submission);
                 then();
               }
             );
