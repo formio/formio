@@ -244,7 +244,7 @@ module.exports = (router) => {
             _
           }, req);
 
-          const isolate = vmUtil.getIsolate();
+          const isolate = vmUtil.newIsolate();
           const context = await isolate.createContext();
           await vmUtil.transfer('execute', params.execute, context);
           await vmUtil.transfer('query', params.query, context);

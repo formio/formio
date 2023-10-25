@@ -66,7 +66,7 @@ Formio.Utils.Evaluator.evaluator = function(func, args) {
       args.options = {};
     }
     try {
-      const isolate = vmUtil.getIsolate();
+      const isolate = vmUtil.newIsolate();
       const context = isolate.createContextSync();
       vmUtil.transferSync('result', null, context);
       vmUtil.freezeSync('args', args, context);
