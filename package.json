@@ -61,7 +61,7 @@
     "superagent-retry": "^0.6.0",
     "through": "^2.3.8",
     "vanilla-text-mask": "^5.1.1",
-    "vm-utils": "https://github.com/formio/vm-utils.git#1.0.0"
+    "vm2": "^3.9.9"
   },
   "devDependencies": {
     "eslint": "^8.25.0",
