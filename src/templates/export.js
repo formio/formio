@@ -167,6 +167,7 @@ module.exports = (router) => {
             assignForm(_map, component.data);
             assignResource(_map, component);
             assignResource(_map, component.data);
+            assignResource(_map, component.fetch);
             if (component && component.data && component.data.project) {
               component.data.project = 'project';
             }
