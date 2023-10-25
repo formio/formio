@@ -3678,5 +3678,54 @@ module.exports = (app, template, hook) => {
       });
     });
 
+    describe('Template With Resource DataTable', function() {
+      let testTemplate = require('./fixtures/templates/testDataTableWithResource.json');
+      let _template = _.cloneDeep(testTemplate);
+      let project;
+
+      describe('Import', function() {
+        it('Should be able to bootstrap the template', function(done) {
+          importer.import.template(_template, alters, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+            project = data;
+            done();
+          });
+        });
+
+        it ('The Data Table Fetch Resource should be replaced with valid resource id', function(done) {
+          assert.equal(project.forms.formWithDt.components[0].fetch.resource, project.resources.resourceFormForDt._id.toString());
+          done();
+        });
+      });
+
+      describe('Export', function() {
+        let exportData = {};
+
+        it ('Should be able to export project', function(done) {
+          importer.export(project, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+            exportData = data;
+            return done();
+          });
+        });
+
+        it ('The Data Table Fetch Resource should be replaced with resource name', function(done) {
+          assert.equal(exportData.forms.formWithDt.components[0].fetch.resource,  exportData.resources.resourceFormForDt.name);
+          done();
+        });
+      });
+
+      before(function(done) {
+        template.clearData(done);
+      });
+
+      after(function(done) {
+        template.clearData(done);
+      });
+    });
   });
 };
