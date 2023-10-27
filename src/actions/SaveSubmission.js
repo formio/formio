@@ -57,7 +57,7 @@ module.exports = function(router) {
      * @param next
      * @returns {*}
      */
-    resolve(handler, method, req, res, next) {
+    async resolve(handler, method, req, res, next) {
       // Return if this is not a PUT or POST.
       if (req.skipSave || !req.body || (req.method !== 'POST' && req.method !== 'PUT' && req.method !== 'PATCH')) {
         return next();
