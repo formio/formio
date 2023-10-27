@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-
+## [Unreleased: 3.4.0-rc.11]
+### Changed
+ - Fix tests
+   
 ## 3.4.0-rc.10
 ### Changed
  - Updated formio-workers@1.20.0-rc.8
