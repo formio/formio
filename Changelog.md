@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 3.3.4-rc.6]
+### Changed
+ - FIO-7510: Revert isolated vm changes
+   
 ## 3.3.4-rc.5
 ### Changed
  - Updated formiojs@4.17.3-rc.2
