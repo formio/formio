@@ -4,8 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 3.3.4-rc.6]
+## 3.3.4-rc.6
 ### Changed
+ - Updated formio-workers@1.19.3-rc.5
+ - FIO-7491: fixed an issue where dataTable component with resource data type does not work after exporting/importing
  - FIO-7510: Revert isolated vm changes
    
 ## 3.3.4-rc.5
