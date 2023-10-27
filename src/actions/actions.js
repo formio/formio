@@ -2,7 +2,7 @@
 
 const Resource = require('resourcejs');
 const async = require('async');
-const vmUtil = require('vm-utils');
+const {VM} = require('vm2');
 const _ = require('lodash');
 const debug = {
   error: require('debug')('formio:error'),
@@ -219,7 +219,6 @@ module.exports = (router) => {
       });
     },
 
-    // eslint-disable-next-line max-statements
     async shouldExecute(action, req) {
       const condition = action.condition;
       if (!condition) {
@@ -251,25 +250,31 @@ module.exports = (router) => {
             _
           }, req);
 
-          const isolate = vmUtil.getIsolate();
-          const context = await isolate.createContext();
-          await vmUtil.transfer('execute', params.execute, context);
-          await vmUtil.transfer('query', params.query, context);
-          await vmUtil.transfer('data', params.data, context);
-          await vmUtil.transfer('form', params.form, context);
-          await vmUtil.transfer('submission', params.submission, context);
-          await vmUtil.transfer('previous', params.previous, context);
+          let vm = new VM({
+            timeout: 500,
+            sandbox: {
+              execute: params.execute,
+              query: params.query,
+              data: params.data,
+              form: params.form,
+              submission: params.submission,
+              previous: params.previous,
+            },
+            eval: false,
+            fixAsync: true
+          });
 
-          await vmUtil.freeze('jsonLogic', params.jsonLogic, context);
-          await vmUtil.freeze('util', params.FormioUtils, context);
-          await vmUtil.freeze('moment', params.moment, context);
-          await vmUtil.freeze('_', params._, context);
+          vm.freeze(params.jsonLogic, 'jsonLogic');
+          vm.freeze(params.FormioUtils, 'util');
+          vm.freeze(params.moment, 'moment');
+          vm.freeze(params._, '_');
 
-          const result = await context.eval(json ?
+          const result = vm.run(json ?
             `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
-            condition.custom,
-            {timeout: 500, copy: true}
+            condition.custom
           );
+
+          vm = null;
 
           return result;
         }
