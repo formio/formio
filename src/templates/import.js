@@ -263,6 +263,16 @@ module.exports = (router) => {
         changed = true;
       }
 
+      // Update resource machineNames for dataTable components with the resource data type.
+      if (
+        (component.type === 'datatable') &&
+        (component.fetch && component.fetch.dataSrc === 'resource') &&
+        resourceMachineNameToId(template, component.fetch)
+      ) {
+        hook.alter(`importComponent`, template, component.fetch);
+        changed = true;
+      }
+
       // Allow importing of components.
       if (hook.alter(`importComponent`, template, component)) {
         changed = true;

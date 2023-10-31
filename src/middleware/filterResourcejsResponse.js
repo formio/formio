@@ -1,6 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
+const {skipHookIfNotExists} = require('../util/util');
 
 /**
  * Middleware function to filter the response from resourcejs.
@@ -11,7 +12,11 @@ const _ = require('lodash');
  * @returns {Function}
  */
 module.exports = (router) => (settings) => (req, res, next) => {
-  if (!Array.isArray(settings) || !res || !res.resource || !res.resource.item) {
+  if (
+    !Array.isArray(settings) ||
+    !_.get(res, 'resource.item') ||
+    router.formio.hook.alter('rawDataAccess', req, next, skipHookIfNotExists)
+  ) {
     return next();
   }
 
