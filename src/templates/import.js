@@ -152,12 +152,7 @@ module.exports = (router) => {
       return formRevision.toString();
     };
 
-    let formName = entity.form;
-    if (template.forms && !template.forms[formName] && entity.form.length === 24) {
-      formName = _.findKey(template.forms, (form) => {
-        return form._id.toString() === entity.form;
-      } );
-    }
+    const formName = entity.form;
     // Attempt to add a form.
     if (template.forms && template.forms[formName]) {
       // Form has been already imported

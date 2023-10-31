@@ -3750,7 +3750,7 @@ module.exports = (app, template, hook) => {
       });
 
       describe('Export', function() {
-        let revisionId = {};
+        let revisionVid;
         let exportData = {};
 
         it('Should be able to export project data', function(done) {
@@ -3762,7 +3762,7 @@ module.exports = (app, template, hook) => {
             exportData = data;
             exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
             exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
-            revisionId = exportData.forms.outer.components[0].revision;
+            revisionVid = exportData.forms.outer.components[0].revision;
             return done();
           });
         });
@@ -3780,8 +3780,9 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('An export should contain UUID of nested form', function() {
-          assert.deepEqual(exportData.forms.outer.components[0].revision, revisionId)
+        it('An export should not contain UUID of nested form', function() {
+          assert.deepEqual(exportData.forms.outer.components[0].revision, revisionVid);
+          assert.equal(exportData.forms.outer.components[0].revision.length, 1);
         });        
       });
 
