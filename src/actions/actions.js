@@ -2,7 +2,7 @@
 
 const Resource = require('resourcejs');
 const async = require('async');
-const {VM} = require('vm2');
+const vmUtil = require('vm-utils');
 const _ = require('lodash');
 const debug = {
   error: require('debug')('formio:error'),
@@ -10,7 +10,14 @@ const debug = {
 };
 const util = require('../util/util');
 const moment = require('moment');
-const promisify = require('util').promisify;
+const {
+  ConditionOperators,
+  filterComponentsForConditionComponentFieldOptions,
+  conditionOperatorsByComponentType,
+  allConditionOperatorsOptions,
+  getValueComponentsForEachFormComponent,
+  getValueComponentRequiredSettings,
+} = require('../util/conditionOperators');
 
 /**
  * The ActionIndex export.
@@ -212,6 +219,7 @@ module.exports = (router) => {
       });
     },
 
+    // eslint-disable-next-line max-statements
     async shouldExecute(action, req) {
       const condition = action.condition;
       if (!condition) {
@@ -243,31 +251,25 @@ module.exports = (router) => {
             _
           }, req);
 
-          let vm = new VM({
-            timeout: 500,
-            sandbox: {
-              execute: params.execute,
-              query: params.query,
-              data: params.data,
-              form: params.form,
-              submission: params.submission,
-              previous: params.previous,
-            },
-            eval: false,
-            fixAsync: true
-          });
+          const isolate = vmUtil.getIsolate();
+          const context = await isolate.createContext();
+          await vmUtil.transfer('execute', params.execute, context);
+          await vmUtil.transfer('query', params.query, context);
+          await vmUtil.transfer('data', params.data, context);
+          await vmUtil.transfer('form', params.form, context);
+          await vmUtil.transfer('submission', params.submission, context);
+          await vmUtil.transfer('previous', params.previous, context);
 
-          vm.freeze(params.jsonLogic, 'jsonLogic');
-          vm.freeze(params.FormioUtils, 'util');
-          vm.freeze(params.moment, 'moment');
-          vm.freeze(params._, '_');
+          await vmUtil.freeze('jsonLogic', params.jsonLogic, context);
+          await vmUtil.freeze('util', params.FormioUtils, context);
+          await vmUtil.freeze('moment', params.moment, context);
+          await vmUtil.freeze('_', params._, context);
 
-          const result = vm.run(json ?
+          const result = await context.eval(json ?
             `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
-            condition.custom
+            condition.custom,
+            {timeout: 500, copy: true}
           );
-
-          vm = null;
 
           return result;
         }
@@ -281,18 +283,13 @@ module.exports = (router) => {
           return false;
         }
       }
-      else {
-        if (_.isEmpty(condition.field) || _.isEmpty(condition.eq)) {
-          return true;
-        }
 
+      // Check if the action has a condition saved using the old format
+      if (!_.isEmpty(condition.field) && !_.isEmpty(condition.eq)) {
         // See if a condition is not established within the action.
         const field = condition.field || '';
         const eq = condition.eq || '';
-        const isDelete = req.method.toUpperCase() === 'DELETE';
-        const deletedSubmission = isDelete ? await getDeletedSubmission(req): false;
-        const value = isDelete? String(_.get(deletedSubmission, `data.${field}`, '')) :
-          String(_.get(req, `body.data.${field}`, ''));
+        const value = String(await getComponentValueFromRequest(req, field));
         const compare = String(condition.value || '');
         debug.action(
           '\nfield', field,
@@ -305,6 +302,31 @@ module.exports = (router) => {
         return (eq === 'equals') ===
           ((Array.isArray(value) && value.map(String).includes(compare)) || (value === compare));
       }
+      else if (_.some(condition.conditions || [], condition => condition.component && condition.operator)) {
+        const {conditions = [], conjunction = 'all'} = condition;
+
+        // Check all the conditions and save results to array
+        const conditionsResults = await Promise.all(conditions.map(async (cond) => {
+          const {value: comparedValue, operator, component: conditionComponentPath} = cond;
+          const ConditionOperator = ConditionOperators[operator];
+          if (!conditionComponentPath || !ConditionOperator) {
+            return true;
+          }
+          const value = await getComponentValueFromRequest(req, conditionComponentPath);
+          let component;
+          if (req.currentFormComponents) {
+            component = util.FormioUtils.getComponent(req.currentFormComponents, conditionComponentPath);
+          }
+          return new ConditionOperator().getResult({value, comparedValue, component});
+        }));
+
+        return conjunction === 'any' ?
+            _.some(conditionsResults, res => !!res) :
+            _.every(conditionsResults, res => !!res);
+      }
+
+      // If there are no conditions either in the old nor in the new format, allow executing an action
+      return true;
     },
   };
 
@@ -401,14 +423,21 @@ module.exports = (router) => {
         return cb('Could not load form components for conditional actions.');
       }
 
-      const filteredComponents = _.filter(router.formio.util.flattenComponents(form.components),
-        (component) => component.key && component.input === true);
+      const flattenedComponents = router.formio.util.flattenComponents(form.components);
 
-      const components = [{key: ''}].concat(filteredComponents);
-      const customPlaceholder =
-`// Example: Only execute if submitted roles has 'authenticated'.
-JavaScript: execute = (data.roles.indexOf('authenticated') !== -1);
-JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
+      const componentsOptionsForExtendedUi = filterComponentsForConditionComponentFieldOptions(flattenedComponents);
+      const flattenedComponentsForConditional = _.pick(
+          flattenedComponents,
+          componentsOptionsForExtendedUi.map(({value}) => value)
+      );
+      const valueComponentsByComponentPath = getValueComponentsForEachFormComponent(flattenedComponentsForConditional);
+      const valueComponent = getValueComponentRequiredSettings(valueComponentsByComponentPath);
+
+      const customPlaceholder = `
+        // Example: Only execute if submitted roles has 'authenticated'.
+        JavaScript: execute = (data.roles.indexOf('authenticated') !== -1);
+        JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }
+      `;
       conditionalSettings.components.push({
         type: 'container',
         key: 'condition',
@@ -423,56 +452,87 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
               {
                 components: [
                   {
+                    label: 'When',
+                    widget: 'choicesjs',
+                    tableView: true,
+                    data: {
+                      values: [
+                        {
+                          label: 'When all conditions are met',
+                          value: 'all',
+                        },
+                        {
+                          label: 'When any condition is met',
+                          value: 'any',
+                        },
+                      ],
+                    },
+                    key: 'conjunction',
                     type: 'select',
                     input: true,
-                    label: 'Trigger this action only if field',
-                    key: 'field',
-                    placeholder: 'Select the conditional field',
-                    template: '<span>{{ item.label || item.key }}</span>',
-                    dataSrc: 'json',
-                    data: {json: JSON.stringify(components)},
-                    valueProperty: 'key',
-                    multiple: false
                   },
                   {
-                    type : 'select',
-                    input : true,
-                    label : '',
-                    key : 'eq',
-                    placeholder : 'Select comparison',
-                    template : '<span>{{ item.label }}</span>',
-                    dataSrc : 'values',
-                    data : {
-                      values : [
-                        {
-                          value : '',
-                          label : ''
-                        },
-                        {
-                          value : 'equals',
-                          label : 'Equals'
-                        },
-                        {
-                          value : 'notEqual',
-                          label : 'Does Not Equal'
-                        }
-                      ],
-                      json : '',
-                      url : '',
-                      resource : ''
+                    label: 'Conditions',
+                    addAnotherPosition: 'bottom',
+                    key: 'conditions',
+                    type: 'editgrid',
+                    initEmpty: true,
+                    addAnother: 'Add Condition',
+                    templates: {
+                      header:`<div class="row">\n      {% util.eachComponent(components, function(component) { %}\n        {% if (displayValue(component)) { %}\n          <div class="col-sm-{{_.includes(['component'], component.key) ? '4' : '3'}}">{{ t(component.label) }}</div>\n        {% } %}\n      {% }) %}\n    </div>`,
+                      row: `<div class="row">\n      {% util.eachComponent(components, function(component) { %}\n        {% if (displayValue(component)) { %}\n          <div class="formio-builder-condition-text col-sm-{{_.includes(['component'], component.key) ? '4' : '3'}}">\n            {{ isVisibleInRow(component) ? getView(component, row[component.key]) : ''}}\n          </div>\n        {% } %}\n      {% }) %}\n      {% if (!instance.options.readOnly && !instance.disabled) { %}\n        <div class="col-sm-2">\n          <div class="btn-group pull-right">\n            <button class="btn btn-default btn-light btn-sm editRow"><i class="{{ iconClass('edit') }}"></i></button>\n            {% if (!instance.hasRemoveButtons || instance.hasRemoveButtons()) { %}\n              <button class="btn btn-danger btn-sm removeRow"><i class="{{ iconClass('trash') }}"></i></button>\n            {% } %}\n          </div>\n        </div>\n      {% } %}\n    </div>`,
                     },
-                    valueProperty : 'value',
-                    multiple : false
-                  },
-                  {
                     input: true,
-                    type: 'textfield',
-                    inputType: 'text',
-                    label: '',
-                    key: 'value',
-                    placeholder: 'Enter value',
-                    multiple: false
-                  }
+                    components: [
+                      {
+                        label: 'When:',
+                        widget: 'choicesjs',
+                        tableView: true,
+                        dataSrc: 'json',
+                        valueProperty: 'value',
+                        placeholder: 'Select Form Component',
+                        lazyLoad: false,
+                        data: {json: JSON.stringify(componentsOptionsForExtendedUi)},
+                        key: 'component',
+                        type: 'select',
+                        input: true,
+                      },
+                      {
+                        label: 'Is:',
+                        widget: 'choicesjs',
+                        tableView: true,
+                        dataSrc: 'custom',
+                        lazyLoad: false,
+                        placeholder: 'Select Comparison Operator',
+                        refreshOn: 'condition.conditions.component',
+                        clearOnRefresh: true,
+                        valueProperty: 'value',
+                        data: {
+                          custom:`
+                            const formComponents = ${JSON.stringify(flattenedComponents)};
+                            const conditionComponent = formComponents[row.component];
+                            const componentType = conditionComponent ? conditionComponent.type : 'base';
+                            const operatorsByComponentType = ${JSON.stringify(conditionOperatorsByComponentType)};
+                            let operators = operatorsByComponentType[componentType];
+                            if (!operators || !operators.length) {
+                              operators = operatorsByComponentType.base;
+                            }
+                            const allOperators = ${JSON.stringify(allConditionOperatorsOptions)};
+
+                            values = allOperators.filter((operator) => operators.includes(operator.value));
+                          `
+                        },
+                        key: 'operator',
+                        type: 'select',
+                        input: true,
+                      },
+                      {
+                        type: 'textfield',
+                        inputFormat: 'plain',
+                        ...valueComponent,
+                      },
+                    ],
+                  },
                 ]
               },
               {
@@ -578,7 +638,7 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
 
   async function getDeletedSubmission(req) {
     try {
-      return await promisify(router.formio.cache.loadSubmission)(
+      return await router.formio.cache.loadSubmissionAsync(
         req,
         req.body.form,
         req.body._id,
@@ -593,6 +653,14 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
       debug.error(err);
       return false;
     }
+  }
+
+  async function getComponentValueFromRequest(req, field) {
+    const isDelete = req.method.toUpperCase() === 'DELETE';
+    const deletedSubmission = isDelete ? await getDeletedSubmission(req): false;
+    const value = isDelete? _.get(deletedSubmission, `data.${field}`, '') :
+      _.get(req, `body.data.${field}`, '');
+    return value;
   }
 
   // Return a list of available actions.
@@ -773,6 +841,24 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
   // Add specific middleware to individual endpoints.
   handlers['beforeDelete'] = handlers['beforeDelete'].concat([router.formio.middleware.deleteActionHandler]);
   handlers['afterIndex'] = handlers['afterIndex'].concat([indexPayload]);
+  handlers['afterGet'] = handlers['afterGet'].concat([
+    (req, res, next) => {
+      if (req.params && req.params.actionId && res.resource && res.resource.item) {
+        const action = res.resource.item;
+        if (action.condition && !_.isEmpty(action.condition.field) && !_.isEmpty(action.condition.eq)) {
+          action.condition = {
+            conjunction: 'all',
+            conditions: [{
+              component: action.condition.field,
+              operator: action.condition.eq === 'equals' ? 'isEqual' : 'isNotEqual',
+              value: action.condition.value,
+            }]
+          };
+        }
+      }
+      return next();
+    }
+  ]);
 
   /**
    * Create the REST properties using ResourceJS, as a nested resource of forms.
