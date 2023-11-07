@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-6630: Adds root level properties to action conditions
  - FIO-7167: Isolated vm
  - FIO-7371: Adds checks to define if raw DB data should be returned in response
+ - FIO-7538: Change vm-utils link in package.json
+ - FIO-6495: fixed an issue where revision ID of nested form does not transfer from stage to stage
    
 ## 3.4.0-rc.1
 ### Changed
