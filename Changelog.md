@@ -4,11 +4,15 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 3.3.5-rc.2
+### Changed
+ - Revert "FIO-6495: fixed an issue where revision ID of nested form does not transfer from stage to stage
+
 ## 3.3.5-rc.1
 ### Changed
  - Updated formiojs@4.17.4-rc.1
  - Updated formio-workers@1.19.4-rc.1
- - FIO-6495: fixed an issue where revision ID of nested form does not tr
+ - FIO-6495: fixed an issue where revision ID of nested form does not transfer from stage to stage
    
 ## 3.3.4
 ### Changed
