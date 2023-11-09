@@ -3725,25 +3725,65 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
       let project;
 
-      it('Should be able to bootstrap the template', function(done) {
-        importer.import.template(_template, alters, (err, data) => {
-          if (err) {
-            return done(err);
-          }
-          project = data;
-          done();
+      describe('Import', function() {
+
+        it('Should be able to bootstrap the template', function(done) {
+          importer.import.template(_template, alters, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+            project = data;
+            done();
+          });
+        });
+
+        it('All the forms should be imported', function(done) {
+          assert.deepEqual(_.omit(project.forms.inner, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', '_vid', 'project', 'revisions', 'submissionRevisions']), 
+          _.omit(testTemplate.forms.inner, ['revisions']));
+          assert.deepEqual(_.omit(project.forms.outer, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', 'components', '_vid', 'project', 'revisions', 'submissionRevisions']), 
+          _.omit(testTemplate.forms.outer, ['revisions', 'components']));
+          assert.deepEqual(_.omit(project.forms.outer.components[0], ['form']),
+          _.omit(testTemplate.forms.outer.components[0], ['form']));
+          assert.deepEqual(project.forms.outer.components[1], testTemplate.forms.outer.components[1]);
+        done();
         });
       });
 
-      it('All the forms should be imported', function(done) {
-        assert.deepEqual(_.omit(project.forms.inner, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', '_vid', 'project', 'revisions', 'submissionRevisions']),
-        _.omit(testTemplate.forms.inner, ['revisions']));
-        assert.deepEqual(_.omit(project.forms.outer, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', 'components', '_vid', 'project', 'revisions', 'submissionRevisions']),
-        _.omit(testTemplate.forms.outer, ['revisions', 'components']));
-        assert.deepEqual(_.omit(project.forms.outer.components[0], ['form']),
-        _.omit(testTemplate.forms.outer.components[0], ['form']));
-        assert.deepEqual(project.forms.outer.components[1], testTemplate.forms.outer.components[1]);
-       done();
+      describe('Export', function() {
+        let revisionVid;
+        let exportData = {};
+
+        it('Should be able to export project data', function(done) {
+          importer.export(_template, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+
+            exportData = data;
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            revisionVid = exportData.forms.outer.components[0].revision;
+            return done();
+          });
+        });
+
+        it('Should be able to export project data twice', function(done) {
+          importer.export(_template, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+
+            exportData = data;
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            return done();
+          });
+        });
+
+        it('An export should not contain UUID of nested form', function() {
+          assert.deepEqual(exportData.forms.outer.components[0].revision, revisionVid);
+          assert.equal(exportData.forms.outer.components[0].revision.length, 1);
+        });        
       });
 
       before(function(done) {
