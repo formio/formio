@@ -154,15 +154,18 @@ module.exports = (router) => {
 
     const formName = entity.form;
     // Attempt to add a form.
-    if (template.forms && template.forms[formName]) {
+    if (template.forms && template.forms[entity.form]) {
       // Form has been already imported
-      if (template.forms[formName]._id) {
+      if (template.forms[entity.form]._id) {
         entity.form = template.forms[formName]._id.toString();
-        if (template.forms[formName].revisions) {
+        if (template.forms[formName].hasOwnProperty('_vid') && template.forms[formName]._vid) {
+          updateRevisionProperty(entity, template.forms[formName]._vid.toString());
+        }
+        else if (template.forms[formName].revisions) {
             const revisionId = entity.revision;
             const revisionTemplate = template.revisions && template.revisions[`${formName}:${revisionId}`];
-            const revision = revisionTemplate && revisionTemplate.newId ? revisionTemplate.newId : revisionId;
-
+            const revision = revisionTemplate && revisionTemplate.newId ? revisionTemplate.newId
+            : getFormRevision(template.forms[formName]._vid);
             updateRevisionProperty(entity, revision);
         }
         changes = true;
@@ -173,12 +176,16 @@ module.exports = (router) => {
     }
 
     // Attempt to add a resource
-    if (!changes && template.resources && template.resources[formName] && template.resources[formName]._id) {
-      entity.form = template.resources[formName]._id.toString();
-      if (template.resources[formName].revisions) {
+    if (!changes && template.resources && template.resources[entity.form] && template.resources[entity.form]._id) {
+      entity.form = template.resources[entity.form]._id.toString();
+      if (template.resources[formName].hasOwnProperty('_vid') && template.resources[formName]._vid) {
+        updateRevisionProperty(entity, template.resources[formName]._vid.toString());
+      }
+      else if (template.resources[formName].revisions) {
         const revisionId = entity.revision;
         const revisionTemplate = template.revisions[`${formName}:${revisionId}`];
-        const revision = revisionTemplate && revisionTemplate.newId ? revisionTemplate.newId : revisionId;
+        const revision = revisionTemplate && revisionTemplate.newId ? revisionTemplate.newId
+        : getFormRevision(template.resources[formName]._vid);
         updateRevisionProperty(entity, revision);
       }
       changes = true;
@@ -821,14 +828,13 @@ module.exports = (router) => {
 
                       if (existingRevisions && existingRevisions.length > 0) {
                        revisionsFromTemplate.forEach((revisionTemplate) => {
-                        const foundRevision = existingRevisions.find(
-                          revision => revision._vnote === revisionTemplate._vnote);
-                         if (!foundRevision) {
+                         if (
+                           !existingRevisions.find(
+                             revision => revision._vnote === revisionTemplate._vnote
+                             )
+                          ) {
                             revisionTemplate._vid = revisionsToCreate.length + 1;
                             revisionsToCreate.push(revisionTemplate);
-                         }
-                         else {
-                          revisionTemplate.newId = foundRevision._id;
                          }
                         });
                       }
