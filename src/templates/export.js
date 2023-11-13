@@ -269,7 +269,7 @@ module.exports = (router) => {
               revisions.forEach(revision => {
                 const component = _map.revisions.revisionsData.find(component => component.form === revision.name);
                 if (component) {
-                  const componentRevision = revision._vid;
+                  const componentRevision = component.revision;
                   assignRoles(_map, revision.access);
                   assignRoles(_map, revision.submissionAccess);
                   const machineName = revision.name;
@@ -296,13 +296,6 @@ module.exports = (router) => {
                   if (form) {
                     _export[`${revision.type}s`][machineName].revisions = form.revisionType;
                   }
-                  _.each(_export[`${revision.type}s`], function(form) {
-                    util.eachComponent(form.components, function(component) {
-                      if (component.hasOwnProperty('form') && component.revision === revision._id.toString()) {
-                        component.revision = componentRevision;
-                      }
-                    });
-                  });
                 }
               });
             }
