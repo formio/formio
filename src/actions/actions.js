@@ -222,7 +222,7 @@ module.exports = (router) => {
     },
 
 
-    async shouldExecute(action, req) {
+    async shouldExecute(action, req, res) {
       const condition = action.condition;
       if (!condition) {
         return true;
