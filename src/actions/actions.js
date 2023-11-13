@@ -659,6 +659,7 @@ module.exports = (router) => {
             tree: false,
             key: 'conditions',
             legend: 'Action Execution',
+            hidden: mainSettings.components.length && mainSettings.components.every(({type})=> type === 'hidden'),
             components: mainSettings.components
           },
           {
@@ -794,7 +795,7 @@ module.exports = (router) => {
       });
 
       try {
-        getSettingsForm(action, req, (err, settings) => {
+        getSettingsForm(info, req, (err, settings) => {
           if (err) {
             router.formio.log('Error, can\'t get action settings', req, err);
             return res.status(400).send(err);
