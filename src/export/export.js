@@ -5,6 +5,7 @@ const _ = require('lodash');
 const through = require('through');
 const ResourceFactory = require('resourcejs');
 const debug = require('debug')('formio:error');
+const decrypt = require('../util/decrypt');
 
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
@@ -176,7 +177,15 @@ module.exports = (router) => {
                   );
                 }
                 else {
-                  newData[key] = field;
+                  const secret = req.currentProject && req.currentProject.settings.secret;
+
+                  if (req.hasSacPackage && req.encryptedComponents &&
+                      Object.keys(req.encryptedComponents).includes(key) && secret) {
+                    newData[key] = decrypt(secret, field.buffer);
+                  }
+                  else {
+                    newData[key] = field;
+                  }
                 }
               });
               await Promise.all(promises);
