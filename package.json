@@ -52,7 +52,7 @@
     "moment-timezone": "^0.5.37",
     "mongodb": "^4.3.0",
     "mongoose": "^6.6.0",
-    "mssql": "^7.3.0",
+    "mssql": "^8.0.0",
     "mysql": "^2.18.1",
     "nodemailer": "^6.7.2",
     "nodemailer-mailgun-transport": "^2.1.3",
