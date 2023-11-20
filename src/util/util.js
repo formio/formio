@@ -9,8 +9,7 @@ const deleteProp = require('delete-property').default;
 const workerUtils = require('formio-workers/workers/util');
 const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
-const vmUtil = require('vm-utils');
-const {InstanceProxy, FormProxy} = require('@formio/core');
+const {VM} = require('vm2');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
@@ -46,38 +45,26 @@ _.each(Formio.Displays.displays, (display) => {
   display.prototype.onChange = _.noop;
 });
 
+const vm = new VM({
+  timeout: 250,
+  sandbox: {
+    result: null,
+  },
+  fixAsync: true
+});
+
 Formio.Utils.Evaluator.noeval = true;
 Formio.Utils.Evaluator.evaluator = function(func, args) {
   return function() {
     let result = null;
-    // Apply InstanceProxy and FromProxy to sanitize object before passing them to sandbox
-    if (args.instance) {
-      args.instance = new InstanceProxy(args.instance);
-    }
-    if (args.self) {
-      args.self = new InstanceProxy(args.self);
-    }
-    if (args.root) {
-      args.root = new FormProxy(args.root);
-    }
-    // Remove `options` object as it has vulnerable data
-    // And not actually widely used
-    if (args.options) {
-      args.options = {};
-    }
+    /* eslint-disable no-empty */
     try {
-      const isolate = vmUtil.getIsolate();
-      const context = isolate.createContextSync();
-      vmUtil.transferSync('result', null, context);
-      vmUtil.freezeSync('args', args, context);
-      result = context.evalSync(
-        `result = (function({${_.keys(args).join(',')}}) {${func}})(args);`,
-        {timeout: 250, copy: true}
-      );
+      vm.freeze(args, 'args');
+
+      result = vm.run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
     }
-    catch (err) {
-      return result;
-    }
+    catch (err) {}
+    /* eslint-enable no-empty */
     return result;
   };
 };
