@@ -692,6 +692,72 @@ module.exports = function(formio) {
   };
 
   /**
+   * Update the default configuration forms, from the current version, to the version required by the server.
+   *
+   * @param next
+   *   The next function to invoke after this function has finished.
+   */
+  const doConfigFormsUpdates = function(next) {
+    formio.util.log('Checking for Config Forms updates.');
+
+    let configFormsUpdates = {};
+    configFormsUpdates = formio.hook.alter('getConfigFormsUpdates', configFormsUpdates);
+    const updates = Object.keys(configFormsUpdates);
+
+    // Skip updates if there are no  updates to apply.
+    if (!updates.length) {
+      formio.util.log(' > No config forms updates found.\n');
+      return next();
+    }
+    // Only take action if updates exist.
+    debug.db('Pending config forms updates');
+      async.eachSeries(updates, function(update, callback) {
+        formio.util.log(` > Starting config forms update: ${update}`);
+
+        // Load the update then update the schema lock version.
+        let _update = null;
+
+        // Attempt to load the the pending update.
+        // Allow anyone to hook the pending updates location.
+        try {
+          _update = configFormsUpdates[update];
+        }
+        catch (e) {
+          debug.error(e);
+          debug.db(e);
+        }
+        // Attempt to resolve the update.
+        try {
+          if (typeof _update !== 'function') {
+            return callback(`Could not resolve the path for config form update: ${update}`);
+          }
+
+          debug.db('Update Params:');
+          debug.db(db);
+          debug.db(config);
+          debug.db(tools);
+          _update(db, config, tools, function(err) {
+            if (err) {
+              return callback(err);
+            }
+            return callback();
+          });
+        }
+        catch (e) {
+          debug.error(e);
+          return callback(e);
+        }
+      }, function(err) {
+        if (err) {
+          debug.db(err);
+          return next(err);
+        }
+
+        formio.util.log(' > Done applying pending config forms updates\n');
+        next();
+      });
+  };
+  /**
    * Initialized the update script.
    */
   const initialize = function(next) {
@@ -717,6 +783,7 @@ module.exports = function(formio) {
       checkFeatures,
       getUpdates,
       lock,
+      doConfigFormsUpdates,
       doUpdates,
       unlock
     ], function(err) {
