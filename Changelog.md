@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 3.4.0-rc.14
+### Changed
+ - Updated formiojs@4.18.0-rc.8
+ - Updated formio-workers@1.20.0-rc.10
+
 ## 3.4.0-rc.13
 ### Changed
  - Pinned axios (from mailgun.js) to v1.5.1
