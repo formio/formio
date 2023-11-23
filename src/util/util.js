@@ -869,30 +869,6 @@ const Utils = {
   // Skips hook execution in case of no hook by provided name found
   // Pass as the last argument to formio.hook.alter() function
   skipHookIfNotExists: () => _.noop(),
-  getAllObjectPaths(data, leavesOnly = false) {
-    const paths = [];
-
-    const iterate = (obj, path) => {
-      path = path || '';
-      for (const prop in obj) {
-        if (prop && obj.hasOwnProperty(prop)) {
-          if (typeof obj[prop] === 'object') {
-            if (!leavesOnly && (path || prop)) {
-              paths.push(path || prop);
-            }
-            iterate(obj[prop], `${path}${path ? '.' : ''}${prop}`);
-          }
-          else {
-            paths.push(`${path}${path ? '.' : ''}${prop}`);
-          }
-        }
-      }
-    };
-
-    iterate(data, '');
-
-    return paths;
-  },
 };
 
 module.exports = Utils;

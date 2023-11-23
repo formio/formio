@@ -259,18 +259,7 @@ module.exports = (router, resourceName, resourceId) => {
             return res.status(400).json(err);
           }
 
-          if (['PUT', 'PATCH'].includes(req.method) && req.currentForm.revisions === 'current') {
-            const allFormFieldsPaths = {};
-            util.FormioUtils.eachComponent(req.currentForm.components, (comp, path) => {
-              allFormFieldsPaths[path] = true;
-            });
-            const allSubmissionFieldsPaths = util.getAllObjectPaths(req.currentSubmissionData, true);
-            allSubmissionFieldsPaths.forEach((valuePath) => {
-              if (!allFormFieldsPaths.hasOwnProperty(valuePath)) {
-                _.set(data, valuePath, _.get(req.currentSubmissionData, valuePath));
-              }
-            });
-          }
+          data = hook.alter('rehydrateValidatedSubmissionData', data, req);
 
           res.submission = {data: data};
 
