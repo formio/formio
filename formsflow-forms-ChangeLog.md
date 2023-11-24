@@ -9,6 +9,11 @@ All significant changes to formsflow-forms will be clearly documented in this fi
 - `Untested Features`: Newly introduced features or components that are yet to be thoroughly tested.
 - `Upcoming Features`: Planned features or enhancements that will be available in future releases.
 - `Known Issues`: Existing issues or problems that are acknowledged and will be addressed in subsequent updates.
+
+## Version 5.3.0
+### Changed
+- Formsflow-forms version upgrade
+
 ## Version 5.2.2
 ### Fixed
 - Fixed most of the vulnerabilities.
