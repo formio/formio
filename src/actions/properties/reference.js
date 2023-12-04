@@ -264,7 +264,6 @@ module.exports = (router) => {
         var queues = [];
         util.FormioUtils.eachComponent(form.components, (subcomp, subpath) => {
           if (subcomp.reference) {
-            console.log(3333);
             queues.push(buildPipeline(subcomp, `${path}.data.${subpath}`, req, res).then((subpipe) => {
               pipeline = pipeline.concat(subpipe);
             }));
@@ -302,7 +301,6 @@ module.exports = (router) => {
         if (!idQuery) {
           return Promise.resolve();
         }
-console.log(2222);
         return loadReferences(component, {
           _id: idQuery,
           limit: 10000000
