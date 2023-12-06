@@ -141,7 +141,7 @@ module.exports = (router) => {
       const exporter = new exporters[format](form, req, res);
 
       // Allow an alter of the export logic.
-      hook.alter('export', req, query, form, exporter, (err) => {
+      hook.alter('export', req, query, form, exporter, (err, decryptSecret) => {
         if (err) {
           return res.status(400).send(err.message);
         }
@@ -177,11 +177,8 @@ module.exports = (router) => {
                   );
                 }
                 else {
-                  const secret = req.currentProject && req.currentProject.settings.secret;
-
-                  if (req.hasSacPackage && req.encryptedComponents &&
-                      Object.keys(req.encryptedComponents).includes(key) && secret) {
-                    newData[key] = decrypt(secret, field.buffer);
+                  if (decryptSecret && req.encryptedComponents && Object.keys(req.encryptedComponents).includes(key)) {
+                    newData[key] = decrypt(decryptSecret, field.buffer);
                   }
                   else {
                     newData[key] = field;
