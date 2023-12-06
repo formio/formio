@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 3.4.0-rc.15
+### Changed
+ - Updated formiojs@4.18.0-rc.9
+ - Updated formio-workers@1.20.0-rc.11
+ - FIO-7482: added ability to update default configuration forms in db to the versions required by the server (required for reportingUI form)
+
 ## 3.4.0-rc.14
 ### Changed
  - Updated formiojs@4.18.0-rc.8
