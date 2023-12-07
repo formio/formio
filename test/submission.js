@@ -282,7 +282,7 @@ module.exports = function(app, template, hook) {
                     done();
                 });
         });
-      });
+    });
 
     describe('Fieldset nesting', function() {
       it('Nests single value components in a fieldset', function(done) {
@@ -3775,6 +3775,405 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      let selectWithResourceSubmission = {};
+      it('Create a form with resource and submission for testing', function(done) {
+        const components = [{
+          type: 'textfield',
+          label: 'Text Field',
+          'key': 'text',
+          'type': 'textfield',
+          'input': true,
+        }, {
+          label: 'Select',
+          widget: 'choicesjs',
+          tableView: true,
+          dataSrc: 'resource',
+          data: {
+            resource: '5692b920d1028f01000407e7',
+          },
+          key: 'select',
+          type: 'select',
+          input: true,
+          submissionAccess: [{
+            type: 'read',
+            roles: [],
+          }],
+        }];
+
+        const values = {
+          text: 'Test',
+          select: {
+            _id: '64afea722fd6bd056a081cc4',
+          },
+        };
+
+        helper
+          .form('patchform', components)
+          .submission(values)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            selectWithResourceSubmission = helper.getLastSubmission();
+            done();
+          });
+      });
+
+      it('Allows updating a submission with submission access using PATCH', function(done) {
+        request(app)
+          .patch(hook.alter('url', '/form/' + helper.template.forms['patchform']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .send([{
+            op: 'replace',
+            path: '/data/text',
+            value: 'Patched',
+          }])
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(res.body.data.text, 'Patched');
+            done();
+          });
+      });
+
+      it('Create a form with resource and submission with empty select for testing', function(done) {
+        const components = [{
+          type: 'textfield',
+          label: 'Text Field',
+          'key': 'text',
+          'type': 'textfield',
+          'input': true,
+        }, {
+          label: 'Select',
+          widget: 'choicesjs',
+          tableView: true,
+          dataSrc: 'resource',
+          data: {
+            resource: '5692b920d1028f01000407e7',
+          },
+          key: 'select',
+          type: 'select',
+          input: true,
+          submissionAccess: [{
+            type: 'read',
+            roles: [],
+          }],
+        }];
+
+        const values = {
+          text: 'Test',
+          select: {},
+        };
+
+        helper
+          .form('pathWithEmptySelect', components)
+          .submission(values)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            done();
+          });
+      });
+
+      it('Allows updating a empty select submission with submission access using PATCH', function(done) {
+        request(app)
+          .patch(hook.alter('url', '/form/' + helper.template.forms['pathWithEmptySelect']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .send([{
+            op: 'replace',
+            path: '/data/text',
+            value: 'Patched',
+          }])
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert.equal(res.body.data.text, 'Patched');
+            done();
+          });
+      });
+
+      describe('Filtering submissions', () => {
+
+        it('Should filter submission for Currency Component', function(done) {
+          var components = [
+            {
+              "label": "Currency",
+              "applyMaskOn": "change",
+              "mask": false,
+              "spellcheck": true,
+              "currency": "USD",
+              "inputFormat": "plain",
+              "truncateMultipleSpaces": false,
+              "key": "currency",
+              "type": "currency",
+              "input": true,
+              "delimiter": true
+            }
+          ];
+  
+          helper
+            .form('filterCurrency', components)
+            .submission({ currency: 10 })
+            .submission({ currency: 20 })
+            .expect(201)
+            .execute(function(err) {
+              if (err) {
+                return done(err);
+              }
+              request(app)
+              .get(hook.alter('url', '/form/' + helper.template.forms['filterCurrency']._id + '/submission?data.currency=10', helper.template))
+              .set('x-jwt-token', helper.owner.token)
+              .send()
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(res.body.length, 1);
+                assert.equal(res.body[0].data.currency, 10);
+                done();
+              });
+            });
+        });
+
+        it('Should filter submission for SelectBoxes Component', function(done) {
+          var components = [
+            {
+              "label": "Select Boxes",
+              "optionsLabelPosition": "right",
+              "tableView": true,
+              "values": [
+                {
+                  "label": "a",
+                  "value": "a"
+                },
+                {
+                  "label": "b",
+                  "value": "b"
+                }
+              ],
+              "key": "selectBoxes",
+              "type": "selectboxes",
+              "input": true,
+              "inputType": "checkbox",
+              "defaultValue": {
+                "a": false,
+                "b": false
+              }
+            }
+          ];
+  
+          helper
+            .form('filterSelectBoxes', components)
+            .submission({ selectBoxes: {a: true, b: false} })
+            .submission({ selectBoxes: {a: false, b: true} })
+            .expect(201)
+            .execute(function(err) {
+              if (err) {
+                return done(err);
+              }
+              request(app)
+              .get(hook.alter('url', '/form/' + helper.template.forms['filterSelectBoxes']._id + '/submission?data.selectBoxes.a=true&data.selectBoxes.b=false', helper.template))
+              .set('x-jwt-token', helper.owner.token)
+              .send()
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(res.body.length, 1);
+                assert.equal(res.body[0].data.selectBoxes.a, true);
+                assert.equal(res.body[0].data.selectBoxes.b, false);
+                done();
+              });
+            });
+        });
+
+        it('Should return an empty array for incorrect filter', function(done) {
+          var components = [
+            {
+              "label": "Currency",
+              "applyMaskOn": "change",
+              "mask": false,
+              "spellcheck": true,
+              "currency": "USD",
+              "inputFormat": "plain",
+              "truncateMultipleSpaces": false,
+              "key": "currency",
+              "type": "currency",
+              "input": true,
+              "delimiter": true
+            },
+            {
+              "label": "Select Boxes",
+              "optionsLabelPosition": "right",
+              "tableView": true,
+              "values": [
+                {
+                  "label": "a",
+                  "value": "a"
+                },
+                {
+                  "label": "b",
+                  "value": "b"
+                }
+              ],
+              "key": "selectBoxes",
+              "type": "selectboxes",
+              "input": true,
+              "inputType": "checkbox",
+              "defaultValue": {
+                "a": false,
+                "b": false
+              }
+            }
+          ];
+  
+          helper
+            .form('filter', components)
+            .submission({ currency: 10 , selectBoxes: {a: true, b: false}})
+            .submission({ currency: 20 , selectBoxes: {a: false, b: true}})
+            .expect(201)
+            .execute(function(err) {
+              if (err) {
+                return done(err);
+              }
+              request(app)
+              .get(hook.alter('url', '/form/' + helper.template.forms['filter']._id + '/submission?data.currency=20&data.selectBoxes.b=false', helper.template))
+              .set('x-jwt-token', helper.owner.token)
+              .send()
+              .expect(200)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(res.body.length, 0);
+                assert.deepEqual(res.body, [])
+                done();
+              });
+            });
+        });
+      });
+
+    });
+
+    describe('Filtering submissions', () => {
+
+      it('Should filter submission for Select Component', function(done) {
+        var components = [
+          {
+            "label": "Select",
+            "widget": "choicesjs",
+            "tableView": true,
+            "data": {
+              "values": [
+                {
+                  "label": 1,
+                  "value": 1
+                },
+                {
+                  "label": 2,
+                  "value": 2
+                }
+              ]
+            },
+            "key": "select",
+            "type": "select",
+            "input": true
+          }
+        ];
+
+        helper
+          .form('filterSelect', components)
+          .submission({ select: 2 })
+          .submission({ select: 1 })
+          .submission({ select: 2 })
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            request(app)
+            .get(hook.alter('url', '/form/' + helper.template.forms['filterSelect']._id + '/submission?data.select=2', helper.template))
+            .set('x-jwt-token', helper.owner.token)
+            .send()
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(res.body.length, 2);
+              res.body.forEach(item => {
+                assert.equal(item.data.select, 2);
+              })
+              done();
+            });
+          });
+      });
+    });
+
+    describe('Submission index requests', function() {
+      before('Sets up a form and submissions with image or signature data', function(done) {
+        const testForm = _.cloneDeep(require('./fixtures/forms/fileComponent'));
+        const testSubmission = {
+          data: {
+            "file": [
+              {
+                storage: "base64",
+                name: "small_image-9724876b-17d6-4d91-b8b0-c910d2ccb819.png",
+                url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAIAAAADnC86AAAACXBIWXMAAAsTAAALEwEAmpwYAAAE9GlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4wLWMwMDAgNzkuMTcxYzI3ZmFiLCAyMDIyLzA4LzE2LTIyOjM1OjQxICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjQuMCAoTWFjaW50b3NoKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjMtMDEtMjNUMTE6MDQ6NTUtMDY6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDIzLTAxLTIzVDExOjA1OjMxLTA2OjAwIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDIzLTAxLTIzVDExOjA1OjMxLTA2OjAwIiBkYzpmb3JtYXQ9ImltYWdlL3BuZyIgcGhvdG9zaG9wOkNvbG9yTW9kZT0iMyIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDplNzIwNDIxYy0xNTI1LTQzMjctYTQwZC02YjE2MmFlNGI5ZDkiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6ZTcyMDQyMWMtMTUyNS00MzI3LWE0MGQtNmIxNjJhZTRiOWQ5IiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6ZTcyMDQyMWMtMTUyNS00MzI3LWE0MGQtNmIxNjJhZTRiOWQ5Ij4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDplNzIwNDIxYy0xNTI1LTQzMjctYTQwZC02YjE2MmFlNGI5ZDkiIHN0RXZ0OndoZW49IjIwMjMtMDEtMjNUMTE6MDQ6NTUtMDY6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCAyNC4wIChNYWNpbnRvc2gpIi8+IDwvcmRmOlNlcT4gPC94bXBNTTpIaXN0b3J5PiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PlxcqawAAAAySURBVFiF7c0BDQAwCACg+y72M6TBjOHmoACRXW/DX1nFYrFYLBaLxWKxWCwWi8VH4wGAdwGpX8v62wAAAABJRU5ErkJggg==",
+                size: 1408,
+                type: "image/png",
+                originalName: "small_image.png"
+              }
+            ],
+            "submit": true
+          }
+        };
+        helper
+          .form('base64Test', testForm.components)
+          .submission(testSubmission)
+          .expect(201)
+          .execute(done);
+      });
+
+      it('Should not return images or signatures by default', function(done) {
+        request(app)
+          .get(hook.alter('url', `/form/${helper.template.forms['base64Test']._id}/submission`, helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .expect(200)
+          .end((err, res) => {
+            if (err) {
+              done(err);
+            }
+            const submissionData = res.body[0].data.file[0];
+            assert(!submissionData.hasOwnProperty('url'), 'Since we have not specificed full=true, we should not recieve base64 data');
+            done();
+          });
+      })
+
+      it('Should return images or signatures with the query string "full=true"', function(done) {
+        request(app)
+          .get(hook.alter('url', `/form/${helper.template.forms['base64Test']._id}/submission?full=true`, helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .expect(200)
+          .end((err, res) => {
+            if (err) {
+              done(err);
+            }
+            const submissionData = res.body[0].data.file[0];
+            assert(submissionData.hasOwnProperty('url'), 'Since we have  specificed full=true, we should recieve base64 data');
+            done();
+          });
+      });
     });
   });
 
@@ -4109,153 +4508,6 @@ module.exports = function(app, template, hook) {
           done();
         });
     });
-
-    if (app.hasProjects && !docker) {
-      describe('Custom Submission collections', function() {
-        before((done) => {
-          if (helper.getForm('fruits')) {
-            return done();
-          }
-          // Create a resource to keep records.
-          helper
-            .form('fruits', [
-              {
-                "input": true,
-                "tableView": true,
-                "inputType": "text",
-                "inputMask": "",
-                "label": "Name",
-                "key": "name",
-                "placeholder": "",
-                "prefix": "",
-                "suffix": "",
-                "multiple": false,
-                "defaultValue": "",
-                "protected": false,
-                "unique": false,
-                "persistent": true,
-                "validate": {
-                  "required": false,
-                  "minLength": "",
-                  "maxLength": "",
-                  "pattern": "",
-                  "custom": "",
-                  "customPrivate": false
-                },
-                "conditional": {
-                  "show": null,
-                  "when": null,
-                  "eq": ""
-                },
-                "type": "textfield"
-              }
-            ])
-            .submission('fruits', {name: 'Apple'})
-            .submission('fruits', {name: 'Pear'})
-            .submission('fruits', {name: 'Banana'})
-            .submission('fruits', {name: 'Orange'})
-            .execute(function(err) {
-              if (err) {
-                return done(err);
-              }
-
-              done();
-            });
-        });
-
-        it('Should allow to use a custom submission collection', done => {
-          const hosted = template.config.formio.hosted;
-          template.config.formio.hosted = false;
-          const isDone = function(err) {
-            template.config.formio.hosted = hosted;
-            done(err);
-          };
-          const setProjectCollection = function(form, next) {
-            _.set(form, 'settings.collection', 'testCollection');
-            updateFormAndGetSubmissions(form, (err, submissions) => {
-              if (err) {
-                assert(err && err.message && err.message.indexOf('Only Enterprise projects can set different form collections') !== -1);
-                request(app)
-                  .post('/project/' + helper.template.project._id + '/upgrade')
-                  .set('x-jwt-token', helper.owner.token)
-                  .send({plan: 'commercial'})
-                  .expect(200)
-                  .end(function(err) {
-                    if (err) {
-                      return next(err);
-                    }
-                    setProjectCollection(form, next);
-                  });
-              }
-              else {
-                next(null, submissions);
-              }
-            });
-          };
-          helper.getSubmissions('fruits', (err, formsubs) => {
-            if (err) {
-              return isDone(err);
-            }
-
-            assert.equal(formsubs.length, 4);
-            assert.deepEqual(formsubs.map((sub) => {
-              return sub.data.name;
-            }).sort(), ['Apple', 'Banana', 'Orange', 'Pear']);
-            const form = helper.getForm('fruits');
-            assert.equal(!!form, true);
-            setProjectCollection(form, (err, submissions) => {
-              if (err) {
-                return isDone(err);
-              }
-              assert.equal(submissions.length, 0);
-              helper
-                .submission('fruits', {name: 'Peach'})
-                .submission('fruits', {name: 'Blueberry'})
-                .submission('fruits', {name: 'Strawberry'})
-                .execute(function(err) {
-                  if (err) {
-                    return isDone(err);
-                  }
-                  helper.getSubmissions('fruits', (err, formsubs) => {
-                    if (err) {
-                      isDone(err);
-                    }
-                    assert.equal(formsubs.length, 3);
-                    assert.deepEqual(formsubs.map((sub) => {
-                      return sub.data.name;
-                    }).sort(), ['Blueberry', 'Peach', 'Strawberry']);
-                    helper.deleteSubmission(formsubs.find(sub => (sub.data.name === 'Strawberry')), (err) => {
-                      if (err) {
-                        isDone(err);
-                      }
-                      helper.getSubmissions('fruits', (err, formsubs) => {
-                        if (err) {
-                          isDone(err);
-                        }
-                        assert.equal(formsubs.length, 2);
-                        assert.deepEqual(formsubs.map((sub) => {
-                          return sub.data.name;
-                        }).sort(), ['Blueberry', 'Peach']);
-                        _.unset(form, 'settings.collection');
-                        updateFormAndGetSubmissions(form, (err, formsubs) => {
-                          if (err) {
-                            return isDone(err);
-                          }
-                          assert.equal(formsubs.length, 4);
-                          assert.deepEqual(formsubs.map((sub) => {
-                            return sub.data.name;
-                          }).sort(), ['Apple', 'Banana', 'Orange', 'Pear']);
-                          isDone();
-                        });
-                      });
-                    });
-                  });
-              });
-            });
-          });
-        });
-      });
-    }
 
     // if (app.hasProjects || docker)
     // it('Should allow an update to the submission where all sub-submissions are also updated.', (done) => {

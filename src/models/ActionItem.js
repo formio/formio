@@ -63,6 +63,12 @@ module.exports = function(formio) {
   catch (err) {
     console.log(err.message);
   }
+  try {
+    model.schema.index({_ts: 1}, {expireAfterSeconds: 2592000});
+  }
+  catch (err) {
+    console.log(err.message);
+  }
 
   // Add indexes to speed up the action items pages.
   model.schema.index(hook.alter('schemaIndex', {state: 1, deleted: 1, modified: -1}));

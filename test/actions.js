@@ -476,6 +476,87 @@ module.exports = (app, template, hook) => {
         ],
       };
 
+      let webhookForm1 = {
+        title: 'Webhook Form 1',
+        name: 'webhookform1',
+        path: 'webhookform1',
+        type: 'form',
+        access: [],
+        submissionAccess: [],
+        components: [
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false,
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'foo',
+            key: 'firstName',
+            label: 'First Name',
+            inputMask: '',
+            inputType: 'text',
+            input: true,
+          },
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false,
+            },
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            placeholder: 'foo',
+            key: 'lastName',
+            label: 'Last Name',
+            inputMask: '',
+            inputType: 'text',
+            input: true,
+          },
+          {
+            type: 'email',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: 'Enter your email address',
+            key: 'email',
+            label: 'Email',
+            inputType: 'email',
+            tableView: true,
+            input: true,
+          },
+          {
+            type: 'password',
+            persistent: true,
+            unique: false,
+            protected: false,
+            defaultValue: '',
+            suffix: '',
+            prefix: '',
+            placeholder: 'Enter your password',
+            key: 'password',
+            label: 'Password',
+            inputType: 'password',
+            tableView: true,
+            input: true,
+          },
+        ],
+      };
+
       let port = 4002;
       let webhookSubmission = null;
       let webhookHandler = () => {};
@@ -671,6 +752,102 @@ module.exports = (app, template, hook) => {
             if (err) {
               return done(err);
             }
+          });
+      });
+
+      it('Should create the form and action for the webhook tests with conditionals', (done) => {
+        newServer((err, server) => {
+          if (err) {
+            return done(err);
+          }
+          webhookServer = server;
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(webhookForm1)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              webhookForm1 = res.body;
+              template.users.admin.token = res.headers['x-jwt-token'];
+              request(app)
+                .post(hook.alter('url', `/form/${webhookForm1._id}/action`, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send({
+                  title: 'Webhook',
+                  name: 'webhook',
+                  form: webhookForm1._id.toString(),
+                  handler: ['after'],
+                  method: ['create', 'update', 'delete'],
+                  priority: 1,
+                  settings: {
+                    url: server.url,
+                    username: '',
+                    password: '',
+                  },
+                  condition: {
+                    field: 'lastName',
+                    eq: 'equals',
+                    value: '123'
+                  },
+                })
+                .expect('Content-Type', /json/)
+                .expect(201)
+                .end((err, res) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  template.users.admin.token = res.headers['x-jwt-token'];
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Should send a webhook with create data with conditionals', (done) => {
+        request(app)
+        .post(hook.alter('url', `/form/${webhookForm1._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          data: {
+            firstName: 'testCondition',
+            lastName: 'Person',
+            email: 'test@example.com',
+            password: '123testing',
+          },
+        })
+        .expect(201)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          done();
+          webhookSubmission = res.body;
+        });
+      });
+
+      it('Should send a webhook with deleted data with conditionals', (done) => {
+        webhookHandler = (body, url) => {
+          body = hook.alter('webhookBody', body);
+          assert.equal(url.query.formId, webhookForm1._id);
+          assert.equal(url.query.submissionId, webhookSubmission._id);
+          done();
+        };
+
+        request(app)
+          .delete(hook.alter('url', `/form/${webhookForm1._id}/submission/${webhookSubmission._id}`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .end((err) => {
+            if (err) {
+              return done(err);
+            }
+            done();
           });
       });
 

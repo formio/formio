@@ -43,19 +43,12 @@ module.exports = (router) => {
     }
 
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-    return submissionModel.find(hook.alter('submissionQuery', query, req)).exec()
-      .then((submissions) => {
-        if (!submissions || submissions.length === 0) {
-          return Promise.resolve();
-        }
-
-        return Promise.all(submissions.map((submission) => {
-          submission.deleted = Date.now();
-          submission.markModified('deleted');
-          return submission.save();
-        }))
-          .then(() => submissions);
-      });
+    return submissionModel.updateMany(
+      hook.alter('submissionQuery', query, req),
+      {
+        deleted: Date.now()
+      }
+    );
   }
 
   /**
@@ -91,19 +84,10 @@ module.exports = (router) => {
       query.form = {$in: forms};
     }
 
-    return router.formio.actions.model.find(query).exec()
-      .then((actions) => {
-        if (!actions || actions.length === 0) {
-          return Promise.resolve();
-        }
-
-        return Promise.all(actions.map((action) => {
-          action.settings = action.settings || {};
-          action.deleted = Date.now();
-          action.markModified('deleted');
-          return action.save();
-        }))
-          .then(() => actions);
+    return router.formio.actions.model.updateMany(
+      query,
+      {
+        deleted: Date.now(),
       });
   }
 
@@ -125,21 +109,15 @@ module.exports = (router) => {
     }
 
     const query = {_id: util.idToBson(formId), deleted: {$eq: null}};
-    return router.formio.resources.form.model.findOne(query).exec()
-      .then((form) => {
-        if (!form) {
-          return Promise.resolve();
-        }
-
-        form.deleted = Date.now();
-        form.markModified('deleted');
-        return form.save()
-          .then(() => Promise.all([
-            deleteAction(null, formId, req),
-            deleteSubmission(null, formId, req),
-          ]))
-          .then(() => form);
-      });
+    return router.formio.resources.form.model.updateOne(
+      query,
+      {
+        deleted: Date.now(),
+      })
+    .then(()=> Promise.all([
+      deleteAction(null, formId, req),
+      deleteSubmission(null, formId, req),
+    ]));
   }
 
   /**
@@ -179,32 +157,34 @@ module.exports = (router) => {
       }, req);
 
       return router.formio.resources.form.model.find(query).exec()
-        .then((forms) => {
-          if (!forms || forms.length === 0) {
-            return Promise.resolve();
+      .then((forms) => {
+        if (!forms || forms.length === 0) {
+          return Promise.resolve();
+        }
+
+        // Iterate each form and remove the role.
+        return Promise.all(forms.map((form) => {
+          const update = {};
+          // Iterate each access type to remove the role.
+          for (const accessType of accessTypes) {
+            const accesses = form.toObject()[accessType] || [];
+
+            // Iterate the roles for each permission type, and remove the given roleId.
+            for (const access of accesses) {
+              access.roles = (access.roles || [])
+                .map(util.idToString)
+                .filter((role) => role !== roleId)
+                .map(util.idToBson);
+            }
+            update[accessType]= accesses;
           }
 
-          // Iterate each form and remove the role.
-          return Promise.all(forms.map((form) => {
-            // Iterate each access type to remove the role.
-            for (const accessType of accessTypes) {
-              const accesses = form.toObject()[accessType] || [];
-
-              // Iterate the roles for each permission type, and remove the given roleId.
-              for (const access of accesses) {
-                access.roles = (access.roles || [])
-                  .map(util.idToString)
-                  .filter((role) => role !== roleId)
-                  .map(util.idToBson);
-              }
-
-              form.set(accessType, accesses);
-              form.markModified(accessType);
-            }
-
-            return form.save();
-          }));
-        });
+         return router.formio.resources.form.model.updateOne({
+            _id: form._id
+          },
+          {$set: update});
+        }));
+      });
     }
 
     /**
@@ -222,24 +202,12 @@ module.exports = (router) => {
       };
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
-      return submissionModel.find(hook.alter('submissionQuery', query, req)).exec()
-        .then((submissions) => {
-          if (!submissions || submissions.length === 0) {
-            return Promise.resolve();
-          }
-
-          // Iterate each submission to filter the roles.
-          return Promise.all(submissions.map((submission) => {
-            const roles = (submission.toObject().roles || [])
-              .map(util.idToString)
-              .filter((role) => role !== roleId)
-              .map(util.idToBson);
-
-            submission.set('roles', roles);
-            submission.markModified('roles');
-            return submission.save();
-          }));
-        });
+      submissionModel.updateMany(
+        hook.alter('submissionQuery', query, req),
+        {
+          $pull: {roles: roleId}
+        }
+      );
     }
 
     // Build the search query and allow anyone to hook it.
@@ -281,18 +249,14 @@ module.exports = (router) => {
     }
 
     const query = {_id: util.idToBson(roleId), deleted: {$eq: null}};
-    return router.formio.resources.role.model.findOne(query).exec()
-      .then((role) => {
-        if (!role) {
-          return Promise.resolve();
-        }
 
-        role.deleted = Date.now();
-        role.markModified('deleted');
-        return role.save()
-          .then(() => deleteRoleAccess(roleId, req))
-          .then(() => role);
-      });
+    return router.formio.resources.role.model.updateMany(
+      query,
+      {
+        deleted: Date.now()
+      }
+    )
+    .then(() => deleteRoleAccess(roleId, req));
   }
 
   /**
