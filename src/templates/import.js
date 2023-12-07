@@ -270,6 +270,16 @@ module.exports = (router) => {
         changed = true;
       }
 
+      // Update resource machineNames for dataTable components with the resource data type.
+      if (
+        (component.type === 'datatable') &&
+        (component.fetch && component.fetch.dataSrc === 'resource') &&
+        resourceMachineNameToId(template, component.fetch)
+      ) {
+        hook.alter(`importComponent`, template, component.fetch);
+        changed = true;
+      }
+
       // Allow importing of components.
       if (hook.alter(`importComponent`, template, component)) {
         changed = true;
@@ -609,7 +619,85 @@ module.exports = (router) => {
           return done();
         });
       },
-    }
+    },
+    report: {
+      model: formio.resources.submission.model,
+      valid: (reports) => {
+        if (typeof reports === 'object' && !(reports instanceof Array)) {
+          return true;
+        }
+
+        return false;
+      },
+      transform: (template, report, fallbacks, requiredAttr) => {
+        if (!report) {
+          return;
+        }
+
+        const reportingFormId = requiredAttr.reportingFormId;
+
+        if (!reportingFormId) {
+          return;
+        }
+
+        const reportFormsPath = 'data.forms';
+        const assignedReportForms = _.get(report, reportFormsPath);
+        const reportForms = [];
+        let reportDataString = JSON.stringify(report.data);
+
+        _.each(assignedReportForms, (formId, formName) => {
+          const formObj = template.forms[formName] || template.resources[formName];
+          if (formObj) {
+            const newFormId = formObj._id.toString();
+            reportForms.push(newFormId);
+            reportDataString = _.replace(reportDataString, new RegExp(formId, 'g'), newFormId);
+          }
+          else {
+            reportForms.push(formId);
+          }
+        });
+
+        try {
+          _.assign(report.data, JSON.parse(reportDataString));
+        }
+        catch (e) {
+          return;
+        }
+
+        _.set(report, reportFormsPath, reportForms);
+        report.form = reportingFormId;
+        report.project = template._id.toString();
+
+        return report;
+      },
+      requiredAttributes: async (template) => {
+        const reportingUIFormName = 'reportingui';
+        let reportingForm = template.forms[reportingUIFormName] || template.resources[reportingUIFormName];
+
+        if (!reportingForm) {
+          reportingForm = await formio.resources.form.model.findOne({
+            name: reportingUIFormName,
+            deleted: {$eq: null},
+            project: formio.util.idToBson(template._id)
+          });
+        }
+
+        const reportingFormId = reportingForm ? reportingForm._id.toString() : '';
+
+        return {
+          error: reportingFormId ? '' : 'Unable to import reports. The reporting UI form is not found',
+          reportingFormId
+        };
+      },
+      query(document, template, requiredAttr) {
+        return {
+          'data.name': _.get(document, 'data.name', ''),
+          deleted: {$eq: null},
+          form: formio.util.idToBson(requiredAttr.reportingFormId),
+          project: document.project
+        };
+      },
+    },
   };
 
   /**
@@ -627,8 +715,9 @@ module.exports = (router) => {
     const transform = entity.transform;
     const cleanUp = entity.cleanUp;
     const createOnly = entity.createOnly;
+    const requiredAttributes = entity.requiredAttributes;
 
-    return (template, items, alter, done) => {
+    return  async (template, items, alter, done) => {
       // Normalize arguments.
       if (!done) {
         done = alter;
@@ -645,9 +734,19 @@ module.exports = (router) => {
       debug.items(Object.keys(items));
 
       // If the given items don't have a valid structure for this entity, skip the import.
-      if (valid && !valid(items)) {
+      if (valid && !valid(items, template)) {
         debug.install(`The given items were not valid: ${JSON.stringify(Object.keys(items))}`);
         return done();
+      }
+
+      let requiredAttrs = {};
+      // check if some additional data is required to import template
+      if (requiredAttributes) {
+        requiredAttrs = await requiredAttributes(template);
+        if (requiredAttrs.error) {
+          debug.install(requiredAttrs.error);
+          return done();
+        }
       }
 
       const performInstall = (document, machineName, item, next) => {
@@ -664,7 +763,7 @@ module.exports = (router) => {
           }
 
           debug.install(document.name);
-          const query = entity.query ? entity.query(document, template) : {
+          const query = entity.query ? entity.query(document, template, requiredAttrs) : {
             machineName: document.machineName,
             deleted: {$eq: null}
           };
@@ -823,7 +922,7 @@ module.exports = (router) => {
           nestedResources: [],
         };
         const document = transform
-          ? transform(template, item, fallbacks)
+          ? transform(template, item, fallbacks, requiredAttrs)
           : item;
 
         // If no document was provided before the alter, skip the insertion.
@@ -909,12 +1008,18 @@ module.exports = (router) => {
       return done(`No template provided.`);
     }
 
-    async.series(hook.alter(`templateImportSteps`, [
+    const importSteps = [
       async.apply(install(entities.role), template, template.roles, alter.role),
       async.apply(install(entities.resource), template, template.resources, alter.form),
       async.apply(install(entities.form), template, template.forms, alter.form),
       async.apply(install(entities.action), template, template.actions, alter.action),
-    ], install, template), (err) => {
+    ];
+
+    if (hook.alter(`includeReports`)) {
+      importSteps.push(async.apply(install(entities.report), template, template.reports));
+    }
+
+    async.series(hook.alter(`templateImportSteps`, importSteps, install, template), (err) => {
       if (err) {
         debug.template(err);
         return done(err);

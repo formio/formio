@@ -167,6 +167,7 @@ module.exports = (router) => {
             assignForm(_map, component.data);
             assignResource(_map, component);
             assignResource(_map, component.data);
+            assignResource(_map, component.fetch);
             if (component && component.data && component.data.project) {
               component.data.project = 'project';
             }
@@ -181,6 +182,44 @@ module.exports = (router) => {
             hook.alter('exportComponent', component);
           });
         });
+        next();
+      });
+  };
+
+  // Export reports.
+  const exportReports = function(_export, _map, options, next) {
+    const reportingConfigurationFormId = _.findKey(_map.forms, name => name === 'reportingui');
+
+    if (!reportingConfigurationFormId) {
+      return next();
+    }
+
+    formio.resources.submission.model
+      .find(hook.alter('submissionQuery', {form: reportingConfigurationFormId, deleted: {$eq: null}}, options))
+      .lean(true)
+      .exec(function(err, reports) {
+        if (err) {
+          return next(err);
+        }
+
+        _.each(reports, report =>  {
+          if (!report || !report.data) {
+            return;
+          }
+          const formattedReport = _.pick(report, 'data');
+          const reportFormsPath = 'data.forms';
+          const reportForms = _.get(formattedReport, reportFormsPath, []);
+          const assignedForms = {};
+
+          _.each(reportForms, formId => {
+            const formName = _map.forms[formId];
+            assignedForms[`${formName || formId}`] = formId;
+          });
+
+          _.set(formattedReport, reportFormsPath, assignedForms);
+          _export.reports[_.get(formattedReport, 'data.name', '')] = formattedReport;
+        });
+
         next();
       });
   };
@@ -302,7 +341,7 @@ module.exports = (router) => {
    * Note: This is all of the core entities, not submission data.
    */
   const exportTemplate = (options, next) => {
-    const template = hook.alter('defaultTemplate', Object.assign({
+    const basicTemplate = {
       title: 'Export',
       version: '2.0.0',
       description: '',
@@ -311,8 +350,18 @@ module.exports = (router) => {
       forms: {},
       actions: {},
       resources: {},
-      revisions: {}
-    }, _.pick(options, ['title', 'version', 'description', 'name'])), options);
+      revisions: {},
+    };
+
+    if (hook.alter('includeReports')) {
+      basicTemplate.reports = {};
+    }
+
+    const template = hook.alter(
+      'defaultTemplate',
+      Object.assign(basicTemplate, _.pick(options, ['title', 'version', 'description', 'name'])),
+      options
+    );
 
     // Memoize resource mapping.
     const map = {
@@ -329,7 +378,8 @@ module.exports = (router) => {
       async.apply(exportRoles, template, map, options),
       async.apply(exportForms, template, map, options),
       async.apply(exportActions, template, map, options),
-      async.apply(exportRevisions, template, map, options)
+      async.apply(exportRevisions, template, map, options),
+      async.apply(exportReports, template, map, options),
     ], template, map, options), (err) => {
       if (err) {
         return next(err);
