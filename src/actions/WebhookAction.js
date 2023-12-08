@@ -219,7 +219,7 @@ module.exports = function(router) {
 
         fetch(url, options)
         .then((response) => {
-          if (!response.bodyUsed && method === 'DELETE') {
+          if (!response.bodyUsed) {
             if (response.ok) {
               return handleSuccess({}, response);
             }

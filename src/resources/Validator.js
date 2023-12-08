@@ -54,7 +54,6 @@ class Validator {
     // Skip validation if no data is provided.
     if (!submission.data) {
       debug.validator('No data skipping validation');
-      debug.validator(submission);
       return next();
     }
 
@@ -115,19 +114,20 @@ class Validator {
       // Set the submission data
       form.data = submission.data;
 
+       // Reset the data
+      form.data = {};
+      form.setValue(submission, {
+        sanitize: this.sanitize ||  form.allowAllSubmissionData ? false : true,
+      });
+
       // Perform calculations and conditions.
       form.checkConditions();
       form.clearOnHide();
       form.calculateValue();
 
-      // Reset the data
-      form.data = {};
-
       // Set the value to the submission.
       unsetsEnabled = true;
-      form.setValue(submission, {
-        sanitize: this.sanitize
-      });
+ 
 
       // Check the visibility of conditionally visible components after unconditionally visible
       _.forEach(conditionallyInvisibleComponents, ({component, key, data}) => {
@@ -141,7 +141,12 @@ class Validator {
         if (valid) {
           // Clear the non-persistent fields.
           unsets.forEach((unset) => _.unset(unset.data, unset.key));
-          submission.data = emptyData ? {} : form.data;
+          if (form.form.display === 'wizard' && (form.prefixComps.length || form.suffixComps.length)) {
+            submission.data = emptyData ? {} : {...submission.data, ...form.data};
+          }
+          else {
+            submission.data = emptyData ? {} : form.data;
+          }
           const visibleComponents = (form.getComponents() || []).map(comp => comp.component);
           return next(null, submission.data, visibleComponents);
         }

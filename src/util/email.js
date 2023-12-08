@@ -1,7 +1,7 @@
 'use strict';
 
 const nodemailer = require('nodemailer');
-const sgTransport = require('nodemailer-sendgrid-transport');
+const sgTransport = require('nodemailer-sendgrid');
 const mandrillTransport = require('nodemailer-mandrill-transport');
 const mailgunTransport = require('nodemailer-mailgun-transport');
 const debug = {
@@ -14,6 +14,7 @@ const fetch = require('@formio/node-fetch-http-proxy');
 const util = require('./util');
 const _ = require('lodash');
 
+const DEFAULT_TRANSPORT = process.env.DEFAULT_TRANSPORT;
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
 const EMAIL_CHUNK_SIZE = process.env.EMAIL_CHUNK_SIZE || 100;
 const NON_PRIORITY_QUEUE_TIMEOUT = process.env.NON_PRIORITY_QUEUE_TIMEOUT || 1000;
@@ -175,6 +176,18 @@ module.exports = (formio) => {
     .catch(reject);
   });
 
+  const getEnvSettings = (variable) => {
+    let settings = null;
+    try {
+      settings = JSON.parse(variable);
+    }
+    catch (err) {
+      console.log(`Cannot read ${variable}: ${err.message}`);
+      settings = null;
+    }
+    return settings;
+  };
+
   /**
    * Util function to run the email through nunjucks.
    *
@@ -225,7 +238,7 @@ module.exports = (formio) => {
    * @param next
    * @returns {*}
    */
-  const send = (req, res, message, params, next) => {
+  const send = (req, res, message, params, next, setActionItemMessage = () => {}) => {
     // The transporter object.
     let transporter = {sendMail: null};
 
@@ -265,43 +278,33 @@ module.exports = (formio) => {
       // Force the email type to custom for EMAIL_OVERRIDE which will allow
       // us to use ngrok to test emails out of test platform.
       if (EMAIL_OVERRIDE) {
-        try {
-          const override = JSON.parse(EMAIL_OVERRIDE);
-          if (override && override.hasOwnProperty('transport')) {
-            emailType = override.transport;
-            settings.email = {};
-            settings.email[emailType] = override.settings;
-          }
-          else {
-            emailType = 'custom';
-          }
+        const override = getEnvSettings(EMAIL_OVERRIDE);
+        if (override && override.hasOwnProperty('transport')) {
+          emailType = override.transport;
+          settings.email = {};
+          settings.email[emailType] = override.settings;
         }
-        catch (err) {
+        else {
           emailType = 'custom';
+        }
+      }
+
+      if (emailType === 'default' && DEFAULT_TRANSPORT) {
+        const defaultTransport = getEnvSettings(DEFAULT_TRANSPORT);
+        if (defaultTransport && defaultTransport.hasOwnProperty('transport')) {
+          emailType = defaultTransport.transport;
+          settings.email = {};
+          settings.email[emailType] = defaultTransport.settings;
+          settings.email[emailType].defaultTransport = true;
         }
       }
 
       switch (emailType) {
         case 'default':
           if (_config && formio.config.email.type === 'sendgrid') {
-            /* eslint-disable camelcase */
-            // Check if the user has configured sendgrid for api key access.
-            if (!formio.config.email.username && formio.config.email.password) {
-              transporter = nodemailer.createTransport(sgTransport({
-                auth: {
-                  api_key: formio.config.email.password,
-                },
-              }));
-            }
-            else {
-              transporter = nodemailer.createTransport(sgTransport({
-                auth: {
-                  api_user: formio.config.email.username,
-                  api_key: formio.config.email.password,
-                },
-              }));
-            }
-            /* eslint-enable camelcase */
+            transporter = nodemailer.createTransport(sgTransport({
+              apiKey: formio.config.email.password
+            }));
           }
           else if (_config && formio.config.email.type === 'mandrill') {
             transporter = nodemailer.createTransport(mandrillTransport({
@@ -314,15 +317,9 @@ module.exports = (formio) => {
         case 'sendgrid':
           if (_.has(settings, 'email.sendgrid')) {
             debug.email(settings.email.sendgrid);
-            // Check if the user has configured sendgrid for api key access.
-            if (_.get(settings, 'email.sendgrid.auth.api_user')
-              && _.get(settings, 'email.sendgrid.auth.api_user').toString() === 'apikey'
-            ) {
-              settings.email.sendgrid.auth = _.omit(settings.email.sendgrid.auth, 'api_user');
-            }
-
-            debug.email(settings.email.sendgrid);
-            transporter = nodemailer.createTransport(sgTransport(settings.email.sendgrid));
+            transporter = nodemailer.createTransport(sgTransport({
+              apiKey: settings.email.sendgrid.auth.api_key
+            }));
           }
           break;
         case 'mandrill':
@@ -379,7 +376,6 @@ module.exports = (formio) => {
                 rejectUnauthorized: false,
               };
             }
-
             transporter = nodemailer.createTransport(_settings);
           }
           break;
@@ -475,6 +471,47 @@ module.exports = (formio) => {
         params,
       };
 
+      const sendEmail = (email) => {
+        // Replace all newline chars with empty strings, to fix newline support in html emails.
+        if (email.html && (typeof email.html === 'string')) {
+          email.html = email.html.replace(/\n/g, '');
+        }
+
+        return new Promise((resolve, reject) => {
+          // Allow anyone to hook the final email before sending.
+          return hook.alter('email', email, req, res, params, setActionItemMessage, (err, email) => {
+            if (err) {
+              return reject(err);
+            }
+
+            // Allow anyone to hook the final destination settings before sending.
+            hook.alter('emailSend', true, email, (err, send) => {
+              if (err) {
+                return reject(err);
+              }
+              if (!send) {
+                return resolve(email);
+              }
+
+              try {
+                return transporter.sendMail(email, (err, info) => {
+                  if (err) {
+                    debug.error(err);
+                    return reject(err);
+                  }
+
+                  return resolve(info);
+                });
+              }
+              catch (err) {
+                console.log(err);
+                reject(err);
+              }
+            });
+          });
+        });
+      };
+
       const sendEmails = () => nunjucksInjector(mail, options)
         .then((email) => hook.alter('checkEmailPermission', email, params.form))
         .then((email) => {
@@ -483,7 +520,7 @@ module.exports = (formio) => {
           debug.send(`message.sendEach: ${message.sendEach}`);
           // debug.send(`email: ${JSON.stringify(email)}`);
           if (message.sendEach === true) {
-            const addresses = _.uniq(email.to.split(',').map(_.trim));
+            const addresses = _.uniq(email.to.split(',').map(_.trim)).filter(address=>address.length&&address.length>0);
             // debug.send(`addresses: ${JSON.stringify(addresses)}`);
             // Make a copy of the email for each recipient.
             emails = addresses.map((address) => Object.assign({}, email, {to: address}));
@@ -497,65 +534,34 @@ module.exports = (formio) => {
           const chunks = _.chunk(emails, EMAIL_CHUNK_SIZE);
           return chunks.reduce((result, chunk) => {
             // Send each mail using the transporter.
-            return result.then(() => new Promise((resolve) => {
+            return result.then(() => new Promise((resolve, reject) => {
               setImmediate(
-                () => Promise.all(chunk.map((email) => {
-                  // Replace all newline chars with empty strings, to fix newline support in html emails.
-                  if (email.html && (typeof email.html === 'string')) {
-                    email.html = email.html.replace(/\n/g, '');
-                  }
-
-                  return new Promise((resolve, reject) => {
-                    // Allow anyone to hook the final email before sending.
-                    return hook.alter('email', email, req, res, params, (err, email) => {
-                      if (err) {
-                        return reject(err);
-                      }
-
-                      // Allow anyone to hook the final destination settings before sending.
-                      hook.alter('emailSend', true, email, (err, send) => {
-                        if (err) {
-                          return reject(err);
-                        }
-                        if (!send) {
-                          return resolve(email);
-                        }
-
-                        return transporter.sendMail(email, (err, info) => {
-                          if (err) {
-                            debug.error(err);
-                          }
-
-                          return resolve(info);
-                        });
-                      });
-                    });
-                  });
-                }))
-                  .then(resolve),
+                () => Promise.all(chunk.map((email) => sendEmail(email)))
+                  .then(resolve)
+                  .catch(reject),
               );
             }));
           }, Promise.resolve());
-        });
+      });
 
-        const throttledSendEmails = _.throttle(sendEmails , NON_PRIORITY_QUEUE_TIMEOUT);
+      const throttledSendEmails = _.throttle(sendEmails , NON_PRIORITY_QUEUE_TIMEOUT);
 
-        if (req.user) {
-          return sendEmails()
-            .then((response) => next(null, response))
-            .catch((err) => {
-              debug.error(err);
-              return next(err);
-            });
-        }
-     else {
-      throttledSendEmails()
-        .catch((err) => {
-          debug.error(err);
-          return next(err);
-        });
+      if (req.user) {
+        return sendEmails()
+          .then((response) => next(null, response))
+          .catch((err) => {
+            debug.error(err);
+            return next(err);
+          });
+      }
+      else {
+        throttledSendEmails()
+          .catch((err) => {
+            debug.error(err);
+            return next(err);
+          });
         return next();
-     }
+      }
     });
   };
 

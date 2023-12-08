@@ -68,6 +68,14 @@ module.exports = (router) => {
       req.user = user;
 
       // Store the jwt token sent by the user.
+      if (decoded.user._id === 'external') {
+        decoded.user._id = util.toMongoId(
+          decoded.user.data.id ||
+          decoded.user.data._id ||
+          decoded.user.data.email ||
+          JSON.stringify(decoded.user.data)
+        );
+      }
       req.token = decoded;
 
       // Refresh the token that is sent back to the user when appropriate.
@@ -204,8 +212,6 @@ module.exports = (router) => {
             res.token = null;
             return next();
           }
-
-          debug.handler(user);
 
           hook.alter('validateToken', req, decoded, user, (err) => {
             if (err) {

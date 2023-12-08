@@ -1,6 +1,6 @@
 'use strict';
 
-// Setup the Form.IO server.
+// Setup the Form.IO server.//
 const express = require('express');
 const cors = require('cors');
 const router = express.Router();
@@ -217,6 +217,11 @@ module.exports = function(config) {
         router.get('/access', router.formio.middleware.tokenVerify,router.formio.middleware.accessHandler);
       }
 
+      // The public config handler.
+      if (!router.formio.hook.invoke('init', 'config', router.formio)) {
+        router.use('/config.json', router.formio.middleware.configHandler);
+      }
+
       // Authorize all urls based on roles and permissions.
       if (!router.formio.hook.invoke('init', 'perms', router.formio)) {
         router.use(router.formio.middleware.permissionHandler);
@@ -338,8 +343,7 @@ module.exports = function(config) {
 
         // Add the available templates.
         router.formio.templates = {
-          default: _.cloneDeep(require('./src/templates/default.json')),
-          empty: _.cloneDeep(require('./src/templates/empty.json'))
+          default: _.cloneDeep(require('./src/templates/default.json'))
         };
 
         // Add the template functions.

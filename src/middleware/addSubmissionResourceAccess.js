@@ -34,8 +34,8 @@ module.exports = (router) => {
   };
 
   return function addSubmissionResourceAccess(req, res, next) {
-    // Only add on PUT/POST.
-    if (!(req.method === 'POST' || req.method === 'PUT')) {
+    // Only add on PUT/POST/PATCH.
+    if (!(req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH')) {
       return next();
     }
 
@@ -58,7 +58,11 @@ module.exports = (router) => {
           }
 
           let value = _.get(req.body.data, path);
-          if (value) {
+          if (!_.isEmpty(value)) {
+            if (req.method === 'PATCH') {
+              value._id = value._id.toString();
+            }
+
             if (!Array.isArray(value)) {
               value = [value];
             }
