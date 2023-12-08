@@ -116,9 +116,8 @@ class Validator {
 
        // Reset the data
       form.data = {};
-
       form.setValue(submission, {
-        sanitize: form.allowAllSubmissionData ? false : true,
+        sanitize: this.sanitize ||  form.allowAllSubmissionData ? false : true,
       });
 
       // Perform calculations and conditions.
@@ -128,9 +127,7 @@ class Validator {
 
       // Set the value to the submission.
       unsetsEnabled = true;
-      form.setValue(submission, {
-        sanitize: this.sanitize
-      });
+ 
 
       // Check the visibility of conditionally visible components after unconditionally visible
       _.forEach(conditionallyInvisibleComponents, ({component, key, data}) => {
