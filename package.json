@@ -8,7 +8,6 @@
     "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000 --exit",
     "start": "node main.js",
     "start:dev": "nodemon main.js",
-    "preinstall": "npm install --package-lock-only --ignore-scripts && npx npm-force-resolutions",
     "lint": "eslint ."
   },
   "author": "support@form.io",
@@ -18,9 +17,10 @@
   "schema": "3.1.4",
   "templateVersion": "2.0.0",
   "dependencies": {
-    "@azure/ms-rest-nodeauth": "^3.0.9",
+    "@azure/ms-rest-nodeauth": "^3.1.1",
     "@formio/node-fetch-http-proxy": "^1.1.0",
     "@sendgrid/mail": "^7.7.0",
+    "JSONStream": "^1.3.5",
     "adm-zip": "^0.5.9",
     "async": "^3.2.4",
     "bcryptjs": "^2.4.3",
@@ -33,17 +33,15 @@
     "csv": "^6.1.3",
     "debug": "^4.3.4",
     "delete-property": "0.0.4",
-    "dotenv": "^8.2.0",
     "eslint-config-formio": "^1.1.2",
     "event-chain": "^0.0.1",
     "expose-gc": "^1.0.0",
     "express": "^4.18.2",
     "fast-json-patch": "^3.1.1",
-    "formio-workers": "^1.15.2",
+    "formio-workers": "1.18.0",
     "formiojs": "4.16.0",
     "fs-extra": "^10.1.0",
     "html-entities": "^2.3.3",
-    "JSONStream": "^1.3.5",
     "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
     "mailgun.js": "^8.0.1",
@@ -69,20 +67,11 @@
   "devDependencies": {
     "eslint": "^8.25.0",
     "mocha": "^10.0.0",
-    "nodemon": "^3.0.2",
+    "nodemon": "^2.0.20",
     "pre-commit": "^1.2.2",
     "superagent-use": "^0.1.0",
     "supertest": "^6.3.0",
     "supertest-capture-error": "^1.0.0"
-  },
-  "resolutions": {
-    "@xmldom/xmldom": "0.7.7",
-    "jsonwebtoken": "9.0.0",
-    "qs": "6.10.3",
-    "xml2js": "0.5.0",
-    "semver": "7.5.2",
-    "minimatch": "3.0.5",
-    "vm2": "3.9.18"
   },
   "directories": {
     "test": "test"
