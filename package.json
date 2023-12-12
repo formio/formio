@@ -43,7 +43,6 @@
     "html-entities": "^2.3.3",
     "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
-    "mailgun.js": "^8.0.1",
     "memory-cache": "^0.2.0",
     "moment": "^2.29.3",
     "moment-timezone": "^0.5.34",
