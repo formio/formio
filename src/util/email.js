@@ -52,12 +52,6 @@ module.exports = (formio) => {
           title: 'G-Mail',
         });
       }
-      if (_.get(settings, 'email.mailgun.auth.api_key')) {
-        availableTransports.push({
-          transport: 'mailgun',
-          title: 'Mailgun',
-        });
-      }
       if (_.get(settings, 'email.smtp.host')) {
         availableTransports.push({
           transport: 'smtp',
@@ -324,19 +318,6 @@ module.exports = (formio) => {
               };
             }
             transporter = nodemailer.createTransport(_settings);
-          }
-          break;
-        case 'mailgun':
-          if (_.has(settings, 'email.mailgun')) {
-            transporter = nodemailer.createTransport({
-              host: 'smtp.mailgun.org',
-              port: 587,
-              secure: false,
-              auth: {
-                user: settings.email.mailgun.auth.domain,
-                pass: settings.email.mailgun.auth.api_key
-              }
-            });
           }
           break;
         case 'smtp':
