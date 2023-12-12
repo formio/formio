@@ -52,19 +52,6 @@ module.exports = (formio) => {
           title: 'G-Mail',
         });
       }
-      if (
-        (_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key'))
-        || ((!_.get(settings, 'email.sendgrid.auth.api_user') && _.get(settings, 'email.sendgrid.auth.api_key')))
-      ) {
-        // Omit the username if user has configured sendgrid for api key access.
-        if (_.get(settings, 'email.sendgrid.auth.api_user') === 'apikey') {
-          settings.email.sendgrid.auth = _.omit(settings.email.sendgrid.auth, 'api_user');
-        }
-        availableTransports.push({
-          transport: 'sendgrid',
-          title: 'SendGrid',
-        });
-      }
       if (_.get(settings, 'email.mailgun.auth.api_key')) {
         availableTransports.push({
           transport: 'mailgun',
@@ -293,30 +280,50 @@ module.exports = (formio) => {
 
       switch (emailType) {
         case 'default':
-          if (_config && formio.config.email.type === 'sendgrid') {
-            transporter = nodemailer.createTransport({
-              host: 'smtp.sendgrid.net',
-              port: 587,
-              secure: false,
-              auth: {
-                user: 'apikey',
-                pass: settings.email.sendgrid.auth.api_key
-              }
-            });
-          }
-          break;
-        case 'sendgrid':
-          if (_.has(settings, 'email.sendgrid')) {
-            debug.email(settings.email.sendgrid);
-            transporter = nodemailer.createTransport({
-              host: 'smtp.sendgrid.net',
-              port: 587,
-              secure: false,
-              auth: {
-                user: 'apikey',
-                pass: settings.email.sendgrid.auth.api_key
-              }
-            });
+          if (_config && formio.config.email.type === 'smtp') {
+            const _settings = {
+              debug: true,
+            };
+
+            if (_.has(settings, 'email.smtp.port')) {
+              _settings['port'] = parseInt(_.get(settings, 'email.smtp.port'));
+            }
+            if (_.has(settings, 'email.smtp.secure')) {
+              const boolean = {
+                'true': true,
+                'false': false,
+              };
+
+              _settings['secure'] = _.get(boolean, _.get(settings, 'email.smtp.secure')) || false;
+            }
+            if (_.has(settings, 'email.smtp.ignoreTLS')) {
+              const boolean = {
+                'true': true,
+                'false': false,
+              };
+
+              _settings['ignoreTLS'] = _.get(boolean, _.get(settings, 'email.smtp.ignoreTLS')) || false;
+            }
+            if (_.has(settings, 'email.smtp.host')) {
+              _settings['host'] = _.get(settings, 'email.smtp.host');
+            }
+            if (
+              _.has(settings, 'email.smtp.auth') &&
+              _.get(settings, 'email.smtp.auth.user', false)
+            ) {
+              _settings['auth'] = {
+                user: _.get(settings, 'email.smtp.auth.user'),
+                pass: _.get(settings, 'email.smtp.auth.pass'),
+              };
+            }
+            if (
+              _.get(settings, 'email.smtp.allowUnauthorizedCerts', false)
+            ) {
+              _settings['tls'] = {
+                rejectUnauthorized: false,
+              };
+            }
+            transporter = nodemailer.createTransport(_settings);
           }
           break;
         case 'mailgun':
