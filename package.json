@@ -12,7 +12,7 @@
   },
   "author": "support@form.io",
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=18.0.0"
   },
   "schema": "3.1.4",
   "templateVersion": "2.0.0",
