@@ -44,7 +44,7 @@ module.exports = function(router) {
           form: req.params.formId,
           required: false
         }
-      ]));
+      ], util.skipHookIfNotExists));
     }
 
     /**

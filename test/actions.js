@@ -700,6 +700,23 @@ module.exports = (app, template, hook) => {
           });
       });
 
+      it('Should hide fields in action settings form if access to them is restricted', (done) => {
+        request(app)
+         .get(hook.alter('url', `/form/${webhookForm._id}/actions/save`, template))
+         .set('x-jwt-token', template.users.admin.token)
+         .expect('Content-Type', /json/)
+         .expect(200)
+         .end((err, res) => {
+           if (err) {
+             return done(err);
+           }
+           const components = res.body?.settingsForm?.components ?? [];
+           const actionExecutionComponent = components.find(x=> x.legend ==="Action Execution");
+           assert.equal(actionExecutionComponent.hidden, true);
+           done();
+       });
+     })
+
       it('Should send a webhook with update data.', (done) => {
         webhookHandler = (body) => {
           body = hook.alter('webhookBody', body);
