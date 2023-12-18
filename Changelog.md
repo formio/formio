@@ -5,9 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 ## [Unreleased: 3.5.0-rc.1]
+### Fixed
+ - FIO-7351 fixed submitting data using Wizard with conditionals for Panel component
+ - FIO-7514: fixed an issue where submission reference object is not attached to the value of select component with reference enabled
+
 ### Changed
  - FIO-7344 Changed Rendering method tooltip
- - FIO-7351 fixed submitting data using Wizard with conditionals for Panel component
  - Re-implement FIO-6630: Expanded Actions Logic UI
  - FIO-6630: Adds root level properties to action conditions
  - FIO-7167: Isolated vm
