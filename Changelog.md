@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - Revert axios to 1.5.1 from 1.6.x
  - FIO-7491: fixed an issue where dataTable component with resource data type does not work after exporting/importing
  - Re-implement - FIO-6630: Expanded Actions Logic UI
+ - revert changes related to FIO-7125 feature
    
 ## 3.4.0-rc.1
 ### Changed
