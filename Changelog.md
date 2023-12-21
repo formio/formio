@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 3.4.0
+### Changed
+ - Official Release
+ - Updated formiojs@4.18.0
+ - Updated formio-workers@1.20.0
+
 ## 3.4.0-rc.19
 ### Changed
  - revert changes related to FIO-7125 feature - missed commits
