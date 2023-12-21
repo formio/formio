@@ -255,43 +255,6 @@ module.exports = function(formio) {
     }, Math.random() * 1000);
   };
 
-  const checkEncryption = function(next) {
-    if (config.mongoSecretOld) {
-      formio.util.log('DB Secret update required.');
-      const projects = db.collection('projects');
-      projects.find({}).forEach(function(project) {
-        if (project.settings_encrypted) {
-          try {
-            const settings = tools.decrypt(config.mongoSecretOld, project.settings_encrypted.buffer);
-            if (settings) {
-              /* eslint-disable camelcase */
-              projects.updateOne(
-                {_id: project._id},
-                {
-                  $set: {
-                    settings_encrypted: tools.encrypt(config.mongoSecret, settings)
-                  }
-                }
-              );
-              /* eslint-enable camelcase */
-            }
-          }
-          catch (err) {
-            debug.error(err);
-            formio.util.log(' > Unable to use old db secret key.');
-          }
-        }
-      },
-      function(err) {
-        formio.util.log(' > Finished updating db secret.\n');
-        next(err);
-      });
-    }
-    else {
-      return next();
-    }
-  };
-
   /**
    * Check for certain mongodb features.
    * @param {*} next.
@@ -779,7 +742,6 @@ module.exports = function(formio) {
       getSSL,
       connection,
       checkSetup,
-      checkEncryption,
       checkFeatures,
       getUpdates,
       lock,
