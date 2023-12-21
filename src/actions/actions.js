@@ -20,6 +20,7 @@ const {
   rootLevelProperties,
   rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
+const promisify = require('util').promisify;
 
 /**
  * The ActionIndex export.
@@ -573,7 +574,7 @@ module.exports = (router) => {
                             const rootLevelProperties = ${JSON.stringify(rootLevelPropertiesOperatorsByPath)};
                             const isRootLevelProperty = row.component &&
                               row.component.startsWith &&
-                              row.component.startsWith('(submission).'); 
+                              row.component.startsWith('(submission).');
                             const conditionComponent = formComponents[row.component];
                             let componentType = conditionComponent ? conditionComponent.type : 'base';
                             if (isRootLevelProperty) {
@@ -709,7 +710,7 @@ module.exports = (router) => {
 
   async function getDeletedSubmission(req) {
     try {
-      return await router.formio.cache.loadSubmissionAsync(
+      return await promisify(router.formio.cache.loadSubmission)(
         req,
         req.body.form,
         req.body._id,
