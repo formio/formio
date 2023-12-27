@@ -6,22 +6,27 @@ https://formio.atlassian.net/browse/FIO-XXXX
 
 **What changed?**
 
-*Previously, formio ... This PR replaces this behavior by ...*
+*Use this section to provide a summary description of the changes you've made*
 
 **Why have you chosen this solution?**
 
-*Although there were many potential solutions such as ..., [my solution] was best because ...*
+*Use this section to justify your choices*
+
+## Breaking Changes / Backwards Compatibility
+
+*Use this section to describe any potentially breaking changes this PR introduces or any effects this PR might have on backwards compatibility*
 
 ## Dependencies
 
-*This PR depends on the following PRs from other Form.io modules: ...*
+*Use this section to list any dependent changes/PRs in other Form.io modules*
 
 ## How has this PR been tested?
 
-*I added automated tests to cover [all/the following] cases, including ...*
+*Use this section to describe how you tested your changes; if you haven't included automated tests, justify your reasoning*
 
 ## Checklist:
 
+- [ ] I have completed the above PR template
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] I have made corresponding changes to the documentation (if applicable)
 - [ ] My changes generate no new warnings
