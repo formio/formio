@@ -137,6 +137,7 @@ module.exports = function(config) {
         router.use(router.formio.middleware.params);
       }
 
+      // Check for need to re-encrypt data
       router.formio.hook.invoke('init', 'checkEncryption', router.formio);
 
       // Add the db schema sanity check to each request.
