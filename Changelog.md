@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-7491: fixed an issue where dataTable component with resource data type does not work after exporting/importing
  - Re-implement - FIO-6630: Expanded Actions Logic UI
  - revert changes related to FIO-7125 feature
+ - FIO-7549: evaluate axios upgrades and CVE resolution
    
 ## 3.4.0-rc.1
 ### Changed
