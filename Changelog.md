@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - Re-implement - FIO-6630: Expanded Actions Logic UI
  - revert changes related to FIO-7125 feature
  - FIO-7549: evaluate axios upgrades and CVE resolution
+ - FIO-7549: Revert pull#1669 default.json and email.js
    
 ## 3.4.0-rc.1
 ### Changed
