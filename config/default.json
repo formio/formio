@@ -28,9 +28,9 @@
     "expireTime": 240
   },
   "email": {
-    "type": "smtp",
-    "username": "smtp-user",
-    "password": "smtp-pass"
+    "type": "sendgrid",
+    "username": "sendgrid-user",
+    "password": "sendgrid-pass"
   },
   "settings": {
     "office365": {
@@ -45,6 +45,12 @@
         "auth": {
           "user": "",
           "pass": ""
+        }
+      },
+      "sendgrid": {
+        "auth": {
+          "api_user": "",
+          "api_key": ""
         }
       }
     }
