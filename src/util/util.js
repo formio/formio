@@ -1,4 +1,5 @@
 'use strict';
+require('@azure/ms-rest-nodeauth');
 
 const mongoose = require('mongoose');
 const ObjectID = require('mongodb').ObjectId;
