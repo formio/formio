@@ -328,8 +328,8 @@ module.exports = (router) => {
           }
           const value = await getComponentValueFromRequest(req, res, conditionComponentPath, isRootLevelProperty);
           let component;
-          if (req.currentFormComponents && !isRootLevelProperty) {
-            component = util.FormioUtils.getComponent(req.currentFormComponents, conditionComponentPath);
+          if (req.currentForm.components && !isRootLevelProperty) {
+            component = util.FormioUtils.getComponent(req.currentForm.components, conditionComponentPath);
           }
           return new ConditionOperator().getResult({value, comparedValue, component});
         }));
