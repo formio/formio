@@ -3,6 +3,7 @@ const _ = require('lodash');
 const {
   ProcessTargets,
   process,
+  processSync,
   interpolateErrors,
   escapeRegExCharacters
 } = require('@formio/core');
@@ -139,6 +140,21 @@ class Validator {
     });
   }
 
+  evaluate(form, submission, scope, token) {
+    processSync({
+      form,
+      submission,
+      components: form.components,
+      data: submission.data,
+      processors: ProcessTargets.evaluator,
+      scope,
+      config: {
+        server: true,
+        token,
+      }
+    });
+  }
+
   /**
    * Validate a submission for a form.
    *
@@ -179,10 +195,10 @@ class Validator {
       // Process the server processes
       context.processors = ProcessTargets.server;
       await process(context);
+      submission.data = context.data;
 
-      // Process the evaulator processes.
-      context.processors = ProcessTargets.evaluator;
-      await process(context);
+      // Process the evaulator
+      this.evaluate(this.form, submission, context.scope, this.token);
     }
     catch (err) {
       debug.error(err);
@@ -197,7 +213,6 @@ class Validator {
       });
     }
 
-    submission.data = context.data;
     return next(null, submission.data, this.form.components);
   }
 }
