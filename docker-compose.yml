@@ -12,6 +12,7 @@
 #
 # *TODO: Step 0 is for the bcrypt binary compiled on alpine, which is required...
 #        but this step feels like an anti-pattern and a better approach should be found
+#
 
 version: '3.7'
 services:
