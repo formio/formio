@@ -140,7 +140,7 @@ module.exports = (router) => {
       const exporter = new exporters[format](form, req, res);
 
       // Allow an alter of the export logic.
-      hook.alter('export', req, query, form, exporter, (err, decryptSecret) => {
+      hook.alter('export', req, query, form, exporter, (err) => {
         if (err) {
           return res.status(400).send(err.message);
         }
