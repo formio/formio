@@ -34,6 +34,9 @@ module.exports = (router) => {
       delete sub.req.subId;
     }
 
+    //not allow to override subrequest subId with parent submissionId
+    _.unset(sub.req.params, 'submissionId');
+
     sub.req.url = '/form/:formId/submission';
     sub.req.query = subQuery || {};
     sub.req.method = 'GET';
@@ -298,7 +301,6 @@ module.exports = (router) => {
         if (!idQuery) {
           return Promise.resolve();
         }
-
         return loadReferences(component, {
           _id: idQuery,
           limit: 10000000
