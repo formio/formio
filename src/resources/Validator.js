@@ -199,7 +199,7 @@ class Validator {
       submission.data = context.data;
 
       // Process the evaulator
-      const { scope, data } = evaluateProcess({
+      const { scope, data } = await evaluateProcess({
         form: this.form,
         submission,
         scope: context.scope,
