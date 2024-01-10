@@ -199,6 +199,10 @@ module.exports = (router) => {
           return noToken();
         }
 
+        if (decoded.access) {
+          req.access = decoded.access;
+        }
+
         // Load the user submission.
         const cache = router.formio.cache || formioCache;
         cache.loadSubmission(req, formId, userId, (err, user) => {

@@ -34,7 +34,7 @@ module.exports = function(router) {
     }
 
     static settingsForm(req, res, next) {
-      next(null, hook.alter('actionSettingsForm', req, this.name, [
+      next(null, [
         {
           type: 'resourcefields',
           key: 'resource',
@@ -44,7 +44,7 @@ module.exports = function(router) {
           form: req.params.formId,
           required: false
         }
-      ]));
+      ]);
     }
 
     /**
@@ -57,17 +57,10 @@ module.exports = function(router) {
      * @param next
      * @returns {*}
      */
-    async resolve(handler, method, req, res, next) {
+    resolve(handler, method, req, res, next) {
       // Return if this is not a PUT or POST.
       if (req.skipSave || !req.body || (req.method !== 'POST' && req.method !== 'PUT' && req.method !== 'PATCH')) {
         return next();
-      }
-
-      try {
-        await hook.alter('saveSubmission', req, this.settings);
-      }
-      catch (err) {
-        return res.status(err.statusCode || 400).send(err.message);
       }
 
       // Make sure we do not skip the resource.
