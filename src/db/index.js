@@ -255,6 +255,11 @@ module.exports = function(formio) {
     }, Math.random() * 1000);
   };
 
+  const checkEncryption = function(next) {
+    formio.hook.alter('checkEncryption', formio, db);
+    next();
+  };
+
   /**
    * Check for certain mongodb features.
    * @param {*} next.
@@ -747,6 +752,7 @@ module.exports = function(formio) {
       lock,
       doConfigFormsUpdates,
       doUpdates,
+      checkEncryption,
       unlock
     ], function(err) {
       unlock(function() {
