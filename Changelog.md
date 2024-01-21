@@ -7,13 +7,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 ## [Unreleased: 3.5.0-rc.1]
 ### Changed
  - FIO-7344 Changed Rendering method tooltip
- - FIO-7351 fixed submitting data using Wizard with conditionals for Panel component
  - Re-implement FIO-6630: Expanded Actions Logic UI
  - FIO-6630: Adds root level properties to action conditions
  - FIO-7167: Isolated vm
  - FIO-7371: Adds checks to define if raw DB data should be returned in response
  - FIO-7538: Change vm-utils link in package.json
  - FIO-6495: fixed an issue where revision ID of nested form does not transfer from stage to stage
+ - FIO-7330: fix bug of displaying settings for restricted fields
+ - FIO-7351: fixed submitting data using Wizard with conditionals for Panel component
+ - FIO-7514: fixed an issue where submission reference object is not attached to the value of select component with reference enabled
+ - FIO-7330: Fixes action settings endpoint crushing
+ - FIO-7080 Handled access for token
+ - FIO-7482: added ability to update default configuration forms in db to the versions required by the server (required for reportingUI form)
+ - FIO-7543: Revert isolated vm changes (#1650)
+ - Revert axios to 1.5.1 from 1.6.x
+ - FIO-7491: fixed an issue where dataTable component with resource data type does not work after exporting/importing
+ - Re-implement - FIO-6630: Expanded Actions Logic UI
+ - revert changes related to FIO-7125 feature
+ - FIO-7549: evaluate axios upgrades and CVE resolution
+ - FIO-7549: Revert pull#1669 default.json and email.js
    
 ## 3.4.0-rc.1
 ### Changed
