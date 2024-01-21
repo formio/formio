@@ -6,7 +6,6 @@ var assert = require('assert');
 var Chance = require('chance');
 var chance = new Chance();
 var _ = require('lodash');
-const test = require('./fixtures/forms/singlecomponents1.js');
 var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
