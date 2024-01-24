@@ -127,7 +127,7 @@ module.exports = function(formio, items, done) {
         info = JSON.parse(fs.readFileSync(path.join(directories[dir], 'package.json')));
       }
       catch (err) {
-        logger.error(err)
+        logger.error(err);
         debug(err);
         return done(err);
       }
@@ -362,7 +362,7 @@ module.exports = function(formio, items, done) {
           info = JSON.parse(fs.readFileSync(path.join(directoryPath, 'package.json')));
         }
         catch (err) {
-          logger.error(err)
+          logger.error(err);
           debug(err);
           return done(err);
         }
@@ -385,7 +385,7 @@ module.exports = function(formio, items, done) {
         template = JSON.parse(fs.readFileSync(projectJson));
       }
       catch (err) {
-        logger.error(err)
+        logger.error(err);
         debug(err);
         return done(err);
       }
