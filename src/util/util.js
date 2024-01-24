@@ -44,29 +44,29 @@ _.each(Formio.Displays.displays, (display) => {
   display.prototype.onChange = _.noop;
 });
 
-const vm = new VM({
-  timeout: 250,
-  sandbox: {
-    result: null,
-  },
-  fixAsync: true
-});
+// const vm = new VM({
+//   timeout: 250,
+//   sandbox: {
+//     result: null,
+//   },
+//   fixAsync: true
+// });
 
 Formio.Utils.Evaluator.noeval = true;
-Formio.Utils.Evaluator.evaluator = function(func, args) {
-  return function() {
-    let result = null;
-    /* eslint-disable no-empty */
-    try {
-      vm.freeze(args, 'args');
+// Formio.Utils.Evaluator.evaluator = function(func, args) {
+//   return function() {
+//     let result = null;
+//     /* eslint-disable no-empty */
+//     try {
+//       vm.freeze(args, 'args');
 
-      result = vm.run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
-    }
-    catch (err) {}
-    /* eslint-enable no-empty */
-    return result;
-  };
-};
+//       result = vm.run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
+//     }
+//     catch (err) {}
+//     /* eslint-enable no-empty */
+//     return result;
+//   };
+// };
 
 const Utils = {
   Formio: Formio.Formio,

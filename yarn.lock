@@ -581,9 +581,10 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@https://github.com/formio/vm.git":
-  version "0.0.1"
-  resolved "https://github.com/formio/vm.git#633804d81ed5e41d678d3c86282e86292f14a682"
+"@formio/vm@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.npmjs.org/@formio/vm/-/vm-0.0.4.tgz#7d4df5748555bdc1fe2a575b3aad9c976de935b2"
+  integrity sha512-3DqSOvi6YLu0bbnQ+2gQrQsAgJtTtCYoPEavACbkEggrZB8BvmmOu3xO5hT24dM4D2+dycOHSiJntLdjHrCZkQ==
   dependencies:
     "@formio/core" "^1.2.0"
     debug "^4.3.4"
