@@ -20,6 +20,7 @@ const {
   rootLevelProperties,
   rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
+const { evaluate } = require('@formio/vm');
 const promisify = require('util').promisify;
 
 /**
@@ -245,6 +246,8 @@ module.exports = (router) => {
             data: isDelete ? _.get(deletedSubmission, `data`, {}) : req.body.data,
             form: req.form,
             query: req.query,
+            params: req.params,
+            headers: req.headers,
             util: util.FormioUtils,
             moment: moment,
             submission: isDelete ? deletedSubmission : req.body,
@@ -253,31 +256,47 @@ module.exports = (router) => {
             _
           }, req);
 
-          let vm = new VM({
-            timeout: 500,
-            sandbox: {
+          const result = await evaluate({
+            deps: ['core', 'moment', 'lodash'],
+            code: json ? 
+              `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
+              condition.custom,
+            data: {
               execute: params.execute,
               query: params.query,
               data: params.data,
               form: params.form,
               submission: params.submission,
               previous: params.previous,
-            },
-            eval: false,
-            fixAsync: true
+            }
           });
 
-          vm.freeze(params.jsonLogic, 'jsonLogic');
-          vm.freeze(params.FormioUtils, 'util');
-          vm.freeze(params.moment, 'moment');
-          vm.freeze(params._, '_');
+          // let vm = new VM({
+          //   timeout: 500,
+          //   sandbox: {
+          //     execute: params.execute,
+          //     query: params.query,
+          //     data: params.data,
+          //     form: params.form,
+          //     submission: params.submission,
+          //     previous: params.previous,
+          //   },
+          //   eval: false,
+          //   fixAsync: true
+          // });
 
-          const result = vm.run(json ?
-            `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
-            condition.custom
-          );
+          // vm.freeze(params.jsonLogic, 'jsonLogic');
+          // // is it the same as core utils?
+          // vm.freeze(params.FormioUtils, 'util');
+          // vm.freeze(params.moment, 'moment');
+          // vm.freeze(params._, '_');
 
-          vm = null;
+          // const result = vm.run(json ?
+          //   `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
+          //   condition.custom
+          // );
+
+          // vm = null;
 
           return result;
         }

@@ -204,19 +204,29 @@ module.exports = function(router) {
 
         if (this.settings.transform) {
           try {
-            let vm = new VM({
-              timeout: 500,
-              sandbox: {
+            const newData = evaluateSync({
+              deps: [],
+              code: this.settings.transform,
+              data: {
                 submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
                 data: submission.data,
-              },
-              eval: false,
-              fixAsync: true
-            });
-
-            const newData = vm.run(this.settings.transform);
+              }
+            })
             submission.data = newData;
-            vm = null;
+
+            // let vm = new VM({
+            //   timeout: 500,
+            //   sandbox: {
+            //     submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
+            //     data: submission.data,
+            //   },
+            //   eval: false,
+            //   fixAsync: true
+            // });
+
+            // const newData = vm.run(this.settings.transform);
+            // submission.data = newData;
+            // vm = null;
           }
           catch (err) {
             debug(`Error in submission transform: ${err.message}`);
