@@ -3,7 +3,10 @@
 const _ = require('lodash');
 const util = require('../util/util');
 const debug = {
-  error: require('debug')('formio:error')
+  error: (...args)=> {
+    require('debug')('formio:error')(...args);
+    require('../util/logger')('formio:error').error(...args);
+  }
 };
 
 module.exports = function(req, router, cb) {

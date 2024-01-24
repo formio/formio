@@ -8,10 +8,15 @@ module.exports = (router) => {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const debug = require('debug')('formio:action:login');
+  const logger = require('../util/logger')('formio:action:login')
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug;
   const audit = router.formio.audit || (() => {});
-  const log = (...args) => logOutput(LOG_EVENT, ...args);
+  const log = (...args) => {
+    logOutput(LOG_EVENT, ...args);
+    logger.error(LOG_EVENT,...args)
+  };
+
 
   /**
    * AuthAction class.

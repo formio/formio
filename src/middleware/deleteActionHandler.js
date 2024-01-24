@@ -2,6 +2,7 @@
 
 const util = require('../util/util');
 const debug = require('debug')('formio:middleware:deleteActionHandler');
+const logger = require('../util/logger')('formio:middleware:deleteActionHandler');
 
 /**
  * The deleteActionHandler middleware.
@@ -35,6 +36,7 @@ module.exports = (router) => {
       .then(() => res.sendStatus(200))
       .catch((err) => {
         debug(err);
+        logger.error(err);
         return next(err);
       });
   };

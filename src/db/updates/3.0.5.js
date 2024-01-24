@@ -3,13 +3,39 @@
 let async = require('async');
 let _ = require('lodash');
 let debug = {
-  getFormsWithUniqueComponents: require('debug')('formio:update:3.0.5-getFormsWithUniqueComponents'),
-  getFormsWithUniqueComponentsInLayoutComponents: require('debug')('formio:update:3.0.5-getFormsWithUniqueComponentsInLayoutComponents'),
-  getFormsWithPotentialUniqueComponentsInLayoutComponents: require('debug')('formio:update:3.0.5-getFormsWithPotentialUniqueComponentsInLayoutComponents'),
-  getAffectedSubmissions: require('debug')('formio:update:3.0.5-getAffectedSubmissions'),
-  buildUniqueComponentList: require('debug')('formio:update:3.0.5-buildUniqueComponentList'),
-  fixSubmissionUniques: require('debug')('formio:update:3.0.5-fixSubmissionUniques'),
-  mergeForms: require('debug')('formio:update:3.0.5-mergeForms')
+  getFormsWithUniqueComponents: (...args)=>{
+    require('debug')('formio:update:3.0.5-getFormsWithUniqueComponents')(...args); 
+    require('../../util/logger')('formio:update:3.0.5-getFormsWithUniqueComponents').info(...args)},
+    
+  getFormsWithUniqueComponentsInLayoutComponents: (...args)=>{
+    require('debug')('formio:update:3.0.5-getFormsWithUniqueComponentsInLayoutComponents')(...args); 
+    require('../../util/logger')('formio:update:3.0.5-getFormsWithUniqueComponentsInLayoutComponents').info(...args)}, 
+
+  getFormsWithPotentialUniqueComponentsInLayoutComponents: (...args)=>{
+    require('debug')('formio:update:3.0.5-getFormsWithPotentialUniqueComponentsInLayoutComponents')(...args);
+    require('../../util/logger')('formio:update:3.0.5-getFormsWithPotentialUniqueComponentsInLayoutComponents').info(...args);
+  },
+
+  getAffectedSubmissions: (...args)=>{
+    require('debug')('formio:update:3.0.5-getAffectedSubmissions')(...args);
+    require('../../util/logger')('formio:update:3.0.5-getAffectedSubmissions').info(...args);
+  },
+  
+  buildUniqueComponentList: (...args)=>{
+    require('debug')('formio:update:3.0.5-buildUniqueComponentList')(...args);
+    require('../../util/logger')('formio:update:3.0.5-buildUniqueComponentList').info(...args);
+  },
+
+  fixSubmissionUniques: (...args)=>{
+    require('debug')('formio:update:3.0.5-fixSubmissionUniques')(...args);
+    require('../../util/logger')('formio:update:3.0.5-fixSubmissionUniques').info(...args);
+  },
+
+  mergeForms: (...args)=>{
+    require('debug')('formio:update:3.0.5-mergeForms')(...args);
+    require('../../util/logger')('formio:update:3.0.5-mergeForms').info(...args);
+  },
+   
 };
 
 /**

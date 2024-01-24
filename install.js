@@ -8,6 +8,8 @@ const nunjucks = require('nunjucks');
 nunjucks.configure([], {watch: false});
 const util = require('./src/util/util');
 const debug = require('debug')('formio:error');
+const logger = require('./src/util/logger')('formio:error');
+
 const path = require('path');
 
 module.exports = function(formio, items, done) {
@@ -125,6 +127,7 @@ module.exports = function(formio, items, done) {
         info = JSON.parse(fs.readFileSync(path.join(directories[dir], 'package.json')));
       }
       catch (err) {
+        logger.error(err)
         debug(err);
         return done(err);
       }
@@ -359,6 +362,7 @@ module.exports = function(formio, items, done) {
           info = JSON.parse(fs.readFileSync(path.join(directoryPath, 'package.json')));
         }
         catch (err) {
+          logger.error(err)
           debug(err);
           return done(err);
         }
@@ -381,6 +385,7 @@ module.exports = function(formio, items, done) {
         template = JSON.parse(fs.readFileSync(projectJson));
       }
       catch (err) {
+        logger.error(err)
         debug(err);
         return done(err);
       }

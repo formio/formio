@@ -1,8 +1,11 @@
 'use strict';
-
-const debug = require('debug')('formio:middleware:bootstrapNewRoleAccess');
 const async = require('async');
 const _ = require('lodash');
+
+const debug = (...args)=> {
+  require('debug')('formio:middleware:bootstrapNewRoleAccess')(...args);
+  require('../util/logger')('formio:middleware:bootstrapNewRoleAccess').error(...args);
+};
 
 /**
  * Middleware to bootstrap forms when a new role is created.

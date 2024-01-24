@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const debug = require('debug')('formio:middleware:submissionResourceAccessFilter');
+const logger = require('../util/logger')('formio:middleware:submissionResourceAccessFilter');
 const EVERYONE = '000000000000000000000000';
 
 module.exports = function(router) {
@@ -12,6 +13,7 @@ module.exports = function(router) {
     // Skip this filter, if request is from an administrator.
     if (req.isAdmin) {
       debug('Skipping, request is from an administrator.');
+      logger.info('Skipping, request is from an administrator.');
       return next();
     }
 
@@ -46,6 +48,7 @@ module.exports = function(router) {
       // Try to recover if the hook fails.
       if (err) {
         debug(err);
+        logger.error(err);
       }
 
       // If not search is provided, then just default to the user or everyone if there is no user.

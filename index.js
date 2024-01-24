@@ -15,6 +15,7 @@ const util = require('./src/util/util');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
 const formList = require('./src/resources/formList');
+const logger = require('./src/util/logger')('formio:log');
 
 const originalGetToken = util.Formio.getToken;
 const originalEvalContext = util.Formio.Components.components.component.prototype.evalContext;
@@ -47,7 +48,7 @@ module.exports = function(config) {
 
   router.formio.log = (event, req, ...info) => {
     const result = router.formio.hook.alter('log', event, req, ...info);
-
+    logger.info(event, ...info);
     if (result) {
       log(event, ...info);
     }
@@ -122,6 +123,7 @@ module.exports = function(config) {
           }
         }
         catch (error) {
+          logger.error(error);
           console.log(error);
         }
 
