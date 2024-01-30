@@ -501,14 +501,6 @@
   dependencies:
     regenerator-runtime "^0.14.0"
 
-"@codegenie/serverless-express@^3.4.1":
-  version "3.4.1"
-  resolved "https://registry.npmjs.org/@codegenie/serverless-express/-/serverless-express-3.4.1.tgz#4ba2040e4b59ec355079e5792fd4d7e3889a98c2"
-  integrity sha512-PQ3v/wDflxx168B4TwuxbbKjfmvLkyRBdvHRFS8s48hDS0Wnukm+5Dp+HiLvqwXOU7PP2+FyrK47WX4WL15Rrw==
-  dependencies:
-    binary-case "^1.0.0"
-    type-is "^1.6.16"
-
 "@colors/colors@1.5.0":
   version "1.5.0"
   resolved "https://registry.npmjs.org/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
@@ -552,15 +544,6 @@
   integrity sha512-4B5rs+w9tAk5i+wbdw2/NrTxPqnDX7/W19tiTd9lfXnIGQmaj0ecMEVqDmOJg8pIlyU02g3c4ih6JnA/JVmUbA==
   dependencies:
     resize-observer-polyfill "^1.5.1"
-
-"@formio/choices.js@10.2.0":
-  version "10.2.0"
-  resolved "https://registry.npmjs.org/@formio/choices.js/-/choices.js-10.2.0.tgz#cfd089873ce3fae1e679570b4f471d25b5153593"
-  integrity sha512-dEF+es4yj3pstKHif7Ck14vQCZdN+b1Afojl0ufTmKw5WIjqas1KXEIBBgtsg4eY6bxqFkgEjtxsK4ecvEeZsA==
-  dependencies:
-    deepmerge "^4.2.2"
-    fuse.js "^6.6.2"
-    redux "^4.2.0"
 
 "@formio/choices.js@10.2.1":
   version "10.2.1"
@@ -1110,15 +1093,6 @@
   resolved "https://registry.npmjs.org/@ungap/structured-clone/-/structured-clone-1.2.0.tgz#756641adb587851b5ccb3e095daf27ae581c8406"
   integrity sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==
 
-"@vendia/serverless-express@^3.4.0":
-  version "3.4.1"
-  resolved "https://registry.npmjs.org/@vendia/serverless-express/-/serverless-express-3.4.1.tgz#5c422a2af41f3e9e0d8d072e924cc1c25a1b7a85"
-  integrity sha512-4dJJvr9vQlq9iUClpfm5iFL+neoSctUI6Zkh9F4wjk/tpcM7QVD6niJi4ptiIzyzJCWoN97ACQCXyE0O8MznLQ==
-  dependencies:
-    "@codegenie/serverless-express" "^3.4.1"
-    binary-case "^1.0.0"
-    type-is "^1.6.16"
-
 JSONStream@^1.3.5:
   version "1.3.5"
   resolved "https://registry.npmjs.org/JSONStream/-/JSONStream-1.3.5.tgz#3208c1f08d3a4d99261ab64f92302bc15e111ca0"
@@ -1162,12 +1136,7 @@ acorn-jsx@^5.3.2:
   resolved "https://registry.npmjs.org/acorn-jsx/-/acorn-jsx-5.3.2.tgz#7ed5bb55908b3b2f1bc55c6af1653bada7f07937"
   integrity sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==
 
-acorn-walk@^8.2.0:
-  version "8.3.2"
-  resolved "https://registry.npmjs.org/acorn-walk/-/acorn-walk-8.3.2.tgz#7703af9415f1b6db9315d6895503862e231d34aa"
-  integrity sha512-cjkyv4OtNCIeqhHrfS81QWXoCBPExR/J62oyEqepVw8WaQeSqpW2uhuLPh1m9eWhDuOo/jUXVTlifvesOWp/4A==
-
-acorn@^8.7.0, acorn@^8.9.0:
+acorn@^8.9.0:
   version "8.11.3"
   resolved "https://registry.npmjs.org/acorn/-/acorn-8.11.3.tgz#71e0b14e13a4ec160724b38fb7b0f233b1b81d7a"
   integrity sha512-Y9rRfJG5jcKOE0CLisYbojUjIrIEE7AGMzA/Sm4BslANhbS+cDMpgBdcPT91oJ7OuJ9hYJBx59RjbhxVnrF8Xg==
@@ -1289,15 +1258,6 @@ available-typed-arrays@^1.0.5:
   resolved "https://registry.npmjs.org/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
 
-aws-serverless-express@^3.4.0:
-  version "3.4.0"
-  resolved "https://registry.npmjs.org/aws-serverless-express/-/aws-serverless-express-3.4.0.tgz#74153b8cc80dbd2c6a32a51e6d353a325c2710d7"
-  integrity sha512-YG9ZjAOI9OpwqDDWzkRc3kKJYJuR7gTMjLa3kAWopO17myoprxskCUyCEee+RKe34tcR4UNrVtgAwW5yDe74bw==
-  dependencies:
-    "@vendia/serverless-express" "^3.4.0"
-    binary-case "^1.0.0"
-    type-is "^1.6.16"
-
 balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
@@ -1312,11 +1272,6 @@ bcryptjs@^2.4.3:
   version "2.4.3"
   resolved "https://registry.npmjs.org/bcryptjs/-/bcryptjs-2.4.3.tgz#9ab5627b93e60621ff7cdac5da9733027df1d0cb"
   integrity sha512-V/Hy/X9Vt7f3BbPJEi8BdVFMByHi+jNXrYkW3huaybV/kQ0KJg0Y6PkEMbn+zeT+i+SiKZ/HMqJGIIt4LZDqNQ==
-
-binary-case@^1.0.0:
-  version "1.1.4"
-  resolved "https://registry.npmjs.org/binary-case/-/binary-case-1.1.4.tgz#d687104d59e38f2b9e658d3a58936963c59ab931"
-  integrity sha512-9Kq8m6NZTAgy05Ryuh7U3Qc4/ujLQU1AZ5vMw4cr3igTdi5itZC6kCNrRr2X8NzPiDn2oUIFTfa71DKMnue/Zg==
 
 binary-extensions@^2.0.0:
   version "2.2.0"
@@ -1350,7 +1305,7 @@ body-parser@1.20.1:
     type-is "~1.6.18"
     unpipe "1.0.0"
 
-body-parser@^1.19.1, body-parser@^1.20.1:
+body-parser@^1.20.1:
   version "1.20.2"
   resolved "https://registry.npmjs.org/body-parser/-/body-parser-1.20.2.tgz#6feb0e21c4724d06de7ff38da36dad4f57a747fd"
   integrity sha512-ml9pReCu3M61kGlqoTm2umSXTlRTuGTx0bfYj+uIUKKYycG5NtSbeetV3faSU6R7ajOPw0g/J1PvK4qNy7s5bA==
@@ -1609,7 +1564,7 @@ cookiejar@^2.1.4:
   resolved "https://registry.npmjs.org/cookiejar/-/cookiejar-2.1.4.tgz#ee669c1fea2cf42dc31585469d193fef0d65771b"
   integrity sha512-LDx6oHrK+PhzLKJU9j5S7/Y3jM/mUHvD/DeI1WQmJn652iPC5Y4TBzC9l+5OMOXlyTTA+SmVUPm0HQUwpD5Jqw==
 
-core-js@^3.19.3, core-js@^3.21.1, core-js@^3.26.1, core-js@^3.33.2:
+core-js@^3.21.1, core-js@^3.26.1, core-js@^3.33.2:
   version "3.35.1"
   resolved "https://registry.npmjs.org/core-js/-/core-js-3.35.1.tgz#9c28f8b7ccee482796f8590cc8d15739eaaf980c"
   integrity sha512-IgdsbxNyMskrTFxa9lWHyMwAJU5gXOPP+1yO+K59d50VLVAIDAbs7gIv705KzALModfK3ZrSZTPNpC0PQgIZuw==
@@ -1708,13 +1663,6 @@ debug@2.6.9, debug@^2.2.0:
   version "2.6.9"
   resolved "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
   integrity sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==
-  dependencies:
-    ms "2.0.0"
-
-debug@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.npmjs.org/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
-  integrity sha512-OX8XqP7/1a9cqkxYw2yXss15f26NKWBpDXQd0/uK/KPqdQhxbPa994hnzjcE2VqQpDslf55723cKPUOGSmMY3g==
   dependencies:
     ms "2.0.0"
 
@@ -1907,11 +1855,6 @@ dompurify@^3.0.5, dompurify@^3.0.6:
   version "3.0.8"
   resolved "https://registry.npmjs.org/dompurify/-/dompurify-3.0.8.tgz#e0021ab1b09184bc8af7e35c7dd9063f43a8a437"
   integrity sha512-b7uwreMYL2eZhrSCRC4ahLTeZcPZxSmYfmcQGXGkXiZSNW1X85v+SDM5KsWcpivIiUBH47Ji7NtyUdpLeF5JZQ==
-
-dotenv@^10.0.0:
-  version "10.0.0"
-  resolved "https://registry.npmjs.org/dotenv/-/dotenv-10.0.0.tgz#3d4227b8fb95f81096cdd2b66653fb2c7085ba81"
-  integrity sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q==
 
 dotenv@^16.3.1:
   version "16.4.0"
@@ -2123,7 +2066,7 @@ expose-gc@^1.0.0:
   resolved "https://registry.npmjs.org/expose-gc/-/expose-gc-1.0.0.tgz#ba0e825b390cc3e7ab38fc5b945cd2b4018584b3"
   integrity sha512-ecOHrdm+zyOCGIwX18/1RHkUWgxDqGGRiGhaNC+42jReTtudbm2ID/DMa/wpaHwqy5YQHPZvsDqRM2F2iZ0uVA==
 
-express@^4.17.1, express@^4.18.2:
+express@^4.18.2:
   version "4.18.2"
   resolved "https://registry.npmjs.org/express/-/express-4.18.2.tgz#3fabe08296e930c796c19e3c516979386ba9fd59"
   integrity sha512-5/PsL6iGPdfQ/lKM1UuielYgv3BUoJfz1aUwU9vHZ+J7gyvwdQXFEBIEIaxeGf0GIcreATNyBExtalisDbuMqQ==
@@ -2300,68 +2243,6 @@ formidable@^2.1.2:
     hexoid "^1.0.0"
     once "^1.4.0"
     qs "^6.11.0"
-
-formio-workers@1.20.0-rc.8:
-  version "1.20.0-rc.8"
-  resolved "https://registry.npmjs.org/formio-workers/-/formio-workers-1.20.0-rc.8.tgz#bc30be3e42fcded21810c8c11aac7333093fbd8c"
-  integrity sha512-NZUKAk+Pb4CRBW4wV95O8ViFXfMuX82KV78WO7v5eW17e04elBFZPbuJhyZ/ow79m/GN6SEaX0IQ+QlR/v35HA==
-  dependencies:
-    aws-serverless-express "^3.4.0"
-    body-parser "^1.19.1"
-    core-js "^3.19.3"
-    dotenv "^10.0.0"
-    express "^4.17.1"
-    formiojs "4.18.0-rc.6"
-    lodash "^4.17.21"
-    method-override "^3.0.0"
-    moment "^2.29.1"
-    moment-timezone "^0.5.35"
-    nunjucks "^3.2.3"
-    nunjucks-date-filter "^0.1.1"
-    vm2 "^3.9.5"
-
-formiojs@4.18.0-rc.6:
-  version "4.18.0-rc.6"
-  resolved "https://registry.npmjs.org/formiojs/-/formiojs-4.18.0-rc.6.tgz#6f09bb3d6cccdc9950a0c8d77cef79be88e74788"
-  integrity sha512-RSrKkRNj0r0ljtnS0Hr3bgpEvoO7qOoLTOuPn2M6dM3PwqvQXKG/0RLty/VgsqRKpx1yeaR9OmoeXh7A2tuRTw==
-  dependencies:
-    "@formio/bootstrap3" "2.12.4-rc.1"
-    "@formio/choices.js" "10.2.0"
-    "@formio/semantic" "2.6.1"
-    "@formio/text-mask-addons" "^3.8.0-formio.2"
-    "@formio/vanilla-text-mask" "^5.1.1-formio.1"
-    abortcontroller-polyfill "^1.7.5"
-    autocompleter "^7.0.1"
-    browser-cookies "^1.2.0"
-    browser-md5-file "^1.1.1"
-    compare-versions "^5.0.1"
-    core-js "^3.26.1"
-    custom-event-polyfill "^1.0.7"
-    dialog-polyfill "^0.5.6"
-    dom-autoscroller "^2.3.4"
-    dompurify "^3.0.5"
-    downloadjs "^1.4.7"
-    dragula "^3.7.3"
-    eventemitter3 "^4.0.7"
-    fast-deep-equal "^3.1.3"
-    fast-json-patch "^3.1.1"
-    fetch-ponyfill "^7.1.0"
-    i18next "22.4.12"
-    idb "^7.1.1"
-    ismobilejs "^1.1.1"
-    json-logic-js "^2.0.2"
-    jstimezonedetect "^1.0.7"
-    jwt-decode "^3.1.2"
-    lodash "^4.17.21"
-    moment "^2.29.4"
-    moment-timezone "^0.5.40"
-    native-promise-only "^0.8.1"
-    quill "^2.0.0-dev.3"
-    signature_pad "^4.1.4"
-    string-hash "^1.1.3"
-    tippy.js "^6.3.7"
-    uuid "^9.0.0"
-    vanilla-picker "^2.12.1"
 
 formiojs@^4.18.0-rc.6:
   version "4.18.1"
@@ -3208,16 +3089,6 @@ merge-descriptors@1.0.1:
   resolved "https://registry.npmjs.org/merge-descriptors/-/merge-descriptors-1.0.1.tgz#b00aaa556dd8b44568150ec9d1b953f3f90cbb61"
   integrity sha512-cCi6g3/Zr1iqQi6ySbseM1Xvooa98N0w31jzUYrXPX2xqObmFGHJ0tQ5u74H3mVh7wLouTseZyYIq39g8cNp1w==
 
-method-override@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/method-override/-/method-override-3.0.0.tgz#6ab0d5d574e3208f15b0c9cf45ab52000468d7a2"
-  integrity sha512-IJ2NNN/mSl9w3kzWB92rcdHpz+HjkxhDJWNDBqSlas+zQdP8wBiJzITPg08M/k2uVvMow7Sk41atndNtt/PHSA==
-  dependencies:
-    debug "3.1.0"
-    methods "~1.1.2"
-    parseurl "~1.3.2"
-    vary "~1.1.2"
-
 methods@^1.1.2, methods@~1.1.2:
   version "1.1.2"
   resolved "https://registry.npmjs.org/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
@@ -3301,7 +3172,7 @@ mocha@^10.0.0:
     yargs-parser "20.2.4"
     yargs-unparser "2.0.0"
 
-moment-timezone@^0.5.34, moment-timezone@^0.5.35, moment-timezone@^0.5.40, moment-timezone@^0.5.43:
+moment-timezone@^0.5.34, moment-timezone@^0.5.40, moment-timezone@^0.5.43:
   version "0.5.44"
   resolved "https://registry.npmjs.org/moment-timezone/-/moment-timezone-0.5.44.tgz#a64a4e47b68a43deeab5ae4eb4f82da77cdf595f"
   integrity sha512-nv3YpzI/8lkQn0U6RkLd+f0W/zy/JnoR5/EyPz/dNkPTBjA2jNLCVxaiQ8QpeLymhSZvX0wCL5s27NQWdOPwAw==
@@ -3469,7 +3340,7 @@ nunjucks-date-filter@^0.1.1:
   dependencies:
     moment "^2.9.0"
 
-nunjucks@^3.2.3, nunjucks@^3.2.4:
+nunjucks@^3.2.4:
   version "3.2.4"
   resolved "https://registry.npmjs.org/nunjucks/-/nunjucks-3.2.4.tgz#f0878eef528ce7b0aa35d67cc6898635fd74649e"
   integrity sha512-26XRV6BhkgK0VOxfbU5cQI+ICFUtMLixv1noZn1tGU38kQH5A5nmmbk/O45xdyBhD1esk47nKrY0mvQpZIhRjQ==
@@ -3568,7 +3439,7 @@ parent-module@^1.0.0:
   dependencies:
     callsites "^3.0.0"
 
-parseurl@~1.3.2, parseurl@~1.3.3:
+parseurl@~1.3.3:
   version "1.3.3"
   resolved "https://registry.npmjs.org/parseurl/-/parseurl-1.3.3.tgz#9da19e7bee8d12dff0513ed5b76957793bc2e8d4"
   integrity sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==
@@ -4310,7 +4181,7 @@ type-func@^1.0.1:
   resolved "https://registry.npmjs.org/type-func/-/type-func-1.0.3.tgz#ab184234ae80d8d50057cefeff3b2d97d08ae9b0"
   integrity sha512-YA90CUk+i00tWESPNRMahywXhAz+12NLJLKlOWrgHIbqaFXjdZrWstRghaibOW/IxhPjui4SmXxO/03XSGRIjA==
 
-type-is@^1.6.16, type-is@~1.6.18:
+type-is@~1.6.18:
   version "1.6.18"
   resolved "https://registry.npmjs.org/type-is/-/type-is-1.6.18.tgz#4e552cd05df09467dcbc4ef739de89f2cf37c131"
   integrity sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==
@@ -4386,14 +4257,6 @@ vary@^1, vary@~1.1.2:
   version "1.1.2"
   resolved "https://registry.npmjs.org/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
-
-vm2@^3.9.19, vm2@^3.9.5:
-  version "3.9.19"
-  resolved "https://registry.npmjs.org/vm2/-/vm2-3.9.19.tgz#be1e1d7a106122c6c492b4d51c2e8b93d3ed6a4a"
-  integrity sha512-J637XF0DHDMV57R6JyVsTak7nIL8gy5KH4r1HiwWLf/4GBbb5MKL5y7LpmF4A8E2nR6XmzpmMFQ7V7ppPTmUQg==
-  dependencies:
-    acorn "^8.7.0"
-    acorn-walk "^8.2.0"
 
 webidl-conversions@^3.0.0:
   version "3.0.1"

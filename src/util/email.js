@@ -24,7 +24,6 @@ const NON_PRIORITY_QUEUE_TIMEOUT = process.env.NON_PRIORITY_QUEUE_TIMEOUT || 100
  */
 module.exports = (formio) => {
   const hook = require('./hook')(formio);
-  const Worker = require('../worker/Worker')(formio);
 
   /**
    * Get the list of available email transports.
@@ -142,23 +141,6 @@ module.exports = (formio) => {
       if (component.type === 'resource' && params.data[component.key]) { // need that
         params.data[`${component.key}Obj`] = params.data[component.key]; // need that
       }
-      //   replacements.push(
-      //     (new Worker('nunjucks'))
-      //       .start({
-      //         form,
-      //         submission,
-      //         template: component.template,
-      //         context: {
-      //           item: params.data[component.key],
-      //         },
-      //       })
-      //     // renderEmail()
-      //     //   .then((response) => {
-      //     //     params.data[component.key] = response.output;
-      //     //     return response;
-      //     //   }),
-      //   );
-      // }
     });
 
     Promise.all(replacements).then(() => {
@@ -207,11 +189,6 @@ module.exports = (formio) => {
     params.mail = mail;
 
     // Compile the email with nunjucks in a separate thread.
-    // return new Worker('nunjucks').start({
-    //   render: mail,
-    //   context: params,
-    //   options,
-    // })
     return renderEmail({
       render: mail,
       context: params,

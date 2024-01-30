@@ -2,7 +2,6 @@
 
 const Resource = require('resourcejs');
 const async = require('async');
-const {VM} = require('vm2');
 const _ = require('lodash');
 const debug = {
   error: require('debug')('formio:error'),
@@ -270,33 +269,6 @@ module.exports = (router) => {
               previous: params.previous,
             }
           });
-
-          // let vm = new VM({
-          //   timeout: 500,
-          //   sandbox: {
-          //     execute: params.execute,
-          //     query: params.query,
-          //     data: params.data,
-          //     form: params.form,
-          //     submission: params.submission,
-          //     previous: params.previous,
-          //   },
-          //   eval: false,
-          //   fixAsync: true
-          // });
-
-          // vm.freeze(params.jsonLogic, 'jsonLogic');
-          // // is it the same as core utils?
-          // vm.freeze(params.FormioUtils, 'util');
-          // vm.freeze(params.moment, 'moment');
-          // vm.freeze(params._, '_');
-
-          // const result = vm.run(json ?
-          //   `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
-          //   condition.custom
-          // );
-
-          // vm = null;
 
           return result;
         }
