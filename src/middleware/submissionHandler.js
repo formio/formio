@@ -259,6 +259,8 @@ module.exports = (router, resourceName, resourceId) => {
             return res.status(400).json(err);
           }
 
+          data = hook.alter('rehydrateValidatedSubmissionData', data, req);
+
           res.submission = {data: data};
 
           if (!_.isEqual(visibleComponents, req.currentForm.components)) {

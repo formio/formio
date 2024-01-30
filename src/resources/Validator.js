@@ -64,108 +64,113 @@ class Validator {
 
     const {validateReCaptcha} = this;
 
-    // Create the form, then check validity.
-    Formio.createForm(this.form, {
-      server: true,
-      noDefaults: true,
-      hooks: {
-        setDataValue: function(value, key, data) {
-          if (!unsetsEnabled) {
+    try {
+      // Create the form, then check validity.
+      Formio.createForm(this.form, {
+        server: true,
+        noDefaults: true,
+        hooks: {
+          setDataValue: function(value, key, data) {
+            if (!unsetsEnabled) {
+              return value;
+            }
+
+            // Check if this component is not persistent.
+            if (this.component.hasOwnProperty('persistent') &&
+              (!this.component.persistent || this.component.persistent === 'client-only')
+            ) {
+              unsets.push({key, data});
+            }
+            // Check if this component is conditionally hidden and does not set clearOnHide to false.
+            else if (
+              (!this.component.hasOwnProperty('clearOnHide') || this.component.clearOnHide) &&
+              (!this.conditionallyVisible() || !this.parentVisible)
+            ) {
+              conditionallyInvisibleComponents.push({component: this, key, data});
+            }
+            else if (
+              this.component.type === 'password' && value === this.defaultValue
+            ) {
+              unsets.push({key, data});
+            }
             return value;
-          }
+          },
+          validateReCaptcha(responseToken) {
+            if (validateReCaptcha) {
+              return validateReCaptcha(responseToken);
+            }
 
-          // Check if this component is not persistent.
-          if (this.component.hasOwnProperty('persistent') &&
-            (!this.component.persistent || this.component.persistent === 'client-only')
-          ) {
-            unsets.push({key, data});
-          }
-          // Check if this component is conditionally hidden and does not set clearOnHide to false.
-          else if (
-            (!this.component.hasOwnProperty('clearOnHide') || this.component.clearOnHide) &&
-            (!this.conditionallyVisible() || !this.parentVisible)
-          ) {
-            conditionallyInvisibleComponents.push({component: this, key, data});
-          }
-          else if (
-            this.component.type === 'password' && value === this.defaultValue
-          ) {
-            unsets.push({key, data});
-          }
-          return value;
-        },
-        validateReCaptcha(responseToken) {
-          if (validateReCaptcha) {
-            return validateReCaptcha(responseToken);
-          }
-
-          return true;
-        },
-      }
-    }).then((form) => {
-      // Set the validation config.
-      form.validator.config = {
-        db: this.model,
-        token: this.token,
-        form: this.form,
-        submission: submission
-      };
-
-      // Set the submission data
-      form.data = submission.data;
-
-       // Reset the data
-      form.data = {};
-
-      form.setValue(submission, {
-        sanitize: form.allowAllSubmissionData ? false : true,
-      });
-
-      // Perform calculations and conditions.
-      form.checkConditions();
-      form.clearOnHide();
-      form.calculateValue();
-
-      // Set the value to the submission.
-      unsetsEnabled = true;
-
-      // Check the visibility of conditionally visible components after unconditionally visible
-      _.forEach(conditionallyInvisibleComponents, ({component, key, data}) => {
-        if (!component.conditionallyVisible() || !component.parentVisible) {
-          unsets.push({key, data});
+            return true;
+          },
         }
-      });
+      }).then((form) => {
+        // Set the validation config.
+        form.validator.config = {
+          db: this.model,
+          token: this.token,
+          form: this.form,
+          submission: submission
+        };
 
-      // Check the validity of the form.
-      form.checkAsyncValidity(null, true).then((valid) => {
-        if (valid) {
-          // Clear the non-persistent fields.
-          unsets.forEach((unset) => _.unset(unset.data, unset.key));
-          if (form.form.display === 'wizard' && (form.prefixComps.length || form.suffixComps.length)) {
-            submission.data = emptyData ? {} : {...submission.data, ...form.data};
-          }
-          else {
-            submission.data = emptyData ? {} : form.data;
-          }
-          const visibleComponents = (form.getComponents() || []).map(comp => comp.component);
-          return next(null, submission.data, visibleComponents);
-        }
+        // Set the submission data
+        form.data = submission.data;
 
-        if (form.form.display === 'wizard') {
-          // Wizard errors object contains all wizard errors only on last page
-          form.page = form.pages.length - 1;
-        }
+        // Reset the data
+        form.data = {};
 
-        const details = [];
-        form.errors.forEach((error) => error.messages.forEach((message) => details.push(message)));
-
-        // Return the validation errors.
-        return next({
-          name: 'ValidationError',
-          details: details
+        form.setValue(submission, {
+          sanitize: form.allowAllSubmissionData ? false : true,
         });
+
+        // Perform calculations and conditions.
+        form.checkConditions();
+        form.clearOnHide();
+        form.calculateValue();
+
+        // Set the value to the submission.
+        unsetsEnabled = true;
+
+        // Check the visibility of conditionally visible components after unconditionally visible
+        _.forEach(conditionallyInvisibleComponents, ({component, key, data}) => {
+          if (!component.conditionallyVisible() || !component.parentVisible) {
+            unsets.push({key, data});
+          }
+        });
+
+        // Check the validity of the form.
+        form.checkAsyncValidity(null, true).then((valid) => {
+          if (valid) {
+            // Clear the non-persistent fields.
+            unsets.forEach((unset) => _.unset(unset.data, unset.key));
+            if (form.form.display === 'wizard' && (form.prefixComps.length || form.suffixComps.length)) {
+              submission.data = emptyData ? {} : {...submission.data, ...form.data};
+            }
+            else {
+              submission.data = emptyData ? {} : form.data;
+            }
+            const visibleComponents = (form.getComponents() || []).map(comp => comp.component);
+            return next(null, submission.data, visibleComponents);
+          }
+
+          if (form.form.display === 'wizard') {
+            // Wizard errors object contains all wizard errors only on last page
+            form.page = form.pages.length - 1;
+          }
+
+          const details = [];
+          form.errors.forEach((error) => error.messages.forEach((message) => details.push(message)));
+
+          // Return the validation errors.
+          return next({
+            name: 'ValidationError',
+            details: details
+          });
+        }).catch(next);
       }).catch(next);
-    }).catch(next);
+    }
+    catch (err) {
+      return next(err);
+    }
   }
 }
 
