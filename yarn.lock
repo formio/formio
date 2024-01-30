@@ -570,22 +570,6 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/core@^2.0.0-rc.6":
-  version "2.0.0-rc.6"
-  resolved "https://registry.npmjs.org/@formio/core/-/core-2.0.0-rc.6.tgz#393ad480068a2ada96c7675b9059f81e33b35502"
-  integrity sha512-0FPAE7GThKwsf4pghxaqmREt0mupjY+8QDdet81ECCibOhEWWh1hNPTXzx0XgC9cT9Y0PAPBZynahjH9Vu6ldA==
-  dependencies:
-    "@types/json-logic-js" "^2.0.5"
-    browser-cookies "^1.2.0"
-    core-js "^3.33.2"
-    dayjs "^1.11.10"
-    dompurify "^3.0.6"
-    eventemitter3 "^5.0.0"
-    fetch-ponyfill "^7.1.0"
-    json-logic-js "^2.0.2"
-    lodash "^4.17.21"
-    moment "^2.29.4"
-
 "@formio/node-fetch-http-proxy@^1.1.0":
   version "1.1.0"
   resolved "https://registry.npmjs.org/@formio/node-fetch-http-proxy/-/node-fetch-http-proxy-1.1.0.tgz#a281686f3982a6e07cb1721ffbdbcce0096f538f"
