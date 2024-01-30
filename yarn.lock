@@ -554,18 +554,21 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.npmjs.org/@formio/core/-/core-1.2.0.tgz#5f046bc5d536f2ece321b0785f5c423dc6d447f2"
-  integrity sha512-Emt64RzWnCg+HCcC8LNzLaTf96fOYjz4xVE6CPkhCcIcpMOVsZrUlIsTaxnaQn3lNPvt7bCp1uCcyy5dRJUK9Q==
+"@formio/core@2.0.0-rc.8":
+  version "2.0.0-rc.8"
+  resolved "https://registry.npmjs.org/@formio/core/-/core-2.0.0-rc.8.tgz#c260507257e299a572ce83eb97e8643ad29dfa97"
+  integrity sha512-EBqchKTVAmRej0OUMFJfHzrUHZEaQS6FDmHY6xRZETZ7crI3Cyon6wQvameVeNPJhR7h+1MeKFJwMj0Jgzu2ag==
   dependencies:
-    "@formio/lodash" "0.0.9"
-    core-js "^3.21.1"
-    dayjs "^1.10.8"
-    dompurify "^2.3.6"
-    eventemitter3 "^4.0.7"
+    "@types/json-logic-js" "^2.0.5"
+    browser-cookies "^1.2.0"
+    core-js "^3.33.2"
+    dayjs "^1.11.10"
+    dompurify "^3.0.6"
+    eventemitter3 "^5.0.0"
     fetch-ponyfill "^7.1.0"
     json-logic-js "^2.0.2"
+    lodash "^4.17.21"
+    moment "^2.29.4"
 
 "@formio/core@^2.0.0-rc.6":
   version "2.0.0-rc.6"
@@ -582,11 +585,6 @@
     json-logic-js "^2.0.2"
     lodash "^4.17.21"
     moment "^2.29.4"
-
-"@formio/lodash@0.0.9":
-  version "0.0.9"
-  resolved "https://registry.npmjs.org/@formio/lodash/-/lodash-0.0.9.tgz#60c57131e960aeb87194e3420c642c9d4ee07fae"
-  integrity sha512-g/mcs0WOjcivqXFtc148jrfuSdZiwbX/CWHSTzPDwMCJzJIy7iftO9G6jyewELsKG2DGzqLRHxbDW/jnr4WjPw==
 
 "@formio/node-fetch-http-proxy@^1.1.0":
   version "1.1.0"
@@ -613,15 +611,16 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.npmjs.org/@formio/vm/-/vm-0.0.4.tgz#7d4df5748555bdc1fe2a575b3aad9c976de935b2"
-  integrity sha512-3DqSOvi6YLu0bbnQ+2gQrQsAgJtTtCYoPEavACbkEggrZB8BvmmOu3xO5hT24dM4D2+dycOHSiJntLdjHrCZkQ==
+"@formio/vm@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.npmjs.org/@formio/vm/-/vm-0.0.5.tgz#65efc1d43c8a443d6d7dd96e42086be59035fd30"
+  integrity sha512-PmEO6L+d9Mni9rfuBwLMP5DfudVTDgi9iaEKWkasCvHq6NO6rXYIwe8o15lMfvNIt1uEE3bcdiYFv/WMJ+kjRg==
   dependencies:
-    "@formio/core" "^1.2.0"
+    "@formio/core" "2.0.0-rc.8"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
+    formiojs "^4.18.0"
     isolated-vm "^4.6.0"
     lodash "^4.17.21"
     moment "^2.29.4"
@@ -1564,7 +1563,7 @@ cookiejar@^2.1.4:
   resolved "https://registry.npmjs.org/cookiejar/-/cookiejar-2.1.4.tgz#ee669c1fea2cf42dc31585469d193fef0d65771b"
   integrity sha512-LDx6oHrK+PhzLKJU9j5S7/Y3jM/mUHvD/DeI1WQmJn652iPC5Y4TBzC9l+5OMOXlyTTA+SmVUPm0HQUwpD5Jqw==
 
-core-js@^3.21.1, core-js@^3.26.1, core-js@^3.33.2:
+core-js@^3.26.1, core-js@^3.33.2:
   version "3.35.1"
   resolved "https://registry.npmjs.org/core-js/-/core-js-3.35.1.tgz#9c28f8b7ccee482796f8590cc8d15739eaaf980c"
   integrity sha512-IgdsbxNyMskrTFxa9lWHyMwAJU5gXOPP+1yO+K59d50VLVAIDAbs7gIv705KzALModfK3ZrSZTPNpC0PQgIZuw==
@@ -1654,7 +1653,7 @@ cycle@1.0.x:
   resolved "https://registry.npmjs.org/cycle/-/cycle-1.0.3.tgz#21e80b2be8580f98b468f379430662b046c34ad2"
   integrity sha512-TVF6svNzeQCOpjCqsy0/CSy8VgObG3wXusJ73xW2GbG5rGx7lC8zxDSURicsXI2UsGdi2L0QNRCi745/wUDvsA==
 
-dayjs@^1.10.8, dayjs@^1.11.10:
+dayjs@^1.11.10:
   version "1.11.10"
   resolved "https://registry.npmjs.org/dayjs/-/dayjs-1.11.10.tgz#68acea85317a6e164457d6d6947564029a6a16a0"
   integrity sha512-vjAczensTgRcqDERK0SR2XMwsF/tSvnvlv6VcF2GIhg6Sx4yOIt/irsr1RDJsKiIyBzJDpCoXiWWq28MqH2cnQ==
@@ -1845,11 +1844,6 @@ dom-set@^1.0.1:
     array-from "^2.1.1"
     is-array "^1.0.1"
     iselement "^1.1.4"
-
-dompurify@^2.3.6:
-  version "2.4.7"
-  resolved "https://registry.npmjs.org/dompurify/-/dompurify-2.4.7.tgz#277adeb40a2c84be2d42a8bcd45f582bfa4d0cfc"
-  integrity sha512-kxxKlPEDa6Nc5WJi+qRgPbOAbgTpSULL+vI3NUXsZMlkJxTqYI9wg5ZTay2sFrdZRWHPWNi+EdAhcJf81WtoMQ==
 
 dompurify@^3.0.5, dompurify@^3.0.6:
   version "3.0.8"
@@ -2244,7 +2238,7 @@ formidable@^2.1.2:
     once "^1.4.0"
     qs "^6.11.0"
 
-formiojs@^4.18.0-rc.6:
+formiojs@^4.18.0, formiojs@^4.18.0-rc.6:
   version "4.18.1"
   resolved "https://registry.npmjs.org/formiojs/-/formiojs-4.18.1.tgz#5df1115d39cc29231e36e5153c9c580e07e67d15"
   integrity sha512-1xEtww3NBwkJy1WiE5KQHMEM+uCDJNc/Dq/d11xEd3IQqyf41aIvAR4Y4FQToCdo7M7qyNTvR0TiTvXChOkNMA==
