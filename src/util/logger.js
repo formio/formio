@@ -1,5 +1,7 @@
 const util = require("util");
-const { format, createLogger, transports, config, } = require("winston");
+const path = require('path');
+const fs = require('fs')
+const { format, createLogger, config, } = require("winston");
 
 const { combine, timestamp, label, printf ,colorize } = format;
  
@@ -20,6 +22,7 @@ const formatObjectsAndArrays = (obj) => {
 
  
 const logFolder = process.env.LOG_FOLDER || "./logs"
+const archivedFolder = logFolder+"/archived"
 const logFile = "formio-%DATE%.log"
 //Using the printf format.
 const customFormat = printf(({ level, label, timestamp, ...meta}) => {
@@ -33,14 +36,33 @@ const customFormat = printf(({ level, label, timestamp, ...meta}) => {
 const transport = new DailyRotateFile({
   filename: logFile,
   dirname:logFolder,
-  // datePattern: 'YYYY-MM-DD',
-  maxFiles:"7d",
+  maxFiles:"2",
   zippedArchive: true,
  });
 
- transport.on('rotate', function(oldFilename, newFilename) {
-   console.log(oldFilename,newFilename)
+ transport.on('archive', async function (file) {
+  if (!fs.existsSync(archivedFolder)) {
+    // Create the folder if it doesn't exist
+    fs.mkdirSync(archivedFolder, { recursive: true });
+  }
+
+  const parsedData = path.parse(file);
+  const pathName = parsedData.base;
+  fs.promises.rename(path.join(logFolder, pathName), path.join(archivedFolder, pathName))
+  .then(async(res)=>{
+    fs.readdir(archivedFolder,(err,files)=>{
+      if(files.length > 6){
+          fs.unlink(path.join(archivedFolder, files[0]),(err)=>{
+          if(err) console.log(err)
+      })
+       }
+  });
+
+  })
+
 });
+
+
 const logger = (event) => {
     const log = createLogger({
         levels:config.npm.levels,
@@ -50,11 +72,11 @@ const logger = (event) => {
         ],
       });
       
-  if (process.env.NODE_ENV !== 'production') {
-    log.add(new  transports.Console({
-        format: combine(label({ label: event }), timestamp(), customFormat,colorize()),
-    }));
-  }
+  // if (process.env.NODE_ENV !== 'production') {
+  //   log.add(new  transports.Console({
+  //       format: combine(label({ label: event }), timestamp(), customFormat,colorize()),
+  //   }));
+  // }
       return log;
 }
   
