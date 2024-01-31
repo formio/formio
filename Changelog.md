@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 3.5.0-rc.4
+### Changed
+ - Updated formiojs@4.19.0-rc.5
+ - Updated formio-workers@1.21.0-rc.4
+ - FIO-7823: add error boundary around server-side form validation
+
 ## 3.5.0-rc.3
 ### Changed
  - Updated formiojs@4.19.0-rc.3
