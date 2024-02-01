@@ -1,0 +1,288 @@
+{
+  "page1DefaultInformation": {
+    "page1DefaultInformationDate": "",
+    "page1DefaultInformationClient": "",
+    "page1DefaultInformationContractor": "",
+    "page1DefaultInformationProjectName": "",
+    "page1DefaultInformationProjectAddress": "",
+    "page1DefaultInformationInspectorName": ""
+  },
+  "page1Drawings": {
+    "page1DrawingsDrawingNumber": ""
+  },
+  "page1RoomDetails": {
+    "page1RoomDetailsRoom": "",
+    "page1RoomDetailsRoomName": ""
+  },
+  "page1Status": {
+    "page1StatusStatusValue": ""
+  },
+  "page1WallDescription": {
+    "page1WallDescriptionGypsumBoardWalls": ""
+  },
+  "page1DeficienciesNoted": "",
+  "page2Northwall": {
+    "page2NorthwallRunner": {
+      "page2NorthwallRunnerRequired": "",
+      "page2NorthwallRunnerInspected": "",
+      "page2NorthwallRunnerMaterialDescription": "",
+      "page2NorthwallRunnerComments": ""
+    },
+    "page2NorthwallNails": {
+      "page2NorthwallNailsRequired": "",
+      "page2NorthwallNailsInspected": "",
+      "page2NorthwallNailsMaterialDescription": "",
+      "page2NorthwallNailsComments": ""
+    },
+    "page2NorthwallStuds": {
+      "page2NorthwallStudsRequired": "",
+      "page2NorthwallStudsInspected": "",
+      "page2NorthwallStudsMaterialDescription": "",
+      "page2NorthwallStudsComments": ""
+    },
+    "page2NorthwallSpaceofStuds": {
+      "page2NorthwallSpaceofStudsRequired": "",
+      "page2NorthwallSpaceofStudsInspected": "",
+      "page2NorthwallSpaceofStudsMaterialDescription": "",
+      "page2NorthwallSpaceofStudsComments": ""
+    },
+    "page2NorthwallCoreofboard": {
+      "page2NorthwallCoreboardMaterialDescription": "",
+      "page2NorthwallCoreboardComments": ""
+    },
+    "page2NorthwallThermalFiber": {
+      "page2NorthwallThermalFiberRequired": "",
+      "page2NorthwallThermalFiberInspected": "",
+      "page2NorthwallThermalFiberMaterialDescription": "",
+      "page2NorthwallThermalFiberComments": ""
+    },
+    "page2NorthwallSab": {
+      "page2NorthwallSabMaterialDescription": "",
+      "page2NorthwallSabComments": ""
+    },
+    "page2Northwall2Layers58SheetRock": {
+      "page2Northwall2Layers58SheetRockRequired": "",
+      "page2Northwall2Layers58SheetRockInspected": "",
+      "page2Northwall2Layers58SheetRockMaterialDescription": "",
+      "page2Northwall2Layers58SheetRockComments": ""
+    },
+    "page2NorthwallSpaceofScrews": {
+      "page2NorthwallSpaceofScrewsRequired": "",
+      "page2NorthwallSpaceofScrewsInspected": "",
+      "page2NorthwallSpaceofScrewsMaterialDescription": "",
+      "page2NorthwallSpaceofScrewsComments": ""
+    },
+    "page2Northwall1Layer12SheetRock": {
+      "page2Northwall1Layer12SheetRockMaterialDescription": "",
+      "page2Northwall1Layer12SheetRockComments": ""
+    },
+    "page2NorthwallBeadofCaulk": {
+      "page2NorthwallBeadofCaulkRequired": "",
+      "page2NorthwallBeadofCaulkMaterialDescription": "",
+      "page2NorthwallBeadofCaulkComments": ""
+    },
+    "page2NorthwallDoor": {
+      "page2NorthwallDoorMaterialDescription": "",
+      "page2NorthwallDoorComments": ""
+    },
+    "page2NorthwallBracing": {
+      "page2NorthwallBracingMaterialDescription": "",
+      "page2NorthwallBracingComments": ""
+    },
+    "page2NorthwallLumberStrip": {
+      "page2NorthwallLumberStripMaterialDescription": "",
+      "page2NorthwallLumberStripComments": ""
+    },
+    "page2NorthwallPlyWood": {
+      "page2NorthwallPlyWoodMaterialDescription": "",
+      "page2NorthwallPlyWoodComments": ""
+    }
+  },
+  "page3Eastwall": {
+    "page3EastwallRunner": {
+      "page3EastwallRunnerMaterialDescription": "",
+      "page3EastwallRunnerComments": ""
+    },
+    "page3EastwallNails": {
+      "page3EastwallNailsMaterialDescription": "",
+      "page3EastwallNailsComments": ""
+    },
+    "page3EastwallStuds": {
+      "page3EastwallStudsMaterialDescription": "",
+      "page3EastwallStudsComments": ""
+    },
+    "page3EastwallSpaceofStuds": {
+      "page3EastwallSpaceofStudsMaterialDescription": "",
+      "page3EastwallSpaceofStudsComments": ""
+    },
+    "page3EastwallCoreBoard": {
+      "page3EastwallCoreBoardMaterialDescription": "",
+      "page3EastwallCoreBoardComments": ""
+    },
+    "page3EastwallThermalFiber": {
+      "page3EastwallThermalFiberMaterialDescription": "",
+      "page3EastwallThermalFiberComments": ""
+    },
+    "page3EastwallSab": {
+      "page3EastwallSabMaterialDescription": "",
+      "page3EastwallSabComments": ""
+    },
+    "page3Eastwall2Layers58SheetRock": {
+      "page3Eastwall2Layers58SheetRockMaterialDescription": "",
+      "page3Eastwall2Layers58SheetRockComments": ""
+    },
+    "page3EastwallSpaceofScrews": {
+      "page3EastwallSpaceofScrewsMaterialDescription": "",
+      "page3EastwallSpaceofScrewsComments": ""
+    },
+    "page3Eastwall1Layer12SheetRock": {
+      "page3Eastwall1Layer12SheetRockMaterialDescription": "",
+      "page3Eastwall1Layer12SheetRockComments": ""
+    },
+    "page3EastwallBeadofCaulk": {
+      "page3EastwallBeadofCaulkMaterialDescription": "",
+      "page3EastwallBeadofCaulkComments": ""
+    },
+    "page3EastwallDoor": {
+      "page3EastwallDoorMaterialDescription": "",
+      "page3EastwallDoorComments": ""
+    },
+    "page3EastwallBracing": {
+      "page3EastwallBracingMaterialDescription": "",
+      "page3EastwallBracingComments": ""
+    },
+    "page3EastwallLumberStrip": {
+      "page3EastwallLumberStripMaterialDescription": "",
+      "page3EastwallLumberStripComments": ""
+    },
+    "page3EastwallPlyWood": {
+      "page3EastwallPlyWoodMaterialDescription": "",
+      "page3EastwallPlyWoodComments": ""
+    }
+  },
+  "page4Southwall": {
+    "page4SouthwallRunner": {
+      "page4SouthwallRunnerMaterialDescription": "",
+      "page4SouthwallRunnerComments": ""
+    },
+    "page4SouthwallNails": {
+      "page4SouthwallNailsMaterialDescription": "",
+      "page4SouthwallNailsComments": ""
+    },
+    "page4SouthwallStud": {
+      "page4SouthwallStudsMaterialDescription": "",
+      "page4SouthwallStudsComments": ""
+    },
+    "page4SouthwallSpaceofStuds": {
+      "page4SouthwallSpaceofStudsMaterialDescription": "",
+      "page4SouthwallSpaceofStudsComments": ""
+    },
+    "page4SouthwallCoreBoard": {
+      "page4SouthwallCoreBoardMaterialDescription": "",
+      "page4SouthwallCoreBoardComments": ""
+    },
+    "page4SouthwallThermalFiber": {
+      "page4SouthwallThermalFiberMaterialDescription": "",
+      "page4SouthwallThermalFiberComments": ""
+    },
+    "page4SouthwallSab": {
+      "page4SouthwallSabMaterialDescription": "",
+      "page4SouthwallSabComments": ""
+    },
+    "page4Southwall2Layers58SheetRock": {
+      "page4Southwall2Layers58SheetRockMaterialDescription": "",
+      "page4Southwall2Layers58SheetRockComments": ""
+    },
+    "page4SouthwallSpaceofScrews": {
+      "page4SouthwallSpaceofScrewsMaterialDescription": "",
+      "page4SouthwallSpaceofScrewsComments": ""
+    },
+    "page4Southwall1Layer12SheetRock": {
+      "page4Southwall1Layer12SheetRockMaterialDescription": "",
+      "page4Southwall1Layer12SheetRockComments": ""
+    },
+    "page4SouthwallBeadofCaulk": {
+      "page4SouthwallBeadofCaulkMaterialDescription": "",
+      "page4SouthwallBeadofCaulkComments": ""
+    },
+    "page4SouthwallDoor": {
+      "page4SouthwallDoorMaterialDescription": "",
+      "page4SouthwallDoorComments": ""
+    },
+    "page4SouthwallBracing": {
+      "page4SouthwallBracingMaterialDescription": "",
+      "page4SouthwallBracingComments": ""
+    },
+    "page4SouthwallLumberStrip": {
+      "page4SouthwallLumberStripMaterialDescription": "",
+      "page4SouthwallLumberStripComments": ""
+    },
+    "page4SouthwallPlyWood": {
+      "page4SouthwallPlyWoodMaterialDescription": "",
+      "page4SouthwallPlyWoodComments": ""
+    }
+  },
+  "page5Westwall": {
+    "page5WestwallRunner": {
+      "page5WestwallRunnerMaterialDescription": "",
+      "page5WestwallRunnerComments": ""
+    },
+    "page5WestwallNails": {
+      "page5WestwallNailsComments": ""
+    },
+    "page5WestwallStuds": {
+      "page5WestwallStudsMaterialDescription": "",
+      "page5WestwallStudsComments": ""
+    },
+    "page5WestwallSpaceofStuds": {
+      "page5WestwallSpaceofStudsMaterialDescription": "",
+      "page5WestwallSpaceofStudsComments": ""
+    },
+    "page5WestwallCoreBoard": {
+      "page5WestwallCoreBoardMaterialDescription": "",
+      "page5WestwallCoreBoardComments": ""
+    },
+    "page5WestwallThermalFiber": {
+      "page5WestwallThermalFiberMaterialDescription": "",
+      "page5WestwallThermalFiberComments": ""
+    },
+    "page5WestwallSab": {
+      "page5WestwallSabMaterialDescription": "",
+      "page5WestwallSabComments": ""
+    },
+    "page5Westwall2Layers58SheetRock": {
+      "page5Westwall2Layers58SheetRockMaterialDescription": "",
+      "page5Westwall2Layers58SheetRockComments": ""
+    },
+    "page5WestwallSpaceofScrews": {
+      "page5WestwallSpaceofScrewsMaterialDescription": "",
+      "page5WestwallSpaceofScrewsComments": ""
+    },
+    "page5Westwall1Layer12SheetRock": {
+      "page5Westwall1Layer12SheetRockMaterialDescription": "",
+      "page5Westwall1Layer12SheetRockComments": ""
+    },
+    "page5WestwallBeadofCaulkUsg": {
+      "page5WestwallBeadofCaulkUsgMaterialDescription": "",
+      "page5WestwallBeadofCaulkUsgComments": ""
+    },
+    "page5WestwallDoor": {
+      "page5WestwallDoorMaterialDescription": "",
+      "page5WestwallDoorComments": ""
+    },
+    "page5WestwallBracing": {
+      "page5WestwallBracingMaterialDescription": "",
+      "page5WestwallBracingComments": ""
+    },
+    "page5WestwallLumberStrip": {
+      "page5WestwallLumberStripMaterialDescription": "",
+      "page5WestwallLumberStripComments": ""
+    },
+    "page5WestwallPlyWood": {
+      "page5WestwallPlyWoodMaterialDescription": "",
+      "page5WestwallPlyWoodComments": ""
+    }
+  },
+  "page5ExternalCommentsandRemarks": "",
+  "page5InternalCommentsandRemarks": ""
+}

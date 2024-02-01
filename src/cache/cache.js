@@ -1,6 +1,7 @@
 'use strict';
 const async = require('async');
 const _ = require('lodash');
+const util = require("../util/util");
 const debug = {
   form: require('debug')('formio:cache:form'),
   loadForm: require('debug')('formio:cache:loadForm'),
@@ -255,6 +256,33 @@ module.exports = function(router) {
       debug.loadSubmission(`Searching for form: ${formId}, and submission: ${subId}`);
       const query = {_id: subId, form: formId, deleted: {$eq: null}};
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+
+      function getSubmissionDefaultStructure(formName) {
+        return require(`../jsonTemplates/${formName}`);
+      }
+
+      function compareAndConstructJson(obj1, obj2) {
+        const result = {};
+        if (Object.is(obj1, obj2)) {
+          return undefined;
+        }
+        if (!obj2 || typeof obj2 !== 'object') {
+          return obj2;
+        }
+        Object.keys(obj1).forEach(key => {
+          if(!Object.keys(obj2).includes(key) && obj1[key] != obj2[key]) {
+            result[key] = obj2[key];
+          }
+          if(typeof obj2[key] === 'object' && typeof obj1[key] === 'object') {
+            const value = compareAndConstructJson(obj1[key], obj2[key]);
+            if (value !== undefined) {
+              result[key] = value;
+            }
+          }
+        });
+        return result;
+      }
+
       submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec((err, submission) => {
         if (err) {
           debug.loadSubmission(err);
@@ -270,6 +298,13 @@ module.exports = function(router) {
             debug.loadSubmission(err);
             return cb(err);
           }
+          console.log('$$$$%%%$$$');
+          console.log(formId);
+          const defaultData = getSubmissionDefaultStructure('fireresistanceandcompression');
+          const formData = submission.data;
+          submission = compareAndConstructJson(defaultData, formData);
+          console.log(submission);
+          console.log('$$$$%%%$$$');
           cache.submissions[subId] = submission;
           cb(null, submission);
         });
