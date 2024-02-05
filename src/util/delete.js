@@ -111,9 +111,10 @@ module.exports = (router) => {
     const query = {_id: util.idToBson(formId), deleted: {$eq: null}};
     return router.formio.resources.form.model.updateOne(
       query,
-      {
+      {$set: {
         deleted: Date.now(),
-      })
+      }}
+      )
     .then(()=> Promise.all([
       deleteAction(null, formId, req),
       deleteSubmission(null, formId, req),
