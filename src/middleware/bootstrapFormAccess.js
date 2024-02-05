@@ -3,7 +3,10 @@
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const _ = require('lodash');
-const debug = require('debug')('formio:middleware:bootstrapFormAccess');
+const debug = (...args)=>{
+  require('debug')('formio:middleware:bootstrapFormAccess')(...args);
+  require("../util/logger")('formio:middleware:bootstrapFormAccess').error(...args)
+};
 
 /**
  * Middleware to bootstrap the access of forms.

@@ -4,9 +4,16 @@ const Resource = require('resourcejs');
 const async = require('async');
 const {VM} = require('vm2');
 const _ = require('lodash');
+const loggerService = require('../util/logger');
 const debug = {
-  error: require('debug')('formio:error'),
-  action: require('debug')('formio:action')
+  error: (...args) => {
+    require('debug')('formio:error')(...args);
+    loggerService('formio:error').error(...args)
+  },
+  action: (...args) =>{
+    require('debug')('formio:action')(...args);
+    loggerService('formio:action').info(...args);
+  }
 };
 const util = require('../util/util');
 const moment = require('moment');

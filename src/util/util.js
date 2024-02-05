@@ -16,6 +16,13 @@ const debug = {
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
 
+const logger = {
+  idToBson: require('../util/logger.js')('formio:util:idToBson'),
+  getUrlParams: require('../util/logger.js')('formio:util:getUrlParams'),
+  removeProtectedFields: require('../util/logger.js')('formio:util:removeProtectedFields')
+};
+
+
 // Define a few global noop placeholder shims and import the component classes
 global.Text              = class {};
 global.HTMLElement       = class {};
@@ -456,6 +463,7 @@ const Utils = {
     const parsed = nodeUrl.parse(url);
     let parts = parsed.pathname.split('/');
     debug.getUrlParams(parsed);
+    logger.getUrlParams.info(parsed);
 
     // Remove element originating from first slash.
     parts = _.tail(parts);
@@ -471,6 +479,7 @@ const Utils = {
     }
 
     debug.getUrlParams(urlParams);
+    logger.getUrlParams.info(urlParams);
     return urlParams;
   },
 
@@ -527,6 +536,7 @@ const Utils = {
     }
     catch (e) {
       debug.idToBson(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
+      logger.idToBson.error(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
     }
 
     return _id;
@@ -609,6 +619,7 @@ const Utils = {
       path = `data.${path}`;
       if (component.protected) {
         debug.removeProtectedFields('Removing protected field:', component.key);
+        logger.removeProtectedFields.info('Removing protected field:', component.key);
         modifyFields.push(deleteProp(path));
       }
       else if ((component.type === 'signature') && (action === 'index') && !doNotMinify) {

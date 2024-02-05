@@ -15,6 +15,9 @@ const _ = require('lodash');
 const debug = {
   authenticate: require('debug')('formio:authentication:authenticate'),
 };
+const logger = {
+  authenticate: require('../util/logger')('formio:authentication:authenticate'),
+};
 
 module.exports = (router) => {
   const audit = router.formio.audit || (() => {});
@@ -97,6 +100,7 @@ module.exports = (router) => {
       }
       catch (err) {
         debug.authenticate('Bad token allow string.');
+        logger.authenticate.error('Bad token allow string.');
       }
 
       return false;
@@ -269,10 +273,12 @@ module.exports = (router) => {
           if (err) {
             // Attempt to fail safely and not update the user reference.
             debug.authenticate(err);
+            logger.authenticate.error(err);
           }
           else {
             // Update the user with the hook results.
             debug.authenticate(user);
+            logger.authenticate.info(user);
             user = _user;
           }
 

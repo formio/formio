@@ -8,9 +8,16 @@ module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router.formio);
   const debug = require('debug')('formio:action:email');
+  const logger = require('../util/logger')('formio:action:email');
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug;
-  const log = (...args) => logOutput(LOG_EVENT, ...args);
+  const log = (...args) => {
+    logger.error(LOG_EVENT,...args);
+    logOutput(LOG_EVENT, ...args);
+  };
+;
+
+  
 
   /**
    * EmailAction class.

@@ -9,3 +9,4 @@ client
 npm-debug.log
 .env
 mongodb
+logs

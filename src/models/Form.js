@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const debug = require('debug')('formio:models:form');
+const logger = require('../util/logger')('formio:models:form');
 
 module.exports = (formio) => {
   const hook = require('../util/hook')(formio);
@@ -67,6 +68,7 @@ module.exports = (formio) => {
     }
     catch (err) {
       debug(err);
+      logger.error(err);
       return false;
     }
   };

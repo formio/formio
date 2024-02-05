@@ -9,6 +9,14 @@ const debug = {
   roleManipulation: require('debug')('formio:action:role#roleManipulation'),
   updateModel: require('debug')('formio:action:role#updateModel')
 };
+const logger = {
+  role: require('../util/logger')('formio:action:role'),
+  loadUser: require('../util/logger')('formio:action:role#loadUser'),
+  addRole:require('../util/logger')('formio:action:role#addRole'),
+  removeRole: require('../util/logger')('formio:action:role#removeRole'),
+  roleManipulation: require('../util/logger')('formio:action:role#roleManipulation'),
+  updateModel:require('../util/logger')('formio:action:role#updateModel')
+};
 
 const LOG_EVENT = 'Role Action';
 
@@ -18,7 +26,10 @@ module.exports = function(router) {
   const util = router.formio.util;
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug.role;
-  const log = (...args) => logOutput(LOG_EVENT, ...args);
+  const log = (...args) => {
+    logOutput(LOG_EVENT, ...args);
+    logger.role.error(LOG_EVENT,...args);
+  };
 
   /**
    * RoleAction class.
@@ -217,6 +228,7 @@ module.exports = function(router) {
       const updateModel = function(submission, association, update) {
         // Try to update the submission directly.
         debug.updateModel(association);
+        logger.updateModel.info(association)
 
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         submissionModel.updateOne({
@@ -243,6 +255,7 @@ module.exports = function(router) {
        */
       const addRole = function(role, submission, association) {
         debug.addRole(`Role: ${role}`);
+        logger.addRole.info(`Role: ${role}`);
 
         // The given role already exists in the resource.
         let compare = [];
@@ -281,6 +294,7 @@ module.exports = function(router) {
        */
       const removeRole = function(role, submission, association) {
         debug.removeRole(`Role: ${role}`);
+        logger.removeRole.info(`Role: ${role}`);
 
         // The given role does not exist in the resource.
         let compare = [];
@@ -317,6 +331,7 @@ module.exports = function(router) {
        */
       const roleManipulation = function(type, association) {
         debug.roleManipulation(`Type: ${type}`);
+        logger.roleManipulation.info(`Type: ${type}`)
 
         // Confirm that the given/configured role is actually accessible.
         const query = hook.alter('roleQuery', {_id: role, deleted: {$eq: null}}, req);

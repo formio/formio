@@ -3,8 +3,15 @@ const _ = require('lodash');
 const {Formio} = require('../util/util');
 const debug = {
   validator: require('debug')('formio:validator'),
-  error: require('debug')('formio:error')
+  error:(...args)=>{
+    require('debug')('formio:error')(...args);
+    require('../util/logger')('formio:error').error(...args);
+  }
 };
+
+const logger = {
+  validator : require('../util/logger')('formio:validator')
+}
 
 /**
  * @TODO: Isomorphic validation system.
@@ -50,10 +57,12 @@ class Validator {
   /* eslint-disable max-statements */
   validate(submission, next) {
     debug.validator('Starting validation');
+    logger.validator.info('Starting validation');
 
     // Skip validation if no data is provided.
     if (!submission.data) {
       debug.validator('No data skipping validation');
+      logger.validator.info('No data skipping validation');
       return next();
     }
 
