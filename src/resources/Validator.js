@@ -21,12 +21,12 @@ const logger = {
  * @constructor
  */
 class Validator {
-  constructor(form, model, token, decodedToken, hook,sanitize) {
+  constructor(form, model, token, decodedToken, hook, skipSanitize) {
     this.model = model;
     this.form = form;
     this.token = token;
     this.hook = hook;
-    this.sanitize = sanitize;
+    this.skipSanitize = skipSanitize;
     const self = this;
     const evalContext = Formio.Components.components.component.prototype.evalContext;
     Formio.Components.components.component.prototype.evalContext = function(additional) {
@@ -126,7 +126,7 @@ class Validator {
        // Reset the data
       form.data = {};
       form.setValue(submission, {
-        sanitize: this.sanitize ||  form.allowAllSubmissionData ? false : true,
+        sanitize: this.skipSanitize ? false :  form.allowAllSubmissionData ? false : true,
       });
 
       // Perform calculations and conditions.

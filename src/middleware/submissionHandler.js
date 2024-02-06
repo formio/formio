@@ -232,9 +232,11 @@ module.exports = (router, resourceName, resourceId) => {
 
         // Next we need to validate the input.
         const token = util.getRequestValue(req, 'x-jwt-token');
-        let sanitize = util.getRequestValue(req, 'skip-sanitize');
-        sanitize  = sanitize == "true" ? false : true;
-        const validator = new Validator(req.currentForm, submissionModel, token, req.token, hook, sanitize);
+        // skip sanitize if true then we will skip the submission data snitization
+        let skipSanitize = util.getRequestValue(req, 'skip-sanitize');
+        skipSanitize  = skipSanitize == "true" ? true : false;
+
+        const validator = new Validator(req.currentForm, submissionModel, token, req.token, hook, skipSanitize);
         validator.validateReCaptcha = (responseToken) => {
           return new Promise((resolve, reject) => {
             router.formio.mongoose.models.token.findOne({value: responseToken}, (err, token) => {
