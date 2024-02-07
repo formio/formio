@@ -176,8 +176,8 @@ module.exports = (router) => {
                   );
                 }
                 else {
-                  if (req.encryptedComponents && Object.keys(req.encryptedComponents).includes(key) && field.buffer) {
-                    newData[key] = hook.alter('decrypt', req, field.buffer);
+                  if (req.encryptedComponents && Object.keys(req.encryptedComponents).includes(key) && field) {
+                    newData[key] = hook.alter('decrypt', req, field);
                   }
                   else {
                     newData[key] = field;
