@@ -3279,9 +3279,9 @@ node-paginate-anything@^1.0.0:
   integrity sha512-L3eCybrEpnBbcG8ey+IqcsxlNOiV+fjyUqVaeGN/Wq95RUBmEktRQIXe2fC9cfmCpKbq5m/QhQ/lPehgUC1i8w==
 
 nodemailer@^6.8.0:
-  version "6.9.8"
-  resolved "https://registry.npmjs.org/nodemailer/-/nodemailer-6.9.8.tgz#29601e80440f2af7aa62b32758fdac7c6b784143"
-  integrity sha512-cfrYUk16e67Ks051i4CntM9kshRYei1/o/Gi8K1d+R34OIs21xdFnW7Pt7EucmVKA0LKtqUGNcjMZ7ehjl49mQ==
+  version "6.9.9"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.9.9.tgz#4549bfbf710cc6addec5064dd0f19874d24248d9"
+  integrity sha512-dexTll8zqQoVJEZPwQAKzxxtFn0qTnjdQTchoU6Re9BUUGBJiOy3YMn/0ShTW6J5M0dfQ1NeDeRTTl4oIWgQMA==
 
 nodemon@^2.0.20:
   version "2.0.22"
