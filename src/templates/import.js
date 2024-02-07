@@ -717,7 +717,7 @@ module.exports = (router) => {
     const createOnly = entity.createOnly;
     const requiredAttributes = entity.requiredAttributes;
 
-    return  async (template, items, alter, done) => {
+    return async (template, items, alter, done) => {
       // Normalize arguments.
       if (!done) {
         done = alter;
@@ -774,12 +774,15 @@ module.exports = (router) => {
               return next(err);
             }
 
-            const saveDoc = function(updatedDoc) {
-              updatedDoc.save((err, result) => {
-                if (err) {
-                  debug.install(err.errors || err);
-                  return next(err);
-                }
+            const saveDoc = async function(updatedDoc, isNew = false) {
+              try {
+               const result = isNew
+                ? await model.create(updatedDoc)
+                : await model.findOneAndUpdate({
+                  _id: updatedDoc._id
+                }, {
+                  $set: updatedDoc
+                });
 
                 items[machineName] = result.toObject();
 
@@ -850,7 +853,8 @@ module.exports = (router) => {
                           formio.resources.form.model.updateOne({
                             _id: result._id
                           },
-                          {_vid: revisionsToCreate.length + existingRevisions.length},
+                          {$set:
+                            {_vid: revisionsToCreate.length + existingRevisions.length}},
                           (err) => {
                             if (err) {
                               return next(err);
@@ -870,6 +874,7 @@ module.exports = (router) => {
                   }
                   else {
                         debug.save(items[machineName].machineName);
+                        // eslint-disable-next-line max-depth
                         if (entity.hasOwnProperty('deleteAllActions')) {
                           return entity.deleteAllActions(updatedDoc._id, next);
                         }
@@ -883,7 +888,11 @@ module.exports = (router) => {
                   }
                   return next();
                 }
-              });
+              }
+              catch (err) {
+                debug.install(err.errors || err);
+                return next(err);
+              }
             };
 
             const setVid = (document, _vid) => {
@@ -896,7 +905,7 @@ module.exports = (router) => {
               debug.install(`Existing not found (${document.machineName})`);
               setVid(document, 0);
               /* eslint-disable new-cap */
-              return saveDoc(new model(document));
+              return saveDoc(new model(document), true);
               /* eslint-enable new-cap */
             }
             else if (!createOnly) {
