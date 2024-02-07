@@ -538,10 +538,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@^2.0.0-rc.6":
-  version "2.0.0-rc.6"
-  resolved "https://registry.npmjs.org/@formio/core/-/core-2.0.0-rc.6.tgz#393ad480068a2ada96c7675b9059f81e33b35502"
-  integrity sha512-0FPAE7GThKwsf4pghxaqmREt0mupjY+8QDdet81ECCibOhEWWh1hNPTXzx0XgC9cT9Y0PAPBZynahjH9Vu6ldA==
+"@formio/core@^2.0.0-rc.10":
+  version "2.0.0-rc.10"
+  resolved "https://registry.npmjs.org/@formio/core/-/core-2.0.0-rc.10.tgz#384f63b3f03d1e88bac83308cb2b8f5ebd0c2cc0"
+  integrity sha512-cYrRDQ6a7iQse8mgtnC7qqWUfKSq4wqrRfYkbys/EvufOXSUvjv7LSxyNW8YAh5QWj/+jhZgwVm0HZm3i5H8qg==
   dependencies:
     "@types/json-logic-js" "^2.0.5"
     browser-cookies "^1.2.0"
@@ -550,6 +550,7 @@
     dompurify "^3.0.6"
     eventemitter3 "^5.0.0"
     fetch-ponyfill "^7.1.0"
+    inputmask "^5.0.9-beta.45"
     json-logic-js "^2.0.2"
     lodash "^4.17.21"
     moment "^2.29.4"
@@ -2476,6 +2477,11 @@ inherits@2, inherits@2.0.4, inherits@^2.0.3, inherits@~2.0.3:
   version "2.0.4"
   resolved "https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
+
+inputmask@^5.0.9-beta.45:
+  version "5.0.9-beta.45"
+  resolved "https://registry.npmjs.org/inputmask/-/inputmask-5.0.9-beta.45.tgz#2699ebfd1e99f572815fb8f2ac23c548198f9ec6"
+  integrity sha512-Nh6RHifykvEfPvnpCiwEER8LcDTAWvWKWUnVsRjqOyutGwAdjFuucCDI3YAm8tTVmhsmAydqEs+ORwllkN7Pfw==
 
 internal-slot@^1.0.4:
   version "1.0.5"
