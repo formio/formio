@@ -10,6 +10,7 @@ const debug = {
 const fetch = require('@formio/node-fetch-http-proxy');
 const util = require('./util');
 const _ = require('lodash');
+const {renderEmail} = require('@formio/vm');
 
 const DEFAULT_TRANSPORT = process.env.DEFAULT_TRANSPORT;
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
@@ -23,7 +24,6 @@ const NON_PRIORITY_QUEUE_TIMEOUT = process.env.NON_PRIORITY_QUEUE_TIMEOUT || 100
  */
 module.exports = (formio) => {
   const hook = require('./hook')(formio);
-  const Worker = require('../worker/Worker')(formio);
 
   /**
    * Get the list of available email transports.
@@ -116,7 +116,7 @@ module.exports = (formio) => {
    *   The available substitution values.
    */
   const getParams = (req, res, form, submission) => new Promise((resolve, reject) => {
-    let params = _.cloneDeep(submission);
+    let params = submission;
     if (res && res.resource && res.resource.item) {
       if (typeof res.resource.item.toObject === 'function') {
         params = _.assign(params, res.resource.item.toObject());
@@ -126,7 +126,7 @@ module.exports = (formio) => {
       }
       params.id = params._id.toString();
     }
-
+    params = JSON.parse(JSON.stringify(params));
     // The form components.
     params.components = {};
     params.componentsWithPath = {};
@@ -138,23 +138,8 @@ module.exports = (formio) => {
       params.components[component.key] = component;
       params.componentsWithPath[path] = component;
       params.componentsWithPath[path].compPath = path;
-      if (component.type === 'resource' && params.data[component.key]) {
-        params.data[`${component.key}Obj`] = params.data[component.key];
-        replacements.push(
-          (new Worker('nunjucks'))
-            .start({
-              form,
-              submission,
-              template: component.template,
-              context: {
-                item: params.data[component.key],
-              },
-            })
-            .then((response) => {
-              params.data[component.key] = response.output;
-              return response;
-            }),
-        );
+      if (component.type === 'resource' && params.data[component.key]) { // need that
+        params.data[`${component.key}Obj`] = params.data[component.key]; // need that
       }
     });
 
@@ -204,7 +189,7 @@ module.exports = (formio) => {
     params.mail = mail;
 
     // Compile the email with nunjucks in a separate thread.
-    return new Worker('nunjucks').start({
+    return renderEmail({
       render: mail,
       context: params,
       options,
@@ -217,7 +202,9 @@ module.exports = (formio) => {
 
       return resolve(injectedEmail);
     })
-    .catch(reject);
+    .catch((err) => {
+      return reject();
+    });
   });
 
   /**
