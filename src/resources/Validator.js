@@ -194,7 +194,7 @@ class Validator {
     };
     try {
       // Process the server processes
-      context.processors = ProcessTargets.server;
+      context.processors = ProcessTargets.submission;
       await process(context);
       submission.data = context.data;
 
