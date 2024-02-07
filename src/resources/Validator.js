@@ -7,7 +7,7 @@ const {
   interpolateErrors,
   escapeRegExCharacters
 } = require('@formio/core');
-const { evaluateProcess } = require('@formio/vm');
+const {evaluateProcess} = require('@formio/vm');
 const fetch = require('@formio/node-fetch-http-proxy');
 const debug = {
   validator: require('debug')('formio:validator'),
@@ -194,12 +194,12 @@ class Validator {
     };
     try {
       // Process the server processes
-      context.processors = ProcessTargets.server;
+      context.processors = ProcessTargets.submission;
       await process(context);
       submission.data = context.data;
 
       // Process the evaulator
-      const { scope, data } = await evaluateProcess({
+      const {scope, data} = await evaluateProcess({
         form: this.form,
         submission,
         scope: context.scope,

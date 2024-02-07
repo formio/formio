@@ -10,7 +10,7 @@ const debug = {
 const fetch = require('@formio/node-fetch-http-proxy');
 const util = require('./util');
 const _ = require('lodash');
-const { renderEmail } = require('@formio/vm');
+const {renderEmail} = require('@formio/vm');
 
 const DEFAULT_TRANSPORT = process.env.DEFAULT_TRANSPORT;
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;

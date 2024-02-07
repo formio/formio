@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const async = require('async');
 const util = require('../util/util');
-
+const {evaluateSync} = require('@formio/vm');
 const LOG_EVENT = 'Save Submission Action';
 
 module.exports = function(router) {
@@ -210,7 +210,7 @@ module.exports = function(router) {
                 submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
                 data: submission.data,
               }
-            })
+            });
             submission.data = newData;
           }
           catch (err) {

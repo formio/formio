@@ -19,7 +19,7 @@ const {
   rootLevelProperties,
   rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
-const { evaluate } = require('@formio/vm');
+const {evaluate} = require('@formio/vm');
 const promisify = require('util').promisify;
 
 /**
@@ -257,7 +257,7 @@ module.exports = (router) => {
 
           const result = await evaluate({
             deps: ['core', 'moment', 'lodash'],
-            code: json ? 
+            code: json ?
               `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
               condition.custom,
             data: {
