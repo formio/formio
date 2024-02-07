@@ -251,7 +251,7 @@ module.exports = (router, resourceName, resourceId) => {
         };
 
         // Validate the request.
-        validator.validate(req.body, (err, data, visibleComponents) => {
+        await validator.validate(req.body, (err, data, visibleComponents) => {
           if (req.noValidate) {
             return done();
           }
@@ -262,13 +262,6 @@ module.exports = (router, resourceName, resourceId) => {
           data = hook.alter('rehydrateValidatedSubmissionData', data, req);
 
           res.submission = {data: data};
-
-          if (!_.isEqual(visibleComponents, req.currentForm.components)) {
-            req.currentFormComponents = visibleComponents;
-          }
-          else if (req.hasOwnProperty('currentFormComponents') && req.currentFormComponents) {
-            delete req.currentFormComponents;
-          }
           done();
         });
       });
@@ -314,7 +307,7 @@ module.exports = (router, resourceName, resourceId) => {
       const resourceData = _.get(res, 'resource.item.data', {});
       const submissionData = req.body.data || resourceData;
 
-      util.eachValue((req.currentFormComponents || req.currentForm.components), submissionData, ({
+      util.eachValue(req.currentForm.components, submissionData, ({
         component,
         data,
         handler,
@@ -470,7 +463,6 @@ module.exports = (router, resourceName, resourceId) => {
         async.apply(alterSubmission, req, res),
         async.apply(ensureResponse, req, res)
       ], (...args) => {
-        delete req.currentFormComponents;
         next(...args);
       });
     };

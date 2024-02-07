@@ -2,7 +2,6 @@
 
 const Resource = require('resourcejs');
 const async = require('async');
-const {VM} = require('vm2');
 const _ = require('lodash');
 const debug = {
   error: require('debug')('formio:error'),
@@ -20,6 +19,7 @@ const {
   rootLevelProperties,
   rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
+const { evaluate } = require('@formio/vm');
 const promisify = require('util').promisify;
 
 /**
@@ -245,6 +245,8 @@ module.exports = (router) => {
             data: isDelete ? _.get(deletedSubmission, `data`, {}) : req.body.data,
             form: req.form,
             query: req.query,
+            params: req.params,
+            headers: req.headers,
             util: util.FormioUtils,
             moment: moment,
             submission: isDelete ? deletedSubmission : req.body,
@@ -253,31 +255,20 @@ module.exports = (router) => {
             _
           }, req);
 
-          let vm = new VM({
-            timeout: 500,
-            sandbox: {
+          const result = await evaluate({
+            deps: ['core', 'moment', 'lodash'],
+            code: json ? 
+              `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
+              condition.custom,
+            data: {
               execute: params.execute,
               query: params.query,
               data: params.data,
               form: params.form,
               submission: params.submission,
               previous: params.previous,
-            },
-            eval: false,
-            fixAsync: true
+            }
           });
-
-          vm.freeze(params.jsonLogic, 'jsonLogic');
-          vm.freeze(params.FormioUtils, 'util');
-          vm.freeze(params.moment, 'moment');
-          vm.freeze(params._, '_');
-
-          const result = vm.run(json ?
-            `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
-            condition.custom
-          );
-
-          vm = null;
 
           return result;
         }
@@ -327,8 +318,8 @@ module.exports = (router) => {
           }
           const value = await getComponentValueFromRequest(req, res, conditionComponentPath, isRootLevelProperty);
           let component;
-          if (req.currentFormComponents && !isRootLevelProperty) {
-            component = util.FormioUtils.getComponent(req.currentFormComponents, conditionComponentPath);
+          if (req.currentForm.components && !isRootLevelProperty) {
+            component = util.FormioUtils.getComponent(req.currentForm.components, conditionComponentPath);
           }
           return new ConditionOperator().getResult({value, comparedValue, component});
         }));
