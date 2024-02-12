@@ -32,6 +32,12 @@ module.exports = (router) => {
       forms = [forms];
     }
 
+    // If they are an admin, and wish to force the delete, the allow the removal of the full submission.
+    if (req.query.force && req.isAdmin && subId) {
+      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+      return submissionModel.findByIdAndRemove(subId);
+    }
+
     // Build the query, using either the subId or forms array.
     const query = {deleted: {$eq: null}};
     if (subId) {
@@ -75,6 +81,11 @@ module.exports = (router) => {
       forms = [forms];
     }
 
+    // If they are an admin, and wish to force the delete, the allow the removal of the full submission.
+    if (req.query.force && req.isAdmin && actionId) {
+      return router.formio.actions.model.findByIdAndRemove(actionId);
+    }
+
     const query = {deleted: {$eq: null}};
     if (actionId) {
       query._id = util.idToBson(actionId);
@@ -106,6 +117,11 @@ module.exports = (router) => {
     const util = router.formio.util;
     if (!formId) {
       return Promise.resolve();
+    }
+
+    // If they are an admin, and wish to force the delete, the allow the removal of the full submission.
+    if (req.query.force && req.isAdmin && formId) {
+      return router.formio.resources.form.model.findByIdAndRemove(formId);
     }
 
     const query = {_id: util.idToBson(formId), deleted: {$eq: null}};
@@ -247,6 +263,11 @@ module.exports = (router) => {
     const util = router.formio.util;
     if (!roleId) {
       return Promise.resolve();
+    }
+
+    // If they are an admin, and wish to force the delete, the allow the removal of the full submission.
+    if (req.query.force && req.isAdmin && roleId) {
+      return router.formio.resources.role.model.findByIdAndRemove(roleId);
     }
 
     const query = {_id: util.idToBson(roleId), deleted: {$eq: null}};

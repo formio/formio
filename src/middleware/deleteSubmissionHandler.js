@@ -26,7 +26,7 @@ module.exports = (router) => {
           res.resource = {
             status: 200,
             item: {},
-            previousItem: submission[0],
+            previousItem: submission ? submission[0] : null,
             deleted: true
           };
           next();
