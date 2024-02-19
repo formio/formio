@@ -20,13 +20,15 @@ Run with Docker Compose
 ------------------
 The fastest way to run this library locally is to use [Docker](https://docker.com).
 
- - [Install Docker](https://docs.docker.com/v17.12/install/)
+ - [Install Docker](https://docs.docker.com/engine/install/)
  - Download and unzip this package to a local directory on your machine.
  - Open up your terminal and navigate to the unzipped folder of this library.
  - Type the following in your terminal
     ```
-    npm install
-    docker-compose up
+    # create persistent storage for your Dockerized MongoDB
+    mkdir mdb-data
+    # create the Formio Docker image and run it along with MongoDB
+    docker-compose up -d
     ```
  - Go to the following URL in your browser.
     ```
