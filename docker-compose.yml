@@ -12,6 +12,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
+    restart: always
     links:
       - mongo
     ports:
