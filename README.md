@@ -25,11 +25,9 @@ The fastest way to run this library locally is to use [Docker](https://docker.co
  - Open up your terminal and navigate to the unzipped folder of this library.
  - Type the following in your terminal
     ```
-    # create persistent storage for your Dockerized MongoDB
-    mkdir mdb-data
-    # create the Formio Docker image and run it along with MongoDB
     docker-compose up -d
     ```
+
  - Go to the following URL in your browser.
     ```
     http://localhost:3001

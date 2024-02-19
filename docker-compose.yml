@@ -4,7 +4,7 @@ services:
     image: mongo
     restart: always
     volumes:
-      - "./mdb-data:/data/db"
+      - mdb-data:/data/db
     environment:
       - MONGO_INITDB_ROOT_USERNAME
       - MONGO_INITDB_ROOT_PASSWORD
@@ -12,7 +12,6 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    platform: linux/amd64 # Target architecture    restart: always
     links:
       - mongo
     ports:
@@ -24,3 +23,5 @@ services:
       ROOT_PASSWORD: CHANGEME
     stdin_open: true # -i
     tty: true # -t
+volumes:
+  mdb-data:
