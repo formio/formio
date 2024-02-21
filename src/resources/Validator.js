@@ -225,6 +225,7 @@ class Validator {
 
       // Process the evaulator
       const {scope, data} = await evaluateProcess({
+        ...(config || {}),
         form: this.form,
         submission,
         scope: context.scope,
