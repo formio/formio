@@ -5,14 +5,14 @@
   "license": "OSL-3.0",
   "main": "index.js",
   "scripts": {
-    "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000 --exit",
-    "start": "node main.js",
+    "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000 --no-node-snapshot --exit",
+    "start": "node --no-node-snapshot main.js",
     "start:dev": "nodemon main.js",
     "lint": "eslint ."
   },
   "author": "support@form.io",
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=20.0.0"
   },
   "schema": "3.1.4",
   "templateVersion": "2.0.0",
