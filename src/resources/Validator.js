@@ -141,21 +141,6 @@ class Validator {
     });
   }
 
-  evaluate(form, submission, scope, token) {
-    processSync({
-      form,
-      submission,
-      components: form.components,
-      data: submission.data,
-      processors: ProcessTargets.evaluator,
-      scope,
-      config: {
-        server: true,
-        token,
-      }
-    });
-  }
-
   /**
    * Validate a submission for a form.
    *
