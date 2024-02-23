@@ -231,8 +231,7 @@ module.exports = (router, resourceName, resourceId) => {
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
         // Next we need to validate the input.
-        const token = util.getRequestValue(req, 'x-jwt-token');
-        const validator = new Validator(req.currentForm, submissionModel, token, req.token, hook);
+        const validator = new Validator(req, submissionModel, hook);
         validator.validateReCaptcha = (responseToken) => {
           return new Promise((resolve, reject) => {
             router.formio.mongoose.models.token.findOne({value: responseToken}, (err, token) => {
