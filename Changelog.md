@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.0.0-rc.4
+### Changed
+ - Updated @formio/core@2.0.0-rc.11
+
 ## 4.0.0-rc.3
 ### Changed
  - FIO-7938: Fix server fetch process
