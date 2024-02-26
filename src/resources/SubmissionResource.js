@@ -33,6 +33,7 @@ module.exports = (router) => {
   handlers.afterGet = [
     handlers.afterGet,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
+    (req,res,next)=>{console.log(11111); next()},
     router.formio.middleware.filterProtectedFields('get', (req) => router.formio.cache.getCurrentFormId(req)),
     (req, res, next) => {
       router.formio.cache.loadCurrentForm(req, (err, currentForm) => {
@@ -50,6 +51,7 @@ module.exports = (router) => {
     router.formio.middleware.addSubmissionResourceAccess,
     router.formio.middleware.condenseSubmissionPermissionTypes,
     router.formio.middleware.loadPreviousSubmission,
+    router.formio.middleware.alterCurrentSubmissionWithPrevious,
     handlers.beforePut,
   ];
   handlers.afterPut = [

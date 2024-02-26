@@ -20,8 +20,8 @@ module.exports = function(router) {
         if (err) {
           return next(err);
         }
-
-        util.removeProtectedFields(form, action, res.resource.item, req.doNotMinify || req.query.full);
+        
+        util.removeProtectedFields(form, action, res.resource.item, req.doNotMinify || req.query.full, req.token);
         next();
       });
     };

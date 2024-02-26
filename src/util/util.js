@@ -606,7 +606,7 @@ const Utils = {
     return changed;
   },
 
-  removeProtectedFields(form, action, submissions, doNotMinify) {
+  removeProtectedFields(form, action, submissions, doNotMinify, token) {
     if (!Array.isArray(submissions)) {
       submissions = [submissions];
     }
@@ -617,7 +617,10 @@ const Utils = {
     // Iterate through all components.
     this.eachComponent(form.components, (component, path) => {
       path = `data.${path}`;
-      if (component.protected) {
+      const roles = token?.user?.roles || [] 
+      const displayFor =  component?.properties?.displayFor;
+      //need to check multiple roles
+      if (component.protected ||  (displayFor && !roles.includes(displayFor))) {
         debug.removeProtectedFields('Removing protected field:', component.key);
         logger.removeProtectedFields.info('Removing protected field:', component.key);
         modifyFields.push(deleteProp(path));

@@ -3,6 +3,7 @@
 module.exports = function(router) {
   return {
     alias: require('./alias')(router),
+    alterCurrentSubmissionWithPrevious: require('./alterCurrentSubmissionWithPrevious')(router),
     params: require('./params')(router),
     accessHandler: require('./accessHandler')(router),
     addSubmissionResourceAccess: require('./addSubmissionResourceAccess')(router),
