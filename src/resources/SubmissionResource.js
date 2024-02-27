@@ -33,7 +33,6 @@ module.exports = (router) => {
   handlers.afterGet = [
     handlers.afterGet,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
-    (req,res,next)=>{console.log(11111); next()},
     router.formio.middleware.filterProtectedFields('get', (req) => router.formio.cache.getCurrentFormId(req)),
     (req, res, next) => {
       router.formio.cache.loadCurrentForm(req, (err, currentForm) => {

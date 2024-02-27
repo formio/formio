@@ -15,11 +15,11 @@ module.exports = function(router) {
         if (err) {
           return next(err);
         }
-        const previousSubmission = req.previousSubmission?.data;
+        const previousSubmission = req.previousSubmission?.data; 
         util.eachComponent(form.components, (component) => {
              if(component.properties?.displayFor){
-               if(!req.body?.data[component.key]){
-                req.body.data[component.key] = previousSubmission[component.key]
+               if(!req.body?.data?.[component.key]){
+                req.body.data[component.key] = previousSubmission?.[component.key]
                }
              }
         })
