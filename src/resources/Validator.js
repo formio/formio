@@ -8,6 +8,7 @@ const {
   escapeRegExCharacters
 } = require('@formio/core');
 const {evaluateProcess} = require('@formio/vm');
+const util = require('../util/util');
 const fetch = require('@formio/node-fetch-http-proxy');
 const debug = {
   validator: require('debug')('formio:validator'),
@@ -22,10 +23,28 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(form, model, token, decodedToken, hook) {
+  constructor(req, model, hook) {
+    const tokens = {};
+    const token = util.getRequestValue(req, 'x-jwt-token');
+    if (token) {
+      tokens['x-jwt-token'] = token;
+    }
+    if (req.headers['x-remote-token']) {
+      tokens['x-remote-token'] = req.headers['x-remote-token'];
+    }
+    if (req.headers['x-token']) {
+      tokens['x-token'] = req.headers['x-token'];
+    }
+    if (req.headers['x-admin-key']) {
+      tokens['x-admin-key'] = req.headers['x-admin-key'];
+    }
+
+    this.req = req;
     this.model = model;
-    this.form = form;
-    this.token = token;
+    this.form = req.currentForm;
+    this.project = req.currentProject;
+    this.decodedToken = req.token;
+    this.tokens = tokens;
     this.hook = hook;
   }
 
@@ -159,6 +178,9 @@ class Validator {
       return next();
     }
 
+    let config = this.project ? (this.project.config || {}) : {};
+    config = {...(this.form.config || {}), ...config};
+
     const context = {
       form: this.form,
       submission: submission,
@@ -168,8 +190,11 @@ class Validator {
       fetch,
       scope: {},
       config: {
+        ...(config || {}),
+        headers: JSON.parse(JSON.stringify(this.req.headers)),
         server: true,
-        token: this.token,
+        token: this.tokens['x-jwt-token'],
+        tokens: this.tokens,
         database: {
           isUnique: async (context, value) => {
             return this.isUnique(context, submission, value);
@@ -185,13 +210,20 @@ class Validator {
 
       // Process the evaulator
       const {scope, data} = await evaluateProcess({
+        ...(config || {}),
         form: this.form,
         submission,
         scope: context.scope,
-        token: this.token,
+        token: this.tokens['x-jwt-token'],
+        tokens: this.tokens
       });
       context.scope = scope;
       submission.data = data;
+
+      // Now that the validation is complete, we need to remove fetched data from the submission.
+      for (const path in context.scope.fetched) {
+        _.unset(submission.data, path);
+      }
     }
     catch (err) {
       debug.error(err);
