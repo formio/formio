@@ -1617,8 +1617,7 @@ module.exports = function(app, template, hook) {
                   setting: true,
                   validator: 'required',
                   label: 'Required Field',
-                  path: 'requiredField',
-                  value: ''
+                  path: 'requiredField'
                 },
                 message: 'Required Field is required',
                 level: 'error',
@@ -1987,8 +1986,7 @@ module.exports = function(app, template, hook) {
                   label: 'Required Field',
                   setting: true,
                   validator: 'required',
-                  path: 'requiredField',
-                  value: ''
+                  path: 'requiredField'
                 },
                 message: 'Required Field is required',
                 level: 'error',
@@ -2816,13 +2814,11 @@ module.exports = function(app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
-            assert.equal(helper.lastResponse.body.details.length, 3);
-            assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be a non-empty array');
+            assert.equal(helper.lastResponse.body.details.length, 2);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be an array');
             assert.equal(helper.lastResponse.body.details[1].message, 'Text Field is required');
-            assert.equal(helper.lastResponse.body.details[2].message, 'Text Field must be an array');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
             assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
-            assert.deepEqual(helper.lastResponse.body.details[2].path, ['textField']);
             done();
           });
       });
@@ -3774,8 +3770,7 @@ module.exports = function(app, template, hook) {
                   label: 'Test',
                   setting: true,
                   path: 'test',
-                  validator: 'required',
-                  value: ''
+                  validator: 'required'
                 },
                 level: 'error',
                 message: 'Test is required',
