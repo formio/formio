@@ -1616,7 +1616,9 @@ module.exports = function(app, template, hook) {
                   key: 'requiredField',
                   setting: true,
                   validator: 'required',
-                  label: 'Required Field'
+                  label: 'Required Field',
+                  path: 'requiredField',
+                  value: ''
                 },
                 message: 'Required Field is required',
                 level: 'error',
@@ -1985,6 +1987,8 @@ module.exports = function(app, template, hook) {
                   label: 'Required Field',
                   setting: true,
                   validator: 'required',
+                  path: 'requiredField',
+                  value: ''
                 },
                 message: 'Required Field is required',
                 level: 'error',
@@ -2692,7 +2696,8 @@ module.exports = function(app, template, hook) {
                   key: 'textField',
                   label: 'Text Field',
                   setting: false,
-                  validator: 'multiple',
+                  path: 'textField',
+                  validator: 'nonarray',
                   value: ['Never', 'gonna', 'give', 'you', 'up']
                 },
                 message: 'Text Field must not be an array',
@@ -2811,11 +2816,13 @@ module.exports = function(app, template, hook) {
             var submission = helper.getLastSubmission();
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
-            assert.equal(helper.lastResponse.body.details.length, 2);
-            assert.equal(helper.lastResponse.body.details[0].message, 'Text Field is required');
-            assert.equal(helper.lastResponse.body.details[1].message, 'Text Field must be a non-empty array');
+            assert.equal(helper.lastResponse.body.details.length, 3);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be a non-empty array');
+            assert.equal(helper.lastResponse.body.details[1].message, 'Text Field is required');
+            assert.equal(helper.lastResponse.body.details[2].message, 'Text Field must be an array');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
             assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
+            assert.deepEqual(helper.lastResponse.body.details[2].path, ['textField']);
             done();
           });
       });
@@ -3531,6 +3538,7 @@ module.exports = function(app, template, hook) {
                   key: 'changeme',
                   label: 'Two',
                   setting: true,
+                  path: 'changeme',
                   validator: 'required',
                 },
                 level: 'error',
@@ -3655,7 +3663,7 @@ module.exports = function(app, template, hook) {
 
       it('Should save submission for Wizard with advanced Conditions', function(done) {
         var wizardForm = require('./fixtures/forms/wizardFormWithAdvancedConditions.js');
-        var wizardSubmission = {textField: 'Mary', textField1: 'gray'};
+        var wizardSubmission = {number: 2, textField: 'Mary', textArea: 'gray'};
         helper
           .upsertForm(wizardForm, (err) => {
             if (err) {
@@ -3765,7 +3773,9 @@ module.exports = function(app, template, hook) {
                   key: 'test',
                   label: 'Test',
                   setting: true,
+                  path: 'test',
                   validator: 'required',
+                  value: ''
                 },
                 level: 'error',
                 message: 'Test is required',

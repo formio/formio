@@ -8,7 +8,6 @@ const debug = {
   loadFormByName: require('debug')('formio:cache:loadFormByName'),
   loadFormByAlias: require('debug')('formio:cache:loadFormByAlias'),
   loadSubmission: require('debug')('formio:cache:loadSubmission'),
-  loadSubmissionRevision: require('debug')('formio:cache:loadSubmissionRevision'),
   loadSubmissions: require('debug')('formio:cache:loadSubmissions'),
   loadSubForms: require('debug')('formio:cache:loadSubForms'),
   error: require('debug')('formio:error')
@@ -277,51 +276,6 @@ module.exports = function(router) {
       });
     },
 
-    loadSubmissionRevision(req, cb) {
-      let submissionRevisionId = req.query.submissionRevision;
-
-      if (!submissionRevisionId) {
-        const err = new Error('No submission revision id provided');
-        debug.loadSubmissionRevision(err);
-        return cb(err);
-      }
-
-      if (!req.params.formId) {
-        const err = new Error('No form id provided');
-        debug.loadSubmissionRevision(err);
-        return cb(err);
-      }
-      const cache = this.cache(req);
-
-      if (cache.submissionRevisions[submissionRevisionId]) {
-        debug.loadSubmissionRevision(`Cache hit: ${submissionRevisionId}`);
-        return cb(null, cache.submissionRevisions[submissionRevisionId]);
-      }
-
-      submissionRevisionId = util.idToBson(submissionRevisionId);
-      if (submissionRevisionId === false) {
-        return cb('Invalid submission revision _id given.');
-      }
-      debug.loadSubmissionRevision(`Searching for form: ${req.params.formId}, and submission: ${submissionRevisionId}`);
-
-      const query = {_id: submissionRevisionId, form: req.params.formId, deleted: {$eq: null}};
-
-      const submissionRevisionModel = req.submissionRevisionModel || router.formio.resources.submissionrevision.model;
-
-      submissionRevisionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec((err, revision) => {
-        if (err) {
-          debug.loadSubmissionRevision(err);
-          return cb(err);
-        }
-        if (!revision) {
-          debug.loadSubmissionRevision('No submission found for the given query.');
-          return cb(null, null);
-        }
-        cache.submissionRevisions[submissionRevisionId] = revision;
-        cb(null, revision);
-      });
-    },
-
     /**
      * Load an array of submissions.
      *
@@ -415,6 +369,13 @@ module.exports = function(router) {
 
     /**
      * Load a resource by alias
+     *
+     * @param req {Request}
+     *   The Express request object.
+     * @param alias {String}
+     *   The resource alias to search for.
+     * @param cb {Function}
+     *   The callback function to run when complete.
      */
     loadFormByAlias(req, alias, cb) {
       const cache = this.cache(req);

@@ -1,15 +1,12 @@
 'use strict';
-require('@azure/ms-rest-nodeauth');
 
 const mongoose = require('mongoose');
 const ObjectID = require('mongodb').ObjectId;
 const _ = require('lodash');
 const nodeUrl = require('url');
 const deleteProp = require('delete-property').default;
-const workerUtils = require('formio-workers/workers/util');
 const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
-const {VM} = require('vm2');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
@@ -45,29 +42,7 @@ _.each(Formio.Displays.displays, (display) => {
   display.prototype.onChange = _.noop;
 });
 
-const vm = new VM({
-  timeout: 250,
-  sandbox: {
-    result: null,
-  },
-  fixAsync: true
-});
-
 Formio.Utils.Evaluator.noeval = true;
-Formio.Utils.Evaluator.evaluator = function(func, args) {
-  return function() {
-    let result = null;
-    /* eslint-disable no-empty */
-    try {
-      vm.freeze(args, 'args');
-
-      result = vm.run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
-    }
-    catch (err) {}
-    /* eslint-enable no-empty */
-    return result;
-  };
-};
 
 const Utils = {
   Formio: Formio.Formio,
@@ -342,10 +317,6 @@ const Utils = {
       return id;
     }
   },
-
-  flattenComponentsForRender: workerUtils.flattenComponentsForRender.bind(workerUtils),
-  renderFormSubmission: workerUtils.renderFormSubmission.bind(workerUtils),
-  renderComponentValue: workerUtils.renderComponentValue.bind(workerUtils),
 
 /**
    * Search the request headers for the given key.
@@ -853,6 +824,9 @@ const Utils = {
       }
     });
   },
+  // Skips hook execution in case of no hook by provided name found
+  // Pass as the last argument to formio.hook.alter() function
+  skipHookIfNotExists: () => _.noop(),
 };
 
 module.exports = Utils;

@@ -162,7 +162,6 @@ module.exports = (app, template, hook) => {
           }, true);
           given[machineName] = tempForm;
         });
-
         assert.deepEqual(hook.alter('templateFormsAndResources', given), input);
         done();
       })
@@ -232,9 +231,10 @@ module.exports = (app, template, hook) => {
     };
 
     let alters = hook.alter(`templateAlters`, {});
+    const reportsEnabled = hook.alter('includeReports');
 
     describe('Default Template', function() {
-      let testTemplate = require('../src/templates/default.json');
+      let testTemplate =  _.cloneDeep(require('../src/templates/default.json'));
       testTemplate.revisions = {};
       let _template = _.cloneDeep(testTemplate);
 
@@ -342,7 +342,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -466,7 +469,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -590,7 +596,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -714,7 +723,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -838,7 +850,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -962,7 +977,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -1086,7 +1104,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -1210,7 +1231,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -1334,7 +1358,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -1458,7 +1485,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -1585,8 +1615,11 @@ module.exports = (app, template, hook) => {
 
           // Update the test template to not contain any of the malformed actions.
           testTemplate.actions = {};
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
 
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -1713,8 +1746,11 @@ module.exports = (app, template, hook) => {
 
           // Update the test template to not contain any of the malformed actions.
           testTemplate.actions = {};
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
 
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -1833,7 +1869,6 @@ module.exports = (app, template, hook) => {
         });
 
         it('The template should export all actions without mapped resource', () => {
-          console.log(exportData.actions);
           checkMissingResourceActions(exportData.actions);
         });
       });
@@ -1960,7 +1995,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -2086,7 +2124,10 @@ module.exports = (app, template, hook) => {
         it('An export should match an import', function() {
           assert.deepEqual(exportData.roles, {});
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'roles']), _.omit(testTemplate, ['version', 'tag', 'access', 'roles']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'roles', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'roles']));
         });
       });
 
@@ -2211,7 +2252,10 @@ module.exports = (app, template, hook) => {
         it('An export should match an import', function() {
           assert.deepEqual(exportData.resources, {});
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'resources']), _.omit(testTemplate, ['version', 'tag', 'access', 'resources']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'resources', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'resources']));
         });
       });
 
@@ -2336,7 +2380,10 @@ module.exports = (app, template, hook) => {
         it('An export should match an import', function() {
           assert.deepEqual(exportData.forms, {});
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'forms']), _.omit(testTemplate, ['version', 'tag', 'access', 'forms']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'forms', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'forms']));
         });
       });
 
@@ -2462,7 +2509,10 @@ module.exports = (app, template, hook) => {
         it('An export should match an import', function() {
           assert.deepEqual(exportData.actions, {});
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'actions']), _.omit(testTemplate, ['version', 'tag', 'access', 'actions']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'actions', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'actions']));
         });
       });
 
@@ -2587,7 +2637,10 @@ module.exports = (app, template, hook) => {
         it('An export should match an import', function() {
           assert.deepEqual(exportData.title, 'Export');
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'title']), _.omit(testTemplate, ['version', 'tag', 'access', 'title']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'title', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'title']));
         });
       });
 
@@ -2711,7 +2764,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'name']), _.omit(testTemplate, ['version', 'tag', 'access', 'name']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'name', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'name']));
         });
       });
 
@@ -2835,7 +2891,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'description']), _.omit(testTemplate, ['version', 'tag', 'access', 'description']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'description', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'description']));
         });
       });
 
@@ -2959,7 +3018,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
         });
       });
 
@@ -3087,7 +3149,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'foo']), _.omit(testTemplate, ['version', 'tag', 'access', 'foo']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'foo', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'foo']));
         });
       });
 
@@ -3212,7 +3277,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'roles']), _.omit(testTemplate, ['version', 'tag', 'access', 'roles']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'roles', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'roles']));
         });
       });
 
@@ -3336,7 +3404,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'resources']), _.omit(testTemplate, ['version', 'tag', 'access', 'resources']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'resources', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'resources']));
         });
       });
 
@@ -3460,7 +3531,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'forms']), _.omit(testTemplate, ['version', 'tag', 'access', 'forms']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'forms', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'forms']));
         });
       });
 
@@ -3584,7 +3658,10 @@ module.exports = (app, template, hook) => {
 
         it('An export should match an import', function() {
           assert.equal(exportData.version, '2.0.0');
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'actions']), _.omit(testTemplate, ['version', 'tag', 'access', 'actions']));
+          if (reportsEnabled) {
+            assert.deepEqual(exportData.reports, {});
+          }
+          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'actions', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'actions']));
         });
       });
 
@@ -3678,5 +3755,54 @@ module.exports = (app, template, hook) => {
       });
     });
 
+    describe('Template With Resource DataTable', function() {
+      let testTemplate = require('./fixtures/templates/testDataTableWithResource.json');
+      let _template = _.cloneDeep(testTemplate);
+      let project;
+
+      describe('Import', function() {
+        it('Should be able to bootstrap the template', function(done) {
+          importer.import.template(_template, alters, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+            project = data;
+            done();
+          });
+        });
+
+        it ('The Data Table Fetch Resource should be replaced with valid resource id', function(done) {
+          assert.equal(project.forms.formWithDt.components[0].fetch.resource, project.resources.resourceFormForDt._id.toString());
+          done();
+        });
+      });
+
+      describe('Export', function() {
+        let exportData = {};
+
+        it ('Should be able to export project', function(done) {
+          importer.export(project, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+            exportData = data;
+            return done();
+          });
+        });
+
+        it ('The Data Table Fetch Resource should be replaced with resource name', function(done) {
+          assert.equal(exportData.forms.formWithDt.components[0].fetch.resource,  exportData.resources.resourceFormForDt.name);
+          done();
+        });
+      });
+
+      before(function(done) {
+        template.clearData(done);
+      });
+
+      after(function(done) {
+        template.clearData(done);
+      });
+    });
   });
 };
