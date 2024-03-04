@@ -26,6 +26,7 @@ jobs:
 ## Disables Circle CI (Comment/Remove to re-enable CircleCI)
 ############################################################
 workflows:
+  version: 2
   build_workflow:
     jobs:
       - build:
