@@ -21,3 +21,16 @@ jobs:
       - store_artifacts:
           path: test-results.xml
           prefix: tests
+
+############################################################
+## Disables Circle CI (Comment/Remove to re-enable CircleCI)
+############################################################
+workflows:
+  build_workflow:
+    jobs:
+      - build:
+          filters:
+            tags:
+              ignore: /.*/
+            branches:
+              ignore: /.*/
