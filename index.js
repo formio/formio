@@ -300,6 +300,50 @@ module.exports = function(config) {
 
         // Load the request cache
         router.formio.cache = require('./src/cache/cache')(router);
+        // return the form metadata
+
+        router.get('/form/:formId/metadata',function(req,res,next) {
+          router.formio.resources.form.model.findOne({_id: req.params.formId}, function(err, form) {
+            if (err) {
+              return next(err);
+            }
+
+            if (!form) {
+              return res.status(404).send('Form not found');
+            }
+            const ignoredTypes = ["button"];
+            const result = [];
+            util.eachComponent(form.components,(com,path)=>{
+              const data = {
+                name:com.key,
+                label:com.label,
+                type: com.type
+              };
+              let parentObject = null;
+              if (path.includes(".")) {
+                  const pathsArray =  _.initial(path.split("."));
+                  for (const singleKey of pathsArray) {
+                    if (!parentObject) {
+                      parentObject = result.find(i=> i.name === singleKey);
+                    }
+                    else {
+                      parentObject = parentObject.components.find(i=> i.name === singleKey);
+                    }
+                    if (!parentObject.components) {
+                      parentObject.components = [];
+                    }
+                    parentObject.components.push(data);
+                  }
+              }
+            else {
+                if (!ignoredTypes.includes(com.type)) {
+                  result.push(data);
+                }
+              }
+            });
+            res.json(result);
+          });
+        });
 
         // Return the form components.
         router.get('/form/:formId/components', function(req, res, next) {
