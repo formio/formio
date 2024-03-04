@@ -229,27 +229,10 @@ module.exports = (router, resourceName, resourceId) => {
       hook.alter('validateSubmissionForm', req.currentForm, req.body, async form => { // eslint-disable-line max-statements
         // Get the submission model.
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-
-        // Next we need to validate the input.
-        const validator = new Validator(req, submissionModel, hook);
-        validator.validateReCaptcha = (responseToken) => {
-          return new Promise((resolve, reject) => {
-            router.formio.mongoose.models.token.findOne({value: responseToken}, (err, token) => {
-              if (err) {
-                return reject(err);
-              }
-
-              if (!token) {
-                return reject(new Error('ReCaptcha: Response token not found'));
-              }
-
-              // Remove temp token after submission with reCaptcha
-              return token.remove(() => resolve(true));
-            });
-          });
-        };
+        const tokenModel = router.formio.mongoose.models.token;
 
         // Validate the request.
+        const validator = new Validator(req, submissionModel, tokenModel, hook);
         await validator.validate(req.body, (err, data, visibleComponents) => {
           if (req.noValidate) {
             return done();

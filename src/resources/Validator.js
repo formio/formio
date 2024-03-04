@@ -3,7 +3,6 @@ const _ = require('lodash');
 const {
   ProcessTargets,
   process,
-  processSync,
   interpolateErrors,
   escapeRegExCharacters
 } = require('@formio/core');
@@ -23,7 +22,7 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(req, model, hook) {
+  constructor(req, submissionModel, tokenModel, hook) {
     const tokens = {};
     const token = util.getRequestValue(req, 'x-jwt-token');
     if (token) {
@@ -40,7 +39,8 @@ class Validator {
     }
 
     this.req = req;
-    this.model = model;
+    this.submissionModel = submissionModel;
+    this.tokenModel = tokenModel;
     this.form = req.currentForm;
     this.project = req.currentProject;
     this.decodedToken = req.token;
@@ -143,7 +143,7 @@ class Validator {
         }
       };
 
-      this.model.findOne(query, null, collationOptions, (err, result) => {
+      this.submissionModel.findOne(query, null, collationOptions, (err, result) => {
         if (err && collationOptions.collation) {
           // presume this error comes from db compatibility, try again as regex
           delete query[path];
@@ -151,11 +151,28 @@ class Validator {
             $regex: new RegExp(`^${escapeRegExCharacters(value)}$`),
             $options: 'i'
           }, query, path);
-          this.model.findOne(query, cb);
+          this.submissionModel.findOne(query, cb);
         }
         else {
           return cb(err, result);
         }
+      });
+    });
+  }
+
+  validateCaptcha(captchaToken) {
+    return new Promise((resolve, reject) => {
+      this.tokenModel.findOne({value: captchaToken}, (err, token) => {
+        if (err) {
+          return reject(err);
+        }
+
+        if (!token) {
+          return resolve(false);
+        }
+
+        // Remove temp token after submission with reCaptcha
+        return token.remove(() => resolve(true));
       });
     });
   }
@@ -198,7 +215,8 @@ class Validator {
         database: {
           isUnique: async (context, value) => {
             return this.isUnique(context, submission, value);
-          }
+          },
+          validateCaptcha: this.validateCaptcha
         }
       }
     };
