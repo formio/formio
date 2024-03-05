@@ -1,5 +1,6 @@
 'use strict';
 const _ = require('lodash');
+const {ObjectId} = require('mongodb');
 const {
   ProcessTargets,
   process,
@@ -174,6 +175,22 @@ class Validator {
         // Remove temp token after submission with reCaptcha
         return token.remove(() => resolve(true));
       });
+    });
+  }
+
+  validateResourceSelect(context, value) {
+    const {component} = context;
+    if (!component.data.resource) {
+      throw new Error('Did not receive resource ID for resource select validation');
+    }
+    // construct the query
+    let searchField, 
+    const query = {
+      form: new ObjectId(component.data.resource),
+
+    };
+    return new Promise((resolve, reject) => {
+      this.model.findOne({form: new ObjectId(component.data.resource)}, (err, result) => {});
     });
   }
 
