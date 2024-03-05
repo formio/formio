@@ -184,7 +184,7 @@ class Validator {
       throw new Error('Did not receive resource ID for resource select validation');
     }
     // construct the query
-    let searchField, 
+    let searchField;
     const query = {
       form: new ObjectId(component.data.resource),
 
