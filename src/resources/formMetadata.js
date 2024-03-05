@@ -5,9 +5,10 @@ module.exports = {
     async function (req, res, next) {
       try {
         const { formIds, isBundle } = req.query;
-        const ids =
-          formIds && isBundle ? formIds.split(",") : [req.params.formId];
         const isTheFormIdIsBundle = isBundle == "true";
+        const ids =
+          formIds && isTheFormIdIsBundle ? formIds.split(",") : [req.params.formId];
+
         if (isTheFormIdIsBundle) {
           const bundleData = await router.formio.resources.form.model.findOne({
             _id: req.params.formId,
