@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.0.0-rc.10
+### Changed
+ - Updated @formio/core@2.0.0-rc.14
+ - Updated @formio/vm@0.0.7-rc.5
+ - FIO-7958: fix tests to be compatible with core validation
+ - FIO-7998: add captcha validation
+
 ## 4.0.0-rc.9
 ### Changed
  - Updated @formio/core@2.0.0-rc.13
