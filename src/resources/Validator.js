@@ -178,19 +178,58 @@ class Validator {
     });
   }
 
-  validateResourceSelect(context, value) {
+  validateResourceSelectValue(context, value) {
     const {component} = context;
     if (!component.data.resource) {
       throw new Error('Did not receive resource ID for resource select validation');
     }
-    // construct the query
-    let searchField;
+    // Curiously, if a value property is not provided, the renderer will submit the entire object.
+    // Even if the user selects "Entire Object" as the value property, the renderer will submit only
+    // the data object. If we don't have a value property we can fallback to the _id, if we don't
+    // have an _id we can fall back to the data object OR the data object plus the "submit" property
+    // (which seems to sometimes be stripped and sometimes not).
+    const valueQuery = component.valueProperty
+      ? {[component.valueProperty]: value}
+      : value._id
+      ? {_id: value._id}
+      : {$or: [{data: value}, {data: {...value, submit: true}}]};
+    const additionalQueries = {};
+    if (component.searchField) {
+      let searchValue = value;
+      if (component.valueProperty) {
+        searchValue = value[component.valueProperty];
+      }
+      additionalQueries[component.searchField] = typeof searchValue === 'string'
+        ? searchValue
+        : JSON.stringify(searchValue);
+    }
+    if (component.selectFields) {
+      additionalQueries.select = component.selectFields;
+    }
+    if (component.sort) {
+      additionalQueries.sort = component.sort;
+    }
+    if (component.filter) {
+      const filterQueryStrings = new URLSearchParams(component.filter);
+      filterQueryStrings.forEach((value, key) => additionalQueries[key] = value);
+    }
     const query = {
       form: new ObjectId(component.data.resource),
-
+      deleted: null,
+      state: 'submitted',
+      ...valueQuery,
+      ...additionalQueries
     };
     return new Promise((resolve, reject) => {
-      this.model.findOne({form: new ObjectId(component.data.resource)}, (err, result) => {});
+      this.submissionModel.find(query, (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        if (result.length === 0 || !result) {
+          return resolve(false);
+        }
+        return resolve(true);
+      });
     });
   }
 
@@ -233,7 +272,8 @@ class Validator {
           isUnique: async (context, value) => {
             return this.isUnique(context, submission, value);
           },
-          validateCaptcha: this.validateCaptcha
+          validateCaptcha: this.validateCaptcha.bind(this),
+          validateResourceSelectValue: this.validateResourceSelectValue.bind(this)
         }
       }
     };
