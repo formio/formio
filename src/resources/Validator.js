@@ -194,15 +194,9 @@ class Validator {
       ? {_id: value._id}
       : {$or: [{data: value}, {data: {...value, submit: true}}]};
     const additionalQueries = {};
-    if (component.searchField) {
-      let searchValue = value;
-      if (component.valueProperty) {
-        searchValue = value[component.valueProperty];
-      }
-      additionalQueries[component.searchField] = typeof searchValue === 'string'
-        ? searchValue
-        : JSON.stringify(searchValue);
-    }
+    // I don't include searchField here because it seems to me that searchField is only used for
+    // searching the select dropdown; here, we already have the submission in hand and just need to
+    // compare it to the database query results
     if (component.selectFields) {
       additionalQueries.select = component.selectFields;
     }
