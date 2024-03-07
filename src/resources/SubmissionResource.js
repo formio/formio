@@ -100,6 +100,11 @@ module.exports = (router) => {
 
   // Register an exists endpoint to see if a submission exists.
   router.get('/form/:formId/exists', (req, res, next) => {
+    const {ignoreCase = false} = req.query;
+    // We need to strip the ignoreCase query out so resourcejs does not use it as a filter
+    if (ignoreCase) {
+      delete req.query['ignoreCase'];
+    }
     // First load the form.
     router.formio.cache.loadCurrentForm(req, (err, form) => {
       if (err) {
@@ -118,30 +123,35 @@ module.exports = (router) => {
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
         // Query the submissions for this submission.
-        submissionModel.findOne(hook.alter('submissionQuery', query, req), (err, submission) => {
-          if (err) {
-            return next(err);
-          }
+        submissionModel.findOne(
+          hook.alter('submissionQuery', query, req),
+          null,
+          (ignoreCase && router.formio.mongoFeatures.collation) ? {collation: {locale: 'en', strength: 2}} : {},
+          (err, submission) => {
+            if (err) {
+              return next(err);
+            }
 
-          // Return not found.
-          if (!submission || !submission._id) {
-            return res.status(404).send('Not found');
-          }
-          // By default check permissions to access the endpoint.
-          const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
+            // Return not found.
+            if (!submission || !submission._id) {
+              return res.status(404).send('Not found');
+            }
+            // By default check permissions to access the endpoint.
+            const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
 
-          if (withoutPermissions) {
-            // Send only the id as a response if the submission exists.
-            return res.status(200).json({
-              _id: submission._id.toString(),
-            });
+            if (withoutPermissions) {
+              // Send only the id as a response if the submission exists.
+              return res.status(200).json({
+                _id: submission._id.toString(),
+              });
+            }
+            else {
+              req.subId = submission._id.toString();
+              req.permissionsChecked = false;
+              return next();
+            }
           }
-          else {
-            req.subId = submission._id.toString();
-            req.permissionsChecked = false;
-            return next();
-          }
-        });
+        );
       });
     });
   }, router.formio.middleware.permissionHandler, (req, res, next) => {
@@ -172,42 +182,21 @@ module.exports = (router) => {
           return next();
         }
 
-        // Remove __v field
-        const update = _.omit(req.body, '__v');
-        const query = req.modelQuery || req.model || this.model;
+        const update = _.omit(req.body, ['_id', '__v']);
 
-        query.findOne({_id: req.params[`${this.name}Id`]}, (err, item) => {
-          if (err) {
-            return Resource.setResponse(res, {status: 400, error: err}, next);
-          }
-
+        router.formio.resources.submission.model.findOneAndUpdate(
+          {_id: req.params[`${this.name}Id`]},
+          {$set: update}
+        ).then((item) => {
           if (!item) {
             return Resource.setResponse(res, {status: 404}, next);
           }
 
-          item.set(update);
-          options.hooks.put.before.call(
-            this,
-            req,
-            res,
-            item,
-            () => {
-              const writeOptions = req.writeOptions || {};
-              item.save(writeOptions, (err, item) => {
-                if (err) {
-                  return Resource.setResponse(res, {status: 400, error: err}, next);
-                }
+          const updatedItem = _.assign(item, update);
 
-                return options.hooks.put.after.call(
-                  this,
-                  req,
-                  res,
-                  item,
-                  Resource.setResponse.bind(Resource, res, {status: 200, item}, next),
-                );
-              });
-            },
-          );
+          return Resource.setResponse(res, {status: 200, item: updatedItem}, next);
+        }).catch((err) => {
+          return Resource.setResponse(res, {status: 400, error: err}, next);
         });
       }, Resource.respond, options);
       return this;

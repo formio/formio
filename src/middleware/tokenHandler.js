@@ -69,7 +69,12 @@ module.exports = (router) => {
 
       // Store the jwt token sent by the user.
       if (decoded.user._id === 'external') {
-        decoded.user._id = util.toMongoId(decoded.user.data.id || decoded.user.data._id ||decoded.user.data.email || JSON.stringify(decoded.user.data));
+        decoded.user._id = util.toMongoId(
+          decoded.user.data.id ||
+          decoded.user.data._id ||
+          decoded.user.data.email ||
+          JSON.stringify(decoded.user.data)
+        );
       }
       req.token = decoded;
 
@@ -194,6 +199,10 @@ module.exports = (router) => {
           return noToken();
         }
 
+        if (decoded.access) {
+          req.access = decoded.access;
+        }
+
         // Load the user submission.
         const cache = router.formio.cache || formioCache;
         cache.loadSubmission(req, formId, userId, (err, user) => {
@@ -207,8 +216,6 @@ module.exports = (router) => {
             res.token = null;
             return next();
           }
-
-          debug.handler(user);
 
           hook.alter('validateToken', req, decoded, user, (err) => {
             if (err) {

@@ -621,7 +621,9 @@ module.exports = function(router) {
       }
 
       // Check to see if this user has an admin role of the primary project.
-      const hasPrimaryAdminRole = access.primaryAdminRole ? (_.indexOf(access.roles, access.primaryAdminRole) !== -1) : false;
+      const hasPrimaryAdminRole = access.primaryAdminRole
+        ? (_.indexOf(access.roles, access.primaryAdminRole) !== -1)
+        : false;
 
       if (hasPrimaryAdminRole) {
         req.isAdmin = true;
@@ -646,6 +648,7 @@ module.exports = function(router) {
       const isOwner = user && (user === access[entity.type].owner);
       const isIndex = (method === 'GET') && entity.hasOwnProperty('id') && (entity.id === '');
       const isPost = (method === 'POST') && entity.hasOwnProperty('id') && (entity.id === '');
+      const isDelete = (method === 'DELETE') && entity.hasOwnProperty('id') && (entity.id === '');
       const hasOwnAccess = typedAccess(search.own);
       const hasAllAccess = typedAccess(search.all);
       let _hasAccess = false;
@@ -694,7 +697,7 @@ module.exports = function(router) {
       }
 
       // Check for own access.
-      if (hasOwnAccess && (isOwner || isIndex || isPost)) {
+      if (hasOwnAccess && (isOwner || isIndex || isPost || isDelete)) {
         _hasAccess = true;
       }
 

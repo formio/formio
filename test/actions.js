@@ -700,6 +700,23 @@ module.exports = (app, template, hook) => {
           });
       });
 
+      it('Should hide fields in action settings form if access to them is restricted', (done) => {
+        request(app)
+         .get(hook.alter('url', `/form/${webhookForm._id}/actions/save`, template))
+         .set('x-jwt-token', template.users.admin.token)
+         .expect('Content-Type', /json/)
+         .expect(200)
+         .end((err, res) => {
+           if (err) {
+             return done(err);
+           }
+           const components = res.body?.settingsForm?.components ?? [];
+           const actionExecutionComponent = components.find(x=> x.legend ==="Action Execution");
+           assert.equal(actionExecutionComponent.hidden, true);
+           done();
+       });
+     })
+
       it('Should send a webhook with update data.', (done) => {
         webhookHandler = (body) => {
           body = hook.alter('webhookBody', body);
@@ -2787,7 +2804,7 @@ module.exports = (app, template, hook) => {
           });
       });
 
-      if (!docker) 
+      if (!docker)
       it('A deleted Action should remain in the database', (done) => {
         const formio = hook.alter('formio', app.formio);
         formio.actions.model.findOne({_id: tempAction._id})
@@ -3406,6 +3423,1310 @@ module.exports = (app, template, hook) => {
 
             done();
           });
+      });
+    });
+
+    describe('Extended Conditional Logic Tests', () => {
+      let helper = null;
+      let action = null;
+      it('Create the forms', (done) => {
+        const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+        helper = new Helper(owner);
+        helper
+          .project()
+          .form('actionsExtendedConditionalForm', [
+            {
+              label: 'Text Field',
+              applyMaskOn: 'change',
+              tableView: true,
+              key: 'textField',
+              type: 'textfield',
+              input: true,
+            },
+            {
+              label: 'Number',
+              applyMaskOn: 'change',
+              mask: false,
+              tableView: false,
+              delimiter: false,
+              requireDecimal: false,
+              inputFormat: 'plain',
+              truncateMultipleSpaces: false,
+              key: 'number',
+              type: 'number',
+              input: true,
+            },
+            {
+              label: 'Select',
+              widget: 'choicesjs',
+              tableView: true,
+              data: {
+                values: [
+                  {
+                    label: 'Apple',
+                    value: 'apple',
+                  },
+                  {
+                    label: 'Banana',
+                    value: 'banana',
+                  },
+                ],
+              },
+              key: 'select',
+              type: 'select',
+              input: true,
+            },
+            {
+              label: 'Date / Time',
+              tableView: false,
+              datePicker: {
+                disableWeekends: false,
+                disableWeekdays: false,
+              },
+              enableMinDateInput: false,
+              enableMaxDateInput: false,
+              key: 'dateTime',
+              type: 'datetime',
+              input: true,
+              widget: {
+                type: 'calendar',
+                displayInTimezone: 'viewer',
+                locale: 'en',
+                useLocaleSettings: false,
+                allowInput: true,
+                mode: 'single',
+                enableTime: true,
+                noCalendar: false,
+                format: 'yyyy-MM-dd hh:mm a',
+                hourIncrement: 1,
+                minuteIncrement: 1,
+                time_24hr: false,
+                minDate: null,
+                disableWeekends: false,
+                disableWeekdays: false,
+                maxDate: null,
+              },
+            },
+            {
+              label: 'Checkbox',
+              tableView: false,
+              key: 'checkbox',
+              type: 'checkbox',
+              input: true,
+            },
+            {
+              label: 'Currency',
+              applyMaskOn: 'change',
+              mask: false,
+              spellcheck: true,
+              tableView: false,
+              currency: 'USD',
+              inputFormat: 'plain',
+              truncateMultipleSpaces: false,
+              key: 'currency',
+              type: 'currency',
+              input: true,
+              delimiter: true,
+            },
+            {
+              label: 'Select Boxes',
+              optionsLabelPosition: 'right',
+              tableView: false,
+              values: [
+                {
+                  label: 'a',
+                  value: 'a',
+                  shortcut: '',
+                },
+                {
+                  label: 'b',
+                  value: 'b',
+                  shortcut: '',
+                },
+                {
+                  label: 'c',
+                  value: 'c',
+                  shortcut: '',
+                },
+              ],
+              key: 'selectBoxes',
+              type: 'selectboxes',
+              input: true,
+              inputType: 'checkbox',
+            },
+            {
+              label: 'Radio',
+              optionsLabelPosition: 'right',
+              inline: false,
+              tableView: false,
+              values: [
+                {
+                  label: 'Val1',
+                  value: 'val1',
+                  shortcut: '',
+                },
+                {
+                  label: 'Val2',
+                  value: 'val2',
+                  shortcut: '',
+                },
+                {
+                  label: 'Val3',
+                  value: 'val3',
+                  shortcut: '',
+                },
+              ],
+              key: 'radio',
+              type: 'radio',
+              input: true,
+            },
+            {
+              label: 'Container',
+              tableView: false,
+              key: 'container',
+              type: 'container',
+              input: true,
+              components: [
+                {
+                  label: 'Text Field',
+                  applyMaskOn: 'change',
+                  tableView: true,
+                  key: 'textField',
+                  type: 'textfield',
+                  input: true,
+                },
+              ],
+            },
+            {
+              label: 'Data Grid',
+              reorder: false,
+              addAnotherPosition: 'bottom',
+              layoutFixed: false,
+              enableRowGroups: false,
+              initEmpty: false,
+              tableView: false,
+              defaultValue: [
+                {},
+              ],
+              key: 'dataGrid',
+              type: 'datagrid',
+              input: true,
+              components: [
+                {
+                  label: 'Data',
+                  applyMaskOn: 'change',
+                  tableView: true,
+                  key: 'data',
+                  type: 'textfield',
+                  input: true,
+                },
+              ],
+            },
+            {
+              type: 'button',
+              label: 'Submit',
+              key: 'submit',
+              disableOnInvalid: true,
+              input: true,
+              tableView: false,
+            },
+          ])
+          .execute((err) => {
+            if (err) {
+              return done(err);
+            }
+
+            helper.getActions('actionsExtendedConditionalForm', (err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              assert.equal(res.length, 1);
+              action = res[0];
+              assert.equal(action.name, 'save');
+
+              done();
+            });
+          });
+      });
+
+      it('Test IsEqual operator with Number', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'number',
+              operator: 'isEqual',
+              value: 12,
+            }
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              textField: 'test',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  textField: 'test',
+                  number: 12,
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test IsEqual operator with SelectBoxes', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'selectBoxes',
+              operator: 'isEqual',
+              value: 'a',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              selectBoxes: {
+                a: false,
+                b: true,
+                c: false,
+              }
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  selectBoxes: {
+                    a: true,
+                    b: false,
+                    c: true,
+                  }
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test IsEqual operator with Checkbox', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'checkbox',
+              operator: 'isEqual',
+              value: true,
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              checkbox: false,
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  checkbox: true,
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test IsEqual operator with Radio', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'radio',
+              operator: 'isEqual',
+              value: 'val1',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              radio: 'val2',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  radio: 'val1',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test GreaterThan operator', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'number',
+              operator: 'greaterThan',
+              value: 20,
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              number: 20,
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  number: 21,
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test GreaterThanOrEqual operator', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'number',
+              operator: 'greaterThanOrEqual',
+              value: 20,
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              number: null,
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  number: 20,
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test LessThan operator', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'number',
+              operator: 'lessThan',
+              value: 20,
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              number: 40,
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  number: 19,
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test LessThanOrEqual operator', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'number',
+              operator: 'lessThanOrEqual',
+              value: 20,
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              number: 23,
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  number: 20,
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test Includes operator', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'textField',
+              operator: 'includes',
+              value: 'test',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              textField: 'Nothing',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  textField: 'Nothing test anything'
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test NotIncludes operator', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'textField',
+              operator: 'notIncludes',
+              value: 'test',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              textField: 'Nothing test',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  textField: 'something'
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test StartsWith operator', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'textField',
+              operator: 'startsWith',
+              value: 'test',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              textField: 'Somethingtest',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  textField: 'testSomething'
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test EndsWith operator', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'textField',
+              operator: 'endsWith',
+              value: 'test',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              textField: 'testSomething',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  textField: 'Somethingtest'
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test IsEmpty operator with TextField', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'textField',
+              operator: 'isEmpty',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              textField: 'Tee',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  textField: ''
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  helper
+                    .submission({
+                      textField: '     '
+                    })
+                    .execute((err) => {
+                      if (err) {
+                        return done(err);
+                      }
+
+                      const submission = helper.getLastSubmission();
+                      assert(submission.hasOwnProperty('_id'));
+
+                      done();
+                    });
+                });
+            });
+        });
+      });
+
+      it('Test IsEmpty operator with Number', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'number',
+              operator: 'isEmpty',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              number: 0,
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  number: null
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  helper
+                    .submission({
+                      number: ''
+                    })
+                    .execute((err) => {
+                      if (err) {
+                        return done(err);
+                      }
+
+                      const submission = helper.getLastSubmission();
+                      assert(submission.hasOwnProperty('_id'));
+
+                      done();
+                    });
+                });
+            });
+        });
+      });
+
+      it('Test IsEmpty operator with SelectBoxes', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'selectBoxes',
+              operator: 'isEmpty',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              selectBoxes: {
+                a: false,
+                b: true,
+                c: false,
+              }
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  selectBoxes: {
+                    a: false,
+                    b: false,
+                    c: false,
+                  }
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test IsEmpty operator with DateTime', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'dateTime',
+              operator: 'isEmpty',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              dateTime: '2023-07-01T12:00:00+03:00',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  dateTime: '',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test DateGreaterThan operator', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'dateTime',
+              operator: 'dateGreaterThan',
+              value: '2023-07-01T12:00:00.000Z',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              dateTime: '2023-07-01T12:00:00.000Z',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  dateTime: '2023-07-03T12:00:00.000Z',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test DateGreaterThanOrEqual operator', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'dateTime',
+              operator: 'dateGreaterThanOrEqual',
+              value: '2023-07-01T12:00:00.000Z',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              dateTime: '2023-06-01T12:00:00.000Z',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  dateTime: '2023-07-01T12:00:00.000Z',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test DateLessThan operator', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'dateTime',
+              operator: 'dateLessThan',
+              value: '2023-07-03T12:00:00.000Z',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              dateTime: '2023-07-03T12:00:00.000Z',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  dateTime: '2023-07-02T12:00:00.000Z',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test DateLessThanOrEqual operator', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'dateTime',
+              operator: 'dateLessThanOrEqual',
+              value: '2023-07-03T12:00:00.000Z',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              dateTime: '2023-07-04T12:00:00.000Z',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  dateTime: '2023-07-03T12:00:00.000Z',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test that action is going to be executed only when all of conditions are met', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'textField',
+              operator: 'isEqual',
+              value: 'Test',
+            },
+            {
+              component: 'number',
+              operator: 'isNotEqual',
+              value: 10,
+            },
+            {
+              component: 'checkbox',
+              operator: 'isEqual',
+              value: true,
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              textField: 'Test',
+              number: 11,
+              checkbox: false,
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  textField: 'Test',
+                  number: 11,
+                  checkbox: true,
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test that action is going to be executed when any of conditions are met', (done) => {
+        action.condition = {
+          conjunction: 'any',
+          conditions: [
+            {
+              component: 'textField',
+              operator: 'isEqual',
+              value: 'Test',
+            },
+            {
+              component: 'number',
+              operator: 'isNotEqual',
+              value: 10,
+            },
+            {
+              component: 'checkbox',
+              operator: 'isEqual',
+              value: true,
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              textField: 'apple',
+              number: 10,
+              checkbox: false,
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  textField: 'something',
+                  number: 11,
+                  checkbox: false,
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
       });
     });
   });

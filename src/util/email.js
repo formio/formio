@@ -1,9 +1,6 @@
 'use strict';
 
 const nodemailer = require('nodemailer');
-const sgTransport = require('nodemailer-sendgrid');
-const mandrillTransport = require('nodemailer-mandrill-transport');
-const mailgunTransport = require('nodemailer-mailgun-transport');
 const debug = {
   email: require('debug')('formio:settings:email'),
   send: require('debug')('formio:settings:send'),
@@ -13,6 +10,7 @@ const debug = {
 const fetch = require('@formio/node-fetch-http-proxy');
 const util = require('./util');
 const _ = require('lodash');
+const {renderEmail} = require('@formio/vm');
 
 const DEFAULT_TRANSPORT = process.env.DEFAULT_TRANSPORT;
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
@@ -26,7 +24,6 @@ const NON_PRIORITY_QUEUE_TIMEOUT = process.env.NON_PRIORITY_QUEUE_TIMEOUT || 100
  */
 module.exports = (formio) => {
   const hook = require('./hook')(formio);
-  const Worker = require('../worker/Worker')(formio);
 
   /**
    * Get the list of available email transports.
@@ -66,12 +63,6 @@ module.exports = (formio) => {
         availableTransports.push({
           transport: 'sendgrid',
           title: 'SendGrid',
-        });
-      }
-      if (_.get(settings, 'email.mandrill.auth.apiKey')) {
-        availableTransports.push({
-          transport: 'mandrill',
-          title: 'Mandrill',
         });
       }
       if (_.get(settings, 'email.mailgun.auth.api_key')) {
@@ -125,7 +116,7 @@ module.exports = (formio) => {
    *   The available substitution values.
    */
   const getParams = (req, res, form, submission) => new Promise((resolve, reject) => {
-    let params = _.cloneDeep(submission);
+    let params = submission;
     if (res && res.resource && res.resource.item) {
       if (typeof res.resource.item.toObject === 'function') {
         params = _.assign(params, res.resource.item.toObject());
@@ -135,7 +126,7 @@ module.exports = (formio) => {
       }
       params.id = params._id.toString();
     }
-
+    params = JSON.parse(JSON.stringify(params));
     // The form components.
     params.components = {};
     params.componentsWithPath = {};
@@ -147,23 +138,8 @@ module.exports = (formio) => {
       params.components[component.key] = component;
       params.componentsWithPath[path] = component;
       params.componentsWithPath[path].compPath = path;
-      if (component.type === 'resource' && params.data[component.key]) {
-        params.data[`${component.key}Obj`] = params.data[component.key];
-        replacements.push(
-          (new Worker('nunjucks'))
-            .start({
-              form,
-              submission,
-              template: component.template,
-              context: {
-                item: params.data[component.key],
-              },
-            })
-            .then((response) => {
-              params.data[component.key] = response.output;
-              return response;
-            }),
-        );
+      if (component.type === 'resource' && params.data[component.key]) { // need that
+        params.data[`${component.key}Obj`] = params.data[component.key]; // need that
       }
     });
 
@@ -213,7 +189,7 @@ module.exports = (formio) => {
     params.mail = mail;
 
     // Compile the email with nunjucks in a separate thread.
-    return new Worker('nunjucks').start({
+    return renderEmail({
       render: mail,
       context: params,
       options,
@@ -225,6 +201,9 @@ module.exports = (formio) => {
       }
 
       return resolve(injectedEmail);
+    })
+    .catch((err) => {
+      return reject();
     });
   });
 
@@ -302,34 +281,42 @@ module.exports = (formio) => {
       switch (emailType) {
         case 'default':
           if (_config && formio.config.email.type === 'sendgrid') {
-            transporter = nodemailer.createTransport(sgTransport({
-              apiKey: formio.config.email.password
-            }));
-          }
-          else if (_config && formio.config.email.type === 'mandrill') {
-            transporter = nodemailer.createTransport(mandrillTransport({
+            transporter = nodemailer.createTransport({
+              host: 'smtp.sendgrid.net',
+              port: 587,
+              secure: false,
               auth: {
-                apiKey: formio.config.email.apiKey,
-              },
-            }));
+                user: 'apikey',
+                pass: settings.email.sendgrid.auth.api_key
+              }
+            });
           }
           break;
         case 'sendgrid':
           if (_.has(settings, 'email.sendgrid')) {
             debug.email(settings.email.sendgrid);
-            transporter = nodemailer.createTransport(sgTransport({
-              apiKey: settings.email.sendgrid.auth.api_key
-            }));
-          }
-          break;
-        case 'mandrill':
-          if (_.has(settings, 'email.mandrill')) {
-            transporter = nodemailer.createTransport(mandrillTransport(settings.email.mandrill));
+            transporter = nodemailer.createTransport({
+              host: 'smtp.sendgrid.net',
+              port: 587,
+              secure: false,
+              auth: {
+                user: 'apikey',
+                pass: settings.email.sendgrid.auth.api_key
+              }
+            });
           }
           break;
         case 'mailgun':
           if (_.has(settings, 'email.mailgun')) {
-            transporter = nodemailer.createTransport(mailgunTransport(settings.email.mailgun));
+            transporter = nodemailer.createTransport({
+              host: 'smtp.mailgun.org',
+              port: 587,
+              secure: false,
+              auth: {
+                user: settings.email.mailgun.auth.domain,
+                pass: settings.email.mailgun.auth.api_key
+              }
+            });
           }
           break;
         case 'smtp':

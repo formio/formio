@@ -1,0 +1,103 @@
+{
+  "title": "Test Data Table With Resource",
+  "version": "2.0.0",
+  "name": "testDataTableWithResource",
+  "roles": {
+  },
+  "forms": {
+    "formWithDt": {
+      "title": "form with DT",
+      "type": "form",
+      "name": "formWithDt",
+      "path": "formwithdt",
+      "display": "form",
+      "tags": [],
+      "settings": {},
+      "components": [
+        {
+          "label": "Data Table",
+          "sortable": true,
+          "filterable": true,
+          "clipCells": false,
+          "itemsPerPage": 10,
+          "tableView": false,
+          "fetch": {
+            "enableFetch": true,
+            "components": [
+              {
+                "path": "name",
+                "key": "name"
+              },
+              {
+                "path": "age",
+                "key": "age"
+              }
+            ],
+            "dataSrc": "resource",
+            "resource": "resourceFormForDt",
+            "sort": {
+              "defaultQuery": ""
+            }
+          },
+          "key": "dataTable",
+          "type": "datatable",
+          "input": true,
+          "submitSelectedRows": false,
+          "allowCaching": true,
+          "components": []
+        },
+        {
+          "type": "button",
+          "label": "Submit",
+          "key": "submit",
+          "disableOnInvalid": true,
+          "input": true,
+          "tableView": false
+        }
+      ]
+    }
+  },
+  "actions": {},
+  "resources": {
+    "resourceFormForDt": {
+      "title": "resource form for DT",
+      "type": "resource",
+      "name": "resourceFormForDt",
+      "path": "resourceformfordt",
+      "display": "form",
+      "tags": [],
+      "settings": {},
+      "components": [
+        {
+          "label": "Name",
+          "applyMaskOn": "change",
+          "tableView": true,
+          "key": "name",
+          "type": "textfield",
+          "input": true
+        },
+        {
+          "label": "Age",
+          "applyMaskOn": "change",
+          "mask": false,
+          "tableView": false,
+          "delimiter": false,
+          "requireDecimal": false,
+          "inputFormat": "plain",
+          "truncateMultipleSpaces": false,
+          "key": "age",
+          "type": "number",
+          "input": true
+        },
+        {
+          "type": "button",
+          "label": "Submit",
+          "key": "submit",
+          "disableOnInvalid": true,
+          "input": true,
+          "tableView": false
+        }
+      ]
+    }
+  }
+}

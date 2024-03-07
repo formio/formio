@@ -236,7 +236,7 @@ module.exports = function(formio) {
    */
   const checkSetup = function(next) {
     setTimeout(() => {
-    formio.util.log('Checking for db setup.');
+      formio.util.log('Checking for db setup.');
       db.listCollections().toArray().then(function(collections) {
         debug.db(`Collections found: ${collections.length}`);
         // 3 is an arbitrary length. We just want a general idea that things have been installed.
@@ -252,7 +252,7 @@ module.exports = function(formio) {
           return next();
         }
       });
-    },Math.random() * 1000);
+    }, Math.random() * 1000);
   };
 
   const checkEncryption = function(next) {
@@ -290,6 +290,30 @@ module.exports = function(formio) {
     else {
       return next();
     }
+  };
+
+  /**
+   * Check for certain mongodb features.
+   * @param {*} next.
+   */
+  const checkFeatures = function(next) {
+    formio.util.log('Determine MongoDB compatibility.');
+    (async () => {
+      config.mongoFeatures = formio.mongoFeatures = {
+        collation: true
+      };
+      try {
+        const collationTest = db.collection('formio-collation-test');
+        await collationTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
+        await collationTest.drop();
+        formio.util.log('Collation indexes are supported.');
+      }
+      catch (err) {
+        formio.util.log('Collation indexes are not supported.');
+        config.mongoFeatures.collation = formio.mongoFeatures.collation = false;
+      }
+      next();
+    })();
   };
 
   /**
@@ -668,16 +692,84 @@ module.exports = function(formio) {
   };
 
   /**
-   * Initialized the update script.
+   * Update the default configuration forms, from the current version, to the version required by the server.
+   *
+   * @param next
+   *   The next function to invoke after this function has finished.
    */
-  const initialize = function(next) {
-    if (process.env.TEST_SUITE) {
-      return connection(function(err) {
+  const doConfigFormsUpdates = function(next) {
+    formio.util.log('Checking for Config Forms updates.');
+
+    let configFormsUpdates = {};
+    configFormsUpdates = formio.hook.alter('getConfigFormsUpdates', configFormsUpdates);
+    const updates = Object.keys(configFormsUpdates);
+
+    // Skip updates if there are no  updates to apply.
+    if (!updates.length) {
+      formio.util.log(' > No config forms updates found.\n');
+      return next();
+    }
+    // Only take action if updates exist.
+    debug.db('Pending config forms updates');
+      async.eachSeries(updates, function(update, callback) {
+        formio.util.log(` > Starting config forms update: ${update}`);
+
+        // Load the update then update the schema lock version.
+        let _update = null;
+
+        // Attempt to load the the pending update.
+        // Allow anyone to hook the pending updates location.
+        try {
+          _update = configFormsUpdates[update];
+        }
+        catch (e) {
+          debug.error(e);
+          debug.db(e);
+        }
+        // Attempt to resolve the update.
+        try {
+          if (typeof _update !== 'function') {
+            return callback(`Could not resolve the path for config form update: ${update}`);
+          }
+
+          debug.db('Update Params:');
+          debug.db(db);
+          debug.db(config);
+          debug.db(tools);
+          _update(db, config, tools, function(err) {
+            if (err) {
+              return callback(err);
+            }
+            return callback();
+          });
+        }
+        catch (e) {
+          debug.error(e);
+          return callback(e);
+        }
+      }, function(err) {
         if (err) {
           debug.db(err);
           return next(err);
         }
 
+        formio.util.log(' > Done applying pending config forms updates\n');
+        next();
+      });
+  };
+  /**
+   * Initialized the update script.
+   */
+  const initialize = function(next) {
+    if (process.env.TEST_SUITE) {
+      return async.series([
+        connection,
+        checkFeatures
+      ], (err) => {
+        if (err) {
+          debug.db(err);
+          return next(err);
+        }
         next(null, db);
       });
     }
@@ -688,8 +780,10 @@ module.exports = function(formio) {
       connection,
       checkSetup,
       checkEncryption,
+      checkFeatures,
       getUpdates,
       lock,
+      doConfigFormsUpdates,
       doUpdates,
       unlock
     ], function(err) {

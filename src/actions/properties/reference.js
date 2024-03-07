@@ -34,6 +34,9 @@ module.exports = (router) => {
       delete sub.req.subId;
     }
 
+    //not allow to override subrequest subId with parent submissionId
+    _.unset(sub.req.params, 'submissionId');
+
     sub.req.url = '/form/:formId/submission';
     sub.req.query = subQuery || {};
     sub.req.method = 'GET';
@@ -198,9 +201,16 @@ module.exports = (router) => {
   // Build a pipeline to load all references within an index.
   const buildPipeline = function(component, path, req, res) {
     // First check their access within this form.
-    return checkAccess(component, req.query, req, res).then(() => {
+    return checkAccess(component, req.query, req, res).then(async () => {
       const formId = component.form || component.resource || component.data.resource;
-
+      const form = await new Promise((resolve, reject) =>
+        router.formio.cache.loadForm(req, null, formId, (err, form) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(form);
+        })
+      );
       // Get the subquery.
       const subQuery = getSubQuery(formId, req.query, path);
       const subQueryReq = {query: subQuery.match};
@@ -208,11 +218,17 @@ module.exports = (router) => {
 
       // Create the pipeline for this component.
       let pipeline = [];
-
+      const submissionsCollectionName =
+        form.settings && form.settings.collection
+          ? `${req.currentProject.name.replace(
+              /[^A-Za-z0-9]+/g,
+              ''
+            )}_${form.settings.collection.replace(/[^A-Za-z0-9]+/g, '')}`
+          : 'submissions';
       // Load the reference.
       pipeline.push({
         $lookup: {
-          from: 'submissions',
+          from: submissionsCollectionName,
           localField: `data.${path}._id`,
           foreignField: '_id',
           as: `data.${path}`
@@ -244,24 +260,17 @@ module.exports = (router) => {
       }
 
       return new Promise((resolve, reject) => {
-        // Load the form.
-        router.formio.cache.loadForm(req, null, formId, function(err, form) {
-          if (err) {
-            return reject(err);
+        // Build the pipeline for the subdata.
+        var queues = [];
+        util.FormioUtils.eachComponent(form.components, (subcomp, subpath) => {
+          if (subcomp.reference) {
+            queues.push(buildPipeline(subcomp, `${path}.data.${subpath}`, req, res).then((subpipe) => {
+              pipeline = pipeline.concat(subpipe);
+            }));
           }
-
-          // Build the pipeline for the subdata.
-          var queues = [];
-          util.FormioUtils.eachComponent(form.components, (subcomp, subpath) => {
-            if (subcomp.reference) {
-              queues.push(buildPipeline(subcomp, `${path}.data.${subpath}`, req, res).then((subpipe) => {
-                pipeline = pipeline.concat(subpipe);
-              }));
-            }
-          });
-
-          Promise.all(queues).then(() => resolve(pipeline)).catch((err) => reject(err));
         });
+
+        Promise.all(queues).then(() => resolve(pipeline)).catch((err) => reject(err));
       });
     });
   };
@@ -292,7 +301,6 @@ module.exports = (router) => {
         if (!idQuery) {
           return Promise.resolve();
         }
-
         return loadReferences(component, {
           _id: idQuery,
           limit: 10000000

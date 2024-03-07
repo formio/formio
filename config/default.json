@@ -54,11 +54,6 @@
           "api_user": "",
           "api_key": ""
         }
-      },
-      "mandrill": {
-        "auth": {
-          "apiKey": ""
-        }
       }
     }
   }
