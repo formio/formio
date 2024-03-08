@@ -168,6 +168,7 @@ module.exports = function(config) {
           console.log(err);
         }
       });
+
       // Error handler for malformed JSON
       router.use((err, req, res, next) => {
         if (err instanceof SyntaxError) {
@@ -300,6 +301,10 @@ module.exports = function(config) {
 
         // Load the request cache
         router.formio.cache = require('./src/cache/cache')(router);
+
+        // return the form metadata
+        const metadataResource = require('./src/resources/formMetadata');
+        router.get('/form/:formId/metadata',metadataResource.getFormMetadata(router));
 
         // Return the form components.
         router.get('/form/:formId/components', function(req, res, next) {
