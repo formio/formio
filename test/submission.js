@@ -3334,6 +3334,8 @@ module.exports = function(app, template, hook) {
                 label: 'Select a fruit',
                 dataSrc: 'resource',
                 searchField: 'data.name',
+                valueProperty: 'data.name',
+                filter: 'data.name__ne=Orange',
                 authenticate: true,
                 persistent: true,
                 data: {
@@ -3354,7 +3356,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('Should perform a backend validation of the selected value and reject values not in the referenced resource', (done) => {
-          helper.submission('fruitSelect', {fruit: 'No Fruit Here'}).expect(400).execute(() => {
+          helper.submission('fruitSelectResource', {fruit: 'No Fruit Here'}).expect(400).execute(() => {
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 1);
@@ -3365,7 +3367,7 @@ module.exports = function(app, template, hook) {
         });
 
         it('Should perform a backend validation of the selected value and succeed if the value is in the referenced resource', (done) => {
-          helper.submission('fruitSelect', {fruit: 'Apple'})
+          helper.submission('fruitSelectResource', {fruit: 'Apple'})
             .expect(201)
             .execute((err) => {
               if (err) {
@@ -3376,6 +3378,17 @@ module.exports = function(app, template, hook) {
               assert.deepEqual({fruit: 'Apple'}, submission.data);
               done();
             });
+        });
+
+        it('Should perform a backend validation of the selected value and reject values if the value is in the referenced resource but excluded by the filter', (done) => {
+          helper.submission('fruitSelectResource', {fruit: 'Orange'}).expect(400).execute(() => {
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Select a fruit contains an invalid selection');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
+            done();
+          });
         });
 
         it('Should allow saving select resource by reference', done => {
