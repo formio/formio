@@ -237,6 +237,7 @@ class Validator {
       });
       context.scope = scope;
       submission.data = data;
+      submission.scope = scope;
 
       // Now that the validation is complete, we need to remove fetched data from the submission.
       for (const path in context.scope.fetched) {
