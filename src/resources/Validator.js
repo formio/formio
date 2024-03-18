@@ -264,8 +264,8 @@ class Validator {
       }
     }
     catch (err) {
-      debug.error(err);
-      return next(err);
+      debug.error(err.message || err);
+      return next(err.message || err);
     }
 
     // If there are errors, return the errors.
