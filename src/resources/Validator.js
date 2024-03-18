@@ -22,7 +22,7 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(req, submissionModel, tokenModel, hook) {
+  constructor(req, submissionModel, formModel, tokenModel, hook) {
     const tokens = {};
     const token = util.getRequestValue(req, 'x-jwt-token');
     if (token) {
@@ -40,6 +40,7 @@ class Validator {
 
     this.req = req;
     this.submissionModel = submissionModel;
+    this.formModel = formModel;
     this.tokenModel = tokenModel;
     this.form = req.currentForm;
     this.project = req.currentProject;
@@ -177,6 +178,24 @@ class Validator {
     });
   }
 
+  async dereferenceDataTableComponent(component) {
+    if (
+      component.type !== 'datatable'
+      || !component.fetch
+      || component.fetch.dataSrc !== 'resource'
+      || !component.fetch.resource
+    ) {
+      return [];
+    }
+
+    const resourceId = component.fetch.resource;
+    const resource = await this.formModel.findOne({_id: resourceId, deleted: null});
+    if (!resource) {
+      throw new Error(`Resource at ${resourceId} not found for dereferencing`);
+    }
+    return resource.components || [];
+  }
+
   /**
    * Validate a submission for a form.
    *
@@ -216,7 +235,8 @@ class Validator {
           isUnique: async (context, value) => {
             return this.isUnique(context, submission, value);
           },
-          validateCaptcha: this.validateCaptcha
+          validateCaptcha: this.validateCaptcha.bind(this),
+          dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this)
         }
       }
     };
