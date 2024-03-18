@@ -227,12 +227,17 @@ module.exports = (router, resourceName, resourceId) => {
 
       // Next we need to validate the input.
       hook.alter('validateSubmissionForm', req.currentForm, req.body, async form => { // eslint-disable-line max-statements
-        // Get the submission model.
+        // Get the models for validation
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         const tokenModel = router.formio.mongoose.models.token;
-
         // Validate the request.
-        const validator = new Validator(req, submissionModel, tokenModel, hook);
+        const validator = new Validator(
+          req,
+          submissionModel,
+          tokenModel,
+          hook,
+          router.formio.config.vmTimeout
+        );
         await validator.validate(req.body, (err, data, visibleComponents) => {
           if (req.noValidate) {
             return done();
