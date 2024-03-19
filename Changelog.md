@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.0.0-rc.16
+### Changed
+ - Updated @formio/core@2.0.0-rc.19
+ - Updated @formio/vm@0.0.7-rc.11
+ - FIO 8047: add dereference for datatable components
+
 ## 4.0.0-rc.15
 ### Changed
  - Updated @formio/core@2.0.0-rc.18
