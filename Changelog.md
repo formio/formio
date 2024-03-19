@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-7371: Adds checks to define if raw DB data should be returned in response
  - FIO-7329: remove nodemailer sendgrid and mailgun
  - FIO-7344 Changed Rendering method tooltip
- - 
+ - FIO 8047: add dereference for datatable components
 
 ## 4.0.0-rc.14
 ### Changed
