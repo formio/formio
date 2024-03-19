@@ -4,28 +4,124 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 3.5.0-rc.1]
+## [Unreleased: 4.1.0-rc.1]
 ### Changed
- - FIO-7344 Changed Rendering method tooltip
- - Re-implement FIO-6630: Expanded Actions Logic UI
- - FIO-6630: Adds root level properties to action conditions
- - FIO-7167: Isolated vm
- - FIO-7371: Adds checks to define if raw DB data should be returned in response
- - FIO-7538: Change vm-utils link in package.json
- - FIO-6495: fixed an issue where revision ID of nested form does not transfer from stage to stage
- - FIO-7330: fix bug of displaying settings for restricted fields
- - FIO-7351: fixed submitting data using Wizard with conditionals for Panel component
+ - FIO-8042: attach scope to the submission object
+ - FIO-7958: fix tests to be compatible with core validation
+ - FIO-7492: Update to node 20
+ - FIO-7932: Modernize the Dockerfile to decouple from host machine
+ - Refactor validation processing
+ - FIO-7292: Added own check to delete file from storage
+ - FIO-7623: Fixes an issue where Email action with Logs turned on will fail for the nested form with Attach Submission PDF
+ - FIO-7302: Prevent clearing the fields that does not exist on the current form revision if they were on the older one
+ - FIO-7549: Revert 1669 default.json and email.js
+ - FIO-7549: evaluate axios upgrades and CVE resolution
+ - revert changes related to FIO-7125 feature
  - FIO-7514: fixed an issue where submission reference object is not attached to the value of select component with reference enabled
  - FIO-7330: Fixes action settings endpoint crushing
  - FIO-7080 Handled access for token
  - FIO-7482: added ability to update default configuration forms in db to the versions required by the server (required for reportingUI form)
- - FIO-7543: Revert isolated vm changes (#1650)
- - Revert axios to 1.5.1 from 1.6.x
  - FIO-7491: fixed an issue where dataTable component with resource data type does not work after exporting/importing
  - Re-implement - FIO-6630: Expanded Actions Logic UI
- - revert changes related to FIO-7125 feature
- - FIO-7549: evaluate axios upgrades and CVE resolution
- - FIO-7549: Revert pull#1669 default.json and email.js
+ - FIO-7371: Adds checks to define if raw DB data should be returned in response
+ - FIO-7329: remove nodemailer sendgrid and mailgun
+ - FIO-7344 Changed Rendering method tooltip
+ - FIO 8047: add dereference for datatable components
+
+## 4.0.0-rc.14
+### Changed
+ - Updated @formio/vm@0.0.7-rc.9
+
+## 4.0.0-rc.13
+### Changed
+ - Updated @formio/core@2.0.0-rc.17
+ - Updated @formio/vm@0.0.7-rc.8
+
+## 4.0.0-rc.12
+### Changed
+ - Updated @formio/core@2.0.0-rc.16
+ - Updated @formio/vm@0.0.7-rc.7
+
+## 4.0.0-rc.11
+### Changed
+ - Updated @formio/core@2.0.0-rc.15
+ - Updated @formio/vm@0.0.7-rc.6
+
+## 4.0.0-rc.10
+### Changed
+ - Updated @formio/core@2.0.0-rc.14
+ - Updated @formio/vm@0.0.7-rc.5
+ - FIO-7958: fix tests to be compatible with core validation
+ - FIO-7998: add captcha validation
+
+## 4.0.0-rc.9
+### Changed
+ - Updated @formio/core@2.0.0-rc.13
+ - Updated @formio/vm@0.0.7-rc.4
+
+## 4.0.0-rc.8
+
+## 4.0.0-rc.7
+ - Revert node update for later inclusion
+   
+## 4.0.0-rc.6
+### Changed
+ - Update node engine to >=20.0.0
+   
+## 4.0.0-rc.5
+### Changed
+ - Updated @formio/vm@0.0.7-rc.1
+   
+## 4.0.0-rc.4
+### Changed
+ - Updated @formio/core@2.0.0-rc.11
+
+## 4.0.0-rc.3
+### Changed
+ - FIO-7938: Fix server fetch process
+
+## 4.0.0-rc.2
+### Changed
+ - Updated formiojs@4.19.0
+
+## 4.0.0-rc.1
+### Changed
+ - Major Version update
+ - Vm integration
+
+## 3.5.0-rc.6
+### Changed
+ - Updated formiojs@4.19.0-rc.7
+ - Updated formio-workers@1.21.0-rc.6
+
+## 3.5.0-rc.5
+### Changed
+ - Updated formiojs@4.19.0-rc.6
+ - Updated formio-workers@1.21.0-rc.5
+ - FIO-7498 Changed the passing of a data field to decrypt hook
+
+## 3.5.0-rc.4
+### Changed
+ - Updated formiojs@4.19.0-rc.5
+ - Updated formio-workers@1.21.0-rc.4
+ - FIO-7823: add error boundary around server-side form validation
+
+## 3.5.0-rc.3
+### Changed
+ - Updated formiojs@4.19.0-rc.3
+ - Updated formio-workers@1.21.0-rc.3
+
+## 3.5.0-rc.2
+### Changed
+ - Updated formiojs@4.19.0-rc.2
+ - Updated formio-workers@1.21.0-rc.2
+
+## 3.5.0-rc.1
+### Changed
+ - Updated formiojs@4.19.0-rc.1
+ - Updated formio-workers@1.21.0-rc.1
+ - FIO-7498 Fixed the issue with data not being decrypted when trying to export submissions
+
    
 ## 3.4.0-rc.1
 ### Changed
