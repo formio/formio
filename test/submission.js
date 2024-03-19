@@ -4290,6 +4290,36 @@ module.exports = function(app, template, hook) {
           });
       });
     });
+
+    describe('VM Timeouts', () => {
+      before('Create form with a long running validation', (done) => {
+        helper
+          .form('timeout', [
+            {
+              type: 'textfield',
+              label: 'Test',
+              key: 'test',
+              validate: {
+                custom: "if (input === 'test') { while(true) {} }"
+              }
+            }
+          ])
+          .execute(done);
+      });
+      it('Should timeout and throw an error when a validation takes too long', (done) => {
+        helper
+          .submission('timeout', { test: 'test' })
+          .expect(400)
+          .execute((err) => {
+            if (err) {
+              done(err);
+            }
+            const response = helper.lastResponse;
+            assert.equal(response.text, '"Script execution timed out."');
+            done();
+          });
+      });
+    })
   });
 
   describe('Nested Submissions', function() {
