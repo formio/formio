@@ -215,7 +215,7 @@ module.exports = function(router) {
             submission.data = newData;
           }
           catch (err) {
-            debug(`Error in submission transform: ${err.message}`);
+            debug(`Error in submission transform: ${err.message || err}`);
           }
         }
 

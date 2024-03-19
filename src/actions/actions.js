@@ -277,9 +277,9 @@ module.exports = (router) => {
           router.formio.log(
             'Error during executing action custom logic',
             req,
-            err
+            err.message || err
           );
-          debug.error(err);
+          debug.error(err.message || err);
           return false;
         }
       }
