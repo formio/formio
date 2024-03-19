@@ -213,6 +213,10 @@ module.exports = (formio) => {
           }
         ]
       },
+      pdfComponents: {
+        type: [formio.mongoose.Schema.Types.Mixed],
+        description: 'An array of components within the form displayed on the PDF Download page.'
+      },
       settings: {
         type: formio.mongoose.Schema.Types.Mixed,
         description: 'Custom form settings object.'
