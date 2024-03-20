@@ -300,18 +300,29 @@ module.exports = function(formio) {
     formio.util.log('Determine MongoDB compatibility.');
     (async () => {
       config.mongoFeatures = formio.mongoFeatures = {
-        collation: true
+        collation: true,
+        compoundIndexWithNestedPath: true,
       };
+      const featuresTest = db.collection('formio-collation-test');
       try {
-        const collationTest = db.collection('formio-collation-test');
-        await collationTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
-        await collationTest.drop();
+        await featuresTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
         formio.util.log('Collation indexes are supported.');
       }
       catch (err) {
         formio.util.log('Collation indexes are not supported.');
         config.mongoFeatures.collation = formio.mongoFeatures.collation = false;
       }
+
+      // Test for support for compound indexes that contain nested paths
+      try {
+        await featuresTest.createIndex({test: 1, 'nested.test': 1});
+        formio.util.log('Compound indexes that contain nested paths are supported.');
+      }
+      catch (err) {
+        formio.util.log('Compound indexes that contain nested paths are not supported.');
+        config.mongoFeatures.compoundIndexWithNestedPath = formio.mongoFeatures.compoundIndexWithNestedPath = false;
+      }
+      await featuresTest.drop();
       next();
     })();
   };
