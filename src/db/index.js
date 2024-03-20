@@ -301,7 +301,7 @@ module.exports = function(formio) {
     (async () => {
       config.mongoFeatures = formio.mongoFeatures = {
         collation: true,
-        compoundNestedPaths: true,
+        compoundIndexWithNestedPath: true,
       };
       const featuresTest = db.collection('formio-features-test');
       // Test for collation support
@@ -321,7 +321,7 @@ module.exports = function(formio) {
       }
       catch (err) {
         formio.util.log('Compound indexes that contain nested paths are not supported.');
-        config.mongoFeatures.compoundNestedPaths = formio.mongoFeatures.compoundNestedPaths = false;
+        config.mongoFeatures.compoundIndexWithNestedPath = formio.mongoFeatures.compoundIndexWithNestedPath = false;
       }
       await featuresTest.drop();
       next();
