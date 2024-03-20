@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 3.5.1-rc.1]
+## 3.5.1-rc.1
+### Changed
+ - Updated formiojs@4.19.1-rc.1
+ - Updated formio-workers@1.21.1-rc.1
+ - FIO-7623: Fixes an issue where Email action with Logs turned on will fail for the nested form with Attach Submission PDF
+
  - FIO-7671: add features test for compound indexes that contain nested paths
    
 ## 3.5.0
