@@ -51,6 +51,11 @@ jobs:
       - name: Check out repository code ${{ github.repository }} on ${{ github.ref }}
         uses: actions/checkout@v3
 
+      - name: Configure Git user
+        run: |
+          git config --global user.email "pkgbot@form.io"
+          git config --global user.name "pkgbot"
+
       - name: Add npm token to .npmrc
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
