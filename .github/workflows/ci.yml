@@ -91,7 +91,7 @@ jobs:
         run: |
           echo "Version to publish: $NEW_VERSION"
 
-      # - name: Publish to npm
-      #   run: |
-      #     npm version $NEW_VERSION
-      #     npm publish --tag dev
+      - name: Publish to npm
+        run: |
+          npm version $NEW_VERSION
+          npm publish --tag dev

@@ -8,5 +8,5 @@ test
 Dockerfile
 docker-compose.yml
 .eslintrc
-.bitoundrc
+.bithoundrc
 .eslintignore
