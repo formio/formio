@@ -54,11 +54,10 @@ module.exports = (router, resourceName, resourceId) => {
           return done('Form not found.');
         }
 
-          req.currentForm = hook.alter('currentForm', form, req.body);
+        req.currentForm = hook.alter('currentForm', form, req.body);
 
         // Load all subforms as well.
         router.formio.cache.loadSubForms(req.currentForm, req, () => {
-          req.flattenedComponents = util.flattenComponents(form.components, true);
           return done();
         });
       }, true);
