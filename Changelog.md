@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-7344 Changed Rendering method tooltip
  - FIO 8047: add dereference for datatable components
  - FIO 7671: nested paths cosmosdb feature test
+ - FIO-7998: add captcha validation
+ - FIO-7958: fix tests to be compatible with core validation
+ - FIO 7522: Encrypted Fields Not Re-Encrypted to New DB Secret
+ - FIO-7933: Added pdfComponents to Form schema
+ - FIO-7146: Migrate Formio CI/CD from CircleCI to Github Actions
 
 ## 4.0.0-rc.14
 ### Changed
