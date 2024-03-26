@@ -3,10 +3,12 @@
   "appPort": 8080,
   "host": "localhost:3001",
   "protocol": "http",
-  "allowedOrigins": ["*"],
+  "allowedOrigins": [
+    "*"
+  ],
   "domain": "http://localhost:3001",
   "basePath": "",
-  "mongo": "mongodb://localhost:27017/formioapp",
+  "mongo": "mongodb://127.0.0.1:27017/formioapp",
   "mongoConfig": "",
   "mongoCA": "",
   "mongoSecret": "--- change me now ---",

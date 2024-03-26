@@ -1,7 +1,7 @@
 {
   "domain": "localhost",
   "port": 3000,
-  "mongo": "mongodb://localhost:27017/formio-test",
+  "mongo": "mongodb://127.0.0.1:27017/formio-test",
   "projectSupport": true,
   "mongoSecret": "abc123",
   "email": {
