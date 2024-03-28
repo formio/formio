@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 3.5.1-rc.2]
+## 3.5.1-rc.2
+### Changed
+ - Updated formiojs@4.19.1-rc.2
+ - Updated formio-workers@1.21.1-rc.2
+
 ### Changed
  - FIO-8087: Fixes an issue where Email Action with logs enabled don't render nested form value and shows ID instead
    
