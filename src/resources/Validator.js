@@ -246,6 +246,8 @@ class Validator {
       await process(context);
       submission.data = context.data;
 
+      const additionalDeps = this.hook.alter('vmDependencies', []);
+
       // Process the evaulator
       const {scope, data} = await evaluateProcess({
         ...(config || {}),
@@ -253,7 +255,8 @@ class Validator {
         submission,
         scope: context.scope,
         token: this.tokens['x-jwt-token'],
-        tokens: this.tokens
+        tokens: this.tokens,
+        additionalDeps,
       });
       context.scope = scope;
       submission.data = data;
