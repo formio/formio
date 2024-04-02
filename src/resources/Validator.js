@@ -9,7 +9,6 @@ const {
 const {evaluateProcess} = require('@formio/vm');
 const util = require('../util/util');
 const fetch = require('@formio/node-fetch-http-proxy');
-const {lodashCode, momentCode, formioCoreCode, fastJsonPatchCode} = require('../util/vmDependencies');
 const debug = {
   validator: require('debug')('formio:validator'),
   error: require('debug')('formio:error')
@@ -247,14 +246,7 @@ class Validator {
       await process(context);
       submission.data = context.data;
 
-      const additionalDeps = this.hook.alter('vmDependencies', this.form, []);
-      const dependencies = {
-        lodash: lodashCode,
-        moment: momentCode,
-        core: formioCoreCode,
-        fastJsonPatch: fastJsonPatchCode,
-        additionalDeps
-      };
+      const additionalDeps = this.hook.alter('dynamicVmDependencies', this.form, []);
       // Process the evaulator
       const {scope, data} = await evaluateProcess({
         ...(config || {}),
@@ -263,7 +255,7 @@ class Validator {
         scope: context.scope,
         token: this.tokens['x-jwt-token'],
         tokens: this.tokens,
-        deps: dependencies,
+        additionalDeps
       });
       context.scope = scope;
       submission.data = data;

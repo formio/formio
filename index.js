@@ -14,6 +14,7 @@ const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
+const {configureVm} = require('@formio/vm');
 
 const originalGetToken = util.Formio.getToken;
 const originalEvalContext = util.Formio.Components.components.component.prototype.evalContext;
@@ -345,6 +346,10 @@ module.exports = function(config) {
         });
 
         require('./src/middleware/recaptcha')(router);
+
+        // Read the static VM depdenencies into memory and configure the VM
+        const {lodash, moment, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
+        configureVm({lodash, moment, core, fastJsonPatch, nunjucks});
 
         // Say we are done.
         deferred.resolve(router.formio);
