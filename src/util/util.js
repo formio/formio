@@ -1,16 +1,12 @@
 'use strict';
-require('@azure/ms-rest-nodeauth');
 
 const mongoose = require('mongoose');
 const ObjectID = require('mongodb').ObjectId;
 const _ = require('lodash');
 const nodeUrl = require('url');
 const deleteProp = require('delete-property').default;
-const workerUtils = require('formio-workers/workers/util');
 const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
-const vmUtil = require('vm-utils');
-const {InstanceProxy, FormProxy} = require('@formio/core');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
@@ -47,40 +43,6 @@ _.each(Formio.Displays.displays, (display) => {
 });
 
 Formio.Utils.Evaluator.noeval = true;
-Formio.Utils.Evaluator.evaluator = function(func, args) {
-  return function() {
-    let result = null;
-    // Apply InstanceProxy and FromProxy to sanitize object before passing them to sandbox
-    if (args.instance) {
-      args.instance = new InstanceProxy(args.instance);
-    }
-    if (args.self) {
-      args.self = new InstanceProxy(args.self);
-    }
-    if (args.root) {
-      args.root = new FormProxy(args.root);
-    }
-    // Remove `options` object as it has vulnerable data
-    // And not actually widely used
-    if (args.options) {
-      args.options = {};
-    }
-    try {
-      const isolate = vmUtil.getIsolate();
-      const context = isolate.createContextSync();
-      vmUtil.transferSync('result', null, context);
-      vmUtil.freezeSync('args', args, context);
-      result = context.evalSync(
-        `result = (function({${_.keys(args).join(',')}}) {${func}})(args);`,
-        {timeout: 250, copy: true}
-      );
-    }
-    catch (err) {
-      return result;
-    }
-    return result;
-  };
-};
 
 const Utils = {
   Formio: Formio.Formio,
@@ -355,10 +317,6 @@ const Utils = {
       return id;
     }
   },
-
-  flattenComponentsForRender: workerUtils.flattenComponentsForRender.bind(workerUtils),
-  renderFormSubmission: workerUtils.renderFormSubmission.bind(workerUtils),
-  renderComponentValue: workerUtils.renderComponentValue.bind(workerUtils),
 
 /**
    * Search the request headers for the given key.

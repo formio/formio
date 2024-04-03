@@ -2,9 +2,8 @@
 
 const _ = require('lodash');
 const async = require('async');
-const vmUtil = require('vm-utils');
 const util = require('../util/util');
-
+const {evaluateSync} = require('@formio/vm');
 const LOG_EVENT = 'Save Submission Action';
 
 module.exports = function(router) {
@@ -34,7 +33,7 @@ module.exports = function(router) {
     }
 
     static settingsForm(req, res, next) {
-      next(null, hook.alter('actionSettingsForm', req, this.name, [
+      next(null, [
         {
           type: 'resourcefields',
           key: 'resource',
@@ -44,7 +43,7 @@ module.exports = function(router) {
           form: req.params.formId,
           required: false
         }
-      ]));
+      ]);
     }
 
     /**
@@ -57,17 +56,10 @@ module.exports = function(router) {
      * @param next
      * @returns {*}
      */
-    async resolve(handler, method, req, res, next) {
+    resolve(handler, method, req, res, next) {
       // Return if this is not a PUT or POST.
       if (req.skipSave || !req.body || (req.method !== 'POST' && req.method !== 'PUT' && req.method !== 'PATCH')) {
         return next();
-      }
-
-      try {
-        await hook.alter('saveSubmission', req, this.settings);
-      }
-      catch (err) {
-        return res.status(err.statusCode || 400).send(err.message);
       }
 
       // Make sure we do not skip the resource.
@@ -195,7 +187,7 @@ module.exports = function(router) {
        * @param req
        * @returns {*}
        */
-      const updateSubmission = async function(submission) {
+      const updateSubmission = function(submission) {
         submission = submission || {};
         submission.data = submission.data || {};
 
@@ -211,16 +203,15 @@ module.exports = function(router) {
 
         if (this.settings.transform) {
           try {
-            const isolate = vmUtil.getIsolate();
-            const context = await isolate.createContext();
-            vmUtil.transfer(
-              'submission',
-              (res.resource && res.resource.item) ? res.resource.item : req.body,
-              context
-            );
-            vmUtil.transfer('data', submission.data, context);
-
-            submission.data = await context.eval(this.settings.transform, {timeout: 500, copy: true});
+            const newData = evaluateSync({
+              deps: [],
+              code: this.settings.transform,
+              data: {
+                submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
+                data: submission.data,
+              }
+            });
+            submission.data = newData;
           }
           catch (err) {
             debug(`Error in submission transform: ${err.message}`);
@@ -236,12 +227,12 @@ module.exports = function(router) {
        * @param form
        * @param then
        */
-      const loadSubmission = async function(cache, then) {
+      const loadSubmission = function(cache, then) {
         const submission = {data: {}, roles: []};
 
         // For new submissions, just populate the empty submission.
         if (req.method !== 'PUT') {
-          cache.submission = await updateSubmission(submission);
+          cache.submission = updateSubmission(submission);
           return then();
         }
 
@@ -275,13 +266,13 @@ module.exports = function(router) {
               req,
               this.settings.resource,
               external.id,
-              async function(err, submission) {
+              function(err, submission) {
                 if (err) {
                   log(req, ecode.submission.ESUBLOAD, err, '#resolve');
                   return then();
                 }
 
-                cache.submission = await updateSubmission(submission);
+                cache.submission = updateSubmission(submission);
                 then();
               }
             );

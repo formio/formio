@@ -18,6 +18,7 @@ module.exports = () => {
     title: 'Admin Register',
     name: 'adminRegister',
     path: 'admin/register',
+    pdfComponents: [],
     type: 'form',
     tags: [],
     access: [
@@ -135,6 +136,7 @@ module.exports = () => {
     type: 'resource',
     name: 'a',
     path: 'a',
+    pdfComponents: [],
     tags: [],
     components: [
       {
@@ -166,6 +168,7 @@ module.exports = () => {
     type: 'resource',
     name: 'b',
     path: 'b',
+    pdfComponents: [],
     tags: [],
     components: [
       {

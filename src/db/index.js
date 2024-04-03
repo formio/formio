@@ -256,40 +256,8 @@ module.exports = function(formio) {
   };
 
   const checkEncryption = function(next) {
-    if (config.mongoSecretOld) {
-      formio.util.log('DB Secret update required.');
-      const projects = db.collection('projects');
-      projects.find({}).forEach(function(project) {
-        if (project.settings_encrypted) {
-          try {
-            const settings = tools.decrypt(config.mongoSecretOld, project.settings_encrypted.buffer);
-            if (settings) {
-              /* eslint-disable camelcase */
-              projects.updateOne(
-                {_id: project._id},
-                {
-                  $set: {
-                    settings_encrypted: tools.encrypt(config.mongoSecret, settings)
-                  }
-                }
-              );
-              /* eslint-enable camelcase */
-            }
-          }
-          catch (err) {
-            debug.error(err);
-            formio.util.log(' > Unable to use old db secret key.');
-          }
-        }
-      },
-      function(err) {
-        formio.util.log(' > Finished updating db secret.\n');
-        next(err);
-      });
-    }
-    else {
-      return next();
-    }
+    formio.hook.alter('checkEncryption', formio, db);
+    next();
   };
 
   /**
@@ -300,18 +268,30 @@ module.exports = function(formio) {
     formio.util.log('Determine MongoDB compatibility.');
     (async () => {
       config.mongoFeatures = formio.mongoFeatures = {
-        collation: true
+        collation: true,
+        compoundIndexWithNestedPath: true,
       };
+      const featuresTest = db.collection('formio-features-test');
+      // Test for collation support
       try {
-        const collationTest = db.collection('formio-collation-test');
-        await collationTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
-        await collationTest.drop();
+        await featuresTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
         formio.util.log('Collation indexes are supported.');
       }
       catch (err) {
         formio.util.log('Collation indexes are not supported.');
         config.mongoFeatures.collation = formio.mongoFeatures.collation = false;
       }
+
+      // Test for support for compound indexes that contain nested paths
+      try {
+        await featuresTest.createIndex({test: 1, 'nested.test': 1});
+        formio.util.log('Compound indexes that contain nested paths are supported.');
+      }
+      catch (err) {
+        formio.util.log('Compound indexes that contain nested paths are not supported.');
+        config.mongoFeatures.compoundIndexWithNestedPath = formio.mongoFeatures.compoundIndexWithNestedPath = false;
+      }
+      await featuresTest.drop();
       next();
     })();
   };
@@ -692,6 +672,72 @@ module.exports = function(formio) {
   };
 
   /**
+   * Update the default configuration forms, from the current version, to the version required by the server.
+   *
+   * @param next
+   *   The next function to invoke after this function has finished.
+   */
+  const doConfigFormsUpdates = function(next) {
+    formio.util.log('Checking for Config Forms updates.');
+
+    let configFormsUpdates = {};
+    configFormsUpdates = formio.hook.alter('getConfigFormsUpdates', configFormsUpdates);
+    const updates = Object.keys(configFormsUpdates);
+
+    // Skip updates if there are no  updates to apply.
+    if (!updates.length) {
+      formio.util.log(' > No config forms updates found.\n');
+      return next();
+    }
+    // Only take action if updates exist.
+    debug.db('Pending config forms updates');
+      async.eachSeries(updates, function(update, callback) {
+        formio.util.log(` > Starting config forms update: ${update}`);
+
+        // Load the update then update the schema lock version.
+        let _update = null;
+
+        // Attempt to load the the pending update.
+        // Allow anyone to hook the pending updates location.
+        try {
+          _update = configFormsUpdates[update];
+        }
+        catch (e) {
+          debug.error(e);
+          debug.db(e);
+        }
+        // Attempt to resolve the update.
+        try {
+          if (typeof _update !== 'function') {
+            return callback(`Could not resolve the path for config form update: ${update}`);
+          }
+
+          debug.db('Update Params:');
+          debug.db(db);
+          debug.db(config);
+          debug.db(tools);
+          _update(db, config, tools, function(err) {
+            if (err) {
+              return callback(err);
+            }
+            return callback();
+          });
+        }
+        catch (e) {
+          debug.error(e);
+          return callback(e);
+        }
+      }, function(err) {
+        if (err) {
+          debug.db(err);
+          return next(err);
+        }
+
+        formio.util.log(' > Done applying pending config forms updates\n');
+        next();
+      });
+  };
+  /**
    * Initialized the update script.
    */
   const initialize = function(next) {
@@ -717,6 +763,7 @@ module.exports = function(formio) {
       checkFeatures,
       getUpdates,
       lock,
+      doConfigFormsUpdates,
       doUpdates,
       unlock
     ], function(err) {

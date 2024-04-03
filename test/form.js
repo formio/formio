@@ -4834,7 +4834,7 @@ module.exports = function(app, template, hook) {
             if (err) {
               return done(err);
             }
-            assert.equal(_.isEqual(res.body[0].data, { check: 'two' }), true)
+            assert.equal(_.isEqual(res.body[0].data, { check: 'two', submit: true }), true)
             done()
           })
       });

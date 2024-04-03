@@ -1,6 +1,14 @@
 'use strict';
 const _ = require('lodash');
-const {Formio} = require('../util/util');
+const {
+  ProcessTargets,
+  process,
+  interpolateErrors,
+  escapeRegExCharacters
+} = require('@formio/core');
+const {evaluateProcess} = require('@formio/vm');
+const util = require('../util/util');
+const fetch = require('@formio/node-fetch-http-proxy');
 const debug = {
   validator: require('debug')('formio:validator'),
   error: require('debug')('formio:error')
@@ -14,29 +22,178 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(form, model, token, decodedToken, hook) {
-    this.model = model;
-    this.form = form;
-    this.token = token;
+  constructor(req, submissionModel, formModel, tokenModel, hook) {
+    const tokens = {};
+    const token = util.getRequestValue(req, 'x-jwt-token');
+    if (token) {
+      tokens['x-jwt-token'] = token;
+    }
+    if (req.headers['x-remote-token']) {
+      tokens['x-remote-token'] = req.headers['x-remote-token'];
+    }
+    if (req.headers['x-token']) {
+      tokens['x-token'] = req.headers['x-token'];
+    }
+    if (req.headers['x-admin-key']) {
+      tokens['x-admin-key'] = req.headers['x-admin-key'];
+    }
+
+    this.req = req;
+    this.submissionModel = submissionModel;
+    this.formModel = formModel;
+    this.tokenModel = tokenModel;
+    this.form = req.currentForm;
+    this.project = req.currentProject;
+    this.decodedToken = req.token;
+    this.tokens = tokens;
     this.hook = hook;
-
-    const self = this;
-    const evalContext = Formio.Components.components.component.prototype.evalContext;
-    Formio.Components.components.component.prototype.evalContext = function(additional) {
-      return evalContext.call(this, self.evalContext(additional));
-    };
-
-    // Change Formio.getToken to return the server decoded token.
-    const getToken = Formio.getToken;
-    Formio.getToken = (options) => {
-      return options.decode ? decodedToken : getToken(options);
-    };
   }
 
-  evalContext(context) {
-    context = context || {};
-    context.form = this.form;
-    return this.hook.alter('evalContext', context, this.form);
+  addPathQueryParams(pathQueryParams, query, path) {
+    const pathArray = path.split(/\[\d+\]?./);
+    const needValuesInArray = pathArray.length > 1;
+    let pathToValue = path;
+    if (needValuesInArray) {
+      pathToValue = pathArray.shift();
+      const pathQueryObj = {};
+      _.reduce(pathArray, (pathQueryPath, pathPart, index) => {
+        const isLastPathPart = index === (pathArray.length - 1);
+        const obj = _.get(pathQueryObj, pathQueryPath, pathQueryObj);
+        const addedPath = `$elemMatch['${pathPart}']`;
+        _.set(obj, addedPath, isLastPathPart ? pathQueryParams : {});
+        return pathQueryPath ? `${pathQueryPath}.${addedPath}` : addedPath;
+      }, '');
+      query[pathToValue] = pathQueryObj;
+    }
+    else {
+      query[pathToValue] = pathQueryParams;
+    }
+  }
+
+  async isUnique(context, submission, value) {
+    const {component} = context;
+    const path = `data.${context.path}`;
+    // Build the query
+    const query = {form: this.form._id};
+    let collationOptions = {};
+
+    if (_.isString(value)) {
+      if (component.dbIndex) {
+        this.addPathQueryParams(value, query, path);
+      }
+      // These are kind of hacky but provides for a more efficient "unique" validation when the string is an email,
+      // because we (by and large) only have to worry about ASCII and partial unicode; this way, we can use collation-
+      // aware indexes with case insensitive email searches to make things like login and registration a whole lot faster
+      else if (
+        component.type === 'email' ||
+        (
+          component.type === 'textfield' &&
+          component.validate &&
+          component.validate.pattern === '[A-Za-z0-9]+'
+        )
+      ) {
+        this.addPathQueryParams(value, query, path);
+        collationOptions = {collation: {locale: 'en', strength: 2}};
+      }
+      else {
+        this.addPathQueryParams({
+          $regex: new RegExp(`^${escapeRegExCharacters(value)}$`),
+          $options: 'i'
+        }, query, path);
+      }
+    }
+    // FOR-213 - Pluck the unique location id
+    else if (
+      _.isPlainObject(value) &&
+      value.address &&
+      value.address['address_components'] &&
+      value.address['place_id']
+    ) {
+      this.addPathQueryParams({
+        $regex: new RegExp(`^${escapeRegExCharacters(value.address['place_id'])}$`),
+        $options: 'i'
+      }, query, `${path}.address.place_id`);
+    }
+    // Compare the contents of arrays vs the order.
+    else if (_.isArray(value)) {
+      this.addPathQueryParams({$all: value}, query, path);
+    }
+    else if (_.isObject(value) || _.isNumber(value)) {
+      this.addPathQueryParams({$eq: value}, query, path);
+    }
+    // Only search for non-deleted items
+    query.deleted = {$eq: null};
+    query.state = 'submitted';
+    return new Promise((resolve) => {
+      const cb = (err, result) => {
+        if (err) {
+          return resolve(false);
+        }
+        else if (result) {
+          // Only OK if it matches the current submission
+          if (submission._id && (result._id.toString() === submission._id)) {
+            resolve(true);
+          }
+          else {
+            component.conflictId = result._id.toString();
+            return resolve(false);
+          }
+        }
+        else {
+          return resolve(true);
+        }
+      };
+
+      this.submissionModel.findOne(query, null, collationOptions, (err, result) => {
+        if (err && collationOptions.collation) {
+          // presume this error comes from db compatibility, try again as regex
+          delete query[path];
+          this.addPathQueryParams({
+            $regex: new RegExp(`^${escapeRegExCharacters(value)}$`),
+            $options: 'i'
+          }, query, path);
+          this.submissionModel.findOne(query, cb);
+        }
+        else {
+          return cb(err, result);
+        }
+      });
+    });
+  }
+
+  validateCaptcha(captchaToken) {
+    return new Promise((resolve, reject) => {
+      this.tokenModel.findOne({value: captchaToken}, (err, token) => {
+        if (err) {
+          return reject(err);
+        }
+
+        if (!token) {
+          return resolve(false);
+        }
+
+        // Remove temp token after submission with reCaptcha
+        return token.remove(() => resolve(true));
+      });
+    });
+  }
+
+  async dereferenceDataTableComponent(component) {
+    if (
+      component.type !== 'datatable'
+      || !component.fetch
+      || component.fetch.dataSrc !== 'resource'
+      || !component.fetch.resource
+    ) {
+      return [];
+    }
+
+    const resourceId = component.fetch.resource;
+    const resource = await this.formModel.findOne({_id: resourceId, deleted: null});
+    if (!resource) {
+      throw new Error(`Resource at ${resourceId} not found for dereferencing`);
+    }
+    return resource.components || [];
   }
 
   /**
@@ -48,7 +205,7 @@ class Validator {
    *   The callback function to pass the results.
    */
   /* eslint-disable max-statements */
-  validate(submission, next) {
+  async validate(submission, next) {
     debug.validator('Starting validation');
 
     // Skip validation if no data is provided.
@@ -57,115 +214,70 @@ class Validator {
       return next();
     }
 
-    const unsets = [];
-    const conditionallyInvisibleComponents = [];
-    const emptyData = _.isEmpty(submission.data);
-    let unsetsEnabled = false;
+    let config = this.project ? (this.project.config || {}) : {};
+    config = {...(this.form.config || {}), ...config};
 
-    const {validateReCaptcha} = this;
-
-    // Create the form, then check validity.
-    Formio.createForm(this.form, {
-      server: true,
-      noDefaults: true,
-      hooks: {
-        setDataValue: function(value, key, data) {
-          if (!unsetsEnabled) {
-            return value;
-          }
-
-          // Check if this component is not persistent.
-          if (this.component.hasOwnProperty('persistent') &&
-            (!this.component.persistent || this.component.persistent === 'client-only')
-          ) {
-            unsets.push({key, data});
-          }
-          // Check if this component is conditionally hidden and does not set clearOnHide to false.
-          else if (
-            (!this.component.hasOwnProperty('clearOnHide') || this.component.clearOnHide) &&
-            (!this.conditionallyVisible() || !this.parentVisible)
-          ) {
-            conditionallyInvisibleComponents.push({component: this, key, data});
-          }
-          else if (
-            this.component.type === 'password' && value === this.defaultValue
-          ) {
-            unsets.push({key, data});
-          }
-          return value;
-        },
-        validateReCaptcha(responseToken) {
-          if (validateReCaptcha) {
-            return validateReCaptcha(responseToken);
-          }
-
-          return true;
-        },
+    const context = {
+      form: this.form,
+      submission: submission,
+      components: this.form.components,
+      data: submission.data,
+      processors: [],
+      fetch,
+      scope: {},
+      config: {
+        ...(config || {}),
+        headers: JSON.parse(JSON.stringify(this.req.headers)),
+        server: true,
+        token: this.tokens['x-jwt-token'],
+        tokens: this.tokens,
+        database: {
+          isUnique: async (context, value) => {
+            return this.isUnique(context, submission, value);
+          },
+          validateCaptcha: this.validateCaptcha.bind(this),
+          dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this)
+        }
       }
-    }).then((form) => {
-      // Set the validation config.
-      form.validator.config = {
-        db: this.model,
-        token: this.token,
+    };
+    try {
+      // Process the server processes
+      context.processors = ProcessTargets.submission;
+      await process(context);
+      submission.data = context.data;
+
+      // Process the evaulator
+      const {scope, data} = await evaluateProcess({
+        ...(config || {}),
         form: this.form,
-        submission: submission
-      };
-
-      // Set the submission data
-      form.data = submission.data;
-
-       // Reset the data
-      form.data = {};
-
-      form.setValue(submission, {
-        sanitize: form.allowAllSubmissionData ? false : true,
+        submission,
+        scope: context.scope,
+        token: this.tokens['x-jwt-token'],
+        tokens: this.tokens
       });
+      context.scope = scope;
+      submission.data = data;
+      submission.scope = scope;
 
-      // Perform calculations and conditions.
-      form.checkConditions();
-      form.clearOnHide();
-      form.calculateValue();
+      // Now that the validation is complete, we need to remove fetched data from the submission.
+      for (const path in context.scope.fetched) {
+        _.unset(submission.data, path);
+      }
+    }
+    catch (err) {
+      debug.error(err.message || err);
+      return next(err.message || err);
+    }
 
-      // Set the value to the submission.
-      unsetsEnabled = true;
-
-      // Check the visibility of conditionally visible components after unconditionally visible
-      _.forEach(conditionallyInvisibleComponents, ({component, key, data}) => {
-        if (!component.conditionallyVisible() || !component.parentVisible) {
-          unsets.push({key, data});
-        }
+    // If there are errors, return the errors.
+    if (context.scope.errors && context.scope.errors.length) {
+      return next({
+        name: 'ValidationError',
+        details: interpolateErrors(context.scope.errors)
       });
+    }
 
-      // Check the validity of the form.
-      form.checkAsyncValidity(null, true).then((valid) => {
-        if (valid) {
-          // Clear the non-persistent fields.
-          unsets.forEach((unset) => _.unset(unset.data, unset.key));
-          if (form.form.display === 'wizard' && (form.prefixComps.length || form.suffixComps.length)) {
-            submission.data = emptyData ? {} : {...submission.data, ...form.data};
-          }
-          else {
-            submission.data = emptyData ? {} : form.data;
-          }
-          const visibleComponents = (form.getComponents() || []).map(comp => comp.component);
-          return next(null, submission.data, visibleComponents);
-        }
-
-        if (form.form.display === 'wizard') {
-          // Wizard errors object contains all wizard errors only on last page
-          form.page = form.pages.length - 1;
-        }
-
-        const details = [];
-        form.errors.forEach((error) => error.messages.forEach((message) => details.push(message)));
-
-        // Return the validation errors.
-        return next({
-          name: 'ValidationError',
-          details: details
-        });
-      }).catch(next);
-    }).catch(next);
+    return next(null, submission.data, this.form.components);
   }
 }
 

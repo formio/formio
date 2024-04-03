@@ -2,7 +2,6 @@
 
 const Resource = require('resourcejs');
 const async = require('async');
-const vmUtil = require('vm-utils');
 const _ = require('lodash');
 const debug = {
   error: require('debug')('formio:error'),
@@ -20,6 +19,8 @@ const {
   rootLevelProperties,
   rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
+const {evaluate} = require('@formio/vm');
+const promisify = require('util').promisify;
 
 /**
  * The ActionIndex export.
@@ -221,9 +222,7 @@ module.exports = (router) => {
       });
     },
 
-    // eslint-disable-next-line max-statements
     async shouldExecute(action, req, res) {
-
       const condition = action.condition;
       if (!condition) {
         return true;
@@ -246,6 +245,8 @@ module.exports = (router) => {
             data: isDelete ? _.get(deletedSubmission, `data`, {}) : req.body.data,
             form: req.form,
             query: req.query,
+            params: req.params,
+            headers: req.headers,
             util: util.FormioUtils,
             moment: moment,
             submission: isDelete ? deletedSubmission : req.body,
@@ -254,25 +255,20 @@ module.exports = (router) => {
             _
           }, req);
 
-          const isolate = vmUtil.getIsolate();
-          const context = await isolate.createContext();
-          await vmUtil.transfer('execute', params.execute, context);
-          await vmUtil.transfer('query', params.query, context);
-          await vmUtil.transfer('data', params.data, context);
-          await vmUtil.transfer('form', params.form, context);
-          await vmUtil.transfer('submission', params.submission, context);
-          await vmUtil.transfer('previous', params.previous, context);
-
-          await vmUtil.freeze('jsonLogic', params.jsonLogic, context);
-          await vmUtil.freeze('util', params.FormioUtils, context);
-          await vmUtil.freeze('moment', params.moment, context);
-          await vmUtil.freeze('_', params._, context);
-
-          const result = await context.eval(json ?
-            `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
-            condition.custom,
-            {timeout: 500, copy: true}
-          );
+          const result = await evaluate({
+            deps: ['core', 'moment', 'lodash'],
+            code: json ?
+              `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
+              condition.custom,
+            data: {
+              execute: params.execute,
+              query: params.query,
+              data: params.data,
+              form: params.form,
+              submission: params.submission,
+              previous: params.previous,
+            }
+          });
 
           return result;
         }
@@ -322,8 +318,8 @@ module.exports = (router) => {
           }
           const value = await getComponentValueFromRequest(req, res, conditionComponentPath, isRootLevelProperty);
           let component;
-          if (req.currentFormComponents && !isRootLevelProperty) {
-            component = util.FormioUtils.getComponent(req.currentFormComponents, conditionComponentPath);
+          if (req.currentForm.components && !isRootLevelProperty) {
+            component = util.FormioUtils.getComponent(req.currentForm.components, conditionComponentPath);
           }
           return new ConditionOperator().getResult({value, comparedValue, component});
         }));
@@ -568,7 +564,7 @@ module.exports = (router) => {
                             const rootLevelProperties = ${JSON.stringify(rootLevelPropertiesOperatorsByPath)};
                             const isRootLevelProperty = row.component &&
                               row.component.startsWith &&
-                              row.component.startsWith('(submission).'); 
+                              row.component.startsWith('(submission).');
                             const conditionComponent = formComponents[row.component];
                             let componentType = conditionComponent ? conditionComponent.type : 'base';
                             if (isRootLevelProperty) {
@@ -659,6 +655,7 @@ module.exports = (router) => {
             tree: false,
             key: 'conditions',
             legend: 'Action Execution',
+            hidden: mainSettings.components.length && mainSettings.components.every(({type})=> type === 'hidden'),
             components: mainSettings.components
           },
           {
@@ -703,7 +700,7 @@ module.exports = (router) => {
 
   async function getDeletedSubmission(req) {
     try {
-      return await router.formio.cache.loadSubmissionAsync(
+      return await promisify(router.formio.cache.loadSubmission)(
         req,
         req.body.form,
         req.body._id,
@@ -794,7 +791,7 @@ module.exports = (router) => {
       });
 
       try {
-        getSettingsForm(action, req, (err, settings) => {
+        getSettingsForm(info, req, (err, settings) => {
           if (err) {
             router.formio.log('Error, can\'t get action settings', req, err);
             return res.status(400).send(err);
