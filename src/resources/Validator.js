@@ -3,11 +3,11 @@ const _ = require('lodash');
 const {
   ProcessTargets,
   process,
-  processSync,
   interpolateErrors,
   escapeRegExCharacters
 } = require('@formio/core');
 const {evaluateProcess} = require('@formio/vm');
+const util = require('../util/util');
 const fetch = require('@formio/node-fetch-http-proxy');
 const debug = {
   validator: require('debug')('formio:validator'),
@@ -22,10 +22,30 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(form, model, token, decodedToken, hook) {
-    this.model = model;
-    this.form = form;
-    this.token = token;
+  constructor(req, submissionModel, formModel, tokenModel, hook) {
+    const tokens = {};
+    const token = util.getRequestValue(req, 'x-jwt-token');
+    if (token) {
+      tokens['x-jwt-token'] = token;
+    }
+    if (req.headers['x-remote-token']) {
+      tokens['x-remote-token'] = req.headers['x-remote-token'];
+    }
+    if (req.headers['x-token']) {
+      tokens['x-token'] = req.headers['x-token'];
+    }
+    if (req.headers['x-admin-key']) {
+      tokens['x-admin-key'] = req.headers['x-admin-key'];
+    }
+
+    this.req = req;
+    this.submissionModel = submissionModel;
+    this.formModel = formModel;
+    this.tokenModel = tokenModel;
+    this.form = req.currentForm;
+    this.project = req.currentProject;
+    this.decodedToken = req.token;
+    this.tokens = tokens;
     this.hook = hook;
   }
 
@@ -124,7 +144,7 @@ class Validator {
         }
       };
 
-      this.model.findOne(query, null, collationOptions, (err, result) => {
+      this.submissionModel.findOne(query, null, collationOptions, (err, result) => {
         if (err && collationOptions.collation) {
           // presume this error comes from db compatibility, try again as regex
           delete query[path];
@@ -132,7 +152,7 @@ class Validator {
             $regex: new RegExp(`^${escapeRegExCharacters(value)}$`),
             $options: 'i'
           }, query, path);
-          this.model.findOne(query, cb);
+          this.submissionModel.findOne(query, cb);
         }
         else {
           return cb(err, result);
@@ -141,19 +161,39 @@ class Validator {
     });
   }
 
-  evaluate(form, submission, scope, token) {
-    processSync({
-      form,
-      submission,
-      components: form.components,
-      data: submission.data,
-      processors: ProcessTargets.evaluator,
-      scope,
-      config: {
-        server: true,
-        token,
-      }
+  validateCaptcha(captchaToken) {
+    return new Promise((resolve, reject) => {
+      this.tokenModel.findOne({value: captchaToken}, (err, token) => {
+        if (err) {
+          return reject(err);
+        }
+
+        if (!token) {
+          return resolve(false);
+        }
+
+        // Remove temp token after submission with reCaptcha
+        return token.remove(() => resolve(true));
+      });
     });
+  }
+
+  async dereferenceDataTableComponent(component) {
+    if (
+      component.type !== 'datatable'
+      || !component.fetch
+      || component.fetch.dataSrc !== 'resource'
+      || !component.fetch.resource
+    ) {
+      return [];
+    }
+
+    const resourceId = component.fetch.resource;
+    const resource = await this.formModel.findOne({_id: resourceId, deleted: null});
+    if (!resource) {
+      throw new Error(`Resource at ${resourceId} not found for dereferencing`);
+    }
+    return resource.components || [];
   }
 
   /**
@@ -174,6 +214,9 @@ class Validator {
       return next();
     }
 
+    let config = this.project ? (this.project.config || {}) : {};
+    config = {...(this.form.config || {}), ...config};
+
     const context = {
       form: this.form,
       submission: submission,
@@ -183,12 +226,17 @@ class Validator {
       fetch,
       scope: {},
       config: {
+        ...(config || {}),
+        headers: JSON.parse(JSON.stringify(this.req.headers)),
         server: true,
-        token: this.token,
+        token: this.tokens['x-jwt-token'],
+        tokens: this.tokens,
         database: {
           isUnique: async (context, value) => {
             return this.isUnique(context, submission, value);
-          }
+          },
+          validateCaptcha: this.validateCaptcha.bind(this),
+          dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this)
         }
       }
     };
@@ -200,17 +248,25 @@ class Validator {
 
       // Process the evaulator
       const {scope, data} = await evaluateProcess({
+        ...(config || {}),
         form: this.form,
         submission,
         scope: context.scope,
-        token: this.token,
+        token: this.tokens['x-jwt-token'],
+        tokens: this.tokens
       });
       context.scope = scope;
       submission.data = data;
+      submission.scope = scope;
+
+      // Now that the validation is complete, we need to remove fetched data from the submission.
+      for (const path in context.scope.fetched) {
+        _.unset(submission.data, path);
+      }
     }
     catch (err) {
-      debug.error(err);
-      return next(err);
+      debug.error(err.message || err);
+      return next(err.message || err);
     }
 
     // If there are errors, return the errors.

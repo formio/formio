@@ -570,10 +570,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.0.0-rc.10", "@formio/core@^2.0.0-rc.10":
-  version "2.0.0-rc.10"
-  resolved "https://registry.npmjs.org/@formio/core/-/core-2.0.0-rc.10.tgz#384f63b3f03d1e88bac83308cb2b8f5ebd0c2cc0"
-  integrity sha512-cYrRDQ6a7iQse8mgtnC7qqWUfKSq4wqrRfYkbys/EvufOXSUvjv7LSxyNW8YAh5QWj/+jhZgwVm0HZm3i5H8qg==
+"@formio/core@2.0.0-rc.20":
+  version "2.0.0-rc.20"
+  resolved "https://registry.npmjs.org/@formio/core/-/core-2.0.0-rc.20.tgz#34b55a5973cdc65b33563eab8ff5c1f35573397b"
+  integrity sha512-PwlRqtIuyBldFGJ4jGb/+59o7/o1ZMkpRosKmkiMVdZKI0OjZpIJ0U/w6PzUbFny07DaZF0wwfFiJYrZs/z+0w==
   dependencies:
     "@types/json-logic-js" "^2.0.5"
     browser-cookies "^1.2.0"
@@ -581,6 +581,25 @@
     dayjs "^1.11.10"
     dompurify "^3.0.6"
     eventemitter3 "^5.0.0"
+    fast-json-patch "^3.1.1"
+    fetch-ponyfill "^7.1.0"
+    inputmask "^5.0.9-beta.45"
+    json-logic-js "^2.0.2"
+    lodash "^4.17.21"
+    moment "^2.29.4"
+
+"@formio/core@^2.0.0-rc.19":
+  version "2.0.0-rc.20-dev.60.3e73af8"
+  resolved "https://registry.npmjs.org/@formio/core/-/core-2.0.0-rc.20-dev.60.3e73af8.tgz#b6584295c32057949ea9aa0d1d1ab9c086a4de17"
+  integrity sha512-PmQfSzeYAmBOcqqTbiAG3JHooZna+zphl5/HHLaZ/rKrERolZkcyHkzHhSJ0lPKgzEA1MUa7rfB8KSGlPey62A==
+  dependencies:
+    "@types/json-logic-js" "^2.0.5"
+    browser-cookies "^1.2.0"
+    core-js "^3.33.2"
+    dayjs "^1.11.10"
+    dompurify "^3.0.6"
+    eventemitter3 "^5.0.0"
+    fast-json-patch "^3.1.1"
     fetch-ponyfill "^7.1.0"
     inputmask "^5.0.9-beta.45"
     json-logic-js "^2.0.2"
@@ -612,16 +631,16 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.npmjs.org/@formio/vm/-/vm-0.0.6.tgz#0c8986bd252cc21c225fe510d158aef5806cc7c4"
-  integrity sha512-78IducXitflmTqDv+w/Pvzc/cGbII7OTwIfrdiV7CGAtCn0MFiGimSHPr1CxXOfYreas14rZJJ6KqdnHywf1bA==
+"@formio/vm@^0.0.7-rc.11":
+  version "0.0.7-rc.13"
+  resolved "https://registry.npmjs.org/@formio/vm/-/vm-0.0.7-rc.13.tgz#a2abd2dedcc94a9653fdafa48cf81e1d09ed0944"
+  integrity sha512-Jq/KI/piOmR0HKYw51P1Ef8ytpDT6pPtzPIn3BFQbPbU6SoEZTFPfI6crjKZfrWpBFHXfUzO7czGZo6EbuSIjQ==
   dependencies:
-    "@formio/core" "2.0.0-rc.10"
+    "@formio/core" "2.0.0-rc.20"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
-    formiojs "^4.18.0"
+    formiojs "4.19.1-rc.1"
     isolated-vm "^4.6.0"
     lodash "^4.17.21"
     moment "^2.29.4"
@@ -2181,7 +2200,50 @@ formidable@^2.1.2:
     once "^1.4.0"
     qs "^6.11.0"
 
-formiojs@^4.18.0, formiojs@^4.18.0-rc.6:
+formiojs@4.19.1-rc.1:
+  version "4.19.1-rc.1"
+  resolved "https://registry.npmjs.org/formiojs/-/formiojs-4.19.1-rc.1.tgz#8b8d67a3e42b88128db4bb924c6801252b50538b"
+  integrity sha512-gpRPzwtUGTHqjqRiUL2Db1rkggNScOl4gnRNGZSazw9/xz1tQjuYRVEWuq5p1JnRNpOy3RwQdtkK8diKi/Z5Zg==
+  dependencies:
+    "@formio/bootstrap3" "2.12.4-rc.1"
+    "@formio/choices.js" "10.2.1"
+    "@formio/semantic" "2.6.1"
+    "@formio/text-mask-addons" "^3.8.0-formio.2"
+    "@formio/vanilla-text-mask" "^5.1.1-formio.1"
+    abortcontroller-polyfill "^1.7.5"
+    autocompleter "^7.0.1"
+    browser-cookies "^1.2.0"
+    browser-md5-file "^1.1.1"
+    compare-versions "^5.0.1"
+    core-js "^3.26.1"
+    custom-event-polyfill "^1.0.7"
+    dialog-polyfill "^0.5.6"
+    dom-autoscroller "^2.3.4"
+    dompurify "^3.0.5"
+    downloadjs "^1.4.7"
+    dragula "^3.7.3"
+    eventemitter3 "^4.0.7"
+    fast-deep-equal "^3.1.3"
+    fast-json-patch "^3.1.1"
+    fetch-ponyfill "^7.1.0"
+    i18next "22.4.12"
+    idb "^7.1.1"
+    ismobilejs "^1.1.1"
+    json-logic-js "^2.0.2"
+    jstimezonedetect "^1.0.7"
+    jwt-decode "^3.1.2"
+    lodash "^4.17.21"
+    moment "^2.29.4"
+    moment-timezone "^0.5.40"
+    native-promise-only "^0.8.1"
+    quill "^2.0.0-dev.3"
+    signature_pad "^4.1.4"
+    string-hash "^1.1.3"
+    tippy.js "^6.3.7"
+    uuid "^9.0.0"
+    vanilla-picker "^2.12.1"
+
+formiojs@^4.18.0-rc.6:
   version "4.18.1"
   resolved "https://registry.npmjs.org/formiojs/-/formiojs-4.18.1.tgz#5df1115d39cc29231e36e5153c9c580e07e67d15"
   integrity sha512-1xEtww3NBwkJy1WiE5KQHMEM+uCDJNc/Dq/d11xEd3IQqyf41aIvAR4Y4FQToCdo7M7qyNTvR0TiTvXChOkNMA==

@@ -256,40 +256,8 @@ module.exports = function(formio) {
   };
 
   const checkEncryption = function(next) {
-    if (config.mongoSecretOld) {
-      formio.util.log('DB Secret update required.');
-      const projects = db.collection('projects');
-      projects.find({}).forEach(function(project) {
-        if (project.settings_encrypted) {
-          try {
-            const settings = tools.decrypt(config.mongoSecretOld, project.settings_encrypted.buffer);
-            if (settings) {
-              /* eslint-disable camelcase */
-              projects.updateOne(
-                {_id: project._id},
-                {
-                  $set: {
-                    settings_encrypted: tools.encrypt(config.mongoSecret, settings)
-                  }
-                }
-              );
-              /* eslint-enable camelcase */
-            }
-          }
-          catch (err) {
-            debug.error(err);
-            formio.util.log(' > Unable to use old db secret key.');
-          }
-        }
-      },
-      function(err) {
-        formio.util.log(' > Finished updating db secret.\n');
-        next(err);
-      });
-    }
-    else {
-      return next();
-    }
+    formio.hook.alter('checkEncryption', formio, db);
+    next();
   };
 
   /**
@@ -300,18 +268,30 @@ module.exports = function(formio) {
     formio.util.log('Determine MongoDB compatibility.');
     (async () => {
       config.mongoFeatures = formio.mongoFeatures = {
-        collation: true
+        collation: true,
+        compoundIndexWithNestedPath: true,
       };
+      const featuresTest = db.collection('formio-features-test');
+      // Test for collation support
       try {
-        const collationTest = db.collection('formio-collation-test');
-        await collationTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
-        await collationTest.drop();
+        await featuresTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
         formio.util.log('Collation indexes are supported.');
       }
       catch (err) {
         formio.util.log('Collation indexes are not supported.');
         config.mongoFeatures.collation = formio.mongoFeatures.collation = false;
       }
+
+      // Test for support for compound indexes that contain nested paths
+      try {
+        await featuresTest.createIndex({test: 1, 'nested.test': 1});
+        formio.util.log('Compound indexes that contain nested paths are supported.');
+      }
+      catch (err) {
+        formio.util.log('Compound indexes that contain nested paths are not supported.');
+        config.mongoFeatures.compoundIndexWithNestedPath = formio.mongoFeatures.compoundIndexWithNestedPath = false;
+      }
+      await featuresTest.drop();
       next();
     })();
   };
