@@ -228,29 +228,12 @@ module.exports = (router, resourceName, resourceId) => {
       hook.alter('validateSubmissionForm', req.currentForm, req.body, async form => { // eslint-disable-line max-statements
         // Get the submission model.
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-
-        // Next we need to validate the input.
-        const token = util.getRequestValue(req, 'x-jwt-token');
-        const validator = new Validator(req.currentForm, submissionModel, token, req.token, hook);
-        validator.validateReCaptcha = (responseToken) => {
-          return new Promise((resolve, reject) => {
-            router.formio.mongoose.models.token.findOne({value: responseToken}, (err, token) => {
-              if (err) {
-                return reject(err);
-              }
-
-              if (!token) {
-                return reject(new Error('ReCaptcha: Response token not found'));
-              }
-
-              // Remove temp token after submission with reCaptcha
-              return token.remove(() => resolve(true));
-            });
-          });
-        };
+        const formModel = router.formio.resources.form.model;
+        const tokenModel = router.formio.mongoose.models.token;
 
         // Validate the request.
-        validator.validate(req.body, (err, data, visibleComponents) => {
+        const validator = new Validator(req, submissionModel, formModel, tokenModel, hook);
+        await validator.validate(req.body, (err, data, visibleComponents) => {
           if (req.noValidate) {
             return done();
           }
@@ -261,13 +244,6 @@ module.exports = (router, resourceName, resourceId) => {
           data = hook.alter('rehydrateValidatedSubmissionData', data, req);
 
           res.submission = {data: data};
-
-          if (!_.isEqual(visibleComponents, req.currentForm.components)) {
-            req.currentFormComponents = visibleComponents;
-          }
-          else if (req.hasOwnProperty('currentFormComponents') && req.currentFormComponents) {
-            delete req.currentFormComponents;
-          }
           done();
         });
       });
@@ -313,7 +289,7 @@ module.exports = (router, resourceName, resourceId) => {
       const resourceData = _.get(res, 'resource.item.data', {});
       const submissionData = req.body.data || resourceData;
 
-      util.eachValue((req.currentFormComponents || req.currentForm.components), submissionData, ({
+      util.eachValue(req.currentForm.components, submissionData, ({
         component,
         data,
         handler,
@@ -469,7 +445,6 @@ module.exports = (router, resourceName, resourceId) => {
         async.apply(alterSubmission, req, res),
         async.apply(ensureResponse, req, res)
       ], (...args) => {
-        delete req.currentFormComponents;
         next(...args);
       });
     };

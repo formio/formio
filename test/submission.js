@@ -1616,7 +1616,8 @@ module.exports = function(app, template, hook) {
                   key: 'requiredField',
                   setting: true,
                   validator: 'required',
-                  label: 'Required Field'
+                  label: 'Required Field',
+                  path: 'requiredField',
                 },
                 message: 'Required Field is required',
                 level: 'error',
@@ -1985,6 +1986,7 @@ module.exports = function(app, template, hook) {
                   label: 'Required Field',
                   setting: true,
                   validator: 'required',
+                  path: 'requiredField',
                 },
                 message: 'Required Field is required',
                 level: 'error',
@@ -2692,7 +2694,8 @@ module.exports = function(app, template, hook) {
                   key: 'textField',
                   label: 'Text Field',
                   setting: false,
-                  validator: 'multiple',
+                  path: 'textField',
+                  validator: 'nonarray',
                   value: ['Never', 'gonna', 'give', 'you', 'up']
                 },
                 message: 'Text Field must not be an array',
@@ -2812,8 +2815,8 @@ module.exports = function(app, template, hook) {
             assert.equal(helper.lastResponse.statusCode, 400);
             assert.equal(helper.lastResponse.body.name, 'ValidationError');
             assert.equal(helper.lastResponse.body.details.length, 2);
-            assert.equal(helper.lastResponse.body.details[0].message, 'Text Field is required');
-            assert.equal(helper.lastResponse.body.details[1].message, 'Text Field must be a non-empty array');
+            assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be an array');
+            assert.equal(helper.lastResponse.body.details[1].message, 'Text Field is required');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
             assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
             done();
@@ -3400,6 +3403,180 @@ module.exports = function(app, template, hook) {
       });
     });
 
+    describe('Data table validation', () => {
+      before((done) => {
+        // Create a resource to keep records.
+        helper
+          .form('fruits', [
+            {
+              "input": true,
+              "tableView": true,
+              "inputType": "text",
+              "inputMask": "",
+              "label": "Name",
+              "key": "name",
+              "placeholder": "",
+              "prefix": "",
+              "suffix": "",
+              "multiple": false,
+              "defaultValue": "",
+              "protected": false,
+              "unique": false,
+              "persistent": true,
+              "validate": {
+                "required": false,
+                "minLength": "",
+                "maxLength": "",
+                "pattern": "",
+                "custom": "",
+                "customPrivate": false
+              },
+              "conditional": {
+                "show": null,
+                "when": null,
+                "eq": ""
+              },
+              "type": "textfield"
+            },
+          ])
+          .submission('fruits', {name: 'Apple'})
+          .submission('fruits', {name: 'Pear'})
+          .submission('fruits', {name: 'Banana'})
+          .submission('fruits', {name: 'Orange'})
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            let apiUrl = 'http://localhost:' + template.config.port;
+            apiUrl += hook.alter('url', '/form/' + helper.template.forms['fruits']._id + '/submission', helper.template);
+
+            helper
+              .form('fruitTable', [
+                {
+                  label: 'Pick Some Fruits',
+                  sortable: true,
+                  filterable: true,
+                  inlineEditing: false,
+                  clipCells: false,
+                  itemsPerPage: 10,
+                  showAddBtn: true,
+                  showEditBtn: true,
+                  showDeleteBtn: true,
+                  showDeleteAllBtn: false,
+                  tableView: false,
+                  isSubmitData: false,
+                  fetch: {
+                    enableFetch: true,
+                    headers: [{}],
+                    components: [
+                      {
+                        path: 'name',
+                        key: 'name',
+                      },
+                    ],
+                    dataSrc: 'resource',
+                    sort: {
+                      defaultQuery: '',
+                    },
+                    resource: helper.template.forms['fruits']._id,
+                  },
+                  key: 'dataTable',
+                  type: 'datatable',
+                  allowCaching: true,
+                  input: true,
+                  submitSelectedRows: true,
+                  components: [],
+                }
+              ])
+              .execute((err) => {
+                if (err) {
+                  return done(err);
+                }
+                done();
+              });
+          });
+      });
+
+      it('Should save the submission of the selected values', (done) => {
+        helper.submission('fruitTable', {dataTable: [{name: 'Apple'}, {name: 'Pear'}]}).execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          var submission = helper.getLastSubmission();
+          assert.deepEqual({dataTable: [{name: 'Apple'}, {name: 'Pear'}]}, submission.data);
+          done();
+        });
+      });
+
+      it('Should modify the target resource and the form by adding a required field', (done) => {
+        const target = helper.template.forms['fruits'];
+        target.components.push({
+          "input": true,
+          "tableView": true,
+          "inputType": "text",
+          "inputMask": "",
+          "label": "Color",
+          "key": "color",
+          "placeholder": "",
+          "prefix": "",
+          "suffix": "",
+          "multiple": false,
+          "defaultValue": "",
+          "protected": false,
+          "unique": false,
+          "persistent": true,
+          "validate": {
+            "required": true,
+            "minLength": "",
+            "maxLength": "",
+            "pattern": "",
+            "custom": "",
+            "customPrivate": false
+          },
+          "conditional": {
+            "show": null,
+            "when": null,
+            "eq": ""
+          },
+          "type": "textfield"
+        });
+        helper
+          .updateForm(target, (err) => {
+            if (err) {
+              return done(err);
+            }
+            const form = helper.template.forms['fruitTable'];
+            assert(form.components[0]);
+            assert(form.components[0].fetch);
+            assert(form.components[0].fetch.components);
+            form.components[0].fetch.components.push({path: 'color', key: 'color'});
+            helper.updateForm(form, (err) => {
+              if (err) {
+                return done(err);
+              }
+              done();
+            });
+          });
+      });
+
+      it('Should throw an error when the new field is not provided', (done) => {
+        helper.submission('fruitTable', {dataTable: [{name: 'Apple'}, {name: 'Orange'}]}).expect(400).execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          assert.equal(helper.lastResponse.statusCode, 400);
+          assert.equal(helper.lastResponse.body.name, 'ValidationError');
+          assert.equal(helper.lastResponse.body.details.length, 2);
+          assert.equal(helper.lastResponse.body.details[0].message, 'Color is required');
+          assert.deepEqual(helper.lastResponse.body.details[0].path, ['dataTable', 0, 'color']);
+          done();
+        });
+      });
+    });
+
+
     describe('Advanced Conditions', () => {
       it('Requires a conditionally required field from advanced conditions', function(done) {
         var components = [
@@ -3531,6 +3708,7 @@ module.exports = function(app, template, hook) {
                   key: 'changeme',
                   label: 'Two',
                   setting: true,
+                  path: 'changeme',
                   validator: 'required',
                 },
                 level: 'error',
@@ -3765,6 +3943,7 @@ module.exports = function(app, template, hook) {
                   key: 'test',
                   label: 'Test',
                   setting: true,
+                  path: 'test',
                   validator: 'required',
                 },
                 level: 'error',
