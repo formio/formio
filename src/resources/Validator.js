@@ -246,7 +246,7 @@ class Validator {
       await process(context);
       submission.data = context.data;
 
-      const additionalDeps = this.hook.alter('dynamicVmDependencies', this.form, []);
+      const additionalDeps = this.hook.alter('dynamicVmDependencies', [], this.form);
       // Process the evaulator
       const {scope, data} = await evaluateProcess({
         ...(config || {}),
