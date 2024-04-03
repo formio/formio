@@ -570,28 +570,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.0.0-rc.20":
-  version "2.0.0-rc.20"
-  resolved "https://registry.npmjs.org/@formio/core/-/core-2.0.0-rc.20.tgz#34b55a5973cdc65b33563eab8ff5c1f35573397b"
-  integrity sha512-PwlRqtIuyBldFGJ4jGb/+59o7/o1ZMkpRosKmkiMVdZKI0OjZpIJ0U/w6PzUbFny07DaZF0wwfFiJYrZs/z+0w==
-  dependencies:
-    "@types/json-logic-js" "^2.0.5"
-    browser-cookies "^1.2.0"
-    core-js "^3.33.2"
-    dayjs "^1.11.10"
-    dompurify "^3.0.6"
-    eventemitter3 "^5.0.0"
-    fast-json-patch "^3.1.1"
-    fetch-ponyfill "^7.1.0"
-    inputmask "^5.0.9-beta.45"
-    json-logic-js "^2.0.2"
-    lodash "^4.17.21"
-    moment "^2.29.4"
-
-"@formio/core@^2.0.0-rc.19":
-  version "2.0.0-rc.20-dev.60.3e73af8"
-  resolved "https://registry.npmjs.org/@formio/core/-/core-2.0.0-rc.20-dev.60.3e73af8.tgz#b6584295c32057949ea9aa0d1d1ab9c086a4de17"
-  integrity sha512-PmQfSzeYAmBOcqqTbiAG3JHooZna+zphl5/HHLaZ/rKrERolZkcyHkzHhSJ0lPKgzEA1MUa7rfB8KSGlPey62A==
+"@formio/core@2.0.0-dev.71.013793a":
+  version "2.0.0-dev.71.013793a"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-dev.71.013793a.tgz#63f814c9863f86a80523faa2f203e916e700f0ec"
+  integrity sha512-K2QsZisSQ+r/mYyLlKPvn+ITqgdDcwhEr2oL9dwiIMiGCeIA7c6NPM71oGpVLXLG6BRui53YRxKBuZ2TpxVyZQ==
   dependencies:
     "@types/json-logic-js" "^2.0.5"
     browser-cookies "^1.2.0"
@@ -631,12 +613,12 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@^0.0.7-rc.11":
-  version "0.0.7-rc.13"
-  resolved "https://registry.npmjs.org/@formio/vm/-/vm-0.0.7-rc.13.tgz#a2abd2dedcc94a9653fdafa48cf81e1d09ed0944"
-  integrity sha512-Jq/KI/piOmR0HKYw51P1Ef8ytpDT6pPtzPIn3BFQbPbU6SoEZTFPfI6crjKZfrWpBFHXfUzO7czGZo6EbuSIjQ==
+"@formio/vm@0.0.7-dev.20.717e1bf":
+  version "0.0.7-dev.20.717e1bf"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.0.7-dev.20.717e1bf.tgz#a40ca9fc80e237feb0f2fec1c140fca91df79cbb"
+  integrity sha512-EhOukcccbh0U5Ima9yzUaiXumvLk9M3BSwRfd5dKR2ZY+wFzh01o1pkYAk+D5ebQ0UseiyalTdTwrpb1gTmazg==
   dependencies:
-    "@formio/core" "2.0.0-rc.20"
+    "@formio/core" "2.0.0-dev.71.013793a"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
