@@ -570,10 +570,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.0.0-rc.25":
-  version "2.0.0-rc.25"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-rc.25.tgz#6a19b9461c9ea84cdc8f9fdab7d993af919951b2"
-  integrity sha512-oVQnS4QWIV7RjxeOpvjfUt++DNErDeWIbgV/euopZyMJAFU3d4NlRGitXufNcgOJgzoPoDeO5cnA9dEP19MIuw==
+"@formio/core@2.0.0-dev.71.013793a":
+  version "2.0.0-dev.71.013793a"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-dev.71.013793a.tgz#63f814c9863f86a80523faa2f203e916e700f0ec"
+  integrity sha512-K2QsZisSQ+r/mYyLlKPvn+ITqgdDcwhEr2oL9dwiIMiGCeIA7c6NPM71oGpVLXLG6BRui53YRxKBuZ2TpxVyZQ==
   dependencies:
     "@types/json-logic-js" "^2.0.5"
     browser-cookies "^1.2.0"
@@ -613,12 +613,12 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.0.7-rc.19":
-  version "0.0.7-rc.19"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.0.7-rc.19.tgz#de721af36fc1c0c4a75496dfc76051dbfde99593"
-  integrity sha512-+I6Dxf2jZRLmEqzHvKivlW0aaLejWGd3HAg/voFY82akYszRMPQJryDX2rpJSB26uKLsS30WxX/GB/mWztoJCA==
+"@formio/vm@0.0.7-dev.20.717e1bf":
+  version "0.0.7-dev.20.717e1bf"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.0.7-dev.20.717e1bf.tgz#a40ca9fc80e237feb0f2fec1c140fca91df79cbb"
+  integrity sha512-EhOukcccbh0U5Ima9yzUaiXumvLk9M3BSwRfd5dKR2ZY+wFzh01o1pkYAk+D5ebQ0UseiyalTdTwrpb1gTmazg==
   dependencies:
-    "@formio/core" "2.0.0-rc.25"
+    "@formio/core" "2.0.0-dev.71.013793a"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
