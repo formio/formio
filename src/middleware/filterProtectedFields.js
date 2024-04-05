@@ -21,7 +21,7 @@ module.exports = function(router) {
           return next(err);
         }
 
-        util.removeProtectedFields(form, action, res.resource.item, req.doNotMinify);
+        util.removeProtectedFields(form, action, res.resource.item, req.doNotMinify || req.query.full);
         next();
       });
     };

@@ -3,14 +3,24 @@
 const async = require('async');
 const MongoClient = require('mongodb').MongoClient;
 const semver = require('semver');
-const fetch = require('@formio/node-fetch-http-proxy');
 const _ = require('lodash');
 const fs = require('fs');
 const debug = {
   db: require('debug')('formio:db'),
-  error: require('debug')('formio:error'),
-  sanity: require('debug')('formio:sanityCheck')
+  error: (...args)=>{
+    require('debug')('formio:error')(...args);
+    require("../util/logger")('formio:error').error(...args);
+  },
+  sanity: (...args)=>{
+    require('debug')('formio:sanityCheck')(...args);
+    require("../util/logger")('formio:sanityCheck').info(...args);
+  },
 };
+
+const logger = {
+  db: require('../util/logger')('formio:db'),
+};
+
 const path = require('path');
 
 // The mongo database connection.
@@ -91,6 +101,7 @@ module.exports = function(formio) {
           }
           currentLock = result;
           debug.db('Lock unlocked');
+          logger.db.info('Lock unlocked');
           next();
         });
       }
@@ -176,6 +187,7 @@ module.exports = function(formio) {
     // If a connection exists, skip the initialization.
     if (db) {
       debug.db('Connection exists');
+      logger.db.info('Connection exists');
       return next();
     }
 
@@ -184,7 +196,7 @@ module.exports = function(formio) {
       ? config.mongo
       : config.mongo[0];
 
-    debug.db(`Opening new connection to ${dbUrl}`);
+    debug.db(`Opening new connection to ${dbUrl}`); 
     let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
     if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
       mongoConfig.connectTimeoutMS = 300000;
@@ -212,15 +224,18 @@ module.exports = function(formio) {
     MongoClient.connect(dbUrl, mongoConfig, async function(err, client) {
       if (err) {
         debug.db(`Connection Error: ${err}`);
+        logger.db.error(`Connection Error: ${err}`);
         unlock(function() {
           throw new Error(`Could not connect to the given Database for server updates: ${dbUrl}.`);
         });
       }
       db = client.db(client.s.options.dbName);
       debug.db('Connection successful');
+      logger.db.info('Connection successful');
       try {
         const collection = await db.collection('schema');
         debug.db('Schema collection opened');
+        logger.db.info('Schema collection opened');
         schema = collection;
       }
       catch (err) {
@@ -237,9 +252,10 @@ module.exports = function(formio) {
    */
   const checkSetup = function(next) {
     setTimeout(() => {
-    formio.util.log('Checking for db setup.');
+      formio.util.log('Checking for db setup.');
       db.listCollections().toArray().then(function(collections) {
         debug.db(`Collections found: ${collections.length}`);
+        logger.db.info(`Collections found: ${collections.length}`);
         // 3 is an arbitrary length. We just want a general idea that things have been installed.
         if (collections.length < 3) {
           formio.util.log(' > No collections found. Starting new setup.');
@@ -253,7 +269,7 @@ module.exports = function(formio) {
           return next();
         }
       });
-    },Math.random() * 1000);
+    }, Math.random() * 1000);
   };
 
   const checkEncryption = function(next) {
@@ -294,6 +310,30 @@ module.exports = function(formio) {
   };
 
   /**
+   * Check for certain mongodb features.
+   * @param {*} next.
+   */
+  const checkFeatures = function(next) {
+    formio.util.log('Determine MongoDB compatibility.');
+    (async () => {
+      config.mongoFeatures = formio.mongoFeatures = {
+        collation: true
+      };
+      try {
+        const collationTest = db.collection('formio-collation-test');
+        await collationTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
+        await collationTest.drop();
+        formio.util.log('Collation indexes are supported.');
+      }
+      catch (err) {
+        formio.util.log('Collation indexes are not supported.');
+        config.mongoFeatures.collation = formio.mongoFeatures.collation = false;
+      }
+      next();
+    })();
+  };
+
+  /**
    * The sanity check middleware to determine version delta between codebase and database.
    *
    * @param req
@@ -309,6 +349,7 @@ module.exports = function(formio) {
     // Skip functionality if testing.
     if (process.env.TEST_SUITE) {
       debug.db('Skipping for TEST_SUITE');
+      logger.db.info('Skipping for TEST_SUITE');
 
       if (response && verboseHealth) {
         res.status(200);
@@ -436,6 +477,7 @@ module.exports = function(formio) {
 
       files = files.map(function(name) {
         debug.db(`Update found: ${name}`);
+        logger.db.info(`Update found: ${name}`);
         return name.split('.js')[0];
       });
 
@@ -447,6 +489,7 @@ module.exports = function(formio) {
 
         updates = files.sort(semver.compare);
         debug.db('Final updates');
+        logger.db.info('Final updates');
         next();
       });
     });
@@ -473,6 +516,7 @@ module.exports = function(formio) {
       else if (!document || document.length === 0) {
         // Create a new lock, because one was not present.
         debug.db('Creating a lock, because one was not found.');
+        logger.db.info('Creating a lock, because one was not found.');
         schema.insertOne({
           key: 'formio',
           isLocked: (new Date()).getTime(),
@@ -484,6 +528,7 @@ module.exports = function(formio) {
 
           currentLock = document.ops[0];
           debug.db('Created a new lock');
+          logger.db.info('Created a new lock');
           next();
         });
       }
@@ -513,6 +558,7 @@ module.exports = function(formio) {
                 }
                 currentLock = result;
                 debug.db('Lock engaged');
+                logger.db.info('Lock engaged')
                 next();
               });
             }
@@ -612,11 +658,15 @@ module.exports = function(formio) {
         catch (e) {
           debug.error(e);
           debug.db(e);
+          logger.db.error(e);
         }
 
         // No private update was found, check the public location.
         debug.db('_update:');
         debug.db(_update);
+        logger.db.info("_update");
+        logger.db.info(_update);
+
         if (typeof _update !== 'function') {
           try {
             _update = require(path.join(__dirname, `/updates/${pending}`));
@@ -624,6 +674,8 @@ module.exports = function(formio) {
           catch (e) {
             debug.error(e);
             debug.db(e);
+            logger.db.error(e);
+
           }
         }
 
@@ -636,7 +688,8 @@ module.exports = function(formio) {
           debug.db('Update Params:');
           debug.db(db);
           debug.db(config);
-          debug.db(tools);
+          debug.db(tools); 
+
           _update(db, config, tools, function(err) {
             if (err) {
               return callback(err);
@@ -652,6 +705,8 @@ module.exports = function(formio) {
       }, function(err) {
         if (err) {
           debug.db(err);
+          logger.db.error(err);
+
           return next(err);
         }
 
@@ -673,12 +728,16 @@ module.exports = function(formio) {
    */
   const initialize = function(next) {
     if (process.env.TEST_SUITE) {
-      return connection(function(err) {
+      return async.series([
+        connection,
+        checkFeatures
+      ], (err) => {
         if (err) {
           debug.db(err);
+         logger.db.error(err);
+
           return next(err);
         }
-
         next(null, db);
       });
     }
@@ -689,6 +748,7 @@ module.exports = function(formio) {
       connection,
       checkSetup,
       checkEncryption,
+      checkFeatures,
       getUpdates,
       lock,
       doUpdates,
@@ -697,6 +757,7 @@ module.exports = function(formio) {
       unlock(function() {
         if (err) {
           debug.db(err);
+          logger.db.error(err);
           return next(err);
         }
 

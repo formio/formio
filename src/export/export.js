@@ -4,7 +4,10 @@ const exporters = require('.');
 const _ = require('lodash');
 const through = require('through');
 const ResourceFactory = require('resourcejs');
-const debug = require('debug')('formio:error');
+const debug = (...args)=>{
+  require('debug')('formio:error')(...args);
+  require('../util/logger')('formio:error').error(...args);
+};
 
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);

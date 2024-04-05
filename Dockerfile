@@ -4,7 +4,7 @@
 
 # Use Node image, maintained by Docker:
 # hub.docker.com/r/_/node/
-FROM node:lts-alpine3.10
+FROM node:lts-alpine3.15
 
 # set label for image
 LABEL Name="formsflow"
@@ -19,8 +19,7 @@ RUN set -x \
 # (note: using pinned versions to ensure immutable build environment)
 RUN apk update && \
     apk upgrade && \
-    apk add make=4.2.1-r2 && \
-    apk add g++=8.3.0-r0
+    apk add make g++
 
 # At least one buried package dependency is using a `git` path.
 # Hence we need to haul in git.

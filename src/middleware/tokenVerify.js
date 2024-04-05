@@ -3,9 +3,15 @@
 const jwt = require("jsonwebtoken");
 const util = require('../util/util');
 const debug = {
-    error: require('debug')('formio:error'),
-    handler: require('debug')('formio:middleware:tokenHandler'),
+    error: (...args)=>{
+      require('debug')('formio:error')(...args);
+      require('../util/logger')('formio:error').error(...args);
+    },
+    handler: require('debug')('formio:middleware:tokenVerify'),
   };
+const logger = {
+    handler : require('../util/logger')('formio:middleware:tokenVerify')
+  }
 
 module.exports=(router)=>{
     const hook = require('../util/hook')(router.formio);
@@ -23,6 +29,7 @@ module.exports=(router)=>{
        jwt.verify(token,process.env.FORMIO_JWT_SECRET||jwtConfig.secret, (err, decoded)=>{
         if (err || !decoded) {
             debug.handler(err || `Token could not decoded: ${token}`);
+            logger.handler(err || `Token could not decoded: ${token}` );
             router.formio.audit('EAUTH_TOKENBAD', req, err);
             router.formio.log('Token', req, 'Token could not be decoded');
             // If the token has expired, send a 440 error (Login Timeout)
@@ -51,6 +58,7 @@ module.exports=(router)=>{
         if (decoded.temp) {
           router.formio.log('Token', req, 'Using temp token');
           debug.handler('Temp token');
+          logger.handler.info('Temp token');
           req.tempToken = decoded;
           req.user = null;
           req.token = null;

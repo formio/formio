@@ -10,10 +10,14 @@ const LOG_EVENT = 'Save Submission Action';
 module.exports = function(router) {
   const Action = router.formio.Action;
   const debug = require('debug')('formio:action:saveSubmission');
+  const logger = require('../util/logger')('formio:action:saveSubmission');
   const hook = require('../util/hook')(router.formio);
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug;
-  const log = (...args) => logOutput(LOG_EVENT, ...args);
+  const log = (...args) => {
+    logOutput(LOG_EVENT, ...args);
+    logger.error(LOG_EVENT,...args);
+  };
 
   class SaveSubmission extends Action {
     static info(req, res, next) {

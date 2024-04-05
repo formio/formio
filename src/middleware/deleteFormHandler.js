@@ -1,6 +1,7 @@
 'use strict';
 
 const debug = require('debug')('formio:middleware:deleteFormHandler');
+const logger = require('../util/logger')('formio:middleware:deleteFormHandler');
 
 /**
  * The deleteFormHandler middleware.
@@ -22,6 +23,7 @@ module.exports = (router) => {
       .then(() => res.sendStatus(200))
       .catch((err) => {
         debug(err);
+        logger.error(err)
         return next(err);
       });
   };

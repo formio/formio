@@ -330,27 +330,20 @@ module.exports = function(app, template, hook) {
 
     if (!docker) {
       it('Should have sent an email to the user with an auth token', function (done) {
-        var email = template.hooks.getLastEmail();
-        new Promise((resolve, reject) => {
-          if (email && Object.keys(email) > 0) {
-            return resolve(email);
+        setTimeout(function tryAgain(attempts) {
+          attempts = attempts || 0;
+          var email = template.hooks.getLastEmail();
+          if (attempts < 5 && email.to !== template.users.user1.data.email) {
+            setTimeout(() => tryAgain(++attempts), 200);
           }
-
-          let events = template.hooks.getEmitter();
-          if (events) {
-            events.once('newMail', (email) => {
-              return resolve(email);
-            });
-          }
-        })
-          .then(email => {
+          else {
             assert.equal(email.from, defaultEmail);
             assert.equal(email.to, template.users.user1.data.email);
             assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
             assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
             done();
-          })
-          .catch(done)
+          }
+        }, 200);
       });
     }
 

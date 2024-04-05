@@ -1,8 +1,11 @@
 'use strict';
-
-const debug = require('debug')('formio:middleware:bootstrapNewRoleAccess');
 const async = require('async');
 const _ = require('lodash');
+
+const debug = (...args)=> {
+  require('debug')('formio:middleware:bootstrapNewRoleAccess')(...args);
+  require('../util/logger')('formio:middleware:bootstrapNewRoleAccess').error(...args);
+};
 
 /**
  * Middleware to bootstrap forms when a new role is created.
@@ -66,14 +69,16 @@ module.exports = function(router) {
           }
 
           // Save the updated permissions.
-          form.save(function(err, form) {
-            if (err) {
-              debug(err);
-              return formDone(err);
-            }
-
-            formDone(null, form);
-          });
+          router.formio.resources.form.model.updateOne({
+            _id: form._id},
+            {$set: {access: form.access}},
+            (err)=> {
+              if (err) {
+                debug(err);
+                return formDone(err);
+              }
+              formDone(null, form);
+            });
         }, done);
       });
     };

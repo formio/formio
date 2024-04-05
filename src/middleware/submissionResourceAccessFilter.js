@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const debug = require('debug')('formio:middleware:submissionResourceAccessFilter');
+const logger = require('../util/logger')('formio:middleware:submissionResourceAccessFilter');
 const EVERYONE = '000000000000000000000000';
 
 module.exports = function(router) {
@@ -12,6 +13,7 @@ module.exports = function(router) {
     // Skip this filter, if request is from an administrator.
     if (req.isAdmin) {
       debug('Skipping, request is from an administrator.');
+      logger.info('Skipping, request is from an administrator.');
       return next();
     }
 
@@ -37,15 +39,7 @@ module.exports = function(router) {
     }
 
     const userId = _.get(req, 'user._id');
-    const search = userRoles.filter(role => {
-      if (req.readBlockingRoles &&
-        req.readBlockingRoles.length &&
-        req.readBlockingRoles.includes(role)) {
-          return false;
-        }
-
-      return true;
-    }).map(util.idToBson.bind(util));
+    const search = userRoles.map(util.idToBson.bind(util));
     search.push(util.idToBson(EVERYONE));
     if (userId) {
       search.push(util.idToBson(userId));
@@ -54,6 +48,7 @@ module.exports = function(router) {
       // Try to recover if the hook fails.
       if (err) {
         debug(err);
+        logger.error(err);
       }
 
       // If not search is provided, then just default to the user or everyone if there is no user.
@@ -75,7 +70,7 @@ module.exports = function(router) {
             {
               access: {
                 $elemMatch: {
-                  type: {$in: ['read', 'create', 'update', 'delete', 'write', 'admin']},
+                  type: {$in: ['read', 'write', 'admin']},
                   resources: {$in: newSearch},
                 },
               },
@@ -92,7 +87,7 @@ module.exports = function(router) {
           deleted: {$eq: null},
           access: {
             $elemMatch: {
-              type: {$in: ['read', 'create', 'update', 'delete', 'write', 'admin']},
+              type: {$in: ['read', 'write', 'admin']},
               resources: {$in: newSearch},
             },
           },

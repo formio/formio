@@ -9,6 +9,14 @@ const debug = {
   roleManipulation: require('debug')('formio:action:role#roleManipulation'),
   updateModel: require('debug')('formio:action:role#updateModel')
 };
+const logger = {
+  role: require('../util/logger')('formio:action:role'),
+  loadUser: require('../util/logger')('formio:action:role#loadUser'),
+  addRole:require('../util/logger')('formio:action:role#addRole'),
+  removeRole: require('../util/logger')('formio:action:role#removeRole'),
+  roleManipulation: require('../util/logger')('formio:action:role#roleManipulation'),
+  updateModel:require('../util/logger')('formio:action:role#updateModel')
+};
 
 const LOG_EVENT = 'Role Action';
 
@@ -18,7 +26,10 @@ module.exports = function(router) {
   const util = router.formio.util;
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug.role;
-  const log = (...args) => logOutput(LOG_EVENT, ...args);
+  const log = (...args) => {
+    logOutput(LOG_EVENT, ...args);
+    logger.role.error(LOG_EVENT,...args);
+  };
 
   /**
    * RoleAction class.
@@ -177,7 +188,6 @@ module.exports = function(router) {
        * @returns {*}
        */
       const loadUser = function(submission, callback) {
-        debug.loadUser(submission);
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         submissionModel.findOne(hook.alter('submissionQuery', {
           _id: util.idToBson(submission),
@@ -192,7 +202,6 @@ module.exports = function(router) {
             return res.status(400).send('No Submission was found with the given setting `submission`.');
           }
 
-          debug.loadUser(user);
           return callback(user);
         });
       };
@@ -216,19 +225,23 @@ module.exports = function(router) {
        *
        * @param submission
        */
-      const updateModel = function(submission, association) {
+      const updateModel = function(submission, association, update) {
         // Try to update the submission directly.
         debug.updateModel(association);
-        if (typeof submission.save === 'function') {
-          submission.save(function(err) {
-            if (err) {
-              log(req, ecode.submission.ESUBSAVE, err);
-              return next(err);
-            }
+        logger.updateModel.info(association)
 
-            return next();
-          });
-        }
+        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+        submissionModel.updateOne({
+          _id: submission._id
+        },
+        update,
+        (err) => {
+          if (err) {
+            log(req, ecode.submission.ESUBSAVE, err);
+            return next(err);
+          }
+          return next();
+        });
       };
 
       /**
@@ -242,6 +255,7 @@ module.exports = function(router) {
        */
       const addRole = function(role, submission, association) {
         debug.addRole(`Role: ${role}`);
+        logger.addRole.info(`Role: ${role}`);
 
         // The given role already exists in the resource.
         let compare = [];
@@ -262,9 +276,11 @@ module.exports = function(router) {
         compare.map(util.idToBson);
         submission.roles = compare;
 
+        const update = {
+          roles: compare
+        };
         // Update the submission model.
-        debug.addRole(submission);
-        updateModel(submission, association);
+        updateModel(submission, association, update);
       };
 
       /**
@@ -278,6 +294,7 @@ module.exports = function(router) {
        */
       const removeRole = function(role, submission, association) {
         debug.removeRole(`Role: ${role}`);
+        logger.removeRole.info(`Role: ${role}`);
 
         // The given role does not exist in the resource.
         let compare = [];
@@ -300,8 +317,10 @@ module.exports = function(router) {
         submission.roles = compare;
 
         // Update the submission model.
-        debug.removeRole(submission);
-        updateModel(submission, association);
+        const update = {
+          roles: compare
+        };
+        updateModel(submission, association, update);
       };
 
       /**
@@ -312,6 +331,7 @@ module.exports = function(router) {
        */
       const roleManipulation = function(type, association) {
         debug.roleManipulation(`Type: ${type}`);
+        logger.roleManipulation.info(`Type: ${type}`)
 
         // Confirm that the given/configured role is actually accessible.
         const query = hook.alter('roleQuery', {_id: role, deleted: {$eq: null}}, req);

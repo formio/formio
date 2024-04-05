@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const debug = require('debug')('formio:models:form');
+const logger = require('../util/logger')('formio:models:form');
 
 module.exports = (formio) => {
   const hook = require('../util/hook')(formio);
@@ -67,6 +68,7 @@ module.exports = (formio) => {
     }
     catch (err) {
       debug(err);
+      logger.error(err);
       return false;
     }
   };
@@ -239,11 +241,8 @@ module.exports = (formio) => {
   model.schema.index(hook.alter('schemaIndex', {type: 1, deleted: 1, modified: -1}));
   model.schema.index(hook.alter('schemaIndex', {name: 1, deleted: 1}));
 
-  // Add a partial index for deleted forms.
   model.schema.index({
     deleted: 1
-  }, {
-    partialFilterExpression: {deleted: {$eq: null}}
   });
 
   // Add machineName to the schema.

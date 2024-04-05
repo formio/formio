@@ -1,6 +1,6 @@
 'use strict';
 
-// Setup the Form.IO server.
+// Setup the Form.IO server.//
 const express = require('express');
 const cors = require('cors');
 const router = express.Router();
@@ -15,6 +15,7 @@ const util = require('./src/util/util');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
 const formList = require('./src/resources/formList');
+const logger = require('./src/util/logger')('formio:log');
 
 const originalGetToken = util.Formio.getToken;
 const originalEvalContext = util.Formio.Components.components.component.prototype.evalContext;
@@ -47,7 +48,7 @@ module.exports = function(config) {
 
   router.formio.log = (event, req, ...info) => {
     const result = router.formio.hook.alter('log', event, req, ...info);
-
+    logger.info(event, ...info);
     if (result) {
       log(event, ...info);
     }
@@ -122,6 +123,7 @@ module.exports = function(config) {
           }
         }
         catch (error) {
+          logger.error(error);
           console.log(error);
         }
 
@@ -166,6 +168,7 @@ module.exports = function(config) {
           console.log(err);
         }
       });
+
       // Error handler for malformed JSON
       router.use((err, req, res, next) => {
         if (err instanceof SyntaxError) {
@@ -215,6 +218,11 @@ module.exports = function(config) {
       // The access handler.
       if (!router.formio.hook.invoke('init', 'access', router.formio)) {
         router.get('/access', router.formio.middleware.tokenVerify,router.formio.middleware.accessHandler);
+      }
+
+      // The public config handler.
+      if (!router.formio.hook.invoke('init', 'config', router.formio)) {
+        router.use('/config.json', router.formio.middleware.configHandler);
       }
 
       // Authorize all urls based on roles and permissions.
@@ -294,6 +302,10 @@ module.exports = function(config) {
         // Load the request cache
         router.formio.cache = require('./src/cache/cache')(router);
 
+        // return the form metadata
+        const metadataResource = require('./src/resources/formMetadata');
+        router.get('/form/:formId/metadata',metadataResource.getFormMetadata(router));
+
         // Return the form components.
         router.get('/form/:formId/components', function(req, res, next) {
           router.formio.resources.form.model.findOne({_id: req.params.formId}, function(err, form) {
@@ -338,8 +350,7 @@ module.exports = function(config) {
 
         // Add the available templates.
         router.formio.templates = {
-          default: _.cloneDeep(require('./src/templates/default.json')),
-          empty: _.cloneDeep(require('./src/templates/empty.json'))
+          default: _.cloneDeep(require('./src/templates/default.json'))
         };
 
         // Add the template functions.

@@ -8,9 +8,16 @@ module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router.formio);
   const debug = require('debug')('formio:action:email');
+  const logger = require('../util/logger')('formio:action:email');
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug;
-  const log = (...args) => logOutput(LOG_EVENT, ...args);
+  const log = (...args) => {
+    logger.error(LOG_EVENT,...args);
+    logOutput(LOG_EVENT, ...args);
+  };
+;
+
+  
 
   /**
    * EmailAction class.
@@ -56,8 +63,6 @@ module.exports = (router) => {
             key: 'transport',
             placeholder: 'Select the email transport.',
             template: '<span>{{ item.title }}</span>',
-            defaultValue: availableTransports.find(provider=>provider.transport==='default')?
-              'default':availableTransports[0].transport,
             dataSrc: 'json',
             data: {
               json: JSON.stringify(availableTransports),
@@ -122,7 +127,7 @@ module.exports = (router) => {
             inputType: 'text',
             defaultValue: '',
             input: true,
-            placeholder: 'Send blink copy of the email to the following email (other recipients will not see this)',
+            placeholder: 'Send blind copy of the email to the following email (other recipients will not see this)',
             type: 'textfield',
             multiple: true,
           },
@@ -257,13 +262,15 @@ module.exports = (router) => {
                 setActionItemMessage('Sending message', this.message);
                 emailer.send(req, res, this.settings, params, (err) => {
                   if (err) {
-                    setActionItemMessage('Error sending message', err, 'error');
+                    setActionItemMessage('Error sending message', {
+                      message: err.message || err
+                    }, 'error');
                     log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
                   }
                   else {
                     setActionItemMessage('Message Sent');
                   }
-                });
+                }, setActionItemMessage);
               });
           })
           .catch((err) => {

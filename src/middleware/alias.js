@@ -1,6 +1,7 @@
 'use strict';
 const url = require('url');
 const debug = require('debug')('formio:alias');
+const logger = require('../util/logger')('formio:alias');
 
 /**
  * Provides URL alias capabilities.
@@ -44,7 +45,7 @@ module.exports = function(router) {
 
     // If this is normal request, then pass this middleware.
     /* eslint-disable no-useless-escape */
-    if (!alias || alias.match(/^(form$|form[\?\/])/) || alias === 'spec.json' || alias === "checkpoint") {
+    if (!alias || alias.match(/^(form$|form[\?\/])/) || alias === 'spec.json' || alias === "checkpoint" || alias ===  'config.json') {
       return next();
     }
     /* eslint-enable no-useless-escape */
@@ -53,6 +54,7 @@ module.exports = function(router) {
     router.formio.cache.loadFormByAlias(req, alias, function(error, form) {
       if (error) {
         debug(`Error: ${error}`);
+        logger.error(`Error: ${error}`);
         return res.status(400).send('Invalid alias');
       }
       if (!form) {
