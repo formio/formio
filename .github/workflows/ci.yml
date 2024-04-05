@@ -45,6 +45,7 @@ jobs:
   ## Test Current Branch
   ###################################################################################
   test-current:
+    needs: [setup]
     runs-on: ubuntu-latest
     services:
       mongodb:
@@ -81,6 +82,7 @@ jobs:
   ## Test Target Branch
   ###################################################################################
   test-target:
+    needs: [setup]
     runs-on: ubuntu-latest
     services:
       mongodb:
