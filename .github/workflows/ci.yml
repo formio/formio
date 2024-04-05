@@ -2,7 +2,7 @@ name: Test, Publish
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
 
 env:
   NODE_VERSION: 20.x
