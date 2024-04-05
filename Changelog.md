@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.0.0-rc.27
+### Changed
+ - Updated formiojs@4.19.1
+ - Updated @formio/core@2.0.0-rc.28
+ - Updated @formio/vm@0.0.7-rc.23
+ - FIO-8169: add resolve dep to mirror enterprise server
+
 ## 4.0.0-rc.26
 ### Changed
  - Updated @formio/core@2.0.0-rc.27

@@ -570,10 +570,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.0.0-rc.27":
-  version "2.0.0-rc.27"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-rc.27.tgz#d5c97e8d10d8a0ee8e285be5d36f3c9a04ada877"
-  integrity sha512-YaFUcHPqliiXQ3TaaYKSU39WnMYJegrn4zhBPydSVjYgCemIBShV+k3GFukAJorFSWFLKq0/BYghjw13RVkrpA==
+"@formio/core@2.0.0-rc.28":
+  version "2.0.0-rc.28"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-rc.28.tgz#819016e33ec5233cf56372d0f70449db0a2e977e"
+  integrity sha512-qyVtmvTw+YfPLz+gQdWVvbfAecxr8ChN4t9Lrht6KSMJR7Y3zlM2mgUjYSVX1rFvjK4P0IBShGJb9H4MEYsh5Q==
   dependencies:
     "@types/json-logic-js" "^2.0.5"
     browser-cookies "^1.2.0"
@@ -613,16 +613,16 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.0.7-rc.21":
-  version "0.0.7-rc.21"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.0.7-rc.21.tgz#d07ce2343e95bf7741d98fc7f0e7c2c08ff7a42e"
-  integrity sha512-1tGAxqmrkFtBfi+uK7zBYWQxyUnYHmyMY7Mc7fuknp/bbwUad3CblfgtLbEAEC2S2GRNUX32P4taZ7yoQc7QWg==
+"@formio/vm@0.0.7-rc.23":
+  version "0.0.7-rc.23"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.0.7-rc.23.tgz#24e34fbe47623cfe20375bbc7470b0ac0279f0b5"
+  integrity sha512-XZGMJj0tPQ93Q+AgXAa/ceTxeGS2vhw7Q9CEsmsWV1b8d1p3xKG4xQSivOEHJZS/Q0RDbw4sbbgLCZ2fRTtA/A==
   dependencies:
-    "@formio/core" "2.0.0-rc.27"
+    "@formio/core" "2.0.0-rc.28"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
-    formiojs "4.19.1-rc.1"
+    formiojs "4.19.1"
     isolated-vm "^4.6.0"
     lodash "^4.17.21"
     moment "^2.29.4"
@@ -2182,10 +2182,10 @@ formidable@^2.1.2:
     once "^1.4.0"
     qs "^6.11.0"
 
-formiojs@4.19.1-rc.1:
-  version "4.19.1-rc.1"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.19.1-rc.1.tgz#8b8d67a3e42b88128db4bb924c6801252b50538b"
-  integrity sha512-gpRPzwtUGTHqjqRiUL2Db1rkggNScOl4gnRNGZSazw9/xz1tQjuYRVEWuq5p1JnRNpOy3RwQdtkK8diKi/Z5Zg==
+formiojs@4.19.1:
+  version "4.19.1"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.19.1.tgz#3658dd4bae267d199fc985c5de6e961f4ea6ab45"
+  integrity sha512-CCgeDYYdnLbExr6Q4NmZZf4BVaUsQ3KFo2y772tM53YH3hIRaiR02PzcGIwmYf1s9Fsq1HOUa9Mc2E25soNxrg==
   dependencies:
     "@formio/bootstrap3" "2.12.4-rc.1"
     "@formio/choices.js" "10.2.1"
@@ -2511,13 +2511,6 @@ is-binary-path@~2.1.0:
   integrity sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==
   dependencies:
     binary-extensions "^2.0.0"
-
-is-core-module@^2.13.0:
-  version "2.13.1"
-  resolved "https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.13.1.tgz#ad0d7532c6fea9da1ebdc82742d74525c6273384"
-  integrity sha512-hHrIjvZsftOsvKSn2TRYl63zvxsgE0K+0mYMoH6gD4omR5IWB2KynivBQczo3+wF1cCkjzvptnI9Q0sPU66ilw==
-  dependencies:
-    hasown "^2.0.0"
 
 is-extglob@^2.1.1:
   version "2.1.1"
@@ -3261,11 +3254,6 @@ path-key@^3.1.0:
   resolved "https://registry.npmjs.org/path-key/-/path-key-3.1.1.tgz#581f6ade658cbba65a0d3380de7753295054f375"
   integrity sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q==
 
-path-parse@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.7.tgz#fbc114b60ca42b30d9daf5858e4bd68bbedb6735"
-  integrity sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==
-
 path-to-regexp@0.1.7:
   version "0.1.7"
   resolved "https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-0.1.7.tgz#df604178005f522f15eb4490e7247a1bfaa67f8c"
@@ -3507,15 +3495,6 @@ resolve-from@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/resolve-from/-/resolve-from-4.0.0.tgz#4abcd852ad32dd7baabfe9b40e00a36db5f392e6"
   integrity sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==
-
-resolve@^1.22.8:
-  version "1.22.8"
-  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.22.8.tgz#b6c87a9f2aa06dfab52e3d70ac8cde321fa5a48d"
-  integrity sha512-oKWePCxqpd6FlLvGV1VU0x7bkPmmCNolxzjMf4NczoDnQcIWrAF+cPtZn5i6n+RfD2d9i0tzpKnG6Yk168yIyw==
-  dependencies:
-    is-core-module "^2.13.0"
-    path-parse "^1.0.7"
-    supports-preserve-symlinks-flag "^1.0.0"
 
 resourcejs@^2.5.0:
   version "2.6.0"
@@ -3863,11 +3842,6 @@ supports-color@^7.1.0:
   integrity sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
   dependencies:
     has-flag "^4.0.0"
-
-supports-preserve-symlinks-flag@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
-  integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
 tar-fs@^2.0.0:
   version "2.1.1"
