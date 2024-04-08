@@ -2,11 +2,12 @@
   "root": true,
   "extends": "eslint-config-formio",
   "parserOptions": {
-    "ecmaVersion": 2018
+    "ecmaVersion": 2020
   },
   "env": {
     "node": true,
-    "es6": true
+    "es6": true,
+    "es2020": true
   },
   "rules": {
     "curly": [2, "all"],

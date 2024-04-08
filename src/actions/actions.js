@@ -256,7 +256,7 @@ module.exports = (router) => {
           }, req);
 
           const result = await evaluate({
-            deps: ['core', 'moment', 'lodash'],
+            deps: ['lodash', 'moment', 'core'],
             code: json ?
               `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
               condition.custom,

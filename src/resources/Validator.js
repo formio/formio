@@ -22,7 +22,7 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(req, submissionModel, tokenModel, hook, timeout = 500) {
+  constructor(req, submissionModel, formModel, tokenModel, hook, timeout = 500) {
     const tokens = {};
     const token = util.getRequestValue(req, 'x-jwt-token');
     if (token) {
@@ -40,6 +40,7 @@ class Validator {
 
     this.req = req;
     this.submissionModel = submissionModel;
+    this.formModel = formModel;
     this.tokenModel = tokenModel;
     this.form = req.currentForm;
     this.project = req.currentProject;
@@ -178,6 +179,24 @@ class Validator {
     });
   }
 
+  async dereferenceDataTableComponent(component) {
+    if (
+      component.type !== 'datatable'
+      || !component.fetch
+      || component.fetch.dataSrc !== 'resource'
+      || !component.fetch.resource
+    ) {
+      return [];
+    }
+
+    const resourceId = component.fetch.resource;
+    const resource = await this.formModel.findOne({_id: resourceId, deleted: null});
+    if (!resource) {
+      throw new Error(`Resource at ${resourceId} not found for dereferencing`);
+    }
+    return resource.components || [];
+  }
+
   /**
    * Validate a submission for a form.
    *
@@ -217,7 +236,8 @@ class Validator {
           isUnique: async (context, value) => {
             return this.isUnique(context, submission, value);
           },
-          validateCaptcha: this.validateCaptcha
+          validateCaptcha: this.validateCaptcha.bind(this),
+          dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this)
         }
       }
     };
@@ -227,6 +247,7 @@ class Validator {
       await process(context);
       submission.data = context.data;
 
+      const additionalDeps = this.hook.alter('dynamicVmDependencies', [], this.form);
       // Process the evaulator
       const {scope, data} = await evaluateProcess({
         ...(config || {}),
@@ -235,7 +256,8 @@ class Validator {
         scope: context.scope,
         token: this.tokens['x-jwt-token'],
         tokens: this.tokens,
-        timeout: this.timeout
+        timeout: this.timeout,
+        additionalDeps
       });
       context.scope = scope;
       submission.data = data;
