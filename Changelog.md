@@ -33,6 +33,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO 7522: Encrypted Fields Not Re-Encrypted to New DB Secret
  - FIO-7933: Added pdfComponents to Form schema
  - FIO-7146: Migrate Formio CI/CD from CircleCI to Github Actions
+ - FIO-7933: fixed tests
+ - FIO-8128: add additionalDeps hook to validation process
+ - FIO-8169: add resolve dep to mirror enterprise server
 
 ## 4.0.0-rc.14
 ### Changed
