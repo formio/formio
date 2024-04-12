@@ -195,6 +195,28 @@ module.exports = (router) => {
   };
 
   /**
+   * Checks for an existing resource in the Form.io database.
+   * This function searches for a form with a specified name and project ID.
+   *
+   * @param {string} resource - The name of the resource to check.
+   * @param {string} projectId - The ID of the project under which to search the resource.
+   * @returns {Promise<Object|null>} A promise that resolves with the found document or null if no document is found.
+   */
+  const checkForExistingResource = (resource, projectId) => {
+    return new Promise((resolve, reject) => {
+        formio.resources.form.model.findOne({
+            name: resource,
+            project: projectId
+        }).exec((err, doc) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(doc);
+        });
+    });
+  };
+
+  /**
    * Converts an entities resource id (machineName) to a bson id.
    *
    * @param {Object} template
@@ -232,6 +254,20 @@ module.exports = (router) => {
       entity.resource = template.resources[entity.resource]._id.toString();
       changes = true;
     }
+
+    // Check if an existing resource exists in the new project.
+    (async () => {
+      try {
+        const resource = await checkForExistingResource(entity.resource, template._id);
+        if (resource) {
+          entity.resource = resource._id;
+          changes = true;
+        }
+      }
+      catch (err) {
+        debug.install(err);
+      }
+    })();
 
     return changes;
   };
