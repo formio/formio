@@ -175,6 +175,9 @@ module.exports = (router) => {
             if (component && component.project) {
               component.project = 'project';
             }
+            if (component && component.defaultValue) {
+              component.defaultValue = undefined;
+            }
 
             if (component.hasOwnProperty('form') && component.revision) {
               _map.revisions.revisionsData.push(component);

@@ -206,7 +206,8 @@ module.exports = (router) => {
     return new Promise((resolve, reject) => {
         formio.resources.form.model.findOne({
             name: resource,
-            project: projectId
+            project: projectId,
+            deleted: {$eq: null}
         }).exec((err, doc) => {
             if (err) {
                 return reject(err);
@@ -256,18 +257,20 @@ module.exports = (router) => {
     }
 
     // Check if an existing resource exists in the new project.
-    (async () => {
-      try {
-        const resource = await checkForExistingResource(entity.resource, template._id);
-        if (resource) {
-          entity.resource = resource._id;
-          changes = true;
+    if (!changes && !formio.mongoose.Types.ObjectId.isValid(entity.resource)) {
+      (async () => {
+        try {
+          const resource = await checkForExistingResource(entity.resource, template._id);
+          if (resource) {
+            entity.resource = resource._id;
+            changes = true;
+          }
         }
-      }
-      catch (err) {
-        debug.install(err);
-      }
-    })();
+        catch (err) {
+          debug.install(err);
+        }
+      })();
+    }
 
     return changes;
   };
