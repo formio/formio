@@ -267,7 +267,8 @@ module.exports = (router) => {
               form: params.form,
               submission: params.submission,
               previous: params.previous,
-            }
+            },
+            timeout: router.formio.config.vmTimeout,
           });
 
           return result;
@@ -276,9 +277,9 @@ module.exports = (router) => {
           router.formio.log(
             'Error during executing action custom logic',
             req,
-            err
+            err.message || err
           );
-          debug.error(err);
+          debug.error(err.message || err);
           return false;
         }
       }
