@@ -22,6 +22,7 @@ module.exports = function(router) {
       'access',
       'token',
       'recaptcha',
+      'captcha',
       'action',
       'actionItem',
       'tag'
