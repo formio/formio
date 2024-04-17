@@ -4,7 +4,8 @@ const {
   ProcessTargets,
   process,
   interpolateErrors,
-  escapeRegExCharacters
+  escapeRegExCharacters,
+  serverRules
 } = require('@formio/core');
 const {evaluateProcess} = require('@formio/vm');
 const util = require('../util/util');
@@ -162,23 +163,6 @@ class Validator {
     });
   }
 
-  validateCaptcha(captchaToken) {
-    return new Promise((resolve, reject) => {
-      this.tokenModel.findOne({value: captchaToken}, (err, token) => {
-        if (err) {
-          return reject(err);
-        }
-
-        if (!token) {
-          return resolve(false);
-        }
-
-        // Remove temp token after submission with reCaptcha
-        return token.remove(() => resolve(true));
-      });
-    });
-  }
-
   async dereferenceDataTableComponent(component) {
     if (
       component.type !== 'datatable'
@@ -232,18 +216,18 @@ class Validator {
         server: true,
         token: this.tokens['x-jwt-token'],
         tokens: this.tokens,
-        database: {
+        database: this.hook.alter('validationDatabaseHooks', {
           isUnique: async (context, value) => {
             return this.isUnique(context, submission, value);
           },
-          validateCaptcha: this.validateCaptcha.bind(this),
           dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this)
-        }
+        }, this)
       }
     };
     try {
       // Process the server processes
       context.processors = ProcessTargets.submission;
+      context.rules = this.hook.alter('serverRules', serverRules);
       await process(context);
       submission.data = context.data;
 
