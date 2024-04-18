@@ -47,7 +47,7 @@ _.each(Formio.Displays.displays, (display) => {
 const vm = new VM({
   // use the environment variable directly here so as to avoid refactoring utils everywhere it is called to access the config object
   // (this is a backport after all)
-  timeout: process.env.FORMIO_VM_TIMEOUT || 5000,
+  timeout: Number(process.env.FORMIO_VM_TIMEOUT) || 500,
   sandbox: {
     result: null,
   },
@@ -64,7 +64,9 @@ Formio.Utils.Evaluator.evaluator = function(func, args) {
 
       result = vm.run(`result = (function({${_.keys(args).join(',')}}) {${func}})(args);`);
     }
-    catch (err) {}
+    catch (err) {
+      console.error(err);
+    }
     /* eslint-enable no-empty */
     return result;
   };
