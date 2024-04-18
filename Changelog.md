@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 ## [Unreleased: 4.1.0-rc.1]
  - FIO-5471: Remove mongoose.save from codebase
+ - FIO-7932: Modernize the Dockerfile to decouple from host machine
+
 ## 4.0.0
 ### Changed
  - Official Release
