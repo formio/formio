@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.1.0-rc.1]
+## 4.1.0-rc.1
+### Changed
+ - Updated formiojs@4.20.0-rc.2
+ - Updated @formio/vm@0.0.8-rc.1
+ - FIO-7623: Fixes an issue where Email action with Logs turned on will fail for the nested form with Attach Submission PDF
+ - FIO 7671: nested paths cosmosdb feature test
+ - FIO 7671: nested paths cosmosdb feature test
+ - FIO-8087: Fixes an issue where Email Action with logs enabled don't render nested form value and shows ID instead
  - FIO-5471: Remove mongoose.save from codebase
  - FIO-7932: Modernize the Dockerfile to decouple from host machine
 

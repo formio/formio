@@ -613,16 +613,16 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.0.7":
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.0.7.tgz#5602e260209487ebc781500c48c5ae8fa85e6ba9"
-  integrity sha512-JPkffHEeU0n2tYc6nPGO/RGZsBew/72c9i3NWdbLo889IMpKd41wlJdc6PzFi39zREC5wSJSLXa7BEmr+IO5Ew==
+"@formio/vm@0.0.8-rc.1":
+  version "0.0.8-rc.1"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.0.8-rc.1.tgz#48daf3c9de5e93bd23e13503d01e3f45c4831202"
+  integrity sha512-WTG9wtMENuZbNI310f3qBQA42+TvpHvSIskSRuMR9iJPXiixYm4F/kdgEWHzfUeW27rGrCA/mU9Oi1PuFYPkug==
   dependencies:
     "@formio/core" "2.0.0"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
-    formiojs "4.19.1"
+    formiojs "4.20.0-rc.2"
     isolated-vm "^4.6.0"
     lodash "^4.17.21"
     moment "^2.29.4"
@@ -2182,10 +2182,10 @@ formidable@^2.1.2:
     once "^1.4.0"
     qs "^6.11.0"
 
-formiojs@4.19.1:
-  version "4.19.1"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.19.1.tgz#3658dd4bae267d199fc985c5de6e961f4ea6ab45"
-  integrity sha512-CCgeDYYdnLbExr6Q4NmZZf4BVaUsQ3KFo2y772tM53YH3hIRaiR02PzcGIwmYf1s9Fsq1HOUa9Mc2E25soNxrg==
+formiojs@4.20.0-rc.2:
+  version "4.20.0-rc.2"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.20.0-rc.2.tgz#608c873449d3acdc42412e5d9ecc03f1b708363a"
+  integrity sha512-Yo2Y1s0R6DTXEAke1yH7751UxJGY0awveVE4slmNd6QtPWZ8LmcXybd6CrUNGsRObcE0ijbX/hsSBaKUH/SCsw==
   dependencies:
     "@formio/bootstrap3" "2.12.4-rc.1"
     "@formio/choices.js" "10.2.1"
@@ -2210,6 +2210,7 @@ formiojs@4.19.1:
     fetch-ponyfill "^7.1.0"
     i18next "22.4.12"
     idb "^7.1.1"
+    inputmask "^5.0.8"
     ismobilejs "^1.1.1"
     json-logic-js "^2.0.2"
     jstimezonedetect "^1.0.7"
@@ -2484,6 +2485,11 @@ ini@~1.3.0:
   version "1.3.8"
   resolved "https://registry.npmjs.org/ini/-/ini-1.3.8.tgz#a29da425b48806f34767a4efce397269af28432c"
   integrity sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==
+
+inputmask@^5.0.8:
+  version "5.0.8"
+  resolved "https://registry.yarnpkg.com/inputmask/-/inputmask-5.0.8.tgz#cd0f70b058c3291a0d4f27de25dbfc179c998bb4"
+  integrity sha512-1WcbyudPTXP1B28ozWWyFa6QRIUG4KiLoyR6LFHlpT4OfTzRqFfWgHFadNvRuMN1S9XNVz9CdNvCGjJi+uAMqQ==
 
 inputmask@^5.0.9-beta.45:
   version "5.0.9-beta.45"
