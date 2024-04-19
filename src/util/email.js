@@ -192,6 +192,7 @@ module.exports = (formio) => {
     return renderEmail({
       render: mail,
       context: params,
+      timeout: formio.config.vmTimeout,
     })
     .then((injectedEmail) => {
       debug.nunjucksInjector(injectedEmail);
