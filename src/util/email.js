@@ -192,7 +192,6 @@ module.exports = (formio) => {
     return renderEmail({
       render: mail,
       context: params,
-      options,
     })
     .then((injectedEmail) => {
       debug.nunjucksInjector(injectedEmail);
