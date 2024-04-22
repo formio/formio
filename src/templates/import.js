@@ -309,6 +309,19 @@ module.exports = (router) => {
         changed = true;
       }
 
+      // During import if select component
+      // data type resource de-ref defaultValue
+      if (
+        component
+        && component.type === 'select'
+        && component.dataSrc === 'resource'
+        && component.defaultValue
+      ) {
+        component.defaultValue = undefined;
+        hook.alter(`importComponent`, template, component);
+        changed = true;
+      }
+
       // Update resource machineNames for dataTable components with the resource data type.
       if (
         (component.type === 'datatable') &&
