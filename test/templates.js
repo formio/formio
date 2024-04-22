@@ -3809,12 +3809,13 @@ module.exports = (app, template, hook) => {
       const existingResourceTemplate = 'projectWithExistingResource'
       let existingResourceTemplateSchema = require(`./fixtures/templates/${existingResourceTemplate}.json`);
       let _existingTemplate = _.cloneDeep(existingResourceTemplateSchema);
-      let templateDataStartValue = _template.forms[selectFormName].components[0].data.resource;
 
       const selectFormName = 'selectWithResourceDataSrcAndDefaultValueNoResourcesExport'
       let testTemplate = require(`./fixtures/templates/${selectFormName}.json`);
       let _template = _.cloneDeep(testTemplate);
       let project;
+
+      let templateDataStartValue = _template.forms[selectFormName].components[0].data.resource;
 
       describe('Import', function() {
         it('Import existing resource template', function(done) {
