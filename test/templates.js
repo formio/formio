@@ -3804,5 +3804,86 @@ module.exports = (app, template, hook) => {
         template.clearData(done);
       });
     });
+
+    describe('Template with Select Dropdown with Default Value from Resource Data in Export Template with Existing Resources', function() {
+      const existingResourceTemplate = 'projectWithExistingResource'
+      let existingResourceTemplateSchema = require(`./fixtures/templates/${existingResourceTemplate}.json`);
+      let _existingTemplate = _.cloneDeep(existingResourceTemplateSchema);
+      let templateDataStartValue = _template.forms[selectFormName].components[0].data.resource;
+
+      const selectFormName = 'selectWithResourceDataSrcAndDefaultValueNoResourcesExport'
+      let testTemplate = require(`./fixtures/templates/${selectFormName}.json`);
+      let _template = _.cloneDeep(testTemplate);
+      let project;
+
+      describe('Import', function() {
+        it('Import existing resource template', function(done) {
+          importer.import.template(_existingTemplate, alters, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+            done();
+          });
+        });
+
+        it('Should be able to bootstrap the template', function(done) {
+          importer.import.template(_template, alters, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+            project = data;
+            done();
+          });
+        });
+
+        it('Template on IMPORT checks for existing resource even if not included in export template', function() {
+          assert.notEqual(
+            project.forms[selectFormName].components[0].data.resource,
+            templateDataStartValue
+          );
+
+          assert.equal(
+            formio.mongoose.Types.ObjectId.isValid(project.forms[selectFormName].components[0].data.resource),
+            true
+          );
+        });
+
+        it('Template on IMPORT should de-ref select components defaultValue if dataSrc == resource', function() {
+          assert.equal(
+            project.forms[selectFormName].defaultValue,
+            undefined
+          );
+        });
+      });
+
+      describe('Export', function() {
+        let exportData = {};
+
+        it ('Should be able to export project', function(done) {
+          importer.export(project, (err, data) => {
+            if (err) {
+              return done(err);
+            }
+            exportData = data;
+            return done();
+          });
+        });
+
+        it('Template on EXPORT should de-ref select components defaultValue if dataSrc == resource', function() {
+          assert.equal(
+            exportData.forms[selectFormName].defaultValue,
+            undefined
+          );
+        });
+      });
+
+      before(function(done) {
+        template.clearData(done);
+      });
+
+      after(function(done) {
+        template.clearData(done);
+      });
+    });
   });
 };
