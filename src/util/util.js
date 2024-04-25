@@ -617,7 +617,7 @@ const Utils = {
     // Iterate through all components.
     this.eachComponent(form.components, (component, path) => {
       path = `data.${path}`;
-      const roles = token?.user?.roles || [] 
+      const roles = token?.user?.customRoles || [] 
       const displayFor =  component?.properties?.displayFor;
       //need to check multiple roles
       if (component.protected ||  (displayFor && !roles.includes(displayFor))) {

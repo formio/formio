@@ -42,6 +42,8 @@ module.exports = function(router) {
     mongodbConnectionState: require('./mongodbConnectionState')(router), 
     tokenVerify:require("./tokenVerify")(router),
     formRevisionLoader: require('./formRevisionLoader')(router),
-    submissionRevisionLoader: require('./submissionRevisionLoader')(router)
+    submissionRevisionLoader: require('./submissionRevisionLoader')(router),
+    filterBundleSubmissionData: require('./filterBundleSubmissionData')(router),
+    checkCurrentFormIsBundle:  require('./checkCurrentFormIsBundle')(router),
   };
 };
