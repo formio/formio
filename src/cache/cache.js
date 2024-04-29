@@ -66,9 +66,9 @@ module.exports = function(router) {
      * @param id {String}
      * @param cb {function}
      */
-    loadForm(req, type, id, cb) {
+    loadForm(req, type, id, cb, noCachedResult) {
       const cache = this.cache(req);
-      if (cache.forms[id]) {
+      if (!noCachedResult && cache.forms[id]) {
         debug.loadForm(`Cache hit: ${id}`);
         return cb(null, cache.forms[id]);
       }
@@ -236,9 +236,9 @@ module.exports = function(router) {
      * @param cb {Function}
      *   The callback function to invoke after loading the submission.
      */
-    loadSubmission(req, formId, subId, cb) {
+    loadSubmission(req, formId, subId, cb, noCachedResult) {
       const cache = this.cache(req);
-      if (cache.submissions[subId]) {
+      if (!noCachedResult && cache.submissions[subId]) {
         debug.loadSubmission(`Cache hit: ${subId}`);
         return cb(null, cache.submissions[subId]);
       }

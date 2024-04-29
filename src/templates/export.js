@@ -149,6 +149,7 @@ module.exports = (router) => {
             'properties',
             'controller',
             'submissionRevisions',
+            'esign',
             ...includeFormFields,
           );
           if (form.revisions) {
