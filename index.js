@@ -240,6 +240,10 @@ module.exports = function(config) {
         };
       }
 
+      // ensure that ObjectIds are serialized as strings, opt out using {transorm: false} when calling
+      // toObject() or toJSON() on a document or model
+      mongoose.ObjectId.set('transform', (val) => val.toString());
+
       // Connect to MongoDB.
       mongoose.connect(mongoUrl,  mongoConfig );
 

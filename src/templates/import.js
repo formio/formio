@@ -784,7 +784,7 @@ module.exports = (router) => {
                   $set: updatedDoc
                 });
 
-                items[machineName] = result.toObject();
+                items[machineName] = result.toObject({transform: false});
 
                 if ((result.type === 'form' || result.type === 'resource') && result.revisions ) {
                   const revisionsFromTemplate = [];
@@ -809,7 +809,7 @@ module.exports = (router) => {
                     && !_.isEqual(revisionsFromTemplate[revisionsFromTemplate.length -1].components,
                     result.components.toObject()
                     )) {
-                      const lastRevision = Object.assign({}, result.toObject());
+                      const lastRevision = Object.assign({}, result.toObject({transform: false}));
                       lastRevision._rid = result._id;
                       lastRevision._vuser = 'system';
                       lastRevision._vid = revisionsFromTemplate.length + 1;
@@ -917,7 +917,7 @@ module.exports = (router) => {
             }
             else {
               debug.install(`Skipping existing entity`);
-              items[machineName] = doc.toObject();
+              items[machineName] = doc.toObject({transform: false});
               return next();
             }
           });
