@@ -241,7 +241,8 @@ module.exports = function(config) {
       }
 
       // ensure that ObjectIds are serialized as strings, opt out using {transorm: false} when calling
-      // toObject() or toJSON() on a document or model
+      // toObject() or toJSON() on a document or model. Note that opting out of transform when calling
+      // toObject() or toJSON will *also* opt out of any existing plugin transformations, e.g. encryption
       mongoose.ObjectId.set('transform', (val) => val.toString());
 
       // Connect to MongoDB.

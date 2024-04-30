@@ -1,11 +1,10 @@
 /* eslint-env mocha */
 'use strict';
 
-let assert = require('assert');
-var chance = new (require('chance'))();
-let fs = require('fs');
-let docker = process.env.DOCKER;
-const request = require('./formio-supertest');
+const mongoose = require('mongoose');
+const assert = require('assert');
+const fs = require('fs');
+const docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
   // let Thread = require('formio-workers/Thread');
@@ -172,5 +171,29 @@ module.exports = function(app, template, hook) {
       }, true);
     });
    }
+  });
+
+  describe('ObjectId transform', function() {
+    it('Should transform a document\'s _id property to a string when calling toObject', function(done) {
+      const schema = new mongoose.Schema({
+        name: {type: String}
+      });
+      const Model = mongoose.model('ObjectIdTransform', schema);
+      const doc = new Model({name: 'Test'});
+      const obj = doc.toObject();
+      assert.equal(typeof obj._id, 'string');
+      done();
+    });
+
+    it('Should not transform a document\'s _id property to a string when calling toObject with transform option set to false', function(done) {
+      const schema = new mongoose.Schema({
+        name: {type: String}
+      });
+      const Model = mongoose.model('ObjectIdTransform', schema);
+      const doc = new Model({name: 'Test'});
+      const obj = doc.toObject({transform: false});
+      assert.equal(obj._id instanceof ObjectId, true);
+      done();
+    });
   });
 };
