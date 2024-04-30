@@ -2135,10 +2135,10 @@ formidable@^2.1.2:
     once "^1.4.0"
     qs "^6.11.0"
 
-formio-workers@1.20.3-rc.2:
-  version "1.20.3-rc.2"
-  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.20.3-rc.2.tgz#7bae46b6ded17165614f69a2d9101849a8c3ef06"
-  integrity sha512-qJGfInosVxDJCsWkihWo0TQ5dRfWUB9nxK6hhd2aXFlYn+4p6mYTL9fyJMHZrwy5jxVGQ2brIocDDrQBDcfX4g==
+formio-workers@1.20.3:
+  version "1.20.3"
+  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.20.3.tgz#9e106bb696455d11329b6533b38b5c42065161ee"
+  integrity sha512-3DL1PjTDRTCUNl+I94dZWRPBH45kbgUcdtKj4oljk7YjLNrhS7kfF2ggfotBDWsMR3NsN1lMoUVLNOtlNXSI9g==
   dependencies:
     aws-serverless-express "^3.4.0"
     body-parser "^1.19.1"
