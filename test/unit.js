@@ -178,7 +178,7 @@ module.exports = function(app, template, hook) {
       const schema = new mongoose.Schema({
         name: {type: String}
       });
-      const Model = mongoose.model('ObjectIdTransform', schema);
+      const Model = mongoose.model('Foo', schema);
       const doc = new Model({name: 'Test'});
       const obj = doc.toObject();
       assert.equal(typeof obj._id, 'string');
@@ -186,10 +186,11 @@ module.exports = function(app, template, hook) {
     });
 
     it('Should not transform a document\'s _id property to a string when calling toObject with transform option set to false', function(done) {
+      const ObjectId = mongoose.Types.ObjectId;
       const schema = new mongoose.Schema({
         name: {type: String}
       });
-      const Model = mongoose.model('ObjectIdTransform', schema);
+      const Model = mongoose.model('Bar', schema);
       const doc = new Model({name: 'Test'});
       const obj = doc.toObject({transform: false});
       assert.equal(obj._id instanceof ObjectId, true);
