@@ -49,8 +49,19 @@ function submissionQueryExists(submissionModel, query) {
  * @param model
  * @constructor
  */
+/*
+        const validator = new Validator(
+          req,
+          submissionModel,
+          submissionResource,
+          cache,
+          formModel,
+          tokenModel,
+          hook,
+          router.formio.config.vmTimeout
+        );*/
 class Validator {
-  constructor(req, submissionModel, submissionResource, cache, tokenModel, hook) {
+  constructor(req, submissionModel, submissionResource, cache, formModel, tokenModel, hook, timeout = 500) {
     const tokens = {};
     const token = Utils.getRequestValue(req, 'x-jwt-token');
     if (token) {
@@ -70,12 +81,14 @@ class Validator {
     this.submissionModel = submissionModel;
     this.submissionResource = submissionResource;
     this.cache = cache;
+    this.formModel = formModel;
     this.tokenModel = tokenModel;
     this.form = req.currentForm;
     this.project = req.currentProject;
     this.decodedToken = req.token;
     this.tokens = tokens;
     this.hook = hook;
+    this.timeout = timeout;
   }
 
   addPathQueryParams(pathQueryParams, query, path) {
@@ -244,6 +257,24 @@ class Validator {
     return submissionQueryExists(this.submissionModel, query);
   }
 
+  async dereferenceDataTableComponent(component) {
+    if (
+      component.type !== 'datatable'
+      || !component.fetch
+      || component.fetch.dataSrc !== 'resource'
+      || !component.fetch.resource
+    ) {
+      return [];
+    }
+
+    const resourceId = component.fetch.resource;
+    const resource = await this.formModel.findOne({_id: resourceId, deleted: null});
+    if (!resource) {
+      throw new Error(`Resource at ${resourceId} not found for dereferencing`);
+    }
+    return resource.components || [];
+  }
+
   /**
    * Validate a submission for a form.
    *
@@ -284,7 +315,8 @@ class Validator {
             return this.isUnique(context, submission, value);
           },
           validateCaptcha: this.validateCaptcha.bind(this),
-          validateResourceSelectValue: this.validateResourceSelectValue.bind(this)
+          validateResourceSelectValue: this.validateResourceSelectValue.bind(this),
+          dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this)
         }
       }
     };
@@ -294,6 +326,7 @@ class Validator {
       await process(context);
       submission.data = context.data;
 
+      const additionalDeps = this.hook.alter('dynamicVmDependencies', [], this.form);
       // Process the evaulator
       const {scope, data} = await evaluateProcess({
         ...(config || {}),
@@ -301,10 +334,13 @@ class Validator {
         submission,
         scope: context.scope,
         token: this.tokens['x-jwt-token'],
-        tokens: this.tokens
+        tokens: this.tokens,
+        timeout: this.timeout,
+        additionalDeps
       });
       context.scope = scope;
       submission.data = data;
+      submission.scope = scope;
 
       // Now that the validation is complete, we need to remove fetched data from the submission.
       for (const path in context.scope.fetched) {
@@ -312,8 +348,8 @@ class Validator {
       }
     }
     catch (err) {
-      debug.error(err);
-      return next(err);
+      debug.error(err.message || err);
+      return next(err.message || err);
     }
 
     // If there are errors, return the errors.

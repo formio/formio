@@ -209,12 +209,13 @@ module.exports = function(router) {
               data: {
                 submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
                 data: submission.data,
-              }
+              },
+              timeout: router.formio.config.vmTimeout,
             });
             submission.data = newData;
           }
           catch (err) {
-            debug(`Error in submission transform: ${err.message}`);
+            debug(`Error in submission transform: ${err.message || err}`);
           }
         }
 
