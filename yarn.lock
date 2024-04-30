@@ -588,6 +588,24 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
+"@formio/core@2.0.0-dev.88.ef597b5":
+  version "2.0.0-dev.88.ef597b5"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-dev.88.ef597b5.tgz#6d363137dbd12d670e6deb216d2f809ede459e85"
+  integrity sha512-u+G0wKf/IYh/DTTTGZHVybjVEx2RYncpZmGcKFVunAFqd6oJwfLqRvG6Tzd/gv18gtLZlSi436aUiGWodLO7+g==
+  dependencies:
+    "@types/json-logic-js" "^2.0.5"
+    browser-cookies "^1.2.0"
+    core-js "^3.33.2"
+    dayjs "^1.11.10"
+    dompurify "^3.0.6"
+    eventemitter3 "^5.0.0"
+    fast-json-patch "^3.1.1"
+    fetch-ponyfill "^7.1.0"
+    inputmask "^5.0.9-beta.45"
+    json-logic-js "^2.0.2"
+    lodash "^4.17.21"
+    moment "^2.29.4"
+
 "@formio/node-fetch-http-proxy@^1.1.0":
   version "1.1.0"
   resolved "https://registry.npmjs.org/@formio/node-fetch-http-proxy/-/node-fetch-http-proxy-1.1.0.tgz#a281686f3982a6e07cb1721ffbdbcce0096f538f"
