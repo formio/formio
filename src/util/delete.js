@@ -168,7 +168,7 @@ module.exports = (router) => {
           const update = {};
           // Iterate each access type to remove the role.
           for (const accessType of accessTypes) {
-            const accesses = form.toObject({transform: false})[accessType] || [];
+            const accesses = form.toObject()[accessType] || [];
 
             // Iterate the roles for each permission type, and remove the given roleId.
             for (const access of accesses) {

@@ -25,7 +25,7 @@ module.exports = (router) => (settings) => (req, res, next) => {
   const list = [].concat(res.resource.item).map((item) => {
     // Change the response object from a mongoose model to a js object.
     if (item.constructor.name === 'model') {
-      item = item.toObject({transform: false});
+      item = item.toObject();
     }
 
     return _.omit(item, settings);
