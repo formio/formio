@@ -203,18 +203,11 @@ module.exports = (router) => {
    * @returns {Promise<Object|null>} A promise that resolves with the found document or null if no document is found.
    */
   const checkForExistingResource = (resource, projectId) => {
-    return new Promise((resolve, reject) => {
-        formio.resources.form.model.findOne({
-            name: resource,
-            project: projectId,
-            deleted: {$eq: null}
-        }).exec((err, doc) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve(doc);
-        });
-    });
+    return formio.resources.form.model.findOne({
+      name: resource,
+      project: projectId,
+      deleted: {$eq: null}
+    }).exec();
   };
 
   /**
@@ -338,7 +331,7 @@ module.exports = (router) => {
       }
     });
 
-    return changed;
+     return changed;
   };
 
   const fallbackNestedForms = (nestedForms, template, cb) => {
