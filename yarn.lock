@@ -570,10 +570,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.0.0-dev.71.013793a":
-  version "2.0.0-dev.71.013793a"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-dev.71.013793a.tgz#63f814c9863f86a80523faa2f203e916e700f0ec"
-  integrity sha512-K2QsZisSQ+r/mYyLlKPvn+ITqgdDcwhEr2oL9dwiIMiGCeIA7c6NPM71oGpVLXLG6BRui53YRxKBuZ2TpxVyZQ==
+"@formio/core@2.0.0-dev.52.5c599a9":
+  version "2.0.0-dev.52.5c599a9"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-dev.52.5c599a9.tgz#0400b8f86889b009148a817025a39d8856d65e03"
+  integrity sha512-rmM2ixfYfBHjWGlFAJlXmROjziy0eP4tqH1Nlkov80pPYnGBQPYB3ThKcD1jzizgboZSFv6POEHdjtcgAq6Lew==
   dependencies:
     "@types/json-logic-js" "^2.0.5"
     browser-cookies "^1.2.0"
@@ -588,10 +588,10 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/core@2.0.0-dev.88.ef597b5":
-  version "2.0.0-dev.88.ef597b5"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-dev.88.ef597b5.tgz#6d363137dbd12d670e6deb216d2f809ede459e85"
-  integrity sha512-u+G0wKf/IYh/DTTTGZHVybjVEx2RYncpZmGcKFVunAFqd6oJwfLqRvG6Tzd/gv18gtLZlSi436aUiGWodLO7+g==
+"@formio/core@2.0.0-dev.71.013793a":
+  version "2.0.0-dev.71.013793a"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-dev.71.013793a.tgz#63f814c9863f86a80523faa2f203e916e700f0ec"
+  integrity sha512-K2QsZisSQ+r/mYyLlKPvn+ITqgdDcwhEr2oL9dwiIMiGCeIA7c6NPM71oGpVLXLG6BRui53YRxKBuZ2TpxVyZQ==
   dependencies:
     "@types/json-logic-js" "^2.0.5"
     browser-cookies "^1.2.0"
