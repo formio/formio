@@ -353,8 +353,8 @@ module.exports = function(config) {
         require('./src/middleware/recaptcha')(router);
 
         // Read the static VM depdenencies into memory and configure the VM
-        const {lodash, moment, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
-        configureVm({lodash, moment, core, fastJsonPatch, nunjucks});
+        const {lodash, moment, inputmask, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
+        configureVm({lodash, moment, inputmask, core, fastJsonPatch, nunjucks});
 
         // Say we are done.
         deferred.resolve(router.formio);
