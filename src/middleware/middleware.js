@@ -3,6 +3,7 @@
 module.exports = function(router) {
   return {
     alias: require('./alias')(router),
+    alterCurrentSubmissionWithPrevious: require('./alterCurrentSubmissionWithPrevious')(router),
     params: require('./params')(router),
     accessHandler: require('./accessHandler')(router),
     addSubmissionResourceAccess: require('./addSubmissionResourceAccess')(router),
@@ -41,6 +42,8 @@ module.exports = function(router) {
     mongodbConnectionState: require('./mongodbConnectionState')(router), 
     tokenVerify:require("./tokenVerify")(router),
     formRevisionLoader: require('./formRevisionLoader')(router),
-    submissionRevisionLoader: require('./submissionRevisionLoader')(router)
+    submissionRevisionLoader: require('./submissionRevisionLoader')(router),
+    filterBundleSubmissionData: require('./filterBundleSubmissionData')(router),
+    checkCurrentFormIsBundle:  require('./checkCurrentFormIsBundle')(router),
   };
 };

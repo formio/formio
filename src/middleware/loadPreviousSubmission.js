@@ -7,8 +7,8 @@ module.exports = (router) => (req, res, next) => {
 
   router.formio.cache.loadSubmission(
     req,
-    req.body.form,
-    req.body._id,
+    req.body.form || req.params.formId,
+    req.body._id || req.params.submissionId,
     (err, previousSubmission) => {
       if (err) {
         return next(err);

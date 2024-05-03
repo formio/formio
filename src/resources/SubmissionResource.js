@@ -3,6 +3,7 @@
 const ResourceFactory = require('resourcejs');
 const Resource = ResourceFactory.Resource;
 const _ = require('lodash');
+const utils = require("../util/util");
 
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
@@ -23,7 +24,9 @@ module.exports = (router) => {
   handlers.afterPost = [
     handlers.afterPost,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
+    router.formio.middleware.checkCurrentFormIsBundle,
     router.formio.middleware.filterProtectedFields('create', (req) => router.formio.cache.getCurrentFormId(req)),
+    router.formio.middleware.filterBundleSubmissionData,
   ];
   handlers.beforeGet = [
     router.formio.middleware.permissionHandler,
@@ -33,7 +36,9 @@ module.exports = (router) => {
   handlers.afterGet = [
     handlers.afterGet,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
+    router.formio.middleware.checkCurrentFormIsBundle,
     router.formio.middleware.filterProtectedFields('get', (req) => router.formio.cache.getCurrentFormId(req)),
+    router.formio.middleware.filterBundleSubmissionData,
     (req, res, next) => {
       router.formio.cache.loadCurrentForm(req, (err, currentForm) => {
         return hook.alter('getSubmissionRevisionModel', router.formio, req, currentForm, false, next);
@@ -50,12 +55,15 @@ module.exports = (router) => {
     router.formio.middleware.addSubmissionResourceAccess,
     router.formio.middleware.condenseSubmissionPermissionTypes,
     router.formio.middleware.loadPreviousSubmission,
+    router.formio.middleware.alterCurrentSubmissionWithPrevious,
     handlers.beforePut,
   ];
   handlers.afterPut = [
     handlers.afterPut,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
+    router.formio.middleware.checkCurrentFormIsBundle,
     router.formio.middleware.filterProtectedFields('update', (req) => router.formio.cache.getCurrentFormId(req)),
+    router.formio.middleware.filterBundleSubmissionData,
   ];
   handlers.beforeIndex = [
     (req, res, next) => {
