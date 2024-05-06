@@ -60,6 +60,11 @@ jobs:
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
 
+      - name: Add npm token to .yarnrc
+        run: |
+          echo "--registry https://registry.yarnpkg.com/" > .yarnrc
+          echo "--//registry.yarnpkg.com/:_authToken=${{ secrets.NPM_TOKEN }}" >> .yarnrc
+
       - name: Set up Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v3
         with:
