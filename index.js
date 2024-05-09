@@ -219,9 +219,6 @@ module.exports = function(config) {
       if (!mongoConfig.hasOwnProperty('useNewUrlParser')) {
         mongoConfig.useNewUrlParser = true;
       }
-      if (!mongoConfig.hasOwnProperty('keepAlive')) {
-        mongoConfig.keepAlive = true;
-      }
 
       if (_.isArray(config.mongo)) {
         mongoUrl = config.mongo.join(',');
@@ -243,19 +240,10 @@ module.exports = function(config) {
       // ensure that ObjectIds are serialized as strings, opt out using {transorm: false} when calling
       // toObject() or toJSON() on a document or model. Note that opting out of transform when calling
       // toObject() or toJSON will *also* opt out of any existing plugin transformations, e.g. encryption
-      mongoose.ObjectId.set('transform', (val) => val.toString());
+     mongoose.ObjectId.set('transform', (val) => val.toString());
 
       // Connect to MongoDB.
-      mongoose.connect(mongoUrl,  mongoConfig );
-
-      // Trigger when the connection is made.
-      mongoose.connection.on('error', function(err) {
-        util.log(err.message);
-        deferred.reject(err.message);
-      });
-
-      // Called when the connection is made.
-      mongoose.connection.once('open', function() {
+      mongoose.connect(mongoUrl, mongoConfig).then(() => {
         util.log(' > Mongo connection established.');
 
         // Load the BaseModel.
@@ -358,6 +346,11 @@ module.exports = function(config) {
 
         // Say we are done.
         deferred.resolve(router.formio);
+       router.formio.db = mongoose.connection;
+      })
+       .catch(err => {
+        util.log(err.message);
+        deferred.reject(err.message);
       });
     });
     /* eslint-enable max-statements */
