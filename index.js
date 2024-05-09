@@ -14,7 +14,6 @@ const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
-const formList = require('./src/resources/formList');
 const logger = require('./src/util/logger')('formio:log');
 
 const originalGetToken = util.Formio.getToken;
@@ -157,16 +156,6 @@ module.exports = function(config) {
           res.status(500);
           res.json({message:"formsflow-forms is down"});
         });
-      });
-
-      // getting form list
-      router.get("/form",router.formio.middleware.tokenVerify,(req,res)=>{
-        try {
-          formList(req,res,router);
-        }
-        catch (err) {
-          console.log(err);
-        }
       });
 
       // Error handler for malformed JSON

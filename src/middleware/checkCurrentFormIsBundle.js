@@ -17,7 +17,8 @@ module.exports = function (router) {
         if (err) {
           return next(err);
         }
-        req.isBundle = form.isBundle;
+        // req.isBundle = form.isBundle;
+        req.isBundle = false
         next();
       }
     );
