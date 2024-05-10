@@ -45,5 +45,7 @@ module.exports = function(router) {
     submissionRevisionLoader: require('./submissionRevisionLoader')(router),
     filterBundleSubmissionData: require('./filterBundleSubmissionData')(router),
     checkCurrentFormIsBundle:  require('./checkCurrentFormIsBundle')(router),
+    handleFormsList: require('./handleFormsList')(router),
+
   };
 };
