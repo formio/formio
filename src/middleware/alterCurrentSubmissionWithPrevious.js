@@ -17,7 +17,7 @@ module.exports = function(router) {
         }
         const previousSubmission = req.previousSubmission?.data; 
         util.eachComponent(form.components, (component) => {
-             if(component.properties?.displayFor){
+             if(component.properties?.displayForRole){
                if(!req.body?.data?.[component.key]){
                 req.body.data[component.key] = previousSubmission?.[component.key]
                }
