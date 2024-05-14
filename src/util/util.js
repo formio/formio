@@ -618,9 +618,9 @@ const Utils = {
     this.eachComponent(form.components, (component, path) => {
       path = `data.${path}`;
       const roles = token?.user?.customRoles || [] 
-      const displayFor =  component?.properties?.displayFor;
+      const displayForRole =  component?.properties?.displayForRole;
       //need to check multiple roles
-      if (component.protected ||  (displayFor && !roles.includes(displayFor))) {
+      if (component.protected ||  (displayForRole && !roles.includes(displayForRole))) {
         debug.removeProtectedFields('Removing protected field:', component.key);
         logger.removeProtectedFields.info('Removing protected field:', component.key);
         modifyFields.push(deleteProp(path));
