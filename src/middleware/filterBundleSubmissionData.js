@@ -12,7 +12,7 @@ const AUTHORIZED_ROLE = process.env.AUTHORIZED_ROLE || "CUSTOM_ROLES";
  */
 module.exports = function (router) {
   return function (req, res, next) {
-    const { customRoles = [] } = req.user;
+    const { customRoles = [] } = req.user || {};
     if (
       !res ||
       !res.resource ||
