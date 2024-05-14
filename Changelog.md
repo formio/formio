@@ -4,7 +4,20 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.2.0-rc.1]
+## 4.2.0-rc.1
+### Changed
+ - Updated formiojs@4.21.0-rc.1
+ - Updated @formio/core@2.1.0-rc.1
+ - Updated @formio/vm@0.2.0-rc.1
+ - FIO-7292: Added own check to delete file from storage
+ - FIO-7829: Removed the flattened components which is not necessary wit…
+ - FIO 7522 Encrypted Fields Not Re-Encrypted to New DB Secret
+ - FIO-7933 Added pdfComponents to Form schema
+ - FIO-7933 fixed tests
+ - FIO-8152 & FIO-8137: Check if Import Resource Exists in New Project for Select Component with Resource & De-ref default values on select with resource
+ - FIO-8251 added inputmask library
+ - FIO 7488: add timeout to evaluations
+
 
 ## 4.1.0-rc.4
 ### Changed
