@@ -34,8 +34,6 @@ module.exports = function (router) {
     });
 
     res.resource.item = { ...res.resource.item, ...submissionModifiedData };
-
-    res.resource.item = { ...res.resource.item, ...submissionModifiedData };
     next();
   };
 };
