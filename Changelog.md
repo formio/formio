@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.2.0-rc.3]
+### Changed
+ - Revert " FIO-8152 & FIO-8137: Check if Import Resource Exists in New Project for Select Component with Resource & De-ref default values on select with resource"
+ 
 ## 4.2.0-rc.2
  - fix validation error on title length
 
