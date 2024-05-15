@@ -81,14 +81,15 @@ module.exports = function(formio) {
       {key: 'formio'},
       {$set: {isLocked: currentLock.isLocked}})
       .then(()=>{
-      schema.findOne({key: 'formio'}).then((document)=>{
-        currentLock = document;
-        debug.db('Lock unlocked');
-        next();
+        schema.findOne({key: 'formio'})
+        .then(result =>{
+          currentLock = result;
+          debug.db('Lock unlocked');
+          next();
+        })
+        .catch(err=>next(err));
       })
-      .catch(err=> next(err));
-    })
-  .catch(err=> next(err));
+      .catch(err=>next(err));
   };
   /**
    * Fetch the SA certificate.
@@ -430,49 +431,9 @@ module.exports = function(formio) {
           cache.full.isValid = false;
           cache.partial.isValid = false;
 
-          throw new Error('The formio lock was not found..'); // ?
-        }
-
-        debug.sanity('Schema found');
-
-        // When sending a response, a direct query was performed, check for different versions.
-        if (response) {
-          // Update the valid cache for following GET requests.
-          cache.full.isValid = semver.neq(document.version, config.schema)
-            ? false
-            : true;
-
-          debug.sanity(`Has Response is valid: ${cache.full.isValid}`);
-          return cache.full.isValid
-            ? handleResponse()
-            : handleResponse(cache.full.error);
-        }
-        // This is just a request sanity check, only puke if there are major differences.
-        else {
-          // Update the valid cache for following GET requests.
-          cache.partial.isValid = semver.major(document.version) === semver.major(config.schema);
-
-          debug.sanity(`Has Partial Response is valid: ${cache.partial.isValid}`);
-          return cache.partial.isValid
-            ? handleResponse()
-            : handleResponse(cache.partial.error);
-        }
-      })
-      .catch(err => {
-        cache.full.isValid = false;
-        cache.partial.isValid = false;
-
-        throw new Error('The formio lock was not found..');
-      });
-
-      schema.findOne({key: 'formio'})
-      .then((document)=>{
-        if (!document) {
-          cache.full.isValid = false;
-          cache.partial.isValid = false;
-
           throw new Error('The formio lock was not found..');
         }
+
         debug.sanity('Schema found');
 
         // When sending a response, a direct query was performed, check for different versions.
@@ -498,12 +459,13 @@ module.exports = function(formio) {
             : handleResponse(cache.partial.error);
         }
       })
-      .cache(err => {
+      .catch(err=>{
         cache.full.isValid = false;
         cache.partial.isValid = false;
 
         throw new Error('The formio lock was not found..');
       });
+
     });
   };
 
@@ -551,52 +513,52 @@ module.exports = function(formio) {
     }
 
     schema.find({key: 'formio'}).toArray()
-    .then(documents=>{
+    .then(document=>{
       // Engage the lock.
-      if (!documents || documents.length === 0) {
+      if (!document || document.length === 0) {
         // Create a new lock, because one was not present.
         debug.db('Creating a lock, because one was not found.');
         schema.insertOne({
           key: 'formio',
           isLocked: (new Date()).getTime(),
           version: config.schema})
-          .then(()=> {
-            schema.findOne({key: 'formio'})
-            .then(document=>{
-              currentLock = document;
-              debug.db('Created a new lock');
-              next();
-            })
-            .catch(err=> next(err));
-          })
-          .catch(err=>next(err));
-        }
-        else if (documents.length > 1) {
-          return next('More than one lock was found, terminating updates.');
+        .then(document=>{
+          currentLock = document;
+          debug.db('Created a new lock');
+          next();
+        })
+        .catch(err=>next(err));
+      }
+      else if (document.length > 1) {
+        return next('More than one lock was found, terminating updates.');
+      }
+      else {
+        debug.db(document);
+        currentLock = document[0];
+        if (currentLock.isLocked) {
+          formio.util.log(' > DB is already locked for updating');
         }
         else {
-          debug.db(documents);
-          currentLock = documents[0];
-          if (currentLock.isLocked) {
-            formio.util.log(' > DB is already locked for updating');
-            }
-            else {
-            // Lock
-            schema.updateOne({key: 'formio'}, {$set: {isLocked: (new Date()).getTime()}})
-            .then(()=>{
+          // Lock
+          schema.updateOne(
+            {key: 'formio'},
+            {$set: {isLocked: (new Date()).getTime()}})
+            .then(() => {
               schema.findOne({key: 'formio'})
-              .then(document=>{
-                currentLock = document;
+              .then((result) => {
+                currentLock = result;
                 debug.db('Lock engaged');
                 next();
               })
-              .catch(err => next(err));
+              .catch(err=>next(err))
             })
-            .catch(err => next(err));
-          }
+            .catch(err =>{
+              throw err;
+            })
         }
+      }
     })
-    .catch(err=> next(err));
+    .catch(err=>next(err));
   };
 
   /**
