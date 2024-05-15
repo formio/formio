@@ -299,7 +299,8 @@ module.exports = function(app) {
           title: chance.word(),
           name: chance.word(),
           description: chance.sentence(),
-          settings: settings !== undefined ? settings : {}
+          settings: settings !== undefined ? settings : {},
+          type: 'project'
         })
         .set('x-jwt-token', this.owner.token)
         .expect('Content-Type', /json/)
