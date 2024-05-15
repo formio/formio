@@ -216,9 +216,6 @@ module.exports = function(config) {
       if (!mongoConfig.hasOwnProperty('socketTimeoutMS')) {
         mongoConfig.socketTimeoutMS = 300000;
       }
-      if (!mongoConfig.hasOwnProperty('useNewUrlParser')) {
-        mongoConfig.useNewUrlParser = true;
-      }
 
       if (_.isArray(config.mongo)) {
         mongoUrl = config.mongo.join(',');
@@ -227,8 +224,6 @@ module.exports = function(config) {
         mongoConfig.sslValidate = true;
         mongoConfig.sslCA = config.mongoSA || config.mongoCA;
       }
-
-      mongoConfig.useUnifiedTopology = true;
 
       if (config.mongoSSL) {
         mongoConfig = {
@@ -275,37 +270,35 @@ module.exports = function(config) {
 
         // Return the form components.
         router.get('/form/:formId/components', function(req, res, next) {
-          router.formio.resources.form.model.findOne({_id: req.params.formId}, function(err, form) {
-            if (err) {
-              return next(err);
-            }
-
+          router.formio.resources.form.model.findOne({_id: req.params.formId})
+          .then(form => {
             if (!form) {
               return res.status(404).send('Form not found');
             }
-            // If query params present, filter components that match params
-            const filter = Object.keys(req.query).length !== 0 ? _.omit(req.query, ['limit', 'skip']) : null;
-            res.json(
-              _(util.flattenComponents(form.components))
-              .filter(function(component) {
-                if (!filter) {
-                  return true;
-                }
-                return _.reduce(filter, function(prev, value, prop) {
-                  if (!value) {
-                    return prev && _.has(component, prop);
+              // If query params present, filter components that match params
+              const filter = Object.keys(req.query).length !== 0 ? _.omit(req.query, ['limit', 'skip']) : null;
+              res.json(
+                _(util.flattenComponents(form.components))
+                .filter(function(component) {
+                  if (!filter) {
+                    return true;
                   }
-                  const actualValue = _.property(prop)(component);
-                  // loose equality so number values can match
-                  return prev && actualValue == value || // eslint-disable-line eqeqeq
+                  return _.reduce(filter, function(prev, value, prop) {
+                    if (!value) {
+                      return prev && _.has(component, prop);
+                    }
+                    const actualValue = _.property(prop)(component);
+                    // loose equality so number values can match
+                    return prev && actualValue == value || // eslint-disable-line eqeqeq
                     value === 'true' && actualValue === true ||
                     value === 'false' && actualValue === false;
-                }, true);
-              })
-              .values()
-              .value()
+                  }, true);
+                })
+                .values()
+                .value()
             );
-          });
+          })
+          .catch(err=>next(err));
         });
 
         // Import the form actions.
