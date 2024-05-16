@@ -1,11 +1,11 @@
 {
-  "title": "Select with Resource dataSrc and defaultValue No Resources Export",
+  "title": "Select w/ Resource dataSrc & defaultValue No Resources Export",
   "version": "2.0.0",
   "name": "selectWithResourceDataSrcAndDefaultValueNoResourcesExport",
   "roles": {},
   "forms": {
       "selectWithResourceDataSrcAndDefaultValueNoResourcesExport": {
-          "title": "Select Form with Resource Ref and Default Value No Resources Export",
+          "title": "Select w/ Resource dataSrc & defaultValue No Resources Export",
           "type": "form",
           "name": "selectWithResourceDataSrcAndDefaultValueNoResourcesExport",
           "path": "selectwithresourcedatasrcanddefaultvaluenoresourcesexport",
