@@ -842,7 +842,18 @@ module.exports = (router) => {
                             revisionsToCreate.push(revisionTemplate);
                          }
                          else if (revisionTemplate.revisionId) {
-                          foundRevision.revisionId = revisionTemplate.revisionId;
+                          formio.resources.formrevision.model.updateOne({
+                            _id: foundRevision._id
+                          },
+                          {$set:
+                            {revisionId: revisionTemplate.revisionId}},
+                          (err) => {
+                            if (err) {
+                              return next(err);
+                            }
+                            foundRevision.revisionId = revisionTemplate.revisionId;
+                            next();
+                          });
                          }
                         });
                       }
