@@ -32,12 +32,9 @@ module.exports = function(router) {
             handler: ['before'],
             method: ['create', 'update'],
             settings: {}
-          }, (err) => {
-            if (err) {
-              return next(err);
-            }
-            next();
-          });
+          })
+          .then(()=>next())
+          .catch(err=>next(err));
         }
         else {
           return next();

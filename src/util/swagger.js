@@ -329,17 +329,17 @@ module.exports = function(req, router, cb) {
   }
   else {
     router.formio.resources.form.model.find(hook.alter('formQuery', {deleted: {$eq: null}}, req))
-      .lean()
-      .exec((err, forms) => {
-        if (err) {
-          throw err;
-        }
-
-        const specs = [];
-        forms.forEach(function(form) {
-          specs.push(submissionSwagger(form));
-        });
-        cb(swaggerSpec(specs, options));
+    .lean()
+    .exec()
+    .then(forms => {
+      const specs = [];
+      forms.forEach(function(form) {
+        specs.push(submissionSwagger(form));
       });
+      cb(swaggerSpec(specs, options));
+    })
+    .catch(err=>{
+throw err;
+});
   }
 };

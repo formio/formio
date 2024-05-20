@@ -203,14 +203,19 @@ module.exports = (router) => {
 
       // Perform a mongo query to find the submission.
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.findOne(hook.alter('submissionQuery', query, req), (err, submission) => {
-        if (err || !submission) {
-          log(req, ecode.submission.ENOSUB, err);
+      submissionModel.findOne(hook.alter('submissionQuery', query, req))
+      .then(submission=>{
+        if (!submission) {
+          log(req, ecode.submission.ENOSUB);
           return next(ecode.submission.ENOSUB);
         }
 
         // Submission found.
         next(null, submission);
+      })
+      .catch(err=>{
+        log(req, ecode.submission.ENOSUB, err);
+        return next(ecode.submission.ENOSUB);
       });
     }
 
@@ -258,17 +263,15 @@ module.exports = (router) => {
           const submissionModel = req.submissionModel || router.formio.resources.submission.model;
           submissionModel.updateOne(
             {_id: submission._id},
-            {$set: setValue},
-            (err, newSub) => {
-              if (err) {
-                log(req, ecode.auth.EPASSRESET, err);
-                return next(ecode.auth.EPASSRESET);
-              }
-
+            {$set: setValue})
+            .then(newSub=>{
               // The submission was saved!
               next(null, submission);
-            },
-          );
+            })
+            .catch(err=>{
+              log(req, ecode.auth.EPASSRESET, err);
+              return next(ecode.auth.EPASSRESET);
+            });
         });
       });
     }

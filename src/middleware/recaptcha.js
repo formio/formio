@@ -39,13 +39,11 @@ module.exports = function(router) {
           router.formio.mongoose.models.token.create({
             value: req.query.recaptchaToken,
             expireAt: Date.now() + expirationTime,
-          }, (err) => {
-            if (err) {
-              return res.status(400).send(err.message);
-            }
-
+          })
+          .then(()=>{
             res.send(body);
-          });
+          })
+          .catch(err=>res.status(400).send(err.message));
         });
     });
   });

@@ -119,11 +119,8 @@ module.exports = (router) => {
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         submissionModel.findOne(
           {_id: compValue._id, deleted: {$eq: null}}
-        ).exec(function(err, submission) {
-          if (err) {
-            return router.formio.util.log(err);
-          }
-
+        ).exec()
+        .then(submission=>{
           if (!submission) {
             return router.formio.util.log('No subform found to update external ids.');
           }
@@ -144,14 +141,11 @@ module.exports = (router) => {
 
             submissionModel.updateOne({
               _id: submission._id},
-              {$set: {externalIds: submission.externalIds}},
-              (err, res) => {
-                if (err) {
-                  return router.formio.util.log(err);
-                }
-            });
+              {$set: {externalIds: submission.externalIds}})
+              .catch(err=>router.formio.util.log(err));
           }
-        });
+        })
+        .catch(err=>router.formio.util.log(err));
       }
     }
 

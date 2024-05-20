@@ -465,7 +465,6 @@ module.exports = function(formio) {
 
         throw new Error('The formio lock was not found..');
       });
-
     });
   };
 
@@ -550,11 +549,11 @@ module.exports = function(formio) {
                 debug.db('Lock engaged');
                 next();
               })
-              .catch(err=>next(err))
+              .catch(err=>next(err));
             })
             .catch(err =>{
               throw err;
-            })
+            });
         }
       }
     })

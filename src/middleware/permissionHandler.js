@@ -389,11 +389,8 @@ module.exports = function(router) {
           // Load all the roles.
           router.formio.resources.role.model.find(hook.alter('roleQuery', {
             deleted: {$eq: null}
-          }, req), function(err, roles) {
-            if (err) {
-              return callback(400);
-            }
-
+          }, req))
+          .then(roles=>{
             const validRoles = (roles && roles.length) ? roles.map((role) => {
               const roleId = role._id.toString();
               if (role.default) {
@@ -434,7 +431,8 @@ module.exports = function(router) {
             access.roles.push(EVERYONE);
             req.accessRoles = access.roles;
             callback();
-          });
+          })
+        .catch(err=>callback(400));
         },
 
         // Load the form and set Field Match Access conditions to the request

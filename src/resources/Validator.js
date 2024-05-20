@@ -123,7 +123,9 @@ class Validator {
     }
     // Only search for non-deleted items
     query.deleted = {$eq: null};
-    query.state = 'submitted';
+    if (submission.hasOwnProperty('state')) {
+       query.state = 'submitted';
+    }
     return new Promise((resolve) => {
       const cb = (err, result) => {
         if (err) {
@@ -144,18 +146,24 @@ class Validator {
         }
       };
 
-      this.submissionModel.findOne(query, null, collationOptions, (err, result) => {
-        if (err && collationOptions.collation) {
+      this.submissionModel.findOne(query, null, collationOptions)
+      .then(result => {
+        return cb(null, result);
+      })
+      .catch(err => {
+        if (collationOptions.collation) {
           // presume this error comes from db compatibility, try again as regex
           delete query[path];
           this.addPathQueryParams({
             $regex: new RegExp(`^${escapeRegExCharacters(value)}$`),
             $options: 'i'
           }, query, path);
-          this.submissionModel.findOne(query, cb);
+          this.submissionModel.findOne(query)
+          .then(result=>cb(null, result))
+          .catch(err=>cb(err));
         }
         else {
-          return cb(err, result);
+          return cb(err);
         }
       });
     });
@@ -163,18 +171,16 @@ class Validator {
 
   validateCaptcha(captchaToken) {
     return new Promise((resolve, reject) => {
-      this.tokenModel.findOne({value: captchaToken}, (err, token) => {
-        if (err) {
-          return reject(err);
-        }
-
+      this.tokenModel.findOne({value: captchaToken})
+      .then(token => {
         if (!token) {
           return resolve(false);
         }
 
         // Remove temp token after submission with reCaptcha
         return token.remove(() => resolve(true));
-      });
+      })
+      .catch(err=>reject(err));
     });
   }
 

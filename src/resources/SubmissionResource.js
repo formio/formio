@@ -64,6 +64,10 @@ module.exports = (router) => {
         req.filterIndex = true;
         delete req.query.list;
       }
+      if (req.query.full) {
+        req.full = true;
+        delete req.query.full;
+      }
 
       next();
     },
@@ -126,12 +130,8 @@ module.exports = (router) => {
         submissionModel.findOne(
           hook.alter('submissionQuery', query, req),
           null,
-          (ignoreCase && router.formio.mongoFeatures.collation) ? {collation: {locale: 'en', strength: 2}} : {},
-          (err, submission) => {
-            if (err) {
-              return next(err);
-            }
-
+          (ignoreCase && router.formio.mongoFeatures.collation) ? {collation: {locale: 'en', strength: 2}} : {})
+          .then(submission=>{
             // Return not found.
             if (!submission || !submission._id) {
               return res.status(404).send('Not found');
@@ -150,8 +150,8 @@ module.exports = (router) => {
               req.permissionsChecked = false;
               return next();
             }
-          }
-        );
+          })
+          .catch(err=>next(err));
       });
     });
   }, router.formio.middleware.permissionHandler, (req, res, next) => {

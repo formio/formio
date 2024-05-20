@@ -35,11 +35,8 @@ module.exports = function(router) {
       const query = hook.alter('roleQuery', {deleted: {$eq: null}}, req);
 
       // Query the forms collection, to build the updated form access list.
-      router.formio.resources.form.model.find(query).exec(function(err, forms) {
-        if (err) {
-          debug(err);
-          return done(err);
-        }
+      router.formio.resources.form.model.find(query).exec()
+      .then(forms=>{
         if (!forms || forms.length === 0) {
           return done();
         }
@@ -68,15 +65,19 @@ module.exports = function(router) {
           // Save the updated permissions.
           router.formio.resources.form.model.updateOne({
             _id: form._id},
-            {$set: {access: form.access}},
-            (err)=> {
-              if (err) {
-                debug(err);
-                return formDone(err);
-              }
+            {$set: {access: form.access}})
+            .then(()=>{
               formDone(null, form);
+            })
+            .catch(err=>{
+              debug(err);
+              return formDone(err);
             });
         }, done);
+      })
+      .catch(err=>{
+        debug(err);
+        return done(err);
       });
     };
 

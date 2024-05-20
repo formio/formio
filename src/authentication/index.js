@@ -243,15 +243,8 @@ module.exports = (router) => {
       router.formio.resources.form.model.findOne({
         _id: user.form,
         deleted: {$eq: null},
-      }).lean().exec((err, form) => {
-        if (err) {
-          audit('EAUTH_USERFORM', {
-            ...req,
-            userId: user._id,
-          }, user.form, err);
-          return next(err);
-        }
-
+      }).lean().exec()
+      .then(form=>{
         if (!form) {
           audit('EAUTH_USERFORM', {
             ...req,
@@ -299,6 +292,13 @@ module.exports = (router) => {
             });
           });
         });
+      })
+      .catch(err=>{
+        audit('EAUTH_USERFORM', {
+          ...req,
+          userId: user._id,
+        }, user.form, err);
+        return next(err);
       });
     });
   };
@@ -351,12 +351,12 @@ module.exports = (router) => {
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
     let subQuery = submissionModel.findOne(hook.alter('submissionQuery', query, req));
     subQuery = router.formio.mongoFeatures.collation ? subQuery.collation({locale: 'en', strength: 2}) : subQuery;
-    subQuery.lean().exec((err, user) => {
-      if (err) {
-        return next(err);
-      }
+
+    subQuery.lean().exec()
+    .then(user=>{
       return evaluateUser(req, user, password, passField, username, next);
-    });
+    })
+    .catch(err=>next(err));
   };
 
   /**

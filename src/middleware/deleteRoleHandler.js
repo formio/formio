@@ -38,8 +38,9 @@ module.exports = (router) => {
     }
 
     // Load the role in question.
-    router.formio.resources.role.model.findById(roleId).lean().exec(function(err, role) {
-      if (err || !role) {
+    router.formio.resources.role.model.findById(roleId).lean().exec()
+    .then(role=>{
+      if (!role) {
         return res.status(404).send('Unknown Role.');
       }
 
@@ -54,6 +55,9 @@ module.exports = (router) => {
           debug(err);
           return next(err);
         });
+    })
+    .catch(err=>{
+      return res.status(404).send('Unknown Role.');
     });
   };
 };

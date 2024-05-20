@@ -219,16 +219,14 @@ module.exports = (router) => {
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
       submissionModel.updateOne(
         {_id: user._id},
-        {$set: {metadata: user.metadata}},
-        (err) => {
-          if (err) {
-            log(req, ecode.auth.ELOGINCOUNT, err);
-            return next(ecode.auth.ELOGINCOUNT);
-          }
-
+        {$set: {metadata: user.metadata}})
+        .then(()=>{
           next(error);
-        },
-      );
+        })
+        .catch(err=>{
+          log(req, ecode.auth.ELOGINCOUNT, err);
+          return next(ecode.auth.ELOGINCOUNT);
+        });
     }
     /* eslint-enable max-statements */
 

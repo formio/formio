@@ -101,20 +101,20 @@ module.exports = function(formio) {
 
   Action.schema.machineName = function(document, done) {
     formio.mongoose.model('form').findOne({_id: document.form, deleted: {$eq: null}})
-      .exec((err, form) => {
-        if (err) {
-          return done(err);
-        }
+    .exec()
+    .then(form => {
+      if (!form) {
+        hook.alter('actionMachineName', `${document.form}:${document.name}`, document, done);
+        return;
+      }
 
-        if (!form) {
-          hook.alter('actionMachineName', `${document.form}:${document.name}`, document, done);
-          return;
-        }
+      const formMachineName = _last(form.machineName.split(':'));
 
-        const formMachineName = _last(form.machineName.split(':'));
-
-        hook.alter('actionMachineName', `${formMachineName || form.name}:${document.name}`, document, done);
-      });
+      hook.alter('actionMachineName', `${formMachineName || form.name}:${document.name}`, document, done);
+    })
+    .catch(err=>{
+      return done(err);
+    });
   };
 
    // Execute a pre-save method for the SaveSubmission action.

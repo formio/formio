@@ -31,45 +31,48 @@ module.exports = function(router) {
 
     // Query the roles collection, to build the updated form access list.
     router.formio.resources.role.model
-      .find(hook.alter('roleQuery', {deleted: {$eq: null}}, req)).lean().exec(function(err, roles) {
-        if (err) {
+    .find(hook.alter('roleQuery', {deleted: {$eq: null}}, req)).lean().exec()
+    .then(roles=>{
+      if (!roles || roles.length === 0) {
+        return next();
+      }
+
+      // Convert the roles to ObjectIds before saving.
+      roles = _.map(roles, function(role) {
+        return new ObjectId(role._id);
+      });
+
+      // Update the form.
+      router.formio.resources.form.model.updateOne(
+        {_id: res.resource.item._id, deleted: {$eq: null}},
+        {$set: {access: [{type: 'read_all', roles: roles}]}}
+      ).exec()
+      .then(()=>{
+        router.formio.resources.form.model.findOne(
+          {_id: res.resource.item._id, deleted: {$eq: null}}
+        ).lean().exec()
+        .then((form)=>{
+          if (!form) {
+            return next();
+          }
+          // Update the response to reflect the access changes.
+          // Filter the response to have no __v and deleted key.
+          res.resource.item = _.omit(_.omit(form, 'deleted'), '__v');
+          next();
+        })
+        .catch(err=>{
           debug(err);
           return next(err);
-        }
-        if (!roles || roles.length === 0) {
-          return next();
-        }
-
-        // Convert the roles to ObjectIds before saving.
-        roles = _.map(roles, function(role) {
-          return ObjectId(role._id);
         });
-
-        // Update the form.
-        router.formio.resources.form.model.updateOne(
-          {_id: res.resource.item._id, deleted: {$eq: null}},
-          {$set: {access: [{type: 'read_all', roles: roles}]}}
-        ).exec((err) => {
-          if (err) {
-            debug(err);
-            return next(err);
-          }
-          router.formio.resources.form.model.findOne(
-            {_id: res.resource.item._id, deleted: {$eq: null}}
-          ).lean().exec((err, form) => {
-            if (err) {
-              debug(err);
-              return next(err);
-            }
-            if (!form) {
-              return next();
-            }
-            // Update the response to reflect the access changes.
-            // Filter the response to have no __v and deleted key.
-            res.resource.item = _.omit(_.omit(form, 'deleted'), '__v');
-            next();
-          });
-        });
+      })
+      .catch(err=>{
+        debug(err);
+        return next(err);
       });
+    })
+    .catch(err=>{
+      debug(err);
+      return next(err);
+    });
   };
 };

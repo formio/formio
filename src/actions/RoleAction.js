@@ -43,84 +43,89 @@ module.exports = function(router) {
     }
     static settingsForm(req, res, next) {
       router.formio.resources.role.model.find(hook.alter('roleQuery', {deleted: {$eq: null}}, req))
-        .sort({title: 1})
-        .lean()
-        .exec(function(err, roles) {
-          if (err || !roles) {
-            log(req, ecode.role.EROLESLOAD, err);
-            return res.status(400).send(ecode.role.EROLESLOAD);
-          }
+      .sort({title: 1})
+      .lean()
+      .exec()
+      .then(roles=>{
+        if (!roles) {
+          log(req, ecode.role.EROLESLOAD);
+          return res.status(400).send(ecode.role.EROLESLOAD);
+        }
 
-          next(null, [
-            {
-              type: 'select',
-              input: true,
-              label: 'Resource Association',
-              key: 'association',
-              placeholder: 'Select the type of resource to perform role manipulation.',
-              template: '<span>{{ item.title }}</span>',
-              dataSrc: 'json',
-              data: {
-                json: JSON.stringify([
-                  {
-                    association: 'existing',
-                    title: 'Existing Resource'
-                  },
-                  {
-                    association: 'new',
-                    title: 'New Resource'
-                  }
-                ])
-              },
-              valueProperty: 'association',
-              multiple: false,
-              validate: {
-                required: true
-              }
+        next(null, [
+          {
+            type: 'select',
+            input: true,
+            label: 'Resource Association',
+            key: 'association',
+            placeholder: 'Select the type of resource to perform role manipulation.',
+            template: '<span>{{ item.title }}</span>',
+            dataSrc: 'json',
+            data: {
+              json: JSON.stringify([
+                {
+                  association: 'existing',
+                  title: 'Existing Resource'
+                },
+                {
+                  association: 'new',
+                  title: 'New Resource'
+                }
+              ])
             },
-            {
-              type: 'select',
-              input: true,
-              label: 'Action Type',
-              key: 'type',
-              placeholder: 'Select whether this Action will Add or Remove the contained Role.',
-              template: '<span>{{ item.title }}</span>',
-              dataSrc: 'json',
-              data: {
-                json: JSON.stringify([
-                  {
-                    type: 'add',
-                    title: 'Add Role'
-                  },
-                  {
-                    type: 'remove',
-                    title: 'Remove Role'
-                  }
-                ])
-              },
-              valueProperty: 'type',
-              multiple: false,
-              validate: {
-                required: true
-              }
-            },
-            {
-              type: 'select',
-              input: true,
-              label: 'Role',
-              key: 'role',
-              placeholder: 'Select the Role that this action will Add or Remove.',
-              template: '<span>{{ item.title }}</span>',
-              dataSrc: 'json',
-              data: {json: roles},
-              valueProperty: '_id',
-              multiple: false,
-              validate: {
-                required: true
-              }
+            valueProperty: 'association',
+            multiple: false,
+            validate: {
+              required: true
             }
-          ]);
-        });
+          },
+          {
+            type: 'select',
+            input: true,
+            label: 'Action Type',
+            key: 'type',
+            placeholder: 'Select whether this Action will Add or Remove the contained Role.',
+            template: '<span>{{ item.title }}</span>',
+            dataSrc: 'json',
+            data: {
+              json: JSON.stringify([
+                {
+                  type: 'add',
+                  title: 'Add Role'
+                },
+                {
+                  type: 'remove',
+                  title: 'Remove Role'
+                }
+              ])
+            },
+            valueProperty: 'type',
+            multiple: false,
+            validate: {
+              required: true
+            }
+          },
+          {
+            type: 'select',
+            input: true,
+            label: 'Role',
+            key: 'role',
+            placeholder: 'Select the Role that this action will Add or Remove.',
+            template: '<span>{{ item.title }}</span>',
+            dataSrc: 'json',
+            data: {json: roles},
+            valueProperty: '_id',
+            multiple: false,
+            validate: {
+              required: true
+            }
+          }
+        ]);
+      })
+      .catch(err=>{
+        log(req, ecode.role.EROLESLOAD, err);
+        return res.status(400).send(ecode.role.EROLESLOAD);
+      });
     }
 
     /**
@@ -181,17 +186,18 @@ module.exports = function(router) {
         submissionModel.findOne(hook.alter('submissionQuery', {
           _id: util.idToBson(submission),
           deleted: {$eq: null}
-        }, req)).exec((err, user) => {
-          if (err) {
-            log(req, ecode.submission.ESUBLOAD, err);
-            return res.status(400).send(err.message || err);
-          }
+        }, req)).exec()
+        .then(user=>{
           if (!user) {
-            log(req, ecode.submission.ENOSUB, err);
+            log(req, ecode.submission.ENOSUB);
             return res.status(400).send('No Submission was found with the given setting `submission`.');
           }
 
           return callback(user);
+        })
+        .catch(err=> {
+          log(req, ecode.submission.ESUBLOAD, err);
+          return res.status(400).send(err.message || err);
         });
       };
 
@@ -222,13 +228,13 @@ module.exports = function(router) {
         submissionModel.updateOne({
           _id: submission._id
         },
-        update,
-        (err) => {
-          if (err) {
-            log(req, ecode.submission.ESUBSAVE, err);
-            return next(err);
-          }
+        update)
+        .then(()=>{
           return next();
+        })
+        .catch(err=>{
+          log(req, ecode.submission.ESUBSAVE, err);
+          return next(err);
         });
       };
 
@@ -320,16 +326,12 @@ module.exports = function(router) {
 
         // Confirm that the given/configured role is actually accessible.
         const query = hook.alter('roleQuery', {_id: role, deleted: {$eq: null}}, req);
-        router.formio.resources.role.model.findOne(query).lean().exec((err, role) => {
-          if (err) {
-            log(req, ecode.role.EROLELOAD, err, '#roleManipulation');
-            return res.status(400).send(ecode.role.EROLELOAD);
-          }
+        router.formio.resources.role.model.findOne(query).lean().exec()
+        .then(role=>{
           if (!role) {
             log(req, ecode.role.ENOROLE, new Error(ecode.role.ENOROLE), '#roleManipulation');
             return res.status(400).send(ecode.role.ENOROLE);
           }
-
           role = role._id.toString();
           debug.roleManipulation(role);
           if (type === 'add') {
@@ -338,6 +340,10 @@ module.exports = function(router) {
           else if (type === 'remove') {
             removeRole(role, resource, association);
           }
+        })
+        .catch(err=>{
+          log(req, ecode.role.EROLELOAD, err, '#roleManipulation');
+          return res.status(400).send(ecode.role.EROLELOAD);
         });
       };
 

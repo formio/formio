@@ -402,7 +402,11 @@ module.exports = (router, resourceName, resourceId) => {
               const submissionModel = req.submissionModel || router.formio.resources.submission.model;
               submissionModel.updateOne({
                 _id: res.resource.item._id
-              }, {'$set': submissionUpdate}, done);
+              }, {'$set': submissionUpdate})
+              .then(() =>{
+                done();
+})
+              .catch(err=>done(err));
             }
             else {
               done();
@@ -431,7 +435,9 @@ module.exports = (router, resourceName, resourceId) => {
         async.apply(executeFieldHandlers, true, req, res),
         async.apply(alterSubmission, req, res),
         async.apply(executeActions('before'), req, res)
-      ], next);
+      ], (err)=> {
+        return next();
+});
     };
 
     // Add after handlers.

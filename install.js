@@ -354,13 +354,10 @@ module.exports = function(formio, items, done) {
             roles: [
               project.roles.administrator._id
             ]
-          }, function(err, item) {
-            if (err) {
-              return done(err);
-            }
-
+          }).then(()=>{
             done();
-          });
+          })
+          .catch(err=>done(err));
         });
       });
     }

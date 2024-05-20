@@ -23,7 +23,7 @@ module.exports = function(router) {
     let shouldLoadSubForms = true;
     // Only process on GET request, and if they provide full query.
     if (
-      !req.query.full ||
+      !req.full ||
       !res.resource ||
       !res.resource.item
     ) {

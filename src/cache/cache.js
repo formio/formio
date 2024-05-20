@@ -85,16 +85,8 @@ module.exports = function(router) {
 
       router.formio.resources.form.model.findOne(
         hook.alter('formQuery', query, req)
-      ).lean().exec((err, result) => {
-        if (err) {
-          debug.loadForm(err);
-          return cb(err);
-        }
-        if (!result) {
-          debug.loadForm('Resource not found for the query');
-          return cb('Resource not found');
-        }
-
+      ).lean().exec()
+      .then((result)=>{
         hook.alter('loadForm', result, req, (err, result) => {
           if (err) {
             debug.loadForm(err);
@@ -104,6 +96,10 @@ module.exports = function(router) {
           debug.loadForm('Caching result');
           cb(null, result);
         });
+      })
+      .catch(err=> {
+        debug.loadForm(err);
+        return cb(err);
       });
     },
 
@@ -125,16 +121,16 @@ module.exports = function(router) {
           _id: {$in: ids.map((formId) => util.idToBson(formId))},
           deleted: {$eq: null}
         }, req)
-      ).lean().exec((err, result) => {
-        if (err) {
-          debug.loadForms(err);
-          return cb(err);
-        }
+      ).lean().exec()
+      .then(result => {
         if (!result || !result.length) {
           return cb(null, []);
         }
-
         cb(null, result);
+      })
+      .catch(err=>{
+        debug.loadForms(err);
+        return cb(err);
       });
     },
 
@@ -159,11 +155,8 @@ module.exports = function(router) {
           }, req)
         );
 
-        loadRevision.lean().exec((err, result) => {
-          if (err) {
-            debug.loadSubForms(err);
-            return next(err);
-          }
+        loadRevision.lean().exec()
+        .then(result => {
           if (!result) {
             debug.loadSubForms(
               `Cannot find form revision for form ${rev.form} revision ${formRevision}`,
@@ -174,6 +167,10 @@ module.exports = function(router) {
           debug.loadSubForms(`Loaded revision for form ${rev.form} revision ${formRevision}`);
           formRevs[rev.form.toString()] = result;
           next();
+        })
+        .catch(err => {
+          debug.loadSubForms(err);
+          return next(err);
         });
       }, (err) => {
         if (err) {
@@ -255,16 +252,8 @@ module.exports = function(router) {
       debug.loadSubmission(`Searching for form: ${formId}, and submission: ${subId}`);
       const query = {_id: subId, form: formId, deleted: {$eq: null}};
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec((err, submission) => {
-        if (err) {
-          debug.loadSubmission(err);
-          return cb(err);
-        }
-        if (!submission) {
-          debug.loadSubmission('No submission found for the given query.');
-          return cb(null, null);
-        }
-
+      submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec()
+      .then(submission => {
         hook.alter('loadSubmission', submission, req, (err, submission) => {
           if (err) {
             debug.loadSubmission(err);
@@ -273,6 +262,10 @@ module.exports = function(router) {
           cache.submissions[subId] = submission;
           cb(null, submission);
         });
+      })
+      .catch(err => {
+        debug.loadSubmission(err);
+        return cb(err);
       });
     },
 
@@ -294,16 +287,17 @@ module.exports = function(router) {
         deleted: {$eq: null}
       };
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.find(hook.alter('submissionQuery', query, req)).lean().exec((err, submissions) => {
-        if (err) {
-          debug.loadSubmissions(err);
-          return cb(err);
-        }
+      submissionModel.find(hook.alter('submissionQuery', query, req)).lean().exec()
+      .then(submissions =>{
         if (!submissions) {
           return cb(null, []);
         }
 
         cb(null, submissions);
+      })
+      .catch(err=> {
+        debug.loadSubmissions(err);
+        return cb(err);
       });
     },
 
@@ -345,11 +339,8 @@ module.exports = function(router) {
           deleted: {$eq: null}
         }, req);
 
-        router.formio.resources.form.model.findOne(query).lean().exec((err, result) => {
-          if (err) {
-            debug.loadFormByName(err);
-            return cb(err);
-          }
+        router.formio.resources.form.model.findOne(query).lean().exec()
+        .then(result=>{
           if (!result) {
             return cb('Resource not found');
           }
@@ -363,6 +354,10 @@ module.exports = function(router) {
             debug.loadForm('Caching result');
             cb(null, result);
           });
+        })
+        .then(err=>{
+          debug.loadFormByName(err);
+          return cb(err);
         });
       }
     },
@@ -389,15 +384,11 @@ module.exports = function(router) {
           deleted: {$eq: null}
         }, req);
 
-        router.formio.resources.form.model.findOne(query).lean().exec((err, result) => {
-          if (err) {
-            debug.loadFormByAlias(err);
-            return cb(err);
-          }
+        router.formio.resources.form.model.findOne(query).lean().exec()
+        .then(result => {
           if (!result) {
             return cb('Resource not found');
           }
-
           hook.alter('loadForm', result, req, (err, result) => {
             if (err) {
               debug.loadForm(err);
@@ -407,6 +398,10 @@ module.exports = function(router) {
             debug.loadForm('Caching result');
             cb(null, result);
           });
+        })
+        .catch(err=>{
+          debug.loadFormByAlias(err);
+          return cb(err);
         });
       }
     },

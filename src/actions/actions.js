@@ -73,24 +73,20 @@ module.exports = (router) => {
         form,
         deleted: {$eq: null},
       }, req))
-      .sort('-priority')
-      .lean()
-      .exec((err, result) => {
-        if (err) {
-          return next(err);
-        }
-
-        // Iterate through all of the actions and load them.
-        const actions = [];
-        _.each(result, (action) => {
-          if (!this.actions.hasOwnProperty(action.name)) {
-            return;
-          }
-
-          // Create the action class.
-          const ActionClass = this.actions[action.name];
-          actions.push(new ActionClass(action, req, res));
-        });
+        .sort('-priority')
+        .lean()
+        .exec()
+        .then(result => {
+          // Iterate through all of the actions and load them.
+          const actions = [];
+          _.each(result, (action) => {
+            if (!this.actions.hasOwnProperty(action.name)) {
+              return;
+            }
+            // Create the action class.
+            const ActionClass = this.actions[action.name];
+            actions.push(new ActionClass(action, req, res));
+          });
 
         req.actions[form] = actions;
         return next(null, actions);
