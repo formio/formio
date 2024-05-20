@@ -1114,6 +1114,7 @@ module.exports = function(app, template, hook) {
     };
     var oldAccess = null;
     before('Store the old user resource permissions', function(done) {
+      console.log('`111111111')
       request(app)
         .get(hook.alter('url', '/form/' + template.resources.user._id, template))
         .set('x-jwt-token', template.users.admin.token)

@@ -42,7 +42,8 @@ describe('Initialization', function() {
          *   The callback to execute.
          */
         var dropDocuments = function(model, next) {
-          model.deleteMany({}, next);
+          model.deleteMany({})
+          .then(next());
         };
 
         async.series([

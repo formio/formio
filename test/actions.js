@@ -2791,20 +2791,18 @@ module.exports = (app, template, hook) => {
       it('A deleted Action should remain in the database', (done) => {
         const formio = hook.alter('formio', app.formio);
         formio.actions.model.findOne({_id: tempAction._id})
-          .exec((err, action) => {
-            if (err) {
-              return done(err);
-            }
+        .exec()
+        .then(action => {
+          if (!action) {
+            return done('No Action found, expected 1.');
+          }
 
-            if (!action) {
-              return done('No Action found, expected 1.');
-            }
+          action = action.toObject();
+          assert.notEqual(action.deleted, null);
 
-            action = action.toObject();
-            assert.notEqual(action.deleted, null);
-
-            done();
-          });
+          done();
+        })
+        .catch(err => done(err));
       });
 
       it('Delete the Form used for Action tests', (done) => {
@@ -2831,17 +2829,15 @@ module.exports = (app, template, hook) => {
       it('A deleted Form should not have active actions in the database', (done) => {
         const formio = hook.alter('formio', app.formio);
         formio.actions.model.find({form: tempForm._id, deleted: {$eq: null}})
-          .exec((err, action) => {
-            if (err) {
-              return done(err);
-            }
+        .exec()
+        .then(action => {
+          if (action && action.length !== 0) {
+            return done(`Active actions found w/ form: ${tempForm._id}, expected 0.`);
+          }
 
-            if (action && action.length !== 0) {
-              return done(`Active actions found w/ form: ${tempForm._id}, expected 0.`);
-            }
-
-            done();
-          });
+          done();
+        })
+        .catch(err => done(err));
       });
 
       let actionLogin = null;

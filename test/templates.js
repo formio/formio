@@ -267,7 +267,7 @@ module.exports = (app, template, hook) => {
 
         it('All the actions should be imported', function(done) {
           checkTemplateActions(project, testTemplate.actions, done);
-        });
+        }); 
       });
 
       describe('Export', function() {

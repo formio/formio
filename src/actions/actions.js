@@ -146,7 +146,12 @@ module.exports = (router) => {
           else {
             done();
           }
-        }, next);
+        }, (err) => {
+            if (err) {
+              return res.status(400).send(err);
+            }
+          return next();
+        });
       });
     },
 

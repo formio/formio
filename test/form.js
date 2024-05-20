@@ -1312,18 +1312,17 @@ module.exports = function(app, template, hook) {
       it('A deleted Form should remain in the database', function(done) {
         var formio = hook.alter('formio', app.formio);
         formio.resources.form.model.findOne({_id: template.forms.tempForm._id})
-          .exec(function(err, form) {
-            if (err) {
-              return done(err);
-            }
-            if (!form) {
-              return done('No Form w/ _id: ' + template.forms.tempForm._id + ' found, expected 1.');
-            }
+        .exec()
+        .then(form => {
+          if (!form) {
+            return done('No Form w/ _id: ' + template.forms.tempForm._id + ' found, expected 1.');
+          }
 
-            form = form.toObject();
-            assert.notEqual(form.deleted, null);
-            done();
-          });
+          form = form.toObject();
+          assert.notEqual(form.deleted, null);
+          done();
+        })
+        .catch(err => done(err));
       });
 
       it('An administrator should be able to Create a Register Form', function(done) {

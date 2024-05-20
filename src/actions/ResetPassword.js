@@ -199,7 +199,7 @@ module.exports = (router) => {
       };
 
       query[usernamekey] = {$regex: new RegExp(`^${util.escapeRegExp(token.username)}$`), $options: 'i'};
-      query.form = {$in: _.map(token.resources, router.formio.mongoose.Types.ObjectId)};
+      query.form = {$in: _.map(token.resources)};
 
       // Perform a mongo query to find the submission.
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;

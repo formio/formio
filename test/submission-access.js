@@ -532,10 +532,8 @@ module.exports = function(app, template, hook) {
           if (!docker)
           it('A deleted Submission should remain in the database', function(done) {
             var formio = hook.alter('formio', app.formio);
-            formio.resources.submission.model.findOne({_id: deleteTest._id}, function(err, submission) {
-              if (err) {
-                return done(err);
-              }
+            formio.resources.submission.model.findOne({_id: deleteTest._id})
+            .then(submission => {
               if (!submission) {
                 return done('No submission found with _id: ' + deleteTest._id + ', expected 1.');
               }
@@ -543,7 +541,8 @@ module.exports = function(app, template, hook) {
               submission = submission.toObject();
               assert.notEqual(submission.deleted, null);
               done();
-            });
+            })
+            .catch(err=>done(err));
           });
 
           it('Cant access a submission without a valid Submission Id', function(done) {
@@ -741,18 +740,17 @@ module.exports = function(app, template, hook) {
           it('A deleted Submission should remain in the database', function(done) {
             var formio = hook.alter('formio', app.formio);
             formio.resources.submission.model.findOne({_id: tempSubmission._id})
-              .exec(function(err, submission) {
-                if (err) {
-                  return done(err);
-                }
-                if (!submission) {
-                  return done('No submission found w/ _id: ' + submission._id + ', expected 1.');
-                }
+            .exec()
+            .then(submission => {
+              if (!submission) {
+                return done('No submission found w/ _id: ' + submission._id + ', expected 1.');
+              }
 
-                submission = submission.toObject();
-                assert.notEqual(submission.deleted, null);
-                done();
-              });
+              submission = submission.toObject();
+              assert.notEqual(submission.deleted, null);
+              done();
+            })
+            .catch(err => done(err));
           });
 
           it('Delete the Submissions created for Ownership Checks', function(done) {
@@ -804,16 +802,15 @@ module.exports = function(app, template, hook) {
           it('A deleted Form should not have active submissions in the database', function(done) {
             var formio = hook.alter('formio', app.formio);
             formio.resources.submission.model.findOne({form: tempForm._id, deleted: {$eq: null}})
-              .exec(function(err, submissions) {
-                if (err) {
-                  return done(err);
-                }
-                if (submissions && submissions.length !== 0) {
-                  return done(submissions.length + ' submissions found with the form: ' + tempForm._id + ', expected 0.');
-                }
+            .exec()
+            .then(submissions => {
+              if (submissions && submissions.length !== 0) {
+                return done(submissions.length + ' submissions found with the form: ' + tempForm._id + ', expected 0.');
+              }
 
-                done();
-              });
+              done();
+            })
+            .catch(err => done(err));
           });
         });
       });
