@@ -67,7 +67,7 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              const address = (value && value.address) || value || {};
+              const address =  value || {};
 
               // OpenStreetMap || Azure || Google
               // eslint-disable-next-line max-len
@@ -81,7 +81,7 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              const address = (value && value.address) || value || {};
+              const address = value || {};
 
               // OpenStreetMap || Azure || Google
               return address.lat || _.get(address, 'position.lat') || _.get(address, 'geometry.location.lat') || '';
@@ -94,7 +94,7 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              const address = (value && value.address) || value || {};
+              const address = value || {};
 
               // OpenStreetMap || Azure || Google
               return address.lon || _.get(address, 'position.lon') || _.get(address, 'geometry.location.lng') || '';
