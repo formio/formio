@@ -852,7 +852,6 @@ module.exports = (router) => {
                               return next(err);
                             }
                             foundRevision.revisionId = revisionTemplate.revisionId;
-                            next();
                           });
                          }
                         });
