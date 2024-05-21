@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.2.0-rc.4
+### Changed
+ - Updated formiojs@4.21.0-rc.2
+ - Updated @formio/core@2.1.0-rc.2
+ - Updated @formio/vm@0.2.0-rc.2
+ - FIO-8152 & FIO-8137: Check if Import Resource Exists in New Project for Select Component with Resource & De-ref default values on select with resource
+ - FIO-8152: Check if Import Resource Exists in New Project for Select Component with Resource
+
 ## 4.2.0-rc.3
 ### Changed
  - Revert " FIO-8152 & FIO-8137: Check if Import Resource Exists in New Project for Select Component with Resource & De-ref default values on select with resource"
