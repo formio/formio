@@ -3815,6 +3815,10 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
       let project;
 
+      // Modify the template name before importing
+      // If not will not be able to import into same project.
+      _template.name = existingResourceTemplate;
+
       let templateDataStartValue = _template.forms[selectFormName].components[0].data.resource;
 
       describe('Import', function() {
