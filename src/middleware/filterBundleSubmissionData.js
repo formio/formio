@@ -2,7 +2,6 @@
 
 const util = require("../util/util");
 const _ = require("lodash");
-const AUTHORIZED_ROLE = process.env.AUTHORIZED_ROLE || "CUSTOM_ROLES";
 /**
  * Middleware function to filter bundle data based on form which selected in bundle.
  *
@@ -12,13 +11,12 @@ const AUTHORIZED_ROLE = process.env.AUTHORIZED_ROLE || "CUSTOM_ROLES";
  */
 module.exports = function (router) {
   return function (req, res, next) {
-    const { customRoles = [] } = req.user || {};
-    if (
+     if (
       !res ||
       !res.resource ||
       !res.resource.item ||
       !req.isBundle ||
-      (req.isBundle && customRoles.includes(AUTHORIZED_ROLE))
+      (req.isBundle && req.isAdmin)
     ) {
       return next();
     }
