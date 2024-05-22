@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - Bump semver from 7.0.0 to 7.6.0
  - FIO-8251: added inputmask library
  - FIO-8152 & FIO-8137: Check if Import Resource Exists in New Project for Select Component with Resource & De-ref default values on select with resource
+ - FIO-8152: Check if Import Resource Exists in New Project for Select Component with Resource
 
 ## 4.0.0-rc.14
 ### Changed
