@@ -187,9 +187,6 @@ module.exports = function(formio) {
     if (!mongoConfig.hasOwnProperty('socketTimeoutMS')) {
       mongoConfig.socketTimeoutMS = 300000;
     }
-    if (!mongoConfig.hasOwnProperty('useNewUrlParser')) {
-      mongoConfig.useNewUrlParser = true;
-    }
     if (config.mongoSA || config.mongoCA) {
       mongoConfig.sslValidate = true;
       mongoConfig.sslCA = config.mongoSA || config.mongoCA;
@@ -200,8 +197,6 @@ module.exports = function(formio) {
         ...config.mongoSSL,
       };
     }
-
-    mongoConfig.useUnifiedTopology = true;
 
     const client = new MongoClient(dbUrl, mongoConfig);
 
