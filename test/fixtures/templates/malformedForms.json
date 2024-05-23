@@ -11,6 +11,7 @@
       "type": "form",
       "name": "a",
       "path": "a",
+      "pdfComponents": [],
       "tags": [],
       "submissionAccess": [],
       "access": [],

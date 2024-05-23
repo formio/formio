@@ -29,6 +29,7 @@
       "type": "resource",
       "name": "user",
       "path": "user",
+      "pdfComponents": [],
       "tags": [],
       "submissionAccess": [
         {
@@ -125,6 +126,7 @@
       "type": "resource",
       "name": "admin",
       "path": "admin",
+      "pdfComponents": [],
       "tags": [],
       "submissionAccess": [
         {
@@ -223,6 +225,7 @@
       "type": "form",
       "name": "userLogin",
       "path": "user/login",
+      "pdfComponents": [],
       "tags": [],
       "access": [
         {
@@ -287,6 +290,7 @@
       "title": "User Register",
       "name": "userRegister",
       "path": "user/register",
+      "pdfComponents": [],
       "type": "form",
       "tags": [],
       "access": [
@@ -352,6 +356,7 @@
       "type": "form",
       "name": "adminLogin",
       "path": "admin/login",
+      "pdfComponents": [],
       "tags": [],
       "access": [
         {

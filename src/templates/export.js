@@ -119,69 +119,80 @@ module.exports = (router) => {
     }
 
     formio.resources.form.model
-    .find(hook.alter('formQuery', {deleted: {$eq: null}}, options))
-    .lean(true)
-    .exec()
-    .then(forms => {
-      _.each(forms, function(form) {
-        if (!form || !form._id) {
-          return;
-        }
-        assignRoles(_map, form.access);
-        assignRoles(_map, form.submissionAccess);
-        const machineName = form.machineName = hook.alter('machineNameExport', form.machineName);
-        _export[`${form.type}s`][machineName] = _.pick(form,
-          'title',
-          'type',
-          'name',
-          'path',
-          'display',
-          'action',
-          'tags',
-          'settings',
-          'components',
-          'access',
-          'submissionAccess',
-          'properties',
-          'controller',
-          'submissionRevisions',
-          ...includeFormFields,
-        );
-        if (form.revisions) {
-          _map.revisions.formsWithEnabledRevisions.push({
-            machineName,
-            revisionType: form.revisions,
-            project: form.project
-          });
-        }
-        _map.forms[form._id.toString()] = machineName;
-      });
-
-      // Now assign the resource components.
-      _.each(forms, function(form) {
-        util.eachComponent(form.components, function(component) {
-          assignForm(_map, component);
-          assignForm(_map, component.data);
-          assignResource(_map, component);
-          assignResource(_map, component.data);
-          assignResource(_map, component.fetch);
-          if (component && component.data && component.data.project) {
-            component.data.project = 'project';
+      .find(hook.alter('formQuery', {deleted: {$eq: null}}, options))
+      .lean(true)
+      .exec()
+      .then(forms => {
+        _.each(forms, function(form) {
+          if (!form || !form._id) {
+            return;
           }
-          if (component && component.project) {
-            component.project = 'project';
+          assignRoles(_map, form.access);
+          assignRoles(_map, form.submissionAccess);
+          const machineName = form.machineName = hook.alter('machineNameExport', form.machineName);
+          _export[`${form.type}s`][machineName] = _.pick(form,
+            'title',
+            'type',
+            'name',
+            'path',
+            'pdfComponents',
+            'display',
+            'action',
+            'tags',
+            'settings',
+            'components',
+            'access',
+            'submissionAccess',
+            'properties',
+            'controller',
+            'submissionRevisions',
+            ...includeFormFields,
+          );
+          if (form.revisions) {
+            _map.revisions.formsWithEnabledRevisions.push({
+              machineName,
+              revisionType: form.revisions,
+              project: form.project
+            });
           }
-
-          if (component.hasOwnProperty('form') && component.revision) {
-            _map.revisions.revisionsData.push(component);
-          }
-          // Allow hooks to alter fields.
-          hook.alter('exportComponent', component);
+          _map.forms[form._id.toString()] = machineName;
         });
-      });
-      next();
-    })
-    .catch(err=>next(err));
+
+        // Now assign the resource components.
+        _.each(forms, function(form) {
+          util.eachComponent(form.components, function(component) {
+            assignForm(_map, component);
+            assignForm(_map, component.data);
+            assignResource(_map, component);
+            assignResource(_map, component.data);
+            assignResource(_map, component.fetch);
+            if (component && component.data && component.data.project) {
+              component.data.project = 'project';
+            }
+            if (component && component.project) {
+              component.project = 'project';
+            }
+            // During export if select component
+            // data type resource de-ref defaultValue
+            if (
+              component
+              && component.type === 'select'
+              && component.dataSrc === 'resource'
+              && component.defaultValue
+            ) {
+              component.defaultValue = undefined;
+            }
+
+            if (component.hasOwnProperty('form') && component.revision) {
+              _map.revisions.revisionsData.push(component);
+            }
+            // Allow hooks to alter fields.
+            hook.alter('exportComponent', component);
+          });
+        });
+        next();
+      })
+      .catch(err => next(err));
   };
 
   // Export reports.
@@ -193,30 +204,31 @@ module.exports = (router) => {
     }
 
     formio.resources.submission.model
-    .find(hook.alter('submissionQuery', {form: reportingConfigurationFormId, deleted: {$eq: null}}, options))
-    .lean(true)
-    .exec()
-    .then(reports => {
-      _.each(reports, report =>  {
-        if (!report || !report.data) {
-          return;
-        }
-        const formattedReport = _.pick(report, 'data');
-        const reportFormsPath = 'data.forms';
-        const reportForms = _.get(formattedReport, reportFormsPath, []);
-        const assignedForms = {};
+      .find(hook.alter('submissionQuery', {form: reportingConfigurationFormId, deleted: {$eq: null}}, options))
+      .lean(true)
+      .exec()
+      .then(reports => {
+        _.each(reports, report =>  {
+          if (!report || !report.data) {
+            return;
+          }
+          const formattedReport = _.pick(report, 'data');
+          const reportFormsPath = 'data.forms';
+          const reportForms = _.get(formattedReport, reportFormsPath, []);
+          const assignedForms = {};
 
-        _.each(reportForms, formId => {
-          const formName = _map.forms[formId];
-          assignedForms[`${formName || formId}`] = formId;
+          _.each(reportForms, formId => {
+            const formName = _map.forms[formId];
+            assignedForms[`${formName || formId}`] = formId;
+          });
+
+          _.set(formattedReport, reportFormsPath, assignedForms);
+          _export.reports[_.get(formattedReport, 'data.name', '')] = formattedReport;
         });
 
-        _.set(formattedReport, reportFormsPath, assignedForms);
-        _export.reports[_.get(formattedReport, 'data.name', '')] = formattedReport;
-      });
-      next();
-    })
-    .catch(err=>next(err));
+        next();
+      })
+      .catch(err => next(err));
   };
 
   const exportRevisions = function(_export, _map, options, next) {
@@ -271,6 +283,7 @@ module.exports = (router) => {
                     'type',
                     'name',
                     'path',
+                    'pdfComponents',
                     'display',
                     'action',
                     'tags',

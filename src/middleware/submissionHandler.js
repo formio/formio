@@ -54,11 +54,10 @@ module.exports = (router, resourceName, resourceId) => {
           return done('Form not found.');
         }
 
-          req.currentForm = hook.alter('currentForm', form, req.body);
+        req.currentForm = hook.alter('currentForm', form, req.body);
 
         // Load all subforms as well.
         router.formio.cache.loadSubForms(req.currentForm, req, () => {
-          req.flattenedComponents = util.flattenComponents(form.components, true);
           return done();
         });
       }, true);
@@ -227,13 +226,19 @@ module.exports = (router, resourceName, resourceId) => {
 
       // Next we need to validate the input.
       hook.alter('validateSubmissionForm', req.currentForm, req.body, async form => { // eslint-disable-line max-statements
-        // Get the submission model.
+        // Get the models for validation
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         const formModel = router.formio.resources.form.model;
         const tokenModel = router.formio.mongoose.models.token;
-
         // Validate the request.
-        const validator = new Validator(req, submissionModel, formModel, tokenModel, hook);
+        const validator = new Validator(
+          req,
+          submissionModel,
+          formModel,
+          tokenModel,
+          hook,
+          router.formio.config.vmTimeout
+        );
         await validator.validate(req.body, (err, data, visibleComponents) => {
           if (req.noValidate) {
             return done();
@@ -241,6 +246,8 @@ module.exports = (router, resourceName, resourceId) => {
           if (err) {
             return res.status(400).json(err);
           }
+
+          data = hook.alter('rehydrateValidatedSubmissionData', data, req);
 
           res.submission = {data: data};
           done();

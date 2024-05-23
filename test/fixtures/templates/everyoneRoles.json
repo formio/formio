@@ -29,6 +29,7 @@
       "type": "resource",
       "name": "a",
       "path": "a",
+      "pdfComponents": [],
       "tags": [],
       "submissionAccess": [
         {
@@ -48,6 +49,7 @@
       "type": "resource",
       "name": "b",
       "path": "b",
+      "pdfComponents": [],
       "tags": [],
       "submissionAccess": [],
       "access": [
@@ -93,6 +95,7 @@
       "type": "resource",
       "name": "c",
       "path": "c",
+      "pdfComponents": [],
       "tags": [],
       "submissionAccess": [],
       "access": [],

@@ -9,6 +9,16 @@ const debug = {
 };
 const util = require('../util/util');
 const moment = require('moment');
+const {
+  ConditionOperators,
+  filterComponentsForConditionComponentFieldOptions,
+  conditionOperatorsByComponentType,
+  allConditionOperatorsOptions,
+  getValueComponentsForEachField,
+  getValueComponentRequiredSettings,
+  rootLevelProperties,
+  rootLevelPropertiesOperatorsByPath,
+} = require('../util/conditionOperators');
 const {evaluate} = require('@formio/vm');
 const promisify = require('util').promisify;
 
@@ -179,7 +189,7 @@ module.exports = (router) => {
         }
 
         async.eachSeries(actions, (action, cb) => {
-          this.shouldExecute(action, req).then(execute => {
+          this.shouldExecute(action, req, res).then(execute => {
             if (!execute) {
               return cb();
             }
@@ -213,7 +223,7 @@ module.exports = (router) => {
       });
     },
 
-    async shouldExecute(action, req) {
+    async shouldExecute(action, req, res) {
       const condition = action.condition;
       if (!condition) {
         return true;
@@ -258,7 +268,8 @@ module.exports = (router) => {
               form: params.form,
               submission: params.submission,
               previous: params.previous,
-            }
+            },
+            timeout: router.formio.config.vmTimeout,
           });
 
           return result;
@@ -267,24 +278,19 @@ module.exports = (router) => {
           router.formio.log(
             'Error during executing action custom logic',
             req,
-            err
+            err.message || err
           );
-          debug.error(err);
+          debug.error(err.message || err);
           return false;
         }
       }
-      else {
-        if (_.isEmpty(condition.field) || _.isEmpty(condition.eq)) {
-          return true;
-        }
 
+      // Check if the action has a condition saved using the old format
+      if (!_.isEmpty(condition.field) && !_.isEmpty(condition.eq)) {
         // See if a condition is not established within the action.
         const field = condition.field || '';
         const eq = condition.eq || '';
-        const isDelete = req.method.toUpperCase() === 'DELETE';
-        const deletedSubmission = isDelete ? await getDeletedSubmission(req): false;
-        const value = isDelete? String(_.get(deletedSubmission, `data.${field}`, '')) :
-          String(_.get(req, `body.data.${field}`, ''));
+        const value = String(await getComponentValueFromRequest(req, res, field));
         const compare = String(condition.value || '');
         debug.action(
           '\nfield', field,
@@ -297,6 +303,36 @@ module.exports = (router) => {
         return (eq === 'equals') ===
           ((Array.isArray(value) && value.map(String).includes(compare)) || (value === compare));
       }
+      else if (_.some(condition.conditions || [], condition => condition.component && condition.operator)) {
+        const {conditions = [], conjunction = 'all'} = condition;
+
+        // Check all the conditions and save results to array
+        const conditionsResults = await Promise.all(conditions.map(async (cond) => {
+          const {value: comparedValue, operator} = cond;
+          let {component: conditionComponentPath} = cond;
+          const isRootLevelProperty = conditionComponentPath && conditionComponentPath.startsWith('(submission).');
+          conditionComponentPath = isRootLevelProperty ?
+            conditionComponentPath.replace('(submission).', '') :
+            conditionComponentPath;
+          const ConditionOperator = ConditionOperators[operator];
+          if (!conditionComponentPath || !ConditionOperator) {
+            return true;
+          }
+          const value = await getComponentValueFromRequest(req, res, conditionComponentPath, isRootLevelProperty);
+          let component;
+          if (req.currentForm.components && !isRootLevelProperty) {
+            component = util.FormioUtils.getComponent(req.currentForm.components, conditionComponentPath);
+          }
+          return new ConditionOperator().getResult({value, comparedValue, component});
+        }));
+
+        return conjunction === 'any' ?
+            _.some(conditionsResults, res => !!res) :
+            _.every(conditionsResults, res => !!res);
+      }
+
+      // If there are no conditions either in the old nor in the new format, allow executing an action
+      return true;
     },
   };
 
@@ -393,14 +429,25 @@ module.exports = (router) => {
         return cb('Could not load form components for conditional actions.');
       }
 
-      const filteredComponents = _.filter(router.formio.util.flattenComponents(form.components),
-        (component) => component.key && component.input === true);
+      const flattenedComponents = router.formio.util.flattenComponents(form.components);
 
-      const components = [{key: ''}].concat(filteredComponents);
-      const customPlaceholder =
-`// Example: Only execute if submitted roles has 'authenticated'.
-JavaScript: execute = (data.roles.indexOf('authenticated') !== -1);
-JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
+      const componentsOptionsForExtendedUi = filterComponentsForConditionComponentFieldOptions(flattenedComponents);
+      const fieldsOptionsForExtendedUi = [
+        ...componentsOptionsForExtendedUi,
+        ...rootLevelProperties.map(({value, label}) => ({value, label})),
+      ];
+      const flattenedComponentsForConditional = _.pick(
+          flattenedComponents,
+          componentsOptionsForExtendedUi.map(({value}) => value)
+      );
+      const valueComponentsByFieldPath = getValueComponentsForEachField(flattenedComponentsForConditional);
+      const valueComponent = getValueComponentRequiredSettings(valueComponentsByFieldPath);
+
+      const customPlaceholder = `
+        // Example: Only execute if submitted roles has 'authenticated'.
+        JavaScript: execute = (data.roles.indexOf('authenticated') !== -1);
+        JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }
+      `;
       conditionalSettings.components.push({
         type: 'container',
         key: 'condition',
@@ -415,56 +462,140 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
               {
                 components: [
                   {
+                    label: 'When',
+                    widget: 'choicesjs',
+                    tableView: true,
+                    data: {
+                      values: [
+                        {
+                          label: 'When all conditions are met',
+                          value: 'all',
+                        },
+                        {
+                          label: 'When any condition is met',
+                          value: 'any',
+                        },
+                      ],
+                    },
+                    key: 'conjunction',
                     type: 'select',
                     input: true,
-                    label: 'Trigger this action only if field',
-                    key: 'field',
-                    placeholder: 'Select the conditional field',
-                    template: '<span>{{ item.label || item.key }}</span>',
-                    dataSrc: 'json',
-                    data: {json: JSON.stringify(components)},
-                    valueProperty: 'key',
-                    multiple: false
                   },
                   {
-                    type : 'select',
-                    input : true,
-                    label : '',
-                    key : 'eq',
-                    placeholder : 'Select comparison',
-                    template : '<span>{{ item.label }}</span>',
-                    dataSrc : 'values',
-                    data : {
-                      values : [
-                        {
-                          value : '',
-                          label : ''
-                        },
-                        {
-                          value : 'equals',
-                          label : 'Equals'
-                        },
-                        {
-                          value : 'notEqual',
-                          label : 'Does Not Equal'
-                        }
-                      ],
-                      json : '',
-                      url : '',
-                      resource : ''
+                    label: 'Conditions',
+                    addAnotherPosition: 'bottom',
+                    key: 'conditions',
+                    type: 'editgrid',
+                    initEmpty: true,
+                    addAnother: 'Add Condition',
+                    templates: {
+                      header:`<div class="row">\n      {% util.eachComponent(components, function(component) { %}\n        {% if (displayValue(component)) { %}\n          <div class="col-sm-{{_.includes(['component'], component.key) ? '4' : '3'}}">{{ t(component.label) }}</div>\n        {% } %}\n      {% }) %}\n    </div>`,
+                      row: `<div class="row">\n      {% util.eachComponent(components, function(component) { %}\n        {% if (displayValue(component)) { %}\n          <div class="formio-builder-condition-text col-sm-{{_.includes(['component'], component.key) ? '4' : '3'}}">\n            {{ isVisibleInRow(component) ? getView(component, row[component.key]) : ''}}\n          </div>\n        {% } %}\n      {% }) %}\n      {% if (!instance.options.readOnly && !instance.disabled) { %}\n        <div class="col-sm-2">\n          <div class="btn-group pull-right">\n            <button class="btn btn-default btn-light btn-sm editRow"><i class="{{ iconClass('edit') }}"></i></button>\n            {% if (!instance.hasRemoveButtons || instance.hasRemoveButtons()) { %}\n              <button class="btn btn-danger btn-sm removeRow"><i class="{{ iconClass('trash') }}"></i></button>\n            {% } %}\n          </div>\n        </div>\n      {% } %}\n    </div>`,
                     },
-                    valueProperty : 'value',
-                    multiple : false
-                  },
-                  {
                     input: true,
-                    type: 'textfield',
-                    inputType: 'text',
-                    label: '',
-                    key: 'value',
-                    placeholder: 'Enter value',
-                    multiple: false
-                  }
+                    components: [
+                      {
+                        label: 'When:',
+                        widget: 'choicesjs',
+                        tableView: true,
+                        dataSrc: 'json',
+                        valueProperty: 'value',
+                        placeholder: 'Select Form Component',
+                        lazyLoad: false,
+                        data: {json: JSON.stringify(fieldsOptionsForExtendedUi)},
+                        key: 'component',
+                        type: 'select',
+                        input: true,
+                        logic: [
+                          {
+                            name: 'Show a tip when submission.created property is selected',
+                            trigger: {
+                              type: 'javascript',
+                              javascript: 'result = row.component === \'(submission).created\';\n',
+                            },
+                            actions: [
+                              {
+                                name: 'Show a tip',
+                                type: 'property',
+                                property: {
+                                  label: 'Description',
+                                  value: 'description',
+                                  type: 'string',
+                                },
+                                text: 'Notice that \'created\' property is not available when action is' +
+                                  ' triggered Before Create, so it won\'t be executed',
+                              },
+                            ],
+                          },
+                          {
+                            name: 'Show a tip when submission.modified property is selected',
+                            trigger: {
+                              type: 'javascript',
+                              javascript: 'result = row.component === \'(submission).modified\';\n',
+                            },
+                            actions: [
+                              {
+                                name: 'Show a tip',
+                                type: 'property',
+                                property: {
+                                  label: 'Description',
+                                  value: 'description',
+                                  type: 'string',
+                                },
+                                text: 'Notice that \'modified\' property is not available Before/After Create. It' +
+                                  ' also is not available or is equal to the last edit date Before Update and' +
+                                  ' Before/After Read. So make sure that you configure it properly.',
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                      {
+                        label: 'Is:',
+                        widget: 'choicesjs',
+                        tableView: true,
+                        dataSrc: 'custom',
+                        lazyLoad: false,
+                        placeholder: 'Select Comparison Operator',
+                        refreshOn: 'condition.conditions.component',
+                        clearOnRefresh: true,
+                        valueProperty: 'value',
+                        data: {
+                          custom:`
+                            const formComponents = ${JSON.stringify(flattenedComponents)};
+                            const rootLevelProperties = ${JSON.stringify(rootLevelPropertiesOperatorsByPath)};
+                            const isRootLevelProperty = row.component &&
+                              row.component.startsWith &&
+                              row.component.startsWith('(submission).');
+                            const conditionComponent = formComponents[row.component];
+                            let componentType = conditionComponent ? conditionComponent.type : 'base';
+                            if (isRootLevelProperty) {
+                              componentType = row.component;
+                            }
+                            const operatorsByComponentType = ${JSON.stringify({
+                              ...conditionOperatorsByComponentType,
+                              ...rootLevelPropertiesOperatorsByPath
+                            })};
+                            let operators = operatorsByComponentType[componentType];
+                            if (!operators || !operators.length) {
+                              operators = operatorsByComponentType.base;
+                            }
+                            const allOperators = ${JSON.stringify(allConditionOperatorsOptions)};
+
+                            values = allOperators.filter((operator) => operators.includes(operator.value));
+                          `
+                        },
+                        key: 'operator',
+                        type: 'select',
+                        input: true,
+                      },
+                      {
+                        type: 'textfield',
+                        inputFormat: 'plain',
+                        ...valueComponent,
+                      },
+                    ],
+                  },
                 ]
               },
               {
@@ -526,6 +657,7 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
             tree: false,
             key: 'conditions',
             legend: 'Action Execution',
+            hidden: mainSettings.components.length && mainSettings.components.every(({type})=> type === 'hidden'),
             components: mainSettings.components
           },
           {
@@ -585,6 +717,18 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
       debug.error(err);
       return false;
     }
+  }
+
+  async function getComponentValueFromRequest(req, res, field, isRootLevelProperty) {
+    const isDelete = req.method.toUpperCase() === 'DELETE';
+    const deletedSubmission = isDelete ? await getDeletedSubmission(req): false;
+    const fieldPath = isRootLevelProperty ? '' : 'data.';
+
+    const value = isDelete ? _.get(deletedSubmission, `${fieldPath}${field}`, '') :
+      _.get(res, `resource.item.${fieldPath}${field}`, '') ||
+      _.get(req, `body.${fieldPath}${field}`, '');
+
+    return value;
   }
 
   // Return a list of available actions.
@@ -649,7 +793,7 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
       });
 
       try {
-        getSettingsForm(action, req, (err, settings) => {
+        getSettingsForm(info, req, (err, settings) => {
           if (err) {
             router.formio.log('Error, can\'t get action settings', req, err);
             return res.status(400).send(err);
@@ -765,6 +909,24 @@ JSON: { "in": [ "authenticated", { "var": "data.roles" } ] }`;
   // Add specific middleware to individual endpoints.
   handlers['beforeDelete'] = handlers['beforeDelete'].concat([router.formio.middleware.deleteActionHandler]);
   handlers['afterIndex'] = handlers['afterIndex'].concat([indexPayload]);
+  handlers['afterGet'] = handlers['afterGet'].concat([
+    (req, res, next) => {
+      if (req.params && req.params.actionId && res.resource && res.resource.item) {
+        const action = res.resource.item;
+        if (action.condition && !_.isEmpty(action.condition.field) && !_.isEmpty(action.condition.eq)) {
+          action.condition = {
+            conjunction: 'all',
+            conditions: [{
+              component: action.condition.field,
+              operator: action.condition.eq === 'equals' ? 'isEqual' : 'isNotEqual',
+              value: action.condition.value,
+            }]
+          };
+        }
+      }
+      return next();
+    }
+  ]);
 
   /**
    * Create the REST properties using ResourceJS, as a nested resource of forms.
