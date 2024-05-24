@@ -21,7 +21,7 @@ module.exports = {
       "type": "address",
       "providerOptions": {
         "params": {
-          "key": "AIzaSyAb3phWudYkltC-MTdqoxlYRqKQ1BJYvVw",
+          "key": "GOOGLE_MAPS_API_KEY",
           "autocompleteOptions": {}
         }
       },

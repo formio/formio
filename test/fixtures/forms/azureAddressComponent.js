@@ -86,7 +86,7 @@ module.exports = {
       "providerOptions": {
         "params": {
           "autocompleteOptions": {},
-          "subscription-key": "GmlF67m8ZDnjjIltC4yg9snIis5jaRhjRfq-nmvszgc"
+          "subscription-key": "AZURE_API_KEY"
         }
       },
       "input": true,
