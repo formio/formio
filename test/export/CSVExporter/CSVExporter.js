@@ -1,6 +1,7 @@
 module.exports = function(app, template, hook) {
   const docker = process.env.DOCKER;
   const assert = require('assert');
+  const moment = require('moment-timezone');
   const Helper = require('../../helper')(app);
   let helper = null;
   const test = require('../../fixtures/forms/datetime-format.js');
@@ -10,7 +11,7 @@ module.exports = function(app, template, hook) {
   const testAzureAddress= require('../../fixtures/forms/azureAddressComponent');
   const testGoogleAddress= require('../../fixtures/forms/googleAddressComponent');
   const testNominatimAddress= require('../../fixtures/forms/nominatimAddressComponent');
-
+  const testTimeDate = require('../../fixtures/forms/timeDateComponent.js');
   function getComponentValue(exportedText, compKey, submissionIndex) {
     const rows = exportedText.split('\n');
     const headerRow = rows[0];
@@ -288,5 +289,72 @@ module.exports = function(app, template, hook) {
           });
         });
     });
+
+    it('Should export csv with date time component with display in timezone of submission', (done) => {
+      const currentDate = moment().utc().seconds(0).milliseconds(0);
+      const submissionDate = currentDate.format('YYYY-MM-DDTHH:mm:ssZ');
+      const formattedDate = currentDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form('testTimeDate', testTimeDate.formWithTimeDateWithSubmission.components)
+        .submission({
+          data: {
+                dateTime: submissionDate
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          
+          helper.getExport(helper.template.forms.testTimeDate, 'csv', (error, result) => {
+            if (error) {
+              return done(error);
+            }
+            const date = getComponentValue(result.text, 'dateTime', 0);
+            assert.strictEqual(date, `"${formattedDate}"`);
+
+            done();
+          });
+        });
+    });
+
+    it('Should export csv with date time component with display in timezone of submission in edit grid', (done) => {
+      const currentDate = moment().utc().seconds(0).milliseconds(0);
+      const submissionDate = currentDate.format('YYYY-MM-DDTHH:mm:ssZ');
+      const formattedDate = currentDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form('testTimeDateInEditGrid', testTimeDate.testDateTimeWithSubmissionInEditGrid.components)
+        .submission({
+          data: {
+            editGrid: [
+              {
+                dateTime: submissionDate
+              }
+            ]
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          
+          helper.getExport(helper.template.forms.testTimeDateInEditGrid, 'csv', (error, result) => {
+            if (error) {
+              return done(error);
+            }
+            const date = getComponentValue(result.text, 'editGrid.dateTime', 0);
+            assert.strictEqual(date, `"${formattedDate}"`);
+
+            done();
+          });
+        });
+    });
+
   });
 };
