@@ -148,6 +148,7 @@ module.exports = (router) => {
             'properties',
             'controller',
             'submissionRevisions',
+            'revisions',
             'esign',
             ...includeFormFields,
           );
