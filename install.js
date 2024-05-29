@@ -7,16 +7,10 @@ const nunjucks = require('nunjucks');
 nunjucks.configure([], {watch: false});
 const util = require('./src/util/util');
 const debug = require('debug')('formio:error');
-const path = require('path');
 
 module.exports = function(formio, items, done) {
   // The project that was created.
   let project = {};
-
-  // The directory for the client application.
-  const directories = {
-    client: path.join(__dirname, 'client')
-  };
 
   let templateFile = '';
 
