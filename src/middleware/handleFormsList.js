@@ -16,13 +16,11 @@ module.exports = function (router) {
         req.query._id = { $in: req.query.formIds.split(",")}
         delete req.query.formIds
       }
-      if(process.env.MULTI_TENANCY_ENABLED == "true"){
-        if(!req.token?.tenantKey && !req.isAdmin){
+      if(process.env.MULTI_TENANCY_ENABLED == "true" && !req.isAdmin){
+        if(!req.token?.tenantKey){
           return res.json([])
         }
-        if(!req.isAdmin){
-          req.query.tenantKey = req.token.tenantKey
-        }
+        req.query.tenantKey = req.token.tenantKey
       }
     }
     next()
