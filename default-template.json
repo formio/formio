@@ -252,6 +252,7 @@
           "key": "email",
           "lockKey": true,
           "label": "Email",
+          "labelPosition": "left-left",
           "inputType": "email",
           "tableView": true,
           "input": true
@@ -266,6 +267,7 @@
           "key": "password",
           "lockKey": true,
           "label": "Password",
+          "labelPosition": "left-left",
           "inputType": "password",
           "tableView": false,
           "input": true
@@ -275,7 +277,7 @@
           "theme": "primary",
           "disableOnInvalid": true,
           "action": "submit",
-          "block": false,
+          "block": true,
           "rightIcon": "",
           "leftIcon": "",
           "size": "md",
@@ -383,6 +385,7 @@
           "key": "email",
           "lockKey": true,
           "label": "Email",
+          "labelPosition": "left-left",
           "inputType": "email",
           "tableView": true,
           "input": true
@@ -397,6 +400,7 @@
           "key": "password",
           "lockKey": true,
           "label": "Password",
+          "labelPosition": "left-left",
           "inputType": "password",
           "tableView": false,
           "input": true
@@ -406,13 +410,14 @@
           "theme": "primary",
           "disableOnInvalid": true,
           "action": "submit",
-          "block": false,
+          "block": true,
           "rightIcon": "",
           "leftIcon": "",
           "size": "md",
           "key": "submit",
           "tableView": false,
           "label": "Submit",
+          "saveOnEnter": true,
           "input": true
         }
       ]

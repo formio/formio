@@ -8,7 +8,8 @@
     "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000 --no-node-snapshot --exit",
     "start": "node --no-node-snapshot main.js",
     "start:dev": "ADMIN_KEY=Sanford1 nodemon --no-node-snapshot main.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build": "cd client && yarn && yarn build && cd .."
   },
   "author": "support@form.io",
   "engines": {

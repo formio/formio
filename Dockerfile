@@ -9,6 +9,7 @@ FROM node:lts-alpine3.19
 # Copy source dependencies
 COPY src/ /app/src/
 COPY config/ /app/config
+COPY client/ /app/client/
 COPY *.js /app/
 COPY *.txt /app/
 COPY package.json /app/
@@ -27,9 +28,10 @@ RUN apk update && \
 # Use https to avoid requiring ssh keys for public repos.
 RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
-# Use "Continuous Integration" to install as-is from package-lock.json
-RUN yarn install
-
+# install dependencies
+RUN yarn
+# build the client application
+RUN yarn build
 RUN apk del git
 
 # Set this to inspect more from the application. Examples:
