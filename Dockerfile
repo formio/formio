@@ -13,6 +13,7 @@ COPY client/ /app/client/
 COPY *.js /app/
 COPY *.txt /app/
 COPY package.json /app/
+COPY default-template.json /app/
 
 WORKDIR /app
 

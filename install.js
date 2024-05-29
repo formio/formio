@@ -30,8 +30,8 @@ module.exports = function(formio, items, done) {
      */
     whatTemplate: function(done) {
       if (process.env.ROOT_EMAIL) {
-        templateFile = 'client';
-        done();
+        templateFile = './default-template.json';
+        return done();
       }
 
       let message = '\nWhich project template would you like to install?\n'.green;
@@ -42,7 +42,7 @@ module.exports = function(formio, items, done) {
         {
           name: 'templateFile',
           description: 'Enter a local file path or press Enter for the default template.',
-          default: 'src/templates/default.json',
+          default: './default-template.json',
           required: true
         }
       ], function(err, results) {
