@@ -6,7 +6,7 @@
   "allowedOrigins": ["*"],
   "domain": "http://localhost:3001",
   "basePath": "",
-  "mongo": "mongodb://localhost:27017/oss-formio2",
+  "mongo": "mongodb://localhost:27017/oss-formio",
   "mongoConfig": "",
   "mongoCA": "",
   "mongoSecret": "--- change me now ---",
