@@ -17,10 +17,12 @@ module.exports = function (router) {
         delete req.query.formIds
       }
       if(process.env.MULTI_TENANCY_ENABLED == "true"){
-        if(!req.token?.tenantKey){
+        if(!req.token?.tenantKey && !req.isAdmin){
           return res.json([])
         }
-        req.query.tenantKey = req.token.tenantKey
+        if(!req.isAdmin){
+          req.query.tenantKey = req.token.tenantKey
+        }
       }
     }
     next()
