@@ -4,7 +4,6 @@
 .idea
 bower_components
 node_modules
-app*
 npm-debug.log
 client/node_modules
 client/dist
