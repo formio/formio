@@ -1083,7 +1083,7 @@ module.exports = (app, template, hook) => {
       };
 
       let numTests = 0;
-      const newEmailTest = (settings, done) => {
+      const newEmailTest = (settings, done, addSettings = {}) => {
         numTests++;
         settings.transport = 'test';
         let testForm = _.assign(_.cloneDeep(emailForm), {
@@ -1093,7 +1093,7 @@ module.exports = (app, template, hook) => {
         });
         let testAction = _.assign(_.cloneDeep(emailAction), {
           settings,
-        });
+        }, addSettings);
 
         // Create the form.
         request(app)
@@ -1509,6 +1509,61 @@ module.exports = (app, template, hook) => {
               }
             });
         });
+      });
+
+      it('Should send correct email for each handler', (done) => {
+        const amountOfEmails = 2;
+
+        const addSettings = {
+          handler: ['before', 'after'],
+        }
+
+        newEmailTest({
+          from: 'travis@form.io',
+          replyTo: 'reply@example.com',
+          emails: '{{ data.email }}',
+          sendEach: false,
+          subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
+          message: 'Howdy, {{ data.firstName }}',
+        }, (err, testForm) => {
+          if (err) {
+            return done(err);
+          }
+
+          // Check for an email.
+          const event = template.hooks.getEmitter();
+          let emailCount = 0;
+          event.on('newMail', (email) => {
+            assert.equal(email.html, 'Howdy, Test');
+            assert.equal(email.from, 'travis@form.io');
+            assert.equal(email.to, 'test@example.com');
+            assert.equal(email.subject, 'Hello there Test Person');
+            assert.equal(email.replyTo, 'reply@example.com');
+            emailCount += 1;
+            if (emailCount === amountOfEmails) {
+              event.removeAllListeners('newMail');
+              done();
+            }
+          });
+
+          request(app)
+            .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
+            .set('x-jwt-token', adminUser().token)
+            .send({
+              data: {
+                firstName: 'Test',
+                lastName: 'Person',
+                email: 'test@example.com',
+              },
+            })
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end((err) => {
+              if (err) {
+                done(err);
+              }
+            });
+        }, addSettings);
       });
 
       if (template.users.formioAdmin) {
