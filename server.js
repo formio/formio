@@ -67,7 +67,7 @@ module.exports = function(options) {
     }));
   }
   // Mount the client application.
-  app.use('/', express.static(path.join(__dirname, '/client/dist')));
+  app.use('/', express.static(path.join(__dirname, '/portal/dist')));
 
   // Load the form.io server.
   const server = options.server || require('./index')(config);
@@ -77,16 +77,6 @@ module.exports = function(options) {
   server.init(hooks).then(function(formio) {
     // Called when we are ready to start the server.
     const start = function() {
-      // Start the application.
-      if (fs.existsSync('app')) {
-        const application = express();
-        application.use('/', express.static(path.join(__dirname, '/app/dist')));
-        config.appPort = config.appPort || 8080;
-        application.listen(config.appPort);
-        const appHost = `http://localhost:${config.appPort}`;
-        util.log(` > Serving application at ${appHost.green}`);
-      }
-
       // Mount the Form.io API platform.
       app.use(options.mount || '/', server);
 
@@ -102,25 +92,15 @@ module.exports = function(options) {
 
     // Which items should be installed.
     const install = {
-      download: false,
-      extract: false,
       import: false,
       user: false
     };
-
-    // Check for the client folder.
-    if (!fs.existsSync('client') && !test && !noInstall) {
-      install.download = true;
-      install.extract = true;
-    }
 
     // See if they have any forms available.
     formio.db.collection('forms').estimatedDocumentCount(function(err, numForms) {
       // If there are forms, then go ahead and start the server.
       if ((!err && numForms > 0) || test || noInstall) {
-        if (!install.download && !install.extract) {
-          return start();
-        }
+        return start();
       }
 
       // Import the project and create the user.
