@@ -4,7 +4,8 @@ const {
   ProcessTargets,
   process,
   interpolateErrors,
-  escapeRegExCharacters
+  escapeRegExCharacters,
+  Utils,
 } = require('@formio/core');
 const {evaluateProcess} = require('@formio/vm');
 const util = require('../util/util');
@@ -179,6 +180,15 @@ class Validator {
     });
   }
 
+  /**
+   * Get resource components from a data table, filtered by used components into the data table.
+   * Added filtering to prevent passing all resource components to @formio/core processes.
+   *
+   * @param {Object} component
+   *   The data table component.
+   * @returns {Array<Object>}
+   *   The filtered resource components from a data table.
+   */
   async dereferenceDataTableComponent(component) {
     if (
       component.type !== 'datatable'
@@ -194,7 +204,20 @@ class Validator {
     if (!resource) {
       throw new Error(`Resource at ${resourceId} not found for dereferencing`);
     }
-    return resource.components || [];
+    const dataTableComponents = (component.fetch.components || [])
+      .map(component => Utils.getComponent(resource.components || [], component.path));
+
+    const filterComponents = (component) => {
+      if (!component.components) {
+        return component;
+      }
+      component.components = component.components
+        .map(component => filterComponents(component))
+        .filter(component => dataTableComponents.includes(component) || component.components?.length > 0);
+      return component;
+    };
+
+    return filterComponents(resource).components || [];
   }
 
   /**
