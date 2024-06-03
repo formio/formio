@@ -180,6 +180,15 @@ class Validator {
     });
   }
 
+  /**
+   * Get resource components from a data table, filtered by used components into the data table.
+   * Added filtering to prevent passing all resource components to @formio/core processes.
+   *
+   * @param {Object} component
+   *   The data table component.
+   * @returns {Array<Object>}
+   *   The filtered resource components from a data table.
+   */
   async dereferenceDataTableComponent(component) {
     if (
       component.type !== 'datatable'
