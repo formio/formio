@@ -5,5 +5,5 @@
 bower_components
 node_modules
 npm-debug.log
-client/node_modules
-client/dist
+portal/node_modules
+portal/dist
