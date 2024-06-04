@@ -570,28 +570,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.0.0-rc.20":
-  version "2.0.0-rc.20"
-  resolved "https://registry.npmjs.org/@formio/core/-/core-2.0.0-rc.20.tgz#34b55a5973cdc65b33563eab8ff5c1f35573397b"
-  integrity sha512-PwlRqtIuyBldFGJ4jGb/+59o7/o1ZMkpRosKmkiMVdZKI0OjZpIJ0U/w6PzUbFny07DaZF0wwfFiJYrZs/z+0w==
-  dependencies:
-    "@types/json-logic-js" "^2.0.5"
-    browser-cookies "^1.2.0"
-    core-js "^3.33.2"
-    dayjs "^1.11.10"
-    dompurify "^3.0.6"
-    eventemitter3 "^5.0.0"
-    fast-json-patch "^3.1.1"
-    fetch-ponyfill "^7.1.0"
-    inputmask "^5.0.9-beta.45"
-    json-logic-js "^2.0.2"
-    lodash "^4.17.21"
-    moment "^2.29.4"
-
-"@formio/core@^2.0.0-rc.19":
-  version "2.0.0-rc.20-dev.60.3e73af8"
-  resolved "https://registry.npmjs.org/@formio/core/-/core-2.0.0-rc.20-dev.60.3e73af8.tgz#b6584295c32057949ea9aa0d1d1ab9c086a4de17"
-  integrity sha512-PmQfSzeYAmBOcqqTbiAG3JHooZna+zphl5/HHLaZ/rKrERolZkcyHkzHhSJ0lPKgzEA1MUa7rfB8KSGlPey62A==
+"@formio/core@2.0.0-dev.71.013793a":
+  version "2.0.0-dev.71.013793a"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-dev.71.013793a.tgz#63f814c9863f86a80523faa2f203e916e700f0ec"
+  integrity sha512-K2QsZisSQ+r/mYyLlKPvn+ITqgdDcwhEr2oL9dwiIMiGCeIA7c6NPM71oGpVLXLG6BRui53YRxKBuZ2TpxVyZQ==
   dependencies:
     "@types/json-logic-js" "^2.0.5"
     browser-cookies "^1.2.0"
@@ -631,12 +613,12 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@^0.0.7-rc.11":
-  version "0.0.7-rc.13"
-  resolved "https://registry.npmjs.org/@formio/vm/-/vm-0.0.7-rc.13.tgz#a2abd2dedcc94a9653fdafa48cf81e1d09ed0944"
-  integrity sha512-Jq/KI/piOmR0HKYw51P1Ef8ytpDT6pPtzPIn3BFQbPbU6SoEZTFPfI6crjKZfrWpBFHXfUzO7czGZo6EbuSIjQ==
+"@formio/vm@0.0.7-dev.20.717e1bf":
+  version "0.0.7-dev.20.717e1bf"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.0.7-dev.20.717e1bf.tgz#a40ca9fc80e237feb0f2fec1c140fca91df79cbb"
+  integrity sha512-EhOukcccbh0U5Ima9yzUaiXumvLk9M3BSwRfd5dKR2ZY+wFzh01o1pkYAk+D5ebQ0UseiyalTdTwrpb1gTmazg==
   dependencies:
-    "@formio/core" "2.0.0-rc.20"
+    "@formio/core" "2.0.0-dev.71.013793a"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
@@ -2546,6 +2528,11 @@ ini@~1.3.0:
   resolved "https://registry.npmjs.org/ini/-/ini-1.3.8.tgz#a29da425b48806f34767a4efce397269af28432c"
   integrity sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==
 
+inputmask@^5.0.8:
+  version "5.0.8"
+  resolved "https://registry.yarnpkg.com/inputmask/-/inputmask-5.0.8.tgz#cd0f70b058c3291a0d4f27de25dbfc179c998bb4"
+  integrity sha512-1WcbyudPTXP1B28ozWWyFa6QRIUG4KiLoyR6LFHlpT4OfTzRqFfWgHFadNvRuMN1S9XNVz9CdNvCGjJi+uAMqQ==
+
 inputmask@^5.0.9-beta.45:
   version "5.0.9-beta.45"
   resolved "https://registry.npmjs.org/inputmask/-/inputmask-5.0.9-beta.45.tgz#2699ebfd1e99f572815fb8f2ac23c548198f9ec6"
@@ -2572,6 +2559,13 @@ is-binary-path@~2.1.0:
   integrity sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==
   dependencies:
     binary-extensions "^2.0.0"
+
+is-core-module@^2.13.0:
+  version "2.13.1"
+  resolved "https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.13.1.tgz#ad0d7532c6fea9da1ebdc82742d74525c6273384"
+  integrity sha512-hHrIjvZsftOsvKSn2TRYl63zvxsgE0K+0mYMoH6gD4omR5IWB2KynivBQczo3+wF1cCkjzvptnI9Q0sPU66ilw==
+  dependencies:
+    hasown "^2.0.0"
 
 is-extglob@^2.1.1:
   version "2.1.1"
@@ -3315,6 +3309,11 @@ path-key@^3.1.0:
   resolved "https://registry.npmjs.org/path-key/-/path-key-3.1.1.tgz#581f6ade658cbba65a0d3380de7753295054f375"
   integrity sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q==
 
+path-parse@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.7.tgz#fbc114b60ca42b30d9daf5858e4bd68bbedb6735"
+  integrity sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==
+
 path-to-regexp@0.1.7:
   version "0.1.7"
   resolved "https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-0.1.7.tgz#df604178005f522f15eb4490e7247a1bfaa67f8c"
@@ -3557,6 +3556,15 @@ resolve-from@^4.0.0:
   resolved "https://registry.npmjs.org/resolve-from/-/resolve-from-4.0.0.tgz#4abcd852ad32dd7baabfe9b40e00a36db5f392e6"
   integrity sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==
 
+resolve@^1.22.8:
+  version "1.22.8"
+  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.22.8.tgz#b6c87a9f2aa06dfab52e3d70ac8cde321fa5a48d"
+  integrity sha512-oKWePCxqpd6FlLvGV1VU0x7bkPmmCNolxzjMf4NczoDnQcIWrAF+cPtZn5i6n+RfD2d9i0tzpKnG6Yk168yIyw==
+  dependencies:
+    is-core-module "^2.13.0"
+    path-parse "^1.0.7"
+    supports-preserve-symlinks-flag "^1.0.0"
+
 resourcejs@^2.5.0:
   version "2.6.0"
   resolved "https://registry.npmjs.org/resourcejs/-/resourcejs-2.6.0.tgz#98287ca9698065cc282c015f7d78a78508f6ae18"
@@ -3610,19 +3618,19 @@ safe-buffer@~5.1.0, safe-buffer@~5.1.1:
 
 semver@^5.7.1:
   version "5.7.2"
-  resolved "https://registry.npmjs.org/semver/-/semver-5.7.2.tgz#48d55db737c3287cd4835e17fa13feace1c41ef8"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.2.tgz#48d55db737c3287cd4835e17fa13feace1c41ef8"
   integrity sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==
 
 semver@^7.3.5, semver@^7.3.8, semver@^7.5.4:
   version "7.6.0"
-  resolved "https://registry.npmjs.org/semver/-/semver-7.6.0.tgz#1a46a4db4bffcccd97b743b5005c8325f23d4e2d"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.6.0.tgz#1a46a4db4bffcccd97b743b5005c8325f23d4e2d"
   integrity sha512-EnwXhrlwXMk9gKu5/flx5sv/an57AkRplG3hTK68W7FRDN+k+OWBj65M7719OkA82XLBxrcX0KSHj+X5COhOVg==
   dependencies:
     lru-cache "^6.0.0"
 
 semver@~7.0.0:
   version "7.0.0"
-  resolved "https://registry.npmjs.org/semver/-/semver-7.0.0.tgz#5f3ca35761e47e05b206c6daff2cf814f0316b8e"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.0.0.tgz#5f3ca35761e47e05b206c6daff2cf814f0316b8e"
   integrity sha512-+GB6zVA9LWh6zovYQLALHwv5rb2PHGlJi3lfiqIHxR0uuwCgefcOJc59v9fv1w8GbStwxuuqqAjI9NMAOOgq1A==
 
 send@0.18.0:
@@ -3903,6 +3911,11 @@ supports-color@^7.1.0:
   integrity sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
   dependencies:
     has-flag "^4.0.0"
+
+supports-preserve-symlinks-flag@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
+  integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
 tar-fs@^2.0.0:
   version "2.1.1"

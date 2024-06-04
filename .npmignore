@@ -1,7 +1,6 @@
 .idea
 bower_components
 node_modules
-test
 .github
 .circleci
 .vscode
@@ -10,3 +9,4 @@ docker-compose.yml
 .eslintrc
 .bithoundrc
 .eslintignore
+.dccache

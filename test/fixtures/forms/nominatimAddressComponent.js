@@ -1,75 +1,214 @@
 module.exports = {
-  components: [
+  "components": [
     {
-      label: "Address",
-      enableManualMode: true,
-      tableView: true,
-      defaultValue: {},
-      allowCalculateOverride: true,
-      provider: "nominatim",
-      validate: {
-        json: "\"\""
+      "label": "Address",
+      "enableManualMode": true,
+      "tableView": true,
+      "defaultValue": {
+        "mode": "autocomplete",
+        "address": {}
       },
-      errors: "\"\"",
-      key: "address",
-      conditional: {
+      "allowCalculateOverride": true,
+      "provider": "nominatim",
+      "validate": {
         "json": "\"\""
       },
-      type: "address",
-      providerOptions: {
-        params: {}
+      "errors": "\"\"",
+      "key": "addressWithMode",
+      "conditional": {
+        "json": "\"\""
       },
-      input: true,
+      "type": "address",
+      "providerOptions": {
+        "params": {}
+      },
+      "input": true,
+      "components": [
+        {
+          "label": "Address 1",
+          "tableView": false,
+          "key": "address1",
+          "type": "textfield",
+          "input": true,
+          "customConditional": "show = _.get(instance, 'parent.manualMode', false);"
+        },
+        {
+          "label": "Address 2",
+          "tableView": false,
+          "key": "address2",
+          "type": "textfield",
+          "input": true,
+          "customConditional": "show = _.get(instance, 'parent.manualMode', false);"
+        },
+        {
+          "label": "City",
+          "tableView": false,
+          "key": "city",
+          "type": "textfield",
+          "input": true,
+          "customConditional": "show = _.get(instance, 'parent.manualMode', false);"
+        },
+        {
+          "label": "State",
+          "tableView": false,
+          "key": "state",
+          "type": "textfield",
+          "input": true,
+          "customConditional": "show = _.get(instance, 'parent.manualMode', false);"
+        },
+        {
+          "label": "Country",
+          "tableView": false,
+          "key": "country",
+          "type": "textfield",
+          "input": true,
+          "customConditional": "show = _.get(instance, 'parent.manualMode', false);"
+        },
+        {
+          "label": "Zip Code",
+          "tableView": false,
+          "key": "zip",
+          "type": "textfield",
+          "input": true,
+          "customConditional": "show = _.get(instance, 'parent.manualMode', false);"
+        }
+      ]
     },
     {
-      type: "button",
-      label: "Submit",
-      key: "submit",
-      disableOnInvalid: true,
-      input: true,
-      tableView: false,
+      "label": "Address2",
+      "tableView": false,
+      "provider": "nominatim",
+      "key": "address",
+      "type": "address",
+      "providerOptions": {
+        "params": {}
+      },
+      "input": true,
+      "components": [
+        {
+          "label": "Address 1",
+          "tableView": false,
+          "key": "address1",
+          "type": "textfield",
+          "input": true,
+          "customConditional": "show = _.get(instance, 'parent.manualMode', false);"
+        },
+        {
+          "label": "Address 2",
+          "tableView": false,
+          "key": "address2",
+          "type": "textfield",
+          "input": true,
+          "customConditional": "show = _.get(instance, 'parent.manualMode', false);"
+        },
+        {
+          "label": "City",
+          "tableView": false,
+          "key": "city",
+          "type": "textfield",
+          "input": true,
+          "customConditional": "show = _.get(instance, 'parent.manualMode', false);"
+        },
+        {
+          "label": "State",
+          "tableView": false,
+          "key": "state",
+          "type": "textfield",
+          "input": true,
+          "customConditional": "show = _.get(instance, 'parent.manualMode', false);"
+        },
+        {
+          "label": "Country",
+          "tableView": false,
+          "key": "country",
+          "type": "textfield",
+          "input": true,
+          "customConditional": "show = _.get(instance, 'parent.manualMode', false);"
+        },
+        {
+          "label": "Zip Code",
+          "tableView": false,
+          "key": "zip",
+          "type": "textfield",
+          "input": true,
+          "customConditional": "show = _.get(instance, 'parent.manualMode', false);"
+        }
+      ]
     },
+    {
+      "key": "submit",
+      "type": "button",
+      "input": true,
+      "label": "Submit",
+      "tableView": false,
+      "disableOnInvalid": true
+    }
   ],
+
   submission: {
     "data": {
-      "textField": "Test",
-      "address": {
+      "addressWithMode": {
         "mode": "autocomplete",
         "address": {
-          "place_id": 308320215,
-          "licence": "Data © OpenStreetMap contributors, ODbL 1.0. https://osm.org/copyright",
+          "place_id": 313229521,
+          "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
           "osm_type": "relation",
-          "osm_id": 1543125,
-          "boundingbox": [
-            "20.2145811",
-            "35.8984245",
-            "135.8536855",
-            "154.205541"
-          ],
-          "lat": "35.6840574",
-          "lon": "139.7744912",
-          "display_name": "Tokyo, Japan",
+          "osm_id": 165479,
+          "lat": "47.2868352",
+          "lon": "-120.212613",
           "class": "boundary",
           "type": "administrative",
-          "importance": 0.8693311914925306,
-          "icon": "https://nominatim.openstreetmap.org/ui/mapicons/poi_boundary_administrative.p.20.png",
+          "place_rank": 8,
+          "importance": 0.7129297923155674,
+          "addresstype": "state",
+          "name": "Washington",
+          "display_name": "Washington, United States",
           "address": {
-            "city": "Tokyo",
-            "ISO3166-2-lvl4": "JP-13",
-            "country": "Japan",
-            "country_code": "jp"
+            "state": "Washington",
+            "ISO3166-2-lvl4": "US-WA",
+            "country": "United States",
+            "country_code": "us"
           },
-          "address1": "",
-          "address2": "",
-          "city": "",
-          "state": "",
-          "country": "",
-          "zip": ""
+          "boundingbox": [
+            "45.5437314",
+            "49.0024392",
+            "-124.8360916",
+            "-116.9159938"
+          ]
         }
       },
+      "address": {
+        "place_id": 390059406,
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "osm_type": "relation",
+        "osm_id": 175905,
+        "lat": "40.7127281",
+        "lon": "-74.0060152",
+        "class": "boundary",
+        "type": "administrative",
+        "place_rank": 10,
+        "importance": 0.8175766114518461,
+        "addresstype": "city",
+        "name": "New York",
+        "display_name": "New York, United States",
+        "address": {
+          "city": "New York",
+          "state": "New York",
+          "ISO3166-2-lvl4": "US-NY",
+          "country": "United States",
+          "country_code": "us"
+        },
+        "boundingbox": [
+          "40.4765780",
+          "40.9176300",
+          "-74.2588430",
+          "-73.7002330"
+        ]
+      },
       "submit": true
+
     },
-    "state": "submitted",
-    "_vnote": ""
-  }
-};
+  },
+  "state": "submitted",
+  "_vnote": ""
+}

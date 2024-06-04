@@ -70,5 +70,6 @@ describe('Initialization', function() {
     require('./submission')(app, template, hook);
     require('./export/CSVExporter/CSVExporter')(app, template, hook);
     require('./unit')(app, template, hook);
+    require('./validator')(app, template, hook);
   });
 });

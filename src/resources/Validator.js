@@ -5,7 +5,8 @@ const {
   process,
   interpolateErrors,
   escapeRegExCharacters,
-  serverRules
+  serverRules,
+  Utils,
 } = require('@formio/core');
 const {evaluateProcess} = require('@formio/vm');
 const util = require('../util/util');
@@ -23,7 +24,7 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(req, submissionModel, formModel, tokenModel, hook) {
+  constructor(req, submissionModel, formModel, tokenModel, hook, timeout = 500) {
     const tokens = {};
     const token = util.getRequestValue(req, 'x-jwt-token');
     if (token) {
@@ -48,6 +49,7 @@ class Validator {
     this.decodedToken = req.token;
     this.tokens = tokens;
     this.hook = hook;
+    this.timeout = timeout;
   }
 
   addPathQueryParams(pathQueryParams, query, path) {
@@ -177,7 +179,20 @@ class Validator {
     if (!resource) {
       throw new Error(`Resource at ${resourceId} not found for dereferencing`);
     }
-    return resource.components || [];
+    const dataTableComponents = (component.fetch.components || [])
+      .map(component => Utils.getComponent(resource.components || [], component.path));
+
+    const filterComponents = (component) => {
+      if (!component.components) {
+        return component;
+      }
+      component.components = component.components
+        .map(component => filterComponents(component))
+        .filter(component => dataTableComponents.includes(component) || component.components?.length > 0);
+      return component;
+    };
+
+    return filterComponents(resource).components || [];
   }
 
   /**
@@ -230,6 +245,7 @@ class Validator {
       await process(context);
       submission.data = context.data;
 
+      const additionalDeps = this.hook.alter('dynamicVmDependencies', [], this.form);
       // Process the evaulator
       const {scope, data} = await evaluateProcess({
         ...(config || {}),
@@ -237,7 +253,9 @@ class Validator {
         submission,
         scope: context.scope,
         token: this.tokens['x-jwt-token'],
-        tokens: this.tokens
+        tokens: this.tokens,
+        timeout: this.timeout,
+        additionalDeps
       });
       context.scope = scope;
       submission.data = data;

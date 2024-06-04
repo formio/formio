@@ -1,0 +1,83 @@
+{
+  "title": "Select w/ Resource dataSrc & defaultValue No Resources Export",
+  "version": "2.0.0",
+  "name": "selectWithResourceDataSrcAndDefaultValueNoResourcesExport",
+  "roles": {},
+  "forms": {
+      "selectWithResourceDataSrcAndDefaultValueNoResourcesExport": {
+          "title": "Select w/ Resource dataSrc & defaultValue No Resources Export",
+          "type": "form",
+          "name": "selectWithResourceDataSrcAndDefaultValueNoResourcesExport",
+          "path": "selectwithresourcedatasrcanddefaultvaluenoresourcesexport",
+          "pdfComponents": [],
+          "tags": [],
+          "access": [
+            {
+              "type": "read_all",
+              "roles": [
+                "anonymous"
+              ]
+            }
+          ],
+          "submissionAccess": [
+            {
+              "type": "create_own",
+              "roles": [
+                "anonymous"
+              ]
+            }
+          ],
+          "components": [
+            {
+              "label": "Customer Name",
+              "widget": "choicesjs",
+              "tableView": true,
+              "dataSrc": "resource",
+              "data": {
+                  "resource": "customer"
+              },
+              "template": "\u003Cspan\u003E{{ item.data.name }}\u003C/span\u003E",
+              "key": "customerName",
+              "type": "select",
+              "noRefreshOnScroll": false,
+              "addResource": false,
+              "reference": true,
+              "input": true,
+              "defaultValue": {
+                "_id": "66158925427fb151bc0e9853",
+                "form": "6615890e427fb151bc0e974d",
+                "owner": "661588be427fb151bc0e95a0",
+                "roles": [],
+                "access": [],
+                "metadata": {
+                  "timezone": "America/Chicago",
+                  "offset": -300,
+                  "origin": "http://localhost:3000",
+                  "referrer": "",
+                  "browserName": "Netscape"
+                },
+                "data": {
+                  "name": "Jim"
+                },
+                "_fvid": 0,
+                "project": "661588de427fb151bc0e9663",
+                "state": "submitted",
+                "externalIds": [],
+                "created": "2024-04-09T18:29:57.822Z",
+                "modified": "2024-04-09T18:29:57.823Z"
+              }
+            },
+            {
+              "type": "button",
+              "label": "Submit",
+              "key": "submit",
+              "disableOnInvalid": true,
+              "input": true,
+              "tableView": false
+            }
+          ]
+        }
+  },
+  "actions": {},
+  "resources": {}
+}

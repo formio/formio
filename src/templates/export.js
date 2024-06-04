@@ -138,6 +138,7 @@ module.exports = (router) => {
             'type',
             'name',
             'path',
+            'pdfComponents',
             'display',
             'action',
             'tags',
@@ -173,6 +174,16 @@ module.exports = (router) => {
             }
             if (component && component.project) {
               component.project = 'project';
+            }
+            // During export if select component
+            // data type resource de-ref defaultValue
+            if (
+              component
+              && component.type === 'select'
+              && component.dataSrc === 'resource'
+              && component.defaultValue
+            ) {
+              component.defaultValue = undefined;
             }
 
             if (component.hasOwnProperty('form') && component.revision) {
@@ -278,6 +289,7 @@ module.exports = (router) => {
                     'type',
                     'name',
                     'path',
+                    'pdfComponents',
                     'display',
                     'action',
                     'tags',
