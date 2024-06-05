@@ -125,12 +125,11 @@
     uuid "^9.0.0"
     vanilla-picker "^2.12.3"
 
-"@formio/react@6.0.0-dev.568.4846429":
-  version "6.0.0-dev.568.4846429"
-  resolved "https://registry.yarnpkg.com/@formio/react/-/react-6.0.0-dev.568.4846429.tgz#b748335d05d6eda36d0f90e323038a0abc37a423"
-  integrity sha512-MiKU0xZWw/mZW4bwizDSnqTKgaimjlAs6lDO7dhmEnElrWRUAw+ljWS91Dyw00tIZr/vCOdEiO8JBWA7dNGdDg==
+"@formio/react@6.0.0-dev.568.cb63fcb":
+  version "6.0.0-dev.568.cb63fcb"
+  resolved "https://registry.yarnpkg.com/@formio/react/-/react-6.0.0-dev.568.cb63fcb.tgz#42098ca49962cb87f81828fb4f1b7175f53b6135"
+  integrity sha512-lDhlQRizKICGWMcRUKjA6TakYBdWUuobLL/IjQsfKyzYI4gc5gGJgQ5MufNhumR4NJA9NeaeUyGnO7AYOOOgCQ==
   dependencies:
-    "@tanstack/react-table" "^8.17.3"
     core-js "^3.35.1"
     lodash "^4.17.21"
     prop-types "^15.8.1"
@@ -239,18 +238,6 @@
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/@sphinxxxx/color-conversion/-/color-conversion-2.2.2.tgz#03ecc29279e3c0c832f6185a5bfa3497858ac8ca"
   integrity sha512-XExJS3cLqgrmNBIP3bBw6+1oQ1ksGjFh0+oClDKFYpCCqx/hlqwWO5KO/S63fzUo67SxI9dMrF0y5T/Ey7h8Zw==
-
-"@tanstack/react-table@^8.17.3":
-  version "8.17.3"
-  resolved "https://registry.yarnpkg.com/@tanstack/react-table/-/react-table-8.17.3.tgz#4e10b4cf5355a40d6d72a83d3f4b3ecd32f56bf4"
-  integrity sha512-5gwg5SvPD3lNAXPuJJz1fOCEZYk9/GeBFH3w/hCgnfyszOIzwkwgp5I7Q4MJtn0WECp84b5STQUDdmvGi8m3nA==
-  dependencies:
-    "@tanstack/table-core" "8.17.3"
-
-"@tanstack/table-core@8.17.3":
-  version "8.17.3"
-  resolved "https://registry.yarnpkg.com/@tanstack/table-core/-/table-core-8.17.3.tgz#d7a9830abb29cd369b52b2a7159dc0360af646fd"
-  integrity sha512-mPBodDGVL+fl6d90wUREepHa/7lhsghg2A3vFpakEhrhtbIlgNAZiMr7ccTgak5qbHqF14Fwy+W1yFWQt+WmYQ==
 
 "@types/eslint-scope@^3.7.3":
   version "3.7.7"
