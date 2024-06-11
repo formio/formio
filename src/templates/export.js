@@ -290,6 +290,7 @@ module.exports = (router) => {
                     'properties',
                     'controller',
                     'submissionRevisions',
+                    'esign',
                     '_vid',
                     ...includeFormFields
                   );
