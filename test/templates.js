@@ -4,6 +4,7 @@ let assert = require('assert');
 let _ = require('lodash');
 let formioUtils = require('formiojs/utils').default;
 var docker = process.env.DOCKER;
+const ignoredFormProps = ['revisions', 'submissionRevisions', 'esign'];
 
 module.exports = (app, template, hook) => {
   describe('Template Imports', function() {
@@ -128,7 +129,7 @@ module.exports = (app, template, hook) => {
           assert.equal(form.hasOwnProperty('machineName'), true);
 
           let machineName = form.machineName;
-          let tempForm = _.omit(form, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner', '_vid', 'revisions', 'submissionRevisions']);
+          let tempForm = _.omit(form, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner', '_vid', ...ignoredFormProps]);
 
           tempForm.access = tempForm.access.map(access => {
             access.roles = access.roles.map(role => {
@@ -281,8 +282,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -405,8 +406,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -532,8 +533,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -659,8 +660,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -786,8 +787,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -913,8 +914,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -1040,8 +1041,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -1167,8 +1168,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -1294,8 +1295,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -1421,8 +1422,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -1548,8 +1549,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -1679,8 +1680,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -1819,8 +1820,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -1932,8 +1933,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -2059,8 +2060,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -2187,8 +2188,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -2315,8 +2316,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -2444,8 +2445,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -2572,8 +2573,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -2700,8 +2701,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -2827,8 +2828,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -2954,8 +2955,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -3081,8 +3082,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -3213,8 +3214,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -3340,8 +3341,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -3467,8 +3468,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -3595,8 +3596,8 @@ module.exports = (app, template, hook) => {
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ['submissionRevisions']));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ['submissionRevisions']));
+            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
             return done();
           });
         });
@@ -3736,9 +3737,9 @@ module.exports = (app, template, hook) => {
       });
 
       it('All the forms should be imported', function(done) {
-        assert.deepEqual(_.omit(project.forms.inner, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', '_vid', 'project', 'revisions', 'submissionRevisions']),
+        assert.deepEqual(_.omit(project.forms.inner, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', '_vid', 'project', ...ignoredFormProps]),
         _.omit(testTemplate.forms.inner, ['revisions']));
-        assert.deepEqual(_.omit(project.forms.outer, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', 'components', '_vid', 'project', 'revisions', 'submissionRevisions']),
+        assert.deepEqual(_.omit(project.forms.outer, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', 'components', '_vid', 'project', ...ignoredFormProps]),
         _.omit(testTemplate.forms.outer, ['revisions', 'components']));
         assert.deepEqual(_.omit(project.forms.outer.components[0], ['form']),
         _.omit(testTemplate.forms.outer.components[0], ['form']));
