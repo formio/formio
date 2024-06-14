@@ -2,7 +2,6 @@
 
 const util = require("../util/util");
 const _ = require("lodash");
-const AUTHORIZED_ROLE = process.env.AUTHORIZED_ROLE || "CUSTOM_ROLES";
 /**
  * Middleware function to filter bundle data based on form which selected in bundle.
  *
@@ -12,18 +11,22 @@ const AUTHORIZED_ROLE = process.env.AUTHORIZED_ROLE || "CUSTOM_ROLES";
  */
 module.exports = function (router) {
   return function (req, res, next) {
-    const { customRoles = [] } = req.user || {};
     if (
       !res ||
       !res.resource ||
       !res.resource.item ||
       !req.isBundle ||
-      (req.isBundle && customRoles.includes(AUTHORIZED_ROLE))
+      (req.isBundle && req.isAdmin)
     ) {
       return next();
     }
 
-    const submissionModifiedData = { data: {} };
+    const submissionModifiedData = {
+      data: {
+        applicationId: res.resource.item.data.applicationId,
+        applicationStatus: res.resource.item.data.applicationStatus,
+      },
+    };
 
     util.eachComponent(req.bundledForm.components, (component, path) => {
       _.set(
@@ -32,8 +35,10 @@ module.exports = function (router) {
         _.get(res.resource.item, `data.${path}`)
       );
     });
-
+    /* resource.item is whole submission data. so here spreading the all 
+    keys inside the submission data like metedata and over rider the "data" key with submissionModifiedData */
     res.resource.item = { ...res.resource.item, ...submissionModifiedData };
+
     next();
   };
 };

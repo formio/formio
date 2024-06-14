@@ -53,7 +53,6 @@ services:
       FORMIO_JWT_SECRET: ${FORMIO_JWT_SECRET:---- change me now ---}
       FORMIO_JWT_EXPIRE: ${FORMIO_JWT_EXPIRE:-240}
       MULTI_TENANCY_ENABLED: ${MULTI_TENANCY_ENABLED:-false}
-      AUTHORIZED_ROLE: ${AUTHORIZED_ROLE}
       NO_INSTALL: ${NO_INSTALL:-1}
     stdin_open: true # -i
     tty: true # -t
