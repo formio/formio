@@ -16,7 +16,9 @@ module.exports = function (router) {
       !res.resource ||
       !res.resource.item ||
       !req.isBundle ||
-      (req.isBundle && req.isAdmin)
+      (req.isBundle && req.isAdmin && !req.token?.external) 
+      /* Added an external check because in non-multi-tenant cases, 
+      the designer token has admin permissions, making the token external.*/
     ) {
       return next();
     }
