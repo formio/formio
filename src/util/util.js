@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const moment = require('moment');
 const ObjectID = require('mongodb').ObjectId;
 const _ = require('lodash');
 const nodeUrl = require('url');
@@ -827,6 +828,50 @@ const Utils = {
   // Skips hook execution in case of no hook by provided name found
   // Pass as the last argument to formio.hook.alter() function
   skipHookIfNotExists: () => _.noop(),
+
+  coerceQueryTypes(query, currentForm, prefix = 'data.') {
+    _.assign(query, _(query)
+      .omit('limit', 'skip', 'select', 'sort', 'populate')
+      .mapValues((value, name) => {
+      // Skip filters not looking at component data
+      if (!name.startsWith(prefix)) {
+          return value;
+      }
+
+      // Get the filter object.
+      const filter = _.zipObject(['name', 'selector'], name.split('__'));
+      // Convert to component key
+      const key = Utils.getFormComponentKey(filter.name).substring(prefix.length);
+      const component = Utils.getComponent(currentForm.components, key);
+      // Coerce these queries to proper data type
+      if (component) {
+        switch (component.type) {
+          case 'number':
+          case 'currency':
+            return Number(value);
+          case 'checkbox':
+            return value !== 'false';
+          case 'datetime': {
+            const date = moment.utc(value, ['YYYY-MM-DD', 'YYYY-MM', 'YYYY', 'x', moment.ISO_8601], true);
+
+            if (date.isValid()) {
+              return date.toDate();
+            }
+            return;
+          }
+          case 'select': {
+            if (Number(value) || value === "0") {
+              return Number(value);
+            }
+          }
+        }
+      }
+      if (!component && ['true', 'false'].includes(value)) {
+        return value !== 'false';
+      }
+      return value;
+      }).value());
+  }
 };
 
 module.exports = Utils;
