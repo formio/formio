@@ -7,10 +7,10 @@ const {
   interpolateErrors,
   escapeRegExCharacters,
   serverRules,
-  Utils,
+  Utils: CoreUtils,
 } = require('@formio/core');
 const {evaluateProcess} = require('@formio/vm');
-const {getRequestValue} = require('../util/util');
+const Utils = require('../util/util');
 const fetch = require('@formio/node-fetch-http-proxy');
 const debug = {
   validator: require('debug')('formio:validator'),
@@ -51,21 +51,10 @@ function submissionQueryExists(submissionModel, query) {
  * @param model
  * @constructor
  */
-/*
-        const validator = new Validator(
-          req,
-          submissionModel,
-          submissionResource,
-          cache,
-          formModel,
-          tokenModel,
-          hook,
-          router.formio.config.vmTimeout
-        );*/
 class Validator {
   constructor(req, submissionModel, submissionResource, cache, formModel, tokenModel, hook, timeout = 500) {
     const tokens = {};
-    const token = getRequestValue(req, 'x-jwt-token');
+    const token = Utils.getRequestValue(req, 'x-jwt-token');
     if (token) {
       tokens['x-jwt-token'] = token;
     }
@@ -224,6 +213,9 @@ class Validator {
       : value._id
       ? {_id: value._id}
       : {$or: [{data: value}, {data: {...value, submit: true}}]};
+    if (!component.filter) {
+      component.filter = '';
+    }
     const filterQueries = component.filter.split(',').reduce((acc, filter) => {
       const [key, value] = filter.split('=');
       return {...acc, [key]: value};
@@ -258,7 +250,7 @@ class Validator {
       throw new Error(`Resource at ${resourceId} not found for dereferencing`);
     }
     const dataTableComponents = (component.fetch.components || [])
-      .map(component => Utils.getComponent(resource.components || [], component.path));
+      .map(component => CoreUtils.getComponent(resource.components || [], component.path));
 
     const filterComponents = (component) => {
       if (!component.components) {
