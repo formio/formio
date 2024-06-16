@@ -240,6 +240,11 @@ module.exports = function(config) {
         };
       }
 
+      // ensure that ObjectIds are serialized as strings, opt out using {transorm: false} when calling
+      // toObject() or toJSON() on a document or model. Note that opting out of transform when calling
+      // toObject() or toJSON will *also* opt out of any existing plugin transformations, e.g. encryption
+      mongoose.ObjectId.set('transform', (val) => val.toString());
+
       // Connect to MongoDB.
       mongoose.connect(mongoUrl,  mongoConfig );
 
@@ -348,8 +353,8 @@ module.exports = function(config) {
         require('./src/middleware/recaptcha')(router);
 
         // Read the static VM depdenencies into memory and configure the VM
-        const {lodash, moment, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
-        configureVm({lodash, moment, core, fastJsonPatch, nunjucks});
+        const {lodash, moment, inputmask, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
+        configureVm({lodash, moment, inputmask, core, fastJsonPatch, nunjucks});
 
         // Say we are done.
         deferred.resolve(router.formio);
