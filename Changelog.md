@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 ## [Unreleased: 4.4.0-rc.1]
 ### Changed
  - Increment minor version
+ - FIO-8450: Add test for custom error message for unique validation
 
 ## 4.3.0
 ### Changed

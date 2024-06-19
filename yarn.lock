@@ -551,6 +551,24 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
+"@formio/core@2.1.0-dev.106.01ba93e":
+  version "2.1.0-dev.106.01ba93e"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.1.0-dev.106.01ba93e.tgz#66a4a5323c2cf756539fac9c3f9ed08cbaf112bd"
+  integrity sha512-WtVp8syDPaS+CkNlx2TlXBLpfSYwEC/M8i4Uv1z3Msidu+K/2fMAQaXRDAoLAS5kpXmdbganhvjg0BKnF9hU+A==
+  dependencies:
+    "@types/json-logic-js" "^2.0.7"
+    browser-cookies "^1.2.0"
+    core-js "^3.37.1"
+    dayjs "^1.11.11"
+    dompurify "^3.1.4"
+    eventemitter3 "^5.0.0"
+    fast-json-patch "^3.1.1"
+    fetch-ponyfill "^7.1.0"
+    inputmask "5.0.8"
+    json-logic-js "^2.0.2"
+    lodash "^4.17.21"
+    moment "^2.29.4"
+
 "@formio/node-fetch-http-proxy@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@formio/node-fetch-http-proxy/-/node-fetch-http-proxy-1.1.0.tgz#a281686f3982a6e07cb1721ffbdbcce0096f538f"
@@ -1049,6 +1067,11 @@
   resolved "https://registry.yarnpkg.com/@types/json-logic-js/-/json-logic-js-2.0.7.tgz#09a70a932d0be937618a9fc791291b069e637fb0"
   integrity sha512-fucvZmbjqa1+gpw/nIwcP+ZIYHTvmwxuQQFKw/yU7+ZSD63z/xgY5pWN7sYUDRzg2Wf9STapL+7c66FNzhU6+Q==
 
+"@types/json-logic-js@^2.0.7":
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/@types/json-logic-js/-/json-logic-js-2.0.7.tgz#09a70a932d0be937618a9fc791291b069e637fb0"
+  integrity sha512-fucvZmbjqa1+gpw/nIwcP+ZIYHTvmwxuQQFKw/yU7+ZSD63z/xgY5pWN7sYUDRzg2Wf9STapL+7c66FNzhU6+Q==
+
 "@types/node@*":
   version "22.7.4"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-22.7.4.tgz#e35d6f48dca3255ce44256ddc05dee1c23353fcc"
@@ -1516,6 +1539,11 @@ core-js@^3.26.1, core-js@^3.37.1:
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.38.1.tgz#aa375b79a286a670388a1a363363d53677c0383e"
   integrity sha512-OP35aUorbU3Zvlx7pjsFdu1rGNnD4pgw/CWoYzRY3t2EzoVT7shKHY1dlAy3f41cGIO7ZDPQimhGFTlEYkG/Hw==
 
+core-js@^3.37.1:
+  version "3.37.1"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.37.1.tgz#d21751ddb756518ac5a00e4d66499df981a62db9"
+  integrity sha512-Xn6qmxrQZyB0FFY8E3bgRXei3lWDJHhvI+u0q9TKIYM49G8pAr0FgnnrFRAmsbptZL1yxRADVXn+x5AGsbBfyw==
+
 core-util-is@~1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.3.tgz#a6042d3634c2b27e9328f837b965fac83808db85"
@@ -1605,6 +1633,11 @@ dayjs@^1.11.11:
   version "1.11.13"
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.13.tgz#92430b0139055c3ebb60150aa13e860a4b5a366c"
   integrity sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==
+
+dayjs@^1.11.11:
+  version "1.11.11"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.11.tgz#dfe0e9d54c5f8b68ccf8ca5f72ac603e7e5ed59e"
+  integrity sha512-okzr3f11N6WuqYtZSvm+F776mB41wRZMhKP+hc34YdW+KmtYYK9iqvHSwo2k9FEH3fhGXvOPV6yz2IcSrfRUDg==
 
 debug@2.6.9, debug@^2.2.0:
   version "2.6.9"
@@ -1752,6 +1785,11 @@ dompurify@^3.0.5, dompurify@^3.1.4:
   version "3.1.7"
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.1.7.tgz#711a8c96479fb6ced93453732c160c3c72418a6a"
   integrity sha512-VaTstWtsneJY8xzy7DekmYWEOZcmzIe3Qb3zPd4STve1OBTa+e+WmS1ITQec1fZYXI3HCsOZZiSMpG6oxoWMWQ==
+
+dompurify@^3.1.4:
+  version "3.1.5"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.1.5.tgz#2c6a113fc728682a0f55684b1388c58ddb79dc38"
+  integrity sha512-lwG+n5h8QNpxtyrJW/gJWckL+1/DQiYMX8f7t8Z2AZTPw1esVrqjI63i7Zc2Gz0aKzLVMYC1V1PL/ky+aY/NgA==
 
 dotenv@^16.3.1:
   version "16.4.5"
