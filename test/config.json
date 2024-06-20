@@ -12,5 +12,6 @@
     "secret": "insert-some-secret-here",
     "expireTime": 240
   },
-  "settings": {}
+  "settings": {},
+  "vmTimeout": 500
 }
