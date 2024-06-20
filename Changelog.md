@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 3.5.5-rc.2
+### Changed
+ - FIO-8150: pin subform submission object
+
 ## 3.5.5-rc.1
 ### Changed
  - Updated formiojs@4.19.5-rc.1
@@ -100,7 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 ### Changed
  - FIO-8087: Fixes an issue where Email Action with logs enabled don't render nested form value and shows ID instead
-   
+
 ## 3.5.1-rc.1
 ### Changed
  - Updated formiojs@4.19.1-rc.1
@@ -108,7 +112,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-7623: Fixes an issue where Email action with Logs turned on will fail for the nested form with Attach Submission PDF
 
  - FIO-7671: add features test for compound indexes that contain nested paths
-   
+
 ## 3.5.0
 ### Changed
  - Official Release
@@ -219,7 +223,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 ## 3.4.0-rc.11
 ### Changed
  - Fix tests
-   
+
 ## 3.4.0-rc.10
 ### Changed
  - Updated formio-workers@1.20.0-rc.8
@@ -296,7 +300,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-6919: fixed value for Signature submission in Data Tab
  - FIO-5731: fixed validation error for wizard forms with advanced conditions
  - FIO-6966: Fixes empty address component data in CSV
-   
+
 ## 3.2.0
 ### Changed
  - Official Release
@@ -338,7 +342,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 ### Changed
  - Updated formiojs@4.16.0-rc.7
  - Updated formio-workers@1.18.0-rc.3
-   
+
 ## 3.2.0-rc.2
 ### Changed
  - Updated formiojs@4.16.0-rc.5
@@ -346,7 +350,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-6769: Removes empty template
  - FIO-6840: change to allow case insensitive exists endpoint
  - FIO-6406 fixed filter for Select inside DT (#1537)
-   
+
 ## 3.2.0-rc.1
 ### Fixed
  - FIO-5731: fixed validation error for wizard forms with advanced conditions
@@ -544,7 +548,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-4003: added ability to use the revisionId
 
 ### Fixed
- - FIO-3853: fixed export json function freeze 
+ - FIO-3853: fixed export json function freeze
 
 ## 2.3.3
 ### Changed
