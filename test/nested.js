@@ -812,6 +812,7 @@ module.exports = function(app, template, hook) {
           assert.equal(submission.data.phone, '555-867-5309');
           assert.equal(submission.data.childForm.data.name, 'Mary Jane');
           assert.equal(submission.data.childForm.data.phone, '555-123-4567');
+          done();
         });
     });
   });
