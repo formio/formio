@@ -63,6 +63,7 @@ module.exports = (router) => {
       return res.headersSent ? next() : res.status(400).json('Too many recursive requests.');
     }
     childReq.body = subSubmission;
+    childReq.submission = subSubmission;
 
     // Make sure to pass along the submission state to the subforms.
     if (req.body.state) {

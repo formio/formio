@@ -709,4 +709,110 @@ module.exports = function(app, template, hook) {
         });
     });
   });
+
+  describe('Nested Resources', () => {
+    let childForm, parentForm;
+    before('Build the forms', (done) => {
+      request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          title: 'Simple Child Form',
+          name: 'simpleChildForm',
+          path: 'simplechildform',
+          display: 'form',
+          components: [
+            {
+              type: 'textfield',
+              key: 'name',
+              input: true,
+            },
+            {
+              type: 'textfield',
+              key: 'phone',
+              input: true,
+            }
+          ]
+        })
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          assert(res.body._id);
+          childForm = res.body;
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              title: 'Simple Parent Form',
+              name: 'simpleParentForm',
+              path: 'simpleparentform',
+              display: 'form',
+              components: [
+                {
+                  type: 'textfield',
+                  key: 'name',
+                  input: true,
+                },
+                {
+                  type: 'textfield',
+                  key: 'phone',
+                  input: true,
+                },
+                {
+                  tableView: true,
+                  form: childForm._id,
+                  useOriginalRevision: false,
+                  key: 'childForm',
+                  type: 'form',
+                  input: true
+                }
+              ]
+            })
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body._id);
+              parentForm = res.body;
+              done();
+            });
+        });
+    });
+
+    it('Should not merge submission data of parent form draft submission data with nested form data with the same key', (done) => {
+      request(app)
+        .post(hook.alter('url', '/form/' + parentForm._id + '/submission', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          data: {
+            name: 'John Doe',
+            phone: '555-867-5309',
+            childForm: {
+              data: {
+                name: 'Mary Jane',
+                phone: '555-123-4567'
+              }
+            }
+          },
+          state: 'draft'
+        })
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          const submission = res.body;
+          assert.equal(submission.data.name, 'John Doe');
+          assert.equal(submission.data.phone, '555-867-5309');
+          assert.equal(submission.data.childForm.data.name, 'Mary Jane');
+          assert.equal(submission.data.childForm.data.phone, '555-123-4567');
+        });
+    });
+  });
 };
