@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## 3.5.5-rc.2
+## [Unreleased: 3.5.5-rc.3]
 ### Changed
  - FIO-8150: pin subform submission object
 
