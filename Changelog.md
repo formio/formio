@@ -47,6 +47,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-6966: Fixes missing address component data in csv exported submissions
  - FIO-8343: Fixed the issue with dereferencing data table components
  - FIO-8027 added Cloudflare Turnstile as a captcha Provider
+ - FIO-7299: Fix email action with the 'before' handler issues
+ - FIO-8150: pin subform submission object
 
 ## 4.0.0-rc.14
 ### Changed
