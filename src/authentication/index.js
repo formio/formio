@@ -351,12 +351,13 @@ module.exports = (router) => {
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
     let subQuery = submissionModel.findOne(hook.alter('submissionQuery', query, req));
     subQuery = router.formio.mongoFeatures.collation ? subQuery.collation({locale: 'en', strength: 2}) : subQuery;
-    subQuery.lean().exec((err, user) => {
-      if (err) {
-        return next(err);
-      }
+    try {
+      const user = await subQuery.lean().exec();
       return evaluateUser(req, user, password, passField, username, next);
-    });
+    }
+    catch (err) {
+      return next(err);
+    }
   };
 
   /**

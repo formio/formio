@@ -281,7 +281,7 @@ module.exports = (router) => {
           }
 
           // Check the amount of attempts made by this user.
-          this.checkAttempts(err, req, response.user, (error) => {
+          this.checkAttempts(err, req, response.user, async (error) => {
             if (error) {
               audit('EAUTH_LOGINCOUNT', req, _.get(req.submission.data, this.settings.username));
               log(req, ecode.auth.EAUTH, error);
@@ -294,7 +294,7 @@ module.exports = (router) => {
             res.token = response.token.token;
             req['x-jwt-token'] = response.token.token;
 
-            hook.alter('getPrimaryProjectAdminRole', req, res, (err, role) => {
+            const role = await hook.alter('getPrimaryProjectAdminRole', req, res);
               if (req.user.roles.includes(role)) {
                 req.isAdmin = true;
               }
@@ -310,7 +310,6 @@ module.exports = (router) => {
                   next();
                 });
               });
-            });
           });
         },
       );
