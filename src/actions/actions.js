@@ -20,7 +20,6 @@ const {
   rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
 const {evaluate} = require('@formio/vm');
-const promisify = require('util').promisify;
 
 /**
  * The ActionIndex export.
@@ -340,7 +339,7 @@ module.exports = (router) => {
    *
    * @param action
    */
-  function getSettingsForm(action, req, cb) {
+  async function getSettingsForm(action, req) {
     const mainSettings = {
       components: []
     };
@@ -423,9 +422,10 @@ module.exports = (router) => {
       });
     }
 
-    router.formio.cache.loadForm(req, undefined, req.params.formId, (err, form) => {
-      if (err || !form || !form.components) {
-        return cb('Could not load form components for conditional actions.');
+    try {
+      const form = await router.formio.cache.loadForm(req, undefined, req.params.formId);
+      if (!form || !form.components) {
+        throw new Error('Could not load form components for conditional actions.');
       }
 
       const flattenedComponents = router.formio.util.flattenComponents(form.components);
@@ -692,20 +692,20 @@ module.exports = (router) => {
       };
 
       // Return the settings form.
-      return cb(null, {
+      const finalSettings = {
         actionSettings: actionSettings,
         settingsForm: settingsForm
-      });
-    });
+      };
+      return finalSettings;
+    }
+    catch (err) {
+      throw new Error('Could not load form components for conditional actions.');
+    }
   }
 
   async function getDeletedSubmission(req) {
     try {
-      return await promisify(router.formio.cache.loadSubmission)(
-        req,
-        req.body.form,
-        req.body._id,
-      );
+      return await router.formio.cache.loadSubmission(req, req.body.form, req.body._id,);
     }
     catch (err) {
       router.formio.log(
@@ -778,7 +778,7 @@ module.exports = (router) => {
       return res.status(400).send('Action not found');
     }
 
-    action.info(req, res, (err, info) => {
+    action.info(req, res, async (err, info) => {
       if (err) {
         router.formio.log('Error, can\'t get action info', req, err);
         return next(err);
@@ -792,11 +792,14 @@ module.exports = (router) => {
       });
 
       try {
-        getSettingsForm(info, req, (err, settings) => {
-          if (err) {
-            router.formio.log('Error, can\'t get action settings', req, err);
-            return res.status(400).send(err);
-          }
+        let settings;
+        try {
+          settings = await getSettingsForm(info, req);
+        }
+        catch (err) {
+          router.formio.log('Error, can\'t get action settings', req, err);
+          return res.status(400).send(err);
+        }
 
           action.settingsForm(req, res, (err, settingsForm) => {
             if (err) {
@@ -816,7 +819,6 @@ module.exports = (router) => {
             info.settingsForm.action = hook.alter('path', `/form/${req.params.formId}/action`, req);
             hook.alter('actionInfo', info, req);
             res.json(info);
-          });
         });
       }
       catch (e) {

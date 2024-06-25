@@ -140,16 +140,16 @@ module.exports = function(router) {
        * Load a resource.
        * @type {function(this:SaveSubmission)}
        */
-      const loadResource = function(cache, then) {
-        router.formio.cache.loadForm(req, 'resource', this.settings.resource, function(err, resource) {
-          if (err) {
-            log(req, ecode.cache.EFORMLOAD, err, '#resolve');
-            return then(err);
-          }
-
+      const loadResource = async function(cache, then) {
+        try {
+          const resource = await router.formio.cache.loadForm(req, 'resource', this.settings.resource);
           cache.resource = resource;
           then();
-        });
+        }
+        catch (err) {
+          log(req, ecode.cache.EFORMLOAD, err, '#resolve');
+          return then(err);
+        }
       }.bind(this);
 
       /**

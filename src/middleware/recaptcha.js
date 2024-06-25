@@ -6,8 +6,9 @@ const fetch = require('@formio/node-fetch-http-proxy');
 module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
 
-  router.get('/recaptcha', function(req, res) {
-    hook.settings(req, (err, settings) => {
+  router.get('/recaptcha', async function(req, res) {
+    try {
+      const settings = await hook.settings(req);
       if (!settings.recaptcha || !settings.recaptcha.secretKey) {
         return res.status(400).send('reCAPTCHA settings not set.');
       }
@@ -47,6 +48,9 @@ module.exports = function(router) {
             res.send(body);
           });
         });
-    });
+    }
+    catch (err) {
+      return res.status(400).send('reCAPTCHA settings not set.');
+    }
   });
 };

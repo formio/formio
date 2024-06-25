@@ -45,11 +45,9 @@ module.exports = (router, resourceName, resourceId) => {
      * @param req
      * @param done
      */
-    function loadCurrentForm(req, done) {
-      router.formio.cache.loadCurrentForm(req, (err, form) => {
-        if (err) {
-          return done(err);
-        }
+    async function loadCurrentForm(req, done) {
+      try {
+        const form = await router.formio.cache.loadCurrentForm(req);
         if (!form) {
           return done('Form not found.');
         }
@@ -57,10 +55,12 @@ module.exports = (router, resourceName, resourceId) => {
         req.currentForm = hook.alter('currentForm', form, req.body);
 
         // Load all subforms as well.
-        router.formio.cache.loadSubForms(req.currentForm, req, () => {
-          return done();
-        });
-      }, true);
+        await router.formio.cache.loadSubForms(req.currentForm, req);
+        return done();
+      }
+      catch (err) {
+         return done(err);
+      }
     }
 
     /**
@@ -69,69 +69,14 @@ module.exports = (router, resourceName, resourceId) => {
      * @param req
      * @param done
      */
-    function initializeSubmission(req, done) {
-      const isGet = (req.method === 'GET');
-
-      // If this is a get method, then filter the model query.
-      if (isGet) {
-        const submissionQuery = hook.alter('submissionQuery', {form: req.currentForm._id}, req);
-        req.countQuery = req.countQuery || req.model || this.model;
-        req.modelQuery = req.modelQuery || req.model || this.model;
-        req.countQuery = req.countQuery.find(submissionQuery);
-        req.modelQuery = req.modelQuery.find(submissionQuery);
-      }
-
-      // If the request has a body.
-      if (!isGet && req.body) {
-        // By default skip the resource unless they add the save submission action.
-        req.skipResource = true;
-
-        // Only allow the data to go through.
-        const properties = hook.alter('submissionParams', ['data', 'owner', 'access', 'metadata', '_vnote']);
-        req.rolesUpdate = req.body.roles;
-        req.body = _.pick(req.body, properties);
-
-        // Ensure there is always data provided on POST.
-        if (req.method === 'POST' && !req.body.data) {
+    async function initializeSubmission(req, done) {
+      const ensureDataOnPost = req => {
+        if (!req.body.data) {
           req.body.data = {};
         }
+      };
 
-        if (req.method === 'POST') {
-          const allowlist = [
-            "host",
-            "x-forwarded-scheme",
-            "x-forwarded-proto",
-            "x-forwarded-for",
-            "x-real-ip",
-            "connection",
-            "content-length",
-            "pragma",
-            "cache-control",
-            "sec-ch-ua",
-            "accept",
-            "content-type",
-            "sec-ch-ua-mobile",
-            "user-agent",
-            "sec-ch-ua-platform",
-            "origin",
-            "sec-fetch-site",
-            "sec-fetch-mode",
-            "sec-fetch-dest",
-            "referer",
-            "accept-encoding",
-            "accept-language",
-            "sec-gpc",
-            "dnt",
-          ];
-
-          const reqHeaders = _.omitBy(req.headers, (value, key) => {
-            return !allowlist.includes(key) || key.match(/auth/gi);
-          });
-
-          _.set(req.body, 'metadata.headers', reqHeaders);
-        }
-
-        // Ensure that the _fvid is a number.
+      const ensureFvidIsNumber = req => {
         if (req.body.hasOwnProperty('_fvid') && !_.isNaN(parseInt(req.body._fvid))) {
           if (req.body._fvid.length === 24) {
             req.body._frid = req.body._fvid;
@@ -141,40 +86,83 @@ module.exports = (router, resourceName, resourceId) => {
             req.body._fvid = parseInt(req.body._fvid);
           }
         }
+      };
 
-        // Ensure they cannot reset the submission id.
+      const updateRoles = (req, current) => {
+        if (req.rolesUpdate && req.rolesUpdate.length && current.roles && current.roles.length) {
+          const newRoles = _.intersection(
+            current.roles.map((role) => role.toString()),
+            req.rolesUpdate
+          );
+          req.body.roles = newRoles.map((roleId) => util.idToBson(roleId));
+        }
+      };
+
+      const setSubmissionId = req => {
         if (req.params.submissionId) {
           req.body._id = req.params.submissionId;
           req.subId = req.params.submissionId;
         }
+      };
 
-        // Set the form to the current form.
+      const setRequestHeaders =  req => {
+        const allowlist = [
+          "host", "x-forwarded-scheme", "x-forwarded-proto", "x-forwarded-for", "x-real-ip", "connection",
+          "content-length", "pragma", "cache-control", "sec-ch-ua", "accept", "content-type",
+          "sec-ch-ua-mobile", "user-agent", "sec-ch-ua-platform", "origin", "sec-fetch-site",
+          "sec-fetch-mode", "sec-fetch-dest", "referer", "accept-encoding", "accept-language",
+          "sec-gpc", "dnt"
+        ];
+
+        const reqHeaders = _.omitBy(req.headers, (value, key) => {
+          return !allowlist.includes(key) || key.match(/auth/gi);
+        });
+
+        _.set(req.body, 'metadata.headers', reqHeaders);
+      };
+
+      const handlePostAndPutRequests = async req => {
+        req.skipResource = true;
+        const properties = hook.alter('submissionParams', ['data', 'owner', 'access', 'metadata', '_vnote']);
+        req.rolesUpdate = req.body.roles;
+        req.body = _.pick(req.body, properties);
+
+        if (req.method === 'POST') {
+          ensureDataOnPost(req);
+          setRequestHeaders(req);
+        }
+
+        ensureFvidIsNumber(req);
+        setSubmissionId(req);
+
         req.body.form = req.currentForm._id.toString();
-
-        // Allow them to alter the body.
         req.body = hook.alter('submissionRequest', req.body);
 
         if (req.method === 'PUT' && req.params.submissionId) {
-          router.formio.cache.loadCurrentSubmission(req, (err, current) => {
-            if ( req.rolesUpdate && req.rolesUpdate.length && current.roles && current.roles.length) {
-              const newRoles = _.intersection(
-                current.roles.map((role) => role.toString()),
-                req.rolesUpdate
-              );
-                req.body.roles = newRoles.map((roleId) => util.idToBson(roleId));
-            }
+          const current = await router.formio.cache.loadCurrentSubmission(req);
+          updateRoles(req, current);
+          req.currentSubmissionData = current && current.data;
+        }
+      };
 
-            req.currentSubmissionData = current && current.data;
-            done();
-          });
-        }
-        else {
-          done();
-        }
+      const handleGetRequest = req => {
+        const submissionQuery = hook.alter('submissionQuery', {form: req.currentForm._id}, req);
+        req.countQuery = req.countQuery || req.model || this.model;
+        req.modelQuery = req.modelQuery || req.model || this.model;
+        req.countQuery = req.countQuery.find(submissionQuery);
+        req.modelQuery = req.modelQuery.find(submissionQuery);
+      };
+
+      const isGet = (req.method === 'GET');
+
+      if (isGet) {
+        handleGetRequest(req);
       }
-      else {
-        done();
+ else if (req.body) {
+        await handlePostAndPutRequests(req);
       }
+
+      done();
     }
 
     /**
