@@ -570,10 +570,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.1.0-rc.4":
-  version "2.1.0-rc.4"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.1.0-rc.4.tgz#07f1954ac0253392e4a9f3b7b642d70b94d4a270"
-  integrity sha512-/2JIEUeQPTrOVzuHikuCAcLO/p4mGispuIV7hXApIAzmY+RrIJHBJ2fKv3B3Nr0uagkLpLRDUVPZlZM7Zm+IRw==
+"@formio/core@2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.1.0.tgz#947c4d27a25cba7484f5e4242a0e25731e808f25"
+  integrity sha512-mLPiSXDdeqSlVOC+RV4/R4F4oNCZRUT5OcKtXynTDz+ESkHhOVNH/XVnKxFHB1k+XUEHUxc1NZrl2DCaY1C5dA==
   dependencies:
     "@types/json-logic-js" "^2.0.5"
     browser-cookies "^1.2.0"
@@ -613,16 +613,16 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.2.0-rc.4":
-  version "0.2.0-rc.4"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.0-rc.4.tgz#73adf43b4764f07df4631f9edaeb0dc507b4efb0"
-  integrity sha512-mnBzZKKUgZcNIrJekdb9Pf0vNDHBVdOzt3yTCWWj8g8rfFbfoyqoqG24Q/vOthDjfIcTIj5MKjbM+thbklI5bg==
+"@formio/vm@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.0.tgz#40201c7c0214c973658b13da47be90fc4ef98f47"
+  integrity sha512-Rtv3LTbgxUVA7MWkbA8AUVHIzGEfM6aNtKnEZJOHbF6rOgQetD4heceTBweQNL8EyTXvm5gLj1XkD0L1gxLUJA==
   dependencies:
-    "@formio/core" "2.1.0-rc.4"
+    "@formio/core" "2.1.0"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
-    formiojs "4.21.0-rc.2"
+    formiojs "4.21.0"
     inputmask "^5.0.8"
     isolated-vm "^4.6.0"
     lodash "^4.17.21"
@@ -2183,10 +2183,10 @@ formidable@^2.1.2:
     once "^1.4.0"
     qs "^6.11.0"
 
-formiojs@4.21.0-rc.2:
-  version "4.21.0-rc.2"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.21.0-rc.2.tgz#2d106a7e4c09e91cc4a87ed6564febfec5b53cff"
-  integrity sha512-HlBm+t1sNjRGihC0eT/psgcswWZ+1Yrqs1ey3Cbc7tN7QYybSDduLY3jY40OCWYdrtykcXWgHfUfBSdZXho7Pg==
+formiojs@4.21.0:
+  version "4.21.0"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.21.0.tgz#bdc5c97748f0ad35d2ad45f0af7194c5902e068d"
+  integrity sha512-mVxAKymCWuZORNHoifsjezCdWSM8Ww268BjhU/wv5fL71UWP7m6PsYVzzMptz/yf7mvdTQfnCiB/tlYel/MEHA==
   dependencies:
     "@formio/bootstrap3" "2.12.4-rc.1"
     "@formio/choices.js" "10.2.1"
