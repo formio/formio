@@ -570,6 +570,24 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
+"@formio/core@2.0.0-dev.103.ec176d1":
+  version "2.0.0-dev.103.ec176d1"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-dev.103.ec176d1.tgz#58aeb30c44df713393169cafea8fd4900844b4ce"
+  integrity sha512-E5TGvf1OmKt2oH+GU+1bEtQAnukOI5k8ABJuMH73J9QsFGW54IbXfgNePNlVK+UncnMaTkTmIsZ/1lyuA9zjHw==
+  dependencies:
+    "@types/json-logic-js" "^2.0.5"
+    browser-cookies "^1.2.0"
+    core-js "^3.33.2"
+    dayjs "^1.11.10"
+    dompurify "^3.0.6"
+    eventemitter3 "^5.0.0"
+    fast-json-patch "^3.1.1"
+    fetch-ponyfill "^7.1.0"
+    inputmask "^5.0.9-beta.45"
+    json-logic-js "^2.0.2"
+    lodash "^4.17.21"
+    moment "^2.29.4"
+
 "@formio/core@2.0.0-dev.71.013793a":
   version "2.0.0-dev.71.013793a"
   resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.0.0-dev.71.013793a.tgz#63f814c9863f86a80523faa2f203e916e700f0ec"

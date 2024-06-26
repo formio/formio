@@ -228,12 +228,16 @@ module.exports = (router, resourceName, resourceId) => {
       hook.alter('validateSubmissionForm', req.currentForm, req.body, async form => { // eslint-disable-line max-statements
         // Get the models for validation
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+        const submissionResource = router.formio.resources.submission;
+        const cache = router.formio.cache;
         const formModel = router.formio.resources.form.model;
         const tokenModel = router.formio.mongoose.models.token;
         // Validate the request.
         const validator = new Validator(
           req,
           submissionModel,
+          submissionResource,
+          cache,
           formModel,
           tokenModel,
           hook,
