@@ -7,6 +7,7 @@ var _ = require('lodash');
 var chance = new (require('chance'))();
 var formioUtils = require('formiojs/utils').default;
 var async = require('async');
+const uniqueValidationCustomMessage = require('./fixtures/forms/uniqueValidationCustomMessage');
 var docker = process.env.DOCKER;
 var customer = process.env.CUSTOMER;
 
@@ -3030,6 +3031,79 @@ module.exports = function(app, template, hook) {
         });
       });
 
+      describe('Custom validation error message', () => {
+        before(async () => {
+          // Create the test form
+          const response = await request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(uniqueValidationCustomMessage);
+
+          const data = response.body;
+          assert(data.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert(data.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(data.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(data.hasOwnProperty('access'), 'The response should contain an the `access`.');
+          assert.equal(data.title, uniqueValidationCustomMessage.title);
+          assert.equal(data.name, uniqueValidationCustomMessage.name);
+          assert.equal(data.path, uniqueValidationCustomMessage.path);
+          assert.equal(data.type, 'form');
+          assert.deepEqual(data.submissionAccess, []);
+          assert.deepEqual(data.components, uniqueValidationCustomMessage.components);
+
+          template.forms.uniqueValidationCustomMessage = data;
+        });
+
+        it('Should return custom message for unique validation error', async function () {
+          const submission = {
+            data: {
+              container: {
+                dataGrid: [
+                  {
+                    textField: 'everyone',
+                  },
+                ],
+                textField: 'everyone',
+              },
+              textField: 'everyone',
+              submit: true,
+            },
+          };
+          const result = await request(app)
+            .post(hook.alter('url', '/form/' + template.forms.uniqueValidationCustomMessage._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          assert.deepEqual(result.body.data, submission.data);
+
+          const response = await request(app)
+            .post(hook.alter('url', '/form/' + template.forms.uniqueValidationCustomMessage._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          const data = response.body;
+          assert.deepEqual(data.name, 'ValidationError');
+          assert.equal(data.details.length, 3);
+          assert.equal(data.details[0].message, 'Text Field Hello');
+          assert.equal(data.details[1].message, 'Text Field Hello');
+          assert.equal(data.details[2].message, 'Text Field must be unique');
+        });
+
+        after(done => {
+          request(app)
+            .delete(hook.alter('url', '/form/' + template.forms.uniqueValidationCustomMessage._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.deepEqual(response, {});
+              delete template.forms.uniqueValidationCustomMessage;
+              done();
+            });
+        });
+      });
       // FOR-136 && FOR-182
       describe('Unique fields work inside layout components', function() {
         var testUniqueField;
