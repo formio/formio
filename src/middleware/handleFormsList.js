@@ -1,5 +1,5 @@
 "use strict";
-
+require('dotenv').config();
 /**
  * Middleware function to handle /form route.
  *
