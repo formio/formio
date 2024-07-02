@@ -7,34 +7,15 @@ const nodeUrl = require('url');
 const deleteProp = require('delete-property').default;
 const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
+const mockBrowserContext = require('@formio/vm/build/mockBrowserContext');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
 
-// Define a few global noop placeholder shims and import the component classes
-global.Text              = class {};
-global.HTMLElement       = class {};
-global.HTMLCanvasElement = class {};
-global.navigator         = {userAgent: ''};
-global.document          = {
-  createElement: () => ({}),
-  cookie: '',
-  getElementsByTagName: () => [],
-  documentElement: {
-    style: [],
-    firstElementChild: {appendChild: () => {}}
-  }
-};
-global.window            = {addEventListener: () => {}, Event: function() {}, navigator: global.navigator};
-global.btoa = (str) => {
-  return (str instanceof Buffer) ?
-    str.toString('base64') :
-    Buffer.from(str.toString(), 'binary').toString('base64');
-};
-global.self = global;
-const Formio = require('formiojs/formio.form.js');
+mockBrowserContext.default();
+const Formio = require('@formio/js');
 global.Formio = Formio.Formio;
 
 // Remove onChange events from all renderer displays.

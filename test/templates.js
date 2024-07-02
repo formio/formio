@@ -2,7 +2,8 @@
 
 let assert = require('assert');
 let _ = require('lodash');
-let formioUtils = require('formiojs/utils').default;
+const { Utils } = require('@formio/core/utils');
+const formioUtils = Utils;
 var docker = process.env.DOCKER;
 const ignoredFormProps = ['revisions', 'submissionRevisions', 'esign'];
 
