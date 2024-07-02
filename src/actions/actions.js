@@ -63,7 +63,7 @@ module.exports = (router) => {
      * @param next
      * @returns {*}
      */
-    loadActions(req, res, next) {
+    async loadActions(req, res, next) {
       if (!req.actions) {
         req.actions = {};
       }
@@ -79,16 +79,14 @@ module.exports = (router) => {
       }
 
       // Find the actions associated with this form.
-      this.model.find(hook.alter('actionsQuery', {
-        form,
-        deleted: {$eq: null},
-      }, req))
-      .sort('-priority')
-      .lean()
-      .exec((err, result) => {
-        if (err) {
-          return next(err);
-        }
+      try {
+        const result = await this.model.find(hook.alter('actionsQuery', {
+          form,
+          deleted: {$eq: null},
+        }, req))
+        .sort('-priority')
+        .lean()
+        .exec();
 
         // Iterate through all of the actions and load them.
         const actions = [];
@@ -104,7 +102,10 @@ module.exports = (router) => {
 
         req.actions[form] = actions;
         return next(null, actions);
-      });
+      }
+      catch (err) {
+        return next(err);
+      }
     },
 
     /**
@@ -115,7 +116,7 @@ module.exports = (router) => {
      * @param req
      * @param next
      */
-    search(handler, method, req, res, next) {
+    async search(handler, method, req, res, next) {
       if (!req.formId) {
         return next(null, []);
       }
@@ -129,7 +130,7 @@ module.exports = (router) => {
       }
       else {
         // Load the actions.
-        this.loadActions(req, res, (err) => {
+        await this.loadActions(req, res, (err) => {
           if (err) {
             return next(err);
           }
@@ -146,8 +147,8 @@ module.exports = (router) => {
      * @param res
      * @param next
      */
-    initialize(method, req, res, next) {
-      this.search(null, method, req, res, (err, actions) => {
+    async initialize(method, req, res, next) {
+      await this.search(null, method, req, res, (err, actions) => {
         if (err) {
           return next(err);
         }
@@ -173,9 +174,9 @@ module.exports = (router) => {
      * @param res
      * @param next
      */
-    execute(handler, method, req, res, next) {
+    async execute(handler, method, req, res, next) {
       // Find the available actions.
-      this.search(handler, method, req, res, (err, actions) => {
+      await this.search(handler, method, req, res, (err, actions) => {
         if (err) {
           router.formio.log(
             'Actions search fail',

@@ -311,7 +311,7 @@ const Utils = {
     try {
       return _.isObject(id)
         ? id
-        : mongoose.Types.ObjectId(id);
+        : new ObjectID(id);
     }
     catch (e) {
       return id;
@@ -494,7 +494,7 @@ const Utils = {
     try {
       _id = _.isObject(_id)
         ? _id
-        : mongoose.Types.ObjectId(_id);
+        : new mongoose.Types.ObjectId(_id);
     }
     catch (e) {
       debug.idToBson(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
@@ -650,7 +650,7 @@ const Utils = {
    * @param next
    * @return {*}
    */
-  uniqueMachineName(document, model, next) {
+  async uniqueMachineName(document, model, next) {
     var query = {
       machineName: {$regex: `^${document.machineName}[0-9]*$`},
       deleted: {$eq: null}
@@ -659,11 +659,8 @@ const Utils = {
       query._id = {$ne: document._id};
     }
 
-    model.find(query).lean().exec((err, records) => {
-      if (err) {
-        return next(err);
-      }
-
+    try {
+      const records = await model.find(query).lean().exec();
       if (!records || !records.length) {
         return next();
       }
@@ -677,8 +674,11 @@ const Utils = {
         }
       });
       document.machineName += ++i;
-      next();
-    });
+      return next();
+    }
+    catch (err) {
+      return next(err);
+    }
   },
 
   castValue(valueType, value) {

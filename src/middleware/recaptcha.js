@@ -22,32 +22,30 @@ module.exports = function(router) {
         response: req.query.recaptchaToken,
       });
 
-      fetch(`${url}?${query}`, {method: 'POST'})
-        .then((res) => (res.ok ? res.json() : null))
-        .then((body) => {
-          if (!body) {
-            throw new Error('No response from Google');
-          }
+      const response = await fetch(`${url}?${query}`, {method: 'POST'});
+      const body = response.ok ? await res.json() : null;
+      if (!body) {
+        throw new Error('No response from Google');
+      }
 
-          if (!body.success) {
-            return res.send(body);
-          }
+      if (!body.success) {
+        return res.send(body);
+      }
 
-          const expirationTime = 600000; // 10 minutes
+      const expirationTime = 600000; // 10 minutes
 
-          // Create temp token with recaptcha response token as value
-          // to verify it on validation step
-          router.formio.mongoose.models.token.create({
-            value: req.query.recaptchaToken,
-            expireAt: Date.now() + expirationTime,
-          }, (err) => {
-            if (err) {
-              return res.status(400).send(err.message);
-            }
-
-            res.send(body);
-          });
+      // Create temp token with recaptcha response token as value
+      // to verify it on validation step
+      try {
+        await router.formio.mongoose.models.token.create({
+          value: req.query.recaptchaToken,
+          expireAt: Date.now() + expirationTime,
         });
+        res.send(body);
+      }
+ catch (err) {
+        return res.status(400).send(err.message);
+      }
     }
     catch (err) {
       return res.status(400).send('reCAPTCHA settings not set.');

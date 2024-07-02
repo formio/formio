@@ -25,7 +25,7 @@ module.exports = function(db, config, tools, done) {
    * @param callback
    */
   let fixProjects = function(callback) {
-    projects.find({}).snapshot({$snapshot: true}).forEach(function(project) {
+    projects.find({}).toArray().forEach(function(project) {
       // Reset the access permissions if duplicate types exist (mangled by bug).
       let included = [];
 
@@ -35,14 +35,12 @@ module.exports = function(db, config, tools, done) {
        * @param next
        */
       let getRoles = function(next) {
-        roles.find({query: {project: project._id}, $snapshot: true}).toArray(function(err, docs) {
-          if (err) {
-            return next(err);
-          }
-
+        roles.find({query: {project: project._id}}).toArray()
+        .then(docs => {
           included = _.uniq(_.pluck(docs, '_id'));
           next();
-        });
+        })
+        .catch(err => next(err));
       };
 
       /**
@@ -109,7 +107,9 @@ module.exports = function(db, config, tools, done) {
        * @param next
        */
       let saveProject = function(next) {
-        projects.updateOne({_id: project._id}, {$set: {access: project.access}}, next);
+        projects.updateOne({_id: project._id}, {$set: {access: project.access}})
+        .then((result) => next(null, result))
+        .catch(err=>next(err));
       };
 
       /**
@@ -140,7 +140,7 @@ module.exports = function(db, config, tools, done) {
    * @param callback
    */
   let fixForms = function(callback) {
-    forms.find({}).snapshot({$snapshot: true}).forEach(function(form) {
+    forms.find({}).toArray().forEach(function(form) {
       // Reset the access permissions if duplicate types exist (mangled by bug).
       let included = [];
 
@@ -150,14 +150,12 @@ module.exports = function(db, config, tools, done) {
        * @param next
        */
       let getRoles = function(next) {
-        roles.find({query: {project: form.project}, $snapshot: true}).toArray(function(err, docs) {
-          if (err) {
-            return next(err);
-          }
-
+        roles.find({query: {project: form.project}}).toArray()
+        .then(docs => {
           included = _.pluck(docs, '_id');
           next();
-        });
+        })
+        .catch(err => next(err));
       };
 
       /**
@@ -247,7 +245,9 @@ module.exports = function(db, config, tools, done) {
        * @param next
        */
       let saveForm = function(next) {
-        forms.updateOne({_id: form._id}, {$set: {access: form.access, submissionAccess: form.submissionAccess}}, next);
+        forms.updateOne({_id: form._id}, {$set: {access: form.access, submissionAccess: form.submissionAccess}})
+        .then(result => next(null, result))
+        .catch(err => next(err));
       };
 
       /**

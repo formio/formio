@@ -70,6 +70,11 @@ module.exports = (router) => {
         delete req.query.list;
       }
 
+      if (req.query.full) {
+        req.full = true;
+        delete req.query.full;
+      }
+
       next();
     },
     router.formio.middleware.permissionHandler,

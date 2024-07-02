@@ -141,7 +141,7 @@ module.exports = (router) => {
      * @returns {*}
      */
     /* eslint-disable max-statements */
-    checkAttempts(error, req, user, next) {
+    async checkAttempts(error, req, user, next) {
       if (!user || !user._id || !this.settings.allowedAttempts) {
         return next(error);
       }
@@ -217,18 +217,20 @@ module.exports = (router) => {
 
       // Update the user record
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.updateOne(
-        {_id: user._id},
-        {$set: {metadata: user.metadata}},
-        (err) => {
-          if (err) {
-            log(req, ecode.auth.ELOGINCOUNT, err);
-            return next(ecode.auth.ELOGINCOUNT);
-          }
+      try {
+        await submissionModel.updateOne(
+          {_id: user._id},
+          {$set: {metadata: user.metadata}});
+        return next(error);
+      }
+      catch (err) {
+        if (err) {
+          log(req, ecode.auth.ELOGINCOUNT, err);
+          return next(ecode.auth.ELOGINCOUNT);
+        }
 
-          next(error);
-        },
-      );
+        return next(error);
+      }
     }
     /* eslint-enable max-statements */
 
