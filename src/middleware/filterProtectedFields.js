@@ -21,7 +21,7 @@ module.exports = function(router) {
       }
     try {
         const form = await router.formio.cache.loadForm(req, null, getForm(req));
-        util.removeProtectedFields(form, action, res.resource.item, req.doNotMinify || req.query.full);
+        util.removeProtectedFields(form, action, res.resource.item, req.doNotMinify || req.full);
         return next();
     }
     catch (err) {

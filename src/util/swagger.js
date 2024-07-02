@@ -323,18 +323,14 @@ module.exports = async function(req, router, cb) {
       return cb(swaggerSpec(specs, options));
   }
   else {
-    router.formio.resources.form.model.find(await hook.alter('formQuery', {deleted: {$eq: null}}, req))
+    const forms = await router.formio.resources.form.model.find(await hook.alter('formQuery', {deleted: {$eq: null}}, req))
       .lean()
-      .exec((err, forms) => {
-        if (err) {
-          throw err;
-        }
+      .exec();
 
-        const specs = [];
-        forms.forEach(function(form) {
-          specs.push(submissionSwagger(form));
-        });
-        cb(swaggerSpec(specs, options));
+      const specs = [];
+      forms.forEach(function(form) {
+        specs.push(submissionSwagger(form));
       });
+      return cb(swaggerSpec(specs, options));
   }
 };

@@ -225,7 +225,7 @@ module.exports = (router) => {
     }
 
     // Compare the provided password.
-    bcrypt.compare(password, hash, (err, value) => {
+    bcrypt.compare(password, hash, async (err, value) => {
       if (err) {
         audit('EAUTH_BCRYPT', {
           ...req,
@@ -240,18 +240,11 @@ module.exports = (router) => {
       }
 
       // Load the form associated with this user record.
-      router.formio.resources.form.model.findOne({
-        _id: user.form,
-        deleted: {$eq: null},
-      }).lean().exec((err, form) => {
-        if (err) {
-          audit('EAUTH_USERFORM', {
-            ...req,
-            userId: user._id,
-          }, user.form, err);
-          return next(err);
-        }
-
+      try {
+        const form = await router.formio.resources.form.model.findOne({
+          _id: user.form,
+          deleted: {$eq: null},
+          }).lean().exec();
         if (!form) {
           audit('EAUTH_USERFORM', {
             ...req,
@@ -299,7 +292,14 @@ module.exports = (router) => {
             });
           });
         });
-      });
+      }
+      catch (err) {
+        audit('EAUTH_USERFORM', {
+          ...req,
+          userId: user._id,
+        }, user.form, err);
+        return next(err);
+      }
     });
   };
 
