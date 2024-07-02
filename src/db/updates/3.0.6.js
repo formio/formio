@@ -36,26 +36,21 @@ module.exports = function(db, config, tools, done) {
         },
         deleted: {$eq: null}
       })
-      .snapshot(true)
-      .toArray(function(err, forms) {
-        if (err) {
-          return next(err);
-        }
-
+      .toArray()
+      .then(forms => {
         debug.findBrokenForms(forms.length);
         return next(null, forms);
-      });
+      })
+      .catch(err => next(err));
     },
     function randomizeBrokenFormPaths(forms, next) {
       async.each(forms, function(form, callback) {
-        formCollection.updateOne({_id: tools.util.idToBson(form._id)}, {$set: {path: chance.word()}}, function(err) {
-          if (err) {
-            return callback(err);
-          }
-
+        formCollection.updateOne({_id: tools.util.idToBson(form._id)}, {$set: {path: chance.word()}})
+        .then(() => {
           debug.randomizeBrokenFormPaths('Updated: ' + form._id);
           return callback();
-        });
+        })
+        .catch(err => callback(err));
       }, function(err) {
         if (err) {
           return next(err);

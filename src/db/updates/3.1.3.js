@@ -18,7 +18,8 @@ module.exports = function(db, config, tools, done) {
   done();
   const submissions = db.collection('submissions');
   const forms = db.collection('forms');
-  forms.countDocuments({deleted: {$eq: null}}, (err, count) => {
+  forms.countDocuments({deleted: {$eq: null}})
+  .then(count => {
     const progress = new ProgressBar('[:bar] :current/:total', { total: count });
     forms.find({deleted: {$eq: null}}).forEach((form) => {
       utils.eachComponent(form.components, function(component, path) {

@@ -13,60 +13,46 @@ module.exports = function(db, config, next) {
   util.log(' > Performing install.');
 
   async.parallel([
-    function(cb) {
+    async function() {
       // Create actions collections exist.
-      db.createCollection('actions', null, function(err, collection) {
-        if (err) {
-          return cb(err);
+      const collection = await db.createCollection('actions', null);
+      await collection.createIndexes([
+        {
+          key: {
+            'form' : 1
+          },
+          name: 'form_1'
         }
-
-        collection.createIndexes([
-          {
-            key: {
-              'form' : 1
-            },
-            name: 'form_1'
-          }
-        ], cb);
-      });
+      ]);
     },
-    function(cb) {
+    async function() {
       // Create projects collections exist.
-      db.createCollection('projects', null, function(err, collection) {
-        if (err) {
-          return cb(err);
-        }
-
-        collection.createIndexes([
-          {
-            key: {
-              'name' : 1
-            },
-            name: 'name_1'
+      const collection = await db.createCollection('projects', null);
+      await collection.createIndexes([
+        {
+          key: {
+            'name' : 1
           },
-          {
-            key: {
-              'access.id' : 1
-            },
+          name: 'name_1'
+        },
+        {
+          key: {
+            'access.id' : 1
+          },
             name: 'access.id_1'
+        },
+        {
+          key: {
+            'owner' : 1
           },
-          {
-            key: {
-              'owner' : 1
-            },
-            name: 'owner_1'
-          }
-        ], cb);
-      });
-    },
-    function(cb) {
-      // Create forms collections exist.
-      db.createCollection('forms', null, function(err, collection) {
-        if (err) {
-          return cb(err);
+          name: 'owner_1'
         }
-
-        collection.createIndexes([
+      ]);
+    },
+    async function() {
+      // Create forms collections exist.
+      const collection = await db.createCollection('forms', null);
+      await collection.createIndexes([
           {
             key: {
               'name' : 1
@@ -109,57 +95,37 @@ module.exports = function(db, config, next) {
             },
             name: 'owner_1'
           }
-        ], cb);
-      });
+        ]);
     },
-    function(cb) {
+    async function() {
       // Create roles collections exist.
-      db.createCollection('roles', null, function(err, collection) {
-        if (err) {
-          return cb(err);
-        }
-
-        collection.createIndexes([
+      const collection = await db.createCollection('roles', null);
+      await collection.createIndexes([
           {
             key: {
               'project' : 1
             },
             name: 'project_1'
           }
-        ], cb);
-      });
+        ]);
     },
-    function(cb) {
+    async function() {
       // Create schema collections exist.
-      db.createCollection('schema', null, function(err, collection) {
-        if (err) {
-          return cb(err);
-        }
-
-        collection.createIndexes([
+      const collection = await db.createCollection('schema', null);
+      await collection.createIndexes([
           {
             key: {
               'key' : 1
             },
             name: 'key_1'
           }
-        ], function(err, result) {
-          if (err) {
-            return cb(err);
-          }
-
-          collection.insertOne({key: 'formio', isLocked: false, version: config.schema}, cb);
-        });
-      });
+        ]);
+        await collection.insertOne({key: 'formio', isLocked: false, version: config.schema});
     },
-    function(cb) {
+    async function() {
       // Create submissions collections exist.
-      db.createCollection('submissions', null, function(err, collection) {
-        if (err) {
-          return cb(err);
-        }
-
-        collection.createIndexes([
+      const collection = await db.createCollection('submissions', null);
+      await collection.createIndexes([
           {
             key: {
               'form' : 1
@@ -184,8 +150,7 @@ module.exports = function(db, config, next) {
             },
             name: 'roles_1'
           }
-        ], cb);
-      });
+        ]);
     }
   ], next);
 };

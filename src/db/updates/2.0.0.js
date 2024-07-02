@@ -42,35 +42,25 @@ module.exports = function(db, config, tools, done) {
   let updateForms = function(cb) {
     // Forms update step 1.
     let dropIndex = function(next) {
-      forms.dropIndex('app_1', function(err) {
-        if (err) {
-          return next(err);
-        }
-
-        next();
-      });
+      forms.dropIndex('app_1')
+      .then(() => next())
+      .catch(err => next(err));
     };
 
     // Forms update step 2.
     let rename = function(next) {
-      forms.updateMany({}, {$rename: {'app': 'project'}}, function(err) {
-        if (err) {
-          return next(err);
-        }
-
-        next();
-      });
+      forms.updateMany({}, {$rename: {'app': 'project'}})
+      .then(() => {
+        next()
+      })
+      .catch(err => next(err));
     };
 
     // Forms update step 3.
     let createIndex = function(next) {
-      forms.createIndex({project: 1}, function(err) {
-        if (err) {
-          return next(err);
-        }
-
-        next();
-      });
+      forms.createIndex({project: 1})
+      .then(() => next())
+      .catch(err => next(err));
     };
 
     async.series([
@@ -97,35 +87,23 @@ module.exports = function(db, config, tools, done) {
   let updateRoles = function(cb) {
     // Roles update step 1.
     let dropIndex = function(next) {
-      roles.dropIndex('app_1', function(err) {
-        if (err) {
-          return next(err);
-        }
-
-        next();
-      });
+      roles.dropIndex('app_1')
+      .then(() => next(err))
+      .catch(err => next(err));
     };
 
     // Roles update step 2.
     let rename = function(next) {
-      roles.updateMany({}, {$rename: {'app': 'project'}}, function(err) {
-        if (err) {
-          return next(err);
-        }
-
-        next();
-      });
+      roles.updateMany({}, {$rename: {'app': 'project'}})
+      .then(() => next())
+      .catch(err => next(err));
     };
 
     // Roles update step 3.
     let createIndex = function(next) {
-      roles.createIndex({project: 1}, function(err) {
-        if (err) {
-          return next(err);
-        }
-
-        next();
-      });
+      roles.createIndex({project: 1})
+      .then(() => next())
+      .catch(err=>next(err));
     };
 
     async.series([

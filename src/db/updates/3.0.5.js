@@ -104,7 +104,7 @@ module.exports = function(db, config, tools, done) {
    */
   let buildUniqueComponentList = function(next) {
     formCollection.find({_id: {$in: forms}, deleted: {$eq: null}})
-      .snapshot(true)
+      .toArray()
       .forEach(function(form) {
         tools.util.eachComponent(form.components, function(component, path) {
           // We only care about non-layout components, which are not unique, and have not been blacklisted.
@@ -131,7 +131,7 @@ module.exports = function(db, config, tools, done) {
       components: {$elemMatch: {unique: true, type: {$nin: blackListedComponents}}},
       deleted: {$eq: null}
     }, {_id: 1})
-    .snapshot(true)
+    .toArray()
     .map(function(form) {
       return form._id;
     })
@@ -165,7 +165,6 @@ module.exports = function(db, config, tools, done) {
         }
       }
     }, {_id: 1})
-    .snapshot(true)
     .map(function(form) {
       return form._id;
     })
@@ -216,12 +215,8 @@ module.exports = function(db, config, tools, done) {
         }
       }
     })
-    .snapshot(true)
-    .toArray(function(err, forms) {
-      if (err) {
-        return next(err);
-      }
-
+    .toArray()
+    .then(forms => {
       let walkComponents = function(components) {
         for(let a = 0; a < components.length; a++) {
           // Check the current component, to see if its unique.
@@ -263,7 +258,8 @@ module.exports = function(db, config, tools, done) {
       debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(filtered);
       debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(filtered.length);
       return next(null, filtered);
-    });
+    })
+    .catch(err => next(err));
   };
 
   /**
@@ -276,15 +272,12 @@ module.exports = function(db, config, tools, done) {
       deleted: {$eq: null},
       form: {$in: forms}
     })
-    .snapshot(true)
-    .toArray(function(err, submissions) {
-      if (err) {
-        return next(err);
-      }
-
+    .toArray()
+    .then(submissions => {
       debug.getAffectedSubmissions(submissions.length);
       return next(null, submissions);
-    });
+    })
+    .catch(err => next(err));
   };
 
   /**

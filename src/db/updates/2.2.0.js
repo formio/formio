@@ -31,29 +31,21 @@ module.exports = function(db, config, tools, done) {
   let updateProjects = function(callback) {
     let projectChain = chain.on(['dropIndex', 'addIndex', 'addDeleted'], callback);
 
-    projects.dropIndex('name_1', function(err, result) {
-      if (err) {
-        return callback(err);
-      }
-
+    projects.dropIndex('name_1')
+    .then(() => {
       projectChain.emit('dropIndex');
-    });
+    })
+    .catch(err => callback(err));
 
-    projects.createIndex('name_1', function(err, result) {
-      if (err) {
-        return callback(err);
-      }
+    projects.createIndex('name_1')
+    .then(() => projectChain.emit('addIndex'))
+    .catch(err => callback(err));
 
-      projectChain.emit('addIndex');
-    });
-
-    projects.updateMany({}, {$set: {deleted: null}}, function(err, results) {
-      if (err) {
-        return callback(err);
-      }
-
-      projectChain.emit('addDeleted');
-    });
+    projects.updateMany({}, {$set: {deleted: null}})
+    .then(() => {
+      rojectChain.emit('addDeleted');
+    })
+    .catch(err => callback(err));
   };
 
   /**
@@ -64,13 +56,9 @@ module.exports = function(db, config, tools, done) {
    * @param callback
    */
   let updateForms = function(callback) {
-    forms.updateMany({}, {$set: {deleted: null}}, function(err, results) {
-      if (err) {
-        return callback(err);
-      }
-
-      callback();
-    });
+    forms.updateMany({}, {$set: {deleted: null}})
+    .then(() =>  callback())
+    .catch(err => callback(err));
   };
 
   /**
@@ -81,13 +69,9 @@ module.exports = function(db, config, tools, done) {
    * @param callback
    */
   let updateRoles = function(callback) {
-    roles.updateMany({}, {$set: {deleted: null}}, function(err, results) {
-      if (err) {
-        return callback(err);
-      }
-
-      callback();
-    });
+    roles.updateMany({}, {$set: {deleted: null}})
+    .then(() => callback())
+    .catch(err => callback(err));
   };
 
   /**
@@ -98,13 +82,9 @@ module.exports = function(db, config, tools, done) {
    * @param callback
    */
   let updateActions = function(callback) {
-    actions.updateMany({}, {$set: {deleted: null}}, function(err, results) {
-      if (err) {
-        return callback(err);
-      }
-
-      callback();
-    });
+    actions.updateMany({}, {$set: {deleted: null}})
+    .then(() => callback())
+    .catch(err => callback(err));
   };
 
   /**
@@ -115,13 +95,9 @@ module.exports = function(db, config, tools, done) {
    * @param callback
    */
   let updateSubmissions = function(callback) {
-    submissions.updateMany({}, {$set: {deleted: null}}, function(err, results) {
-      if (err) {
-        return callback(err);
-      }
-
-      callback();
-    });
+    submissions.updateMany({}, {$set: {deleted: null}})
+    .then(() => callback())
+    .catch(err => callback(err));
   };
 
   /**

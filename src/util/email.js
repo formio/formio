@@ -31,13 +31,9 @@ module.exports = (formio) => {
    * @param req
    * @param next
    */
-  const availableTransports = (req, next) => {
-    hook.settings(req, (err, settings) => {
-      if (err) {
-        debug.email(err);
-        return next(err);
-      }
-
+  const availableTransports = async (req, next) => {
+    try {
+      const settings = await hook.settings(req);
       // Build the list of available transports, based on the present project settings.
       let availableTransports = [];
       if (_.get(settings, 'email.custom.url')) {
@@ -83,7 +79,11 @@ module.exports = (formio) => {
       if (availableTransports) {
         return next(null, availableTransports);
       }
-    });
+    }
+    catch (err) {
+      debug.email(err);
+      return next(err);
+    }
   };
 
   /**
@@ -217,67 +217,27 @@ module.exports = (formio) => {
    * @param next
    * @returns {*}
    */
-  const send = (req, res, message, params, next, setActionItemMessage = () => {}) => {
-    // The transporter object.
-    let transporter = {sendMail: null};
+  const send = async (req, res, message, params, next, setActionItemMessage = () => {}) => {
+    const setParams = (params, req, res, message) => {
+        // Add the request params.
+        params.req = _.pick(req, [
+          'user',
+          'token',
+          'params',
+          'query',
+          'body',
+        ]);
 
-    // Add the request params.
-    params.req = _.pick(req, [
-      'user',
-      'token',
-      'params',
-      'query',
-      'body',
-    ]);
+        // Add the response parameters.
+        params.res = _.pick(res, [
+          'token',
+        ]);
 
-    // Add the response parameters.
-    params.res = _.pick(res, [
-      'token',
-    ]);
+        // Add the settings to the parameters.
+        params.settings = message;
+    };
 
-    // Add the settings to the parameters.
-    params.settings = message;
-
-    // Get the transport for this context.
-    let emailType = message.transport
-      ? message.transport
-      : 'default';
-
-    const _config = (formio && formio.config && formio.config.email && formio.config.email.type);
-    debug.send(message);
-    debug.send(emailType);
-
-    // Get the settings.
-    hook.settings(req, (err, settings) => { // eslint-disable-line max-statements
-      if (err) {
-        debug.send(err);
-        return next(err);
-      }
-
-      // Force the email type to custom for EMAIL_OVERRIDE which will allow
-      // us to use ngrok to test emails out of test platform.
-      if (EMAIL_OVERRIDE) {
-        const override = getEnvSettings(EMAIL_OVERRIDE);
-        if (override && override.hasOwnProperty('transport')) {
-          emailType = override.transport;
-          settings.email = {};
-          settings.email[emailType] = override.settings;
-        }
-        else {
-          emailType = 'custom';
-        }
-      }
-
-      if (emailType === 'default' && DEFAULT_TRANSPORT) {
-        const defaultTransport = getEnvSettings(DEFAULT_TRANSPORT);
-        if (defaultTransport && defaultTransport.hasOwnProperty('transport')) {
-          emailType = defaultTransport.transport;
-          settings.email = {};
-          settings.email[emailType] = defaultTransport.settings;
-          settings.email[emailType].defaultTransport = true;
-        }
-      }
-
+    const setTransporter = (transporter, emailType, settings, _config) => {
       switch (emailType) {
         case 'default':
           if (_config && formio.config.email.type === 'sendgrid') {
@@ -409,13 +369,9 @@ module.exports = (formio) => {
           };
           break;
       }
+    };
 
-      // If we don't have a valid transport, don't waste time with nunjucks.
-      if (!transporter || typeof transporter.sendMail !== 'function') {
-        debug.error(`Could not determine which email transport to use for ${emailType}`);
-        return next();
-      }
-
+    const prepareMail = (message) => {
       const formatNodemailerEmailAddress = (addresses) => _.isString(addresses) ? addresses : addresses.join(', ');
 
       const {
@@ -436,9 +392,10 @@ module.exports = (formio) => {
         subject,
         html,
         msgTransport: transport,
-        transport: emailType,
+        transport: message.transport || 'default',
         renderingMethod,
       };
+
       if (replyTo) {
         mail.replyTo = replyTo || from;
       }
@@ -454,9 +411,11 @@ module.exports = (formio) => {
         mail.bcc = formatNodemailerEmailAddress(bcc);
       }
 
-      const options = {
-        params,
-      };
+      return mail;
+    };
+
+    const send = async (transporter, message, options) => {
+      const  mail = prepareMail(message);
 
       const sendEmail = (email) => {
         // Replace all newline chars with empty strings, to fix newline support in html emails.
@@ -532,24 +491,96 @@ module.exports = (formio) => {
       });
 
       const throttledSendEmails = _.throttle(sendEmails , NON_PRIORITY_QUEUE_TIMEOUT);
+      const sendWithUser = async () => {
+        try {
+          const response = await sendEmails();
+          return next(null, response);
+        }
+        catch (err) {
+          debug.error(err);
+          return next(err);
+        }
+      };
+
+      const sensWithoutUser = () => {
+        try {
+          throttledSendEmails();
+          return next();
+        }
+        catch (err) {
+          debug.error(err);
+          return next(err);
+        }
+      };
 
       if (req.user) {
-        return sendEmails()
-          .then((response) => next(null, response))
-          .catch((err) => {
-            debug.error(err);
-            return next(err);
-          });
+        return await sendWithUser();
       }
       else {
-        throttledSendEmails()
-          .catch((err) => {
-            debug.error(err);
-            return next(err);
-          });
+        return await sensWithoutUser();
+      }
+    };
+
+    const isTransportValid = (transporter) => !transporter || typeof transporter.sendMail !== 'function';
+
+    try {
+      // The transporter object.
+      const transporter = {sendMail: null};
+
+      setParams(params, req, res, message);
+
+      // Get the transport for this context.
+      let emailType = message.transport
+        ? message.transport
+        : 'default';
+
+     const _config = (formio && formio.config && formio.config.email && formio.config.email.type);
+      debug.send(message);
+      debug.send(emailType);
+      // Get the settings.
+      const settings = await hook.settings(req); // eslint-disable-line max-statements
+      // Force the email type to custom for EMAIL_OVERRIDE which will allow
+      // us to use ngrok to test emails out of test platform.
+      if (EMAIL_OVERRIDE) {
+        const override = getEnvSettings(EMAIL_OVERRIDE);
+        if (override && override.hasOwnProperty('transport')) {
+          emailType = override.transport;
+          settings.email = {};
+          settings.email[emailType] = override.settings;
+        }
+        else {
+          emailType = 'custom';
+        }
+      }
+
+      if (emailType === 'default' && DEFAULT_TRANSPORT) {
+        const defaultTransport = getEnvSettings(DEFAULT_TRANSPORT);
+        if (defaultTransport && defaultTransport.hasOwnProperty('transport')) {
+          emailType = defaultTransport.transport;
+          settings.email = {};
+          settings.email[emailType] = defaultTransport.settings;
+          settings.email[emailType].defaultTransport = true;
+        }
+      }
+
+      setTransporter(transporter, emailType, settings, _config);
+
+      // If we don't have a valid transport, don't waste time with nunjucks.
+      if (isTransportValid(transporter)) {
+        debug.error(`Could not determine which email transport to use for ${emailType}`);
         return next();
       }
-    });
+
+      const options = {
+        params,
+      };
+
+      await send(transporter, message, options);
+    }
+    catch (err) {
+      debug.send(err);
+      return next(err);
+    }
   };
 
   return {
