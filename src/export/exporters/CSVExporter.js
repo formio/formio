@@ -8,7 +8,6 @@ const _ = require('lodash');
 const Entities = require('html-entities');
 const moment = require('moment-timezone');
 const {conformToMask} = require('vanilla-text-mask');
-const {Formio} = require('@formio/js');
 
 const interpolate = (string, data) => string.replace(/{{\s*(\S*)\s*}}/g, (match, path) => {
   const value = _.get(data, path);
@@ -54,7 +53,7 @@ class CSVExporter extends Exporter {
           return;
         }
 
-        const {component} = Formio.Components.create(comp);
+        const {component} =util.Formio.Components.create(comp);
         const items = [];
         let noRecurse = false;
 

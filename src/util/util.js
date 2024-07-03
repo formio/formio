@@ -17,12 +17,6 @@ const debug = {
 mockBrowserContext.default();
 const Formio = require('@formio/js');
 global.Formio = Formio.Formio;
-
-// Remove onChange events from all renderer displays.
-_.each(Formio.Displays.displays, (display) => {
-  display.prototype.onChange = _.noop;
-});
-
 Formio.Utils.Evaluator.noeval = true;
 
 const Utils = {

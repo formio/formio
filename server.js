@@ -139,8 +139,6 @@ module.exports = function(options) {
         start();
       });
     });
-  }).catch((err) => {
-    q.reject(err.message);
   });
 
   return q.promise;
