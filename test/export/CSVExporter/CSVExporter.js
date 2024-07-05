@@ -209,17 +209,30 @@ module.exports = function(app, template, hook) {
               done(error);
             }
 
+            const addressLatWithMode = getComponentValue(result.text, 'addressWithMode.lat', 0);
+            const addressLngWithMode = getComponentValue(result.text, 'addressWithMode.lng', 0);
+            const addressNameWithMode = getComponentValue(result.text, 'addressWithMode.formatted', 0);
+
             const addressLat = getComponentValue(result.text, 'address.lat', 0);
             const addressLng = getComponentValue(result.text, 'address.lng', 0);
             const addressName = getComponentValue(result.text, 'address.formatted', 0);
 
-            const expectedAddressLat = '"35.68696"';
-            const expectedAddressLng = '"139.74946"';
-            const expectedAddressName = '"Tokyo, Kanto"';
+            const expectedAddressLat = '"40.71305"';
+            const expectedAddressLng = '"`-74.00723"';
+            const expectedAddressName = '"New York, NY"';
+
+            const expectedAddressLatWithMode = '"47.37319"';
+            const expectedAddressLngWithMode = '"`-120.4237"';
+            const expectedAddressNameWithMode = '"Washington"';
 
             assert.strictEqual(addressLat, expectedAddressLat);
             assert.strictEqual(addressLng, expectedAddressLng);
             assert.strictEqual(addressName, expectedAddressName);
+
+            assert.strictEqual(addressLatWithMode, expectedAddressLatWithMode);
+            assert.strictEqual(addressLngWithMode, expectedAddressLngWithMode);
+            assert.strictEqual(addressNameWithMode, expectedAddressNameWithMode);
+
             done();
           });
         });
@@ -241,17 +254,30 @@ module.exports = function(app, template, hook) {
               done(error);
             }
 
+            const addressLatWithMode = getComponentValue(result.text, 'addressWithMode.lat', 0);
+            const addressLngWithMode = getComponentValue(result.text, 'addressWithMode.lng', 0);
+            const addressNameWithMode = getComponentValue(result.text, 'addressWithMode.formatted', 0);
+
             const addressLat = getComponentValue(result.text, 'address.lat', 0);
             const addressLng = getComponentValue(result.text, 'address.lng', 0);
             const addressName = getComponentValue(result.text, 'address.formatted', 0);
 
-            const expectedAddressLat = '"35.6761919"';
-            const expectedAddressLng = '"139.6503106"';
-            const expectedAddressName = '"Tokyo, Japan"';
+            const expectedAddressLat = '"40.7127753"';
+            const expectedAddressLng = '"`-74.0059728"';
+            const expectedAddressName = '"New York, NY, USA"';
+
+            const expectedAddressLatWithMode = '"47.7510741"';
+            const expectedAddressLngWithMode = '"`-120.7401386"';
+            const expectedAddressNameWithMode = '"Washington, USA"';
 
             assert.strictEqual(addressLat, expectedAddressLat);
             assert.strictEqual(addressLng, expectedAddressLng);
             assert.strictEqual(addressName, expectedAddressName);
+
+            assert.strictEqual(addressLatWithMode, expectedAddressLatWithMode);
+            assert.strictEqual(addressLngWithMode, expectedAddressLngWithMode);
+            assert.strictEqual(addressNameWithMode, expectedAddressNameWithMode);
+
             done();
           });
         });
@@ -273,17 +299,30 @@ module.exports = function(app, template, hook) {
               done(error);
             }
 
+            const addressLatWithMode = getComponentValue(result.text, 'addressWithMode.lat', 0);
+            const addressLngWithMode = getComponentValue(result.text, 'addressWithMode.lng', 0);
+            const addressNameWithMode = getComponentValue(result.text, 'addressWithMode.formatted', 0);
+
             const addressLat = getComponentValue(result.text, 'address.lat', 0);
             const addressLng = getComponentValue(result.text, 'address.lng', 0);
             const addressName = getComponentValue(result.text, 'address.formatted', 0);
 
-            const expectedAddressLat = '"35.6840574"';
-            const expectedAddressLng = '"139.7744912"';
-            const expectedAddressName = '"Tokyo, Japan"';
+            const expectedAddressLat = '"40.7127281"';
+            const expectedAddressLng = '"`-74.0060152"';
+            const expectedAddressName = '"New York, United States"';
+
+            const expectedAddressLatWithMode = '"47.2868352"';
+            const expectedAddressLngWithMode = '"`-120.212613"';
+            const expectedAddressNameWithMode = '"Washington, United States"';
 
             assert.strictEqual(addressLat, expectedAddressLat);
             assert.strictEqual(addressLng, expectedAddressLng);
             assert.strictEqual(addressName, expectedAddressName);
+
+            assert.strictEqual(addressLatWithMode, expectedAddressLatWithMode);
+            assert.strictEqual(addressLngWithMode, expectedAddressLngWithMode);
+            assert.strictEqual(addressNameWithMode, expectedAddressNameWithMode);
+
             done();
           });
         });

@@ -195,9 +195,12 @@ module.exports = (router) => {
             // Resolve the action.
             router.formio.log('Action', req, handler, method, action.name, action.title);
 
-            hook.performAsync('logAction', req, res, action, handler, method).then(logAction => {
+            hook.alter('logAction', req, res, action, handler, method, (err, logAction) => {
+              if (err) {
+                return cb(err);
+              }
               // if logs are allowed and performed, the logging logic resolves the action that is why skip it here.
-              if (logAction) {
+              if (logAction === true) {
                 return cb();
               }
               action.resolve(handler, method, req, res, (err) => {
@@ -206,9 +209,6 @@ module.exports = (router) => {
                 }
                 return cb();
               }, () => {});
-            })
-            .catch((err) => {
-              return cb(err);
             });
           });
         }, (err) => {
@@ -256,7 +256,7 @@ module.exports = (router) => {
           }, req);
 
           const result = await evaluate({
-            deps: ['core', 'moment', 'lodash'],
+            deps: ['lodash', 'moment', 'core'],
             code: json ?
               `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
               condition.custom,
@@ -267,7 +267,8 @@ module.exports = (router) => {
               form: params.form,
               submission: params.submission,
               previous: params.previous,
-            }
+            },
+            timeout: router.formio.config.vmTimeout,
           });
 
           return result;
@@ -276,9 +277,9 @@ module.exports = (router) => {
           router.formio.log(
             'Error during executing action custom logic',
             req,
-            err
+            err.message || err
           );
-          debug.error(err);
+          debug.error(err.message || err);
           return false;
         }
       }

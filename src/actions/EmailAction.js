@@ -1,5 +1,6 @@
 'use strict';
 const fetch = require('@formio/node-fetch-http-proxy');
+const _ = require('lodash');
 
 const LOG_EVENT = 'Email Action';
 
@@ -254,11 +255,12 @@ module.exports = (router) => {
                     .catch(() => this.settings.message);
               })
               .then((template) => {
-                this.settings.message = template;
+                const settingsCloned = _.cloneDeep(this.settings);
+                settingsCloned.message = template;
                 setActionItemMessage('Sending message', this.message);
 
                 req.params = reqParams;
-                emailer.send(req, res, this.settings, params, (err) => {
+                emailer.send(req, res, settingsCloned, params, (err) => {
                   if (err) {
                     setActionItemMessage('Error sending message', {
                       message: err.message || err

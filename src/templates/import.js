@@ -197,6 +197,22 @@ module.exports = (router) => {
   };
 
   /**
+   * Checks for an existing resource in the Form.io database.
+   * This function searches for a form with a specified name and project ID.
+   *
+   * @param {string} resource - The name of the resource to check.
+   * @param {string} projectId - The ID of the project under which to search the resource.
+   * @returns {Promise<Object|null>} A promise that resolves with the found document or null if no document is found.
+   */
+  const checkForExistingResource = (resource, projectId) => {
+    return formio.resources.form.model.findOne({
+      name: resource,
+      project: projectId,
+      deleted: {$eq: null}
+    }).exec();
+  };
+
+  /**
    * Converts an entities resource id (machineName) to a bson id.
    *
    * @param {Object} template
@@ -233,6 +249,22 @@ module.exports = (router) => {
     ) {
       entity.resource = template.resources[entity.resource]._id.toString();
       changes = true;
+    }
+
+    // Check if an existing resource exists in the new project.
+    if (!changes && !formio.mongoose.Types.ObjectId.isValid(entity.resource)) {
+      (async () => {
+        try {
+          const resource = await checkForExistingResource(entity.resource, template._id);
+          if (resource) {
+            entity.resource = resource._id;
+            changes = true;
+          }
+        }
+        catch (err) {
+          debug.install(err);
+        }
+      })();
     }
 
     return changes;
@@ -272,6 +304,19 @@ module.exports = (router) => {
         changed = true;
       }
 
+      // During import if select component
+      // data type resource de-ref defaultValue
+      if (
+        component
+        && component.type === 'select'
+        && component.dataSrc === 'resource'
+        && component.defaultValue
+      ) {
+        component.defaultValue = undefined;
+        hook.alter(`importComponent`, template, component);
+        changed = true;
+      }
+
       // Update resource machineNames for dataTable components with the resource data type.
       if (
         (component.type === 'datatable') &&
@@ -288,7 +333,7 @@ module.exports = (router) => {
       }
     });
 
-    return changed;
+     return changed;
   };
 
   const fallbackNestedForms = (nestedForms, template, cb) => {

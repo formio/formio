@@ -4,7 +4,9 @@ const {
   ProcessTargets,
   process,
   interpolateErrors,
-  escapeRegExCharacters
+  escapeRegExCharacters,
+  serverRules,
+  Utils,
 } = require('@formio/core');
 const {evaluateProcess} = require('@formio/vm');
 const util = require('../util/util');
@@ -22,7 +24,7 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(req, submissionModel, formModel, tokenModel, hook) {
+  constructor(req, submissionModel, formModel, tokenModel, hook, timeout = 500) {
     const tokens = {};
     const token = util.getRequestValue(req, 'x-jwt-token');
     if (token) {
@@ -47,6 +49,7 @@ class Validator {
     this.decodedToken = req.token;
     this.tokens = tokens;
     this.hook = hook;
+    this.timeout = timeout;
   }
 
   addPathQueryParams(pathQueryParams, query, path) {
@@ -161,23 +164,6 @@ class Validator {
     });
   }
 
-  validateCaptcha(captchaToken) {
-    return new Promise((resolve, reject) => {
-      this.tokenModel.findOne({value: captchaToken}, (err, token) => {
-        if (err) {
-          return reject(err);
-        }
-
-        if (!token) {
-          return resolve(false);
-        }
-
-        // Remove temp token after submission with reCaptcha
-        return token.remove(() => resolve(true));
-      });
-    });
-  }
-
   async dereferenceDataTableComponent(component) {
     if (
       component.type !== 'datatable'
@@ -193,7 +179,20 @@ class Validator {
     if (!resource) {
       throw new Error(`Resource at ${resourceId} not found for dereferencing`);
     }
-    return resource.components || [];
+    const dataTableComponents = (component.fetch.components || [])
+      .map(component => Utils.getComponent(resource.components || [], component.path));
+
+    const filterComponents = (component) => {
+      if (!component.components) {
+        return component;
+      }
+      component.components = component.components
+        .map(component => filterComponents(component))
+        .filter(component => dataTableComponents.includes(component) || component.components?.length > 0);
+      return component;
+    };
+
+    return filterComponents(resource).components || [];
   }
 
   /**
@@ -231,21 +230,22 @@ class Validator {
         server: true,
         token: this.tokens['x-jwt-token'],
         tokens: this.tokens,
-        database: {
+        database: this.hook.alter('validationDatabaseHooks', {
           isUnique: async (context, value) => {
             return this.isUnique(context, submission, value);
           },
-          validateCaptcha: this.validateCaptcha.bind(this),
           dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this)
-        }
+        }, this)
       }
     };
     try {
       // Process the server processes
       context.processors = ProcessTargets.submission;
+      context.rules = this.hook.alter('serverRules', serverRules);
       await process(context);
       submission.data = context.data;
 
+      const additionalDeps = this.hook.alter('dynamicVmDependencies', [], this.form);
       // Process the evaulator
       const {scope, data} = await evaluateProcess({
         ...(config || {}),
@@ -253,7 +253,9 @@ class Validator {
         submission,
         scope: context.scope,
         token: this.tokens['x-jwt-token'],
-        tokens: this.tokens
+        tokens: this.tokens,
+        timeout: this.timeout,
+        additionalDeps
       });
       context.scope = scope;
       submission.data = data;

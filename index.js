@@ -14,9 +14,7 @@ const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
-
-const originalGetToken = util.Formio.getToken;
-const originalEvalContext = util.Formio.Components.components.component.prototype.evalContext;
+const {configureVm} = require('@formio/vm');
 
 // Keep track of the formio interface.
 router.formio = {};
@@ -100,17 +98,9 @@ module.exports = function(config) {
 
       // Ensure we do not have memory leaks in core renderer
       router.use((req, res, next) => {
+        // Ensure we do not leak any forms or cache between requests.
         util.Formio.forms = {};
         util.Formio.cache = {};
-        util.Formio.Components.components.component.Validator.config = {
-          db: null,
-          token: null,
-          form: null,
-          submission: null
-        };
-        util.Formio.getToken = originalGetToken;
-        util.Formio.Components.components.component.prototype.evalContext = originalEvalContext;
-
         try {
           if (config.maxOldSpace) {
             const heap = process.memoryUsage().heapTotal / 1024 / 1024;
@@ -239,6 +229,11 @@ module.exports = function(config) {
         };
       }
 
+      // ensure that ObjectIds are serialized as strings, opt out using {transorm: false} when calling
+      // toObject() or toJSON() on a document or model. Note that opting out of transform when calling
+      // toObject() or toJSON will *also* opt out of any existing plugin transformations, e.g. encryption
+      mongoose.ObjectId.set('transform', (val) => val.toString());
+
       // Connect to MongoDB.
       mongoose.connect(mongoUrl,  mongoConfig );
 
@@ -345,6 +340,10 @@ module.exports = function(config) {
         });
 
         require('./src/middleware/recaptcha')(router);
+
+        // Read the static VM depdenencies into memory and configure the VM
+        const {lodash, moment, inputmask, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
+        configureVm({lodash, moment, inputmask, core, fastJsonPatch, nunjucks});
 
         // Say we are done.
         deferred.resolve(router.formio);

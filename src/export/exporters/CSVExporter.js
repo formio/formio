@@ -8,7 +8,6 @@ const _ = require('lodash');
 const Entities = require('html-entities');
 const moment = require('moment-timezone');
 const {conformToMask} = require('vanilla-text-mask');
-const Formio = require('formiojs/formio.form');
 
 const interpolate = (string, data) => string.replace(/{{\s*(\S*)\s*}}/g, (match, path) => {
   const value = _.get(data, path);
@@ -54,12 +53,19 @@ class CSVExporter extends Exporter {
           return;
         }
 
-        const {component} = Formio.Components.create(comp);
+        const {component} =util.Formio.Components.create(comp);
         const items = [];
         let noRecurse = false;
 
         // If a component has multiple parts, pick what we want.
         if (component.type === 'address') {
+          const getAddressComponentValue = (component, value = {}) => {
+            if (component.enableManualMode && value.address) {
+              return value.address;
+            }
+            return value;
+          };
+
           items.push({
             rename: (label) => `${label}.formatted`,
             preprocessor: (value) => {
@@ -67,7 +73,7 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              const address = (value && value.address) || value || {};
+              const address = getAddressComponentValue(component, value);
 
               // OpenStreetMap || Azure || Google
               // eslint-disable-next-line max-len
@@ -81,7 +87,7 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              const address = (value && value.address) || value || {};
+              const address = getAddressComponentValue(component, value);
 
               // OpenStreetMap || Azure || Google
               return address.lat || _.get(address, 'position.lat') || _.get(address, 'geometry.location.lat') || '';
@@ -94,7 +100,7 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              const address = (value && value.address) || value || {};
+              const address = getAddressComponentValue(component, value);
 
               // OpenStreetMap || Azure || Google
               return address.lon || _.get(address, 'position.lon') || _.get(address, 'geometry.location.lng') || '';
@@ -423,7 +429,6 @@ class CSVExporter extends Exporter {
       res.status(400).send(err.message || err);
     }
   }
-  /* eslint-enable max-statements */
 
   /**
    * Start the CSV export by creating the headers.
@@ -496,7 +501,6 @@ class CSVExporter extends Exporter {
     const updatedSubmission = {};
     const result = this.fields.map((column) => {
       const componentData = _.get(submission.data, column.path);
-
       // If the path had no results and the component specifies a path, check for a datagrid component
       if (_.isUndefined(componentData) && column.path.includes('.')) {
         let parts = column.path.split('.');

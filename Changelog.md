@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.1.0-rc.1]
+## [Unreleased: 4.2.0-rc.1]
 ### Changed
  - FIO-8042: attach scope to the submission object
  - FIO-7958: fix tests to be compatible with core validation
@@ -33,6 +33,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO 7522: Encrypted Fields Not Re-Encrypted to New DB Secret
  - FIO-7933: Added pdfComponents to Form schema
  - FIO-7146: Migrate Formio CI/CD from CircleCI to Github Actions
+ - FIO-7933: fixed tests
+ - FIO-8128: add additionalDeps hook to validation process
+ - FIO-8169: add resolve dep to mirror enterprise server
+ - FIO-7488: add timeout to evaluations
+ - FIO-7829: Removed the flattened components which is not necessary with the changes to encryption and decryption
+ - FIO-8235: add timeout to email rendering
+ - FIO-8282: add ObjectID transform
+ - Bump semver from 7.0.0 to 7.6.0
+ - FIO-8251: added inputmask library
+ - FIO-8152 & FIO-8137: Check if Import Resource Exists in New Project for Select Component with Resource & De-ref default values on select with resource
+ - FIO-8152: Check if Import Resource Exists in New Project for Select Component with Resource
+ - FIO-6966: Fixes missing address component data in csv exported submissions
+ - FIO-8343: Fixed the issue with dereferencing data table components
+ - FIO-8027 added Cloudflare Turnstile as a captcha Provider
+ - FIO-7299: Fix email action with the 'before' handler issues
+ - FIO-8150: pin subform submission object
 
 ## 4.0.0-rc.14
 ### Changed
