@@ -5,6 +5,7 @@ const async = require('async');
 
 module.exports = (router) => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
+  const hook = require('../../util/hook')(router.formio);
 
   // Get a subrequest and sub response for a nested request.
   const getSubRequest = function(component, subQuery, req, res, response) {

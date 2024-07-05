@@ -64,9 +64,9 @@ module.exports = function(router) {
      * @param type {string}
      * @param id {String}
      */
-    async loadForm(req, type, id) {
+    async loadForm(req, type, id, noCachedResult) {
       const cache = this.cache(req);
-      if (cache.forms[id]) {
+      if (!noCachedResult && cache.forms[id]) {
         debug.loadForm(`Cache hit: ${id}`);
         return cache.forms[id];
       }
@@ -222,9 +222,9 @@ module.exports = function(router) {
      * @param subId {Object|String}
      *   The submission id, as BSON or string.
      */
-    async loadSubmission(req, formId, subId) {
+    async loadSubmission(req, formId, subId, noCachedResult) {
       const cache = this.cache(req);
-      if (cache.submissions[subId]) {
+      if (!noCachedResult && cache.submissions[subId]) {
         debug.loadSubmission(`Cache hit: ${subId}`);
         return cache.submissions[subId];
       }

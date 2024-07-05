@@ -149,6 +149,8 @@ module.exports = (router) => {
             'properties',
             'controller',
             'submissionRevisions',
+            'revisions',
+            'esign',
             ...includeFormFields,
           );
           if (form.revisions) {
@@ -299,6 +301,7 @@ module.exports = (router) => {
                     'properties',
                     'controller',
                     'submissionRevisions',
+                    'esign',
                     '_vid',
                     ...includeFormFields
                   );
