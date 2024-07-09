@@ -45,6 +45,109 @@ module.exports = (app, template, hook) => {
       ],
     };
 
+    const resourceTestFormSave = {
+      title: chance.word(),
+      name:  chance.word(),
+      path:  chance.word(),
+      type: 'resource',
+      access: [],
+      submissionAccess: [],
+      components: [
+        {
+          type: 'textfield1',
+          validate: {
+            custom: '',
+            pattern: '',
+            maxLength: '',
+            minLength: '',
+            required: false,
+          },
+          defaultValue: '',
+          multiple: false,
+          suffix: '',
+          prefix: '',
+          placeholder: chance.word(),
+          key: 'textField1',
+          label: chance.word(),
+          inputMask: '',
+          inputType: 'text',
+          input: true,
+        },
+        {
+          type: 'textfield2',
+          validate: {
+            custom: '',
+            pattern: '',
+            maxLength: '',
+            minLength: '',
+            required: false,
+          },
+          defaultValue: '',
+          multiple: false,
+          suffix: '',
+          prefix: '',
+          placeholder: chance.word(),
+          key: 'textField2',
+          label: chance.word(),
+          inputMask: '',
+          inputType: 'text',
+          input: true,
+        },
+      ],
+    };
+
+    const testFormSave = {
+      title: chance.word(),
+      name:  chance.word(),
+      path:  chance.word(),
+      type: 'form',
+      access: [],
+      submissionAccess: [],
+      noSave: true,
+      components: [
+        {
+          type: 'textfield1',
+          validate: {
+            custom: '',
+            pattern: '',
+            maxLength: '',
+            minLength: '',
+            required: false,
+          },
+          defaultValue: '',
+          multiple: false,
+          suffix: '',
+          prefix: '',
+          placeholder: chance.word(),
+          key: 'textfield1',
+          label: chance.word(),
+          inputMask: '',
+          inputType: 'text',
+          input: true,
+        },
+        {
+          type: 'textfield2',
+          validate: {
+            custom: '',
+            pattern: '',
+            maxLength: '',
+            minLength: '',
+            required: false,
+          },
+          defaultValue: '',
+          multiple: false,
+          suffix: '',
+          prefix: '',
+          placeholder: chance.word(),
+          key: 'textfield2',
+          label: chance.word(),
+          inputMask: '',
+          inputType: 'text',
+          input: true,
+        }
+       ],
+    };
+
     // Store the temp action for this test suite.
     let tempAction = {};
     describe('Bootstrap', () => {
@@ -97,7 +200,70 @@ module.exports = (app, template, hook) => {
             done();
           });
       });
-    });
+
+      it('Create forms for testing action with transform mapping data', async () => {
+       const formResource = await request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(resourceTestFormSave)
+
+          const response = formResource.body;
+
+          assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.equal(response.title, resourceTestFormSave.title);
+          assert.equal(response.name, resourceTestFormSave.name);
+          template.testResourceToSave = response;
+
+          const action = {
+            priority: 10,
+            name: "save",
+            title: "Save Submission",
+            settings: {
+                resource: response._id,
+                property: "",
+                fields: {
+                    textField1: "",
+                    textField2: "",
+                    },
+                transform: "data.textField1 = '123';submission.data.textField1 = '111';data.textField2 = '222'"
+            },
+            condition: {
+                conjunction: "",
+                conditions: [],
+                custom: ""
+            },
+            submit: true,
+            handler: [
+                "before"
+            ],
+            method: [
+                "create",
+                "update"
+            ]
+        }
+        const testForm = await request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(testFormSave)
+
+        const responseTest = testForm.body;
+        assert(responseTest.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(testFormSave.title, responseTest.title);
+        assert.equal(testFormSave.name, responseTest.name);
+        template.testFormToSave = responseTest;
+
+
+        const resultAction = await request(app)
+        .post(hook.alter('url', `/form/${responseTest._id}/action`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(action);
+
+        const responseAction = resultAction.body;
+        assert(responseAction.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(action.title, responseAction.title);
+        assert.equal(action.name, responseAction.name);
+      });
+   });
 
     describe('Permissions - Project Level - Project Owner', () => {
       it('A Project Owner should be able to Create an Action', (done) => {
@@ -327,6 +493,66 @@ module.exports = (app, template, hook) => {
           .expect('Content-Type', /text\/plain/)
           .expect(401)
           .end(done);
+      });
+    });
+
+    describe('Test action with custom transform mapping data', () => {
+      it('Submit form', (done) => {
+        request(app)
+        .post(hook.alter('url', `/form/${template.testFormToSave._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          data: {
+            textField: 'Test',
+          },
+        })
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const result = res.body;
+          assert(result.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.deepEqual(result.data, {textField1: '111', textField2: '222' });
+          done()
+        });
+      });
+
+      it('Get submissions from submitted form', (done) => {
+        request(app)
+        .get(hook.alter('url', `/form/${template.testFormToSave._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const result = res.body;
+          assert.deepEqual(result, [], "Should be empty as our submission has been moved to resource form");
+          done()
+        });
+      });
+
+      it('Get submissions from connected form', (done) => {
+        request(app)
+        .get(hook.alter('url', `/form/${template.testResourceToSave._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          assert(res.body.length, 1);
+
+          const result = res.body[0];
+          assert(result.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.deepEqual(result.data, {textField1: '111', textField2: '222'}, "Should get a transformed submission data from connected form");
+          delete template.testResourceToSave;
+          delete template.testFormToSave;
+          done()
+        });
       });
     });
 
