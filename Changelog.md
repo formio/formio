@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.3.0-rc.2]
+## 4.3.0-rc.2
+### Changed
+ - Updated @formio/vm@0.2.1-rc.4
+ - Re-implement - FIO-6630: Expanded Actions Logic UI
+ - FIO-7330: fix bug of displaying settings for restricted fields
+ - FIO-6630: Adds root level properties to action conditions
+ - FIO-8150: pin subform submission object
+
  - FIO-7330: Fixes action settings endpoint crushing 
  - FIO-7146: Migrate Formio CI/CD from CircleCI to Github Actions
  
