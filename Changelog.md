@@ -5,7 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 ## [Unreleased: 4.3.0-rc.2]
-
+ - FIO-7330: Fixes action settings endpoint crushing 
+ - FIO-7146: Migrate Formio CI/CD from CircleCI to Github Actions
+ 
 ## 4.2.1-rc.5
 ### Changed
  - Updated @formio/core@2.1.1-rc.3
