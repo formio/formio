@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.3.0-rc.4
+### Changed
+ - Updated @formio/core@2.1.1-rc.4
+ - Updated @formio/vm@0.2.1-rc.5
+ - FIO-8027 added Cloudflare Turnstile as a captcha Provider
+
 ## 4.3.0-rc.3
 ### Changed
  - remove "test" from .npmignore
