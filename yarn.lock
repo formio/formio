@@ -2534,10 +2534,13 @@ inputmask@5.0.8, inputmask@^5.0.8:
   resolved "https://registry.yarnpkg.com/inputmask/-/inputmask-5.0.8.tgz#cd0f70b058c3291a0d4f27de25dbfc179c998bb4"
   integrity sha512-1WcbyudPTXP1B28ozWWyFa6QRIUG4KiLoyR6LFHlpT4OfTzRqFfWgHFadNvRuMN1S9XNVz9CdNvCGjJi+uAMqQ==
 
-ip@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/ip/-/ip-2.0.0.tgz#4cf4ab182fee2314c75ede1276f8c80b479936da"
-  integrity sha512-WKa+XuLG1A1R0UWhl2+1XQSi+fZWMsYKffMZTTYsiZaUD8k2yDAj5atimTUD2TZkyCkNEeYE5NhFZmupOGtjYQ==
+ip-address@^9.0.5:
+  version "9.0.5"
+  resolved "https://registry.yarnpkg.com/ip-address/-/ip-address-9.0.5.tgz#117a960819b08780c3bd1f14ef3c1cc1d3f3ea5a"
+  integrity sha512-zHtQzGojZXTwZTHQqra+ETKd4Sn3vgi7uBmlPoXVWZqYvuKmtI0l/VZTjqGmJY9x88GGOaZ9+G9ES8hC4T4X8g==
+  dependencies:
+    jsbn "1.1.0"
+    sprintf-js "^1.1.3"
 
 ipaddr.js@1.9.1:
   version "1.9.1"
@@ -3582,10 +3585,10 @@ resolve@^1.22.8:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-resourcejs@^2.5.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.0.tgz#98287ca9698065cc282c015f7d78a78508f6ae18"
-  integrity sha512-0VsXqlh08TWJTuj1nUTUlUSuXZ7gmHmJfFyqzxJ6Io1k82bWQ8XlrMdHfnkRVXve+goW392vSRr6Wo70S87Qpw==
+resourcejs@2.6.0-dev.148.188e6df:
+  version "2.6.0-dev.148.188e6df"
+  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.0-dev.148.188e6df.tgz#b92bec112790f3ca1dcb7cc387dca44492e604aa"
+  integrity sha512-/3aDpsmlqjojcO5GcxWCQMfZu3OUhQWLq1cZS6DNAo61OlEsBhlvubmFCVMMCRgdoaM4AErLCmeLbQAfiXW0vg==
   dependencies:
     debug "^4.3.2"
     fast-json-patch "^3.1.1"
