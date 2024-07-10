@@ -573,10 +573,10 @@
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.2.1-rc.7":
-  version "0.2.1-rc.7"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.1-rc.7.tgz#956b2b22dff5d1b4d90259b80efd519b7a2c98e1"
-  integrity sha512-XNGCd2RAJrCGTXHJgK/QCAPY5qFPnAFeUUr8QCSkwjXw1ugsP2qw6J5v6i7cWghkliDri53OqD56vPOF8gQvGg==
+"@formio/vm@0.3.0-rc.1":
+  version "0.3.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.3.0-rc.1.tgz#4e25317fd48e27135fdedb0e5b116ec038d4b80d"
+  integrity sha512-NzTfG54VI1KGtDNdE2C6HtGNK4+wCVYrQRo6OTCvG3Wl5rATUTmDfDG+Xo92uV4i8aXJCDqhvRh5h4tHIZQOrA==
   dependencies:
     "@formio/core" "2.2.0-rc.4"
     debug "^4.3.4"
