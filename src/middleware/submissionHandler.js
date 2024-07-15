@@ -195,7 +195,7 @@ module.exports = (router, resourceName, resourceId) => {
       let isSubform = formId && formId.toString() !== req.currentForm._id.toString();
       isSubform = !isSubform && req.mainForm ? req.mainForm.toString() !== req.currentForm._id.toString() : isSubform;
       req.submission = req.submission || {data: {}};
-      if (!_.isEmpty(req.submission.data) && !isSubform) {
+      if (!_.isEmpty(req.submission.data) && !isSubform && !req.isTransformedData) {
         req.body.data = _.assign(req.body.data, req.submission.data);
       }
 
