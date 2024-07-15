@@ -155,42 +155,62 @@ class Validator {
     }
     // Only search for non-deleted items
     query.deleted = {$eq: null};
-    query.state = 'submitted';
-    return new Promise((resolve) => {
-      const cb = (err, result) => {
-        if (err) {
-          return resolve(false);
-        }
-        else if (result) {
-          // Only OK if it matches the current submission
-          if (submission._id && (result._id.toString() === submission._id)) {
-            resolve(true);
-          }
-          else {
-            component.conflictId = result._id.toString();
-            return resolve(false);
-          }
+    if (submission.hasOwnProperty('state')) {
+      query.state = 'submitted';
+   }
+    const cb = (err, result) => {
+      if (err) {
+        return false;
+      }
+      else if (result) {
+        // Only OK if it matches the current submission
+        if (submission._id && (result._id.toString() === submission._id)) {
+          return true;
         }
         else {
-          return resolve(true);
+          component.conflictId = result._id.toString();
+          return false;
         }
-      };
+      }
+      else {
+        return true;
+      }
+    };
 
-      this.submissionModel.findOne(query, null, collationOptions, (err, result) => {
-        if (err && collationOptions.collation) {
-          // presume this error comes from db compatibility, try again as regex
-          delete query[path];
-          this.addPathQueryParams({
-            $regex: new RegExp(`^${escapeRegExCharacters(value)}$`),
-            $options: 'i'
-          }, query, path);
-          this.submissionModel.findOne(query, cb);
+    try {
+      const result = await this.submissionModel.findOne(query, null, collationOptions);
+      return cb(null, result);
+    }
+    catch (err) {
+      if (err && collationOptions.collation) {
+        // presume this error comes from db compatibility, try again as regex
+        delete query[path];
+        this.addPathQueryParams({
+          $regex: new RegExp(`^${escapeRegExCharacters(value)}$`),
+          $options: 'i'
+        }, query, path);
+        try {
+          await this.submissionModel.findOne(query);
+          return cb();
         }
-        else {
-          return cb(err, result);
+        catch (err) {
+          return cb(err);
         }
-      });
-    });
+      }
+      else {
+        return cb(err);
+      }
+    }
+  }
+
+  async validateCaptcha(captchaToken) {
+    const token = await this.tokenModel.findOne({value: captchaToken});
+    if (!token) {
+      return false;
+    }
+
+    // Remove temp token after submission with reCaptcha
+    return token.remove(() => true);
   }
 
   async validateResourceSelectValue(context, value) {

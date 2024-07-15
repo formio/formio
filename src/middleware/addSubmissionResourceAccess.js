@@ -33,15 +33,15 @@ module.exports = (router) => {
     });
   };
 
-  return function addSubmissionResourceAccess(req, res, next) {
+  return async function addSubmissionResourceAccess(req, res, next) {
     // Only add on PUT/POST/PATCH.
     if (!(req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH')) {
       return next();
     }
-
     req.body.access = [];
-    router.formio.cache.loadForm(req, undefined, req.params.formId, function(err, form) {
-      if (err || !form) {
+    try {
+      const form = await router.formio.cache.loadForm(req, undefined, req.params.formId);
+      if (!form) {
         return next(`Cannot load form ${req.params.formId}`);
       }
 
@@ -93,6 +93,9 @@ module.exports = (router) => {
       /* eslint-enable max-depth */
 
       return next();
-    });
+    }
+    catch (err) {
+      return next(`Cannot load form ${req.params.formId}`);
+    }
   };
 };
