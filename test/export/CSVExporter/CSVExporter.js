@@ -7,6 +7,7 @@ module.exports = function(app, template, hook) {
   const testFile = require('../../fixtures/forms/fileComponent.js');
   const testTags = require('../../fixtures/forms/tagsWithDelimiter.js');
   const testRadio = require('../../fixtures/forms/radioComponent');
+  const testFormWithReviewPage = require('../../fixtures/forms/formWithReviewPage.js');
   const testAzureAddress= require('../../fixtures/forms/azureAddressComponent');
   const testGoogleAddress= require('../../fixtures/forms/googleAddressComponent');
   const testNominatimAddress= require('../../fixtures/forms/nominatimAddressComponent');
@@ -165,6 +166,36 @@ module.exports = function(app, template, hook) {
           });
         });
     });
+
+    it('Should not include Review Page in the CSV file', (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form('formWithReviewPage', testFormWithReviewPage.components)
+        .submission({
+          data: {
+            number: 11,
+            textField: 'test',
+            submit: true
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(helper.template.forms.formWithReviewPage, 'csv', (error, result) => {
+            if (error) {
+              return done(error);
+            }
+            assert.strictEqual(result.text.split('\n')[0].includes('textField'), true);
+            assert.strictEqual(result.text.split('\n')[0].includes('number'), true);
+            assert.strictEqual(result.text.split('\n')[0].includes('reviewPage'), false);
+            assert.strictEqual(result.text.split('\n')[0].includes('submit'), false);
+            done();
+          });
+        })
+    })
 
     it('Should export csv with conditional radio component', (done) => {
       let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
