@@ -5,6 +5,7 @@ const async = require('async');
 
 module.exports = (router) => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
+  const hook = require('../../util/hook')(router.formio);
 
   // Get a subrequest and sub response for a nested request.
   const getSubRequest = function(component, subQuery, req, res, response) {
@@ -342,12 +343,16 @@ module.exports = (router) => {
             if (err) {
               return reject(err);
             }
+            const subSubmissions = res.resource.item.map(submission => {
+              return _.get(submission, `data.${path}`);
+            });
             if (res.resource && Array.isArray(res.resource.item)) {
-              util.removeProtectedFields(form, 'index', res.resource.item.map(submission => {
-                return _.get(submission, `data.${path}`);
-              }));
+              util.removeProtectedFields(form, 'index', subSubmissions);
             }
-            resolve();
+
+            hook.alter('transformReferences', new Promise(resolveSubms => resolveSubms(subSubmissions)), formId, req)
+              .then(() => resolve())
+              .catch(() => resolve());
           });
         });
       case 'beforePost':

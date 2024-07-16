@@ -16,9 +16,6 @@ const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
 const {configureVm} = require('@formio/vm');
 
-const originalGetToken = util.Formio.getToken;
-const originalEvalContext = util.Formio.Components.components.component.prototype.evalContext;
-
 // Keep track of the formio interface.
 router.formio = {};
 
@@ -101,17 +98,9 @@ module.exports = function(config) {
 
       // Ensure we do not have memory leaks in core renderer
       router.use((req, res, next) => {
+        // Ensure we do not leak any forms or cache between requests.
         util.Formio.forms = {};
         util.Formio.cache = {};
-        util.Formio.Components.components.component.Validator.config = {
-          db: null,
-          token: null,
-          form: null,
-          submission: null
-        };
-        util.Formio.getToken = originalGetToken;
-        util.Formio.Components.components.component.prototype.evalContext = originalEvalContext;
-
         try {
           if (config.maxOldSpace) {
             const heap = process.memoryUsage().heapTotal / 1024 / 1024;
