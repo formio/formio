@@ -160,8 +160,13 @@ module.exports = function(app, template, hook) {
             'x-jwt-token': template.users.admin.token,
           },
         },
-        null,
+        formio.resources.submission.model,
+        formio.resources.submission,
+        formio.cache,
         formio.resources.form.model,
+        formio.mongoose.models.token,
+        hook,
+        formio.config.vmTimeout
       );
       const dataTableComponent = {
         type: 'datatable',
@@ -217,8 +222,13 @@ module.exports = function(app, template, hook) {
             'x-jwt-token': template.users.admin.token,
           },
         },
-        null,
+        formio.resources.submission.model,
+        formio.resources.submission,
+        formio.cache,
         formio.resources.form.model,
+        formio.mongoose.models.token,
+        hook,
+        formio.config.vmTimeout
       );
       const dataTableComponent = {
         type: 'datatable',

@@ -1,20 +1,48 @@
 'use strict';
 const _ = require('lodash');
+const {ObjectId} = require('mongodb');
 const {
   ProcessTargets,
   process,
   interpolateErrors,
   escapeRegExCharacters,
   serverRules,
-  Utils,
+  Utils: CoreUtils,
 } = require('@formio/core');
 const {evaluateProcess} = require('@formio/vm');
-const util = require('../util/util');
+const Utils = require('../util/util');
 const fetch = require('@formio/node-fetch-http-proxy');
 const debug = {
   validator: require('debug')('formio:validator'),
   error: require('debug')('formio:error')
 };
+
+// Promisify cache load form.
+function loadFormById(cache, req, formId) {
+  return new Promise((resolve, reject) => {
+    cache.loadForm(req, null, formId, (err, resource) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(resource);
+    });
+  });
+}
+
+// Promisify submission model find.
+function submissionQueryExists(submissionModel, query) {
+  return new Promise((resolve, reject) => {
+    submissionModel.find(query, (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      if (result.length === 0 || !result) {
+        return resolve(false);
+      }
+      return resolve(true);
+    });
+  });
+}
 
 /**
  * @TODO: Isomorphic validation system.
@@ -24,9 +52,9 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(req, submissionModel, formModel, tokenModel, hook) {
+  constructor(req, submissionModel, submissionResource, cache, formModel, tokenModel, hook, timeout = 500) {
     const tokens = {};
-    const token = util.getRequestValue(req, 'x-jwt-token');
+    const token = Utils.getRequestValue(req, 'x-jwt-token');
     if (token) {
       tokens['x-jwt-token'] = token;
     }
@@ -42,6 +70,8 @@ class Validator {
 
     this.req = req;
     this.submissionModel = submissionModel;
+    this.submissionResource = submissionResource;
+    this.cache = cache;
     this.formModel = formModel;
     this.tokenModel = tokenModel;
     this.form = req.currentForm;
@@ -163,15 +193,46 @@ class Validator {
     });
   }
 
-  /**
-   * Get resource components from a data table, filtered by used components into the data table.
-   * Added filtering to prevent passing all resource components to @formio/core processes.
-   *
-   * @param {Object} component
-   *   The data table component.
-   * @returns {Array<Object>}
-   *   The filtered resource components from a data table.
-   */
+  async validateResourceSelectValue(context, value) {
+    const {component} = context;
+    if (!component.data.resource) {
+      throw new Error('Did not receive resource ID for resource select validation');
+    }
+    const resource = await loadFormById(this.cache, this.req, component.data.resource);
+    if (!resource) {
+      throw new Error('Resource not found');
+    }
+    // Curiously, if a value property is not provided, the renderer will submit the entire object.
+    // Even if the user selects "Entire Object" as the value property, the renderer will submit only
+    // the data object. If we don't have a value property we can fallback to the _id, if we don't
+    // have an _id we can fall back to the data object OR the data object plus the "submit" property
+    // (which seems to sometimes be stripped and sometimes not).
+    const valueQuery = component.valueProperty
+      ? {[component.valueProperty]: value}
+      : value._id
+      ? {_id: value._id}
+      : {$or: [{data: value}, {data: {...value, submit: true}}]};
+    if (!component.filter) {
+      component.filter = '';
+    }
+    const filterQueries = component.filter.split(',').reduce((acc, filter) => {
+      const [key, value] = filter.split('=');
+      return {...acc, [key]: value};
+    }, {});
+    Utils.coerceQueryTypes(filterQueries, resource, 'data.');
+
+    const query = {
+      form: new ObjectId(component.data.resource),
+      deleted: null,
+      state: 'submitted',
+      $and:[
+        valueQuery,
+        this.submissionResource.getFindQuery({query: filterQueries})
+      ]
+    };
+    return submissionQueryExists(this.submissionModel, query);
+  }
+
   async dereferenceDataTableComponent(component) {
     if (
       component.type !== 'datatable'
@@ -188,7 +249,7 @@ class Validator {
       throw new Error(`Resource at ${resourceId} not found for dereferencing`);
     }
     const dataTableComponents = (component.fetch.components || [])
-      .map(component => Utils.getComponent(resource.components || [], component.path));
+      .map(component => CoreUtils.getComponent(resource.components || [], component.path));
 
     const filterComponents = (component) => {
       if (!component.components) {
@@ -242,6 +303,7 @@ class Validator {
           isUnique: async (context, value) => {
             return this.isUnique(context, submission, value);
           },
+          validateResourceSelectValue: this.validateResourceSelectValue.bind(this),
           dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this)
         }, this)
       }
