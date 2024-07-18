@@ -570,10 +570,28 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.1.1-rc.6":
-  version "2.1.1-rc.6"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.1.1-rc.6.tgz#ddec94a078c562c17121f684775cf5bb4dfd7e22"
-  integrity sha512-fZO5zy+5vT0Bh2g42cILIOpPfpTWiqqDljXOabZ+JZ+V28DFeaNG7ID9qquRg3Mvab9J+iv6WGjsfPtvJchPWw==
+"@formio/core@2.1.1-rc.7":
+  version "2.1.1-rc.7"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.1.1-rc.7.tgz#c00fb6c8441713ced8c877bd401167cc3b1ff602"
+  integrity sha512-Un0a/TUwGypMRkpSHcAtyCkApSCJYc48q+kwHwtNFwdS8d5FSIKs1ahf3XJQwQxDBD0V47RmUJ9sEkWGEj4ADg==
+  dependencies:
+    "@types/json-logic-js" "^2.0.7"
+    browser-cookies "^1.2.0"
+    core-js "^3.37.1"
+    dayjs "^1.11.11"
+    dompurify "^3.1.4"
+    eventemitter3 "^5.0.0"
+    fast-json-patch "^3.1.1"
+    fetch-ponyfill "^7.1.0"
+    inputmask "5.0.8"
+    json-logic-js "^2.0.2"
+    lodash "^4.17.21"
+    moment "^2.29.4"
+
+"@formio/core@2.2.0-rc.5":
+  version "2.2.0-rc.5"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.2.0-rc.5.tgz#0e799ad498315512371f2de8d468d73488eacfa5"
+  integrity sha512-dioadtRRzPdcS+viXp1s2ad+CnrT7mjGEm+6ZWirbCsFQHnUkvv2qCv062ytDMVRgQLZIAV9FfR1Z1zXfuUBpw==
   dependencies:
     "@types/json-logic-js" "^2.0.7"
     browser-cookies "^1.2.0"
@@ -613,12 +631,12 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.2.1-rc.10":
-  version "0.2.1-rc.10"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.1-rc.10.tgz#6448e65a371a336dd714d438565653a83bd886e5"
-  integrity sha512-X6TViCWriUgBs1fiqfq5WoAuhNfRIf9GHHgMwDv6/0K0sjnLlhQzS6lqVBUloelNoSPTFI6wig2Au8oZRG4EBA==
+"@formio/vm@0.2.1-rc.11":
+  version "0.2.1-rc.11"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.1-rc.11.tgz#dbe9e83f8f30ae593a76806204a50579b5c379a2"
+  integrity sha512-f6YBrWoRnGaE9gpCaU3NLhNROTJCIdiRxUJI9VYQpJ9MQ7HCcnFesSIafBoihKbgfZ3GkcaDaktWcSZQbunySg==
   dependencies:
-    "@formio/core" "2.1.1-rc.6"
+    "@formio/core" "2.2.0-rc.5"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
