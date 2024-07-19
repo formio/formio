@@ -285,6 +285,7 @@ class CSVExporter extends Exporter {
               // If we wish to display in submission timezone, and there is submission timezone metadata.
               if (
                 (component.displayInTimezone === 'submission') &&
+                submission &&
                 submission.metadata &&
                 submission.metadata.timezone
               ) {
@@ -551,7 +552,7 @@ class CSVExporter extends Exporter {
         ? `${column.key}.${column.subpath}`
         : column.key;
 
-      return data.map((item) => `"${this.coerceToString(_.get(item, fullPath, item), column)}"`).join(',');
+    return data.map((item) => `${this.coerceToString(_.get(item, fullPath, item), column, submission)}`).join(',');
     }
     else if (_.isString(data)) {
       if (column.type === 'boolean') {
