@@ -2117,17 +2117,17 @@ formidable@^2.1.2:
     once "^1.4.0"
     qs "^6.11.0"
 
-formio-workers@1.21.5-rc.1:
-  version "1.21.5-rc.1"
-  resolved "https://registry.npmjs.org/formio-workers/-/formio-workers-1.21.5-rc.1.tgz#9c26d41e87905eef182430d15a50df9e913c15e5"
-  integrity sha512-keuQ//YdWSFsVKM1+U15VhkoYH+Pmj4Yq7m71N4RL+e1SeITRaeF46NsmadXR6ijdvYUmQUsr82MexoGdSMBDg==
+formio-workers@1.21.5:
+  version "1.21.5"
+  resolved "https://registry.yarnpkg.com/formio-workers/-/formio-workers-1.21.5.tgz#faa9a5fe57ff397b885a574ede32a00ed8f23e61"
+  integrity sha512-cV300eGt6CfOv40CnH6eOUTFtrTz5KYHjlYnUNkZOlqw1puaCJwCq0AF3cpoSq468HMlv8HHWV1tG8esRZLNHg==
   dependencies:
     aws-serverless-express "^3.4.0"
     body-parser "^1.19.1"
     core-js "^3.19.3"
     dotenv "^10.0.0"
     express "^4.17.1"
-    formiojs "4.19.5-rc.1"
+    formiojs "4.19.5"
     lodash "^4.17.21"
     method-override "^3.0.0"
     moment "^2.29.1"
@@ -2136,10 +2136,10 @@ formio-workers@1.21.5-rc.1:
     nunjucks-date-filter "^0.1.1"
     vm2 "^3.9.5"
 
-formiojs@4.19.5-rc.1:
-  version "4.19.5-rc.1"
-  resolved "https://registry.npmjs.org/formiojs/-/formiojs-4.19.5-rc.1.tgz#8d6a80108e339dbaf838212048ca83fffd588a0f"
-  integrity sha512-qpIDebj6GpcHRDk0nq/ud1OaIcYaqoNB9xY3lFVXEbgbS53FiF0RjQ+LIHixI2NYmhGDOzVx7yBDNVT5k7Nbuw==
+formiojs@4.19.5:
+  version "4.19.5"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.19.5.tgz#99ecddaa261b5180500f0dbda63d771c88089c6e"
+  integrity sha512-jkFothZR+Fz85br6gzneHhOXf4MZJYyheBtDL3k9NdjOaPhRsfyQZuGaWtvoMCYvZNYWcERoD6UtUwEdyMMY1w==
   dependencies:
     "@formio/bootstrap3" "2.12.4-rc.1"
     "@formio/choices.js" "10.2.1"

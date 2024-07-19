@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 3.5.5
+### Changed
+ - Official Release
+ - Updated formiojs@4.19.5
+ - Updated formio-workers@1.21.5
+
 ## 3.5.5-rc.3
 ### Changed
  - FIO-8150: pin subform submission object
