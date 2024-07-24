@@ -1,14 +1,15 @@
 {
   "name": "formio",
-  "version": "4.0.0-dev.2",
+  "version": "4.0.0",
   "description": "The formio server application.",
   "license": "OSL-3.0",
   "main": "index.js",
   "scripts": {
     "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000 --no-node-snapshot --exit",
     "start": "node --no-node-snapshot main.js",
-    "start:dev": "nodemon main.js",
-    "lint": "eslint ."
+    "start:dev": "nodemon --no-node-snapshot main.js",
+    "lint": "eslint .",
+    "build": "cd portal && yarn && yarn build && cd .."
   },
   "author": "support@form.io",
   "engines": {
@@ -17,7 +18,7 @@
   "schema": "3.1.4",
   "templateVersion": "2.0.0",
   "dependencies": {
-    "@formio/core": "^2.2.0-rc.2",
+    "@formio/core": "2.1.0-dev.117.0b973af",
     "@formio/js": "5.0.0-dev.5673.3d062b9",
     "@formio/node-fetch-http-proxy": "^1.1.0",
     "@formio/vm": "0.0.7-dev.20.717e1bf",

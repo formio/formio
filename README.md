@@ -28,6 +28,11 @@ The fastest way to run this library locally is to use [Docker](https://docker.co
     docker-compose up -d
     ```
 
+    Or, if you have an older version of the Docker image on your machine
+    ```bash
+    docker-compose up -d --build
+    ```
+
  - Go to the following URL in your browser.
     ```
     http://localhost:3001
@@ -60,9 +65,13 @@ Running with Node.js
 -------------------
 You can then download this repository, navigate to the folder in your Terminal, and then type the following.
 
-```
-npm install
-npm start
+```bash
+# install dependencies
+yarn
+# build the client application
+yarn build
+# start the server
+yarn start
 ```
 
 This will walk you through the installation process.  When it is done, you will have a running Form.io management
@@ -71,14 +80,6 @@ application running at the following address in your browser.
 ```
 http://localhost:3001
 ```
-
-The installation process will also ask if you would like to download an application. If selected, the application can be found at the following URL.
-
-```
-http://localhost:8080
-```
-
-You can also see the contents of the application (for modification) within the ```app``` folder which exists inside of the folder where you downloaded this repository.
 
 Development
 --------------------

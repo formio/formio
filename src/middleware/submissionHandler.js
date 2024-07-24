@@ -195,7 +195,7 @@ module.exports = (router, resourceName, resourceId) => {
       let isSubform = formId && formId.toString() !== req.currentForm._id.toString();
       isSubform = !isSubform && req.mainForm ? req.mainForm.toString() !== req.currentForm._id.toString() : isSubform;
       req.submission = req.submission || {data: {}};
-      if (!_.isEmpty(req.submission.data) && !isSubform) {
+      if (!_.isEmpty(req.submission.data) && !isSubform && !req.isTransformedData) {
         req.body.data = _.assign(req.body.data, req.submission.data);
       }
 
@@ -206,32 +206,34 @@ module.exports = (router, resourceName, resourceId) => {
       await new Promise((resolve, reject) => {
         hook.alter('validateSubmissionForm', req.currentForm, req.body, async (form) => {
         // Get the models for validation
-          const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-          const formModel = router.formio.resources.form.model;
-          const tokenModel = router.formio.mongoose.models.token;
+        const submissionModel = req.submissionModel || router.formio.resources.submission.model;//
+        const submissionResource = router.formio.resources.submission;
+        const cache = router.formio.cache;
+        const formModel = router.formio.resources.form.model;//
+        const tokenModel = router.formio.mongoose.models.token;//
         // Validate the request.
-          const validator = new Validator(
-            req,
-            submissionModel,
-            formModel,
-            tokenModel,
-            hook,
-            router.formio.config.vmTimeout
-          );
+        const validator = new Validator(
+          req,
+          submissionModel,
+          submissionResource,
+          cache,
+          formModel,
+          tokenModel,
+          hook,
+          router.formio.config.vmTimeout
+        );
+        await validator.validate(req.body, (err, data, visibleComponents) => {
+          if (req.noValidate) {
+            return resolve();
+          }
+          if (err) {
+            res.status(400).json(err);
+            return reject(err);
+          }
+          data = hook.alter('rehydrateValidatedSubmissionData', data, req);
 
-          await validator.validate(req.body, (err, data, visibleComponents) => {
-            if (req.noValidate) {
-              return resolve();
-            }
-            if (err) {
-              res.status(400).json(err);
-              return reject(err);
-            }
-
-            data = hook.alter('rehydrateValidatedSubmissionData', data, req);
-
-            res.submission = {data: data};
-            resolve();
+          res.submission = {data: data};
+          resolve();
           });
         });
       });
