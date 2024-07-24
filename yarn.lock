@@ -631,16 +631,16 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.2.1-rc.11":
-  version "0.2.1-rc.11"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.1-rc.11.tgz#dbe9e83f8f30ae593a76806204a50579b5c379a2"
-  integrity sha512-f6YBrWoRnGaE9gpCaU3NLhNROTJCIdiRxUJI9VYQpJ9MQ7HCcnFesSIafBoihKbgfZ3GkcaDaktWcSZQbunySg==
+"@formio/vm@0.2.1-rc.12":
+  version "0.2.1-rc.12"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.1-rc.12.tgz#a79f12872184c66569778516512fc0e4b3bd4b40"
+  integrity sha512-/QISOXlhoIHpVrTcmtd7XMLOFADD13PRGEELjsOH3vSXzJ9jqG7d5U9JLBuTL6yO2yz9fZ03iRky1NEm+WZqKw==
   dependencies:
     "@formio/core" "2.2.0-rc.5"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
-    formiojs "4.21.1"
+    formiojs "4.21.2-rc.1"
     inputmask "^5.0.8"
     isolated-vm "^4.6.0"
     lodash "^4.17.21"
@@ -2211,10 +2211,10 @@ formidable@^2.1.2:
     once "^1.4.0"
     qs "^6.11.0"
 
-formiojs@4.21.1:
-  version "4.21.1"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.21.1.tgz#7a366c5b26ce2548cc01ceee7bc08ab0c04d280c"
-  integrity sha512-08JdjG+ks/2ZIy7ArV9W4qHTKU1Ta4/fQegxq9YpSQTqxCeO0csz6TZhQg9dV3s1huLrqWdILCwvxwK35KWc4Q==
+formiojs@4.21.2-rc.1:
+  version "4.21.2-rc.1"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.21.2-rc.1.tgz#bc7debc0bc8bd945bf297e93661bf6594a53e74f"
+  integrity sha512-rnbujLBUkhcM9CaYRsYHVgJiDotrerof87cQImqpe+THiELFlbWpy5dwaNl6tYG7N1QJRC/8iKClHQcMAQFGsQ==
   dependencies:
     "@formio/bootstrap3" "2.12.4-rc.1"
     "@formio/choices.js" "10.2.1"
