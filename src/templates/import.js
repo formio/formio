@@ -1141,7 +1141,7 @@ module.exports = (router) => {
           else {
             template.resources[newItem.name]=newItem;
           }
-          const formComponents = checkTemplate(newItem.components, template);
+          const formComponents = checkForm(newItem.components, template);
           if (formComponents.length !== 0) {
             tryToLoadComponents(formComponents, template, projectId, true);
           }
@@ -1169,9 +1169,9 @@ module.exports = (router) => {
     });
   }
 
-  function checkTemplate(components, template) {
+  function checkForm(components, template) {
      const resultArr = [];
-      util.eachComponent(components, (component)=>{
+      util.eachComponent(components, (component) => {
         if (component.hasOwnProperty('form') &&
         !(template.forms.hasOwnProperty(component.form) ||
         template.resources.hasOwnProperty(component.form))) {
@@ -1179,7 +1179,19 @@ module.exports = (router) => {
         }
       });
     return resultArr;
-}
+  }
+
+  function checkTemplate(forms, template) {
+    const resultArr = [];
+    forms.forEach((form) => {
+       if (form.hasOwnProperty('form') &&
+       !(template.forms.hasOwnProperty(form.form) ||
+       template.resources.hasOwnProperty(form.form))) {
+         resultArr.push(form);
+       }
+     });
+   return resultArr;
+  }
 
   // Implement an import endpoint.
   if (router.post) {
@@ -1222,7 +1234,8 @@ module.exports = (router) => {
   return {
     install,
     template: importTemplate,
-    check: checkTemplate,
+    checkForm,
+    checkTemplate,
     tryToLoadComponents,
     findProjectId
   };
