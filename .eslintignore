@@ -1,6 +1,5 @@
 test/*
-app/*
-client/*
+portal/*
 src/db/updates/*
 node_modules/*
 bower_components/*
