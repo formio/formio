@@ -33,6 +33,12 @@
       "description": "A person who can do form submission.",
       "admin": false,
       "default": false
+    },
+    "formsflowDesigner": {
+      "title": "formsflow designer",
+      "description": "A person who can manage form design.",
+      "admin": false,
+      "default": false
     }
   },
   "forms": {
