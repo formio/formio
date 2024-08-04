@@ -17,9 +17,9 @@
   "schema": "3.1.4",
   "templateVersion": "2.0.0",
   "dependencies": {
-    "@formio/core": "2.2.0-rc.8",
+    "@formio/core": "2.1.0-dev.128.af70a1a",
     "@formio/node-fetch-http-proxy": "^1.1.0",
-    "@formio/vm": "0.2.1-rc.16",
+    "@formio/vm": "1.0.0-dev.30.4f7e647",
     "JSONStream": "^1.3.5",
     "adm-zip": "^0.5.9",
     "async": "^3.2.4",
