@@ -43,6 +43,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - Bump semver from 7.0.0 to 7.6.0
  - FIO-8251: added inputmask library
  - FIO-8152 & FIO-8137: Check if Import Resource Exists in New Project for Select Component with Resource & De-ref default values on select with resource
+ - FIO-8152: Check if Import Resource Exists in New Project for Select Component with Resource
+ - FIO-6966: Fixes missing address component data in csv exported submissions
+ - FIO-8343: Fixed the issue with dereferencing data table components
+ - FIO-8027 added Cloudflare Turnstile as a captcha Provider
+ - FIO-7299: Fix email action with the 'before' handler issues
+ - FIO-8150: pin subform submission object
 
 ## 4.0.0-rc.14
 ### Changed

@@ -217,7 +217,7 @@ module.exports = (router, resourceName, resourceId) => {
       let isSubform = formId && formId.toString() !== req.currentForm._id.toString();
       isSubform = !isSubform && req.mainForm ? req.mainForm.toString() !== req.currentForm._id.toString() : isSubform;
       req.submission = req.submission || {data: {}};
-      if (!_.isEmpty(req.submission.data) && !isSubform) {
+      if (!_.isEmpty(req.submission.data) && !isSubform && !req.isTransformedData) {
         req.body.data = _.assign(req.body.data, req.submission.data);
       }
 
@@ -228,12 +228,16 @@ module.exports = (router, resourceName, resourceId) => {
       hook.alter('validateSubmissionForm', req.currentForm, req.body, async form => { // eslint-disable-line max-statements
         // Get the models for validation
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+        const submissionResource = router.formio.resources.submission;
+        const cache = router.formio.cache;
         const formModel = router.formio.resources.form.model;
         const tokenModel = router.formio.mongoose.models.token;
         // Validate the request.
         const validator = new Validator(
           req,
           submissionModel,
+          submissionResource,
+          cache,
           formModel,
           tokenModel,
           hook,

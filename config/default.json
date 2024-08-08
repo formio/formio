@@ -6,7 +6,7 @@
   "allowedOrigins": ["*"],
   "domain": "http://localhost:3001",
   "basePath": "",
-  "mongo": "mongodb://localhost:27017/formioapp",
+  "mongo": "mongodb://localhost:27017/oss-formio",
   "mongoConfig": "",
   "mongoCA": "",
   "mongoSecret": "--- change me now ---",
@@ -21,7 +21,8 @@
     "form",
     "access",
     "token",
-    "recaptcha"
+    "recaptcha",
+    "captcha"
   ],
   "jwt": {
     "secret": "--- change me now ---",

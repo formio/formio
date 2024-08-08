@@ -8,6 +8,7 @@ const chance = new (require('chance'))();
 const http = require('http');
 const url = require('url');
 const { UV_FS_O_FILEMAP } = require('constants');
+const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
 const docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
@@ -44,6 +45,7 @@ module.exports = (app, template, hook) => {
         },
       ],
     };
+
 
     // Store the temp action for this test suite.
     let tempAction = {};
@@ -97,7 +99,8 @@ module.exports = (app, template, hook) => {
             done();
           });
       });
-    });
+
+   });
 
     describe('Permissions - Project Level - Project Owner', () => {
       it('A Project Owner should be able to Create an Action', (done) => {
@@ -328,6 +331,139 @@ module.exports = (app, template, hook) => {
           .expect(401)
           .end(done);
       });
+    });
+
+    describe('Test action with custom transform mapping data', () => {
+
+      const addFormFields = (isForm) => ({
+        title: chance.word(),
+        name: chance.word(),
+        path: chance.word(),
+        type: isForm ? 'form' : 'resource',
+        ...(isForm && { noSave: true }),
+      });
+
+      before('Create testing forms', async function () {
+        const clonedForResourceCreation = { ..._.cloneDeep(testMappingDataForm), ...addFormFields() };
+
+        const formResource = await request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(clonedForResourceCreation);
+
+        const response = formResource.body;
+
+        assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(response.title, clonedForResourceCreation.title);
+        assert.equal(response.name, clonedForResourceCreation.name);
+        template.testResourceToSave = response;
+
+        const action = {
+          priority: 10,
+          name: 'save',
+          title: 'Save Submission',
+          settings: {
+            resource: response._id,
+            property: '',
+            fields: {
+              textField1: '',
+              textField2: '',
+            },
+            transform: "data.textField1 = '123';submission.data.textField1 = '111';data.textField2 = '222'",
+          },
+          condition: {
+            conjunction: '',
+            conditions: [],
+            custom: '',
+          },
+          submit: true,
+          handler: ['before'],
+          method: ['create', 'update'],
+        };
+        const clonedForFormCreation = { ..._.cloneDeep(testMappingDataForm), ...addFormFields(true) };
+        const testForm = await request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(clonedForFormCreation);
+
+        const responseTest = testForm.body;
+        assert(responseTest.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(clonedForFormCreation.title, responseTest.title);
+        assert.equal(clonedForFormCreation.name, responseTest.name);
+        template.testFormToSave = responseTest;
+
+        const resultAction = await request(app)
+          .post(hook.alter('url', `/form/${responseTest._id}/action`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(action);
+
+        const responseAction = resultAction.body;
+        assert(responseAction.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(action.title, responseAction.title);
+        assert.equal(action.name, responseAction.name);
+      });
+
+      it('Submit form', (done) => {
+        request(app)
+        .post(hook.alter('url', `/form/${template.testFormToSave._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          data: {
+            textField: 'Test',
+          },
+        })
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const result = res.body;
+          assert(result.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.deepEqual(result.data, {textField1: '111', textField2: '222' });
+          done()
+        });
+      });
+
+      it('Get submissions from submitted form', (done) => {
+        request(app)
+        .get(hook.alter('url', `/form/${template.testFormToSave._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const result = res.body;
+          assert.deepEqual(result, [], "Should be empty as our submission has been moved to resource form");
+          done()
+        });
+      });
+
+      it('Get submissions from connected form', (done) => {
+        request(app)
+        .get(hook.alter('url', `/form/${template.testResourceToSave._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          assert(res.body.length, 1);
+
+          const result = res.body[0];
+          assert(result.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.deepEqual(result.data, {textField1: '111', textField2: '222'}, "Should get a transformed submission data from connected form");
+          done()
+        });
+      });
+
+      after(function(done) {
+        delete template.testResourceToSave;
+        delete template.testFormToSave;
+        done()
+      })
     });
 
     describe('Action MachineNames', () => {
@@ -1083,7 +1219,7 @@ module.exports = (app, template, hook) => {
       };
 
       let numTests = 0;
-      const newEmailTest = (settings, done) => {
+      const newEmailTest = (settings, done, addSettings = {}) => {
         numTests++;
         settings.transport = 'test';
         let testForm = _.assign(_.cloneDeep(emailForm), {
@@ -1093,7 +1229,7 @@ module.exports = (app, template, hook) => {
         });
         let testAction = _.assign(_.cloneDeep(emailAction), {
           settings,
-        });
+        }, addSettings);
 
         // Create the form.
         request(app)
@@ -1509,6 +1645,61 @@ module.exports = (app, template, hook) => {
               }
             });
         });
+      });
+
+      it('Should send correct email for each handler', (done) => {
+        const amountOfEmails = 2;
+
+        const addSettings = {
+          handler: ['before', 'after'],
+        }
+
+        newEmailTest({
+          from: 'travis@form.io',
+          replyTo: 'reply@example.com',
+          emails: '{{ data.email }}',
+          sendEach: false,
+          subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
+          message: 'Howdy, {{ data.firstName }}',
+        }, (err, testForm) => {
+          if (err) {
+            return done(err);
+          }
+
+          // Check for an email.
+          const event = template.hooks.getEmitter();
+          let emailCount = 0;
+          event.on('newMail', (email) => {
+            assert.equal(email.html, 'Howdy, Test');
+            assert.equal(email.from, 'travis@form.io');
+            assert.equal(email.to, 'test@example.com');
+            assert.equal(email.subject, 'Hello there Test Person');
+            assert.equal(email.replyTo, 'reply@example.com');
+            emailCount += 1;
+            if (emailCount === amountOfEmails) {
+              event.removeAllListeners('newMail');
+              done();
+            }
+          });
+
+          request(app)
+            .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
+            .set('x-jwt-token', adminUser().token)
+            .send({
+              data: {
+                firstName: 'Test',
+                lastName: 'Person',
+                email: 'test@example.com',
+              },
+            })
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end((err) => {
+              if (err) {
+                done(err);
+              }
+            });
+        }, addSettings);
       });
 
       if (template.users.formioAdmin) {

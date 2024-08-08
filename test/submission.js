@@ -3324,70 +3324,153 @@ module.exports = function(app, template, hook) {
         });
       });
 
-      it('Should allow saving select resource by reference', done => {
-        const submission = helper.template.submissions['fruits'][0];
-        helper
-          .form('myFruit', [{
-            input: true,
-            label: "Fruit",
-            key: "fruit",
-            data: {
-              resource: helper.template.forms['fruits']._id,
-              project: helper.template.project ? helper.template.project._id : ''
-            },
-            dataSrc: "resource",
-            reference: true,
-            valueProperty: "",
-            defaultValue: "",
-            template: "<span>{{ item.data.name }}</span>",
-            multiple: false,
-            persistent: true,
-            type: "select"
-          }], {
-            submissionAccess: [
+      describe('Select components with resource values', () => {
+        before('Create a fruit select form that loads a resource', (done) => {
+          helper
+            .form('fruitSelectResource', [
               {
-                type: 'read_all',
-                roles: [helper.template.roles.authenticated._id.toString()]
+                type: 'select',
+                key: 'fruit',
+                label: 'Select a fruit',
+                dataSrc: 'resource',
+                searchField: 'data.name',
+                valueProperty: 'data.name',
+                filter: 'data.name__ne=Orange',
+                authenticate: true,
+                persistent: true,
+                data: {
+                  resource: helper.template.forms['fruits']._id,
+                },
+                validate: {
+                  select: true
+                }
               }
-            ]
-          })
-          .submission('myFruit', {fruit: {_id: submission._id, form: helper.template.forms['fruits']._id}})
-          .execute(err => {
-            if (err) {
-              return done(err);
-            }
-            helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+            ])
+            .execute((err) => {
               if (err) {
                 return done(err);
               }
-              assert.equal(submission._id, fromsub.data.fruit._id);
-              assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+
               done();
             });
-          });
-      });
+        });
 
-      it('Should allow saving select resource with whole object by reference', done => {
-        const submission = helper.template.submissions['fruits'][0];
-        helper
-          .submission('myFruit', {fruit: submission})
-          .execute(err => {
-            if (err) {
-              return done(err);
-            }
-            helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+        it('Should perform a backend validation of the selected value and reject values not in the referenced resource', (done) => {
+          helper.submission('fruitSelectResource', {fruit: 'No Fruit Here'}).expect(400).execute(() => {
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Select a fruit contains an invalid selection');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
+            done();
+          });
+        });
+
+        it('Should perform a backend validation of the selected value and succeed if the value is in the referenced resource', (done) => {
+          helper.submission('fruitSelectResource', {fruit: 'Apple'})
+            .expect(201)
+            .execute((err) => {
               if (err) {
                 return done(err);
               }
-              assert.equal(submission._id, fromsub.data.fruit._id);
-              assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+
+              var submission = helper.getLastSubmission();
+              assert.deepEqual({fruit: 'Apple'}, submission.data);
               done();
             });
-          });
-      });
+        });
 
-      it('Should check permissions when loading from reference', done => {
-        request(app)
+        it('Should perform a backend validation of the selected value and reject values if the value is in the referenced resource but excluded by the filter', (done) => {
+          helper.submission('fruitSelectResource', {fruit: 'Orange'}).expect(400).execute(() => {
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Select a fruit contains an invalid selection');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
+            done();
+          });
+        });
+
+        it('Should allow saving select resource by reference', done => {
+          const submission = helper.template.submissions['fruits'][0];
+          helper
+            .form('myFruit', [{
+              input: true,
+              label: "Fruit",
+              key: "fruit",
+              data: {
+                resource: helper.template.forms['fruits']._id,
+                project: helper.template.project ? helper.template.project._id : ''
+              },
+              dataSrc: "resource",
+              reference: true,
+              valueProperty: "",
+              defaultValue: "",
+              template: "<span>{{ item.data.name }}</span>",
+              multiple: false,
+              persistent: true,
+              type: "select"
+            }], {
+              submissionAccess: [
+                {
+                  type: 'read_all',
+                  roles: [helper.template.roles.authenticated._id.toString()]
+                }
+              ]
+            })
+            .submission('myFruit', {fruit: {_id: submission._id, form: helper.template.forms['fruits']._id}})
+            .execute(err => {
+              if (err) {
+                return done(err);
+              }
+              helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(submission._id, fromsub.data.fruit._id);
+                assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+                done();
+              });
+            });
+        });
+
+        it('Should allow saving select resource with whole object by reference', done => {
+          const submission = helper.template.submissions['fruits'][0];
+          helper
+            .submission('myFruit', {fruit: submission})
+            .execute(err => {
+              if (err) {
+                return done(err);
+              }
+              helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(submission._id, fromsub.data.fruit._id);
+                assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+                done();
+              });
+            });
+        });
+
+        it('Should check permissions when loading from reference', done => {
+          request(app)
+            .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+            .set('x-jwt-token', helper.template.users.user1.token)
+            .send()
+            // .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.data.fruit.hasOwnProperty('_id'), 'Must contain the _id.');
+              assert.equal(1, Object.keys(res.body.data.fruit).length);
+              done();
+            });
+        });
+
+        it('Should not allow submissions with items that are not in the resource', (done) => {
+          request(app)
           .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission/' + helper.lastSubmission._id, helper.template))
           .set('x-jwt-token', helper.template.users.user1.token)
           .send()
@@ -3400,7 +3483,8 @@ module.exports = function(app, template, hook) {
             assert.equal(1, Object.keys(res.body.data.fruit).length);
             done();
           });
-      });
+        });
+      })
     });
 
     describe('Data table validation', () => {
@@ -3505,7 +3589,7 @@ module.exports = function(app, template, hook) {
           }
 
           var submission = helper.getLastSubmission();
-          assert.deepEqual({dataTable: [{name: 'Apple'}, {name: 'Pear'}]}, submission.data);
+          assert.deepEqual(submission.data, {dataTable: [{name: 'Apple'}, {name: 'Pear'}]});
           done();
         });
       });

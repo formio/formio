@@ -1,6 +1,7 @@
 .idea
 bower_components
 node_modules
+portal
 .github
 .circleci
 .vscode

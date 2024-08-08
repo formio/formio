@@ -1,18 +1,48 @@
 'use strict';
 const _ = require('lodash');
+const {ObjectId} = require('mongodb');
 const {
   ProcessTargets,
   process,
   interpolateErrors,
-  escapeRegExCharacters
+  escapeRegExCharacters,
+  serverRules,
+  Utils: CoreUtils,
 } = require('@formio/core');
 const {evaluateProcess} = require('@formio/vm');
-const util = require('../util/util');
+const Utils = require('../util/util');
 const fetch = require('@formio/node-fetch-http-proxy');
 const debug = {
   validator: require('debug')('formio:validator'),
   error: require('debug')('formio:error')
 };
+
+// Promisify cache load form.
+function loadFormById(cache, req, formId) {
+  return new Promise((resolve, reject) => {
+    cache.loadForm(req, null, formId, (err, resource) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(resource);
+    });
+  });
+}
+
+// Promisify submission model find.
+function submissionQueryExists(submissionModel, query) {
+  return new Promise((resolve, reject) => {
+    submissionModel.find(query, (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      if (result.length === 0 || !result) {
+        return resolve(false);
+      }
+      return resolve(true);
+    });
+  });
+}
 
 /**
  * @TODO: Isomorphic validation system.
@@ -22,9 +52,9 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(req, submissionModel, formModel, tokenModel, hook, timeout = 500) {
+  constructor(req, submissionModel, submissionResource, cache, formModel, tokenModel, hook, timeout = 500) {
     const tokens = {};
-    const token = util.getRequestValue(req, 'x-jwt-token');
+    const token = Utils.getRequestValue(req, 'x-jwt-token');
     if (token) {
       tokens['x-jwt-token'] = token;
     }
@@ -40,6 +70,8 @@ class Validator {
 
     this.req = req;
     this.submissionModel = submissionModel;
+    this.submissionResource = submissionResource;
+    this.cache = cache;
     this.formModel = formModel;
     this.tokenModel = tokenModel;
     this.form = req.currentForm;
@@ -162,21 +194,44 @@ class Validator {
     });
   }
 
-  validateCaptcha(captchaToken) {
-    return new Promise((resolve, reject) => {
-      this.tokenModel.findOne({value: captchaToken}, (err, token) => {
-        if (err) {
-          return reject(err);
-        }
+  async validateResourceSelectValue(context, value) {
+    const {component} = context;
+    if (!component.data.resource) {
+      throw new Error('Did not receive resource ID for resource select validation');
+    }
+    const resource = await loadFormById(this.cache, this.req, component.data.resource);
+    if (!resource) {
+      throw new Error('Resource not found');
+    }
+    // Curiously, if a value property is not provided, the renderer will submit the entire object.
+    // Even if the user selects "Entire Object" as the value property, the renderer will submit only
+    // the data object. If we don't have a value property we can fallback to the _id, if we don't
+    // have an _id we can fall back to the data object OR the data object plus the "submit" property
+    // (which seems to sometimes be stripped and sometimes not).
+    const valueQuery = component.valueProperty
+      ? {[component.valueProperty]: value}
+      : value._id
+      ? {_id: value._id}
+      : {$or: [{data: value}, {data: {...value, submit: true}}]};
+    if (!component.filter) {
+      component.filter = '';
+    }
+    const filterQueries = component.filter.split(',').reduce((acc, filter) => {
+      const [key, value] = filter.split('=');
+      return {...acc, [key]: value};
+    }, {});
+    Utils.coerceQueryTypes(filterQueries, resource, 'data.');
 
-        if (!token) {
-          return resolve(false);
-        }
-
-        // Remove temp token after submission with reCaptcha
-        return token.remove(() => resolve(true));
-      });
-    });
+    const query = {
+      form: new ObjectId(component.data.resource),
+      deleted: null,
+      state: 'submitted',
+      $and:[
+        valueQuery,
+        this.submissionResource.getFindQuery({query: filterQueries})
+      ]
+    };
+    return submissionQueryExists(this.submissionModel, query);
   }
 
   async dereferenceDataTableComponent(component) {
@@ -194,7 +249,21 @@ class Validator {
     if (!resource) {
       throw new Error(`Resource at ${resourceId} not found for dereferencing`);
     }
-    return resource.components || [];
+    const dataTableComponents = (component.fetch.components || [])
+      .map(component => CoreUtils.getComponent(resource.components || [], component.path));
+
+    const filterComponents = (component) => {
+      if (!component.components) {
+        return component;
+      }
+      component.components = component.components
+        .map((component) => filterComponents(component))
+        .filter((component) =>
+          CoreUtils.getComponent(dataTableComponents, component.key) || component.components?.length > 0);
+      return component;
+    };
+
+    return filterComponents(resource).components || [];
   }
 
   /**
@@ -232,18 +301,19 @@ class Validator {
         server: true,
         token: this.tokens['x-jwt-token'],
         tokens: this.tokens,
-        database: {
+        database: this.hook.alter('validationDatabaseHooks', {
           isUnique: async (context, value) => {
             return this.isUnique(context, submission, value);
           },
-          validateCaptcha: this.validateCaptcha.bind(this),
+          validateResourceSelectValue: this.validateResourceSelectValue.bind(this),
           dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this)
-        }
+        }, this)
       }
     };
     try {
       // Process the server processes
       context.processors = ProcessTargets.submission;
+      context.rules = this.hook.alter('serverRules', serverRules);
       await process(context);
       submission.data = context.data;
 
