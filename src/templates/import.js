@@ -1169,6 +1169,18 @@ module.exports = (router) => {
     });
   }
 
+  function checkTemplate(components, template) {
+    const resultArr = [];
+      components.forEach((component)=>{
+        if (component.hasOwnProperty('form') &&
+        !(template.forms.hasOwnProperty(component.form) ||
+        template.resources.hasOwnProperty(component.form))) {
+          resultArr.push(component);
+        }
+      });
+    return resultArr;
+  }
+
   function checkForm(components, template) {
      const resultArr = [];
       util.eachComponent(components, (component) => {
@@ -1234,8 +1246,8 @@ module.exports = (router) => {
   return {
     install,
     template: importTemplate,
-    checkForm,
     checkTemplate,
+    checkForm,
     tryToLoadComponents,
     findProjectId
   };

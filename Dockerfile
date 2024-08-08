@@ -9,7 +9,7 @@ FROM node:lts-alpine3.19
 # Copy source dependencies
 COPY src/ /app/src/
 COPY config/ /app/config
-COPY client/ /app/client/
+COPY portal/ /app/portal/
 COPY *.js /app/
 COPY *.txt /app/
 COPY package.json /app/
