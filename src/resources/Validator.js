@@ -256,8 +256,9 @@ class Validator {
         return component;
       }
       component.components = component.components
-        .map(component => filterComponents(component))
-        .filter(component => dataTableComponents.includes(component) || component.components?.length > 0);
+        .map((component) => filterComponents(component))
+        .filter((component) =>
+          CoreUtils.getComponent(dataTableComponents, component.key) || component.components?.length > 0);
       return component;
     };
 

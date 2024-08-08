@@ -3589,7 +3589,7 @@ module.exports = function(app, template, hook) {
           }
 
           var submission = helper.getLastSubmission();
-          assert.deepEqual({dataTable: [{name: 'Apple'}, {name: 'Pear'}]}, submission.data);
+          assert.deepEqual(submission.data, {dataTable: [{name: 'Apple'}, {name: 'Pear'}]});
           done();
         });
       });
