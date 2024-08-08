@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.2.0-rc.1]
+## [Unreleased: 4.4.0-rc.1]
 ### Changed
  - FIO-8042: attach scope to the submission object
  - FIO-7958: fix tests to be compatible with core validation
@@ -49,6 +49,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-8027 added Cloudflare Turnstile as a captcha Provider
  - FIO-7299: Fix email action with the 'before' handler issues
  - FIO-8150: pin subform submission object
+ - FIO-8450: Add test for custom error message for unique validation
+ - FIO-7835: eSignature
+ - FIO-8428: Fixes save submission action data transformation
+ - FIO-7614 excluded review page component from the CSV file of the submission
+ - FIO-7964: Add resource-based select component validation
+ - FIO-7866: date time component with display in timezone of submission in data or edit grid issue fix
+ - FIO-7001: new open source developer portal
+ - fix: change client to portal
+ - Upgrade 5.x renderer
 
 ## 4.0.0-rc.14
 ### Changed
