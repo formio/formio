@@ -154,38 +154,40 @@ module.exports = (router) => {
 
     const formName = entity.form;
     // Attempt to add a form.
-    if (template.forms && template.forms[entity.form]) {
-      // Form has been already imported
-      if (template.forms[entity.form]._id) {
-        entity.form = template.forms[formName]._id.toString();
-        if (template.forms[formName].hasOwnProperty('_vid') && template.forms[formName]._vid) {
-          updateRevisionProperty(entity, template.forms[formName]._vid.toString());
+    if (template.forms && template.forms[entity.form] && template.forms[entity.form]._id) {
+      entity.form = template.forms[formName]._id.toString();
+      if (template.forms[formName].revisions) {
+        const revisionId = entity.revision;
+        const revisionTemplate = template.revisions && template.revisions[`${formName}:${revisionId}`];
+        let revision;
+        if (revisionTemplate && revisionTemplate.revisionId) {
+          revision = revisionTemplate.revisionId;
+         }
+        else {
+          revision = revisionTemplate.newId ? revisionTemplate.newId : getFormRevision(template.forms[formName]._vid);
         }
-        else if (template.forms[formName].revisions) {
-            const revisionId = entity.revision;
-            const revisionTemplate = template.revisions && template.revisions[`${formName}:${revisionId}`];
-            const revision = revisionTemplate && revisionTemplate.newId ? revisionTemplate.newId
-            : getFormRevision(template.forms[formName]._vid);
-            updateRevisionProperty(entity, revision);
-        }
-        changes = true;
-      }
-      else {
-        fallbacks.push(entity);
-      }
+      updateRevisionProperty(entity, revision);
+    }
+      changes = true;
+    }
+    else {
+      fallbacks.push(entity);
     }
 
     // Attempt to add a resource
     if (!changes && template.resources && template.resources[entity.form] && template.resources[entity.form]._id) {
       entity.form = template.resources[entity.form]._id.toString();
-      if (template.resources[formName].hasOwnProperty('_vid') && template.resources[formName]._vid) {
-        updateRevisionProperty(entity, template.resources[formName]._vid.toString());
-      }
-      else if (template.resources[formName].revisions) {
+      if (template.resources[formName].revisions) {
         const revisionId = entity.revision;
         const revisionTemplate = template.revisions[`${formName}:${revisionId}`];
-        const revision = revisionTemplate && revisionTemplate.newId ? revisionTemplate.newId
-        : getFormRevision(template.resources[formName]._vid);
+        let revision;
+          if (revisionTemplate && revisionTemplate.revisionId) {
+            revision = revisionTemplate.revisionId;
+          }
+          else {
+            revision = revisionTemplate.newId ? revisionTemplate.newId
+            : getFormRevision(template.resources[formName]._vid);
+          }
         updateRevisionProperty(entity, revision);
       }
       changes = true;
@@ -827,6 +829,8 @@ module.exports = (router) => {
                   _id: updatedDoc._id
                 }, {
                   $set: updatedDoc
+                }, {
+                  new: true
                 });
 
                 items[machineName] = result.toObject();
@@ -876,13 +880,24 @@ module.exports = (router) => {
 
                       if (existingRevisions && existingRevisions.length > 0) {
                        revisionsFromTemplate.forEach((revisionTemplate) => {
-                         if (
-                           !existingRevisions.find(
-                             revision => revision._vnote === revisionTemplate._vnote
-                             )
-                          ) {
+                        const foundRevision = existingRevisions.find(
+                          revision => revision._vnote === revisionTemplate._vnote);
+                         if (!foundRevision) {
                             revisionTemplate._vid = revisionsToCreate.length + 1;
                             revisionsToCreate.push(revisionTemplate);
+                         }
+                         else if (revisionTemplate.revisionId) {
+                          formio.resources.formrevision.model.updateOne({
+                            _id: foundRevision._id
+                          },
+                          {$set:
+                            {revisionId: revisionTemplate.revisionId}},
+                          (err) => {
+                            if (err) {
+                              return next(err);
+                            }
+                            foundRevision.revisionId = revisionTemplate.revisionId;
+                          });
                          }
                         });
                       }
