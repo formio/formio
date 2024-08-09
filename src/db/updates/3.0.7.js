@@ -27,25 +27,21 @@ module.exports = function(db, config, tools, done) {
       formCollection
         .find({type: {$nin: ['form', 'resource']}, deleted: {$eq: null}})
         .snapshot(true)
-        .toArray(function(err, forms) {
-          if (err) {
-            return next(err);
-          }
-
+        .toArray()
+        .then(forms => {
           debug.findBrokenForms(forms.length);
           return next(null, forms);
-        });
+        })
+        .catch(err => next(err));
     },
     function fixTypes(forms, next) {
       async.each(forms, function(form, callback) {
-        formCollection.updateOne({_id: tools.util.idToBson(form._id)}, {$set: {type: 'form'}}, function(err) {
-          if (err) {
-            return callback(err);
-          }
-
+        formCollection.updateOne({_id: tools.util.idToBson(form._id)}, {$set: {type: 'form'}})
+        .then(() => {
           debug.fixTypes('Updated: ' + form._id);
           return callback();
-        });
+        })
+        .catch(err =>callback(err));
       }, function(err) {
         if (err) {
           return next(err);

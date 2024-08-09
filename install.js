@@ -125,14 +125,15 @@ module.exports = function(formio, items, done) {
         }
 
         util.log('Encrypting password');
-        formio.encrypt(result.password, function(err, hash) {
+        formio.encrypt(result.password, async function(err, hash) {
           if (err) {
             return done(err);
           }
 
           // Create the root user submission.
           util.log('Creating root user account');
-          formio.resources.submission.model.create({
+          try {
+          await formio.resources.submission.model.create({
             form: project.resources.admin._id,
             data: {
               email: result.email,
@@ -141,13 +142,12 @@ module.exports = function(formio, items, done) {
             roles: [
               project.roles.administrator._id
             ]
-          }, function(err, item) {
-            if (err) {
-              return done(err);
-            }
-
-            done();
           });
+          return done();
+          }
+          catch (err) {
+            return done(err);
+          }
         });
       });
     }

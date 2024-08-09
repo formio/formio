@@ -141,7 +141,7 @@ module.exports = (router) => {
      * @returns {*}
      */
     /* eslint-disable max-statements */
-    checkAttempts(error, req, user, next) {
+    async checkAttempts(error, req, user, next) {
       if (!user || !user._id || !this.settings.allowedAttempts) {
         return next(error);
       }
@@ -217,18 +217,20 @@ module.exports = (router) => {
 
       // Update the user record
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.updateOne(
-        {_id: user._id},
-        {$set: {metadata: user.metadata}},
-        (err) => {
-          if (err) {
-            log(req, ecode.auth.ELOGINCOUNT, err);
-            return next(ecode.auth.ELOGINCOUNT);
-          }
+      try {
+        await submissionModel.updateOne(
+          {_id: user._id},
+          {$set: {metadata: user.metadata}});
+        return next(error);
+      }
+      catch (err) {
+        if (err) {
+          log(req, ecode.auth.ELOGINCOUNT, err);
+          return next(ecode.auth.ELOGINCOUNT);
+        }
 
-          next(error);
-        },
-      );
+        return next(error);
+      }
     }
     /* eslint-enable max-statements */
 
@@ -281,7 +283,7 @@ module.exports = (router) => {
           }
 
           // Check the amount of attempts made by this user.
-          this.checkAttempts(err, req, response.user, (error) => {
+          this.checkAttempts(err, req, response.user, async (error) => {
             if (error) {
               audit('EAUTH_LOGINCOUNT', req, _.get(req.submission.data, this.settings.username));
               log(req, ecode.auth.EAUTH, error);
@@ -294,7 +296,7 @@ module.exports = (router) => {
             res.token = response.token.token;
             req['x-jwt-token'] = response.token.token;
 
-            hook.alter('getPrimaryProjectAdminRole', req, res, (err, role) => {
+            const role = await hook.alter('getPrimaryProjectAdminRole', req, res);
               if (req.user.roles.includes(role)) {
                 req.isAdmin = true;
               }
@@ -310,7 +312,6 @@ module.exports = (router) => {
                   next();
                 });
               });
-            });
           });
         },
       );

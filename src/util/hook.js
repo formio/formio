@@ -2,14 +2,14 @@
 
 module.exports = function(formio) {
   return {
-    settings(req, cb) {
+    async settings(req) {
       const settings = (formio.config && formio.config.settings) || {};
       if (formio.hooks && formio.hooks.settings) {
-        return formio.hooks.settings(settings, req, cb);
+        return await formio.hooks.settings(settings, req);
       }
 
       // Load the settings directly.
-      cb(null, settings);
+      return settings;
     },
     invoke() {
       const name = arguments[0];

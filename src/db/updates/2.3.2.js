@@ -24,19 +24,18 @@ module.exports = function(db, config, tools, done) {
       comparison = form.path.toString() + (++iter).toString();
     }
 
-    forms.updateOne({_id: form._id}, {$set: {path: comparison.toLowerCase()}}, function(err) {
-      if (err) {
-        return cb(err);
-      }
-
+    forms.updateOne({_id: form._id}, {$set: {path: comparison.toLowerCase()}})
+    .then(() => {
       projPaths[form.project.toString()].push(comparison);
       cb();
-    });
+    })
+    .catch(err => cb(err));
   };
 
   let verifyUniquePaths = function() {
     projPaths = {};
-    forms.find({}).snapshot({$snapshot: true}).toArray(function(err, docs) {
+    forms.find({}).toArray()
+    .then(docs => {
       async.eachSeries(docs, function(form, cb) {
         projPaths[form.project.toString()] = projPaths[form.project.toString()] || [];
 
@@ -54,20 +53,17 @@ module.exports = function(db, config, tools, done) {
 
         done();
       })
-    })
+
+    });
   };
 
   forms.find({$or: [{path: {$eq: ''}}, {path: {$eq: null}}, {path: {$regex: /(^|\/)(form)($|\/)/}}]})
-    .snapshot({$snapshot: true})
-    .toArray(function(err, docs) {
+    .toArray()
+    .then(docs => {
       async.eachSeries(docs, function(form, cb) {
-        forms.updateOne({_id: form._id}, {$set: {path: form.name.toLowerCase()}}, function(err) {
-          if (err) {
-            return cb(err);
-          }
-
-          cb();
-        });
+        forms.updateOne({_id: form._id}, {$set: {path: form.name.toLowerCase()}})
+        .then(() => cb())
+        .catch(err => cb(err));
       }, function(err) {
         if (err) {
           return done(err);
@@ -75,5 +71,5 @@ module.exports = function(db, config, tools, done) {
 
         verifyUniquePaths();
       });
-  });
+    });
 };

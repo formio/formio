@@ -16,20 +16,15 @@ module.exports = function(db, config, tools, done) {
   let projects = db.collection('projects');
 
   let dropOldIndex = function(name, cb) {
-    projects.dropIndex(name, function(err, collection) {
-      // Ignore errors for non-existing index on drop, because we dont care about it.
-      cb();
-    });
+    // Ignore errors for non-existing index on drop, because we dont care about it.
+    projects.dropIndex(name)
+    .then(() => cb());
   };
 
   let addNewNameIndex = function(cb) {
-    projects.createIndex({name: 1}, {background: true}, function(err, index) {
-      if (err) {
-        return cb(err);
-      }
-
-      cb();
-    });
+    projects.createIndex({name: 1}, {background: true})
+    .then(() => cb())
+    .catch(err => cb(err));
   };
 
   async.series([

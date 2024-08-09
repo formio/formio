@@ -22,11 +22,8 @@ module.exports = function(db, config, tools, done) {
   let formCollection = db.collection('forms');
 
   // Find all resource actions.
-  actionCollection.find({name: 'resource'}).snapshot({$snapshot: true}).toArray(function(err, actions) {
-    if (err) {
-      return done(err);
-    }
-
+  actionCollection.find({name: 'resource'}).toArray()
+  .then(actions => {
     async.forEachOf(actions, function(action, key, next) {
 
       let formId = '';
@@ -42,7 +39,8 @@ module.exports = function(db, config, tools, done) {
       }
 
       // Find all actions associated with the resource.
-      actionCollection.find({form: formId}).snapshot({$snapshot: true}).toArray(function(err, resourceActions) {
+      actionCollection.find({form: formId}).toArray()
+      .then(resourceActions => {
         let roleAction = _.find(resourceActions, {name: 'role'});
         if (!roleAction) {
           actionCollection.insert({
@@ -66,5 +64,6 @@ module.exports = function(db, config, tools, done) {
         }
       });
     }, done);
-  });
+  })
+  .catch(err => done(err));
 };

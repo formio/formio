@@ -21,7 +21,7 @@ module.exports = (router) => {
   /* eslint-enable new-cap */
 
   // Mount the export endpoint using the url.
-  router.get('/form/:formId/export', (req, res, next) => {
+  router.get('/form/:formId/export', async (req, res, next) => {
     if (!req.isAdmin && !_.has(req, 'token.user._id')) {
       return res.sendStatus(400);
     }
@@ -37,10 +37,8 @@ module.exports = (router) => {
     }
 
     // Load the form.
-    router.formio.cache.loadCurrentForm(req, async (err, form) => {
-      if (err) {
-        return res.sendStatus(401);
-      }
+    try {
+      const form = await router.formio.cache.loadCurrentForm(req);
       if (!form) {
         return res.sendStatus(404);
       }
@@ -229,6 +227,9 @@ module.exports = (router) => {
             next(error);
           });
       });
-    });
+    }
+    catch (err) {
+      return res.sendStatus(401);
+    }
   });
 };

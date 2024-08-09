@@ -13,7 +13,7 @@
 module.exports = function(db, config, tools, done) {
   let forms = db.collection('forms');
 
-  forms.find().snapshot({$snapshot: true}).forEach(function(form) {
+  forms.find().toArray().forEach(function(form) {
     if(form.path) {
       forms.updateOne(
         { _id: form._id },
