@@ -9,7 +9,6 @@ mongoose.Promise = global.Promise;
 const bodyParser = require('body-parser');
 const _ = require('lodash');
 const events = require('events');
-const Q = require('q');
 const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
@@ -24,6 +23,15 @@ router.formio.mongoose = mongoose;
 
 // Use custom template delimiters.
 _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
+
+Promise.deferred = function() {
+  let result = {};
+  result.promise = new Promise(function(resolve, reject) {
+    result.resolve = resolve;
+    result.reject = reject;
+  });
+  return result;
+};
 
 // Allow custom configurations passed to the Form.IO server.
 module.exports = function(config) {
@@ -64,7 +72,7 @@ module.exports = function(config) {
    * Initialize the formio server.
    */
   router.init = function(hooks) {
-    const deferred = Q.defer();
+    const deferred = new Promise.deferred();
 
     // Hooks system during boot.
     router.formio.hooks = hooks;
