@@ -20,8 +20,22 @@ module.exports = class DateGeaterThan extends ConditionOperator {
     value,
     comparedValue,
   }) {
-    const date = moment(value);
-    const comparedDate = moment(comparedValue);
+    // Additional data processing of the date received from the
+    // Day component with disabled day, month or year elements.
+    // allows using moments for data comparison date with disabled day, month or year
+    const normalizeDate = (dateStr) => {
+      if (typeof dateStr === 'string') {
+      return dateStr
+      .replace(/00\//g, '01/')
+      .replace(/\/0000/g, '/0001');
+      }
+      else {
+        return dateStr;
+      }
+    };
+
+    const date = moment(normalizeDate(value));
+    const comparedDate = moment(normalizeDate(comparedValue));
 
     return {
       date,
