@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - Upgrade 5.x renderer
  - FIO-8115: Fix project creation failed in tests because of missing 'project' type
  - FIO-8643: removed erroneous appearing client only field data in submission
+ - FIO-6495: form revision id transferring from stage to stage
 
 ## 4.3.0-rc.11
 ### Changed
