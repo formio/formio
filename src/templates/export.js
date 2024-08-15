@@ -248,6 +248,8 @@ module.exports = (router) => {
         if (revision.revision.length === 24) {
           revisionsArray.push({
             _id: formio.util.idToBson(revision.revision)
+          }, {
+            revisionId: formio.util.idToBson(revision.revision)
           });
         }
         else {
@@ -304,6 +306,7 @@ module.exports = (router) => {
                     'submissionRevisions',
                     'esign',
                     '_vid',
+                    'revisionId',
                     ...includeFormFields
                   );
                   const form = _map.revisions.formsWithEnabledRevisions
