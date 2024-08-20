@@ -28,10 +28,16 @@ module.exports = (router) => {
       return next();
     }
 
+    const isConditionallyHidden = () => {
+      const submission = req.body;
+      return _.some(
+          submission?.scope?.conditionals || [],
+          condComp => condComp.conditionallyHidden && (condComp.path === path || _.startsWith(path, condComp.path))
+        );
+    };
     // Only execute if the component should save reference and conditions do not apply.
     if (
-      (component.hasOwnProperty('reference') && !component.reference) ||
-      !util.FormioUtils.checkCondition(component, {}, req.body.data)
+      (component.hasOwnProperty('reference') && !component.reference) || isConditionallyHidden()
     ) {
       return next();
     }
