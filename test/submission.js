@@ -4999,4 +4999,145 @@ module.exports = function(app, template, hook) {
         });
     });
   });
+
+  describe('Conditional Nested Forms Submissions', function () {
+    it('Sets up a default project', function (done) {
+      var owner =
+        app.hasProjects || docker ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper.project().execute(done);
+    });
+
+    it('Create the child form1', (done) => {
+      helper
+        .form('form1', [
+          {
+            label: 'Text Field form1',
+            applyMaskOn: 'change',
+            tableView: true,
+            validate: {
+              required: true,
+            },
+            validateWhenHidden: false,
+            key: 'textFieldForm1',
+            type: 'textfield',
+            input: true,
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ])
+        .execute(done);
+    });
+
+    it('Create the child form2', (done) => {
+      helper
+        .form('form2', [
+          {
+            label: 'Text Field - form2',
+            applyMaskOn: 'change',
+            tableView: true,
+            validate: {
+              required: true,
+            },
+            validateWhenHidden: false,
+            key: 'textFieldForm2',
+            type: 'textfield',
+            input: true,
+          },
+          {
+            label: 'Form',
+            tableView: true,
+            form: helper.template.forms.form1._id,
+            useOriginalRevision: false,
+            key: 'form',
+            type: 'form',
+            input: true,
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ])
+        .execute(done);
+    });
+
+    it('Create the parent form', (done) => {
+      helper
+        .form('form3', [
+          {
+            label: 'Radio',
+            optionsLabelPosition: 'right',
+            inline: false,
+            tableView: false,
+            values: [
+              {
+                label: 'a',
+                value: 'a',
+                shortcut: '',
+              },
+              {
+                label: 'b',
+                value: 'b',
+                shortcut: '',
+              },
+            ],
+            validateWhenHidden: false,
+            key: 'radio',
+            type: 'radio',
+            input: true,
+          },
+          {
+            label: 'Form',
+            tableView: true,
+            form: helper.template.forms.form2._id,
+            useOriginalRevision: false,
+            key: 'form',
+            conditional: {
+              show: true,
+              conjunction: 'all',
+              conditions: [
+                {
+                  component: 'radio',
+                  operator: 'isEqual',
+                  value: 'a',
+                },
+              ],
+            },
+            type: 'form',
+            input: true,
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ])
+        .execute(done);
+    });
+
+    it('Should let you create a submission without errors', (done) => {
+      helper.submission('form3', { radio: 'b', submit: true }).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+  
+        const submission = helper.lastSubmission;
+        assert.deepEqual(submission.data, { radio: 'b', submit: true });
+        done();
+      });
+    });
+  });
 };
