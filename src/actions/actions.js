@@ -633,7 +633,6 @@ module.exports = (router) => {
       const actionSettings = {
         type: 'fieldset',
         input: false,
-        tree: true,
         legend: 'Action Settings',
         components: []
       };
