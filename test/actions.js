@@ -3814,6 +3814,75 @@ module.exports = (app, template, hook) => {
               ],
             },
             {
+              'label': 'Day with full date',
+              'hideInputLabels': false,
+              'inputsLabelPosition': 'top',
+              'useLocaleSettings': false,
+              'tableView': false,
+              'fields': {
+                  'day': {
+                      'hide': false
+                  },
+                  'month': {
+                      'hide': false
+                  },
+                  'year': {
+                      'hide': false
+                  }
+              },
+              'validateWhenHidden': false,
+              'key': 'day',
+              'type': 'day',
+              'input': true,
+              'defaultValue': ''
+            },
+            {
+              'label': 'Day with hidden day',
+              'hideInputLabels': false,
+              'inputsLabelPosition': 'top',
+              'useLocaleSettings': false,
+              'tableView': false,
+              'fields': {
+                  'day': {
+                      'hide': true
+                  },
+                  'month': {
+                      'hide': false
+                  },
+                  'year': {
+                      'hide': false
+                  }
+              },
+              'validateWhenHidden': false,
+              'key': 'day1',
+              'type': 'day',
+              'input': true,
+              'defaultValue': ''
+            },
+            {
+              'label': 'Day with hidden year',
+              'hideInputLabels': false,
+              'inputsLabelPosition': 'top',
+              'useLocaleSettings': false,
+              'tableView': false,
+              'fields': {
+                  'day': {
+                      'hide': false
+                  },
+                  'month': {
+                      'hide': false
+                  },
+                  'year': {
+                      'hide': true
+                  }
+              },
+              'validateWhenHidden': false,
+              'key': 'day2',
+              'type': 'day',
+              'input': true,
+              'defaultValue': ''
+            },
+            {
               type: 'button',
               label: 'Submit',
               key: 'submit',
@@ -4601,6 +4670,281 @@ module.exports = (app, template, hook) => {
               helper
                 .submission({
                   dateTime: '',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isEqual operator with Day component with full date', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day',
+              operator: 'isEqual',
+              value: '01/01/2025',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day: '02/01/2025',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day: '01/01/2025',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isNotEqual operator with Day component with full date', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day',
+              operator: 'isNotEqual',
+              value: '01/01/2025',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day: '01/01/2025',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day: '02/01/2025',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isEqual operator with Day component with hidden day', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day1',
+              operator: 'isEqual',
+              value: '01/00/2025',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day1: '02/00/2025',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day1: '01/00/2025',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isNotEqual operator with Day component with day hidden', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day1',
+              operator: 'isNotEqual',
+              value: '01/00/2025',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day1: '01/00/2025',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day1: '02/00/2025',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isEqual operator with Day component with hidden year', (done) => {
+        action.condition = {
+          conjunction: 'all',
+            conditions: [
+              {
+                component: 'day2',
+                operator: 'isEqual',
+                value: '01/01/0000',
+              },
+            ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day2: '02/01/0000',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day2: '01/01/0000',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isNotEqual operator with Day component with hidden year', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day2',
+              operator: 'isNotEqual',
+              value: '01/01/0000',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day2: '01/01/0000',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day2: '02/01/0000',
                 })
                 .execute((err) => {
                   if (err) {

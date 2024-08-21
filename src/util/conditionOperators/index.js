@@ -192,6 +192,15 @@ const filterComponentsForConditionComponentFieldOptions = (flattenedComponents) 
         'button',
       ].includes(component.type);
 
+      // Change type for Day component with hidden fields to not treat it as a date
+      if (component.type === 'day' && (
+        component.fields.day.hide ||
+        component.fields.month.hide ||
+        component.fields.year.hide)
+      ) {
+        component.type = 'component';
+      }
+
     const pathArr = component.path.split('.');
 
     // Do not show component if it is inside dataGrid, editGrid, dataMap or tagpad
