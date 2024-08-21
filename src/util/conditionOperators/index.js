@@ -190,6 +190,9 @@ const filterComponentsForConditionComponentFieldOptions = (flattenedComponents) 
         'form',
         'datasource',
         'button',
+        'reviewpage',
+        'password',
+        'datamap'
       ].includes(component.type);
 
     const pathArr = component.path.split('.');
@@ -262,6 +265,9 @@ const getValueComponentsForEachFormComponent = (flattenedComponents) => {
       'validate',
       'hidden',
       'customConditional',
+      'disabled',
+      'description',
+      'tooltip',
     ]);
   });
 
