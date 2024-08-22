@@ -268,6 +268,7 @@ const getValueComponentsForEachFormComponent = (flattenedComponents) => {
       'disabled',
       'description',
       'tooltip',
+      'inputMask'
     ]);
   });
 
