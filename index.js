@@ -295,6 +295,10 @@ module.exports = function(config) {
         const metadataResource = require('./src/resources/formMetadata');
         router.get('/form/:formId/metadata',metadataResource.getFormMetadata(router));
 
+        // return the form metadata
+        const formListingByPathNameTitle = require('./src/resources/FormListingByPathTitleName');
+        router.get('/forms/search',formListingByPathNameTitle.getFormsByTitleOrPathOrName(router));
+
         // Return the form components.
         router.get('/form/:formId/components', function(req, res, next) {
           router.formio.resources.form.model.findOne({_id: req.params.formId}, function(err, form) {
