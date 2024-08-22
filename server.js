@@ -9,14 +9,22 @@ const fs = require('fs-extra');
 const path = require('path');
 const util = require('./src/util/util');
 require('colors');
-const Q = require('q');
 const cors = require('cors');
 const test = process.env.TEST_SUITE;
 const noInstall = process.env.NO_INSTALL;
 
+Promise.deferred = function() {
+  let result = {};
+  result.promise = new Promise(function(resolve, reject) {
+    result.resolve = resolve;
+    result.reject = reject;
+  });
+  return result;
+};
+
 module.exports = function(options) {
   options = options || {};
-  const q = Q.defer();
+  const q = new Promise.deferred();
 
   util.log('');
   const rl = require('readline').createInterface({

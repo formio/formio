@@ -1,5 +1,4 @@
 'use strict';
-let Q = require('q');
 let _ = require('lodash');
 let utils = require('../../util/util');
 
@@ -58,10 +57,10 @@ module.exports = function(db, config, tools, done) {
       formPromises.push(Q.all(componentPromises).thenResolve(form));
     }
   }, function() {
-    Q.all(formPromises)
+    Promise.all(formPromises)
     .then(function(changedForms) {
       // Update each form's components
-      return Q.all(changedForms.map(function(form) {
+      return Promise.all(changedForms.map(function(form) {
         return forms.updateOne({_id: form._id}, {$set:{components: form.components}});
       }));
     })
