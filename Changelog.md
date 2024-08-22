@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.3.0-rc.13
+### Changed
+ - Updated @formio/core@2.2.2-rc.3
+ - Updated @formio/vm@0.3.0-rc.7
+ - FIO-8903: fixed an issue where actions can be saved without required fields
+ - FIO-8851-8898-8850-8859-8854: fixed simple conditions issues
+
 ## 4.3.0-rc.12
 ### Changed
  - Updated @formio/core@2.2.2-rc.2
