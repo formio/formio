@@ -4917,14 +4917,14 @@ module.exports = function(app, template, hook) {
   });
 
   describe('Conditional Nested Forms Submissions', function () {
-    it('Sets up a default project', function (done) {
+    before('Sets up a default project', function (done) {
       var owner =
         app.hasProjects || docker ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper.project().execute(done);
     });
 
-    it('Create the child form1', (done) => {
+    before('Create the child form1', (done) => {
       helper
         .form('form1', [
           {
@@ -4951,7 +4951,7 @@ module.exports = function(app, template, hook) {
         .execute(done);
     });
 
-    it('Create the child form2', (done) => {
+    before('Create the child form2', (done) => {
       helper
         .form('form2', [
           {
@@ -4987,7 +4987,7 @@ module.exports = function(app, template, hook) {
         .execute(done);
     });
 
-    it('Create the parent form', (done) => {
+    before('Create the parent form', (done) => {
       helper
         .form('form3', [
           {
