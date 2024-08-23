@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-8115: Fix project creation failed in tests because of missing 'project' type
  - FIO-8643: removed erroneous appearing client only field data in submission
  - FIO-6495: form revision id transferring from stage to stage
+ - FIO-8810: fixed an issue where the conditional nested form with several nested levels with required fields cannot be submitted when hidden
+ - FIO-8851-8898-8850-8859-8854: fixed simple conditions issues
+ - FIO-8903: fixed an issue where actions can be saved without required fields
 
 ## 4.3.0-rc.11
 ### Changed
