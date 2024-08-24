@@ -3731,6 +3731,32 @@ module.exports = (app, template, hook) => {
               inputType: 'checkbox',
             },
             {
+              label: 'Select Boxes Numbers',
+              optionsLabelPosition: 'right',
+              tableView: false,
+              values: [
+                {
+                  label: '1',
+                  value: '1',
+                  shortcut: '',
+                },
+                {
+                  label: '2',
+                  value: '2',
+                  shortcut: '',
+                },
+                {
+                  label: '3',
+                  value: '3',
+                  shortcut: '',
+                },
+              ],
+              key: 'selectBoxesNumber',
+              type: 'selectboxes',
+              input: true,
+              inputType: 'checkbox',
+            },
+            {
               label: 'Radio',
               optionsLabelPosition: 'right',
               inline: false,
@@ -3882,6 +3908,11 @@ module.exports = (app, template, hook) => {
               operator: 'isEqual',
               value: 'a',
             },
+            {
+              component: 'selectBoxesNumber',
+              operator: 'isEqual',
+              value: '2',
+            }
           ],
         };
         helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
@@ -3895,6 +3926,11 @@ module.exports = (app, template, hook) => {
                 a: false,
                 b: true,
                 c: false,
+              },
+              selectBoxesNumber: {
+                1: false,
+                2: false,
+                3: false
               }
             }, helper.owner, [/application\/json/, 200])
             .execute((err) => {
@@ -3911,6 +3947,11 @@ module.exports = (app, template, hook) => {
                     a: true,
                     b: false,
                     c: true,
+                  },
+                  selectBoxesNumber: {
+                    1: false,
+                    2: true,
+                    3: false
                   }
                 })
                 .execute((err) => {
