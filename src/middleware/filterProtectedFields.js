@@ -12,22 +12,21 @@ const _ = require('lodash');
  */
 module.exports = function(router) {
   return function(action, getForm) {
-    return function(req, res, next) {
+    return async function(req, res, next) {
       if (
         !_.get(res, 'resource.item') ||
         router.formio.hook.alter('rawDataAccess', req, next, util.skipHookIfNotExists)
       ) {
         return next();
       }
-
-      router.formio.cache.loadForm(req, null, getForm(req), function(err, form) {
-        if (err) {
-          return next(err);
-        }
-
-        util.removeProtectedFields(form, action, res.resource.item, req.doNotMinify || req.query.full);
-        next();
-      });
+    try {
+        const form = await router.formio.cache.loadForm(req, null, getForm(req));
+        util.removeProtectedFields(form, action, res.resource.item, req.doNotMinify || req.full);
+        return next();
+    }
+    catch (err) {
+      return next(err);
+    }
     };
   };
 };

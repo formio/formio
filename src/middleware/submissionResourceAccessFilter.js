@@ -5,9 +5,67 @@ const debug = require('debug')('formio:middleware:submissionResourceAccessFilter
 const EVERYONE = '000000000000000000000000';
 
 module.exports = function(router) {
-  return function submissionResourceAccessFilter(req, res, next) {
+  return async function submissionResourceAccessFilter(req, res, next) {
     const util = router.formio.util;
     const hook = router.formio.hook;
+
+    const getSearch = (userId, userRoles) => {
+      const search = userRoles.map(util.idToBson.bind(util));
+      search.push(util.idToBson(EVERYONE));
+      if (userId) {
+        search.push(util.idToBson(userId));
+      }
+      return search;
+    };
+
+    const getQuery = (req, newSearch, userId) => {
+            let query = null;
+            if (userId) {
+              query = {
+                form: util.idToBson(req.formId),
+                deleted: {$eq: null},
+                $or: [
+                  {
+                    access: {
+                      $elemMatch: {
+                        type: {$in: ['read', 'write', 'admin']},
+                        resources: {$in: newSearch},
+                      },
+                    },
+                  },
+                  {
+                    owner: util.idToBson(userId)
+                  }
+                ]
+              };
+            }
+            else {
+              query = {
+                form: util.idToBson(req.formId),
+                deleted: {$eq: null},
+                access: {
+                  $elemMatch: {
+                    type: {$in: ['read', 'write', 'admin']},
+                    resources: {$in: newSearch},
+                  },
+                },
+              };
+            }
+            return query;
+    };
+
+    const getNewSearch = async (req, search, userId) => {
+      let newSearch = await hook.alter('resourceAccessFilter', search, req);
+      // If not search is provided, then just default to the user or everyone if there is no user.
+      if (!newSearch || !newSearch.length) {
+        newSearch = [];
+        newSearch.push(util.idToBson(EVERYONE));
+        if (userId) {
+          newSearch.push(util.idToBson(userId));
+        }
+      }
+      return newSearch;
+    };
 
     // Skip this filter, if request is from an administrator.
     if (req.isAdmin) {
@@ -37,59 +95,13 @@ module.exports = function(router) {
     }
 
     const userId = _.get(req, 'user._id');
-    const search = userRoles.map(util.idToBson.bind(util));
-    search.push(util.idToBson(EVERYONE));
-    if (userId) {
-      search.push(util.idToBson(userId));
-    }
-    hook.alter('resourceAccessFilter', search, req, function(err, newSearch) {
-      // Try to recover if the hook fails.
-      if (err) {
-        debug(err);
-      }
 
-      // If not search is provided, then just default to the user or everyone if there is no user.
-      if (!newSearch || !newSearch.length) {
-        newSearch = [];
-        newSearch.push(util.idToBson(EVERYONE));
-        if (userId) {
-          newSearch.push(util.idToBson(userId));
-        }
-      }
+    const search = getSearch(userId, userRoles);
+    try {
+      const newSearch = await getNewSearch(req, search, userId);
 
       // Perform our search.
-      let query = null;
-      if (userId) {
-        query = {
-          form: util.idToBson(req.formId),
-          deleted: {$eq: null},
-          $or: [
-            {
-              access: {
-                $elemMatch: {
-                  type: {$in: ['read', 'write', 'admin']},
-                  resources: {$in: newSearch},
-                },
-              },
-            },
-            {
-              owner: util.idToBson(userId)
-            }
-          ]
-        };
-      }
-      else {
-        query = {
-          form: util.idToBson(req.formId),
-          deleted: {$eq: null},
-          access: {
-            $elemMatch: {
-              type: {$in: ['read', 'write', 'admin']},
-              resources: {$in: newSearch},
-            },
-          },
-        };
-      }
+      const query = getQuery(req, newSearch, userId);
 
       req.modelQuery = req.modelQuery || req.model || this.model;
       req.modelQuery = req.modelQuery.find(query);
@@ -97,7 +109,12 @@ module.exports = function(router) {
       req.countQuery = req.countQuery || req.model || this.model;
       req.countQuery = req.countQuery.find(query);
 
-      next();
-    }.bind(this));
+      return next();
+  }
+  catch (err) {
+      // Try to recover if the hook fails.
+      debug(err);
+    }
   };
 };
+

@@ -225,7 +225,7 @@ module.exports = (router) => {
     }
 
     // Compare the provided password.
-    bcrypt.compare(password, hash, (err, value) => {
+    bcrypt.compare(password, hash, async (err, value) => {
       if (err) {
         audit('EAUTH_BCRYPT', {
           ...req,
@@ -240,18 +240,11 @@ module.exports = (router) => {
       }
 
       // Load the form associated with this user record.
-      router.formio.resources.form.model.findOne({
-        _id: user.form,
-        deleted: {$eq: null},
-      }).lean().exec((err, form) => {
-        if (err) {
-          audit('EAUTH_USERFORM', {
-            ...req,
-            userId: user._id,
-          }, user.form, err);
-          return next(err);
-        }
-
+      try {
+        const form = await router.formio.resources.form.model.findOne({
+          _id: user.form,
+          deleted: {$eq: null},
+          }).lean().exec();
         if (!form) {
           audit('EAUTH_USERFORM', {
             ...req,
@@ -299,7 +292,14 @@ module.exports = (router) => {
             });
           });
         });
-      });
+      }
+      catch (err) {
+        audit('EAUTH_USERFORM', {
+          ...req,
+          userId: user._id,
+        }, user.form, err);
+        return next(err);
+      }
     });
   };
 
@@ -351,12 +351,13 @@ module.exports = (router) => {
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
     let subQuery = submissionModel.findOne(hook.alter('submissionQuery', query, req));
     subQuery = router.formio.mongoFeatures.collation ? subQuery.collation({locale: 'en', strength: 2}) : subQuery;
-    subQuery.lean().exec((err, user) => {
-      if (err) {
-        return next(err);
-      }
+    try {
+      const user = await subQuery.lean().exec();
       return evaluateUser(req, user, password, passField, username, next);
-    });
+    }
+    catch (err) {
+      return next(err);
+    }
   };
 
   /**

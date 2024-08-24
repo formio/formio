@@ -43,7 +43,7 @@ module.exports = function(router) {
 
     try {
       const formResult = await router.formio.resources.form.model
-        .find(hook.alter('formQuery', {deleted: {$eq: null}}, req))
+        .find(await hook.alter('formQuery', {deleted: {$eq: null}}, req))
         .select({title: 1, name: 1, path: 1, access: 1, submissionAccess: 1})
         .lean()
         .exec();

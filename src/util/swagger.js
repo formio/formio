@@ -6,7 +6,7 @@ const debug = {
   error: require('debug')('formio:error')
 };
 
-module.exports = function(req, router, cb) {
+module.exports = async function(req, router, cb) {
   const hook = require('./hook')(router.formio);
 
   /**
@@ -317,29 +317,20 @@ module.exports = function(req, router, cb) {
   };
 
   if (typeof req.formId !== 'undefined' && req.formId !== null) {
-    router.formio.cache.loadCurrentForm(req, function(err, form) {
-      if (err) {
-        throw err;
-      }
-
+    const form = await router.formio.cache.loadCurrentForm(req);
       const specs = [];
       specs.push(submissionSwagger(form));
-      cb(swaggerSpec(specs, options));
-    });
+      return cb(swaggerSpec(specs, options));
   }
   else {
-    router.formio.resources.form.model.find(hook.alter('formQuery', {deleted: {$eq: null}}, req))
+    const forms = await router.formio.resources.form.model.find(await hook.alter('formQuery', {deleted: {$eq: null}}, req))
       .lean()
-      .exec((err, forms) => {
-        if (err) {
-          throw err;
-        }
+      .exec();
 
-        const specs = [];
-        forms.forEach(function(form) {
-          specs.push(submissionSwagger(form));
-        });
-        cb(swaggerSpec(specs, options));
+      const specs = [];
+      forms.forEach(function(form) {
+        specs.push(submissionSwagger(form));
       });
+      return cb(swaggerSpec(specs, options));
   }
 };
