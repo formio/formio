@@ -570,10 +570,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.2.1":
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.2.1.tgz#cba7ad5cb44b9c7ccabf3600904d2438d4a6d038"
-  integrity sha512-hsZ1P6CDNRUuIwPNH0pp8rfRVxDUAk0h3JYnJFtZJwfMnkZki7a5eNnO+l7Ia2rMjdnSQK4pW+hOcMJvdb/fgw==
+"@formio/core@2.2.2-rc.5":
+  version "2.2.2-rc.5"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.2.2-rc.5.tgz#19a8d3f25780db115a2f95a1cb57d1dc096fdba0"
+  integrity sha512-fM0BDirJLV0iK5kk0Jc4n82ynCSUBRJ48qB5rvXDq1iGXpJqao0F9/NyNpTldqvjQtMaqcYfnulggx85SkEbLQ==
   dependencies:
     "@types/json-logic-js" "^2.0.7"
     browser-cookies "^1.2.0"
@@ -613,16 +613,16 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.2.tgz#546eb335ef308b5b05c33b0da066e552904f388f"
-  integrity sha512-7PRgPHIPrEzpSoz6jDq2244c4oAizesnjtAIEfpo8poUOvoDWnLP0t9hHcz0j0JmR9ENLPqC8+ETMkDH3waYJA==
+"@formio/vm@0.2.3-rc.1":
+  version "0.2.3-rc.1"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.3-rc.1.tgz#1be6e8bafa5c62dff2a606e5d68241005c843bb6"
+  integrity sha512-DJNmW2UQm+wTjFIUqpvbIqaniO7MBz/3Fe15eOhNVtqFf9xAspcQjs+2cQ+eQCmHAcvi4JB7ZSA/ROCI8JyiQg==
   dependencies:
-    "@formio/core" "2.2.1"
+    "@formio/core" "2.2.2-rc.5"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
-    formiojs "4.21.2"
+    formiojs "4.21.3-rc.1"
     inputmask "^5.0.8"
     isolated-vm "^4.6.0"
     lodash "^4.17.21"
@@ -2193,10 +2193,10 @@ formidable@^2.1.2:
     once "^1.4.0"
     qs "^6.11.0"
 
-formiojs@4.21.2:
-  version "4.21.2"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.21.2.tgz#113aa12cb3973907241a78afd8774c72e00809dc"
-  integrity sha512-IOTA1NLkow/Dv6yrN4NYLXC/Hb51cM7e+A89MuTa6CHg9VbH6x2jeB3DZ0DxgxrpUnklDJCLHKt342kCu661OA==
+formiojs@4.21.3-rc.1:
+  version "4.21.3-rc.1"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.21.3-rc.1.tgz#20c2013e132520c94af6e93a0a1bf1c8a66883e4"
+  integrity sha512-hNGtYi5ZqE22pw3hUpvyyAsZQ89LJRpDJdQb4gWQumyy/u3QqHMpuh2Ed9dDWEWxQBPgpRm2GOho2O714RA25g==
   dependencies:
     "@formio/bootstrap3" "2.12.4-rc.1"
     "@formio/choices.js" "10.2.1"
@@ -2221,7 +2221,7 @@ formiojs@4.21.2:
     fetch-ponyfill "^7.1.0"
     i18next "22.4.12"
     idb "^7.1.1"
-    inputmask "^5.0.8"
+    inputmask "5.0.8"
     ismobilejs "^1.1.1"
     json-logic-js "^2.0.2"
     jstimezonedetect "^1.0.7"
