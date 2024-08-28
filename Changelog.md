@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.3.0-rc.14
+### Changed
+ - Updated @formio/core@2.2.2-rc.5
+ - Updated @formio/vm@0.3.0-rc.8
+ - FIO-8860-8861-8874: fixed an issue where it is impossible to add value for condition operators for time and phone number
+ - FIO-8849: fixed an issue where isEqual operator doenot work for condition based on selectboxes
+ - FIO-8798: added validation of not full dates
+
 ## 4.3.0-rc.13
 ### Changed
  - Updated @formio/core@2.2.2-rc.3
