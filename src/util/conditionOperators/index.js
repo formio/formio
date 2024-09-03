@@ -185,7 +185,7 @@ const filterComponentsForConditionComponentFieldOptions = (flattenedComponents) 
   .filter((component) => {
     let allowed = component.key &&
       component.input === true &&
-      !component.hasOwnProperty('components') &&
+      !(component.hasOwnProperty('components') && !['address'].includes(component.type)) &&
       ![
         'form',
         'datasource',
@@ -202,7 +202,7 @@ const filterComponentsForConditionComponentFieldOptions = (flattenedComponents) 
       let subPath = pathArr[0];
       for (let i = 1; i < pathArr.length; i++) {
         const parent = flattenedComponents[subPath];
-        if (parent && ['datagrid', 'editgrid', 'tagpad', 'datamap'].includes(parent.type)) {
+        if (parent && ['datagrid', 'editgrid', 'tagpad', 'datamap', 'address'].includes(parent.type)) {
           allowed = false;
           break;
         }

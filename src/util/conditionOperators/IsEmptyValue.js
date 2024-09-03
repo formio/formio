@@ -36,7 +36,7 @@ module.exports = class IsEmptyValue extends ConditionOperator {
     ) {
       return true;
     }
-    else if (component && component.type === 'selectboxes') {
+    else if (component?.type === 'selectboxes') {
       let empty = true;
       for (const key in value) {
         if (value.hasOwnProperty(key) && value[key]) {
@@ -45,6 +45,9 @@ module.exports = class IsEmptyValue extends ConditionOperator {
         }
       }
       return empty;
+    }
+    else if (component?.type === 'address' && value?.address) {
+      return _.isEmpty(value.address);
     }
 
     return false;
