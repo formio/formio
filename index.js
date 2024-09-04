@@ -24,15 +24,6 @@ router.formio.mongoose = mongoose;
 // Use custom template delimiters.
 _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
 
-Promise.deferred = function() {
-  let result = {};
-  result.promise = new Promise(function(resolve, reject) {
-    result.resolve = resolve;
-    result.reject = reject;
-  });
-  return result;
-};
-
 // Allow custom configurations passed to the Form.IO server.
 module.exports = function(config) {
   // Give app a reference to our config.
@@ -72,8 +63,6 @@ module.exports = function(config) {
    * Initialize the formio server.
    */
   router.init = function(hooks) {
-    const deferred = new Promise.deferred();
-
     // Hooks system during boot.
     router.formio.hooks = hooks;
 
@@ -93,273 +82,272 @@ module.exports = function(config) {
 
     // Run the healthCheck sanity check on /health
     /* eslint-disable max-statements */
-    router.formio.update.initialize(function(err, db) {
-      // If an error occurred, then reject the initialization.
-      if (err) {
-        return deferred.reject(err);
-      }
+    return new Promise((resolve, reject) => {
+      router.formio.update.initialize(function(err, db) {
+        // If an error occurred, then reject the initialization.
+        if (err) {
+          return reject(err);
+        }
 
-      util.log('Initializing API Server.');
+        util.log('Initializing API Server.');
 
-      // Add the database connection to the router.
-      router.formio.db = db;
+        // Add the database connection to the router.
+        router.formio.db = db;
 
-      // Ensure we do not have memory leaks in core renderer
-      router.use((req, res, next) => {
-        // Ensure we do not leak any forms or cache between requests.
-        util.Formio.forms = {};
-        util.Formio.cache = {};
-        try {
-          if (config.maxOldSpace) {
-            const heap = process.memoryUsage().heapTotal / 1024 / 1024;
+        // Ensure we do not have memory leaks in core renderer
+        router.use((req, res, next) => {
+          // Ensure we do not leak any forms or cache between requests.
+          util.Formio.forms = {};
+          util.Formio.cache = {};
+          try {
+            if (config.maxOldSpace) {
+              const heap = process.memoryUsage().heapTotal / 1024 / 1024;
 
-            if ((config.maxOldSpace * 0.8) < heap) {
-              gc();
+              if ((config.maxOldSpace * 0.8) < heap) {
+                gc();
+              }
             }
           }
-        }
-        catch (error) {
-          console.log(error);
-        }
+          catch (error) {
+            console.log(error);
+          }
 
-        next();
-      });
+          next();
+        });
 
-      // Establish our url alias middleware.
-      if (!router.formio.hook.invoke('init', 'alias', router.formio)) {
-        router.use(router.formio.middleware.alias);
-      }
-
-      // Establish the parameters.
-      if (!router.formio.hook.invoke('init', 'params', router.formio)) {
-        router.use(router.formio.middleware.params);
-      }
-
-      // Add the db schema sanity check to each request.
-      router.use(router.formio.update.sanityCheck);
-
-      // Add Middleware necessary for REST API's
-      router.use(bodyParser.urlencoded({extended: true}));
-      router.use(bodyParser.json({
-        limit: '16mb'
-      }));
-
-      // Error handler for malformed JSON
-      router.use((err, req, res, next) => {
-        if (err instanceof SyntaxError) {
-          res.status(400).send(err.message);
+        // Establish our url alias middleware.
+        if (!router.formio.hook.invoke('init', 'alias', router.formio)) {
+          router.use(router.formio.middleware.alias);
         }
 
-        next();
-      });
-
-      // CORS Support
-      const corsRoute = cors(router.formio.hook.alter('cors'));
-      router.use((req, res, next) => {
-        if (req.url === '/') {
-          return next();
+        // Establish the parameters.
+        if (!router.formio.hook.invoke('init', 'params', router.formio)) {
+          router.use(router.formio.middleware.params);
         }
 
-        if (res.headersSent) {
-          return next();
+        // Add the db schema sanity check to each request.
+        router.use(router.formio.update.sanityCheck);
+
+        // Add Middleware necessary for REST API's
+        router.use(bodyParser.urlencoded({extended: true}));
+        router.use(bodyParser.json({
+          limit: '16mb'
+        }));
+
+        // Error handler for malformed JSON
+        router.use((err, req, res, next) => {
+          if (err instanceof SyntaxError) {
+            res.status(400).send(err.message);
+          }
+
+          next();
+        });
+
+        // CORS Support
+        const corsRoute = cors(router.formio.hook.alter('cors'));
+        router.use((req, res, next) => {
+          if (req.url === '/') {
+            return next();
+          }
+
+          if (res.headersSent) {
+            return next();
+          }
+
+          corsRoute(req, res, next);
+        });
+
+        // Import our authentication models.
+        router.formio.auth = require('./src/authentication/index')(router);
+
+        // Perform token mutation before all requests.
+        if (!router.formio.hook.invoke('init', 'token', router.formio)) {
+          router.use(router.formio.middleware.tokenHandler);
         }
 
-        corsRoute(req, res, next);
-      });
+        // The get token handler
+        if (!router.formio.hook.invoke('init', 'getTempToken', router.formio)) {
+          router.get('/token', router.formio.auth.tempToken);
+        }
 
-      // Import our authentication models.
-      router.formio.auth = require('./src/authentication/index')(router);
+        // The current user handler.
+        if (!router.formio.hook.invoke('init', 'logout', router.formio)) {
+          router.get('/logout', router.formio.auth.logout);
+        }
 
-      // Perform token mutation before all requests.
-      if (!router.formio.hook.invoke('init', 'token', router.formio)) {
-        router.use(router.formio.middleware.tokenHandler);
-      }
+        // The current user handler.
+        if (!router.formio.hook.invoke('init', 'current', router.formio)) {
+          router.get('/current', router.formio.hook.alter('currentUser', [router.formio.auth.currentUser]));
+        }
 
-      // The get token handler
-      if (!router.formio.hook.invoke('init', 'getTempToken', router.formio)) {
-        router.get('/token', router.formio.auth.tempToken);
-      }
+        // The access handler.
+        if (!router.formio.hook.invoke('init', 'access', router.formio)) {
+          router.get('/access', router.formio.middleware.accessHandler);
+        }
 
-      // The current user handler.
-      if (!router.formio.hook.invoke('init', 'logout', router.formio)) {
-        router.get('/logout', router.formio.auth.logout);
-      }
+        // The public config handler.
+        if (!router.formio.hook.invoke('init', 'config', router.formio)) {
+          router.use('/config.json', router.formio.middleware.configHandler);
+        }
 
-      // The current user handler.
-      if (!router.formio.hook.invoke('init', 'current', router.formio)) {
-        router.get('/current', router.formio.hook.alter('currentUser', [router.formio.auth.currentUser]));
-      }
+        // Authorize all urls based on roles and permissions.
+        if (!router.formio.hook.invoke('init', 'perms', router.formio)) {
+          router.use(router.formio.middleware.permissionHandler);
+        }
 
-      // The access handler.
-      if (!router.formio.hook.invoke('init', 'access', router.formio)) {
-        router.get('/access', router.formio.middleware.accessHandler);
-      }
+        let mongoUrl = config.mongo;
+        let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
+        if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
+          mongoConfig.connectTimeoutMS = 300000;
+        }
+        if (!mongoConfig.hasOwnProperty('socketTimeoutMS')) {
+          mongoConfig.socketTimeoutMS = 300000;
+        }
+        if (!mongoConfig.hasOwnProperty('useNewUrlParser')) {
+          mongoConfig.useNewUrlParser = true;
+        }
+        if (!mongoConfig.hasOwnProperty('keepAlive')) {
+          mongoConfig.keepAlive = true;
+        }
 
-      // The public config handler.
-      if (!router.formio.hook.invoke('init', 'config', router.formio)) {
-        router.use('/config.json', router.formio.middleware.configHandler);
-      }
+        if (_.isArray(config.mongo)) {
+          mongoUrl = config.mongo.join(',');
+        }
+        if (config.mongoSA || config.mongoCA) {
+          mongoConfig.sslValidate = true;
+          mongoConfig.sslCA = config.mongoSA || config.mongoCA;
+        }
 
-      // Authorize all urls based on roles and permissions.
-      if (!router.formio.hook.invoke('init', 'perms', router.formio)) {
-        router.use(router.formio.middleware.permissionHandler);
-      }
+        mongoConfig.useUnifiedTopology = true;
 
-      let mongoUrl = config.mongo;
-      let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
-      if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
-        mongoConfig.connectTimeoutMS = 300000;
-      }
-      if (!mongoConfig.hasOwnProperty('socketTimeoutMS')) {
-        mongoConfig.socketTimeoutMS = 300000;
-      }
-      if (!mongoConfig.hasOwnProperty('useNewUrlParser')) {
-        mongoConfig.useNewUrlParser = true;
-      }
-      if (!mongoConfig.hasOwnProperty('keepAlive')) {
-        mongoConfig.keepAlive = true;
-      }
+        if (config.mongoSSL) {
+          mongoConfig = {
+            ...mongoConfig,
+            ...config.mongoSSL,
+          };
+        }
 
-      if (_.isArray(config.mongo)) {
-        mongoUrl = config.mongo.join(',');
-      }
-      if (config.mongoSA || config.mongoCA) {
-        mongoConfig.sslValidate = true;
-        mongoConfig.sslCA = config.mongoSA || config.mongoCA;
-      }
+        // ensure that ObjectIds are serialized as strings, opt out using {transorm: false} when calling
+        // toObject() or toJSON() on a document or model. Note that opting out of transform when calling
+        // toObject() or toJSON will *also* opt out of any existing plugin transformations, e.g. encryption
+        mongoose.ObjectId.set('transform', (val) => val.toString());
 
-      mongoConfig.useUnifiedTopology = true;
+        // Connect to MongoDB.
+        mongoose.connect(mongoUrl,  mongoConfig );
 
-      if (config.mongoSSL) {
-        mongoConfig = {
-          ...mongoConfig,
-          ...config.mongoSSL,
-        };
-      }
+        // Trigger when the connection is made.
+        mongoose.connection.on('error', function(err) {
+          util.log(err.message);
+          reject(err.message);
+        });
 
-      // ensure that ObjectIds are serialized as strings, opt out using {transorm: false} when calling
-      // toObject() or toJSON() on a document or model. Note that opting out of transform when calling
-      // toObject() or toJSON will *also* opt out of any existing plugin transformations, e.g. encryption
-      mongoose.ObjectId.set('transform', (val) => val.toString());
+        // Called when the connection is made.
+        mongoose.connection.once('open', function() {
+          util.log(' > Mongo connection established.');
 
-      // Connect to MongoDB.
-      mongoose.connect(mongoUrl,  mongoConfig );
+          // Load the BaseModel.
+          router.formio.BaseModel = require('./src/models/BaseModel');
 
-      // Trigger when the connection is made.
-      mongoose.connection.on('error', function(err) {
-        util.log(err.message);
-        deferred.reject(err.message);
-      });
+          // Load the plugins.
+          router.formio.plugins = require('./src/plugins/plugins');
 
-      // Called when the connection is made.
-      mongoose.connection.once('open', function() {
-        util.log(' > Mongo connection established.');
+          router.formio.schemas = {
+            PermissionSchema: require('./src/models/PermissionSchema')(router.formio),
+            AccessSchema: require('./src/models/AccessSchema')(router.formio),
+            FieldMatchAccessPermissionSchema: require('./src/models/FieldMatchAccessPermissionSchema')(router.formio),
+          };
 
-        // Load the BaseModel.
-        router.formio.BaseModel = require('./src/models/BaseModel');
+          // Get the models for our project.
+          const models = require('./src/models/models')(router);
 
-        // Load the plugins.
-        router.formio.plugins = require('./src/plugins/plugins');
+          // Load the Schemas.
+          router.formio.schemas = _.assign(router.formio.schemas, models.schemas);
 
-        router.formio.schemas = {
-          PermissionSchema: require('./src/models/PermissionSchema')(router.formio),
-          AccessSchema: require('./src/models/AccessSchema')(router.formio),
-          FieldMatchAccessPermissionSchema: require('./src/models/FieldMatchAccessPermissionSchema')(router.formio),
-        };
+          // Load the Models.
+          router.formio.models = models.models;
 
-        // Get the models for our project.
-        const models = require('./src/models/models')(router);
+          // Load the Resources.
+          router.formio.resources = require('./src/resources/resources')(router);
 
-        // Load the Schemas.
-        router.formio.schemas = _.assign(router.formio.schemas, models.schemas);
+          // Load the request cache
+          router.formio.cache = require('./src/cache/cache')(router);
 
-        // Load the Models.
-        router.formio.models = models.models;
+          // Return the form components.
+          router.get('/form/:formId/components', function(req, res, next) {
+            router.formio.resources.form.model.findOne({_id: req.params.formId}, function(err, form) {
+              if (err) {
+                return next(err);
+              }
 
-        // Load the Resources.
-        router.formio.resources = require('./src/resources/resources')(router);
-
-        // Load the request cache
-        router.formio.cache = require('./src/cache/cache')(router);
-
-        // Return the form components.
-        router.get('/form/:formId/components', function(req, res, next) {
-          router.formio.resources.form.model.findOne({_id: req.params.formId}, function(err, form) {
-            if (err) {
-              return next(err);
-            }
-
-            if (!form) {
-              return res.status(404).send('Form not found');
-            }
-            // If query params present, filter components that match params
-            const filter = Object.keys(req.query).length !== 0 ? _.omit(req.query, ['limit', 'skip']) : null;
-            res.json(
-              _(util.flattenComponents(form.components))
-              .filter(function(component) {
-                if (!filter) {
-                  return true;
-                }
-                return _.reduce(filter, function(prev, value, prop) {
-                  if (!value) {
-                    return prev && _.has(component, prop);
+              if (!form) {
+                return res.status(404).send('Form not found');
+              }
+              // If query params present, filter components that match params
+              const filter = Object.keys(req.query).length !== 0 ? _.omit(req.query, ['limit', 'skip']) : null;
+              res.json(
+                _(util.flattenComponents(form.components))
+                .filter(function(component) {
+                  if (!filter) {
+                    return true;
                   }
-                  const actualValue = _.property(prop)(component);
-                  // loose equality so number values can match
-                  return prev && actualValue == value || // eslint-disable-line eqeqeq
-                    value === 'true' && actualValue === true ||
-                    value === 'false' && actualValue === false;
-                }, true);
-              })
-              .values()
-              .value()
-            );
+                  return _.reduce(filter, function(prev, value, prop) {
+                    if (!value) {
+                      return prev && _.has(component, prop);
+                    }
+                    const actualValue = _.property(prop)(component);
+                    // loose equality so number values can match
+                    return prev && actualValue == value || // eslint-disable-line eqeqeq
+                      value === 'true' && actualValue === true ||
+                      value === 'false' && actualValue === false;
+                  }, true);
+                })
+                .values()
+                .value()
+              );
+            });
           });
-        });
 
-        // Import the form actions.
-        router.formio.Action = router.formio.models.action;
-        router.formio.actions = require('./src/actions/actions')(router);
+          // Import the form actions.
+          router.formio.Action = router.formio.models.action;
+          router.formio.actions = require('./src/actions/actions')(router);
 
-        // Add submission data export capabilities.
-        require('./src/export/export')(router);
+          // Add submission data export capabilities.
+          require('./src/export/export')(router);
 
-        // Add the available templates.
-        router.formio.templates = {
-          default: _.cloneDeep(require('./src/templates/default.json'))
-        };
+          // Add the available templates.
+          router.formio.templates = {
+            default: _.cloneDeep(require('./src/templates/default.json'))
+          };
 
-        // Add the template functions.
-        router.formio.template = require('./src/templates/index')(router);
+          // Add the template functions.
+          router.formio.template = require('./src/templates/index')(router);
 
-        const swagger = require('./src/util/swagger');
-        // Show the swagger for the whole site.
-        router.get('/spec.json', function(req, res, next) {
-          swagger(req, router, function(spec) {
-            res.json(spec);
+          const swagger = require('./src/util/swagger');
+          // Show the swagger for the whole site.
+          router.get('/spec.json', function(req, res, next) {
+            swagger(req, router, function(spec) {
+              res.json(spec);
+            });
           });
-        });
 
-        // Show the swagger for specific forms.
-        router.get('/form/:formId/spec.json', function(req, res, next) {
-          swagger(req, router, function(spec) {
-            res.json(spec);
+          // Show the swagger for specific forms.
+          router.get('/form/:formId/spec.json', function(req, res, next) {
+            swagger(req, router, function(spec) {
+              res.json(spec);
+            });
           });
+
+          require('./src/middleware/recaptcha')(router);
+
+          // Read the static VM depdenencies into memory and configure the VM
+          const {lodash, moment, inputmask, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
+          configureVm({lodash, moment, inputmask, core, fastJsonPatch, nunjucks});
+
+          // Say we are done.
+          resolve(router.formio);
         });
-
-        require('./src/middleware/recaptcha')(router);
-
-        // Read the static VM depdenencies into memory and configure the VM
-        const {lodash, moment, inputmask, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
-        configureVm({lodash, moment, inputmask, core, fastJsonPatch, nunjucks});
-
-        // Say we are done.
-        deferred.resolve(router.formio);
       });
     });
-    /* eslint-enable max-statements */
-
-    return deferred.promise;
   };
 
   // Return the router.
