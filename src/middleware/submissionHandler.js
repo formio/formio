@@ -416,7 +416,9 @@ module.exports = (router, resourceName, resourceId) => {
         return next();
       }
       catch (error) {
-        return next(error);
+        if(!res.headersSent){
+          return next(error);
+        }
       }
     };
     // Add after handlers.
