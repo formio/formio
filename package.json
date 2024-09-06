@@ -1,5 +1,5 @@
 {
-  "name": "formio",
+  "name": "@formio/formio",
   "version": "4.0.0",
   "description": "The formio server application.",
   "license": "OSL-3.0",
