@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.2.4-rc.1
+### Changed
+ - Updated formiojs@4.21.4-rc.1
+ - Updated @formio/vm@0.2.4-rc.1
+ - FIO-8235: add timeout to email rendering
+
 ## 4.2.3
 ### Changed
  - Official Release

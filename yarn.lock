@@ -613,16 +613,16 @@
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.3.tgz#a090dd09a81ab9bde161fc7129254630763fa8c1"
-  integrity sha512-a27zf3fcfBFdyNj5qPRCWnJ8IYmjWsHvE2Tj7Gbp74JOf13OQihbryO/NAEa7rv5AZ3YAo6Kyc0PgQUrXmYZ5g==
+"@formio/vm@0.2.4-rc.1":
+  version "0.2.4-rc.1"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.4-rc.1.tgz#fc1cce355c65bcaa76ed3961dfe4194cd4446d64"
+  integrity sha512-ySVRC/HZMfJ+acLKSxa7Oxjbk8sYsY3wcvpXb9SMJm6vi2FWVLjDKhhfhR47NEc8+a8T5+jfZ9Q+QJjGE0yoCw==
   dependencies:
     "@formio/core" "2.2.2"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
-    formiojs "4.21.3"
+    formiojs "4.21.4-rc.1"
     inputmask "^5.0.8"
     isolated-vm "^4.6.0"
     lodash "^4.17.21"
@@ -2193,10 +2193,10 @@ formidable@^2.1.2:
     once "^1.4.0"
     qs "^6.11.0"
 
-formiojs@4.21.3:
-  version "4.21.3"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.21.3.tgz#02ce2463c687acc41d6cc7db22f2ab96511f41bf"
-  integrity sha512-dDLH3d9nd7fHrNgaL6lqPh/X6eaSDcyHVuD3I5ZvO5OkgRCzFXRlA0qvjTWHGDb0gJ8/oZJbNmhSsiDShXV2zA==
+formiojs@4.21.4-rc.1:
+  version "4.21.4-rc.1"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.21.4-rc.1.tgz#e3d1641518dbc74cd9ee0ec6b2fec73f752b721c"
+  integrity sha512-K0iGNXmh6VgO3tY92+XzC+zFqI02NPEVsWX4zz7NlmXeyVymVrPGwqnQu920b+ATBjRBFEdHxY5Mz9ToB3VrZg==
   dependencies:
     "@formio/bootstrap3" "2.12.4-rc.1"
     "@formio/choices.js" "10.2.1"
@@ -2221,7 +2221,7 @@ formiojs@4.21.3:
     fetch-ponyfill "^7.1.0"
     i18next "22.4.12"
     idb "^7.1.1"
-    inputmask "5.0.8"
+    inputmask "^5.0.9"
     ismobilejs "^1.1.1"
     json-logic-js "^2.0.2"
     jstimezonedetect "^1.0.7"
@@ -2501,6 +2501,11 @@ inputmask@5.0.8, inputmask@^5.0.8:
   version "5.0.8"
   resolved "https://registry.yarnpkg.com/inputmask/-/inputmask-5.0.8.tgz#cd0f70b058c3291a0d4f27de25dbfc179c998bb4"
   integrity sha512-1WcbyudPTXP1B28ozWWyFa6QRIUG4KiLoyR6LFHlpT4OfTzRqFfWgHFadNvRuMN1S9XNVz9CdNvCGjJi+uAMqQ==
+
+inputmask@^5.0.9:
+  version "5.0.9"
+  resolved "https://registry.yarnpkg.com/inputmask/-/inputmask-5.0.9.tgz#7bf4e83f5e199c88c0edf28545dc23fa208ef4be"
+  integrity sha512-s0lUfqcEbel+EQXtehXqwCJGShutgieOaIImFKC/r4reYNvX3foyrChl6LOEvaEgxEbesePIrw1Zi2jhZaDZbQ==
 
 ip@^2.0.0:
   version "2.0.0"
