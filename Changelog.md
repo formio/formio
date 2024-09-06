@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.3.0-rc.15
+### Changed
+ - Updated @formio/core@2.2.2
+ - Updated @formio/vm@0.3.0-rc.9
+ - FIO-8235: add timeout to email rendering
+ - FIO-8235: add timeout to email rendering
+ - FIO-8900-8899: fixed address component in condtions UI and fixed an issue where isEmpty operator always return false for address
+
 ## 4.3.0-rc.14
 ### Changed
  - Updated @formio/core@2.2.2-rc.5
