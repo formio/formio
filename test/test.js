@@ -41,8 +41,9 @@ describe('Initialization', function() {
          * @param next
          *   The callback to execute.
          */
-        var dropDocuments = function(model, next) {
-          model.deleteMany({}, next);
+        var dropDocuments = async function(model, next) {
+          await model.deleteMany({});
+          return next();
         };
 
         async.series([

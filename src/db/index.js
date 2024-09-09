@@ -68,59 +68,44 @@ module.exports = function(formio) {
   /**
    * Unlock the formio lock.
    *
-   * @param next
    *   The next function to invoke after this function has finished.
    */
-  const unlock = function(next) {
+  const unlock = async function() {
     if (!currentLock) {
-      return next(new Error('Could not find the formio lock to unlock..'));
+      throw new Error('Could not find the formio lock to unlock..');
     }
 
     currentLock.isLocked = false;
-    schema.updateOne(
-      {key: 'formio'},
-      {$set: {isLocked: currentLock.isLocked}},
-      (err) => {
-        if (err) {
-          return next(err);
-        }
-        schema.findOne({key: 'formio'}, (err, result) => {
-          if (err) {
-            return next(err);
-          }
-          currentLock = result;
-          debug.db('Lock unlocked');
-          next();
-        });
-      }
-    );
+      await schema.updateOne(
+        {key: 'formio'},
+        {$set: {isLocked: currentLock.isLocked}});
+      const result = await schema.findOne({key: 'formio'});
+      currentLock = result;
+      debug.db('Lock unlocked');
   };
   /**
    * Fetch the SA certificate.
    *
-   * @param next
    * @return {*}
    */
-  const getCA = function(next) {
+  const getCA = function() {
     // Handle reverse compatability.
     const CA = config.mongoSA || config.mongoCA;
     if (!CA) {
-      return next();
+      return;
     }
 
     config.mongoSA = config.mongoCA = CA;
-    return next();
   };
 
   /**
    * Fetch the SSL certificates from local dir.
    *
-   * @param next
    * @return {*}
    */
-  const getSSL = function(next) {
+  const getSSL = function() {
     if (!config.mongoSSL) {
-      return next();
+      return;
     }
 
     console.log('Loading Mongo SSL Certificates');
@@ -160,22 +145,19 @@ module.exports = function(formio) {
     console.log('');
 
     config.mongoSSL = certs;
-    return next();
   };
 
   /**
    * Initialize the Mongo Connections for queries.
    *
-   * @param next
-   *  The next function to execute after establishing connections.
    *
    * @returns {*}
    */
-  const connection = function(next) {
+  const connection = async function() {
     // If a connection exists, skip the initialization.
     if (db) {
       debug.db('Connection exists');
-      return next();
+      return;
     }
 
     // Get a connection to mongo, using the config settings.
@@ -191,9 +173,6 @@ module.exports = function(formio) {
     if (!mongoConfig.hasOwnProperty('socketTimeoutMS')) {
       mongoConfig.socketTimeoutMS = 300000;
     }
-    if (!mongoConfig.hasOwnProperty('useNewUrlParser')) {
-      mongoConfig.useNewUrlParser = true;
-    }
     if (config.mongoSA || config.mongoCA) {
       mongoConfig.sslValidate = true;
       mongoConfig.sslCA = config.mongoSA || config.mongoCA;
@@ -205,68 +184,60 @@ module.exports = function(formio) {
       };
     }
 
-    mongoConfig.useUnifiedTopology = true;
-
     // Establish a connection and continue with execution.
-    MongoClient.connect(dbUrl, mongoConfig, async function(err, client) {
-      if (err) {
-        debug.db(`Connection Error: ${err}`);
-        unlock(function() {
-          throw new Error(`Could not connect to the given Database for server updates: ${dbUrl}.`);
-        });
-      }
-      db = client.db(client.s.options.dbName);
-      debug.db('Connection successful');
+    const client = new MongoClient(dbUrl, mongoConfig);
+
+    async function connectMongo() {
       try {
+        await client.connect();
+        db = client.db(client.s.options.dbName);
+        debug.db('Connection successful');
         const collection = await db.collection('schema');
         debug.db('Schema collection opened');
         schema = collection;
+        // Load the tools available to help manage updates.
+        tools = require('./tools')(db, schema);
       }
-      catch (err) {
-        return next(err);
+       catch (err) {
+        debug.db(`Connection Error: ${err}`);
+        await unlock();
+        throw new Error(`Could not connect to the given Database for server updates: ${dbUrl}.`);
       }
-      // Load the tools available to help manage updates.
-      tools = require('./tools')(db, schema);
-      next();
-    });
+    }
+
+    // Establish a connection and continue with execution.
+    await connectMongo();
   };
 
   /**
    * Test to see if the application has been installed. Install if not.
    */
-  const checkSetup = function(next) {
-    setTimeout(() => {
+  const checkSetup = async function() {
+    setTimeout(async () => {
       formio.util.log('Checking for db setup.');
-      db.listCollections().toArray().then(function(collections) {
-        debug.db(`Collections found: ${collections.length}`);
-        // 3 is an arbitrary length. We just want a general idea that things have been installed.
-        if (collections.length < 3) {
-          formio.util.log(' > No collections found. Starting new setup.');
-          require(path.join(__dirname, '/install'))(db, config, function() {
-            formio.util.log(' > Setup complete.\n');
-            next();
-          });
-        }
-        else {
-          formio.util.log(' > Setup complete.\n');
-          return next();
-        }
-      });
+      const collections = await db.listCollections().toArray();
+      debug.db(`Collections found: ${collections.length}`);
+      // 3 is an arbitrary length. We just want a general idea that things have been installed.
+      if (collections.length < 3) {
+        formio.util.log(' > No collections found. Starting new setup.');
+        await require(path.join(__dirname, '/install'))(db, config);
+        formio.util.log(' > Setup complete.\n');
+      }
+ else {
+        formio.util.log(' > Setup complete.\n');
+      }
     }, Math.random() * 1000);
   };
 
-  const checkEncryption = function(next) {
+  const checkEncryption = function() {
     formio.hook.alter('checkEncryption', formio, db);
-    next();
   };
 
   /**
    * Check for certain mongodb features.
-   * @param {*} next.
    */
-  const checkFeatures = function(next) {
+  const checkFeatures = async function() {
     formio.util.log('Determine MongoDB compatibility.');
-    (async () => {
       config.mongoFeatures = formio.mongoFeatures = {
         collation: true,
         compoundIndexWithNestedPath: true,
@@ -292,8 +263,6 @@ module.exports = function(formio) {
         config.mongoFeatures.compoundIndexWithNestedPath = formio.mongoFeatures.compoundIndexWithNestedPath = false;
       }
       await featuresTest.drop();
-      next();
-    })();
   };
 
   /**
@@ -304,7 +273,7 @@ module.exports = function(formio) {
    * @param next
    * @returns {*}
    */
-  const sanityCheck = function sanityCheck(req, res, next) {
+  const sanityCheck = async function sanityCheck(req, res, next) {
     // Determine if a response is expected by the request path.
     const response = (req.path === '/health');
     const {verboseHealth} = req;
@@ -352,46 +321,49 @@ module.exports = function(formio) {
     };
 
     // After connecting, perform the sanity check.
-    connection(function() {
-      // Skip update if request was a get and update was less than 10 seconds ago (in ms).
-      if (req.method === 'GET') {
-        debug.sanity('Checking GET');
-        now = (new Date()).getTime();
+    await connection();
+    // Skip update if request was a get and update was less than 10 seconds ago (in ms).
+    if (req.method === 'GET') {
+      debug.sanity('Checking GET');
+      now = (new Date()).getTime();
 
-        // Do a full sanity check when expecting a response.
-        if (response) {
-          if ((cache.full.last + 10000) > now) {
-            debug.sanity('Response and Less than 10 seconds');
-            return cache.full.isValid
-              ? handleResponse()
-              : handleResponse(cache.full.error);
-          }
-          else {
-            debug.sanity('Response and More than 10 seconds');
-            // Update the last check time.
-            cache.full.last = now;
-          }
+      // Do a full sanity check when expecting a response.
+      if (response) {
+        if ((cache.full.last + 10000) > now) {
+          debug.sanity('Response and Less than 10 seconds');
+          return cache.full.isValid
+            ? handleResponse()
+            : handleResponse(cache.full.error);
         }
-        // Do a partial sanity check when expecting a response.
         else {
-          if ((cache.partial.last + 10000) > now) {
-            debug.sanity('No Response and Less than 10 seconds');
-            return cache.partial.isValid
-              ? handleResponse()
-              : handleResponse(cache.partial.error);
-          }
-          else {
-            debug.sanity('No Response and More than 10 seconds');
-            // Update the last check time.
-            cache.partial.last = now;
-          }
+          debug.sanity('Response and More than 10 seconds');
+          // Update the last check time.
+          cache.full.last = now;
         }
       }
+      // Do a partial sanity check when expecting a response.
+      else {
+        if ((cache.partial.last + 10000) > now) {
+          debug.sanity('No Response and Less than 10 seconds');
+          return cache.partial.isValid
+            ? handleResponse()
+            : handleResponse(cache.partial.error);
+        }
+        else {
+          debug.sanity('No Response and More than 10 seconds');
+          // Update the last check time.
+          cache.partial.last = now;
+        }
+      }
+    }
 
       debug.sanity('Checking formio schema');
       // A cached response was not viable here, query and update the cache.
-      schema.findOne({key: 'formio'}, (err, document) => {
-        if (err || !document) {
+
+      const updateCache = async () =>{
+      try {
+        const document = await schema.findOne({key: 'formio'});
+        if (!document) {
           cache.full.isValid = false;
           cache.partial.isValid = false;
 
@@ -421,8 +393,15 @@ module.exports = function(formio) {
             ? handleResponse()
             : handleResponse(cache.partial.error);
         }
-      });
-    });
+      }
+      catch (err) {
+        cache.full.isValid = false;
+        cache.partial.isValid = false;
+
+        throw new Error('The formio lock was not found..');
+      }
+    };
+    await updateCache();
   };
 
   /**
@@ -431,12 +410,8 @@ module.exports = function(formio) {
    * @param next {Function}
    *   The next function to invoke after this function has finished.
    */
-  const getUpdates = function(next) {
-    fs.readdir(path.join(__dirname, '/updates'), function(err, files) {
-      if (err) {
-        return next(err);
-      }
-
+  const getUpdates = async function() {
+      let files = await fs.promises.readdir(path.join(__dirname, '/updates'));
       files = files.map(function(name) {
         debug.db(`Update found: ${name}`);
         return name.split('.js')[0];
@@ -444,15 +419,9 @@ module.exports = function(formio) {
 
       // Allow anyone to hook the update system.
       formio.hook.alter('getUpdates', files, function(err, files) {
-        if (err) {
-          return next(err);
-        }
-
         updates = files.sort(semver.compare);
         debug.db('Final updates');
-        next();
       });
-    });
   };
 
   /**
@@ -463,35 +432,26 @@ module.exports = function(formio) {
    *
    * @returns {*}
    */
-  const lock = function(next) {
+  const lock = async function() {
     if (!schema) {
-      return next(new Error('No Schema collection was found..'));
+      throw new Error('No Schema collection was found..');
     }
 
-    schema.find({key: 'formio'}).toArray(function(err, document) {
-      if (err) {
-        return next(err);
-      }
+    const document = await schema.find({key: 'formio'}).toArray();
       // Engage the lock.
-      else if (!document || document.length === 0) {
+      if (!document || document.length === 0) {
         // Create a new lock, because one was not present.
         debug.db('Creating a lock, because one was not found.');
-        schema.insertOne({
+        const document = await schema.insertOne({
           key: 'formio',
           isLocked: (new Date()).getTime(),
           version: config.schema
-        }, function(err, document) {
-          if (err) {
-            return next(err);
-          }
-
-          currentLock = document.ops[0];
-          debug.db('Created a new lock');
-          next();
         });
+        currentLock = document.ops[0];
+        debug.db('Created a new lock');
       }
       else if (document.length > 1) {
-        return next('More than one lock was found, terminating updates.');
+        throw ('More than one lock was found, terminating updates.');
       }
       else {
         debug.db(document);
@@ -502,27 +462,14 @@ module.exports = function(formio) {
         }
         else {
           // Lock
-          schema.updateOne(
+          await schema.updateOne(
             {key: 'formio'},
-            {$set: {isLocked: (new Date()).getTime()}},
-            (err) => {
-              if (err) {
-                throw err;
-              }
-
-              schema.findOne({key: 'formio'}, (err, result) => {
-                if (err) {
-                  return next(err);
-                }
-                currentLock = result;
-                debug.db('Lock engaged');
-                next();
-              });
-            }
-          );
+            {$set: {isLocked: (new Date()).getTime()}});
+          const result = await schema.findOne({key: 'formio'});
+          currentLock = result;
+          debug.db('Lock engaged');
         }
       }
-    });
   };
 
   /**
@@ -536,16 +483,15 @@ module.exports = function(formio) {
    * @returns {boolean}
    *   If pending updates are available.
    */
-  const pendingUpdates = function(code, database) {
+  const pendingUpdates = async function(code, database) {
     // Check the validity of the the code and database version numbers.
     if (
       (!code || typeof code !== 'string' || !semver.valid(code))
       || (!database || typeof database !== 'string' || !semver.valid(database))
     ) {
-      return unlock(function() {
-        throw new Error(`${'The provided versions given for comparison, do not match the semantic versioning format; ' +
-          'code: '}${code}, database: ${database}`);
-      });
+      await unlock();
+      throw new Error(`${'The provided versions given for comparison, do not match the semantic versioning format; ' +
+        'code: '}${code}, database: ${database}`);
     }
 
     // Versions are the same, skip updates.
@@ -557,12 +503,11 @@ module.exports = function(formio) {
       semver.gt(database, code) &&
       (['patch', 'prepatch', 'prerelease', 'minor'].indexOf(semver.diff(database, code)) === -1)
     ) {
-      unlock(function() {
-        throw new Error(
-          'The provided codebase version is more recent than the database schema version. Update the codebase and ' +
-          'restart.'
-        );
-      });
+      await unlock();
+      throw new Error(
+        'The provided codebase version is more recent than the database schema version. Update the codebase and ' +
+        'restart.'
+      );
     }
     else {
       // The code has a higher version than the database, lock the database and update the schemas.
@@ -573,16 +518,14 @@ module.exports = function(formio) {
   /**
    * Update the database schema, from the current version, to the latest defined.
    *
-   * @param next
-   *   The next function to invoke after this function has finished.
    */
-  const doUpdates = function(next) {
+  const doUpdates = async function() {
     formio.util.log('Checking for db schema updates.');
 
     // Skip updates if there are no pending updates to apply.
-    if (!pendingUpdates(config.schema, currentLock.version)) {
+    if (!await pendingUpdates(config.schema, currentLock.version)) {
       formio.util.log(' > No updates found.\n');
-      return next();
+      return;
     }
 
     // Determine the pending updates, by filtering the searchable updates.
@@ -655,11 +598,10 @@ module.exports = function(formio) {
       }, function(err) {
         if (err) {
           debug.db(err);
-          return next(err);
+          throw err;
         }
 
         formio.util.log(' > Done applying pending updates\n');
-        next();
       });
     }
     else {
@@ -667,7 +609,6 @@ module.exports = function(formio) {
       formio.util.log(`   > Code version: ${config.schema}`);
       formio.util.log(`   > Schema version: ${currentLock.version}`);
       formio.util.log(`   > Latest Available: ${updates[updates.length-1]}\n`);
-      return next();
     }
   };
 
@@ -677,7 +618,7 @@ module.exports = function(formio) {
    * @param next
    *   The next function to invoke after this function has finished.
    */
-  const doConfigFormsUpdates = function(next) {
+  const doConfigFormsUpdates = function() {
     formio.util.log('Checking for Config Forms updates.');
 
     let configFormsUpdates = {};
@@ -687,7 +628,7 @@ module.exports = function(formio) {
     // Skip updates if there are no  updates to apply.
     if (!updates.length) {
       formio.util.log(' > No config forms updates found.\n');
-      return next();
+      return;
     }
     // Only take action if updates exist.
     debug.db('Pending config forms updates');
@@ -730,52 +671,52 @@ module.exports = function(formio) {
       }, function(err) {
         if (err) {
           debug.db(err);
-          return next(err);
+          throw err;
         }
 
         formio.util.log(' > Done applying pending config forms updates\n');
-        next();
       });
   };
   /**
    * Initialized the update script.
    */
-  const initialize = function(next) {
+  const initialize = async function() {
     if (process.env.TEST_SUITE) {
-      return async.series([
-        connection,
-        checkFeatures
-      ], (err) => {
-        if (err) {
-          debug.db(err);
-          return next(err);
-        }
-        next(null, db);
-      });
+      try {
+        await connection();
+        await checkFeatures();
+        return db;
+      }
+      catch (err) {
+        debug.db(err);
+        throw err;
+      }
     }
 
-    async.series([
-      getCA,
-      getSSL,
-      connection,
-      checkSetup,
-      checkEncryption,
-      checkFeatures,
-      getUpdates,
-      lock,
-      doConfigFormsUpdates,
-      doUpdates,
-      unlock
-    ], function(err) {
-      unlock(function() {
-        if (err) {
-          debug.db(err);
-          return next(err);
-        }
-
-        next(null, db);
-      });
-    });
+    try {
+      getCA();
+      getSSL();
+      await connection();
+      await checkSetup();
+      checkEncryption();
+      await checkFeatures();
+      await getUpdates();
+      await lock();
+      doConfigFormsUpdates();
+      await doUpdates();
+      await unlock();
+      return db;
+    }
+    catch (err) {
+      try {
+        await unlock();
+        return db;
+      }
+      catch (err) {
+        debug.db(err);
+        throw err;
+      }
+    }
   };
 
   /**

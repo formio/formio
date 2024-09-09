@@ -34,6 +34,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-8115: Fix project creation failed in tests because of missing 'project' type
  - FIO-8643: removed erroneous appearing client only field data in submission
  - FIO-6495: form revision id transferring from stage to stage
+ - FIO-8810: fixed an issue where the conditional nested form with several nested levels with required fields cannot be submitted when hidden
+ - FIO-8851-8898-8850-8859-8854: fixed simple conditions issues
+ - FIO-8903: fixed an issue where actions can be saved without required fields
+ - FIO-8798: added validation of not full dates
+ - FIO-8295: cache promisifying, mongoose upgrade
+ - FIO-8849: fixed an issue where isEqual operator doenot work for condition based on selectboxes
+ - FIO-8860-8861-8874: fixed an issue where it is impossible to add value for condition operators for time and phone number
 
 ## 4.3.0-rc.11
 ### Changed

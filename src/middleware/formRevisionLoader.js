@@ -12,24 +12,25 @@
  module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
 
-  return (req, res, next) => {
+  return async (req, res, next) => {
     if (req.query.formRevision &&
       (res.resource.item.revisions === 'original' || req.query.formRevision.length === 24)) {
-      hook.alter(
-        'loadRevision',
-        res.resource.item,
-        req.query.formRevision,
-        router.formio.mongoose.models.formrevision,
-        (err, revision)=>{
-          if ( err ) {
-            return next(err);
-          }
+        try {
+          const revision = await hook.alter(
+           'loadRevision',
+            res.resource.item,
+            req.query.formRevision,
+            router.formio.mongoose.models.formrevision);
+
           res.resource.item = revision;
           if ( revision===null ) {
             res.resource.status = 404;
           }
           return next();
-        });
+        }
+        catch (err) {
+          return next(err);
+        }
     }
     else {
       return next();
