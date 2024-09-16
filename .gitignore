@@ -7,3 +7,5 @@ node_modules
 npm-debug.log
 portal/node_modules
 portal/dist
+coverage
+.nyc_output

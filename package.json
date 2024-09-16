@@ -5,11 +5,12 @@
   "license": "OSL-3.0",
   "main": "index.js",
   "scripts": {
-    "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000 --no-node-snapshot --exit",
+    "test": "TEST_SUITE=1 nyc --reporter=lcov --reporter=text --reporter=text-summary mocha test/test.js -b -t 60000 --no-node-snapshot --exit",
     "start": "node --no-node-snapshot main.js",
     "start:dev": "nodemon --no-node-snapshot main.js",
     "lint": "eslint .",
-    "build": "cd portal && yarn && yarn build && cd .."
+    "build": "cd portal && yarn && yarn build && cd ..",
+    "show-coverage": "open coverage/lcov-report/index.html"
   },
   "author": "support@form.io",
   "engines": {
@@ -65,10 +66,25 @@
     "eslint": "^8.25.0",
     "mocha": "^10.0.0",
     "nodemon": "^2.0.20",
+    "nyc": "^17.0.0",
     "pre-commit": "^1.2.2",
     "superagent-use": "^0.1.0",
     "supertest": "^6.3.0",
     "supertest-capture-error": "^1.0.0"
+  },
+  "nyc": {
+    "check-coverage": true,
+    "statements": 70,
+    "branches": 61,
+    "functions": 76,
+    "lines": 70,
+    "include": [
+      "src/**/*.js"
+    ],
+    "exclude": [
+      "src/db"
+    ],
+    "all": true
   },
   "directories": {
     "test": "test"
