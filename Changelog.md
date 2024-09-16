@@ -41,6 +41,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-8295: cache promisifying, mongoose upgrade
  - FIO-8849: fixed an issue where isEqual operator doenot work for condition based on selectboxes
  - FIO-8860-8861-8874: fixed an issue where it is impossible to add value for condition operators for time and phone number
+ - FIO-8556: Add tests coverage metrics
+ - FIO-8295: duplicate res sent removed
+ - FIO-8900-8899: fixed address component in condtions UI and fixed an issue where isEmpty operator always return false for address
 
 ## 4.3.0-rc.11
 ### Changed
