@@ -40,7 +40,7 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Update the access properties for all pre-existing projects.
-  let updateProjectAccess = function(then) { 
+  let updateProjectAccess = function(then) {
     projects.find({deleted: {$eq: null}}).toArray()
     .then(docs => {
       if (!docs) {
@@ -58,9 +58,14 @@ module.exports = function(db, config, tools, done) {
         };
 
         roles.insertOne(doc)
-        .then(document => {
+        .then((insertionResult) => {
           console.log('Making Admin role for project: ' + project._id);
-          callback(null, document.ops[0]);
+          if (!insertionResult.acknowledged || !insertionResult.insertedId) {
+            return callback('Failed to create Admin role for project: ' + project._id);
+          }
+          return roles.findOne({_id: insertionResult.insertedId});
+        }).then((doc) => {
+          callback(null, doc);
         })
         .catch(err => callback(err));
       };
@@ -212,7 +217,7 @@ module.exports = function(db, config, tools, done) {
       then();
     })
     .catch(err => then(err));
-      
+
   };
 
   let cleanFormComponentKeys = function(then) {
