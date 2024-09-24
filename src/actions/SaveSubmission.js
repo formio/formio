@@ -210,7 +210,6 @@ module.exports = function(router) {
                 submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
                 data: submission.data,
               },
-              timeout: router.formio.config.vmTimeout,
             });
             submission.data = newData;
           }

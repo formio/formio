@@ -23,7 +23,7 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(req, submissionModel, formModel, tokenModel, hook, timeout = 500) {
+  constructor(req, submissionModel, formModel, tokenModel, hook) {
     const tokens = {};
     const token = util.getRequestValue(req, 'x-jwt-token');
     if (token) {
@@ -48,7 +48,6 @@ class Validator {
     this.decodedToken = req.token;
     this.tokens = tokens;
     this.hook = hook;
-    this.timeout = timeout;
   }
 
   addPathQueryParams(pathQueryParams, query, path) {
@@ -240,7 +239,6 @@ class Validator {
         scope: context.scope,
         token: this.tokens['x-jwt-token'],
         tokens: this.tokens,
-        timeout: this.timeout,
         additionalDeps
       });
       context.scope = scope;
