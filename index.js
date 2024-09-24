@@ -352,19 +352,19 @@ module.exports = function(config) {
 
         require('./src/middleware/recaptcha')(router);
 
-          // Read the static VM depdenencies into memory and configure the VM
-          const {lodash, moment, inputmask, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
-          configureVm({
-            dependencies: {
-              lodash,
-              moment,
-              inputmask,
-              core,
-              fastJsonPatch,
-              nunjucks
-            },
-            timeout: config.vmTimeout
-          });
+        // Read the static VM depdenencies into memory and configure the VM
+        const {lodash, moment, inputmask, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
+        configureVm({
+          dependencies: {
+            lodash,
+            moment,
+            inputmask,
+            core,
+            fastJsonPatch,
+            nunjucks
+          },
+          timeout: config.vmTimeout
+        });
 
         // Say we are done.
         deferred.resolve(router.formio);
