@@ -258,7 +258,6 @@ module.exports = (router) => {
               submission: params.submission,
               previous: params.previous,
             },
-            timeout: router.formio.config.vmTimeout,
           });
 
           return result;
