@@ -166,7 +166,6 @@ module.exports = function(app, template, hook) {
         formio.resources.form.model,
         formio.mongoose.models.token,
         hook,
-        formio.config.vmTimeout
       );
       const dataTableComponent = {
         type: 'datatable',
@@ -228,7 +227,6 @@ module.exports = function(app, template, hook) {
         formio.resources.form.model,
         formio.mongoose.models.token,
         hook,
-        formio.config.vmTimeout
       );
       const dataTableComponent = {
         type: 'datatable',

@@ -293,7 +293,17 @@ module.exports = function(config) {
 
           // Read the static VM depdenencies into memory and configure the VM
           const {lodash, moment, inputmask, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
-          configureVm({lodash, moment, inputmask, core, fastJsonPatch, nunjucks});
+          configureVm({
+            dependencies: {
+              lodash,
+              moment,
+              inputmask,
+              core,
+              fastJsonPatch,
+              nunjucks
+            },
+            timeout: config.vmTimeout
+          });
 
           // Say we are done.
           router.formio.db = mongoose.connection;
