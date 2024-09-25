@@ -210,9 +210,9 @@ module.exports = (router) => {
    * @param next {Function}
    *   The callback function to call after authentication.
    */
-  const evaluateUser = (req, user, password, passField, username, next) => {
+  const evaluateUser = async (req, user, password, passField, username) => {
     if (!user) {
-      return next('User or password was incorrect');
+      throw 'User or password was incorrect';
     }
 
     const hash = _.get(user.data, passField);
@@ -221,22 +221,15 @@ module.exports = (router) => {
         ...req,
         userId: user._id,
       }, username);
-      return next('Your account does not have a password. You must reset your password to login.');
+     throw 'Your account does not have a password. You must reset your password to login.';
     }
 
     // Compare the provided password.
-    bcrypt.compare(password, hash, async (err, value) => {
-      if (err) {
-        audit('EAUTH_BCRYPT', {
-          ...req,
-          userId: user._id
-        }, username, err);
-        return next(err);
-      }
-
+    try {
+      const value = await bcrypt.compare(password, hash);
       if (!value) {
         audit('EAUTH_PASSWORD', req, user._id, username);
-        return next('User or password was incorrect', {user});
+        throw ({message: 'User or password was incorrect', user});
       }
 
       // Load the form associated with this user record.
@@ -250,57 +243,76 @@ module.exports = (router) => {
             ...req,
             userId: user._id,
           }, user.form, {message: 'User form not found'});
-          return next('User form not found.');
+         throw 'User form not found.';
         }
 
         // Allow anyone to hook and modify the user.
-        hook.alter('user', user, (err, _user) => {
-          if (err) {
-            // Attempt to fail safely and not update the user reference.
-            debug.authenticate(err);
-          }
-          else {
-            // Update the user with the hook results.
-            debug.authenticate(user);
-            user = _user;
-          }
-
-          hook.alter('login', user, req, (err) => {
+        const _user = await new Promise((resolve, reject) => {
+          hook.alter('user', user, (err, _user) => {
             if (err) {
-              return next(err);
+              // Attempt to fail safely and not update the user reference.
+              debug.authenticate(err);
+              reject(err);
             }
-
-            // Allow anyone to hook and modify the token.
-            const token = hook.alter('token', {
-              user: {
-                _id: user._id,
-              },
-              form: {
-                _id: form._id,
-              },
-            }, form, req);
-
-            hook.alter('tokenDecode', token, req, (err, decoded) => {
-              // Continue with the token data.
-              next(err, {
-                user,
-                token: {
-                  token: getToken(token),
-                  decoded,
-                },
-              });
-            });
+            resolve(_user);
           });
         });
+        // Update the user with the hook results.
+        debug.authenticate(user);
+        user = _user;
+
+        await new Promise((resolve, reject) => {
+          hook.alter('login', user, req, (err) =>{
+            if (err) {
+              reject(err);
+            }
+            resolve();
+          });
+        });
+
+        // Allow anyone to hook and modify the token.
+        const token = hook.alter('token', {
+          user: {
+            _id: user._id,
+          },
+          form: {
+            _id: form._id,
+          },
+        }, form, req);
+
+        const decoded = await new Promise((resolve, reject) => {
+          hook.alter('tokenDecode', token, req, (err, decoded) => {
+            if (err ) {
+              reject(err);
+            }
+            resolve(decoded);
+          });
+        });
+
+        // Continue with the token data.
+        return {
+          user,
+          token: {
+            token: getToken(token),
+            decoded,
+          },
+        };
       }
       catch (err) {
         audit('EAUTH_USERFORM', {
           ...req,
           userId: user._id,
         }, user.form, err);
-        return next(err);
+        throw err;
       }
-    });
+    }
+    catch (err) {
+      audit('EAUTH_BCRYPT', {
+        ...req,
+        userId: user._id
+      }, username, err);
+      throw err;
+    }
   };
 
   /**
@@ -319,15 +331,15 @@ module.exports = (router) => {
    * @param next {Function}
    *   The callback function to call after authentication.
    */
-  const authenticate = async (req, forms, userField, passField, username, password, next) => {
+  const authenticate = async (req, forms, userField, passField, username, password) => {
     // Make sure they have provided a username and password.
     if (!username) {
       audit('EAUTH_EMPTYUN', req);
-      return next('Missing username');
+      throw 'Missing username';
     }
     if (!password) {
       audit('EAUTH_EMPTYPW', req, username);
-      return next('Missing password');
+      throw 'Missing password';
     }
 
     const query = {deleted: {$eq: null}};
@@ -351,13 +363,8 @@ module.exports = (router) => {
     const submissionModel = req.submissionModel || router.formio.resources.submission.model;
     let subQuery = submissionModel.findOne(hook.alter('submissionQuery', query, req));
     subQuery = router.formio.mongoFeatures.collation ? subQuery.collation({locale: 'en', strength: 2}) : subQuery;
-    try {
       const user = await subQuery.lean().exec();
-      return evaluateUser(req, user, password, passField, username, next);
-    }
-    catch (err) {
-      return next(err);
-    }
+      return await evaluateUser(req, user, password, passField, username);
   };
 
   /**
@@ -367,7 +374,7 @@ module.exports = (router) => {
    * @param res
    * @param next
    */
-  const currentUser = (req, res, next) => {
+  const currentUser = async (req, res) => {
     if (!res.token || !req.token) {
       return res.sendStatus(401);
     }
@@ -401,7 +408,14 @@ module.exports = (router) => {
 
     // Execute the resourcejs methods associated with the user submissions.
     const url = '/form/:formId/submission/:submissionId';
-    router.resourcejs[url].get.call(this, childReq, res, next);
+    await new Promise((resolve, reject) => {
+      router.resourcejs[url].get.call(this, childReq, res, (err) => {
+        if (err) {
+          reject(err);
+        }
+        resolve();
+      });
+    });
   };
 
   /**
