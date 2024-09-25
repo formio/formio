@@ -80,12 +80,12 @@ module.exports = function(formio) {
     }
 
     currentLock.isLocked = false;
-      await schema.updateOne(
-        {key: 'formio'},
-        {$set: {isLocked: currentLock.isLocked}});
-      const result = await schema.findOne({key: 'formio'});
-      currentLock = result;
-      debug.db('Lock unlocked');
+    await schema.updateOne(
+      {key: 'formio'},
+      {$set: {isLocked: currentLock.isLocked}});
+    const result = await schema.findOne({key: 'formio'});
+    currentLock = result;
+    debug.db('Lock unlocked');
   };
   /**
    * Fetch the SA certificate.
@@ -444,6 +444,21 @@ module.exports = function(formio) {
       });
   };
 
+  const sanitizeLock = function(lock) {
+    if (!lock) {
+      return;
+    }
+    if (typeof lock !== 'object') {
+      throw new Error('Invalid lock object');
+    }
+    const validLock = {
+      key: lock.key,
+      isLocked: lock.isLocked,
+      version: lock.version
+    };
+    return validLock;
+  };
+
   /**
    * Lock the formio lock.
    *
@@ -471,7 +486,8 @@ module.exports = function(formio) {
       if (!insertionResult.acknowledged || !insertionResult.insertedId) {
         throw new Error('Could not create a lock for the formio schema.');
       }
-      currentLock = await schema.findOne({_id: insertionResult.insertedId});
+      const lock = await schema.findOne({_id: insertionResult.insertedId});
+      currentLock = sanitizeLock(lock);
       debug.db('Created a new lock');
     }
     else if (document.length > 1) {
@@ -490,7 +506,7 @@ module.exports = function(formio) {
           {key: 'formio'},
           {$set: {isLocked: (new Date()).getTime()}});
         const result = await schema.findOne({key: 'formio'});
-        currentLock = result;
+        currentLock = sanitizeLock(result);
         debug.db('Lock engaged');
       }
     }
