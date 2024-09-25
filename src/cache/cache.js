@@ -1,5 +1,4 @@
 'use strict';
-const async = require('async');
 const _ = require('lodash');
 const debug = {
   form: require('debug')('formio:cache:form'),
@@ -140,40 +139,59 @@ module.exports = function(router) {
         return;
       }
 
-      const formRevs = {};
-      async.each(revs, async (rev) => {
-        const formRevision = rev.revision || rev.formRevision;
-        debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${formRevision}`);
-        const loadRevision = formRevision.length === 24 ? router.formio.resources.formrevision.model.findOne(
-          {$revisionId: util.idToBson(rev.revision)}
-        ) :
-        router.formio.resources.formrevision.model.findOne(
-          await hook.alter('formQuery', {
-            _rid: util.idToBson(rev.form),
-            _vid: parseInt(formRevision),
-            deleted: {$eq: null}
-          }, req)
-        );
+      async function loadRevisions(revs, req) {
+        const formRevs = {};
 
-        const result = await loadRevision.lean().exec();
-          if (!result) {
-            debug.loadSubForms(
-              `Cannot find form revision for form ${rev.form} revision ${formRevision}`,
-            );
-            return;
+        try {
+          for (const rev of revs) {
+            const formRevision = rev.revision || rev.formRevision;
+            debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${formRevision}`);
+
+            let loadRevision;
+
+            if (formRevision.length === 24) {
+              loadRevision = router.formio.resources.formrevision.model.findOne({
+                $revisionId: util.idToBson(rev.revision)
+              });
+            }
+ else {
+              loadRevision = router.formio.resources.formrevision.model.findOne(
+                await hook.alter(
+                  'formQuery',
+                  {
+                    _rid: util.idToBson(rev.form),
+                    _vid: parseInt(formRevision),
+                    deleted: {$eq: null}
+                  },
+                  req
+                )
+              );
+            }
+
+            const result = await loadRevision.lean().exec();
+
+            if (!result) {
+              debug.loadSubForms(
+                `Cannot find form revision for form ${rev.form} revision ${formRevision}`,
+              );
+              continue;
+            }
+
+            debug.loadSubForms(`Loaded revision for form ${rev.form} revision ${formRevision}`);
+            formRevs[rev.form.toString()] = result;
           }
-
-          debug.loadSubForms(`Loaded revision for form ${rev.form} revision ${formRevision}`);
-          formRevs[rev.form.toString()] = result;
-      }, (err) => {
-        if (err) {
+        }
+ catch (err) {
           debug.loadSubForms(err);
           debug.loadFormRevisions(err);
           throw err;
         }
 
         return formRevs;
-      });
+      }
+
+      const formRevs = await loadRevisions(revs, req);
+      return formRevs;
     },
 
     getCurrentFormId(req) {
@@ -441,7 +459,7 @@ module.exports = function(router) {
         let revs = await this.loadFormRevisions(req, formRevs);
         // Iterate through all subforms.
         revs = revs || {};
-        return async.each(result, async (subForm) => {
+        for (const subForm of result) {
           const formId = subForm._id.toString();
           if (forms[formId]) {
             debug.loadSubForms(`Subforms already loaded for ${formId}.`);
@@ -449,7 +467,7 @@ module.exports = function(router) {
           }
           forms[formId] = revs[formId] ? revs[formId] : subForm;
           await this.loadAllForms(subForm, req, depth + 1, forms);
-        });
+        }
     }
     catch (err) {
       return;
@@ -527,7 +545,8 @@ module.exports = function(router) {
         if (!submissions || !submissions.length) {
           return;
         }
-        return async.eachSeries(submissions, async (sub) => {
+
+        for (const sub of submissions) {
           if (!sub || !sub._id) {
             return;
           }
@@ -545,7 +564,7 @@ module.exports = function(router) {
             });
             Promise.all(submissionPromises);
           }
-        });
+        }
       }
       catch (err) {
         return;
