@@ -1,6 +1,5 @@
 'use strict';
 
-const async = require('async');
 const util = require('../util/util');
 
 /**
@@ -9,11 +8,10 @@ const util = require('../util/util');
  * This script should do the basic install process for formio. It should be modified to match whatever the most recent
  * update is expecting.
  */
-module.exports = function(db, config, next) {
+module.exports = async function(db, config, next) {
   util.log(' > Performing install.');
 
-  async.parallel([
-    async function() {
+    async function createActionsCollection() {
       // Create actions collections exist.
       const collection = await db.createCollection('actions', null);
       await collection.createIndexes([
@@ -24,8 +22,8 @@ module.exports = function(db, config, next) {
           name: 'form_1'
         }
       ]);
-    },
-    async function() {
+    }
+    async function createProjectsCollection() {
       // Create projects collections exist.
       const collection = await db.createCollection('projects', null);
       await collection.createIndexes([
@@ -48,8 +46,8 @@ module.exports = function(db, config, next) {
           name: 'owner_1'
         }
       ]);
-    },
-    async function() {
+    }
+    async function createFormsCollection() {
       // Create forms collections exist.
       const collection = await db.createCollection('forms', null);
       await collection.createIndexes([
@@ -96,8 +94,8 @@ module.exports = function(db, config, next) {
             name: 'owner_1'
           }
         ]);
-    },
-    async function() {
+    }
+    async function createRolesCollection() {
       // Create roles collections exist.
       const collection = await db.createCollection('roles', null);
       await collection.createIndexes([
@@ -108,8 +106,8 @@ module.exports = function(db, config, next) {
             name: 'project_1'
           }
         ]);
-    },
-    async function() {
+    }
+    async function createSchemaCollection() {
       // Create schema collections exist.
       const collection = await db.createCollection('schema', null);
       await collection.createIndexes([
@@ -121,8 +119,8 @@ module.exports = function(db, config, next) {
           }
         ]);
         await collection.insertOne({key: 'formio', isLocked: false, version: config.schema});
-    },
-    async function() {
+    }
+    async function createSubmissionsCollection() {
       // Create submissions collections exist.
       const collection = await db.createCollection('submissions', null);
       await collection.createIndexes([
@@ -152,5 +150,19 @@ module.exports = function(db, config, next) {
           }
         ]);
     }
-  ], next);
+
+    try {
+      await Promise.all([
+        createActionsCollection(),
+        createProjectsCollection(),
+        createFormsCollection(),
+        createRolesCollection(),
+        createSchemaCollection(),
+        createSubmissionsCollection()
+      ]);
+      return next();
+    }
+    catch (err) {
+      return next(err);
+    }
 };
