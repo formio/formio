@@ -18,8 +18,8 @@ module.exports = function(router) {
    *   This class is used to create webhook interface.
    */
   class WebhookAction extends Action {
-    static info(req, res, next) {
-      next(null, hook.alter('actionInfo', {
+    static info(req, res) {
+      return hook.alter('actionInfo', {
         name: 'webhook',
         title: 'Webhook',
         description: 'Allows you to trigger an external interface.',
@@ -28,10 +28,10 @@ module.exports = function(router) {
           handler: ['after'],
           method: ['create', 'update', 'delete']
         }
-      }));
+      });
     }
-    static settingsForm(req, res, next) {
-      next(null, [
+    static settingsForm(req, res) {
+      return [
         {
           label: 'Webhook URL',
           key: 'url',
@@ -87,7 +87,7 @@ module.exports = function(router) {
           type: 'textfield',
           multiple: false
         }
-      ]);
+      ];
     }
 
     /**
@@ -99,10 +99,8 @@ module.exports = function(router) {
      *   The Express request object.
      * @param res
      *   The Express response object.
-     * @param next
-     *   The callback function to execute upon completion.
      */
-    resolve(handler, method, req, res, next, setActionItemMessage) {
+    async resolve(handler, method, req, res, setActionItemMessage) {
       const settings = this.settings;
       const logerr = (...args) => log(req, ...args, '#resolve');
 
@@ -124,8 +122,6 @@ module.exports = function(router) {
           res.resource.item.metadata = res.resource.item.metadata || {};
           res.resource.item.metadata[this.title] = data;
         }
-
-        return next();
       };
 
       /**
@@ -144,111 +140,117 @@ module.exports = function(router) {
           return;
         }
 
-        return next(message);
+        throw message;
       };
 
       try {
         if (!hook.alter('resolve', true, this, handler, method, req, res)) {
           setActionItemMessage('Alter to resolve');
-          return next();
+          return;
         }
+
+        const continueResolvingProcess = async () => {
+          const options = {};
+
+          // Get the settings
+          if (_.has(settings, 'username')) {
+            options.username = _.get(settings, 'username');
+          }
+          if (_.has(settings, 'password')) {
+            options.password = _.get(settings, 'password');
+          }
+
+          // Cant send a webhook if the url isn't set.
+          if (!_.has(settings, 'url')) {
+            return handleError('No url given in the settings');
+          }
+
+          let url = this.settings.url;
+          const submission = _.get(res, 'resource.item');
+          const payload = {
+            request: _.get(req, 'body'),
+            response: _.get(req, 'response'),
+            submission: (submission && submission.toObject) ? submission.toObject() : {},
+            params: _.get(req, 'params')
+          };
+
+          // Interpolate URL if possible
+          if (res && res.resource && res.resource.item && res.resource.item.data) {
+            url = util.FormioUtils.interpolate(url, res.resource.item.data);
+          }
+
+          // Fall back if interpolation failed
+          if (!url) {
+            url = this.settings.url;
+          }
+
+          // eslint-disable-next-line
+          const onParseError = (err, response) => {
+            if (response.status === 404) {
+              return handleError(null, response);
+            }
+            throw err;
+          };
+
+          const makeRequest = async (url, method, credentials, payload)=> {
+            const options = {
+              method,
+              headers: {
+                'content-type': 'application/json',
+                'accept': 'application/json',
+              },
+            };
+            if (credentials.username) {
+            // eslint-disable-next-line max-len
+            options.headers.Authorization = `Basic ${Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')}`;
+            }
+
+            if (payload) {
+              options.body = JSON.stringify(payload);
+            }
+
+            try {
+              const response = await fetch(url, options);
+              if (!response.bodyUsed) {
+                if (response.ok) {
+                  return handleSuccess({}, response);
+                }
+                else {
+                  return handleError({}, response);
+                }
+              }
+              else {
+                if (response.ok) {
+                  return response.json().then((body) => handleSuccess(body, response));
+                }
+                else {
+                  return response.json().then((body) => handleError(body, response));
+                }
+              }
+            }
+            catch (err) {
+              handleError(err);
+            }
+          };
+
+          // Make the request.
+          setActionItemMessage('Making request', {
+            method: req.method,
+            url,
+            options
+          });
+          url = req.method!=='DELETE' ? url: `${url}?${new URLSearchParams(req.params).toString()}`;
+            await makeRequest(url, req.method, options, payload);
+        };
 
         // Continue if were not blocking
         if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
-          next(); // eslint-disable-line callback-return
-        }
-
-        const options = {};
-
-        // Get the settings
-        if (_.has(settings, 'username')) {
-          options.username = _.get(settings, 'username');
-        }
-        if (_.has(settings, 'password')) {
-          options.password = _.get(settings, 'password');
-        }
-
-        // Cant send a webhook if the url isn't set.
-        if (!_.has(settings, 'url')) {
-          return handleError('No url given in the settings');
-        }
-
-        let url = this.settings.url;
-        const submission = _.get(res, 'resource.item');
-        const payload = {
-          request: _.get(req, 'body'),
-          response: _.get(req, 'response'),
-          submission: (submission && submission.toObject) ? submission.toObject() : {},
-          params: _.get(req, 'params')
-        };
-
-        // Interpolate URL if possible
-        if (res && res.resource && res.resource.item && res.resource.item.data) {
-          url = util.FormioUtils.interpolate(url, res.resource.item.data);
-        }
-
-        // Fall back if interpolation failed
-        if (!url) {
-          url = this.settings.url;
-        }
-
-        // eslint-disable-next-line
-        const onParseError = (err, response) => {
-          if (response.status === 404) {
-            return handleError(null, response);
+          // make request in background;
+          continueResolvingProcess();
+          return;
           }
-          throw err;
-        };
-
-      const makeRequest = (url, method, credentials, payload)=> {
-        const options = {
-          method,
-          headers: {
-            'content-type': 'application/json',
-            'accept': 'application/json',
-          },
-        };
-        if (credentials.username) {
-        // eslint-disable-next-line max-len
-        options.headers.Authorization = `Basic ${Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')}`;
-        }
-
-        if (payload) {
-          options.body = JSON.stringify(payload);
-        }
-
-        fetch(url, options)
-        .then((response) => {
-          if (!response.bodyUsed) {
-            if (response.ok) {
-              return handleSuccess({}, response);
-            }
-            else {
-              return handleError({}, response);
-            }
-          }
-          else {
-            if (response.ok) {
-              return response.json().then((body) => handleSuccess(body, response));
-            }
-            else {
-              return response.json().then((body) => handleError(body, response));
-            }
-          }
-        })
-        .catch((err) => {
-          handleError(err);
-        });
-    };
-
-        // Make the request.
-        setActionItemMessage('Making request', {
-          method: req.method,
-          url,
-          options
-        });
-        url = req.method!=='DELETE' ? url: `${url}?${new URLSearchParams(req.params).toString()}`;
-        makeRequest(url, req.method, options, payload);
+        // wait for request results
+        await continueResolvingProcess();
       }
       catch (e) {
         setActionItemMessage('Error occurred', e, 'error');

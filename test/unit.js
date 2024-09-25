@@ -88,13 +88,11 @@ module.exports = function(app, template, hook) {
       email.getParams(req, res, form, submission)
       .then(params => {
         params.content = content;
-        email.send(req, res, message, params, (err, response) => {
-          if (err) {
-            return cb(err);
-          }
-
-          return cb(null, response);
-        });
+        email.send(req, res, message, params)
+          .then(response => {
+            return cb(null, response);
+          })
+          .catch(cb)
       })
       .catch(cb)
     };
