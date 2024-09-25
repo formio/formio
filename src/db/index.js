@@ -66,6 +66,26 @@ module.exports = function(formio) {
   };
 
   /**
+   *
+   * @param {object} lock - The lock object to sanitize.
+   * @returns {object|undefined} - The sanitized lock object.
+   */
+  const sanitizeLock = function(lock) {
+    if (!lock) {
+      return;
+    }
+    if (typeof lock !== 'object') {
+      throw new Error('Invalid lock object');
+    }
+    const validLock = {
+      key: lock.key,
+      isLocked: lock.isLocked,
+      version: lock.version
+    };
+    return validLock;
+  };
+
+  /**
    * Unlock the formio lock.
    *
    *   The next function to invoke after this function has finished.
@@ -80,7 +100,7 @@ module.exports = function(formio) {
       {key: 'formio'},
       {$set: {isLocked: currentLock.isLocked}});
     const result = await schema.findOne({key: 'formio'});
-    currentLock = result;
+    currentLock = sanitizeLock(result);
     debug.db('Lock unlocked');
   };
   /**
@@ -420,21 +440,6 @@ module.exports = function(formio) {
         updates = files.sort(semver.compare);
         debug.db('Final updates');
       });
-  };
-
-  const sanitizeLock = function(lock) {
-    if (!lock) {
-      return;
-    }
-    if (typeof lock !== 'object') {
-      throw new Error('Invalid lock object');
-    }
-    const validLock = {
-      key: lock.key,
-      isLocked: lock.isLocked,
-      version: lock.version
-    };
-    return validLock;
   };
 
   /**
