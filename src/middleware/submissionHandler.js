@@ -420,7 +420,7 @@ module.exports = (router, resourceName, resourceId) => {
         return next();
       }
       catch (error) {
-        if(!res.headersSent){
+        if (!res.headersSent) {
           return next(error);
         }
       }
