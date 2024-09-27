@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.3.0-rc.22
+### Changed
+ - Updated @formio/core@2.3.0-rc.6
+ - Updated @formio/vm@0.3.0-rc.14
+ - FIO-9064: refactor configureVm to include global timeout, remove timeout from other evaluate args
+
 ## 4.3.0-rc.21
 ### Changed
  - Updated @formio/core@2.3.0-rc.4
