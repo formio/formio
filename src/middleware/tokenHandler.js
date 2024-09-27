@@ -86,7 +86,7 @@ module.exports = (router) => {
         router.formio.log('User', req, req.user._id);
       }
       next();
-    });
+    }, req);
   };
 
   return (req, res, next) => {

@@ -19,6 +19,7 @@ module.exports = function(app) {
     this.expects = [];
     this.template = template || {
       project: null,
+      tenants: [],
       forms: {},
       actions: {},
       submissions: {},
@@ -330,10 +331,71 @@ module.exports = function(app) {
     }
   };
 
+  Helper.prototype.updateProject = function(project, done) {
+    if (!this.template.project) {
+      return done('No project');
+    }
+
+    request(app)
+      .put('/project/' + this.template.project._id)
+      .send(project)
+      .set('x-jwt-token', this.owner.token)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        this.lastResponse = res;
+        this.owner.token = res.headers['x-jwt-token'];
+        this.template.project = res.body;
+        done(null, res.body);
+      });
+  };
+
+  Helper.prototype.createTenant = function(done) {
+    if (app.hasProjects || docker) {
+      if (!this.template.project) {
+        return done('No project');
+      }
+      const tenantNum = this.template.tenants.length + 1;
+      request(app)
+        .post('/project')
+        .send({
+          title: this.template.project.title + ' - Tenant ' + tenantNum,
+          name: this.template.project.name + '-tenant' + tenantNum,
+          description: chance.sentence(),
+          settings: {},
+          type: 'tenant',
+          project: this.template.project._id
+        })
+        .set('x-jwt-token', this.owner.token)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          this.lastResponse = res;
+          this.template.tenants.push(res.body);
+          done(null, res.body);
+        });
+    }
+  };
+
   Helper.prototype.project = function(settings) {
     this.series.push(async.apply(this.createProject.bind(this), settings));
     return this;
   };
+
+  Helper.prototype.tenants = function(numTenants) {
+    for (var i = 0; i < numTenants; i++) {
+      this.series.push(async.apply(this.createTenant.bind(this)));
+    }
+    return this;
+  }
 
   Helper.prototype.updateForm = function(form, done) {
     let url = '';
@@ -1119,8 +1181,8 @@ module.exports = function(app) {
 
   Helper.prototype.user = function(form, user, data) {
     data = data || {};
-    data.email = chance.email();
-    data.password = chance.word();
+    data.email = data.email || chance.email();
+    data.password = data.password || chance.word();
     this.series.push((done) => {
       this.createSubmission(form, {data}, (err, submission) => {
         if (err) {
