@@ -1,6 +1,8 @@
 'use strict';
 const fs = require('fs');
 const resolve = require('resolve/sync');
+const lodashPath = resolve('lodash/lodash.min.js');
+console.log('Lodash Path:', lodashPath);
 
 const lodashCode = fs.readFileSync(resolve('lodash/lodash.min.js'), 'utf8');
 const momentCode = fs.readFileSync(resolve('moment/min/moment.min.js'), 'utf8');

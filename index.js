@@ -326,19 +326,6 @@ module.exports = function(config) {
 
         // Add submission data export capabilities.
         require('./src/export/export')(router);
-          // Read the static VM depdenencies into memory and configure the VM
-          const {lodash, moment, inputmask, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
-          configureVm({
-            dependencies: {
-              lodash,
-              moment,
-              inputmask,
-              core,
-              fastJsonPatch,
-              nunjucks
-            },
-            timeout: config.vmTimeout
-          });
 
         // Add the available templates.
         router.formio.templates = {
@@ -367,7 +354,17 @@ module.exports = function(config) {
 
         // Read the static VM depdenencies into memory and configure the VM
         const {lodash, moment, inputmask, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
-        configureVm({lodash, moment, inputmask, core, fastJsonPatch, nunjucks});
+        configureVm({
+          dependencies: {
+            lodash,
+            moment,
+            inputmask,
+            core,
+            fastJsonPatch,
+            nunjucks
+          },
+          timeout: config.vmTimeout
+        });
 
         // Say we are done.
         deferred.resolve(router.formio);
