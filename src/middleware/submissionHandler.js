@@ -220,7 +220,6 @@ module.exports = (router, resourceName, resourceId) => {
           formModel,
           tokenModel,
           hook,
-          router.formio.config.vmTimeout
         );
         await validator.validate(req.body, (err, data, visibleComponents) => {
           if (req.noValidate) {
@@ -420,7 +419,7 @@ module.exports = (router, resourceName, resourceId) => {
         return next();
       }
       catch (error) {
-        if(!res.headersSent){
+        if (!res.headersSent) {
           return next(error);
         }
       }
