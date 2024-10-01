@@ -693,6 +693,29 @@ module.exports = (app, template, hook) => {
         ],
       };
 
+      let webhookForm2 = {
+        title: 'Webhook Form 2',
+        name: 'webhookform2',
+        path: 'webhookform2',
+        type: 'form',
+        access: [],
+        submissionAccess: [],
+        components: [
+          {
+            type: 'textfield',
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            key: 'textfield',
+            label: 'Text Field',
+            inputMask: '',
+            inputType: 'text',
+            input: true,
+          }
+        ],
+      };
+
       let port = 4002;
       let webhookSubmission = null;
       let webhookHandler = () => {};
@@ -1001,6 +1024,87 @@ module.exports = (app, template, hook) => {
               return done(err);
             }
             done();
+          });
+      });
+
+      it('Should create the form and action for the webhook tests with conditionals for submission creation parameter', (done) => {
+        newServer((err, server) => {
+          if (err) {
+            return done(err);
+          }
+          webhookServer = server;
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(webhookForm2)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              webhookForm2 = res.body;
+              template.users.admin.token = res.headers['x-jwt-token'];
+              request(app)
+                .post(hook.alter('url', `/form/${webhookForm2._id}/action`, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send({
+                  title: 'Webhook',
+                  name: 'webhook',
+                  form: webhookForm2._id.toString(),
+                  handler: ['after'],
+                  method: ['create', 'update', 'delete'],
+                  priority: 1,
+                  settings: {
+                    url: server.url,
+                    username: '',
+                    password: '',
+                  },
+                  condition: {
+                    component: '(submission).created',
+                    operator: 'dateGreaterThan',
+                    value: '2023-07-01T12:00:00.000Z',
+                  },
+                })
+                .expect('Content-Type', /json/)
+                .expect(201)
+                .end((err, res) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  template.users.admin.token = res.headers['x-jwt-token'];
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Should send a webhook for submission with creation date dateGreaterThan set date', (done) => {
+        webhookHandler = (body) => {
+          body = hook.alter('webhookBody', body);
+
+          assert.equal(body.params.formId, webhookForm2._id.toString());
+          assert.equal(body.request.owner, template.users.admin._id.toString());          
+
+          done();
+        };
+
+        request(app)
+          .post(hook.alter('url', `/form/${webhookForm2._id}/submission`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              textfield: ''
+            },
+          })
+          .expect(201)
+          .expect('Content-Type', /json/)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            webhookSubmission = res.body;
           });
       });
 
