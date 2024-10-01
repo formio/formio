@@ -4057,6 +4057,82 @@ module.exports = (app, template, hook) => {
         });
       });
 
+      it('Test IsNotEqual operator with SelectBoxes', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'selectBoxes',
+              operator: 'isNotEqual',
+              value: 'a',
+            },
+            {
+              component: 'selectBoxes',
+              operator: 'isNotEqual',
+              value: 'b',
+            }
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              selectBoxes: {
+                a: false,
+                b: false,
+                c: true,
+              }
+            }, helper.owner, [/application\/json/, 201])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(submission.hasOwnProperty('_id'));
+
+              helper
+                .submission('actionsExtendedConditionalForm', {
+                  selectBoxes: {
+                    a: false,
+                    b: true,
+                    c: true,
+                  }
+                }, helper.owner, [/application\/json/, 200])
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(!submission.hasOwnProperty('_id'));
+
+                  helper
+                  .submission('actionsExtendedConditionalForm', {
+                    selectBoxes: {
+                      a: true,
+                      b: true,
+                      c: true,
+                    }
+                  }, helper.owner, [/application\/json/, 200])
+                  .execute((err) => {
+                    if (err) {
+                      return done(err);
+                    }
+  
+                    const submission = helper.getLastSubmission();
+                    assert(!submission.hasOwnProperty('_id'));
+  
+                    done();
+                  });
+                });
+            });
+        });
+      });
+
       it('Test GreaterThan operator', (done) => {
         action.condition = {
           conjunction: 'all',
@@ -4332,6 +4408,7 @@ module.exports = (app, template, hook) => {
             });
         });
       });
+
 
       it('Test StartsWith operator', (done) => {
         action.condition = {
