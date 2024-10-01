@@ -291,7 +291,7 @@ module.exports = (router) => {
               });
             });
           });
-        }, req);
+        });
       }
       catch (err) {
         audit('EAUTH_USERFORM', {

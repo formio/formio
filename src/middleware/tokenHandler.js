@@ -59,7 +59,7 @@ module.exports = (router) => {
    * @param next
    */
   const userHandler = (req, res, decoded, token, user, next) => {
-    hook.alter('user', user, (err, user) => {
+    hook.alter('user', user, req, (err, user) => {
       if (err) {
         return next();
       }
@@ -86,7 +86,7 @@ module.exports = (router) => {
         router.formio.log('User', req, req.user._id);
       }
       next();
-    }, req);
+    });
   };
 
   return (req, res, next) => {
