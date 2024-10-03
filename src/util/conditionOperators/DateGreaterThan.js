@@ -29,7 +29,7 @@ module.exports = class DateGeaterThan extends ConditionOperator {
   }
 
   setDateFormat(component) {
-    return component.type === 'day' ? this.getValidationFormat(component) : '';
+    return component?.type === 'day' ? this.getValidationFormat(component) : '';
   }
 
   getFormattedDates({
