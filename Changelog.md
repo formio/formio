@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.2.6-rc.1
+### Changed
+ - Updated formiojs@4.21.5-rc.6
+ - Updated @formio/core@2.3.0-rc.11
+ - Updated @formio/vm@0.2.6-rc.1
+ - FIO-8810: fixed an issue where the conditional nested form with several nested levels with required fields cannot be submitted when hidden
+
 ## 4.2.5
 ### Changed
  - Official Release
