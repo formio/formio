@@ -745,8 +745,8 @@ module.exports = function(app, template, hook) {
             assert.notEqual(submission.deleted, null);
           });
 
-          it('Delete the Submissions created for Ownership Checks', async function(done) {
-            for (const submission of tempSubmissions) {
+          tempSubmissions.forEach(function (submission) {
+            it(`Delete the Submissions created for Ownership Checks`, async function (done) {
               try {
                 const response = await request(app)
                   .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
@@ -756,17 +756,14 @@ module.exports = function(app, template, hook) {
                 assert.deepEqual(body, {});
 
                 // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
+                template.users.admin.token = response.headers['x-jwt-token'];
                 done();
-              }
-              catch (err) {
+              } catch (err) {
                 done(err);
               }
-              finally {
-                tempSubmissions = [];
-              }
-            }
+            });
           });
+          tempSubmissions = [];
         });
 
         describe('Form Normalization', function() {
@@ -1078,28 +1075,23 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Submission Normalization', function() {
-          it('Delete the Submissions created for Ownership Checks', function(done) {
-            tempSubmissions.forEach(function(submission) {
-              request(app)
-                .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
-                .set('x-jwt-token', template.users.admin.token)
-                .expect(200)
-                .end(function(err, res) {
-                  if (err) {
-                    return done(err);
-                  }
-
-                  var response = res.body;
-                  assert.deepEqual(response, {});
-
-                  // Store the JWT for future API calls.
-                  template.users.admin.token = res.headers['x-jwt-token'];
-                });
+          tempSubmissions.forEach(function(submission){
+            it('Delete the Submissions created for Ownership Checks', async function (done) {
+                try {
+                  const response = await request(app)
+                    .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
+                    .set('x-jwt-token', template.users.admin.token)
+                    .expect(200)
+                  const responseBody = response.body;
+                  assert.deepEqual(responseBody, {});
+                  template.users.admin.token = response.headers['x-jwt-token'];
+                  done();
+                } catch (err) {
+                  done(err);
+                }
             });
-
-            tempSubmissions = [];
-            done();
           });
+          tempSubmissions = [];
         });
 
         describe('Form Normalization', function() {
@@ -3219,28 +3211,25 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Submission Normalization', function() {
-          it('Delete the Submissions created for Ownership Checks', function(done) {
-            tempSubmissions.forEach(function(submission) {
-              request(app)
-                .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
-                .set('x-jwt-token', template.users.admin.token)
-                .expect(200)
-                .end(function(err, res) {
-                  if (err) {
-                    return done(err);
-                  }
+          tempSubmissions.forEach(function (submission) {
+            it('Delete the Submissions created for Ownership Checks', async function (done) {
+              try {
+                const response = await request(app)
+                  .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
+                  .set('x-jwt-token', template.users.admin.token)
+                  .expect(200)
 
-                  var response = res.body;
-                  assert.deepEqual(response, {});
-
-                  // Store the JWT for future API calls.
-                  template.users.admin.token = res.headers['x-jwt-token'];
-                });
+                const responseBody = response.body;
+                assert.deepEqual(responseBody, {});
+                done();
+                // Store the JWT for future API calls.
+                template.users.admin.token = response.headers['x-jwt-token'];
+              } catch (err) {
+                done(err);
+              }
             });
-
-            tempSubmissions = [];
-            done();
           });
+          tempSubmissions = [];
         });
 
         describe('Form Normalization', function() {
@@ -3627,28 +3616,23 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Submission Normalization', function() {
-          it('Delete the Submissions created for Ownership Checks', function(done) {
-            tempSubmissions.forEach(function(submission) {
-              request(app)
-                .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
-                .set('x-jwt-token', template.users.admin.token)
-                .expect(200)
-                .end(function(err, res) {
-                  if (err) {
-                    return done(err);
-                  }
-
-                  var response = res.body;
-                  assert.deepEqual(response, {});
-
-                  // Store the JWT for future API calls.
-                  template.users.admin.token = res.headers['x-jwt-token'];
-                });
+          tempSubmissions.forEach(function(submission){
+            it('Delete the Submissions created for Ownership Checks', async function (done) {
+              try {
+                const response = await request(app)
+                  .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
+                  .set('x-jwt-token', template.users.admin.token)
+                  .expect(200)
+                const responseBody = response.body;
+                assert.deepEqual(responseBody, {});
+                template.users.admin.token = response.headers['x-jwt-token'];
+                done();
+              } catch (err) {
+                done(err);
+              }
             });
-
-            tempSubmissions = [];
-            done();
           });
+          tempSubmissions = [];
         });
 
         describe('Form Normalization', function() {
@@ -5550,33 +5534,23 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Submission Normalization', function() {
-          it('Delete the Submissions created for Ownership Checks', function(done) {
-            async.eachSeries(tempSubmissions, function(submission, subDone) {
-              request(app)
-                .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
-                .set('x-jwt-token', template.users.admin.token)
-                .expect(200)
-                .end(function(err, res) {
-                  if (err) {
-                    return subDone(err);
-                  }
-
-                  var response = res.body;
-                  assert.deepEqual(response, {});
-
-                  // Store the JWT for future API calls.
-                  template.users.admin.token = res.headers['x-jwt-token'];
-                  subDone();
-                });
-            }, function(err) {
-              if (err) {
-                return done(err);
+          tempSubmissions.forEach(function(submission){
+            it('Delete the Submissions created for Ownership Checks', async function (done) {
+              try {
+                const response = await request(app)
+                  .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
+                  .set('x-jwt-token', template.users.admin.token)
+                  .expect(200)
+                const responseBody = response.body;
+                assert.deepEqual(responseBody, {});
+                template.users.admin.token = response.headers['x-jwt-token'];
+                done();
+              } catch (err) {
+                done(err);
               }
-
-              tempSubmissions = [];
-              done();
             });
           });
+          tempSubmissions = [];
         });
 
         describe('Form Normalization', function() {
@@ -5948,28 +5922,23 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Submission Normalization', function() {
-          it('Delete the Submissions created for Ownership Checks', function(done) {
-            tempSubmissions.forEach(function(submission) {
-              request(app)
-                .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
-                .set('x-jwt-token', template.users.admin.token)
-                .expect(200)
-                .end(function(err, res) {
-                  if (err) {
-                    return done(err);
-                  }
-
-                  var response = res.body;
-                  assert.deepEqual(response, {});
-
-                  // Store the JWT for future API calls.
-                  template.users.admin.token = res.headers['x-jwt-token'];
-                });
+          tempSubmissions.forEach(function(submission){
+            it('Delete the Submissions created for Ownership Checks', async function (done) {
+              try {
+                const response = await request(app)
+                  .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
+                  .set('x-jwt-token', template.users.admin.token)
+                  .expect(200)
+                const responseBody = response.body;
+                assert.deepEqual(responseBody, {});
+                template.users.admin.token = response.headers['x-jwt-token'];
+                done();
+              } catch (err) {
+                done(err);
+              }
             });
-
-            tempSubmissions = [];
-            done();
           });
+          tempSubmissions = [];
         });
 
         describe('Form Normalization', function() {
@@ -6494,28 +6463,23 @@ module.exports = function(app, template, hook) {
       });
 
       describe('Submission Normalization', function() {
-        it('Delete the temp Submissions', function(done) {
-          tempSubmissions.forEach(function(submission) {
-            request(app)
-              .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
-              .set('x-jwt-token', template.users.admin.token)
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return done(err);
-                }
-
-                var response = res.body;
-                assert.deepEqual(response, {});
-
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
-              });
+        tempSubmissions.forEach(function(submission){
+          it('Delete the Submissions created for Ownership Checks', async function (done) {
+            try {
+              const response = await request(app)
+                .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .expect(200)
+              const responseBody = response.body;
+              assert.deepEqual(responseBody, {});
+              template.users.admin.token = response.headers['x-jwt-token'];
+              done();
+            } catch (err) {
+              done(err);
+            }
           });
-
-          tempSubmissions = [];
-          done();
         });
+        tempSubmissions = [];
       });
 
       describe('Form Normalization', function() {
