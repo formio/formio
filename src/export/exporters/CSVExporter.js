@@ -307,11 +307,7 @@ class CSVExporter extends Exporter {
         else if (component.type === 'signature') {
           items.push({
             preprocessor: (value) => {
-              if (_.isObject(value)) {
-                return value;
-              }
-
-              return value ? 'YES' : 'NO';
+              return value ? value : '';
             }
           });
         }
