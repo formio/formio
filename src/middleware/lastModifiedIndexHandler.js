@@ -24,6 +24,10 @@ module.exports = function(router) {
       if (matchObj.hasOwnProperty('tags') && typeof matchObj.tags === 'string') {
         matchObj.tags = {$in: matchObj.tags.split(',')};
       }
+      const lastModifiedAggregationLabel = `Last Modified Aggregation (${new Date().toISOString()})`;
+      if (process.env.PERFORMANCE_TIMER) {
+        console.time(lastModifiedAggregationLabel);
+      }
       const result = await router.formio.resources.form.model
         .aggregate([
           {
@@ -34,13 +38,7 @@ module.exports = function(router) {
               'lastModified': {
                 '$cond': {
                   'if': {'$ne': ['$deleted', null]},
-                  'then': {
-                    '$cond': {
-                      'if': {'$gt': ['$deleted', 0]},
-                      'then': {'$max': ['$modified', {'$toDate': '$deleted'}]},
-                      'else': '$modified'
-                    }
-                  },
+                  'then': {'$max': ['$modified', {'$toDate': '$deleted'}]},
                   'else': '$modified'
                 }
               }
@@ -53,6 +51,9 @@ module.exports = function(router) {
             '$limit': 1
           }
         ]);
+      if (process.env.PERFORMANCE_TIMER) {
+        console.timeEnd(lastModifiedAggregationLabel);
+      }
       if (result.length) {
         res.setHeader('Last-Modified', result[0].lastModified.toUTCString());
       }
