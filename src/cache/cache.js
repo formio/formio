@@ -439,17 +439,17 @@ module.exports = function(router) {
         const result = await this.loadForms(req, formIds);
         // Load all form revisions.
         let revs = await this.loadFormRevisions(req, formRevs);
-          // Iterate through all subforms.
-          revs = revs || {};
-          async.each(result, async (subForm) => {
-            const formId = subForm._id.toString();
-            if (forms[formId]) {
-              debug.loadSubForms(`Subforms already loaded for ${formId}.`);
-              return;
-            }
-            forms[formId] = revs[formId] ? revs[formId] : subForm;
-            await this.loadAllForms(subForm, req, depth + 1, forms);
-          });
+        // Iterate through all subforms.
+        revs = revs || {};
+        return async.each(result, async (subForm) => {
+          const formId = subForm._id.toString();
+          if (forms[formId]) {
+            debug.loadSubForms(`Subforms already loaded for ${formId}.`);
+            return;
+          }
+          forms[formId] = revs[formId] ? revs[formId] : subForm;
+          await this.loadAllForms(subForm, req, depth + 1, forms);
+        });
     }
     catch (err) {
       return;
@@ -507,7 +507,14 @@ module.exports = function(router) {
         if (component.type === 'form' || component.reference) {
           const subData = _.get(submission.data, path);
           if (subData && subData._id) {
-            subs[subData._id.toString()] = {component, path, data: subData.data};
+            const dataId = subData._id.toString();
+            const subInfo = {component, path, data: subData.data};
+            if (subs[dataId] && _.isArray(subs[dataId])) {
+              subs[dataId].push(subInfo);
+            }
+            else {
+              subs[dataId] = [subInfo];
+            }
           }
         }
       }, true, outerPath);
@@ -520,19 +527,23 @@ module.exports = function(router) {
         if (!submissions || !submissions.length) {
           return;
         }
-        async.eachSeries(submissions, async (sub) => {
+        return async.eachSeries(submissions, async (sub) => {
           if (!sub || !sub._id) {
             return;
           }
           const subId = sub._id.toString();
           if (subs[subId]) {
-            // Set the subform data if it contains more data... legacy renderers don't fare well with sub-data.
-            if (!subs[subId].data || (Object.keys(sub.data).length > Object.keys(subs[subId].data).length)) {
-              _.set(submission.data, subs[subId].path, sub);
-            }
+            const submissionPromises = [];
+            _.each(subs[subId], subInfo => {
+              // Set the subform data if it contains more data... legacy renderers don't fare well with sub-data.
+              if (!subInfo.data || (Object.keys(sub.data).length > Object.keys(subInfo.data).length)) {
+                _.set(submission.data, subInfo.path, sub);
+              }
 
-            // Load all subdata within this submission.
-            await this.loadSubSubmissions(subs[subId].component, sub, req, depth + 1);
+              // Load all subdata within this submission.
+              submissionPromises.push(this.loadSubSubmissions(subInfo.component, sub, req, depth + 1));
+            });
+            Promise.all(submissionPromises);
           }
         });
       }
