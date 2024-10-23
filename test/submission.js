@@ -3487,6 +3487,116 @@ module.exports = function(app, template, hook) {
       })
     });
 
+    describe('Filter queries', () => { 
+      before('Create a few multi-valued (multiple: true) text field entries to test filter querying', (done) => {
+        helper
+          .form('fruits', [
+            {
+              "input": true,
+              "tableView": true,
+              "inputType": "text",
+              "inputMask": "",
+              "label": "Text Field",
+              "key": "fruitTypes",
+              "placeholder": "",
+              "prefix": "",
+              "suffix": "",
+              "multiple": true,
+              "defaultValue": "",
+              "protected": false,
+              "unique": false,
+              "persistent": true,
+              "validate": {
+                "required": false,
+                "minLength": "",
+                "maxLength": "",
+                "pattern": "",
+                "custom": "",
+                "customPrivate": false
+              },
+              "conditional": {
+                "show": null,
+                "when": null,
+                "eq": ""
+              },
+              "type": "textfield"
+            }
+          ])
+          .submission('fruits', {fruitTypes: ["banana", "orange", "kiwi"] })
+          .submission('fruits', {fruitTypes: ["banana", "apple", "lemon"] })
+          .submission('fruits', {fruitTypes: ["lemon", "banana", "kiwi"] })
+          .submission('fruits', {fruitTypes: ["kiwi", "dragonfruit", "tangerine"] })
+          .submission('fruits', {fruitTypes: ["lemon", "pear", "apple"] })
+          .execute((err) => {
+            if (err) {
+              return done(err);
+            }
+            done();
+          });
+      });
+      it('Filter: __in: Should only return submissions with a multi-value field containing at least one of the specified query params', done => {
+        request(app)
+          .get(hook.alter('url', '/form/' + helper.template.forms['fruits']._id + '/submission?data.fruitTypes__in=banana,kiwi', helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .send()
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert(res.body.length === 4, 'Should return 4 submissions since that is the number containing either banana or kiwi');
+            const bananaSubmissions = res.body.filter(i => i.data.fruitTypes.includes('banana'));
+            const kiwiSubmissions = res.body.filter(i => i.data.fruitTypes.includes('kiwi'));
+            assert(bananaSubmissions.length === 3, 'Should have a length of 3, since 3 submissions contain banana');
+            assert(kiwiSubmissions.length === 3, 'Should have a length of 3 since 3 submissions contain kiwi');
+            done();
+      });
+    });
+      it('Filter: __nin: Should only return submissions with a multi-value field that does not contain any of the specified query params', done => {
+        request(app)
+          .get(hook.alter('url', '/form/' + helper.template.forms['fruits']._id + '/submission?data.fruitTypes__nin=banana,kiwi', helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .send()
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            // since other tests added submissions to this form that don't include the fruitTypes property
+            const fruitTypeSubmissions = res.body.filter(i => 'fruitTypes' in i.data);
+            assert(fruitTypeSubmissions.length === 1, 'Should return 1 fruitType submission since only 1 does not contain either banana or kiwi');
+            const fruitTypeSubmissionData = fruitTypeSubmissions[0].data;
+            assert(
+              fruitTypeSubmissionData.fruitTypes.includes('lemon') && 
+              fruitTypeSubmissionData.fruitTypes.includes('pear') && 
+              fruitTypeSubmissionData.fruitTypes.includes('apple'), 
+              'The 1 fruitType submission returned does not include banana or kiwi'
+            );
+            done();
+      });
+    });
+      // this filter corresponds to the mongo query filter $all
+      // which returns documents with array fields containing all of, but not limited to, the specified query params
+      // in this case, fruitTypes is the array field being queried
+      it('Filter: __all: Should only return submissions with a multi-value field containing all the specified query params', done => {
+        request(app)
+          .get(hook.alter('url', '/form/' + helper.template.forms['fruits']._id + '/submission?data.fruitTypes__all=banana,kiwi', helper.template))
+          .set('x-jwt-token', helper.owner.token)
+          .send()
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+            assert(res.body.length === 2, 'Should return 2 submissions since only 2 have both banana and kiwi');
+            res.body.forEach(i => {
+              assert(i.data.fruitTypes.includes('banana') && i.data.fruitTypes.includes('kiwi'), 'Each fruitTypes value must contain both banana and kiwi.');
+            });
+            done();
+      });
+    });
+  });
+
     describe('Data table validation', () => {
       before((done) => {
         // Create a resource to keep records.
