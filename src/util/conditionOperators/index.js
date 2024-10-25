@@ -50,13 +50,17 @@ const conditionOperatorsByComponentType = {
     IsNotEmptyValue.operatorKey,
   ]};
 
-Object.keys(Formio.AllComponents).forEach((type) => {
-  const component = Formio.AllComponents[type];
-  const operators = component && component.serverConditionSettings ? component.serverConditionSettings.operators : null;
-  if (operators) {
-    conditionOperatorsByComponentType[type] = operators;
-  }
-});
+if (Formio.Components) {
+  Object.keys(Formio.Components.components).forEach((type) => {
+    const component = Formio.Components.components[type];
+    const operators = component && component.serverConditionSettings
+      ? component.serverConditionSettings.operators
+      : null;
+    if (operators) {
+      conditionOperatorsByComponentType[type] = operators;
+    }
+  });
+}
 
 // (submission) prefix is required to differ form fields data paths from root level properties
 const rootLevelProperties = [
