@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.3.0-rc.33
+### Changed
+ - Updated @formio/core@2.3.0-rc.17
+ - Updated @formio/vm@0.3.0-rc.24
+ - FIO-9006: Added Last-Modified response header on form index request
+ - FIO-9006: Added Last-Modified response header on form index request
+ - FIO-8866: fixed an issue where action conditions UI shows incorrect operators for premium components
+
 ## 4.3.0-rc.32
 ### Changed
  - Updated @formio/core@2.3.0-rc.16
