@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.2.8-rc.1
+### Changed
+ - Updated @formio/core@2.3.0-rc.19
+ - Updated @formio/vm@0.2.8-rc.1
+ - FIO-9181: fixed an issue where component reference is not attached if several form componets refers to the same submission
+
 ## 4.2.7
 ### Changed
  - Official Release
