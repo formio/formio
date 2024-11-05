@@ -20,7 +20,6 @@ const {
   rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
 const {evaluate} = require('@formio/vm');
-const promisify = require('util').promisify;
 
 /**
  * The ActionIndex export.
@@ -63,7 +62,7 @@ module.exports = (router) => {
      * @param next
      * @returns {*}
      */
-    loadActions(req, res, next) {
+    async loadActions(req, res, next) {
       if (!req.actions) {
         req.actions = {};
       }
@@ -79,16 +78,14 @@ module.exports = (router) => {
       }
 
       // Find the actions associated with this form.
-      this.model.find(hook.alter('actionsQuery', {
-        form,
-        deleted: {$eq: null},
-      }, req))
-      .sort('-priority')
-      .lean()
-      .exec((err, result) => {
-        if (err) {
-          return next(err);
-        }
+      try {
+        const result = await this.model.find(hook.alter('actionsQuery', {
+          form,
+          deleted: {$eq: null},
+        }, req))
+        .sort('-priority')
+        .lean()
+        .exec();
 
         // Iterate through all of the actions and load them.
         const actions = [];
@@ -104,7 +101,10 @@ module.exports = (router) => {
 
         req.actions[form] = actions;
         return next(null, actions);
-      });
+      }
+      catch (err) {
+        return next(err);
+      }
     },
 
     /**
@@ -115,7 +115,7 @@ module.exports = (router) => {
      * @param req
      * @param next
      */
-    search(handler, method, req, res, next) {
+    async search(handler, method, req, res, next) {
       if (!req.formId) {
         return next(null, []);
       }
@@ -129,7 +129,7 @@ module.exports = (router) => {
       }
       else {
         // Load the actions.
-        this.loadActions(req, res, (err) => {
+        await this.loadActions(req, res, (err) => {
           if (err) {
             return next(err);
           }
@@ -146,8 +146,8 @@ module.exports = (router) => {
      * @param res
      * @param next
      */
-    initialize(method, req, res, next) {
-      this.search(null, method, req, res, (err, actions) => {
+    async initialize(method, req, res, next) {
+      await this.search(null, method, req, res, (err, actions) => {
         if (err) {
           return next(err);
         }
@@ -173,9 +173,9 @@ module.exports = (router) => {
      * @param res
      * @param next
      */
-    execute(handler, method, req, res, next) {
+    async execute(handler, method, req, res, next) {
       // Find the available actions.
-      this.search(handler, method, req, res, (err, actions) => {
+      await this.search(handler, method, req, res, (err, actions) => {
         if (err) {
           router.formio.log(
             'Actions search fail',
@@ -268,7 +268,6 @@ module.exports = (router) => {
               submission: params.submission,
               previous: params.previous,
             },
-            timeout: router.formio.config.vmTimeout,
           });
 
           return result;
@@ -340,7 +339,7 @@ module.exports = (router) => {
    *
    * @param action
    */
-  function getSettingsForm(action, req, cb) {
+  async function getSettingsForm(action, req) {
     const mainSettings = {
       components: []
     };
@@ -423,9 +422,10 @@ module.exports = (router) => {
       });
     }
 
-    router.formio.cache.loadForm(req, undefined, req.params.formId, (err, form) => {
-      if (err || !form || !form.components) {
-        return cb('Could not load form components for conditional actions.');
+    try {
+      const form = await router.formio.cache.loadForm(req, undefined, req.params.formId);
+      if (!form || !form.components) {
+        throw new Error('Could not load form components for conditional actions.');
       }
 
       const flattenedComponents = router.formio.util.flattenComponents(form.components);
@@ -633,7 +633,6 @@ module.exports = (router) => {
       const actionSettings = {
         type: 'fieldset',
         input: false,
-        tree: true,
         legend: 'Action Settings',
         components: []
       };
@@ -692,20 +691,20 @@ module.exports = (router) => {
       };
 
       // Return the settings form.
-      return cb(null, {
+      const finalSettings = {
         actionSettings: actionSettings,
         settingsForm: settingsForm
-      });
-    });
+      };
+      return finalSettings;
+    }
+    catch (err) {
+      throw new Error('Could not load form components for conditional actions.');
+    }
   }
 
   async function getDeletedSubmission(req) {
     try {
-      return await promisify(router.formio.cache.loadSubmission)(
-        req,
-        req.body.form,
-        req.body._id,
-      );
+      return await router.formio.cache.loadSubmission(req, req.body.form, req.body._id,);
     }
     catch (err) {
       router.formio.log(
@@ -778,7 +777,7 @@ module.exports = (router) => {
       return res.status(400).send('Action not found');
     }
 
-    action.info(req, res, (err, info) => {
+    action.info(req, res, async (err, info) => {
       if (err) {
         router.formio.log('Error, can\'t get action info', req, err);
         return next(err);
@@ -792,11 +791,14 @@ module.exports = (router) => {
       });
 
       try {
-        getSettingsForm(info, req, (err, settings) => {
-          if (err) {
-            router.formio.log('Error, can\'t get action settings', req, err);
-            return res.status(400).send(err);
-          }
+        let settings;
+        try {
+          settings = await getSettingsForm(info, req);
+        }
+        catch (err) {
+          router.formio.log('Error, can\'t get action settings', req, err);
+          return res.status(400).send(err);
+        }
 
           action.settingsForm(req, res, (err, settingsForm) => {
             if (err) {
@@ -816,7 +818,6 @@ module.exports = (router) => {
             info.settingsForm.action = hook.alter('path', `/form/${req.params.formId}/action`, req);
             hook.alter('actionInfo', info, req);
             res.json(info);
-          });
         });
       }
       catch (e) {

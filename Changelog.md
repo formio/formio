@@ -6,49 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 ## [Unreleased: 4.4.0-rc.1]
 ### Changed
- - FIO-8042: attach scope to the submission object
- - FIO-7958: fix tests to be compatible with core validation
- - FIO-7492: Update to node 20
- - FIO-7932: Modernize the Dockerfile to decouple from host machine
  - Refactor validation processing
- - FIO-7292: Added own check to delete file from storage
- - FIO-7623: Fixes an issue where Email action with Logs turned on will fail for the nested form with Attach Submission PDF
  - FIO-7302: Prevent clearing the fields that does not exist on the current form revision if they were on the older one
  - FIO-7549: Revert 1669 default.json and email.js
  - FIO-7549: evaluate axios upgrades and CVE resolution
  - revert changes related to FIO-7125 feature
  - FIO-7514: fixed an issue where submission reference object is not attached to the value of select component with reference enabled
- - FIO-7330: Fixes action settings endpoint crushing
  - FIO-7080 Handled access for token
  - FIO-7482: added ability to update default configuration forms in db to the versions required by the server (required for reportingUI form)
  - FIO-7491: fixed an issue where dataTable component with resource data type does not work after exporting/importing
- - Re-implement - FIO-6630: Expanded Actions Logic UI
  - FIO-7371: Adds checks to define if raw DB data should be returned in response
  - FIO-7329: remove nodemailer sendgrid and mailgun
- - FIO-7344 Changed Rendering method tooltip
- - FIO 8047: add dereference for datatable components
- - FIO 7671: nested paths cosmosdb feature test
- - FIO-7998: add captcha validation
- - FIO-7958: fix tests to be compatible with core validation
- - FIO 7522: Encrypted Fields Not Re-Encrypted to New DB Secret
- - FIO-7933: Added pdfComponents to Form schema
- - FIO-7146: Migrate Formio CI/CD from CircleCI to Github Actions
- - FIO-7933: fixed tests
+ - FIO-7344 Changed Rendering method tooltipt
  - FIO-8128: add additionalDeps hook to validation process
- - FIO-8169: add resolve dep to mirror enterprise server
- - FIO-7488: add timeout to evaluations
- - FIO-7829: Removed the flattened components which is not necessary with the changes to encryption and decryption
  - FIO-8235: add timeout to email rendering
- - FIO-8282: add ObjectID transform
- - Bump semver from 7.0.0 to 7.6.0
- - FIO-8251: added inputmask library
- - FIO-8152 & FIO-8137: Check if Import Resource Exists in New Project for Select Component with Resource & De-ref default values on select with resource
- - FIO-8152: Check if Import Resource Exists in New Project for Select Component with Resource
- - FIO-6966: Fixes missing address component data in csv exported submissions
  - FIO-8343: Fixed the issue with dereferencing data table components
- - FIO-8027 added Cloudflare Turnstile as a captcha Provider
  - FIO-7299: Fix email action with the 'before' handler issues
- - FIO-8150: pin subform submission object
  - FIO-8450: Add test for custom error message for unique validation
  - FIO-7835: eSignature
  - FIO-8428: Fixes save submission action data transformation
@@ -58,7 +31,265 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-7001: new open source developer portal
  - fix: change client to portal
  - Upgrade 5.x renderer
+ - FIO-8115: Fix project creation failed in tests because of missing 'project' type
+ - FIO-8643: removed erroneous appearing client only field data in submission
+ - FIO-6495: form revision id transferring from stage to stage
+ - FIO-8810: fixed an issue where the conditional nested form with several nested levels with required fields cannot be submitted when hidden
+ - FIO-8851-8898-8850-8859-8854: fixed simple conditions issues
+ - FIO-8903: fixed an issue where actions can be saved without required fields
+ - FIO-8798: added validation of not full dates
+ - FIO-8295: cache promisifying, mongoose upgrade
+ - FIO-8849: fixed an issue where isEqual operator doenot work for condition based on selectboxes
+ - FIO-8860-8861-8874: fixed an issue where it is impossible to add value for condition operators for time and phone number
+ - FIO-8556: Add tests coverage metrics
+ - FIO-8295: duplicate res sent removed
+ - FIO-8900-8899: fixed address component in condtions UI and fixed an issue where isEmpty operator always return false for address
 
+## 4.3.0-rc.11
+### Changed
+ - Updated @formio/core@2.2.2-rc.1
+ - Updated @formio/vm@0.3.0-rc.5
+
+## 4.3.0-rc.10
+### Changed
+ - Updated @formio/core@2.2.0-rc.9
+ - Updated @formio/vm@0.3.0-rc.4
+
+## 4.3.0-rc.9
+### Changed
+ - Updated @formio/core@2.2.0-rc.7
+ - Updated @formio/vm@0.3.0-rc.3
+
+## 4.3.0-rc.8
+### Changed
+ - Updated @formio/core@2.2.0-rc.6
+ - Updated @formio/vm@0.3.0-rc.2
+
+## 4.3.0-rc.7
+### Changed
+ - Updated @formio/vm@0.3.0-rc.1
+
+ - Fixing the actions logic to call currentForm.components instead of currentFormComponents
+   
+## 4.3.0-rc.6
+### Changed
+ - Updated @formio/core@2.2.0-rc.4
+ - Updated @formio/vm@0.2.1-rc.7
+
+## 4.3.0-rc.5
+### Changed
+ - Updated @formio/core@2.2.0-rc.3
+ - Updated @formio/vm@0.2.1-rc.6
+
+## 4.3.0-rc.4
+### Changed
+ - Updated @formio/core@2.1.1-rc.4
+ - Updated @formio/vm@0.2.1-rc.5
+ - FIO-8027 added Cloudflare Turnstile as a captcha Provider
+
+## 4.3.0-rc.3
+### Changed
+ - remove "test" from .npmignore
+ 
+## 4.3.0-rc.2
+### Changed
+ - Updated @formio/vm@0.2.1-rc.4
+ - Re-implement - FIO-6630: Expanded Actions Logic UI
+ - FIO-7330: fix bug of displaying settings for restricted fields
+ - FIO-6630: Adds root level properties to action conditions
+ - FIO-8150: pin subform submission object
+ - FIO-7330: Fixes action settings endpoint crushing 
+ - FIO-7146: Migrate Formio CI/CD from CircleCI to Github Actions
+ 
+## 4.2.1-rc.5
+### Changed
+ - Updated @formio/core@2.1.1-rc.3
+ - Updated @formio/vm@0.2.1-rc.3
+
+## 4.2.1-rc.4
+### Changed
+ - Updated @formio/core@2.1.1-rc.2
+ - Updated @formio/vm@0.2.1-rc.2
+
+## 4.2.1-rc.3
+### Changed
+ - We need to skip rc.2 because the @formio/vm@1.0.x was accidentally brought in.
+
+## 4.2.1-rc.1
+### Changed
+ - Updated @formio/core@2.1.1-rc.1
+ - Updated @formio/vm@0.2.1-rc.1
+
+## 4.2.0
+### Changed
+ - Official Release
+ - Updated formiojs@4.21.0
+ - Updated @formio/core@2.1.0
+ - Updated @formio/vm@0.2.0
+
+## 4.2.0-rc.6
+### Changed
+ - Updated @formio/core@2.1.0-rc.4
+ - Updated @formio/vm@0.2.0-rc.4
+
+## 4.2.0-rc.5
+### Changed
+ - Updated @formio/core@2.1.0-rc.3
+ - Updated @formio/vm@0.2.0-rc.3
+
+## 4.2.0-rc.4
+### Changed
+ - Updated formiojs@4.21.0-rc.2
+ - Updated @formio/core@2.1.0-rc.2
+ - Updated @formio/vm@0.2.0-rc.2
+ - FIO-8152 & FIO-8137: Check if Import Resource Exists in New Project for Select Component with Resource & De-ref default values on select with resource
+ - FIO-8152: Check if Import Resource Exists in New Project for Select Component with Resource
+
+## 4.2.0-rc.3
+### Changed
+ - Revert " FIO-8152 & FIO-8137: Check if Import Resource Exists in New Project for Select Component with Resource & De-ref default values on select with resource"
+ 
+## 4.2.0-rc.2
+ - fix validation error on title length
+
+## 4.2.0-rc.1
+### Changed
+ - Updated formiojs@4.21.0-rc.1
+ - Updated @formio/core@2.1.0-rc.1
+ - Updated @formio/vm@0.2.0-rc.1
+ - FIO-7292: Added own check to delete file from storage
+ - FIO-7829: Removed the flattened components which is not necessary wit…
+ - FIO 7522 Encrypted Fields Not Re-Encrypted to New DB Secret
+ - FIO-7933 Added pdfComponents to Form schema
+ - FIO-7933 fixed tests
+ - FIO-8152 & FIO-8137: Check if Import Resource Exists in New Project for Select Component with Resource & De-ref default values on select with resource
+ - FIO-8251 added inputmask library
+ - FIO 7488: add timeout to evaluations
+
+
+## 4.1.0-rc.4
+### Changed
+ - FIO 8282: add ObjectID transform
+
+## 4.1.0-rc.3
+### Changed
+ - Updated formiojs@4.20.0-rc.4
+ - Updated @formio/vm@0.1.0-rc.2
+
+## 4.1.0-rc.2
+### Changed
+ - Updated formiojs@4.20.0-rc.3
+ - Updated @formio/core@2.0.1
+ - Updated @formio/vm@0.1.0-rc.1
+
+## 4.1.0-rc.1
+### Changed
+ - Updated formiojs@4.20.0-rc.2
+ - Updated @formio/vm@0.0.8-rc.1
+ - FIO-7623: Fixes an issue where Email action with Logs turned on will fail for the nested form with Attach Submission PDF
+ - FIO 7671: nested paths cosmosdb feature test
+ - FIO 7671: nested paths cosmosdb feature test
+ - FIO-8087: Fixes an issue where Email Action with logs enabled don't render nested form value and shows ID instead
+ - FIO-5471: Remove mongoose.save from codebase
+ - FIO-7932: Modernize the Dockerfile to decouple from host machine
+
+## 4.0.0
+### Changed
+ - Official Release
+ - Updated @formio/core@2.0.0
+ - Updated @formio/vm@0.0.7
+
+## 4.0.0-rc.33
+### Changed
+ - Updated @formio/core@2.0.0-rc.32
+ - Updated @formio/vm@0.0.7-rc.27
+
+## 4.0.0-rc.32
+### Changed
+ - Updated @formio/core@2.0.0-rc.31
+ - Updated @formio/vm@0.0.7-rc.26
+
+## 4.0.0-rc.31
+### Changed
+ - Updated @formio/core@2.0.0-rc.30
+ - Updated @formio/vm@0.0.7-rc.25
+
+## 4.0.0-rc.30
+### Changed
+ - Updated @formio/core@2.0.0-rc.29
+ - Updated @formio/vm@0.0.7-rc.24
+
+## 4.0.0-rc.29
+### Changed
+ - Updated formiojs@4.19.1
+ - Updated @formio/core@2.0.0-rc.28
+ - Updated @formio/vm@0.0.7-rc.23
+ - FIO-8169: add resolve dep to mirror enterprise server
+
+## 4.0.0-rc.26
+### Changed
+ - Updated @formio/core@2.0.0-rc.27
+ - Updated @formio/vm@0.0.7-rc.21
+
+## 4.0.0-rc.25
+### Changed
+ - Updated @formio/core@2.0.0-rc.26
+ - Updated @formio/vm@0.0.7-rc.20
+
+### Changed
+ - add additionalDeps hook to validation process
+
+## 4.0.0-rc.24
+### Changed
+ - Updated @formio/core@2.0.0-rc.25
+ - Updated @formio/vm@0.0.7-rc.19
+
+## 4.0.0-rc.23
+### Changed
+ - Updated @formio/core@2.0.0-rc.24
+ - Updated @formio/vm@0.0.7-rc.18
+
+## 4.0.0-rc.22
+### Changed
+ - Updated @formio/core@2.0.0-rc.23
+ - Updated @formio/vm@0.0.7-rc.17
+
+## 4.0.0-rc.21
+### Changed
+ - Updated @formio/vm@0.0.7-rc.16
+
+## 4.0.0-rc.20
+### Changed
+ - Updated @formio/core@2.0.0-rc.22
+ - Updated @formio/vm@0.0.7-rc.15
+
+## 4.0.0-rc.19
+### Changed
+ - Updated @formio/core@2.0.0-rc.21
+ - Updated @formio/vm@0.0.7-rc.14
+
+## 4.0.0-rc.18
+### Changed
+ - Updated formiojs@4.19.1-rc.1
+ - Updated @formio/core@2.0.0-rc.20
+ - Updated @formio/vm@0.0.7-rc.13
+
+## 4.0.0-rc.17
+### Changed
+ - Updated @formio/vm@0.0.7-rc.12
+
+## 4.0.0-rc.16
+### Changed
+ - Updated @formio/core@2.0.0-rc.19
+ - Updated @formio/vm@0.0.7-rc.11
+ - FIO 8047: add dereference for datatable components
+
+## 4.0.0-rc.15
+### Changed
+ - Updated @formio/core@2.0.0-rc.18
+ - Updated @formio/vm@0.0.7-rc.10
+ - FIO-8042: attach scope to the submission object
+   
 ## 4.0.0-rc.14
 ### Changed
  - Updated @formio/vm@0.0.7-rc.9

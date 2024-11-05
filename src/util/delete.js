@@ -129,7 +129,7 @@ module.exports = (router) => {
    * @param {Object} req
    *   The express request object.
    */
-  function deleteRoleAccess(roleId, req) {
+  async function deleteRoleAccess(roleId, req) {
     const util = router.formio.util;
     if (!roleId) {
       return Promise.resolve();
@@ -144,7 +144,7 @@ module.exports = (router) => {
      * @param {[ObjectId]} formIds
      *   Ids of forms for which role should be removed.
      */
-    function removeFromForm(formIds) {
+    async function removeFromForm(formIds) {
       // Build the or query on accessTypes.
       const accessTypes = ['access', 'submissionAccess'];
       const or = accessTypes.map((accessType) => ({
@@ -152,7 +152,7 @@ module.exports = (router) => {
       }));
 
       // Build the search query, and allow anyone to hook it.
-      const query = hook.alter('formQuery', {
+      const query = await hook.alter('formQuery', {
         _id: {$in: formIds.map(util.idToBson)},
         $or: or,
       }, req);
@@ -212,7 +212,7 @@ module.exports = (router) => {
     }
 
     // Build the search query and allow anyone to hook it.
-    const query = hook.alter('formQuery', {deleted: {$eq: null}}, req);
+    const query = await hook.alter('formQuery', {deleted: {$eq: null}}, req);
 
     return router.formio.resources.form.model.find(query).select('_id').lean().exec()
       .then((forms) => {

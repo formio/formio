@@ -693,6 +693,29 @@ module.exports = (app, template, hook) => {
         ],
       };
 
+      let webhookForm2 = {
+        title: 'Webhook Form 2',
+        name: 'webhookform2',
+        path: 'webhookform2',
+        type: 'form',
+        access: [],
+        submissionAccess: [],
+        components: [
+          {
+            type: 'textfield',
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            key: 'textfield',
+            label: 'Text Field',
+            inputMask: '',
+            inputType: 'text',
+            input: true,
+          }
+        ],
+      };
+
       let port = 4002;
       let webhookSubmission = null;
       let webhookHandler = () => {};
@@ -1001,6 +1024,87 @@ module.exports = (app, template, hook) => {
               return done(err);
             }
             done();
+          });
+      });
+
+      it('Should create the form and action for the webhook tests with conditionals for submission creation parameter', (done) => {
+        newServer((err, server) => {
+          if (err) {
+            return done(err);
+          }
+          webhookServer = server;
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(webhookForm2)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              webhookForm2 = res.body;
+              template.users.admin.token = res.headers['x-jwt-token'];
+              request(app)
+                .post(hook.alter('url', `/form/${webhookForm2._id}/action`, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send({
+                  title: 'Webhook',
+                  name: 'webhook',
+                  form: webhookForm2._id.toString(),
+                  handler: ['after'],
+                  method: ['create', 'update', 'delete'],
+                  priority: 1,
+                  settings: {
+                    url: server.url,
+                    username: '',
+                    password: '',
+                  },
+                  condition: {
+                    component: '(submission).created',
+                    operator: 'dateGreaterThan',
+                    value: '2023-07-01T12:00:00.000Z',
+                  },
+                })
+                .expect('Content-Type', /json/)
+                .expect(201)
+                .end((err, res) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  template.users.admin.token = res.headers['x-jwt-token'];
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Should send a webhook for submission with creation date dateGreaterThan set date', (done) => {
+        webhookHandler = (body) => {
+          body = hook.alter('webhookBody', body);
+
+          assert.equal(body.params.formId, webhookForm2._id.toString());
+          assert.equal(body.request.owner, template.users.admin._id.toString());          
+
+          done();
+        };
+
+        request(app)
+          .post(hook.alter('url', `/form/${webhookForm2._id}/submission`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              textfield: ''
+            },
+          })
+          .expect(201)
+          .expect('Content-Type', /json/)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            webhookSubmission = res.body;
           });
       });
 
@@ -2996,23 +3100,15 @@ module.exports = (app, template, hook) => {
       });
 
       if (!docker)
-      it('A deleted Action should remain in the database', (done) => {
-        const formio = hook.alter('formio', app.formio);
-        formio.actions.model.findOne({_id: tempAction._id})
-          .exec((err, action) => {
-            if (err) {
-              return done(err);
-            }
+      it('A deleted Action should remain in the database', async () => {
+          const formio = hook.alter('formio', app.formio);
+          let action = await formio.actions.model.findOne({_id: tempAction._id}).exec();
+          if (!action) {
+            throw('No Action found, expected 1.');
+          }
 
-            if (!action) {
-              return done('No Action found, expected 1.');
-            }
-
-            action = action.toObject();
-            assert.notEqual(action.deleted, null);
-
-            done();
-          });
+          action = action.toObject();
+          assert.notEqual(action.deleted, null);
       });
 
       it('Delete the Form used for Action tests', (done) => {
@@ -3036,20 +3132,13 @@ module.exports = (app, template, hook) => {
       });
 
       if (!docker)
-      it('A deleted Form should not have active actions in the database', (done) => {
+      it('A deleted Form should not have active actions in the database', async () => {
         const formio = hook.alter('formio', app.formio);
-        formio.actions.model.find({form: tempForm._id, deleted: {$eq: null}})
-          .exec((err, action) => {
-            if (err) {
-              return done(err);
-            }
-
-            if (action && action.length !== 0) {
-              return done(`Active actions found w/ form: ${tempForm._id}, expected 0.`);
-            }
-
-            done();
-          });
+        const action = await formio.actions.model.find({form: tempForm._id, deleted: {$eq: null}})
+          .exec();
+        if (action && action.length !== 0) {
+          return `Active actions found w/ form: ${tempForm._id}, expected 0.`;
+        }
       });
 
       let actionLogin = null;
@@ -3746,6 +3835,32 @@ module.exports = (app, template, hook) => {
               inputType: 'checkbox',
             },
             {
+              label: 'Select Boxes Numbers',
+              optionsLabelPosition: 'right',
+              tableView: false,
+              values: [
+                {
+                  label: '1',
+                  value: '1',
+                  shortcut: '',
+                },
+                {
+                  label: '2',
+                  value: '2',
+                  shortcut: '',
+                },
+                {
+                  label: '3',
+                  value: '3',
+                  shortcut: '',
+                },
+              ],
+              key: 'selectBoxesNumber',
+              type: 'selectboxes',
+              input: true,
+              inputType: 'checkbox',
+            },
+            {
               label: 'Radio',
               optionsLabelPosition: 'right',
               inline: false,
@@ -3812,6 +3927,75 @@ module.exports = (app, template, hook) => {
                   input: true,
                 },
               ],
+            },
+            {
+              'label': 'Day with full date',
+              'hideInputLabels': false,
+              'inputsLabelPosition': 'top',
+              'useLocaleSettings': false,
+              'tableView': false,
+              'fields': {
+                  'day': {
+                      'hide': false
+                  },
+                  'month': {
+                      'hide': false
+                  },
+                  'year': {
+                      'hide': false
+                  }
+              },
+              'validateWhenHidden': false,
+              'key': 'day',
+              'type': 'day',
+              'input': true,
+              'defaultValue': ''
+            },
+            {
+              'label': 'Day with hidden day',
+              'hideInputLabels': false,
+              'inputsLabelPosition': 'top',
+              'useLocaleSettings': false,
+              'tableView': false,
+              'fields': {
+                  'day': {
+                      'hide': true
+                  },
+                  'month': {
+                      'hide': false
+                  },
+                  'year': {
+                      'hide': false
+                  }
+              },
+              'validateWhenHidden': false,
+              'key': 'day1',
+              'type': 'day',
+              'input': true,
+              'defaultValue': ''
+            },
+            {
+              'label': 'Day with hidden year',
+              'hideInputLabels': false,
+              'inputsLabelPosition': 'top',
+              'useLocaleSettings': false,
+              'tableView': false,
+              'fields': {
+                  'day': {
+                      'hide': false
+                  },
+                  'month': {
+                      'hide': false
+                  },
+                  'year': {
+                      'hide': true
+                  }
+              },
+              'validateWhenHidden': false,
+              'key': 'day2',
+              'type': 'day',
+              'input': true,
+              'defaultValue': ''
             },
             {
               type: 'button',
@@ -3897,6 +4081,11 @@ module.exports = (app, template, hook) => {
               operator: 'isEqual',
               value: 'a',
             },
+            {
+              component: 'selectBoxesNumber',
+              operator: 'isEqual',
+              value: '2',
+            }
           ],
         };
         helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
@@ -3910,6 +4099,11 @@ module.exports = (app, template, hook) => {
                 a: false,
                 b: true,
                 c: false,
+              },
+              selectBoxesNumber: {
+                1: false,
+                2: false,
+                3: false
               }
             }, helper.owner, [/application\/json/, 200])
             .execute((err) => {
@@ -3926,6 +4120,11 @@ module.exports = (app, template, hook) => {
                     a: true,
                     b: false,
                     c: true,
+                  },
+                  selectBoxesNumber: {
+                    1: false,
+                    2: true,
+                    3: false
                   }
                 })
                 .execute((err) => {
@@ -4029,6 +4228,82 @@ module.exports = (app, template, hook) => {
                   assert(submission.hasOwnProperty('_id'));
 
                   done();
+                });
+            });
+        });
+      });
+
+      it('Test IsNotEqual operator with SelectBoxes', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'selectBoxes',
+              operator: 'isNotEqual',
+              value: 'a',
+            },
+            {
+              component: 'selectBoxes',
+              operator: 'isNotEqual',
+              value: 'b',
+            }
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              selectBoxes: {
+                a: false,
+                b: false,
+                c: true,
+              }
+            }, helper.owner, [/application\/json/, 201])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(submission.hasOwnProperty('_id'));
+
+              helper
+                .submission('actionsExtendedConditionalForm', {
+                  selectBoxes: {
+                    a: false,
+                    b: true,
+                    c: true,
+                  }
+                }, helper.owner, [/application\/json/, 200])
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(!submission.hasOwnProperty('_id'));
+
+                  helper
+                  .submission('actionsExtendedConditionalForm', {
+                    selectBoxes: {
+                      a: true,
+                      b: true,
+                      c: true,
+                    }
+                  }, helper.owner, [/application\/json/, 200])
+                  .execute((err) => {
+                    if (err) {
+                      return done(err);
+                    }
+  
+                    const submission = helper.getLastSubmission();
+                    assert(!submission.hasOwnProperty('_id'));
+  
+                    done();
+                  });
                 });
             });
         });
@@ -4309,6 +4584,7 @@ module.exports = (app, template, hook) => {
             });
         });
       });
+
 
       it('Test StartsWith operator', (done) => {
         action.condition = {
@@ -4601,6 +4877,281 @@ module.exports = (app, template, hook) => {
               helper
                 .submission({
                   dateTime: '',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isEqual operator with Day component with full date', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day',
+              operator: 'isEqual',
+              value: '01/01/2025',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day: '02/01/2025',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day: '01/01/2025',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isNotEqual operator with Day component with full date', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day',
+              operator: 'isNotEqual',
+              value: '01/01/2025',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day: '01/01/2025',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day: '02/01/2025',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isEqual operator with Day component with hidden day', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day1',
+              operator: 'isEqual',
+              value: '01/00/2025',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day1: '02/00/2025',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day1: '01/00/2025',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isNotEqual operator with Day component with day hidden', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day1',
+              operator: 'isNotEqual',
+              value: '01/00/2025',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day1: '01/00/2025',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day1: '02/00/2025',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isEqual operator with Day component with hidden year', (done) => {
+        action.condition = {
+          conjunction: 'all',
+            conditions: [
+              {
+                component: 'day2',
+                operator: 'isEqual',
+                value: '01/01/0000',
+              },
+            ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day2: '02/01/0000',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day2: '01/01/0000',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isNotEqual operator with Day component with hidden year', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day2',
+              operator: 'isNotEqual',
+              value: '01/01/0000',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day2: '01/01/0000',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day2: '02/01/0000',
                 })
                 .execute((err) => {
                   if (err) {

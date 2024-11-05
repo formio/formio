@@ -62,86 +62,51 @@ module.exports = function(config) {
   /**
    * Initialize the formio server.
    */
-  router.init = function(hooks) {
-    // Hooks system during boot.
-    router.formio.hooks = hooks;
+  router.init = async function(hooks) {
+    function setupMemoryLeakPrevention() {
+      router.use((req, res, next) => {
+        util.Formio.forms = {};
+        util.Formio.cache = {};
 
-    // Add the utils to the formio object.
-    router.formio.util = util;
-
-    // Get the hook system.
-    router.formio.hook = require('./src/util/hook')(router.formio);
-
-    router.formio.hook.alter('configFormio', {Formio: util.Formio});
-
-    // Get the encryption system.
-    router.formio.encrypt = require('./src/util/encrypt');
-
-    // Load the updates and attach them to the router.
-    router.formio.update = require('./src/db/index')(router.formio);
-
-    // Run the healthCheck sanity check on /health
-    /* eslint-disable max-statements */
-    return new Promise((resolve, reject) => {
-      router.formio.update.initialize(function(err, db) {
-        // If an error occurred, then reject the initialization.
-        if (err) {
-          return reject(err);
-        }
-
-        util.log('Initializing API Server.');
-
-        // Add the database connection to the router.
-        router.formio.db = db;
-
-        // Ensure we do not have memory leaks in core renderer
-        router.use((req, res, next) => {
-          // Ensure we do not leak any forms or cache between requests.
-          util.Formio.forms = {};
-          util.Formio.cache = {};
-          try {
-            if (config.maxOldSpace) {
-              const heap = process.memoryUsage().heapTotal / 1024 / 1024;
-
-              if ((config.maxOldSpace * 0.8) < heap) {
-                gc();
-              }
+        try {
+          if (config.maxOldSpace) {
+            const heap = process.memoryUsage().heapTotal / 1024 / 1024;
+            if (config.maxOldSpace * 0.8 < heap) {
+              gc();
             }
           }
-          catch (error) {
-            console.log(error);
-          }
-
-          next();
-        });
-
-        // Establish our url alias middleware.
-        if (!router.formio.hook.invoke('init', 'alias', router.formio)) {
-          router.use(router.formio.middleware.alias);
+        }
+ catch (error) {
+          console.log(error);
         }
 
-        // Establish the parameters.
-        if (!router.formio.hook.invoke('init', 'params', router.formio)) {
-          router.use(router.formio.middleware.params);
+        next();
+      });
+    }
+
+    function setupMiddlewares() {
+      if (!router.formio.hook.invoke('init', 'alias', router.formio)) {
+        router.use(router.formio.middleware.alias);
+      }
+      // Establish the parameters.
+      if (!router.formio.hook.invoke('init', 'params', router.formio)) {
+        router.use(router.formio.middleware.params);
+      }
+      // Add the db schema sanity check to each request.
+      router.use(router.formio.update.sanityCheck);
+      // Add Middleware necessary for REST API's
+      router.use(bodyParser.urlencoded({extended: true}));
+      router.use(bodyParser.json({
+        limit: '16mb'
+       }));
+
+       // Error handler for malformed JSON
+      router.use((err, req, res, next) => {
+        if (err instanceof SyntaxError) {
+          res.status(400).send(err.message);
         }
-
-        // Add the db schema sanity check to each request.
-        router.use(router.formio.update.sanityCheck);
-
-        // Add Middleware necessary for REST API's
-        router.use(bodyParser.urlencoded({extended: true}));
-        router.use(bodyParser.json({
-          limit: '16mb'
-        }));
-
-        // Error handler for malformed JSON
-        router.use((err, req, res, next) => {
-          if (err instanceof SyntaxError) {
-            res.status(400).send(err.message);
-          }
-
-          next();
-        });
+        next();
+      });
 
         // CORS Support
         const corsRoute = cors(router.formio.hook.alter('cors'));
@@ -194,31 +159,25 @@ module.exports = function(config) {
         if (!router.formio.hook.invoke('init', 'perms', router.formio)) {
           router.use(router.formio.middleware.permissionHandler);
         }
+    }
 
-        let mongoUrl = config.mongo;
-        let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
-        if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
-          mongoConfig.connectTimeoutMS = 300000;
-        }
-        if (!mongoConfig.hasOwnProperty('socketTimeoutMS')) {
-          mongoConfig.socketTimeoutMS = 300000;
-        }
-        if (!mongoConfig.hasOwnProperty('useNewUrlParser')) {
-          mongoConfig.useNewUrlParser = true;
-        }
-        if (!mongoConfig.hasOwnProperty('keepAlive')) {
-          mongoConfig.keepAlive = true;
-        }
+    async function setupMongoDBConnection() {
+      let mongoUrl = config.mongo;
+      let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
+      if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
+        mongoConfig.connectTimeoutMS = 300000;
+      }
+      if (!mongoConfig.hasOwnProperty('socketTimeoutMS')) {
+        mongoConfig.socketTimeoutMS = 300000;
+      }
 
-        if (_.isArray(config.mongo)) {
-          mongoUrl = config.mongo.join(',');
-        }
-        if (config.mongoSA || config.mongoCA) {
-          mongoConfig.sslValidate = true;
-          mongoConfig.sslCA = config.mongoSA || config.mongoCA;
-        }
-
-        mongoConfig.useUnifiedTopology = true;
+      if (_.isArray(config.mongo)) {
+        mongoUrl = config.mongo.join(',');
+      }
+      if (config.mongoSA || config.mongoCA) {
+        mongoConfig.sslValidate = true;
+        mongoConfig.sslCA = config.mongoSA || config.mongoCA;
+      }
 
         if (config.mongoSSL) {
           mongoConfig = {
@@ -233,16 +192,9 @@ module.exports = function(config) {
         mongoose.ObjectId.set('transform', (val) => val.toString());
 
         // Connect to MongoDB.
-        mongoose.connect(mongoUrl,  mongoConfig );
-
-        // Trigger when the connection is made.
-        mongoose.connection.on('error', function(err) {
-          util.log(err.message);
-          reject(err.message);
-        });
-
-        // Called when the connection is made.
-        mongoose.connection.once('open', function() {
+        const connectToMongoDB = async () => {
+        try {
+          await mongoose.connect(mongoUrl, mongoConfig);
           util.log(' > Mongo connection established.');
 
           // Load the BaseModel.
@@ -273,12 +225,9 @@ module.exports = function(config) {
           router.formio.cache = require('./src/cache/cache')(router);
 
           // Return the form components.
-          router.get('/form/:formId/components', function(req, res, next) {
-            router.formio.resources.form.model.findOne({_id: req.params.formId}, function(err, form) {
-              if (err) {
-                return next(err);
-              }
-
+          router.get('/form/:formId/components', async function(req, res, next) {
+            try {
+              const form = await router.formio.resources.form.model.findOne({_id: req.params.formId});
               if (!form) {
                 return res.status(404).send('Form not found');
               }
@@ -304,7 +253,10 @@ module.exports = function(config) {
                 .values()
                 .value()
               );
-            });
+            }
+            catch (err) {
+              return next(err);
+            }
           });
 
           // Import the form actions.
@@ -341,15 +293,59 @@ module.exports = function(config) {
 
           // Read the static VM depdenencies into memory and configure the VM
           const {lodash, moment, inputmask, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
-          configureVm({lodash, moment, inputmask, core, fastJsonPatch, nunjucks});
+          configureVm({
+            dependencies: {
+              lodash,
+              moment,
+              inputmask,
+              core,
+              fastJsonPatch,
+              nunjucks
+            },
+            timeout: config.vmTimeout
+          });
 
           // Say we are done.
-          resolve(router.formio);
-        });
-      });
-    });
+          router.formio.db = mongoose.connection;
+          return router.formio;
+        }
+        catch (err) {
+          util.log(err.message);
+          throw err.message;
+        }
+        };
+        await connectToMongoDB();
+    }
+
+    // Hooks system during boot.
+    router.formio.hooks = hooks;
+
+    // Add the utils to the formio object.
+    router.formio.util = util;
+
+    // Get the hook system.
+    router.formio.hook = require('./src/util/hook')(router.formio);
+
+    router.formio.hook.alter('configFormio', {Formio: util.Formio});
+
+    // Get the encryption system.
+    router.formio.encrypt = require('./src/util/encrypt');
+
+    // Load the updates and attach them to the router.
+    router.formio.update = require('./src/db/index')(router.formio);
+    // Run the healthCheck sanity check on /health
+    /* eslint-disable max-statements */
+    const db = await router.formio.update.initialize();
+    util.log('Initializing API Server.');
+    // Add the database connection to the router.
+    router.formio.db = db;
+
+    setupMemoryLeakPrevention();
+    setupMiddlewares();
+    await setupMongoDBConnection();
+
+    return router.formio;
   };
 
-  // Return the router.
   return router;
 };
