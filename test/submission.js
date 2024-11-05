@@ -5044,14 +5044,70 @@ module.exports = function(app, template, hook) {
         .execute(done);
     });
 
+    let nestedSubmission = null;
     it('Should let you create a submission without errors', (done) => {
-      helper.submission('form3', { radio: 'b', submit: true }).execute((err) => {
+      helper.submission('form3', { 
+        radio: 'b',
+        submit: true
+      }).execute((err) => {
         if (err) {
           return done(err);
         }
   
-        const submission = helper.lastSubmission;
-        assert.deepEqual(submission.data, { radio: 'b', submit: true });
+        nestedSubmission = helper.lastSubmission;
+        assert.deepEqual(nestedSubmission.data, { radio: 'b', submit: true });
+        done();
+      });
+    });
+    
+    it('Should allow you to submit data to the nested form.', (done) => {
+      helper.submission('form3', { 
+        radio: 'a',
+        form: {
+          data: {
+            textFieldForm2: 'Foo',
+            form: {
+              data: {
+                textFieldForm1: 'Bar'
+              }
+            }
+          }
+        },
+        submit: true
+      }).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+  
+        nestedSubmission = helper.lastSubmission;
+        assert.equal(nestedSubmission.data.radio, 'a');
+        assert.equal(nestedSubmission.data.form.data.textFieldForm2, 'Foo');
+        assert.equal(nestedSubmission.data.form.data.form.data.textFieldForm1, 'Bar');
+        done();
+      });
+    });
+
+    it('Should allow you to update data to the nested form.', (done) => {
+      nestedSubmission.data.form.data.textFieldForm2 = 'Foo 1';
+      nestedSubmission.data.form.data.form.data.textFieldForm1 = 'Bar 1';
+      helper.submission('form3', nestedSubmission).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+  
+        nestedSubmission = helper.lastSubmission;
+        done();
+      });
+    });
+
+    it('Should have updated the data of the nested forms.', (done) => {
+      helper.getSubmission('form3', nestedSubmission._id, function(err, submission) {
+        if (err) {
+          done(err);
+        }
+        assert.equal(submission.data.radio, 'a');
+        assert.equal(submission.data.form.data.textFieldForm2, 'Foo 1');
+        assert.equal(submission.data.form.data.form.data.textFieldForm1, 'Bar 1');
         done();
       });
     });
