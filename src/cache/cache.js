@@ -1,6 +1,7 @@
 'use strict';
 const async = require('async');
 const _ = require('lodash');
+const promisify = require('util').promisify;
 const debug = {
   form: require('debug')('formio:cache:form'),
   loadForm: require('debug')('formio:cache:loadForm'),
@@ -566,12 +567,18 @@ module.exports = function(router) {
               }
 
               // Load all subdata within this submission.
-              submissionPromises.push(this.loadSubSubmissions(subInfo.component, sub, req, () => {}, depth + 1));
+              submissionPromises.push(this.loadSubSubmissionsPromisified(subInfo.component, sub, req, depth + 1));
             });
             Promise.all(submissionPromises).then(() => nextSubmission()).catch(() => nextSubmission());
           }
         }, next);
       });
-    }
+    },
+
+    loadSubSubmissionsPromisified: promisify(
+      function(form, submission, req, depth, next) {
+        return this.loadSubSubmissions(form, submission, req, next, depth);
+      }
+    )
   };
 };
