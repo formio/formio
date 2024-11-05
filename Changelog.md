@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.2.8-rc.3]
+### Changed
+ - FIO-9306: fixed an issue where nested forms do not show data in PDF
+   
 ## 4.2.8-rc.2
 ### Changed
  - Updated @formio/core@2.3.0-rc.20
