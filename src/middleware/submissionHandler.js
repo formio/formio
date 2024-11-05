@@ -327,7 +327,10 @@ module.exports = (router, resourceName, resourceId) => {
               res,
             },
           ];
-
+          // Execute the field handler.
+          if (fieldActions.hasOwnProperty(component.type)) {
+            promises.push(fieldActions[component.type](...handlerArgs));
+          }
           if (validation) {
             Object.keys(propertyActions).forEach((property) => {
               // Set the default value of property if only minified schema of component is loaded
@@ -338,10 +341,6 @@ module.exports = (router, resourceName, resourceId) => {
                 promises.push(propertyActions[property](...handlerArgs));
               }
             });
-          }
-          // Execute the field handler.
-          if (fieldActions.hasOwnProperty(component.type)) {
-            promises.push(fieldActions[component.type](...handlerArgs));
           }
         }
       }, {
