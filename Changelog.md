@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.3.0-rc.36]
+## 4.3.0-rc.36
+### Changed
+ - 4.2.x-4.3.x - FIO-9306: fixed an issue where nested forms do not show data in PDF
+
 ### Changed
  - FIO-9308: Fixed an issue where nested form data was not getting properly submitted because the data was getting reset before it submitted
  
