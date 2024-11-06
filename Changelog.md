@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.3.0-rc.36]
+### Changed
+ - FIO-9308: Fixed an issue where nested form data was not getting properly submitted because the data was getting reset before it submitted
+ 
 ## 4.3.0-rc.35
 ### Changed
  - Updated @formio/core@2.3.0-rc.21
