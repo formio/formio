@@ -46,6 +46,23 @@ module.exports = (app, template, hook) => {
       ],
     };
 
+    let tempForm2 = {
+      title: 'Temp Form 2',
+      name: 'tempForm2',
+      path: 'temp2',
+      type: 'form',
+      access: [],
+      submissionAccess: [],
+      components: [
+        {
+          type: 'textfield',
+          key: 'bar',
+          label: 'bar',
+          inputMask: '',
+          input: true,
+        },
+      ],
+    };
 
     // Store the temp action for this test suite.
     let tempAction = {};
@@ -99,6 +116,27 @@ module.exports = (app, template, hook) => {
             done();
           });
       });
+
+      it('Create a Form 2 for Action tests', (done) => {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(tempForm2)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            tempForm2 = res.body;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      })
 
    });
 
@@ -276,6 +314,14 @@ module.exports = (app, template, hook) => {
           .set('x-jwt-token', template.users.user1.token)
           .expect('Content-Type', /text\/plain/)
           .expect(401)
+          .end(done);
+      });
+
+      it('A user should not be able to Delete an Action using incorrect path', (done) => {
+        request(app)
+          .delete(hook.alter('url', `/form/${tempForm2._id}/action/${tempAction._id}`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(400)
           .end(done);
       });
 
