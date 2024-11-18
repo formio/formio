@@ -97,7 +97,7 @@ module.exports = (app, template, hook) => {
             done();
           });
       });
-    });
+   });
 
     describe('Permissions - Project Level - Project Owner', () => {
       it('A Project Owner should be able to Create an Action', (done) => {
@@ -274,6 +274,48 @@ module.exports = (app, template, hook) => {
           .expect('Content-Type', /text\/plain/)
           .expect(401)
           .end(done);
+      });
+
+      it('A user should not be able to Delete an Action using incorrect path', (done) => {
+        let tempForm2 = {
+          title: 'Temp Form 2',
+          name: 'tempForm2',
+          path: 'temp2',
+          type: 'form',
+          access: [],
+          submissionAccess: [],
+          components: [
+            {
+              type: 'textfield',
+              key: 'bar',
+              label: 'bar',
+              inputMask: '',
+              input: true,
+            },
+          ],
+        };
+        request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(tempForm2)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          tempForm2 = res.body;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          request(app)
+          .delete(hook.alter('url', `/form/${tempForm2._id}/action/${tempAction._id}`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(400)
+          .end(done);
+        });
       });
 
       it('A user should not be able to Delete an Action for a User-Created Project Form', (done) => {
