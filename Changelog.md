@@ -4,8 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.3.0-rc.37]
+## 4.3.0-rc.37
 ### Changed
+ - Updated @formio/core@2.3.0-rc.22
+ - Updated @formio/vm@0.3.0-rc.27
  - FIO-9337 code updates
 
 ## 4.3.0-rc.36
