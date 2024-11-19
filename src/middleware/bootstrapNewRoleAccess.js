@@ -1,7 +1,6 @@
 'use strict';
 
 const debug = require('debug')('formio:middleware:bootstrapNewRoleAccess');
-const async = require('async');
 const _ = require('lodash');
 
 /**
@@ -38,10 +37,10 @@ module.exports = function(router) {
       try {
         const forms = await router.formio.resources.form.model.find(query).exec();
         if (!forms || forms.length === 0) {
-          return done();
+          return;
         }
 
-        async.eachSeries(forms, async function(form) {
+        for (const form of forms) {
           // Add the new roleId to the access list for read_all (form).
           form.access = form.access || [];
           let found = false;
@@ -66,27 +65,30 @@ module.exports = function(router) {
           await router.formio.resources.form.model.updateOne({
             _id: form._id},
             {$set: {access: form.access}});
-        }, done);
+        }
       }
       catch (err) {
         debug(err);
-        return done(err);
+        throw err;
       }
     };
 
     const bound = [];
     const fns = await hook.alter('newRoleAccess', [updateForms], req);
-    fns.forEach(function(f) {
-      bound.push(async.apply(f, roleId));
-    });
 
-    async.series(bound, function(err, result) {
-      if (err) {
-        debug(err);
-        return next(err);
+    for (const f of fns) {
+      bound.push(async () => await f(roleId));
+    }
+
+    try {
+      for (const fn of bound) {
+        await fn();
       }
-
       return next();
-    });
+    }
+    catch (err) {
+      debug(err);
+      return next(err);
+    }
   };
 };
