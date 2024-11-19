@@ -1,7 +1,6 @@
 'use strict';
 
 const util = require('../util/util');
-const async = require('async');
 const _ = require('lodash');
 const EVERYONE = '000000000000000000000000';
 
@@ -17,8 +16,6 @@ module.exports = function(router) {
    *   The submission.
    * @param {Object} access
    *   The compiled access list.
-   * @param {Function} next
-   *   The callback function to invoke with the results.
    */
   const getSubmissionResourceAccess = function(req, submission, access) {
     if (!submission || !access) {
@@ -29,78 +26,7 @@ module.exports = function(router) {
     }
 
     /* eslint-disable camelcase */
-    async.each(submission.access, function(permission, callback) {
-      // Only process the permission if it's in the correct format.
-      if (!_.has(permission, 'type') || !_.has(permission, 'resources')) {
-        return callback();
-      }
-
-      // Coerce all the resource ids into strings.
-      permission.resources = _(permission.resources).map(util.idToString).uniq().value();
-
-      // Ensure the submission access permissions are defined before accessing them.
-      access.submission = access.submission || {};
-      access.submission.read_all = access.submission.read_all || [];
-      access.submission.create_all = access.submission.create_all || [];
-      access.submission.update_all = access.submission.update_all || [];
-      access.submission.delete_all = access.submission.delete_all || [];
-
-      // Convert the simplex read/create/write/admin rules into *_all permissions.
-      if (permission.type === 'read') {
-        _.each(permission.resources, function(id) {
-          access.submission.read_all.push(id);
-
-          // Flag this request as not having admin access through submission resource access.
-          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
-          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
-        });
-      }
-      else if (permission.type === 'create') {
-        _.each(permission.resources, function(id) {
-          access.submission.create_all.push(id);
-
-          // Flag this request as not having admin access through submission resource access.
-          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
-          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
-        });
-      }
-      else if (permission.type === 'update') {
-        _.each(permission.resources, function(id) {
-          access.submission.update_all.push(id);
-
-          // Flag this request as not having admin access through submission resource access.
-          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
-          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
-        });
-      }
-      else if (permission.type === 'delete') {
-        _.each(permission.resources, function(id) {
-          access.submission.delete_all.push(id);
-        });
-      }
-      else if (permission.type === 'write') {
-        _.each(permission.resources, function(id) {
-          access.submission.read_all.push(id);
-          access.submission.create_all.push(id);
-          access.submission.update_all.push(id);
-
-          // Flag this request as not having admin access through submission resource access.
-          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
-          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
-        });
-      }
-      else if (permission.type === 'admin') {
-        _.each(permission.resources, function(id) {
-          access.submission.read_all.push(id);
-          access.submission.create_all.push(id);
-          access.submission.update_all.push(id);
-          access.submission.delete_all.push(id);
-        });
-      }
-
-      callback();
-    }, function(err) {
-      // Force all the permissions to be unique, even if an error occurred.
+    const forcePermissionsToBeUnique = (access) => {
       access.submission.read_all = _(access.submission.read_all).uniq().value();
       access.submission.create_all = _(access.submission.create_all).uniq().value();
       access.submission.update_all = _(access.submission.update_all).uniq().value();
@@ -118,8 +44,84 @@ module.exports = function(router) {
           adminAccess.includes(el);
         });
       }
-    });
-    /* eslint-enable camelcase */
+    };
+
+    try {
+      for (const permission of submission.access) {
+        // Only process the permission if it's in the correct format.
+        if (!_.has(permission, 'type') || !_.has(permission, 'resources')) {
+          continue;
+        }
+
+        // Coerce all the resource ids into strings.
+        permission.resources = _(permission.resources).map(util.idToString).uniq().value();
+
+        // Ensure the submission access permissions are defined before accessing them.
+        access.submission = access.submission || {};
+        access.submission.read_all = access.submission.read_all || [];
+        access.submission.create_all = access.submission.create_all || [];
+        access.submission.update_all = access.submission.update_all || [];
+        access.submission.delete_all = access.submission.delete_all || [];
+
+        // Convert the simplex read/create/write/admin rules into *_all permissions.
+        if (permission.type === 'read') {
+          _.each(permission.resources, function(id) {
+            access.submission.read_all.push(id);
+
+            // Flag this request as not having admin access through submission resource access.
+            req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+            req.submissionResourceAccessAdminBlock.push(util.idToString(id));
+          });
+        }
+        else if (permission.type === 'create') {
+          _.each(permission.resources, function(id) {
+            access.submission.create_all.push(id);
+
+            // Flag this request as not having admin access through submission resource access.
+            req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+            req.submissionResourceAccessAdminBlock.push(util.idToString(id));
+          });
+        }
+        else if (permission.type === 'update') {
+          _.each(permission.resources, function(id) {
+            access.submission.update_all.push(id);
+
+            // Flag this request as not having admin access through submission resource access.
+            req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+            req.submissionResourceAccessAdminBlock.push(util.idToString(id));
+          });
+        }
+        else if (permission.type === 'delete') {
+          _.each(permission.resources, function(id) {
+            access.submission.delete_all.push(id);
+          });
+        }
+        else if (permission.type === 'write') {
+          _.each(permission.resources, function(id) {
+            access.submission.read_all.push(id);
+            access.submission.create_all.push(id);
+            access.submission.update_all.push(id);
+
+            // Flag this request as not having admin access through submission resource access.
+            req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+            req.submissionResourceAccessAdminBlock.push(util.idToString(id));
+          });
+        }
+        else if (permission.type === 'admin') {
+          _.each(permission.resources, function(id) {
+            access.submission.read_all.push(id);
+            access.submission.create_all.push(id);
+            access.submission.update_all.push(id);
+            access.submission.delete_all.push(id);
+          });
+        }
+      }
+    }
+    catch (err) {
+      // Force all the permissions to be unique, even if an error occurred.
+      return forcePermissionsToBeUnique(access);
+    }
+    return  forcePermissionsToBeUnique(access);
   };
 
   const getSubmissionFieldMatchAccess = function(req, submission, access) {
@@ -281,15 +283,14 @@ module.exports = function(router) {
      *   The Express request Object.
      * @param res {Object}
      *   The Express request Object.
-     * @param done
-     *   The callback function to invoke after completion.
      *
      * @return
      *   The access object for the given form/sub id.
      */
-    getAccess(req, res, done) {
+    async getAccess(req, res) {
       const access = {};
-      async.series(hook.alter('getAccess', [
+
+      const handlers = hook.alter('getAccess', [
         // Get the permissions for a Form and Submissions with the given ObjectId.
         async function getFormAccess() {
           access.form = access.form || {};
@@ -434,10 +435,10 @@ module.exports = function(router) {
         },
 
         // Mark the index request to be proccessed by SubmissionFieldMatchAccessFilter
-        function flagIndexRequestAsSubmissionFieldMatchAccess(callback) {
+        function flagIndexRequestAsSubmissionFieldMatchAccess() {
           const isIndexRequest = (req) => req.method.toUpperCase() === 'GET' && req.formId && !req.subId;
           if (!isIndexRequest(req)) {
-            return callback(null);
+            return;
           }
 
           if (req.submissionFieldMatchAccess && _.isObject(req.submissionFieldMatchAccess)) {
@@ -451,7 +452,7 @@ module.exports = function(router) {
             });
             req.submissionFieldMatchAccessFilter = hasRoles;
           }
-          return callback(null);
+          return;
         },
 
         // Get the permissions for a Submission with the given ObjectId.
@@ -527,13 +528,13 @@ module.exports = function(router) {
               }
             });
         }
-      ], req, res, access), function(err) {
-        if (err) {
-          return done(err);
-        }
+      ], req, res, access);
 
-        done(null, access);
-      });
+      for (const handler of handlers) {
+        await handler();
+      }
+
+      return access;
     },
 
     /**
@@ -693,7 +694,7 @@ module.exports = function(router) {
    * @param next {Function}
    *   The callback function to invoke after completion.
    */
-  return function permissionHandler(req, res, next) {
+  return async function permissionHandler(req, res, next) {
     // If permissions have already been checked.
     if (req.permissionsChecked) {
       return next();
@@ -725,14 +726,8 @@ module.exports = function(router) {
     }
 
     // Determine if we are trying to access an entity of the form or submission.
-    router.formio.access.getAccess(req, res, function(err, access) {
-      if (err) {
-        if (_.isNumber(err)) {
-          return (typeof res.sendStatus === 'function') ? res.sendStatus(err) : next('Invalid Request');
-        }
-
-        return res.status(400).send(err.message || err);
-      }
+    try {
+      const access = await router.formio.access.getAccess(req, res);
 
       // Check for permissions starting at micro -> macro level.
       let entity = null;
@@ -782,6 +777,12 @@ module.exports = function(router) {
         return next();
       }
       return res.headersSent ? next() : res.sendStatus(401);
-    });
+    }
+    catch (err) {
+      if ( _.isNumber(err) ) {
+        return (typeof res.sendStatus === 'function') ? res.sendStatus(err) : next('Invalid Request');
+      }
+      return res.status(400).send(err.message || err);
+    }
   };
 };
