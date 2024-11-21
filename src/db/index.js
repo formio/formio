@@ -1,6 +1,5 @@
 'use strict';
 
-const async = require('async');
 const MongoClient = require('mongodb').MongoClient;
 const semver = require('semver');
 const _ = require('lodash');
@@ -560,13 +559,13 @@ module.exports = function(formio) {
     formio.util.log('Checking for db schema updates.');
 
     // Skip updates if there are no pending updates to apply.
-    if (!await pendingUpdates(config.schema, currentLock.version)) {
+    if (!pendingUpdates(config.schema, currentLock.version)) {
       formio.util.log(' > No updates found.\n');
       return;
     }
 
     // Determine the pending updates, by filtering the searchable updates.
-    const pending = _.filter(updates, function(potential) {
+    const applicablePending = _.filter(updates, function(potential) {
       // An update is only applicable if it has not been applied to the db yet, and it is lower than the current.
       const applicable = semver.gt(potential, currentLock.version) && semver.lte(potential, config.schema);
 
@@ -580,66 +579,64 @@ module.exports = function(formio) {
 
     // Only take action if outstanding updates exist.
     debug.db('Pending updates');
-    if (pending.length > 0) {
-      async.eachSeries(pending, function(pending, callback) {
-        formio.util.log(` > Starting schema update to ${pending}`);
-
-        // Load the update then update the schema lock version.
-        let _update = null;
-
-        // Attempt to load the the pending update.
-        // Allow anyone to hook the pending updates location.
+    if (applicablePending.length > 0) {
+      const applyPendingUpdates = async () => {
         try {
-          _update = formio.hook.alter('updateLocation', pending);
-        }
-        catch (e) {
-          debug.error(e);
-          debug.db(e);
-        }
+          for (const pending of applicablePending) {
+            formio.util.log(` > Starting schema update to ${pending}`);
 
-        // No private update was found, check the public location.
-        debug.db('_update:');
-        debug.db(_update);
-        if (typeof _update !== 'function') {
-          try {
-            _update = require(path.join(__dirname, `/updates/${pending}`));
-          }
-          catch (e) {
-            debug.error(e);
-            debug.db(e);
-          }
-        }
+            // Load the update then update the schema lock version.
+            let _update = null;
 
-        // Attempt to resolve the update.
-        try {
-          if (typeof _update !== 'function') {
-            return callback(`Could not resolve the path for update: ${pending}`);
-          }
-
-          debug.db('Update Params:');
-          debug.db(db);
-          debug.db(config);
-          debug.db(tools);
-          _update(db, config, tools, function(err) {
-            if (err) {
-              return callback(err);
+            // Attempt to load the the pending update.
+            // Allow anyone to hook the pending updates location.
+            try {
+              _update = formio.hook.alter('updateLocation', pending);
+            }
+            catch (e) {
+              debug.error(e);
+              debug.db(e);
             }
 
-            tools.updateLockVersion(pending, callback);
-          });
+            // No private update was found, check the public location.
+            debug.db('_update:');
+            debug.db(_update);
+            if (typeof _update !== 'function') {
+              try {
+                _update = require(path.join(__dirname, `/updates/${pending}`));
+              }
+              catch (e) {
+                debug.error(e);
+                debug.db(e);
+              }
+            }
+
+            // Attempt to resolve the update.
+            try {
+              if (typeof _update !== 'function') {
+                throw (`Could not resolve the path for update: ${pending}`);
+              }
+
+              debug.db('Update Params:');
+              debug.db(db);
+              debug.db(config);
+              debug.db(tools);
+              await _update(db, config, tools);
+              tools.updateLockVersion(pending);
+            }
+            catch (e) {
+              debug.error(e);
+              throw (e);
+            }
+          }
+          formio.util.log(' > Done applying pending updates\n');
         }
-        catch (e) {
-          debug.error(e);
-          return callback(e);
-        }
-      }, function(err) {
-        if (err) {
+        catch (err) {
           debug.db(err);
           throw err;
         }
-
-        formio.util.log(' > Done applying pending updates\n');
-      });
+      };
+      await applyPendingUpdates();
     }
     else {
       formio.util.log(' > No pending updates are available.');
@@ -655,7 +652,7 @@ module.exports = function(formio) {
    * @param next
    *   The next function to invoke after this function has finished.
    */
-  const doConfigFormsUpdates = function() {
+  const doConfigFormsUpdates = async function() {
     formio.util.log('Checking for Config Forms updates.');
 
     let configFormsUpdates = {};
@@ -669,7 +666,8 @@ module.exports = function(formio) {
     }
     // Only take action if updates exist.
     debug.db('Pending config forms updates');
-      async.eachSeries(updates, function(update, callback) {
+    try {
+      for (const update of updates) {
         formio.util.log(` > Starting config forms update: ${update}`);
 
         // Load the update then update the schema lock version.
@@ -687,32 +685,27 @@ module.exports = function(formio) {
         // Attempt to resolve the update.
         try {
           if (typeof _update !== 'function') {
-            return callback(`Could not resolve the path for config form update: ${update}`);
+            throw `Could not resolve the path for config form update: ${update}`;
           }
 
           debug.db('Update Params:');
           debug.db(db);
           debug.db(config);
           debug.db(tools);
-          _update(db, config, tools, function(err) {
-            if (err) {
-              return callback(err);
-            }
-            return callback();
-          });
+          await _update(db, config, tools);
+          return;
         }
         catch (e) {
           debug.error(e);
-          return callback(e);
+          throw e;
         }
-      }, function(err) {
-        if (err) {
-          debug.db(err);
-          throw err;
-        }
-
-        formio.util.log(' > Done applying pending config forms updates\n');
-      });
+      }
+      formio.util.log(' > Done applying pending config forms updates\n');
+    }
+    catch (err) {
+      debug.db(err);
+      throw err;
+    }
   };
   /**
    * Initialized the update script.
@@ -739,7 +732,7 @@ module.exports = function(formio) {
       await checkFeatures();
       await getUpdates();
       await lock();
-      doConfigFormsUpdates();
+      await doConfigFormsUpdates();
       await doUpdates();
       await unlock();
       return db;

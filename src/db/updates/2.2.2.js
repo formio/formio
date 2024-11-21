@@ -8,9 +8,8 @@
  * @param db
  * @param config
  * @param tools
- * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function(db, config, tools) {
   // Add default flags to all of the project default roles.
   let projects = db.collection('projects');
   let roles = db.collection('roles');
@@ -21,5 +20,5 @@ module.exports = function(db, config, tools, done) {
         { $set: { default: true } }
       );
     }
-  }, done);
+  });
 };

@@ -8,9 +8,8 @@
  * @param db
  * @param config
  * @param tools
- * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function(db, config, tools) {
   let forms = db.collection('forms');
 
   forms.find().toArray().forEach(function(form) {
@@ -20,5 +19,5 @@ module.exports = function(db, config, tools, done) {
         { $set: { path: form.path.toLowerCase() } }
       );
     }
-  }, done);
+  });
 };
