@@ -1,8 +1,6 @@
 'use strict';
 
 let _ = require('lodash');
-let async = require('async');
-let chain = require('event-chain')();
 
 /**
  * Update 2.2.0
@@ -14,7 +12,7 @@ let chain = require('event-chain')();
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = async function(db, config, tools, done) {
   let projects = db.collection('projects');
   let forms = db.collection('forms');
   let roles = db.collection('roles');
@@ -25,96 +23,80 @@ module.exports = function(db, config, tools, done) {
    * Async operation to fix Projects.
    *
    * Drops the unique name index, and readds an index on the name field, and adds the deleted property.
-   *
-   * @param callback
    */
-  let updateProjects = function(callback) {
-    let projectChain = chain.on(['dropIndex', 'addIndex', 'addDeleted'], callback);
-
-    projects.dropIndex('name_1')
-    .then(() => {
-      projectChain.emit('dropIndex');
-    })
-    .catch(err => callback(err));
-
-    projects.createIndex('name_1')
-    .then(() => projectChain.emit('addIndex'))
-    .catch(err => callback(err));
-
-    projects.updateMany({}, {$set: {deleted: null}})
-    .then(() => {
-      rojectChain.emit('addDeleted');
-    })
-    .catch(err => callback(err));
+  const updateProjects = async function() {
+    try {
+      await projects.dropIndex('name_1');
+      await projects.createIndex('name_1');
+      await projects.updateMany({}, { $set: { deleted: null } });
+    } catch (err) {
+      throw err;
+    }
   };
 
   /**
    * Async operation to fix Forms.
    *
    * Adds the deleted property.
-   *
-   * @param callback
    */
-  let updateForms = function(callback) {
-    forms.updateMany({}, {$set: {deleted: null}})
-    .then(() =>  callback())
-    .catch(err => callback(err));
+  const updateForms = async function() {
+    try {
+      await forms.updateMany({}, { $set: { deleted: null } });
+    } catch (err) {
+      throw err;
+    }
   };
 
   /**
    * Async operation to fix Roles.
    *
    * Adds the deleted property.
-   *
-   * @param callback
    */
-  let updateRoles = function(callback) {
-    roles.updateMany({}, {$set: {deleted: null}})
-    .then(() => callback())
-    .catch(err => callback(err));
+  const updateRoles = async function() {
+    try {
+      await roles.updateMany({}, { $set: { deleted: null } });
+    } catch (err) {
+      throw err;
+    }
   };
 
   /**
    * Async operation to fix Actions.
    *
    * Adds the deleted property.
-   *
-   * @param callback
    */
-  let updateActions = function(callback) {
-    actions.updateMany({}, {$set: {deleted: null}})
-    .then(() => callback())
-    .catch(err => callback(err));
+  const updateActions = async function() {
+    try {
+      await actions.updateMany({}, { $set: { deleted: null } });
+    } catch (err) {
+      throw err;
+    }
   };
 
   /**
    * Async operation to fix Submissions.
    *
    * Adds the deleted property.
-   *
-   * @param callback
    */
-  let updateSubmissions = function(callback) {
-    submissions.updateMany({}, {$set: {deleted: null}})
-    .then(() => callback())
-    .catch(err => callback(err));
+  const updateSubmissions = async function() {
+    try {
+      await submissions.updateMany({}, { $set: { deleted: null } });
+    } catch (err) {
+      throw err;
+    }
   };
 
   /**
    * The update process for the 2.2.0 access hotfix.
    */
-  async.series([
-    updateProjects,
-    updateForms,
-    updateRoles,
-    updateActions,
-    updateSubmissions
-  ],
-  function(err, results) {
-    if (err) {
-      return done(err);
-    }
-
+  try {
+    await updateProjects();
+    await updateForms();
+    await updateRoles();
+    await updateActions();
+    await updateSubmissions();
     done();
-  });
+  } catch (err) {
+    done(err);
+  }
 };
