@@ -303,7 +303,7 @@ const Utils = {
    *   The header value if found or false.
    */
   getHeader(req, key) {
-    if (typeof req.headers[key] !== 'undefined') {
+    if (req.headers && typeof req.headers[key] !== 'undefined') {
       return req.headers[key];
     }
 
@@ -322,7 +322,7 @@ const Utils = {
    *   The query value if found or false.
    */
   getQuery(req, key) {
-    if (typeof req.query[key] !== 'undefined') {
+    if (req.query && typeof req.query[key] !== 'undefined') {
       return req.query[key];
     }
 
@@ -341,7 +341,7 @@ const Utils = {
    *   The parameter value if found or false.
    */
   getParameter(req, key) {
-    if (typeof req.params[key] !== 'undefined') {
+    if (req.params && typeof req.params[key] !== 'undefined') {
       return req.params[key];
     }
 
