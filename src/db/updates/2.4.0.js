@@ -1,4 +1,5 @@
 'use strict';
+
 let _ = require('lodash');
 let utils = require('../../util/util');
 
@@ -15,60 +16,54 @@ let utils = require('../../util/util');
  * @param db
  * @param config
  * @param tools
- * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = async function (db, config, tools) {
   let forms = db.collection('forms');
-  let formPromises = [];
 
-  forms.find().toArray().forEach(function(form) {
-    let componentPromises = [];
-    // Loop through all components
-    utils.eachComponent(form.components, function(component) {
-      // Ignore non-input or non-embedded components
-      if(!component.key || component.key.indexOf('.') === -1) {
-        return;
-      }
+  try {
+    let formsArray = await forms.find().toArray();
 
-      // Find source of embedded component form first part of key
-      let keyParts = component.key.split('.');
-      componentPromises.push(forms.findOne({name: keyParts[0], project: form.project}).then(function(resource) {
-        if(resource === null) {
-          // Embedded component had bad name, attempt to fix by camel casing name
-          return forms.findOne({name: _.camelCase(keyParts[0]), project: form.project}).then(function(resource) {
-            if(resource === null) {
-              // Still can't find resource, give up b/c name is too broken to fix
-              return;
-            }
+    for (let form of formsArray) {
+      let componentPromises = [];
 
-            // Update source and key
-            component.source = resource._id;
-            keyParts[0] = resource.name;
-            component.key = keyParts.join('.');
-          });
+      // Loop through all components
+      utils.eachComponent(form.components, (component) => {
+        // Ignore non-input or non-embedded components
+        if (!component.key || component.key.indexOf('.') === -1) {
+          return;
         }
 
-        // Update source
-        component.source = resource._id;
-      }));
-    });
+        // Find source of embedded component form first part of key
+        let keyParts = component.key.split('.');
+        componentPromises.push(
+          forms.findOne({ name: keyParts[0], project: form.project }).then(async (resource) => {
+            if (resource === null) {
+              // Embedded component had bad name, attempt to fix by camel casing name
+              resource = await forms.findOne({ name: _.camelCase(keyParts[0]), project: form.project });
+              if (resource === null) {
+                // Still can't find resource, give up b/c name is too broken to fix
+                return;
+              }
 
-    if(componentPromises.length) {
-      formPromises.push(Q.all(componentPromises).thenResolve(form));
+              // Update source and key
+              component.source = resource._id;
+              keyParts[0] = resource.name;
+              component.key = keyParts.join('.');
+            } else {
+              // Update source
+              component.source = resource._id;
+            }
+          })
+        );
+      });
+
+      if (componentPromises.length) {
+        await Promise.all(componentPromises);
+        // Update the form's components
+        await forms.updateOne({ _id: form._id }, { $set: { components: form.components } });
+      }
     }
-  }, function() {
-    Promise.all(formPromises)
-    .then(function(changedForms) {
-      // Update each form's components
-      return Promise.all(changedForms.map(function(form) {
-        return forms.updateOne({_id: form._id}, {$set:{components: form.components}});
-      }));
-    })
-    .then(function() {
-      done();
-    })
-    .catch(done);
-  });
-
-
+  } catch (err) {
+    console.error('Error occurred during the update:', err);
+  }
 };

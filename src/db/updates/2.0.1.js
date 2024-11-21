@@ -1,7 +1,6 @@
 'use strict';
 
 let _ = require('lodash');
-let async = require('async');
 
 /**
  * Update 2.0.1
@@ -14,48 +13,35 @@ let async = require('async');
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = async function(db, config, tools, done) {
   let projects = db.collection('projects');
   let forms = db.collection('forms');
   let roles = db.collection('roles');
 
   /**
    * Async operation to fix Projects.
-   *
-   * @param callback
    */
-  let fixProjects = function(callback) {
-    projects.find({}).toArray().forEach(function(project) {
-      // Reset the access permissions if duplicate types exist (mangled by bug).
-      let included = [];
+  let fixProjects = async function() {
+    try {
+      let projectList = await projects.find({}).toArray();
+      for (let project of projectList) {
+        let included = [];
 
-      /**
-       * Async function for getting the roles associated with the current project.
-       *
-       * @param next
-       */
-      let getRoles = function(next) {
-        roles.find({query: {project: project._id}}).toArray()
-        .then(docs => {
-          included = _.uniq(_.pluck(docs, '_id'));
-          next();
-        })
-        .catch(err => next(err));
-      };
+        // Get roles associated with the current project
+        try {
+          let docs = await roles.find({ query: { project: project._id } }).toArray();
+          included = _.uniq(_.map(docs, '_id'));
+        } catch (err) {
+          throw err;
+        }
 
-      /**
-       * Async function for building the current project access property.
-       *
-       * @param next
-       */
-      let calculateAccess = function(next) {
         if (!project.access) {
           console.log('No project.access found for: ' + project._id);
-          return next();
+          continue;
         }
 
         // Check for mangled access
-        let type = _.pluck(project.access, 'type');
+        let type = _.map(project.access, 'type');
         let foundReadAll = false;
         if (type.length === _.uniq(type).length) {
           // Remove the _id of each subdocument, added by mongoose.
@@ -81,7 +67,7 @@ module.exports = function(db, config, tools, done) {
             }
           });
 
-          // Include the read_all permissions, if not found in the pre-exising permissions.
+          // Include the read_all permissions, if not found in the pre-existing permissions.
           if (!foundReadAll) {
             filteredAccess.push({
               type: 'read_all',
@@ -90,84 +76,47 @@ module.exports = function(db, config, tools, done) {
           }
 
           project.access = filteredAccess;
-          return next();
+        }
+        else {
+          // Update the project access to include all the known project roles as read_all access.
+          project.access = [{
+            type: 'read_all',
+            roles: included
+          }];
         }
 
-        // Update the project access to include all the known project roles as read_all access.
-        project.access = [{
-          type: 'read_all',
-          roles: included
-        }];
-        next();
-      };
-
-      /**
-       * Async function for saving the current project.
-       *
-       * @param next
-       */
-      let saveProject = function(next) {
-        projects.updateOne({_id: project._id}, {$set: {access: project.access}})
-        .then((result) => next(null, result))
-        .catch(err=>next(err));
-      };
-
-      /**
-       * Run the following sequence of async functions for each project, in order.
-       */
-      async.series([
-          getRoles,
-          calculateAccess,
-          saveProject
-        ],
-        function(err, results) {
-          if (err) {
-            return callback(err);
-          }
-        });
-    }, function(err) {
-      if (err) {
-        return callback(err);
+        // Save the current project
+        try {
+          await projects.updateOne({ _id: project._id }, { $set: { access: project.access } });
+        } catch (err) {
+          throw err;
+        }
       }
-
-      callback();
-    });
+    } catch (err) {
+      throw err;
+    }
   };
 
   /**
    * Async operation to fix Forms.
-   *
-   * @param callback
    */
-  let fixForms = function(callback) {
-    forms.find({}).toArray().forEach(function(form) {
-      // Reset the access permissions if duplicate types exist (mangled by bug).
-      let included = [];
+  const fixForms = async function() {
+    try {
+      let formList = await forms.find({}).toArray();
+      for (let form of formList) {
+        let included = [];
 
-      /**
-       * Async function for getting the roles associated with the current form.
-       *
-       * @param next
-       */
-      let getRoles = function(next) {
-        roles.find({query: {project: form.project}}).toArray()
-        .then(docs => {
-          included = _.pluck(docs, '_id');
-          next();
-        })
-        .catch(err => next(err));
-      };
+        // Get roles associated with the current form
+        try {
+          let docs = await roles.find({ query: { project: form.project } }).toArray();
+          included = _.map(docs, '_id');
+        } catch (err) {
+          throw err;
+        }
 
-      /**
-       * Async function for building the current form access property.
-       *
-       * @param next
-       * @returns {*}
-       */
-      let calculateAccess = function(next) {
         form.access = form.access || [];
 
-        let type = _.pluck(form.access, 'type');
+        let type = _.map(form.access, 'type');
         let foundReadAll = false;
         if (type.length === _.uniq(type).length) {
           // Remove the _id of each subdocument, added by mongoose.
@@ -187,7 +136,7 @@ module.exports = function(db, config, tools, done) {
             }
           });
 
-          // Include the read_all permissions, if not found in the pre-exising permissions.
+          // Include the read_all permissions, if not found in the pre-existing permissions.
           if (!foundReadAll) {
             filteredAccess.push({
               type: 'read_all',
@@ -196,95 +145,54 @@ module.exports = function(db, config, tools, done) {
           }
 
           form.access = filteredAccess;
-          return next();
+        } else {
+          // Update the form access to include all the known project roles as read_all access.
+          form.access = [{
+            type: 'read_all',
+            roles: included
+          }];
         }
-
-        // Update the form access to include all the known project roles as read_all access.
-        form.access = [{
-          type: 'read_all',
-          roles: included
-        }];
-        next();
-      };
-
-      /**
-       * Async function for building the current form submissionAccess property.
-       *
-       * @param next
-       * @returns {*}
-       */
-      let calculateSubmissionAccess = function(next) {
-        form.submissionAccess = form.submissionAccess || [];
 
         // Reset the submission Access permissions if duplicate types exist (mangled by bug).
-        let type = _.pluck(form.submissionAccess, 'type');
-        if (type.length > _.uniq(type).length) {
+        form.submissionAccess = form.submissionAccess || [];
+        let submissionType = _.map(form.submissionAccess, 'type');
+        if (submissionType.length > _.uniq(submissionType).length) {
           form.submissionAccess = [];
-          return next();
+        } else {
+          // Remove the _id of each subdocument, added by mongoose.
+          let filteredSubmissionAccess = [];
+          form.submissionAccess.forEach(function(permission) {
+            let temp = _.omit(permission, '_id');
+
+            // Remove any malformed permissions.
+            if (temp.type) {
+              filteredSubmissionAccess.push(temp);
+            }
+          });
+
+          form.submissionAccess = filteredSubmissionAccess;
         }
 
-        // Remove the _id of each subdocument, added by mongoose.
-        let filteredSubmissionAccess = [];
-        form.submissionAccess.forEach(function(permission) {
-          let temp = _.omit(permission, '_id');
-
-          // Remove any malformed permissions.
-          if (temp.type) {
-            filteredSubmissionAccess.push(temp);
-          }
-        });
-
-        // Signal to update the form submissionAccess.
-        form.submissionAccess = filteredSubmissionAccess;
-        next();
-      };
-
-      /**
-       * Async function for saving the current form.
-       *
-       * @param next
-       */
-      let saveForm = function(next) {
-        forms.updateOne({_id: form._id}, {$set: {access: form.access, submissionAccess: form.submissionAccess}})
-        .then(result => next(null, result))
-        .catch(err => next(err));
-      };
-
-      /**
-       * Run the following sequence of async functions for each form, in order.
-       */
-      async.series([
-          getRoles,
-          calculateAccess,
-          calculateSubmissionAccess,
-          saveForm
-        ],
-        function(err, results) {
-          if (err) {
-            return callback(err);
-          }
-        });
-    }, function(err) {
-      if (err) {
-        return callback(err);
+        // Save the current form
+        try {
+          await forms.updateOne({ _id: form._id }, { $set: { access: form.access, submissionAccess: form.submissionAccess } });
+        } catch (err) {
+          throw err;
+        }
       }
-
-      callback();
-    });
+    } catch (err) {
+      throw err;
+    }
   };
 
   /**
    * The update process for the 2.0.1 access hotfix.
    */
-  async.series([
-    fixProjects,
-    fixForms
-  ],
-  function(err, results) {
-    if (err) {
-      return done(err);
-    }
-
+  try {
+    await fixProjects();
+    await fixForms();
     done();
-  });
+  } catch (err) {
+    done(err);
+  }
 };

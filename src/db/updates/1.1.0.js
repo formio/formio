@@ -1,6 +1,5 @@
 'use strict';
 
-let async = require('async');
 let crypto = require('crypto');
 
 /**
@@ -29,21 +28,27 @@ function encrypt(secret, mixed) {
  * @param db
  * @param config
  * @param tools
- * @param done
  */
-module.exports = function(db, config, tools, done) {
-  // MongoDB Find all oldApps where user has unencrypted settings.
-  db.collection('applications').find({ settings: {$exists: true }}).forEach(function(application) {
+module.exports = async function(db, config, tools) {
+  try {
+    // MongoDB Find all oldApps where user has unencrypted settings.
+    const cursor = db.collection('applications').find({ settings: { $exists: true } });
+
+    while (await cursor.hasNext()) {
+      const application = await cursor.next();
       // Encrypt each Application's settings at rest.
-      db.collection('applications').updateOne(
-      { _id: application._id },
-      {
-        $unset: { settings: undefined },
-        $set: {
-          settings_encrypted: encrypt(config.mongoSecret, application.settings),
+      await db.collection('applications').updateOne(
+        { _id: application._id },
+        {
+          $unset: { settings: 1 },
+          $set: {
+            settings_encrypted: encrypt(config.mongoSecret, application.settings),
+          }
         }
-      }
-    )
-  },
-  done);
-}
+      );
+    }
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
