@@ -5148,6 +5148,7 @@ module.exports = function(app, template, hook) {
         .execute(done);
     });
 
+    let nestedSubmission = null;
     it('Should allow you to submit data into a conditionally visible form if another nested form is conditionally hidden', (done) => {
       helper.submission('parentForm2', {
         radio: 'b',
@@ -5162,13 +5163,27 @@ module.exports = function(app, template, hook) {
           return done(err);
         }
 
-        assert.equal(helper.lastSubmission.data.radio, 'b');
-        assert.equal(helper.lastSubmission.data.form2.data.textFieldForm3, 'Hello');
+        nestedSubmission = helper.lastSubmission;
+        assert.equal(nestedSubmission.data.radio, 'b');
+        assert.equal(nestedSubmission.data.form2.data.textFieldForm3, 'Hello');
         done();
       });
     });
 
-    let nestedSubmission = null;
+    it('Should allow you to update data into a conditionally visible form if another nested form is conditionally hidden', (done) => {
+      nestedSubmission.data.form2.data.textFieldForm3 = 'Hello Update';
+      helper.submission('parentForm2', nestedSubmission).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        nestedSubmission = helper.lastSubmission;
+        assert.equal(nestedSubmission.data.radio, 'b');
+        assert.equal(nestedSubmission.data.form2.data.textFieldForm3, 'Hello Update');
+        done();
+      });
+    });
+
     it('Should let you create a submission without errors', (done) => {
       helper.submission('parentForm1', {
         radio: 'b',
