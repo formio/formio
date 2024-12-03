@@ -31,9 +31,13 @@ module.exports = (router) => {
     const isConditionallyHidden = () => {
       const submission = req.body;
       return _.some(
-          submission?.scope?.conditionals || [],
-          condComp => condComp.conditionallyHidden && (condComp.path === path || _.startsWith(path, condComp.path))
-        );
+        submission?.scope?.conditionals || [],
+        condComp => condComp.conditionallyHidden && (
+          condComp.path === path ||
+          _.startsWith(path, `${condComp.path}.`) ||
+          _.startsWith(path, `${condComp.path}[`)
+        )
+      );
     };
     // Only execute if the component should save reference and conditions do not apply.
     if (
