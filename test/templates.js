@@ -270,17 +270,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -388,17 +382,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -509,17 +497,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -630,17 +612,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+         const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -751,17 +727,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -872,17 +842,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -993,17 +957,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1114,17 +1072,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1235,17 +1187,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1356,17 +1302,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1477,17 +1417,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1602,17 +1536,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1736,17 +1664,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1843,17 +1765,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1964,17 +1880,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2086,17 +1996,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2208,17 +2112,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2331,17 +2229,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2453,17 +2345,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2575,17 +2461,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2696,17 +2576,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2817,17 +2691,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2938,17 +2806,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -3064,17 +2926,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -3185,17 +3041,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -3306,17 +3156,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -3428,17 +3272,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -3529,20 +3367,14 @@ module.exports = (app, template, hook) => {
           assert.equal(_template.resources.b.access[1].roles[0].toString(), EVERYONE);
       });
 
-      it('Should convert ObjectID(000000000000000000000000) to "everyone"', function(done) {
-        importer.export(_template, (err, data) => {
-          if (err) {
-            return done(err);
-          }
-
-          assert.equal(data.resources.a.submissionAccess[0].roles[0].toString(), 'anonymous');
-          assert.equal(data.resources.a.submissionAccess[0].roles[1].toString(), 'everyone');
-          assert.equal(data.resources.a.submissionAccess[1].roles[0].toString(), 'everyone');
-          assert.equal(data.resources.b.access[0].roles[0].toString(), 'authenticated');
-          assert.equal(data.resources.b.access[0].roles[1].toString(), 'anonymous');
-          assert.equal(data.resources.b.access[1].roles[0].toString(), 'everyone');
-          return done();
-        });
+      it('Should convert ObjectID(000000000000000000000000) to "everyone"', async function() {
+        const data = await importer.export(_template);
+        assert.equal(data.resources.a.submissionAccess[0].roles[0].toString(), 'anonymous');
+        assert.equal(data.resources.a.submissionAccess[0].roles[1].toString(), 'everyone');
+        assert.equal(data.resources.a.submissionAccess[1].roles[0].toString(), 'everyone');
+        assert.equal(data.resources.b.access[0].roles[0].toString(), 'authenticated');
+        assert.equal(data.resources.b.access[0].roles[1].toString(), 'anonymous');
+        assert.equal(data.resources.b.access[1].roles[0].toString(), 'everyone');
       });
 
       before(function(done) {
@@ -3636,14 +3468,9 @@ module.exports = (app, template, hook) => {
       describe('Export', function() {
         let exportData = {};
 
-        it ('Should be able to export project', function(done) {
-          importer.export(project, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-            exportData = data;
-            return done();
-          });
+        it ('Should be able to export project', async function() {
+          const data = await importer.export(project);
+          exportData = data;
         });
 
         it ('The Data Table Fetch Resource should be replaced with resource name', function(done) {
@@ -3710,14 +3537,9 @@ module.exports = (app, template, hook) => {
       describe('Export', function() {
         let exportData = {};
 
-        it ('Should be able to export project', function(done) {
-          importer.export(project, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-            exportData = data;
-            return done();
-          });
+        it ('Should be able to export project', async function() {
+          const data = await importer.export(project);
+          exportData = data;;
         });
 
         it('Template on EXPORT should de-ref select components defaultValue if dataSrc == resource', function() {
