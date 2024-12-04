@@ -1,6 +1,5 @@
 'use strict';
 
-let async = require('async');
 let _ = require('lodash');
 
 /**
@@ -14,73 +13,55 @@ let _ = require('lodash');
  * @param db
  * @param config
  * @param tools
- * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function(db, config, tools) {
   let roleCollection = db.collection('roles');
 
-  async.series([
-    function checkDefaultRole(callback) {
-      roleCollection.countDocuments({deleted: {$eq: null}, default: true})
+  const checkDefaultRole = () => {
+    return roleCollection.countDocuments({ deleted: { $eq: null }, default: true })
       .then(count => {
-        // Insert the default role
         if (count === 0) {
-          roleCollection.insertOne({
+          // Insert the default role
+          return roleCollection.insertOne({
             title: 'Default',
             description: 'The Default Role.',
             deleted: null,
             admin: false,
             default: true
-          })
-          .then(response => {
-            callback();
-          })
-          .catch(err => next(err));
-        }
-        // Default role exists.
-        else if (count === 1) {
-          return callback();
-        }
-        else {
+          });
+        } else if (count === 1) {
+          // Default role already exists
+          return Promise.resolve();
+        } else {
           console.log('Unknown count of the default role: ' + count);
-          return callback();
+          return Promise.resolve();
         }
-      })
-      .catch(err => callback(err));
-    },
-    function checkAdminRole(callback) {
-      roleCollection.countDocuments({deleted: {$eq: null}, admin: true})
+      });
+  };
+
+  const checkAdminRole = () => {
+    return roleCollection.countDocuments({ deleted: { $eq: null }, admin: true })
       .then(count => {
-        // Insert the default role
         if (count === 0) {
-          roleCollection.insertOne({
+          // Insert the admin role
+          return roleCollection.insertOne({
             title: 'Administrator',
             description: 'The Administrator Role.',
             deleted: null,
             admin: true,
             default: false
-          })
-          .then(response => {
-            callback();
-          })
-          .catch(err => next(err));
-        }
-        // Default role exists.
-        else if (count === 1) {
-          return callback();
+          });
+        } else if (count === 1) {
+          // Admin role already exists
+          return Promise.resolve();
         }
         else {
           console.log('Unknown count of the admin role: ' + count);
-          return callback();
+          return Promise.resolve();
         }
-      })
-      .catch(err => callback(err));
-    }
-  ], function(err) {
-    if (err) {
-      return done(err);
-    }
+      });
+  };
 
-    done();
-  });
+  checkDefaultRole()
+    .then(() => checkAdminRole());
 };

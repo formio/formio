@@ -1,7 +1,6 @@
 'use strict';
 const _ = require('lodash');
 const util = require('../../util/util');
-const async = require('async');
 
 module.exports = (router) => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
@@ -46,7 +45,7 @@ module.exports = (router) => {
   };
 
   // Checks access within a form index.
-  const checkAccess = function(component, query, req, res) {
+  const checkAccess = async function(component, query, req, res) {
     return new Promise((resolve, reject) => {
       let sub = {};
       const respond = function() {
@@ -63,20 +62,20 @@ module.exports = (router) => {
       catch (err) {
         return reject(err);
       }
-      async.series(router.formio.resources.submission.handlers.beforeIndex.map((fn) => {
-        return async.apply(fn, sub.req, sub.res);
-      }), (err) => {
-        if (err) {
-          return reject(err);
-        }
-
-        return resolve();
-      });
+      for (const fn of router.formio.resources.submission.handlers.beforeIndex) {
+          fn(sub.req, sub.res, (err) => {
+            if (err) {
+              return reject(err);
+            }
+            resolve();
+          });
+      }
+      resolve();
     });
   };
 
   // Loads all sub-references.
-  const loadReferences = function(component, query, req, res) {
+  const loadReferences = async function(component, query, req, res) {
     return new Promise((resolve, reject) => {
       let sub = {};
       const respond = function() {
@@ -103,7 +102,7 @@ module.exports = (router) => {
   };
 
   // Sets a resource object.
-  const setResource = function(component, path, req, res) {
+  const setResource = async function(component, path, req, res) {
     const compValue = _.get(req.body.data, path);
     if (compValue && compValue._id) {
       if (!req.resources) {
@@ -121,7 +120,7 @@ module.exports = (router) => {
     return Promise.resolve();
   };
 
-  const getResource = function(component, path, req, res) {
+  const getResource = async function(component, path, req, res) {
     const resource = _.get(res, 'resource.item');
     if (!resource) {
       return Promise.resolve();
@@ -200,74 +199,72 @@ module.exports = (router) => {
   };
 
   // Build a pipeline to load all references within an index.
-  const buildPipeline = function(component, path, req, res) {
+  const buildPipeline = async function(component, path, req, res) {
     // First check their access within this form.
-    return checkAccess(component, req.query, req, res).then(async () => {
-      const formId = component.form || component.resource || component.data.resource;
-      const form = await router.formio.cache.loadForm(req, null, formId);
+    await checkAccess(component, req.query, req, res);
+    const formId = component.form || component.resource || component.data.resource;
+    const form = await router.formio.cache.loadForm(req, null, formId);
 
-      // Get the subquery.
-      const subQuery = getSubQuery(formId, req.query, path);
-      const subQueryReq = {query: subQuery.match};
-      const subFindQuery = router.formio.resources.submission.getFindQuery(subQueryReq);
+    // Get the subquery.
+    const subQuery = getSubQuery(formId, req.query, path);
+    const subQueryReq = {query: subQuery.match};
+    const subFindQuery = router.formio.resources.submission.getFindQuery(subQueryReq);
 
-      // Create the pipeline for this component.
-      let pipeline = [];
-      const submissionsCollectionName =
-        form.settings && form.settings.collection
-          ? `${req.currentProject.name.replace(
-              /[^A-Za-z0-9]+/g,
-              ''
-            )}_${form.settings.collection.replace(/[^A-Za-z0-9]+/g, '')}`
-          : 'submissions';
-      // Load the reference.
+    // Create the pipeline for this component.
+    let pipeline = [];
+    const submissionsCollectionName =
+      form.settings && form.settings.collection
+        ? `${req.currentProject.name.replace(
+            /[^A-Za-z0-9]+/g,
+            ''
+          )}_${form.settings.collection.replace(/[^A-Za-z0-9]+/g, '')}`
+        : 'submissions';
+    // Load the reference.
+    pipeline.push({
+      $lookup: {
+        from: submissionsCollectionName,
+        localField: `data.${path}._id`,
+        foreignField: '_id',
+        as: `data.${path}`
+      }
+    });
+
+    // Flatten the reference to an object if we are not configured as multiple.
+    if (!component.multiple) {
       pipeline.push({
-        $lookup: {
-          from: submissionsCollectionName,
-          localField: `data.${path}._id`,
-          foreignField: '_id',
-          as: `data.${path}`
+        $unwind: {
+          path: `$data.${path}`,
+          preserveNullAndEmptyArrays: true
         }
       });
+    }
 
-      // Flatten the reference to an object if we are not configured as multiple.
-      if (!component.multiple) {
-        pipeline.push({
-          $unwind: {
-            path: `$data.${path}`,
-            preserveNullAndEmptyArrays: true
-          }
-        });
-      }
-
-      // Add a match if relevant.
-      if (!_.isEmpty(subQuery.match)) {
-        pipeline.push({
-          $match: subFindQuery
-        });
-      }
-
-      // Add a sort if relevant.
-      if (!_.isEmpty(subQuery.sort)) {
-        pipeline.push({
-          $sort: subQuery.sort
-        });
-      }
-
-      return new Promise((resolve, reject) => {
-        // Build the pipeline for the subdata.
-        var queues = [];
-        util.FormioUtils.eachComponent(form.components, (subcomp, subpath) => {
-          if (subcomp.reference) {
-            queues.push(buildPipeline(subcomp, `${path}.data.${subpath}`, req, res).then((subpipe) => {
-              pipeline = pipeline.concat(subpipe);
-            }));
-          }
-        });
-
-        Promise.all(queues).then(() => resolve(pipeline)).catch((err) => reject(err));
+    // Add a match if relevant.
+    if (!_.isEmpty(subQuery.match)) {
+      pipeline.push({
+        $match: subFindQuery
       });
+    }
+
+    // Add a sort if relevant.
+    if (!_.isEmpty(subQuery.sort)) {
+      pipeline.push({
+        $sort: subQuery.sort
+      });
+    }
+
+    // Build the pipeline for the subdata.
+    var queues = [];
+    util.FormioUtils.eachComponent(form.components, (subcomp, subpath) => {
+      if (subcomp.reference) {
+        queues.push(async ()=>{
+          const subpipe = await buildPipeline(subcomp, `${path}.data.${subpath}`, req, res);
+          pipeline = pipeline.concat(subpipe);
+        });
+      }
     });
+    await Promise.all(queues);
+    return pipeline;
   };
 
   return async (component, data, handler, action, {validation, path, req, res}) => {
@@ -296,41 +293,43 @@ module.exports = (router) => {
         if (!idQuery) {
           return Promise.resolve();
         }
-        return loadReferences(component, {
-          _id: idQuery,
-          limit: 10000000
-        }, req, res)
-          .then(items => {
-            if (items.length > 0) {
-              _.set(resource, `data.${path}`, component.multiple ? items : items[0]);
-            }
-            else {
-              if (component.multiple) {
-                _.set(
-                  resource,
-                  `data.${path}`,
-                  _.map(_.get(resource, `data.${path}`), iData => _.pick(iData, ['_id']))
-                );
-              }
-              else {
-                _.set(resource, `data.${path}`, _.pick(_.get(resource, `data.${path}`), ['_id']));
-              }
-            }
-          })
-          .catch((err) => {
+        try {
+          const items = await loadReferences(component, {
+            _id: idQuery,
+            limit: 10000000
+          }, req, res);
+          if (items.length > 0) {
+            _.set(resource, `data.${path}`, component.multiple ? items : items[0]);
+          }
+          else {
             if (component.multiple) {
-              _.set(resource, `data.${path}`, _.map(_.get(resource, `data.${path}`), iData => _.pick(iData, ['_id'])));
+              _.set(
+                resource,
+                `data.${path}`,
+                _.map(_.get(resource, `data.${path}`), iData => _.pick(iData, ['_id']))
+              );
             }
             else {
               _.set(resource, `data.${path}`, _.pick(_.get(resource, `data.${path}`), ['_id']));
             }
-          });
-      case 'beforeIndex':
-        return buildPipeline(component, path, req, res).then((subpipe) => {
-          let pipeline = req.modelQuery.pipeline || [];
-          pipeline = pipeline.concat(subpipe);
-          req.countQuery.pipeline = req.modelQuery.pipeline = pipeline;
-        });
+          }
+        }
+        catch (err) {
+          if (component.multiple) {
+            _.set(resource, `data.${path}`, _.map(_.get(resource, `data.${path}`), iData => _.pick(iData, ['_id'])));
+          }
+          else {
+            _.set(resource, `data.${path}`, _.pick(_.get(resource, `data.${path}`), ['_id']));
+          }
+        }
+        break;
+      case 'beforeIndex': {
+        const subpipe = await buildPipeline(component, path, req, res);
+        let pipeline = req.modelQuery.pipeline || [];
+        pipeline = pipeline.concat(subpipe);
+        req.countQuery.pipeline = req.modelQuery.pipeline = pipeline;
+        break;
+      }
       case 'afterIndex': {
         const form = await router.formio.cache.loadForm(req, null, formId);
         if (res.resource && Array.isArray(res.resource.item)) {
