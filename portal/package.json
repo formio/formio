@@ -5,10 +5,8 @@
     "author": "brendanjbond <brendanbond@gmail.com>",
     "license": "MIT",
     "dependencies": {
-        "@formio/js": "5.0.0-dev.5621.91bd945",
-        "@formio/react": "6.0.0-dev.568.ced0fbd",
-        "bootstrap": "^5.3.3",
-        "bootstrap-icons": "^1.11.3",
+        "@formio/js": "5.0.0",
+        "@formio/react": "6.0.0-rc.2",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "remixicon": "^4.2.0",
