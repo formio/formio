@@ -9,7 +9,7 @@
     "start": "node --no-node-snapshot main.js",
     "start:dev": "nodemon --no-node-snapshot main.js",
     "lint": "eslint .",
-    "build": "cd portal && yarn && yarn build && cd ..",
+    "build:portal": "cd portal && yarn && yarn build && cd ..",
     "show-coverage": "open coverage/lcov-report/index.html"
   },
   "author": "support@form.io",

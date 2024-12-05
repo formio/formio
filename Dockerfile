@@ -32,7 +32,7 @@ RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.co
 # install dependencies
 RUN yarn
 # build the client application
-RUN yarn build
+RUN yarn build:portal
 RUN apk del git
 
 # Set this to inspect more from the application. Examples:
