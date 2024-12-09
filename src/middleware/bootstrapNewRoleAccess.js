@@ -30,7 +30,7 @@ module.exports = function(router) {
      *
      * @param done
      */
-    const updateForms = async function(_role, done) {
+    const updateForms = async function(_role) {
       const query = hook.alter('roleQuery', {deleted: {$eq: null}}, req);
 
       // Query the forms collection, to build the updated form access list.
