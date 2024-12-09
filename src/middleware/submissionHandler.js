@@ -162,14 +162,7 @@ module.exports = (router, resourceName, resourceId) => {
       if (req.query.hasOwnProperty('dryrun') && req.query.dryrun) {
         return;
       }
-      await new Promise((resolve, reject) => {
-        router.formio.actions.initialize(method.name, req, res, (err) => {
-          if (err) {
-            return reject(err);
-          }
-          resolve();
-        });
-      });
+      await router.formio.actions.initialize(method.name, req, res);
     }
 
         /**
@@ -256,14 +249,7 @@ module.exports = (router, resourceName, resourceId) => {
         req.body = _.omit(req.body, 'data');
       }
 
-      await new Promise((resolve, reject) => {
-        router.formio.actions.execute(handler, method.name, req, res, (err) => {
-          if (err) {
-            return reject(err);
-          }
-          resolve();
-        });
-      });
+      await router.formio.actions.execute(handler, method.name, req, res);
     }
     /**
      * Execute the field handlers.
@@ -278,7 +264,7 @@ module.exports = (router, resourceName, resourceId) => {
       const resourceData = _.get(res, 'resource.item.data', {});
       const submissionData = req.body.data || resourceData;
 
-      util.eachValue(req.currentForm.components, submissionData, ({
+      util.eachValue(req.currentForm.components, submissionData, async ({
         component,
         data,
         handler,
@@ -403,24 +389,37 @@ module.exports = (router, resourceName, resourceId) => {
       });
     }
     // Add before handlers.
+
+    const executeIfNotSent = async (functions, req, res) => {
+      for (const func of functions) {
+        if (res.headersSent) {
+          return;
+        }
+        await func(req, res);
+      }
+    };
+
     const before = `before${method.method}`;
     handlers[before] = async (req, res, next) => {
       req.handlerName = before;
       try {
-        await loadCurrentForm(req);
-        await initializeSubmission(req);
-        await initializeActions(req, res);
-        await executeFieldHandlers(false, req, res);
-        await validateSubmission(req, res);
-        await executeFieldHandlers(true, req, res);
-        await alterSubmission(req, res);
-        await executeActions('before', req, res);
+        await executeIfNotSent([
+          loadCurrentForm,
+          initializeSubmission,
+          initializeActions,
+          (req, res) => executeFieldHandlers(false, req, res),
+          validateSubmission,
+          (req, res) => executeFieldHandlers(true, req, res),
+          alterSubmission,
+          (req, res) => executeActions('before', req, res),
+        ], req, res);
         return next();
       }
       catch (error) {
         if (!res.headersSent) {
           return next(error);
         }
+        throw error;
       }
     };
     // Add after handlers.
@@ -428,10 +427,12 @@ module.exports = (router, resourceName, resourceId) => {
     handlers[after] = async (req, res, next) => {
       req.handlerName = after;
       try {
-        await executeActions('after', req, res);
-        await executeFieldHandlers(true, req, res);
-        await alterSubmission(req, res);
-        await ensureResponse(req, res);
+        await executeIfNotSent([
+          (req, res) => executeActions('after', req, res),
+          (req, res) => executeFieldHandlers(true, req, res),
+          alterSubmission,
+          ensureResponse
+        ], req, res);
         return next();
       }
       catch (error) {

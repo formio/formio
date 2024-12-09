@@ -1,133 +1,72 @@
 'use strict';
 
-let async = require('async');
-
 /**
  * Update 2.0.0
  *
  * @param db
  * @param config
  * @param tools
- * @param done
  */
-module.exports = function(db, config, tools, done) {
-  let applications = db.collection('applications');
-  let forms = db.collection('forms');
-  let roles = db.collection('roles');
+module.exports = async function(db, config, tools) {
+  try {
+    let applications = db.collection('applications');
+    let forms = db.collection('forms');
+    let roles = db.collection('roles');
 
-  /**
-   * Update the applications collection.
-   *
-   * Steps:
-   *   1. Rename the application collection to projects.
-   */
-  let updateApplications = function(cb) {
-    applications.rename('projects', function(err) {
-      if (err) {
-        return cb(err);
-      }
-
-      cb();
-    });
-  };
-
-  /**
-   * Update the forms collection.
-   *
-   * Steps:
-   *   1. Drop the index for app
-   *   2. Rename the app property for every document.
-   *   3. Add an index for project
-   */
-  let updateForms = function(cb) {
-    // Forms update step 1.
-    let dropIndex = function(next) {
-      forms.dropIndex('app_1')
-      .then(() => next())
-      .catch(err => next(err));
+    /**
+     * Update the applications collection.
+     *
+     * Steps:
+     *   1. Rename the application collection to projects.
+     */
+    let updateApplications = async () => {
+      await applications.rename('projects');
     };
 
-    // Forms update step 2.
-    let rename = function(next) {
-      forms.updateMany({}, {$rename: {'app': 'project'}})
-      .then(() => {
-        next()
-      })
-      .catch(err => next(err));
+    /**
+     * Update the forms collection.
+     *
+     * Steps:
+     *   1. Drop the index for app
+     *   2. Rename the app property for every document.
+     *   3. Add an index for project
+     */
+    let updateForms = async () => {
+      // Forms update step 1.
+      await forms.dropIndex('app_1');
+
+      // Forms update step 2.
+      await forms.updateMany({}, { $rename: { 'app': 'project' } });
+
+      // Forms update step 3.
+      await forms.createIndex({ project: 1 });
     };
 
-    // Forms update step 3.
-    let createIndex = function(next) {
-      forms.createIndex({project: 1})
-      .then(() => next())
-      .catch(err => next(err));
+    /**
+     * Update the roles collection.
+     *
+     * Steps:
+     *   1. Drop the index for app
+     *   2. Rename the app property for every document.
+     *   3. Add an index for project
+     */
+    let updateRoles = async () => {
+      // Roles update step 1.
+      await roles.dropIndex('app_1');
+
+      // Roles update step 2.
+      await roles.updateMany({}, { $rename: { 'app': 'project' } });
+
+      // Roles update step 3.
+      await roles.createIndex({ project: 1 });
     };
 
-    async.series([
-      dropIndex,
-      rename,
-      createIndex
-    ], function(err) {
-      if (err) {
-        return cb(err);
-      }
-
-      cb();
-    });
-  };
-
-  /**
-   * Update the roles collection.
-   *
-   * Steps:
-   *   1. Drop the index for app
-   *   2. Rename the app property for every document.
-   *   3. Add an index for project
-   */
-  let updateRoles = function(cb) {
-    // Roles update step 1.
-    let dropIndex = function(next) {
-      roles.dropIndex('app_1')
-      .then(() => next(err))
-      .catch(err => next(err));
-    };
-
-    // Roles update step 2.
-    let rename = function(next) {
-      roles.updateMany({}, {$rename: {'app': 'project'}})
-      .then(() => next())
-      .catch(err => next(err));
-    };
-
-    // Roles update step 3.
-    let createIndex = function(next) {
-      roles.createIndex({project: 1})
-      .then(() => next())
-      .catch(err=>next(err));
-    };
-
-    async.series([
-      dropIndex,
-      rename,
-      createIndex
-    ], function(err) {
-      if (err) {
-        return cb(err);
-      }
-
-      cb();
-    });
-  };
-
-  async.series([
-    updateApplications,
-    updateForms,
-    updateRoles
-  ], function(err) {
-    if (err) {
-      return done(err);
-    }
-
-    done();
-  });
+    // Run updates in sequence
+    await updateApplications();
+    await updateForms();
+    await updateRoles();
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 };

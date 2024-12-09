@@ -1,7 +1,6 @@
 'use strict';
 
 const Resource = require('resourcejs');
-const async = require('async');
 const _ = require('lodash');
 const debug = {
   error: require('debug')('formio:error'),
@@ -62,49 +61,44 @@ module.exports = (router) => {
      * @param next
      * @returns {*}
      */
-    async loadActions(req, res, next) {
+    async loadActions(req, res) {
       if (!req.actions) {
         req.actions = {};
       }
 
       const form = req.formId;
       if (!form) {
-        return next();
+        return;
       }
 
       // Use cache if it is available.
       if (req.actions && req.actions[form]) {
-        return next(null, req.actions[form]);
+        return req.actions[form];
       }
 
       // Find the actions associated with this form.
-      try {
-        const result = await this.model.find(hook.alter('actionsQuery', {
-          form,
-          deleted: {$eq: null},
-        }, req))
-        .sort('-priority')
-        .lean()
-        .exec();
+      const result = await this.model.find(hook.alter('actionsQuery', {
+        form,
+        deleted: {$eq: null},
+      }, req))
+      .sort('-priority')
+      .lean()
+      .exec();
 
-        // Iterate through all of the actions and load them.
-        const actions = [];
-        _.each(result, (action) => {
-          if (!this.actions.hasOwnProperty(action.name)) {
-            return;
-          }
+      // Iterate through all of the actions and load them.
+      const actions = [];
+      _.each(result, (action) => {
+        if (!this.actions.hasOwnProperty(action.name)) {
+          return;
+        }
 
-          // Create the action class.
-          const ActionClass = this.actions[action.name];
-          actions.push(new ActionClass(action, req, res));
-        });
+        // Create the action class.
+        const ActionClass = this.actions[action.name];
+        actions.push(new ActionClass(action, req, res));
+      });
 
-        req.actions[form] = actions;
-        return next(null, actions);
-      }
-      catch (err) {
-        return next(err);
-      }
+      req.actions[form] = actions;
+      return actions;
     },
 
     /**
@@ -115,9 +109,9 @@ module.exports = (router) => {
      * @param req
      * @param next
      */
-    async search(handler, method, req, res, next) {
+    async search(handler, method, req, res) {
       if (!req.formId) {
-        return next(null, []);
+        return [];
       }
 
       // Make sure we have actions attached to the request.
@@ -125,17 +119,12 @@ module.exports = (router) => {
         const actions = (req.actions[req.formId] || []).filter((action) =>
           (!handler || action.handler.includes(handler)) &&
           (!method || action.method.includes(method)));
-        return next(null, actions);
+        return actions;
       }
       else {
         // Load the actions.
-        await this.loadActions(req, res, (err) => {
-          if (err) {
-            return next(err);
-          }
-
-          this.search(handler, method, req, res, next);
-        });
+        await this.loadActions(req, res);
+        return await this.search(handler, method, req, res);
       }
     },
 
@@ -146,22 +135,15 @@ module.exports = (router) => {
      * @param res
      * @param next
      */
-    async initialize(method, req, res, next) {
-      await this.search(null, method, req, res, (err, actions) => {
-        if (err) {
-          return next(err);
-        }
+    async initialize(method, req, res) {
+      const actions = await this.search(null, method, req, res);
+      // Iterate through each action.
 
-        // Iterate through each action.
-        async.forEachOf(actions, (action, index, done) => {
-          if (actions[index].initialize) {
-            actions[index].initialize(method, req, res, done);
-          }
-          else {
-            done();
-          }
-        }, next);
-      });
+      for (const [index, action] of actions.entries()) {
+        if (actions[index].initialize) {
+          await actions[index].initialize(method, req, res);
+        }
+      }
     },
 
     /**
@@ -173,53 +155,52 @@ module.exports = (router) => {
      * @param res
      * @param next
      */
-    async execute(handler, method, req, res, next) {
+    async execute(handler, method, req, res) {
       // Find the available actions.
-      await this.search(handler, method, req, res, (err, actions) => {
-        if (err) {
-          router.formio.log(
-            'Actions search fail',
-            req,
-            handler,
-            method,
-            err
-          );
-          return next(err);
-        }
-
-        async.eachSeries(actions, (action, cb) => {
-          this.shouldExecute(action, req, res).then(execute => {
+      try {
+        const actions = await this.search(handler, method, req, res);
+        try {
+          for (const action of actions) {
+            const execute = await this.shouldExecute(action, req, res);
             if (!execute) {
-              return cb();
+              continue;
             }
             // Resolve the action.
             router.formio.log('Action', req, handler, method, action.name, action.title);
 
-            hook.alter('logAction', req, res, action, handler, method, (err, logAction) => {
-              if (err) {
-                return cb(err);
-              }
-              // if logs are allowed and performed, the logging logic resolves the action that is why skip it here.
-              if (logAction === true) {
-                return cb();
-              }
-              action.resolve(handler, method, req, res, (err) => {
+            const logAction = await new Promise((resolve, reject) => {
+              hook.alter('logAction', req, res, action, handler, method, (err, logAction) => {
                 if (err) {
-                  return cb(err);
+                  return reject(err);
                 }
-                return cb();
-              }, () => {});
+                resolve(logAction);
+              });
             });
-          });
-        }, (err) => {
-          if (err) {
-            router.formio.log('Actions execution fail', req, handler, method, err);
-            return next(err);
-          }
 
-          next();
-        });
-      });
+            if (logAction === true) {
+              continue;
+            }
+
+            // Resolve the action
+            await action.resolve(handler, method, req, res, () => {});
+          }
+          return;
+        }
+        catch (err) {
+          router.formio.log('Actions execution fail', req, handler, method, err);
+          throw err;
+        }
+      }
+      catch (err) {
+        router.formio.log(
+          'Actions search fail',
+          req,
+          handler,
+          method,
+          err
+        );
+        throw err;
+      }
     },
 
     async shouldExecute(action, req, res) {
@@ -730,7 +711,7 @@ module.exports = (router) => {
   }
 
   // Return a list of available actions.
-  router.get('/form/:formId/actions', (req, res, next) => {
+  router.get('/form/:formId/actions', async (req, res, next) => {
     const result = [];
 
     // Add an action to the results array.
@@ -747,84 +728,76 @@ module.exports = (router) => {
     }
 
     // Iterate through each of the available actions.
-    async.eachSeries(_.values(ActionIndex.actions), (action, callback) => {
-      action.info(req, res, (err, info) => {
-        if (err) {
-          router.formio.log('Error, can\'t get action info', req, err);
-          return callback(err);
-        }
-        if (!info || (info.name === 'default')) {
-          return callback();
+
+    try {
+      const actions = _.values(ActionIndex.actions);
+
+      for (const action of actions) {
+        const info = action.info(req, res);
+
+        if (!info || info.name === 'default') {
+          continue;
         }
 
         addAction(info);
-        callback();
-      });
-    }, (err) => {
-      if (err) {
-        router.formio.log('Error during actions info parsing', req, err);
-        return next(err);
       }
-
       res.json(result);
-    });
+    }
+ catch (err) {
+      router.formio.log('Error during actions info parsing', req, err);
+      return next(err);
+    }
   });
 
   // Return a list of available actions.
-  router.get('/form/:formId/actions/:name', (req, res, next) => {
+  router.get('/form/:formId/actions/:name', async (req, res, next) => {
     const action = ActionIndex.actions[req.params.name];
     if (!action) {
       return res.status(400).send('Action not found');
     }
 
-    action.info(req, res, async (err, info) => {
-      if (err) {
-        router.formio.log('Error, can\'t get action info', req, err);
-        return next(err);
-      }
+    const info = action.info(req, res);
+    info.defaults = info.defaults || {};
+    info.defaults = _.assign(info.defaults, {
+      priority: info.priority || 0,
+      name: info.name,
+      title: info.title
+    });
 
-      info.defaults = info.defaults || {};
-      info.defaults = _.assign(info.defaults, {
-        priority: info.priority || 0,
-        name: info.name,
-        title: info.title
-      });
+    try {
+      let settings;
+      try {
+        settings = await getSettingsForm(info, req);
+      }
+      catch (err) {
+        router.formio.log('Error, can\'t get action settings', req, err);
+        return res.status(400).send(err);
+      }
 
       try {
-        let settings;
-        try {
-          settings = await getSettingsForm(info, req);
-        }
-        catch (err) {
-          router.formio.log('Error, can\'t get action settings', req, err);
-          return res.status(400).send(err);
-        }
+        const settingsForm = await action.settingsForm(req, res);
+        // Add the ability to change the title, and add the other settings.
+        settings.actionSettings.components = [{
+          input: false,
+          type: 'container',
+          key: 'settings',
+          components: settingsForm
+        }];
 
-          action.settingsForm(req, res, (err, settingsForm) => {
-            if (err) {
-              router.formio.log('Error, can\'t get form settings', req, err);
-              return next(err);
-            }
-
-            // Add the ability to change the title, and add the other settings.
-            settings.actionSettings.components = [{
-              input: false,
-              type: 'container',
-              key: 'settings',
-              components: settingsForm
-            }];
-
-            info.settingsForm = settings.settingsForm;
-            info.settingsForm.action = hook.alter('path', `/form/${req.params.formId}/action`, req);
-            hook.alter('actionInfo', info, req);
-            res.json(info);
-        });
+        info.settingsForm = settings.settingsForm;
+        info.settingsForm.action = hook.alter('path', `/form/${req.params.formId}/action`, req);
+        hook.alter('actionInfo', info, req);
+        res.json(info);
       }
-      catch (e) {
-        debug.error(e);
-        return res.sendStatus(400);
+      catch (err) {
+        router.formio.log('Error, can\'t get form settings', req, err);
+        return next(err);
       }
-    });
+    }
+    catch (e) {
+      debug.error(e);
+      return res.sendStatus(400);
+    }
   });
 
   // Before all middleware for actions.
