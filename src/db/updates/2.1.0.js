@@ -49,9 +49,8 @@ function decrypt(secret, cipherbuffer) {
  * @param db
  * @param config
  * @param tools
- * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function(db, config, tools) {
   // Add cors settings to existing projects.
   let projects = db.collection('projects');
   projects.find({}).toArray().forEach(function(project) {
@@ -70,6 +69,5 @@ module.exports = function(db, config, tools, done) {
         }
       }
     )
-  },
-  done);
+  });
 };

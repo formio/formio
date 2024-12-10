@@ -214,10 +214,9 @@ module.exports = (formio) => {
    * @param res
    * @param message
    * @param params
-   * @param next
    * @returns {*}
    */
-  const send = async (req, res, message, params, next, setActionItemMessage = () => {}) => {
+  const send = async (req, res, message, params, setActionItemMessage = () => {}) => {
     const setParams = (params, req, res, message) => {
         // Add the request params.
         params.req = _.pick(req, [
@@ -494,22 +493,23 @@ module.exports = (formio) => {
       const sendWithUser = async () => {
         try {
           const response = await sendEmails();
-          return next(null, response);
+          return response;
+          // return next(null, response);
         }
         catch (err) {
           debug.error(err);
-          return next(err);
+          throw err;
         }
       };
 
       const sensWithoutUser = () => {
         try {
           throttledSendEmails();
-          return next();
+          return;
         }
         catch (err) {
           debug.error(err);
-          return next(err);
+          throw err;
         }
       };
 
@@ -568,18 +568,18 @@ module.exports = (formio) => {
       // If we don't have a valid transport, don't waste time with nunjucks.
       if (isTransportValid(transporter)) {
         debug.error(`Could not determine which email transport to use for ${emailType}`);
-        return next();
+        return;
       }
 
       const options = {
         params,
       };
 
-      await send(transporter, message, options);
+      return await send(transporter, message, options);
     }
     catch (err) {
       debug.send(err);
-      return next(err);
+      throw err;
     }
   };
 
