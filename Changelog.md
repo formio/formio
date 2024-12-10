@@ -4,8 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.4.0-rc.1]
+## 4.4.0-rc.1
 ### Changed
+ - Updated formiojs@4.21.6-rc.2
+ - Updated @formio/core@2.4.0-rc.1
+ - Updated @formio/vm@0.4.0-rc.1
+ - FIO-7080 Handled access for token
+ - FIO-7835: eSignature
+ - FIO-9308: Fixed an issue where nested forms that start with the same keys submit the wrong data.
  - Increment minor version
  - FIO-8450: Add test for custom error message for unique validation
 
