@@ -209,6 +209,24 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
+"@formio/core@2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.3.0.tgz#33f58e0ac6da273e096b6b86b0ec68a440d1a9f2"
+  integrity sha512-jAlNm0vaSZQ9RSxt79PqeHdXYv/1i+zNfasVWbH1xRJSicJK0JcdodrBaDw8kKnEh0UmflW6RyIiaMyDbww4Ug==
+  dependencies:
+    "@types/json-logic-js" "^2.0.7"
+    browser-cookies "^1.2.0"
+    core-js "^3.37.1"
+    dayjs "^1.11.11"
+    dompurify "^3.1.4"
+    eventemitter3 "^5.0.0"
+    fast-json-patch "^3.1.1"
+    fetch-ponyfill "^7.1.0"
+    inputmask "^5.0.9"
+    json-logic-js "^2.0.2"
+    lodash "^4.17.21"
+    moment "^2.29.4"
+
 "@formio/core@2.3.0-rc.21":
   version "2.3.0-rc.21"
   resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.3.0-rc.21.tgz#4bf20a5a82e74dd9eeebff73d48261298670a9ea"
@@ -293,12 +311,12 @@
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.3.0-rc.26":
-  version "0.3.0-rc.26"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.3.0-rc.26.tgz#f10d508c0ca5be2a56f55f18e25d30b0a1993531"
-  integrity sha512-y1ytK9RkwQwu3hY0Ibw+ClImWKklD7WuLFeJyWjIjIPU8Wk4LeAue8621u+2eRvcNc2g8Muwu0rsBBIwMDaMHA==
+"@formio/vm@0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.3.0.tgz#f61048749c3387617603a40927eece766e936069"
+  integrity sha512-G4MPNnyfYC8K7kU8icu1O7fkf2NHwG7Tbs9YO4AwZ/TDwxACVeWl/tUIRw8+55NC9tVDY4BBXKsGMXzU4wTnhw==
   dependencies:
-    "@formio/core" "2.3.0-rc.21"
+    "@formio/core" "2.3.0"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
@@ -2703,6 +2721,11 @@ mute-stream@~0.0.4:
   version "0.0.8"
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.8.tgz#1630c42b2251ff81e2a283de96a5497ea92e5e0d"
   integrity sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==
+
+nanoid@3:
+  version "3.3.8"
+  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.8.tgz#b1be3030bee36aaff18bacb375e5cce521684baf"
+  integrity sha512-WNLf5Sd8oZxOm+TzppcYk8gVOgP+l58xNy58D0nbUnOxOWRWvlcCV4kUF7ltmI6PsrLl/BgKEyS4mqsGChFN0w==
 
 napi-build-utils@^1.0.1:
   version "1.0.2"
