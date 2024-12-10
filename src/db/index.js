@@ -261,33 +261,33 @@ module.exports = function(formio) {
   const checkFeatures = async function() {
     formio.util.log('Determine MongoDB compatibility.');
     try {
-    config.mongoFeatures = formio.mongoFeatures = {
-      collation: true,
-      compoundIndexWithNestedPath: true,
-    };
-    // Assign a random string to collection name to avoid multi-instance race conditions
-    const randomString = nanoid();
-    const featuresTest = db.collection(randomString);
-    // Test for collation support
-    try {
-      await featuresTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
-      formio.util.log('Collation indexes are supported.');
-    }
-    catch (err) {
-      formio.util.log('Collation indexes are not supported.');
-      config.mongoFeatures.collation = formio.mongoFeatures.collation = false;
-    }
+      config.mongoFeatures = formio.mongoFeatures = {
+        collation: true,
+        compoundIndexWithNestedPath: true,
+      };
+      // Assign a random string to collection name to avoid multi-instance race conditions
+      const randomString = nanoid();
+      const featuresTest = db.collection(randomString);
+      // Test for collation support
+      try {
+        await featuresTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
+        formio.util.log('Collation indexes are supported.');
+      }
+      catch (err) {
+        formio.util.log('Collation indexes are not supported.');
+        config.mongoFeatures.collation = formio.mongoFeatures.collation = false;
+      }
 
-    // Test for support for compound indexes that contain nested paths
-    try {
-      await featuresTest.createIndex({test: 1, 'nested.test': 1});
-      formio.util.log('Compound indexes that contain nested paths are supported.');
-    }
-    catch (err) {
-      formio.util.log('Compound indexes that contain nested paths are not supported.');
-      config.mongoFeatures.compoundIndexWithNestedPath = formio.mongoFeatures.compoundIndexWithNestedPath = false;
-    }
-    await featuresTest.drop();
+      // Test for support for compound indexes that contain nested paths
+      try {
+        await featuresTest.createIndex({test: 1, 'nested.test': 1});
+        formio.util.log('Compound indexes that contain nested paths are supported.');
+      }
+      catch (err) {
+        formio.util.log('Compound indexes that contain nested paths are not supported.');
+        config.mongoFeatures.compoundIndexWithNestedPath = formio.mongoFeatures.compoundIndexWithNestedPath = false;
+      }
+      await featuresTest.drop();
     }
     catch (err) {
       formio.util.log('Error determining MongoDB compatibility:');
