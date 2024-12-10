@@ -12,6 +12,8 @@ const debug = {
 };
 const path = require('path');
 
+const {sanitizeMongoConnectionString} = require('./util');
+
 // The mongo database connection.
 let db = null;
 let schema = null;
@@ -185,7 +187,8 @@ module.exports = function(formio) {
       ? config.mongo
       : config.mongo[0];
 
-    debug.db(`Opening new connection to ${dbUrl}`);
+    const sanitizedDbUrl = sanitizeMongoConnectionString(dbUrl);
+    debug.db(`Opening new connection to ${sanitizedDbUrl}`);
     let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
     if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
       mongoConfig.connectTimeoutMS = 300000;
@@ -220,8 +223,7 @@ module.exports = function(formio) {
       }
        catch (err) {
         debug.db(`Connection Error: ${err}`);
-        await unlock();
-        throw new Error(`Could not connect to the given Database for server updates: ${dbUrl}.`);
+        throw new Error(`Could not connect to the given Database for server updates: ${sanitizedDbUrl}.`);
       }
     }
 
@@ -735,7 +737,8 @@ module.exports = function(formio) {
         await unlock();
         return db;
       }
-      catch (err) {
+      // ignore unlock error, as database has already erred, so you probably can't unlock anyway
+      catch (ignoreErr) {
         debug.db(err);
         throw err;
       }
