@@ -1524,6 +1524,114 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
+
+      it('Does not return a protected password field into tagpad component', function(done) {
+        const  components = [
+          {
+            label: 'Text Field 1',
+            applyMaskOn: 'change',
+            'tableView': true,
+            'validateWhenHidden': false,
+            'key': 'textField1',
+            'type': 'textfield1',
+            'input': true
+          },
+          {
+            label:'Password 1',
+            applyMaskOn:'change',
+            tableView:false,
+            validateWhenHidden:false,
+            key:'password1',
+            type:'password1',
+            input:true,
+            protected:true
+          },
+          {
+            label:'Tagpad',
+            tableView:false,
+            validateWhenHidden:false,
+            key:'tagpad',
+            type:'tagpad',
+            input:true,
+            imageUrl: 'https://googlechrome.github.io/samples/picture-element/images/kitten-large.png',
+
+            components:
+              [
+                {
+                  label:'Password',
+                  applyMaskOn:'change',
+                  tableView:false,
+                  validateWhenHidden:false,
+                  key:'password',
+                  type:'password',
+                  input:true,
+                  protected:true
+                },
+                {
+                  label: 'Text Field',
+                  applyMaskOn: 'change',
+                  'tableView': true,
+                  'validateWhenHidden': false,
+                  'key': 'textField',
+                  'type': 'textfield',
+                  'input': true
+                },
+              ]
+
+            }
+          ];
+
+        const values = {
+          password1: 'password',
+          textField1: 'My Value',
+          tagpad: [
+          {
+              coordinate: {
+                  x: 198,
+                  y: 74,
+                  width: 772,
+                  height: 339
+              },
+              data: {
+                  password: 'password1',
+                  textField: 'My Value 1',
+              }
+          },
+          {
+              coordinate: {
+                  x: 198,
+                  y: 74,
+                  width: 772,
+                  height: 339
+              },
+              data: {
+                  password: 'password2',
+                  textField: 'My Value 2',
+              }
+            }
+          ]
+        };
+
+        helper
+        .form('test', components)
+        .submission(values)
+        .execute(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          _.unset(values, 'password1');
+          _.unset(values, 'tagpad[0].data.password');
+          _.unset(values, 'tagpad[1].data.password');
+          const result = values;
+          const submission = helper.getLastSubmission();
+          assert.equal(result.textField1, submission.data.textField1);
+          assert.equal(result.password1, undefined);
+          if (submission.data.tagpad.length !== 0) {
+            assert.deepEqual(result, submission.data);
+          }
+          done();
+        });
+      });
     });
 
     describe('Conditional Fields', function() {
