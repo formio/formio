@@ -151,7 +151,7 @@ module.exports = (router) => {
         }
       }
 
-      hook.alter('tokenDecode', decoded, req, (err, decoded) => {
+      hook.alter('tokenDecode', decoded, req, async (err, decoded) => {
         // Check to see if this token is allowed to access this path.
         if (!router.formio.auth.isTokenAllowed(req, decoded)) {
           return noToken();
@@ -200,13 +200,16 @@ module.exports = (router) => {
         }
 
         // Load the user submission.
-        const cache = router.formio.cache || formioCache;
-        cache.loadSubmission(req, formId, userId, (err, user) => {
-          if (err) {
+          const cache = router.formio.cache || formioCache;
+          let user;
+          try {
+            user = await cache.loadSubmission(req, formId, userId);
+          }
+          catch (err) {
             // Couldn't load the user, try to fail safely.
             user = decoded.user;
           }
-          else if (!user) {
+          if (!user) {
             req.user = null;
             req.token = null;
             res.token = null;
@@ -232,7 +235,6 @@ module.exports = (router) => {
             // Call the user handler.
             userHandler(req, res, decoded, token, user, next);
           });
-        });
       });
     });
   };

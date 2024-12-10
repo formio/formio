@@ -40,11 +40,9 @@ module.exports = function(db, config, tools, done) {
   };
 
   // Update the access properties for all pre-existing projects.
-  let updateProjectAccess = function(then) {
-    projects.find({deleted: {$eq: null}}).snapshot({$snapshot: true}).toArray(function(err, docs) {
-      if (err) {
-        return then(err);
-      }
+  let updateProjectAccess = function(then) { 
+    projects.find({deleted: {$eq: null}}).toArray()
+    .then(docs => {
       if (!docs) {
         return then('No Projects found.');
       }
@@ -59,24 +57,20 @@ module.exports = function(db, config, tools, done) {
           admin: true
         };
 
-        roles.insertOne(doc, function(err, document) {
-          if (err) {
-            return callback(err);
-          }
-
+        roles.insertOne(doc)
+        .then(document => {
           console.log('Making Admin role for project: ' + project._id);
           callback(null, document.ops[0]);
-        });
+        })
+        .catch(err => callback(err));
       };
 
       async.forEachOf(docs, function(project, key, next) {
         async.waterfall([
           // Get the Admin role for each project.
           function(cb) {
-            roles.find({project: project._id, title: 'Administrator', deleted: {$eq: null}}).toArray(function(err, docs) {
-              if (err) {
-                return cb(err)
-              }
+            roles.find({project: project._id, title: 'Administrator', deleted: {$eq: null}}).toArray()
+            .then(docs => {
               if (!docs || docs.length === 0) {
                 return createAdminRole(project, cb);
                 //return cb('No Admin role found for project: ' + project._id);
@@ -86,7 +80,9 @@ module.exports = function(db, config, tools, done) {
               }
 
               cb(null, docs[0]);
-            });
+
+            })
+            .catch(err => cb(err));
           },
           // Update the access for each project.
           function(role, cb) {
@@ -100,14 +96,9 @@ module.exports = function(db, config, tools, done) {
             projects.updateOne(
               {_id: project._id, deleted: {$eq: null}},
               {$set: {access: access}},
-              function(err) {
-                if (err) {
-                  return cb(err);
-                }
-
-                cb();
-              }
-            );
+            )
+            .then(() => cb())
+            .catch(err => cb(err));
           }
         ], function(err) {
           if (err) {
@@ -123,31 +114,20 @@ module.exports = function(db, config, tools, done) {
 
         then();
       });
-    });
+    })
+    .catch(err => then(err));
   };
 
   // Prune the `settings` on pre-existing projects.
   let pruneProjectSettings = function(then) {
-    projects.find({settings: {$ne: null}}).snapshot({$snapshot: true}).toArray(function(err, docs) {
-      if (err) {
-        return then(err);
-      }
-      if (!docs) {
-        return then('No Projects found.');
-      }
-
+    projects.find({settings: {$ne: null}}).toArray()
+    .then(docs => {
       async.forEachOf(docs, function(project, key, next) {
         projects.updateOne(
           {_id: project._id},
-          {$set: {settings: null}},
-          function(err) {
-            if (err) {
-              return next(err);
-            }
-
-            next();
-          }
-        );
+          {$set: {settings: null}})
+          .then(() => next())
+          .catch(err => next(err));
       }, function(err) {
         if (err) {
           return then(err);
@@ -155,7 +135,9 @@ module.exports = function(db, config, tools, done) {
 
         then();
       });
-    });
+
+    })
+    .catch(err => then(err));
   };
 
   // Remove invalid keys for layout form components.
@@ -224,14 +206,13 @@ module.exports = function(db, config, tools, done) {
     });
 
     // Finalize the updates to each forms component list (including forms that had layout component key changes).
-    forms.updateOne({_id: form._id}, {$set: {components: form.components}}, function(err) {
-      if (err) {
-        return then(err);
-      }
-
+    forms.updateOne({_id: form._id}, {$set: {components: form.components}})
+    .then(() => {
       console.log('Updating the form components for the form: ' + form._id);
       then();
-    });
+    })
+    .catch(err => then(err));
+      
   };
 
   let cleanFormComponentKeys = function(then) {
@@ -282,14 +263,11 @@ module.exports = function(db, config, tools, done) {
       });
     };
 
-    forms.find().snapshot({$snapshot: true}).toArray(function(err, docs) {
-      if (err) {
-        return then(err);
-      }
+    forms.find().toArray()
+    .then(docs => {
       if (!docs) {
         return then('No forms found');
       }
-
       async.forEachOf(docs, function(form, key, next) {
         let changes = [];
         let uniques = [];
@@ -298,7 +276,9 @@ module.exports = function(db, config, tools, done) {
         }
 
         // Update the form with the given changes.
-        updateForm(form, changes, next);
+        updateForm(form, changes)
+        .then(() => next())
+        .catch(err => next(err));
       }, function(err) {
         if (err) {
           return then(err);
@@ -306,14 +286,15 @@ module.exports = function(db, config, tools, done) {
 
         then();
       });
-    });
+
+
+    })
+    .catch(err => then(err));
   };
 
   let verifyFormComponents = function(then) {
-    forms.find().snapshot({$snapshot: true}).toArray(function(err, docs) {
-      if (err) {
-        return then(err);
-      }
+    forms.find().toArray()
+    .then(docs => {
       if (!docs) {
         return then('No forms found');
       }
@@ -349,7 +330,8 @@ module.exports = function(db, config, tools, done) {
 
         then();
       });
-    });
+    })
+    .catch(err => then(err));
   };
 
   async.series([

@@ -24,22 +24,16 @@ module.exports = function(db, config, tools, done) {
   let formCollection = db.collection('forms');
 
   // Iterate through all forms.
-  formCollection.find({}).snapshot({$snapshot: true}).toArray(function(err, forms) {
-    if (err) {
-      return done(err);
-    }
-
+  formCollection.find({}).toArray()
+  .then(forms => {
     // Iterate through each form.
     let formsUpdated = 0;
     console.log('Updating ' + forms.length + ' forms.');
     async.forEachOf(forms, function(form, key, next) {
       actionCollection.find({
         form: form._id
-      }).snapshot({$snapshot: true}).toArray(function(err, actions) {
-        if (err) {
-          return next(err);
-        }
-
+      }).toArray()
+      .then(actions => {
         let resourceAction = _.find(actions, {name: 'resource'});
         let noSubmitAction = _.find(actions, {name: 'nosubmit'});
         let resetpassAction = _.find(actions, {name: 'resetpass'});
@@ -87,7 +81,9 @@ module.exports = function(db, config, tools, done) {
           console.log('Updated ' + formsUpdated + ' forms');
         }
         next();
-      });
+      })
+      .catch(err => next(err));
     }, done);
-  });
+  })
+  .catch(err => done(err));
 };

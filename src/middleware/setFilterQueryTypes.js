@@ -14,17 +14,13 @@ const moment = require('moment');
  * @returns {Function}
  */
 module.exports = function(router) {
-    return function(req, res, next) {
-      // Skip if not an Index request
-      if (req.method !== 'GET' || req.submissionId) {
-        return next();
-      }
-
-      router.formio.cache.loadCurrentForm(req, (err, currentForm) => {
-        if (err) {
-          return next(err);
-        }
-
+  return async function(req, res, next) {
+    // Skip if not an Index request
+    if (req.method !== 'GET' || req.submissionId) {
+      return next();
+    }
+    try {
+        const currentForm = await router.formio.cache.loadCurrentForm(req);
         const prefix = 'data.';
         const prefixLength = prefix.length;
         _.assign(req.query, _(req.query)
@@ -71,7 +67,10 @@ module.exports = function(router) {
           .value()
         );
 
-        next();
-      });
-    };
+        return next();
+    }
+    catch (err) {
+      return next(err);
+    }
+  };
 };

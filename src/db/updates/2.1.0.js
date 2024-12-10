@@ -54,7 +54,7 @@ function decrypt(secret, cipherbuffer) {
 module.exports = function(db, config, tools, done) {
   // Add cors settings to existing projects.
   let projects = db.collection('projects');
-  projects.find({}).snapshot({$snapshot: true}).forEach(function(project) {
+  projects.find({}).toArray().forEach(function(project) {
     let settings = {
       cors: '*'
     }

@@ -40,13 +40,10 @@ module.exports = (router) => {
      * @param res
      * @param next
      */
-    static settingsForm(req, res, next) {
-      // Get the available transports.
-      emailer.availableTransports(req, (err, availableTransports) => {
-        if (err) {
-          log(req, ecode.emailer.ENOTRANSP, err);
-          return next(err);
-        }
+    static async settingsForm(req, res, next) {
+      try {
+        // Get the available transports.
+        const availableTransports =  await emailer.availableTransports(req);
 
         const settingsForm = [
           {
@@ -176,8 +173,12 @@ module.exports = (router) => {
           },
         ];
 
-        next(null, settingsForm);
-      });
+        return next(null, settingsForm);
+      }
+      catch (err) {
+        log(req, ecode.emailer.ENOTRANSP, err);
+        return next(err);
+      }
     }
 
     /**
@@ -190,92 +191,108 @@ module.exports = (router) => {
      * @param cb
      *   The callback function to execute upon completion.
      */
-    resolve(handler, method, req, res, next, setActionItemMessage) {
+    async resolve(handler, method, req, res, next, setActionItemMessage) {
+      const loadForm = async function(req, setActionItemMessage, next) {
+        try {
+          const form = await router.formio.cache.loadCurrentForm(req);
+          if (!form) {
+            const err = new Error(ecode.form.ENOFORM);
+            setActionItemMessage('Error no form', err, 'error');
+            log(req, ecode.cache.EFORMLOAD, err);
+            next(err);
+            return null;
+          }
+          return form;
+        }
+        catch (err) {
+          setActionItemMessage('Error loading form', err, 'error');
+          log(req, ecode.cache.EFORMLOAD, err);
+          next(err);
+          return null;
+        }
+      };
+
+      const fetchTemplate = async function(settings, params, setActionItemMessage) {
+        try {
+          const response = await fetch(settings.template);
+          const body = response.ok ? await response.text() : null;
+          if (body) {
+            params.content = settings.message;
+          }
+          return body || settings.message;
+        }
+        catch (err) {
+          return settings.message;
+        }
+      };
+
+      const sendEmail = async function(req, res, settings, params, setActionItemMessage) {
+        try {
+          await emailer.send(req, res, settings, params, setActionItemMessage);
+          setActionItemMessage('Message Sent');
+        }
+        catch (err) {
+          setActionItemMessage('Error sending message', {
+            message: err.message || err
+          }, 'error');
+          log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
+        }
+      };
+
       if (!this.settings.emails || this.settings.emails.length === 0) {
         setActionItemMessage('No email addresses configured', this.settings, 'error');
         return next();
       }
 
-      // Load the form for this request.
-      router.formio.cache.loadCurrentForm(req, (err, form) => {
-        if (err) {
-          setActionItemMessage('Error loading form', err, 'error');
-          log(req, ecode.cache.EFORMLOAD, err);
-          return next(err);
-        }
-        if (!form) {
-          const err = new Error(ecode.form.ENOFORM);
-          setActionItemMessage('Error no form', err, 'error');
-          log(req, ecode.cache.EFORMLOAD, err);
-          return next(err);
-        }
+      const form = await loadForm(req, setActionItemMessage, next);
+      if (!form) {
+        return;
+      }
 
-        // Save off the req.params since they get deleted after the response and we need them later.
-        const reqParams = req.params;
-
-        res.on('finish', () => {
-          // Restore the req.params after the response was sent
-          req.params = reqParams;
-        });
-        // Dont block on sending emails.
-        next(); // eslint-disable-line callback-return
-
-        // Get the email parameters.
-        emailer.getParams(req, res, form, req.body)
-          .then((params) => {
-            const query = {
-              _id: params.owner,
-              deleted: {$eq: null},
-            };
-
-            const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-            return submissionModel.findOne(hook.alter('submissionQuery', query, req))
-              .lean()
-              // If there is no owner, just proceed as normal.
-              .catch(() => ({_id: params.owner}))
-              .then((owner) => {
-                if (owner) {
-                  params.owner = owner;
-                }
-
-                if (!this.settings.template) {
-                  return this.settings.message;
-                }
-
-                return fetch(this.settings.template)
-                    .then((response) => response.ok ? response.text() : null)
-                    .then((body) => {
-                      if (body) {
-                        // Save the content before overwriting the message.
-                        params.content = this.settings.message;
-                      }
-                      return body || this.settings.message;
-                    })
-                    .catch(() => this.settings.message);
-              })
-              .then((template) => {
-                this.settings.message = template;
-                setActionItemMessage('Sending message', this.message);
-
-                req.params = reqParams;
-                emailer.send(req, res, this.settings, params, (err) => {
-                  if (err) {
-                    setActionItemMessage('Error sending message', {
-                      message: err.message || err
-                    }, 'error');
-                    log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
-                  }
-                  else {
-                    setActionItemMessage('Message Sent');
-                  }
-                }, setActionItemMessage);
-              });
-          })
-          .catch((err) => {
-            setActionItemMessage('Emailer error', err, 'error');
-            log(req, ecode.emailer.ESUBPARAMS, err);
-          });
+      const reqParams = req.params;
+      res.on('finish', () => {
+        req.params = reqParams;
       });
+
+      next(); // eslint-disable-line callback-return
+
+      try {
+        const params = await emailer.getParams(req, res, form, req.body);
+
+        const query = {
+          _id: params.owner,
+          deleted: {$eq: null},
+        };
+
+        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+
+        let owner = await submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean();
+        if (!owner) {
+          owner = {_id: params.owner};
+        }
+        if (owner) {
+          params.owner = owner;
+        }
+
+        let template;
+        if (!this.settings.template) {
+          template = this.settings.message;
+        }
+        else {
+          template = await fetchTemplate(this.settings, params, setActionItemMessage);
+        }
+
+        this.settings.message = template;
+        setActionItemMessage('Sending message', this.message);
+
+        req.params = reqParams;
+
+        await sendEmail(req, res, this.settings, params, setActionItemMessage);
+      }
+      catch (err) {
+        setActionItemMessage('Emailer error', err, 'error');
+        log(req, ecode.emailer.ESUBPARAMS, err);
+      }
     }
   }
 

@@ -19,29 +19,24 @@ module.exports = function(db, config, tools, done) {
    */
   let updateProjects = function(callback) {
     let projects = db.collection('projects');
-    projects.find().snapshot({$snapshot: true}).toArray(function(err, docs) {
-      if (err) {
-        return callback(err);
-      }
+    projects.find().toArray()
+    .then(docs => {
       async.forEachOf(docs, function(project, key, next) {
         let machineName = project.name.toLowerCase().replace(/\W/g, '');
         projects.updateOne(
           {_id: project._id},
-          {$set: {machineName: machineName}},
-          function (err) {
-            if (err) {
-              return next(err);
-            }
-            next();
-          }
-        );
+          {$set: {machineName: machineName}})
+        .then(() => next())
+        .catch(err => next(err))
       }, function(err) {
         if (err) {
           return callback(err);
         }
         callback();
       });
-    });
+
+    })
+    .catch(err => callback(err));
   };
 
   /**
@@ -50,13 +45,11 @@ module.exports = function(db, config, tools, done) {
   let updateForms = function(callback) {
     let projects = db.collection('projects');
     let forms = db.collection('forms');
-    forms.find().snapshot({$snapshot: true}).toArray(function(err, docs) {
-      if (err) {
-        return callback(err);
-      }
+    forms.find().toArray()
+    .then(docs => {
       async.forEachOf(docs, function(form, key, next) {
-        projects.findOne({_id: form.project}, function(err, project) {
-          if (err) { return next(err); }
+        projects.findOne({_id: form.project})
+        .then(project => {
           let machineName = '';
           if (project) {
             machineName = project.machineName + ':';
@@ -64,20 +57,19 @@ module.exports = function(db, config, tools, done) {
           machineName = machineName + form.name;
           forms.updateOne(
             {_id: form._id},
-            {$set: {machineName: machineName}},
-            function (err) {
-              if (err) { return next(err); }
-              next();
-            }
-          );
-        });
+            {$set: {machineName: machineName}})
+          .then(() => next())
+          .catch(err => next(err));
+        })
+        .catch(err => next(err));
       }, function(err) {
         if (err) {
           return callback(err);
         }
         callback();
       });
-    });
+    })
+    .catch(err => callback(err));
   };
 
   /**
@@ -86,13 +78,11 @@ module.exports = function(db, config, tools, done) {
   let updateActions = function(callback) {
     let forms = db.collection('forms');
     let actions = db.collection('actions');
-    actions.find().snapshot({$snapshot: true}).toArray(function(err, docs) {
-      if (err) {
-        return callback(err);
-      }
+    actions.find().toArray()
+    .then(docs => {
       async.forEachOf(docs, function(action, key, next) {
-        forms.findOne({_id: action.form}, function(err, form) {
-          if (err) { return next(err); }
+        forms.findOne({_id: action.form})
+        .then(form => {
           let machineName = '';
           if (form) {
             machineName = form.machineName + ':';
@@ -100,20 +90,19 @@ module.exports = function(db, config, tools, done) {
           machineName = machineName + action.name;
           actions.updateOne(
             {_id: action._id},
-            {$set: {machineName: machineName}},
-            function (err) {
-              if (err) { return next(err); }
-              next();
-            }
-          );
-        });
+            {$set: {machineName: machineName}})
+          .then(() => next())
+          .catch(err => next(err));
+        })
+        .catch(err => next(err));
       }, function(err) {
         if (err) {
           return callback(err);
         }
         callback();
       });
-    });
+    })
+    .catch(err => callback(err));
   };
 
   /**
@@ -122,13 +111,11 @@ module.exports = function(db, config, tools, done) {
   let updateRoles = function(callback) {
     let projects = db.collection('projects');
     let roles = db.collection('roles');
-    roles.find().snapshot({$snapshot: true}).toArray(function(err, docs) {
-      if (err) {
-        return callback(err);
-      }
+    roles.find().toArray()
+    .then(docs => {
       async.forEachOf(docs, function(role, key, next) {
-        projects.findOne({_id: role.project}, function(err, project) {
-          if (err) { return next(err); }
+        projects.findOne({_id: role.project})
+        .then(project => {
           let machineName = '';
           if (project) {
             machineName = project.machineName + ':';
@@ -136,20 +123,19 @@ module.exports = function(db, config, tools, done) {
           machineName = machineName + _.camelCase(role.title);
           roles.updateOne(
             {_id: role._id},
-            {$set: {machineName: machineName}},
-            function (err) {
-              if (err) { return next(err); }
-              next();
-            }
-          );
-        });
+            {$set: {machineName: machineName}})
+          .then(() => next())
+          .catch(err => next(err));
+        })
+        .catch(err => next(err));
       }, function(err) {
         if (err) {
           return callback(err);
         }
         callback();
       });
-    });
+    })
+    .catch(err => callback(err));
   };
 
   async.series([
