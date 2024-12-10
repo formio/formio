@@ -224,5 +224,11 @@ module.exports = function(app, template, hook) {
       const sanitized = sanitizeMongoConnectionString(url);
       assert.equal(sanitized, 'mongodb+srv://user@localhost:27017/db');
     });
+    
+    it('Should not be affected by query string params', function () {
+      const url = 'mongodb://user:password@localhost:27017/db?authSource=admin';
+      const sanitized = sanitizeMongoConnectionString(url);
+      assert.equal(sanitized, 'mongodb://user:***@localhost:27017/db?authSource=admin');
+    });
   });
 }
