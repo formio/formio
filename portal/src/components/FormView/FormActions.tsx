@@ -90,7 +90,7 @@ export const FormActions = ({
             return [];
         }
     }, [Formio, formId]);
-    const { data, page, setPage } = usePagination<FormAction>(
+    const { data, setPage } = usePagination<FormAction>(
         1,
         limit || 10,
         fetchFunction

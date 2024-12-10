@@ -296,10 +296,8 @@ const mapAccessToSubmission = (access: Access[]) => {
 
 export const FormAccess = ({ id }: { id: string }) => {
     const { token, Formio } = useFormioContext();
-    const [formAccess, setFormAccess] = useState<Access[] | null>(null);
-    const [submissionAccess, setSubmissionAccess] = useState<Access[] | null>(
-        null
-    );
+    const [formAccess, setFormAccess] = useState<Access[] | undefined>();
+    const [submissionAccess, setSubmissionAccess] = useState<Access[] | undefined>();
     const [roles, setRoles] = useState<Role[] | null>(null);
 
     useEffect(() => {

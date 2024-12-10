@@ -439,13 +439,7 @@ ol:last-child {
 }
 ul li,
 ol li {
-    margin-left: 30px;
-    list-style-type: disc;
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-ol li {
-    list-style-type: decimal;
+    list-style-type: none;
 }
 
 /* Code */
@@ -1104,7 +1098,6 @@ label:hover {
     cursor: pointer;
     font-family: var(--primaryFont);
 }
-input,
 select,
 textarea {
     color: var(--primaryTextColor);
@@ -1121,7 +1114,7 @@ textarea {
     transition: 0.15s linear all;
 }
 
-input[type="radio"],
+/* input[type="radio"],
 input[type="checkbox"] {
     border-radius: unset;
     line-height: 1em;
@@ -1131,15 +1124,15 @@ input[type="checkbox"] {
     background-color: unset;
     box-shadow: unset;
     border: unset;
-}
+} */
 
-input:focus,
+/* input:focus,
 select:focus,
 textarea:focus {
     border: 1px solid var(--gray5);
     transition: 0.15s linear all;
-}
-input[type="radio"]:focus,
+} */
+/* input[type="radio"]:focus,
 input[type="checkbox"]:focus {
     border: unset;
     outline: 1px dotted var(--gray5);
@@ -1157,7 +1150,7 @@ input[type="checkbox"]:focus {
 .form textarea {
     border: 1px solid var(--green2a);
     transition: 0.15s linear all;
-}
+} */
 
 .resource input:focus,
 .resource select:focus,
@@ -3071,6 +3064,7 @@ button.expand-components:hover {
 .form-action-add-wrap {
     display: flex;
     align-items: center;
+    flex-basis: 40%;
     gap: 15px;
 }
 .form-action-add-wrap button {
