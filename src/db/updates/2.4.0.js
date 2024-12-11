@@ -22,7 +22,7 @@ module.exports = function(db, config, tools, done) {
   let forms = db.collection('forms');
   let formPromises = [];
 
-  forms.find().snapshot({$snapshot: true}).forEach(function(form) {
+  forms.find().toArray().forEach(function(form) {
     let componentPromises = [];
     // Loop through all components
     utils.eachComponent(form.components, function(component) {

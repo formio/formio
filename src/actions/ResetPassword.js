@@ -40,19 +40,16 @@ module.exports = (router) => {
       });
     }
 
-    static settingsForm(req, res, next) {
+    static async settingsForm(req, res, next) {
+      try {
       // Get the available email transports.
-      emailer.availableTransports(req, (err, availableTransports) => {
-        if (err) {
-          log(req, ecode.emailer.ENOTRANSP, err);
-          return next(err);
-        }
+        const availableTransports = await emailer.availableTransports(req);
 
         const basePath = hook.alter('path', '/form', req);
         const dataSrc = `${basePath}/${req.params.formId}/components`;
 
         // Return the reset password information.
-        next(null, [
+        return next(null, [
           {
             type: 'select',
             input: true,
@@ -174,7 +171,11 @@ module.exports = (router) => {
             input: true,
           },
         ]);
-      });
+      }
+      catch (err) {
+        log(req, ecode.emailer.ENOTRANSP, err);
+        return next(err);
+      }
     }
 
     /**
@@ -184,7 +185,7 @@ module.exports = (router) => {
      * @param token
      * @param next
      */
-    getSubmission(req, token, next) {
+    async getSubmission(req, token, next) {
       // Only continue if the resources are provided.
       if (!token.resources || !token.resources.length) {
         return;
@@ -199,19 +200,24 @@ module.exports = (router) => {
       };
 
       query[usernamekey] = {$regex: new RegExp(`^${util.escapeRegExp(token.username)}$`), $options: 'i'};
-      query.form = {$in: _.map(token.resources, router.formio.mongoose.Types.ObjectId)};
+      query.form = {$in: _.map(token.resources)};
 
       // Perform a mongo query to find the submission.
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-      submissionModel.findOne(hook.alter('submissionQuery', query, req), (err, submission) => {
-        if (err || !submission) {
-          log(req, ecode.submission.ENOSUB, err);
+      try {
+        const submission = await submissionModel.findOne(hook.alter('submissionQuery', query, req));
+        if (!submission) {
+          log(req, ecode.submission.ENOSUB);
           return next(ecode.submission.ENOSUB);
         }
 
         // Submission found.
-        next(null, submission);
-      });
+        return next(null, submission);
+      }
+      catch (err) {
+        log(req, ecode.submission.ENOSUB, err);
+        return next(ecode.submission.ENOSUB);
+      }
     }
 
     /**
@@ -244,7 +250,7 @@ module.exports = (router) => {
         }
 
         // Manually encrypt and update the password.
-        router.formio.encrypt(password, (err, hash) => {
+        router.formio.encrypt(password, async (err, hash) => {
           if (err) {
             log(req, ecode.auth.EPASSRESET, err);
             return next(ecode.auth.EPASSRESET);
@@ -256,19 +262,18 @@ module.exports = (router) => {
 
           // Update the password.
           const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-          submissionModel.updateOne(
-            {_id: submission._id},
-            {$set: setValue},
-            (err, newSub) => {
-              if (err) {
-                log(req, ecode.auth.EPASSRESET, err);
-                return next(ecode.auth.EPASSRESET);
-              }
+          try {
+            await submissionModel.updateOne(
+              {_id: submission._id},
+              {$set: setValue});
 
-              // The submission was saved!
-              next(null, submission);
-            },
-          );
+            // The submission was saved!
+            return next(null, submission);
+          }
+          catch (err) {
+            log(req, ecode.auth.EPASSRESET, err);
+            return next(ecode.auth.EPASSRESET);
+          }
         });
       });
     }
@@ -276,7 +281,7 @@ module.exports = (router) => {
     /**
      * Initialize the action.
      */
-    initialize(method, req, res, next) {
+    async initialize(method, req, res, next) {
       // See if we have a reset password token.
       const hasResetToken = Boolean(req.tempToken && (req.tempToken.type === 'resetpass'));
       if (!hasResetToken && (method === 'create')) {
@@ -299,14 +304,10 @@ module.exports = (router) => {
         };
 
         // Load the form for this request.
-        router.formio.cache.loadCurrentForm(req, (err, form) => {
-          if (err) {
-            log(req, ecode.cache.EFORMLOAD, err);
-            return next(err);
-          }
-
+        try {
+          const form = await router.formio.cache.loadCurrentForm(req);
           // Look up the user.
-          this.getSubmission(req, token, (err, submission) => {
+          this.getSubmission(req, token, async (err, submission) => {
             if (err || !submission) {
               log(req, ecode.user.ENOUSER, err);
               return next(ecode.user.ENOUSER);
@@ -330,23 +331,28 @@ module.exports = (router) => {
             } = this.settings;
 
             // Now send them an email.
-            emailer.send(req, res, {
-              transport,
-              from,
-              emails: username,
-              subject,
-              message,
-            }, _.assign(params, req.body, {form}), (err) => {
-              if (err) {
-                log(req, ecode.emailer.ESENDMAIL, err);
-              }
+            try {
+              await emailer.send(req, res, {
+                transport,
+                from,
+                emails: username,
+                subject,
+                message,
+              }, _.assign(params, req.body, {form}));
               // Let them know an email is on its way.
               res.status(200).json({
                 message: 'Password reset email was sent.',
               });
-            });
+            }
+ catch (err) {
+              log(req, ecode.emailer.ESENDMAIL, err);
+            }
           });
-        });
+      }
+      catch (err) {
+        log(req, ecode.cache.EFORMLOAD, err);
+        return next(err);
+        }
       }
       else {
         // Set the username for validation purposes.
