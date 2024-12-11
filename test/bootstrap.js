@@ -8,8 +8,8 @@ var comparison = null;
 
 module.exports = (app, template, hook) => {
   describe('Bootstrap test data', function() {
-    it('Should remove old test data', function(done) {
-      template.clearData(done);
+    it('Should remove old test data', async function() {
+      await template.clearData();
     });
 
     it('Should be able to bootstrap the default template', async function() {
