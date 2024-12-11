@@ -339,12 +339,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -454,12 +454,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -569,12 +569,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -684,12 +684,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -799,12 +799,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -914,12 +914,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1029,12 +1029,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1144,12 +1144,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1259,12 +1259,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1374,12 +1374,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1493,12 +1493,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1612,12 +1612,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1719,12 +1719,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1836,12 +1836,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1953,12 +1953,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2069,12 +2069,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2185,12 +2185,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2302,12 +2302,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2418,12 +2418,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2533,12 +2533,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2648,12 +2648,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2763,12 +2763,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2882,12 +2882,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2998,12 +2998,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3113,12 +3113,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3228,12 +3228,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3343,12 +3343,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3377,12 +3377,12 @@ module.exports = (app, template, hook) => {
         assert.equal(data.resources.b.access[1].roles[0].toString(), 'everyone');
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3409,12 +3409,12 @@ module.exports = (app, template, hook) => {
        done();
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3439,12 +3439,12 @@ module.exports = (app, template, hook) => {
        done();
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3479,12 +3479,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3550,12 +3550,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
   });
