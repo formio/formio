@@ -2544,10 +2544,10 @@ resolve@^1.22.8:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-resourcejs@2.6.0-dev.148.e514d9c:
-  version "2.6.0-dev.148.e514d9c"
-  resolved "https://registry.npmjs.org/resourcejs/-/resourcejs-2.6.0-dev.148.e514d9c.tgz#d7f35cababdf9627e0a4a2ac62caba6abb58ab19"
-  integrity sha512-4d5ZevcnAOXZBI+m8BnlG3IqpJNc4nPJh1Gu0angYesEJEAQjL6gbIlJhgVhwwi1qLwBuWkNkUxZHVWyRB7vug==
+resourcejs@2.6.1-rc.1:
+  version "2.6.1-rc.1"
+  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.1-rc.1.tgz#bc758465a34b611e8041a2079653619e2d77229c"
+  integrity sha512-pHZtZisPVFtuXpb4TubEpoyjf10jSt3PAeOQM1QPxPY5fbEn5ze3zuVqzt2FFE3iOnT/z8wK3F9Vortn8xUC0g==
   dependencies:
     debug "^4.3.2"
     fast-json-patch "^3.1.1"

@@ -4,10 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.3.1-rc.1]
+## 4.3.1-rc.1
 ### Changed
+ - Updated resourcejs@2.6.1-rc.1
+ - FIO-9099: fix various async problems
  - FIO-8295: mongoose upgrade (4.3.x)
-   
+
 ## 4.3.0
 ### Changed
  - Official Release
