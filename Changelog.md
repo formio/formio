@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.3.1-rc.4]
+ - fix tls options
+
 ## 4.3.1-rc.3
  - update tls options
    
