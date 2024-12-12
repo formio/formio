@@ -3,6 +3,7 @@
 const _ = require('lodash');
 const util = require('../util/util');
 const EVERYONE = '000000000000000000000000';
+const {encode} = require('html-entities');
 
 /**
  * Perform an export of a specified template.
@@ -384,13 +385,15 @@ module.exports = (router) => {
     router.get('/export', async (req, res, next) => {
       const options = await hook.alter('exportOptions', {}, req, res);
       if (options) {
-        options.includeFormFields = (req.query.include && req.query.include.split(',').filter((field) => !!field));
+        options.includeFormFields = (req.query.include && req.query.include
+          .split(',')
+          .filter((field) => !!field));
       }
 
       try {
         const data = await exportTemplate(options);
         res.attachment(`${options.name}-${options.version}.json`);
-        res.end(JSON.stringify(data));
+        res.json(data);
       }
       catch (err) {
         return next(err.message || err);
