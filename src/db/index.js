@@ -205,7 +205,7 @@ module.exports = function(formio) {
     }
     if (config.mongoSA || config.mongoCA) {
       mongoConfig.tls = true;
-      mongoConfig.tlsCA = config.mongoSA || config.mongoCA;
+      mongoConfig.tlsCAFile = config.mongoSA || config.mongoCA;
     }
     if (config.mongoSSL) {
       mongoConfig = {
