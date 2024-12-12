@@ -712,7 +712,7 @@ module.exports = function(formio) {
         await unlock();
         return db;
       }
-      catch (err) {
+      catch (ignoreErr) {
         debug.db(err);
         throw err;
       }
