@@ -108,42 +108,52 @@ module.exports = function(formio) {
       return;
     }
 
-    console.log('Loading Mongo SSL Certificates');
+    console.log('Loading Mongo TLS Certificates');
 
     const certs = {
-      sslValidate: !!config.mongoSSLValidate,
-      ssl: true,
+      tls: true,
+      tlsAllowInvalidCertificates: !config.mongoSSLValidate,
     };
 
     if (config.mongoSSLPassword) {
-      certs.sslPass = config.mongoSSLPassword;
+      certs.tlsCertificateKeyFilePassword = config.mongoSSLPassword;
     }
 
     const files = {
-      sslCA: 'ca.pem',
-      sslCert: 'cert.pem',
-      sslCRL: 'crl.pem',
-      sslKey: 'key.pem',
+      ca: 'ca.pem',
+      cert: 'cert.pem',
+      crl: 'crl.pem',
+      key: 'key.pem',
     };
 
-    // Load each file into its setting.
     Object.keys(files).forEach((key) => {
       const file = files[key];
-      if (fs.existsSync(path.join(config.mongoSSL, file))) {
-        console.log(' > Reading', path.join(config.mongoSSL, file));
-        if (key === 'sslCA') {
-          certs[key] = [fs.readFileSync(path.join(config.mongoSSL, file))];
+      const filePath = path.join(config.mongoSSL, file);
+
+      if (fs.existsSync(filePath)) {
+        console.log(' > Reading', filePath);
+        const data = fs.readFileSync(filePath);
+
+        if (key === 'ca') {
+          // 'ca' can be an array if multiple CAs need to be trusted
+          certs.ca = [data];
         }
-        else {
-          certs[key] = fs.readFileSync(path.join(config.mongoSSL, file));
+        else if (key === 'crl') {
+          certs.crl = data;
+        }
+        else if (key === 'cert') {
+          certs.cert = data;
+        }
+        else if (key === 'key') {
+          certs.key = data;
         }
       }
       else {
-        console.log(' > Could not find', path.join(config.mongoSSL, file), 'skipping');
+        console.log(' > Could not find', filePath, 'skipping');
       }
     });
-    console.log('');
 
+    console.log('');
     config.mongoSSL = certs;
   };
 
@@ -174,7 +184,7 @@ module.exports = function(formio) {
       mongoConfig.socketTimeoutMS = 300000;
     }
     if (config.mongoSA || config.mongoCA) {
-      mongoConfig.sslValidate = true;
+      mongoConfig.tls = true;
       mongoConfig.sslCA = config.mongoSA || config.mongoCA;
     }
     if (config.mongoSSL) {
