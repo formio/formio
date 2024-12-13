@@ -244,7 +244,7 @@ module.exports = (router) => {
           }, req);
 
           let vm = new VM({
-            timeout: 500,
+            timeout: router.formio.config.vmTimeout,
             sandbox: {
               execute: params.execute,
               query: params.query,
