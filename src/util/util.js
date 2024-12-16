@@ -557,8 +557,12 @@ const Utils = {
     // Iterate through all components.
     this.eachComponent(form.components, (component, path) => {
       path = `data.${path}`;
+      if (component.type === 'tagpad') {
+        tagpadComponentsKeys.push(component.key);
+      }
       if (component.protected) {
         debug.removeProtectedFields('Removing protected field:', component.key);
+
         modifyFields.push((submission) => {
           function removeFieldByPath(obj, path) {
             // Split the path into an array of keys
@@ -593,16 +597,16 @@ const Utils = {
                   currentObj.forEach(item => traverseAndRemove(item, currentKeys));
                 }
                 else {
-                  traverseAndRemove(currentObj[key], currentKeys.slice(1));
+                    traverseAndRemove(currentObj[key], currentKeys.slice(1));
+                  }
                 }
               }
-            }
 
-            // Start the recursion
-            traverseAndRemove(obj, keys);
-          }
-          removeFieldByPath(submission, path);
-      });
+              // Start the recursion
+              traverseAndRemove(obj, keys);
+            }
+            removeFieldByPath(submission, path);
+        });
       }
       else if ((component.type === 'signature') && (action === 'index') && !doNotMinify) {
         modifyFields.push(((submission) => {
