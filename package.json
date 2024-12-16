@@ -46,7 +46,7 @@
     "memory-cache": "^0.2.0",
     "moment": "^2.29.3",
     "moment-timezone": "^0.5.34",
-    "mongodb": "^6.8.0",
+    "mongodb": "^6.12.0",
     "mongoose": "^8.4.4",
     "nodemailer": "^6.8.0",
     "progress": "^2.0.3",
