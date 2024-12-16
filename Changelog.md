@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.3.1-rc.6
+### Changed
+ - Updated resourcejs@2.6.1-rc.2
+ - CHORE: upgrade mongodb driver dependency
+
 ## 4.3.1-rc.5
 ### Changed
  - tlsCA to tls CAFile
