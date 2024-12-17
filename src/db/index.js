@@ -230,7 +230,12 @@ module.exports = function(formio) {
       }
        catch (err) {
         debug.db(`Connection Error: ${err}`);
-        await unlock();
+        try {
+          await unlock();
+        }
+        catch (ignoreErr) {
+          debug.db(`Unlock Error: ${ignoreErr}`);
+        }
         throw new Error(`Could not connect to the given Database for server updates: ${dbUrl}.`);
       }
     }
@@ -744,7 +749,7 @@ module.exports = function(formio) {
         await unlock();
         return db;
       }
-      catch (err) {
+      catch (ignoreErr) {
         debug.db(err);
         throw err;
       }
