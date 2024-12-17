@@ -69,7 +69,7 @@ You can then download this repository, navigate to the folder in your Terminal, 
 # install dependencies
 yarn
 # build the client application
-yarn build
+yarn build:portal
 # start the server
 yarn start
 ```

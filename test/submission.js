@@ -1819,6 +1819,111 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('Hidden calculated values are hidden on update of submission', function(done) {
+        var components = [
+          {
+            "label": "Hide 2",
+            "tableView": false,
+            "validateWhenHidden": false,
+            "key": "hide2",
+            "type": "checkbox",
+            "input": true,
+            "defaultValue": false
+          },
+          {
+            "label": "Number1",
+            "applyMaskOn": "change",
+            "mask": false,
+            "tableView": false,
+            "delimiter": false,
+            "requireDecimal": false,
+            "inputFormat": "plain",
+            "truncateMultipleSpaces": false,
+            "validateWhenHidden": false,
+            "key": "number1",
+            "type": "number",
+            "input": true
+          },
+          {
+            "label": "Number2",
+            "applyMaskOn": "change",
+            "mask": false,
+            "tableView": false,
+            "delimiter": false,
+            "requireDecimal": false,
+            "inputFormat": "plain",
+            "truncateMultipleSpaces": false,
+            "validateWhenHidden": false,
+            "key": "number2",
+            "type": "number",
+            "input": true
+          },
+          {
+            "label": "Number3 Calculated clear value when hidden = true",
+            "applyMaskOn": "change",
+            "mask": false,
+            "tableView": true,
+            "delimiter": false,
+            "requireDecimal": false,
+            "inputFormat": "plain",
+            "truncateMultipleSpaces": false,
+            "calculateValue": "value = data.number1 + data.number2",
+            "validateWhenHidden": false,
+            "key": "number3CalculatedClearValueWhenHiddenTrue",
+            "conditional": {
+              "show": false,
+              "conjunction": "all",
+              "conditions": [
+                {
+                  "component": "hide2",
+                  "operator": "isEqual",
+                  "value": true
+                }
+              ]
+            },
+            "type": "number",
+            "input": true
+          }
+        ];
+
+        var values = {
+          hide2: false,
+          number1: 100,
+          number2: 200,
+          number3CalculatedClearValueWhenHiddenTrue: 300,
+        }
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(values, submission.data);
+
+            var updatedSubmission = _.cloneDeep(submission);
+            var updatedData = {
+              "hide2": true,
+              "number1": 100,
+              "number2": 200
+            }
+            _.set(updatedSubmission, 'data', updatedData);
+            
+            helper.updateSubmission(updatedSubmission, (err) => {
+              if (err) {
+                return done(err);
+              }
+              var editedSubmission = helper.getLastSubmission();
+              assert.deepEqual(updatedData, editedSubmission.data);
+              assert(!editedSubmission.data.hasOwnProperty('number3CalculatedClearValueWhenHiddenTrue'));
+              done();
+            })
+          });
+      })
+
       it('Allows a conditionally required field', function(done) {
         var components = [
           {
@@ -5118,7 +5223,7 @@ module.exports = function(app, template, hook) {
 
     before('Create the child form1', (done) => {
       helper
-        .form('form1', [
+        .form('childForm1', [
           {
             label: 'Text Field form1',
             applyMaskOn: 'change',
@@ -5145,7 +5250,7 @@ module.exports = function(app, template, hook) {
 
     before('Create the child form2', (done) => {
       helper
-        .form('form2', [
+        .form('childForm2', [
           {
             label: 'Text Field - form2',
             applyMaskOn: 'change',
@@ -5161,7 +5266,7 @@ module.exports = function(app, template, hook) {
           {
             label: 'Form',
             tableView: true,
-            form: helper.template.forms.form1._id,
+            form: helper.template.forms.childForm1._id,
             useOriginalRevision: false,
             key: 'form',
             type: 'form',
@@ -5179,9 +5284,36 @@ module.exports = function(app, template, hook) {
         .execute(done);
     });
 
+    before('Create the child form3', (done) => {
+      helper
+        .form('childForm3', [
+          {
+            label: 'Text Field - form3',
+            applyMaskOn: 'change',
+            tableView: true,
+            validate: {
+              required: true,
+            },
+            validateWhenHidden: false,
+            key: 'textFieldForm3',
+            type: 'textfield',
+            input: true,
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ])
+        .execute(done);
+    });
+
     before('Create the parent form', (done) => {
       helper
-        .form('form3', [
+        .form('parentForm1', [
           {
             label: 'Radio',
             optionsLabelPosition: 'right',
@@ -5207,7 +5339,7 @@ module.exports = function(app, template, hook) {
           {
             label: 'Form',
             tableView: true,
-            form: helper.template.forms.form2._id,
+            form: helper.template.forms.childForm2._id,
             useOriginalRevision: false,
             key: 'form',
             conditional: {
@@ -5236,9 +5368,121 @@ module.exports = function(app, template, hook) {
         .execute(done);
     });
 
+    before('Create the parent form 2', (done) => {
+      helper
+        .form('parentForm2', [
+          {
+            label: 'Radio',
+            optionsLabelPosition: 'right',
+            inline: false,
+            tableView: false,
+            values: [
+              {
+                label: 'a',
+                value: 'a',
+                shortcut: '',
+              },
+              {
+                label: 'b',
+                value: 'b',
+                shortcut: '',
+              },
+            ],
+            validateWhenHidden: false,
+            key: 'radio',
+            type: 'radio',
+            input: true,
+          },
+          {
+            label: 'Form',
+            tableView: true,
+            form: helper.template.forms.childForm1._id,
+            useOriginalRevision: false,
+            key: 'form',
+            conditional: {
+              show: true,
+              conjunction: 'all',
+              conditions: [
+                {
+                  component: 'radio',
+                  operator: 'isEqual',
+                  value: 'a',
+                },
+              ],
+            },
+            type: 'form',
+            input: true,
+          },
+          {
+            label: 'Form 2',
+            tableView: true,
+            form: helper.template.forms.childForm3._id,
+            useOriginalRevision: false,
+            key: 'form2',
+            conditional: {
+              show: true,
+              conjunction: 'all',
+              conditions: [
+                {
+                  component: 'radio',
+                  operator: 'isEqual',
+                  value: 'b',
+                },
+              ],
+            },
+            type: 'form',
+            input: true,
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ])
+        .execute(done);
+    });
+
     let nestedSubmission = null;
+    it('Should allow you to submit data into a conditionally visible form if another nested form is conditionally hidden', (done) => {
+      helper.submission('parentForm2', {
+        radio: 'b',
+        submit: true,
+        form2: {
+          data: {
+            textFieldForm3: 'Hello'
+          }
+        }
+      }).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        nestedSubmission = helper.lastSubmission;
+        assert.equal(nestedSubmission.data.radio, 'b');
+        assert.equal(nestedSubmission.data.form2.data.textFieldForm3, 'Hello');
+        done();
+      });
+    });
+
+    it('Should allow you to update data into a conditionally visible form if another nested form is conditionally hidden', (done) => {
+      nestedSubmission.data.form2.data.textFieldForm3 = 'Hello Update';
+      helper.submission('parentForm2', nestedSubmission).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        nestedSubmission = helper.lastSubmission;
+        assert.equal(nestedSubmission.data.radio, 'b');
+        assert.equal(nestedSubmission.data.form2.data.textFieldForm3, 'Hello Update');
+        done();
+      });
+    });
+
     it('Should let you create a submission without errors', (done) => {
-      helper.submission('form3', { 
+      helper.submission('parentForm1', {
         radio: 'b',
         submit: true
       }).execute((err) => {
@@ -5253,7 +5497,7 @@ module.exports = function(app, template, hook) {
     });
     
     it('Should allow you to submit data to the nested form.', (done) => {
-      helper.submission('form3', { 
+      helper.submission('parentForm1', {
         radio: 'a',
         form: {
           data: {
@@ -5282,7 +5526,7 @@ module.exports = function(app, template, hook) {
     it('Should allow you to update data to the nested form.', (done) => {
       nestedSubmission.data.form.data.textFieldForm2 = 'Foo 1';
       nestedSubmission.data.form.data.form.data.textFieldForm1 = 'Bar 1';
-      helper.submission('form3', nestedSubmission).execute((err) => {
+      helper.submission('parentForm1', nestedSubmission).execute((err) => {
         if (err) {
           return done(err);
         }
@@ -5293,7 +5537,7 @@ module.exports = function(app, template, hook) {
     });
 
     it('Should have updated the data of the nested forms.', (done) => {
-      helper.getSubmission('form3', nestedSubmission._id, function(err, submission) {
+      helper.getSubmission('parentForm1', nestedSubmission._id, function(err, submission) {
         if (err) {
           done(err);
         }

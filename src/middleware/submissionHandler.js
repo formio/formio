@@ -283,19 +283,6 @@ module.exports = (router, resourceName, resourceId) => {
           ) {
             util.deleteProp(component.key)(data);
           }
-          else if (req.method === 'PUT') {
-            // Restore value of components with calculated value and disabled server calculation
-            // if they don't present in submission data
-            const newCompData = _.get(submissionData, componentPath, undefined);
-            const currentCompData = _.get(req.currentSubmissionData, componentPath);
-
-            if (component.calculateValue &&
-                !component.calculateServer &&
-                currentCompData &&
-                newCompData === undefined) {
-              _.set(submissionData, componentPath, _.get(req.currentSubmissionData, componentPath));
-            }
-          }
 
           const fieldActions = hook.alter('fieldActions', fActions);
           const propertyActions = hook.alter('propertyActions', pActions);

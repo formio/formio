@@ -9,7 +9,7 @@
     "start": "node --no-node-snapshot main.js",
     "start:dev": "nodemon --no-node-snapshot main.js",
     "lint": "eslint .",
-    "build": "cd portal && yarn && yarn build && cd ..",
+    "build:portal": "cd portal && yarn && yarn build && cd ..",
     "show-coverage": "open coverage/lcov-report/index.html"
   },
   "author": "support@form.io",
@@ -48,7 +48,7 @@
     "memory-cache": "^0.2.0",
     "moment": "^2.29.3",
     "moment-timezone": "^0.5.34",
-    "mongodb": "^6.8.0",
+    "mongodb": "^6.12.0",
     "mongoose": "^8.4.4",
     "nodemailer": "^6.8.0",
     "progress": "^2.0.3",
