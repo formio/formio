@@ -204,7 +204,7 @@ module.exports = (router, resourceName, resourceId) => {
 
       // Next we need to validate the input.
       await new Promise((resolve, reject) => {
-        hook.alter('validateSubmissionForm', req.currentForm, req.body, async (form) => {
+        hook.alter('validateSubmissionForm', req.currentForm, req.body, req, async (form) => {
         // Get the models for validation
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;//
         const submissionResource = router.formio.resources.submission;
