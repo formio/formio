@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.3.1-rc.7
+### Changed
+ - FIO-9483: fixed email action
+
 ## 4.3.1-rc.6
 ### Changed
  - Updated resourcejs@2.6.1-rc.2
