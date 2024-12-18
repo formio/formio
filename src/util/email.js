@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 'use strict';
 
 const nodemailer = require('nodemailer');
@@ -29,9 +30,8 @@ module.exports = (formio) => {
    * Get the list of available email transports.
    *
    * @param req
-   * @param next
    */
-  const availableTransports = async (req, next) => {
+  const availableTransports = async (req) => {
     try {
       const settings = await hook.settings(req);
       // Build the list of available transports, based on the present project settings.
@@ -74,15 +74,14 @@ module.exports = (formio) => {
         });
       }
 
-      availableTransports = hook.alter('emailTransports', availableTransports, settings, req, next);
+      availableTransports = hook.alter('emailTransports', availableTransports, settings, req);
       // Make it reverse compatible. Should be asyncronous now.
       if (availableTransports) {
-        return next(null, availableTransports);
+        return availableTransports;
       }
     }
     catch (err) {
       debug.email(err);
-      return next(err);
     }
   };
 
@@ -214,10 +213,9 @@ module.exports = (formio) => {
    * @param res
    * @param message
    * @param params
-   * @param next
    * @returns {*}
    */
-  const send = async (req, res, message, params, next, setActionItemMessage = () => {}) => {
+  const send = async (req, res, message, params, setActionItemMessage = () => {}) => {
     const setParams = (params, req, res, message) => {
         // Add the request params.
         params.req = _.pick(req, [
@@ -369,6 +367,7 @@ module.exports = (formio) => {
           };
           break;
       }
+      return transporter;
     };
 
     const prepareMail = (message) => {
@@ -494,22 +493,21 @@ module.exports = (formio) => {
       const sendWithUser = async () => {
         try {
           const response = await sendEmails();
-          return next(null, response);
+          return response;
         }
         catch (err) {
           debug.error(err);
-          return next(err);
+          throw new Error(err);
         }
       };
 
       const sensWithoutUser = () => {
         try {
           throttledSendEmails();
-          return next();
         }
         catch (err) {
           debug.error(err);
-          return next(err);
+          throw new Error(err);
         }
       };
 
@@ -524,9 +522,6 @@ module.exports = (formio) => {
     const isTransportValid = (transporter) => !transporter || typeof transporter.sendMail !== 'function';
 
     try {
-      // The transporter object.
-      const transporter = {sendMail: null};
-
       setParams(params, req, res, message);
 
       // Get the transport for this context.
@@ -563,12 +558,12 @@ module.exports = (formio) => {
         }
       }
 
-      setTransporter(transporter, emailType, settings, _config);
+      const transporter = setTransporter({sendMail: null}, emailType, settings, _config);
 
       // If we don't have a valid transport, don't waste time with nunjucks.
       if (isTransportValid(transporter)) {
         debug.error(`Could not determine which email transport to use for ${emailType}`);
-        return next();
+        return;
       }
 
       const options = {
@@ -579,7 +574,7 @@ module.exports = (formio) => {
     }
     catch (err) {
       debug.send(err);
-      return next(err);
+      throw new Error(err);
     }
   };
 
