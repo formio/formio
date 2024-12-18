@@ -562,7 +562,7 @@ module.exports = function(router) {
               // Load all subdata within this submission.
               submissionPromises.push(this.loadSubSubmissions(subInfo.component, sub, req, depth + 1));
             });
-            Promise.all(submissionPromises);
+            await Promise.all(submissionPromises);
           }
         }
       }
