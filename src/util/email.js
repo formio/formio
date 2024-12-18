@@ -570,7 +570,7 @@ module.exports = (formio) => {
         params,
       };
 
-      await send(transporter, message, options);
+      return await send(transporter, message, options);
     }
     catch (err) {
       debug.send(err);
