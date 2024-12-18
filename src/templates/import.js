@@ -335,7 +335,7 @@ module.exports = (router) => {
      return changed;
   };
 
-  const fallbackNestedForms = async (nestedForms, template, cb) => {
+  const fallbackNestedForms = async (nestedForms, template) => {
     try {
       for (const nestedForm of nestedForms ) {
         const query = {
@@ -361,18 +361,15 @@ module.exports = (router) => {
         if (doc) {
           nestedForm.form = formio.util.idToString(doc._id);
         }
-    }
-      if (cb) {
-        return cb();
       }
     }
     catch (err) {
       debug.install(err);
-      return cb(err);
+      throw err;
     }
   };
 
-  const fallbackRoles = async (entities, template, cb) => {
+  const fallbackRoles = async (entities, template) => {
     const query = {
       $or: [
         {
@@ -404,15 +401,9 @@ module.exports = (router) => {
           entity.roles = _.filter(entity.roles);
         }
       });
-      if (cb) {
-        return cb();
-      }
     }
     catch (err) {
       debug.install(err);
-      if (cb) {
-        return cb(err);
-      }
       throw err;
     }
   };
