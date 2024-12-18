@@ -65,7 +65,7 @@ module.exports = (router) => {
    * @returns {Promise}
    *   Result of deleting the action(s), resolved by deleted entity(ies).
    */
-  function deleteAction(actionId, forms, req) {
+  async function deleteAction(actionId, forms, req) {
     const util = router.formio.util;
     if (!actionId && !forms) {
       return Promise.resolve();
@@ -78,6 +78,13 @@ module.exports = (router) => {
     const query = {deleted: {$eq: null}};
     if (actionId) {
       query._id = util.idToBson(actionId);
+      query.form = util.idToBson(req.formId);
+
+      const actions  = await router.formio.actions.model.find(query).exec();
+
+      if (!actions || !actions.length) {
+        throw Error('Could not find the action');
+      }
     }
     else {
       forms = forms.map(util.idToBson);

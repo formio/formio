@@ -175,8 +175,8 @@ module.exports = function(config) {
         mongoUrl = config.mongo.join(',');
       }
       if (config.mongoSA || config.mongoCA) {
-        mongoConfig.sslValidate = true;
-        mongoConfig.sslCA = config.mongoSA || config.mongoCA;
+        mongoConfig.tls = true;
+        mongoConfig.tlsCAFile = config.mongoSA || config.mongoCA;
       }
 
       if (config.mongoSSL) {

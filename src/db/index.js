@@ -66,6 +66,26 @@ module.exports = function(formio) {
   };
 
   /**
+   *
+   * @param {object} lock - The lock object to sanitize.
+   * @returns {object|undefined} - The sanitized lock object.
+   */
+  const sanitizeLock = function(lock) {
+    if (!lock) {
+      return;
+    }
+    if (typeof lock !== 'object') {
+      throw new Error('Invalid lock object');
+    }
+    const validLock = {
+      key: lock.key,
+      isLocked: lock.isLocked,
+      version: lock.version
+    };
+    return validLock;
+  };
+
+  /**
    * Unlock the formio lock.
    *
    *   The next function to invoke after this function has finished.
@@ -76,12 +96,12 @@ module.exports = function(formio) {
     }
 
     currentLock.isLocked = false;
-      await schema.updateOne(
-        {key: 'formio'},
-        {$set: {isLocked: currentLock.isLocked}});
-      const result = await schema.findOne({key: 'formio'});
-      currentLock = result;
-      debug.db('Lock unlocked');
+    await schema.updateOne(
+      {key: 'formio'},
+      {$set: {isLocked: currentLock.isLocked}});
+    const result = await schema.findOne({key: 'formio'});
+    currentLock = sanitizeLock(result);
+    debug.db('Lock unlocked');
   };
   /**
    * Fetch the SA certificate.
@@ -108,42 +128,52 @@ module.exports = function(formio) {
       return;
     }
 
-    console.log('Loading Mongo SSL Certificates');
+    console.log('Loading Mongo TLS Certificates');
 
     const certs = {
-      sslValidate: !!config.mongoSSLValidate,
-      ssl: true,
+      tls: true,
+      tlsAllowInvalidCertificates: !config.mongoSSLValidate,
     };
 
     if (config.mongoSSLPassword) {
-      certs.sslPass = config.mongoSSLPassword;
+      certs.tlsCertificateKeyFilePassword = config.mongoSSLPassword;
     }
 
     const files = {
-      sslCA: 'ca.pem',
-      sslCert: 'cert.pem',
-      sslCRL: 'crl.pem',
-      sslKey: 'key.pem',
+      ca: 'ca.pem',
+      cert: 'cert.pem',
+      crl: 'crl.pem',
+      key: 'key.pem',
     };
 
-    // Load each file into its setting.
     Object.keys(files).forEach((key) => {
       const file = files[key];
-      if (fs.existsSync(path.join(config.mongoSSL, file))) {
-        console.log(' > Reading', path.join(config.mongoSSL, file));
-        if (key === 'sslCA') {
-          certs[key] = [fs.readFileSync(path.join(config.mongoSSL, file))];
+      const filePath = path.join(config.mongoSSL, file);
+
+      if (fs.existsSync(filePath)) {
+        console.log(' > Reading', filePath);
+        const data = fs.readFileSync(filePath);
+
+        if (key === 'ca') {
+          // 'ca' can be an array if multiple CAs need to be trusted
+          certs.ca = [data];
         }
-        else {
-          certs[key] = fs.readFileSync(path.join(config.mongoSSL, file));
+        else if (key === 'crl') {
+          certs.crl = data;
+        }
+        else if (key === 'cert') {
+          certs.cert = data;
+        }
+        else if (key === 'key') {
+          certs.key = data;
         }
       }
       else {
-        console.log(' > Could not find', path.join(config.mongoSSL, file), 'skipping');
+        console.log(' > Could not find', filePath, 'skipping');
       }
     });
-    console.log('');
 
+    console.log('');
     config.mongoSSL = certs;
   };
 
@@ -174,8 +204,8 @@ module.exports = function(formio) {
       mongoConfig.socketTimeoutMS = 300000;
     }
     if (config.mongoSA || config.mongoCA) {
-      mongoConfig.sslValidate = true;
-      mongoConfig.sslCA = config.mongoSA || config.mongoCA;
+      mongoConfig.tls = true;
+      mongoConfig.tlsCAFile = config.mongoSA || config.mongoCA;
     }
     if (config.mongoSSL) {
       mongoConfig = {
@@ -192,7 +222,7 @@ module.exports = function(formio) {
         await client.connect();
         db = client.db(client.s.options.dbName);
         debug.db('Connection successful');
-        const collection = await db.collection('schema');
+        const collection = db.collection('schema');
         debug.db('Schema collection opened');
         schema = collection;
         // Load the tools available to help manage updates.
@@ -200,7 +230,12 @@ module.exports = function(formio) {
       }
        catch (err) {
         debug.db(`Connection Error: ${err}`);
-        await unlock();
+        try {
+          await unlock();
+        }
+        catch (ignoreErr) {
+          debug.db(`Unlock Error: ${ignoreErr}`);
+        }
         throw new Error(`Could not connect to the given Database for server updates: ${dbUrl}.`);
       }
     }
@@ -213,20 +248,17 @@ module.exports = function(formio) {
    * Test to see if the application has been installed. Install if not.
    */
   const checkSetup = async function() {
-    setTimeout(async () => {
-      formio.util.log('Checking for db setup.');
-      const collections = await db.listCollections().toArray();
-      debug.db(`Collections found: ${collections.length}`);
-      // 3 is an arbitrary length. We just want a general idea that things have been installed.
-      if (collections.length < 3) {
-        formio.util.log(' > No collections found. Starting new setup.');
-        await require(path.join(__dirname, '/install'))(db, config);
-        formio.util.log(' > Setup complete.\n');
-      }
- else {
-        formio.util.log(' > Setup complete.\n');
-      }
-    }, Math.random() * 1000);
+    formio.util.log('Checking for db setup.'); const collections = await db.listCollections().toArray();
+    debug.db(`Collections found: ${collections.length}`);
+    // 3 is an arbitrary length. We just want a general idea that things have been installed.
+    if (collections.length < 3) {
+      formio.util.log(' > No collections found. Starting new setup.');
+      await require(path.join(__dirname, '/install'))(db, config);
+      formio.util.log(' > Setup complete.\n');
+    }
+    else {
+      formio.util.log(' > Setup complete.\n');
+    }
   };
 
   const checkEncryption = function() {
@@ -438,38 +470,43 @@ module.exports = function(formio) {
     }
 
     const document = await schema.find({key: 'formio'}).toArray();
-      // Engage the lock.
-      if (!document || document.length === 0) {
-        // Create a new lock, because one was not present.
-        debug.db('Creating a lock, because one was not found.');
-        const document = await schema.insertOne({
-          key: 'formio',
-          isLocked: (new Date()).getTime(),
-          version: config.schema
-        });
-        currentLock = document.ops[0];
-        debug.db('Created a new lock');
+    // Engage the lock.
+    if (!document || document.length === 0) {
+      // Create a new lock, because one was not present.
+      debug.db('Creating a lock, because one was not found.');
+      const document = {
+        key: 'formio',
+        isLocked: (new Date()).getTime(),
+        version: config.schema
+      };
+      const insertionResult = await schema.insertOne(document);
+      if (!insertionResult.acknowledged || !insertionResult.insertedId) {
+        throw new Error('Could not create a lock for the formio schema.');
       }
-      else if (document.length > 1) {
-        throw ('More than one lock was found, terminating updates.');
+      const lock = await schema.findOne({_id: insertionResult.insertedId});
+      currentLock = sanitizeLock(lock);
+      debug.db('Created a new lock');
+    }
+    else if (document.length > 1) {
+      throw ('More than one lock was found, terminating updates.');
+    }
+    else {
+      debug.db(document);
+      currentLock = document[0];
+
+      if (currentLock.isLocked) {
+        formio.util.log(' > DB is already locked for updating');
       }
       else {
-        debug.db(document);
-        currentLock = document[0];
-
-        if (currentLock.isLocked) {
-          formio.util.log(' > DB is already locked for updating');
-        }
-        else {
-          // Lock
-          await schema.updateOne(
-            {key: 'formio'},
-            {$set: {isLocked: (new Date()).getTime()}});
-          const result = await schema.findOne({key: 'formio'});
-          currentLock = result;
-          debug.db('Lock engaged');
-        }
+        // Lock
+        await schema.updateOne(
+          {key: 'formio'},
+          {$set: {isLocked: (new Date()).getTime()}});
+        const result = await schema.findOne({key: 'formio'});
+        currentLock = sanitizeLock(result);
+        debug.db('Lock engaged');
       }
+    }
   };
 
   /**
@@ -712,7 +749,7 @@ module.exports = function(formio) {
         await unlock();
         return db;
       }
-      catch (err) {
+      catch (ignoreErr) {
         debug.db(err);
         throw err;
       }

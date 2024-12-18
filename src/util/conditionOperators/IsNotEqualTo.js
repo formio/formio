@@ -15,7 +15,12 @@ module.exports = class IsNotEqualTo extends ConditionOperator {
   execute({
     value,
     comparedValue,
+    component
   }) {
+    // special check for select boxes
+    if (component?.type === 'selectboxes') {
+      return !_.get(value, comparedValue, false);
+    }
     return !_.isEqual(value,comparedValue);
   }
 };

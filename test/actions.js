@@ -46,7 +46,6 @@ module.exports = (app, template, hook) => {
       ],
     };
 
-
     // Store the temp action for this test suite.
     let tempAction = {};
     describe('Bootstrap', () => {
@@ -99,7 +98,6 @@ module.exports = (app, template, hook) => {
             done();
           });
       });
-
    });
 
     describe('Permissions - Project Level - Project Owner', () => {
@@ -277,6 +275,48 @@ module.exports = (app, template, hook) => {
           .expect('Content-Type', /text\/plain/)
           .expect(401)
           .end(done);
+      });
+
+      it('A user should not be able to Delete an Action using incorrect path', (done) => {
+        let tempForm2 = {
+          title: 'Temp Form 2',
+          name: 'tempForm2',
+          path: 'temp2',
+          type: 'form',
+          access: [],
+          submissionAccess: [],
+          components: [
+            {
+              type: 'textfield',
+              key: 'bar',
+              label: 'bar',
+              inputMask: '',
+              input: true,
+            },
+          ],
+        };
+        request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(tempForm2)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          tempForm2 = res.body;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          request(app)
+          .delete(hook.alter('url', `/form/${tempForm2._id}/action/${tempAction._id}`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(400)
+          .end(done);
+        });
       });
 
       it('A user should not be able to Delete an Action for a User-Created Project Form', (done) => {
@@ -693,6 +733,29 @@ module.exports = (app, template, hook) => {
         ],
       };
 
+      let webhookForm2 = {
+        title: 'Webhook Form 2',
+        name: 'webhookform2',
+        path: 'webhookform2',
+        type: 'form',
+        access: [],
+        submissionAccess: [],
+        components: [
+          {
+            type: 'textfield',
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            key: 'textfield',
+            label: 'Text Field',
+            inputMask: '',
+            inputType: 'text',
+            input: true,
+          }
+        ],
+      };
+
       let port = 4002;
       let webhookSubmission = null;
       let webhookHandler = () => {};
@@ -1001,6 +1064,87 @@ module.exports = (app, template, hook) => {
               return done(err);
             }
             done();
+          });
+      });
+
+      it('Should create the form and action for the webhook tests with conditionals for submission creation parameter', (done) => {
+        newServer((err, server) => {
+          if (err) {
+            return done(err);
+          }
+          webhookServer = server;
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(webhookForm2)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              webhookForm2 = res.body;
+              template.users.admin.token = res.headers['x-jwt-token'];
+              request(app)
+                .post(hook.alter('url', `/form/${webhookForm2._id}/action`, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send({
+                  title: 'Webhook',
+                  name: 'webhook',
+                  form: webhookForm2._id.toString(),
+                  handler: ['after'],
+                  method: ['create', 'update', 'delete'],
+                  priority: 1,
+                  settings: {
+                    url: server.url,
+                    username: '',
+                    password: '',
+                  },
+                  condition: {
+                    component: '(submission).created',
+                    operator: 'dateGreaterThan',
+                    value: '2023-07-01T12:00:00.000Z',
+                  },
+                })
+                .expect('Content-Type', /json/)
+                .expect(201)
+                .end((err, res) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  template.users.admin.token = res.headers['x-jwt-token'];
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Should send a webhook for submission with creation date dateGreaterThan set date', (done) => {
+        webhookHandler = (body) => {
+          body = hook.alter('webhookBody', body);
+
+          assert.equal(body.params.formId, webhookForm2._id.toString());
+          assert.equal(body.request.owner, template.users.admin._id.toString());          
+
+          done();
+        };
+
+        request(app)
+          .post(hook.alter('url', `/form/${webhookForm2._id}/submission`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              textfield: ''
+            },
+          })
+          .expect(201)
+          .expect('Content-Type', /json/)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            webhookSubmission = res.body;
           });
       });
 
@@ -4129,6 +4273,82 @@ module.exports = (app, template, hook) => {
         });
       });
 
+      it('Test IsNotEqual operator with SelectBoxes', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'selectBoxes',
+              operator: 'isNotEqual',
+              value: 'a',
+            },
+            {
+              component: 'selectBoxes',
+              operator: 'isNotEqual',
+              value: 'b',
+            }
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              selectBoxes: {
+                a: false,
+                b: false,
+                c: true,
+              }
+            }, helper.owner, [/application\/json/, 201])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(submission.hasOwnProperty('_id'));
+
+              helper
+                .submission('actionsExtendedConditionalForm', {
+                  selectBoxes: {
+                    a: false,
+                    b: true,
+                    c: true,
+                  }
+                }, helper.owner, [/application\/json/, 200])
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(!submission.hasOwnProperty('_id'));
+
+                  helper
+                  .submission('actionsExtendedConditionalForm', {
+                    selectBoxes: {
+                      a: true,
+                      b: true,
+                      c: true,
+                    }
+                  }, helper.owner, [/application\/json/, 200])
+                  .execute((err) => {
+                    if (err) {
+                      return done(err);
+                    }
+  
+                    const submission = helper.getLastSubmission();
+                    assert(!submission.hasOwnProperty('_id'));
+  
+                    done();
+                  });
+                });
+            });
+        });
+      });
+
       it('Test GreaterThan operator', (done) => {
         action.condition = {
           conjunction: 'all',
@@ -4404,6 +4624,7 @@ module.exports = (app, template, hook) => {
             });
         });
       });
+
 
       it('Test StartsWith operator', (done) => {
         action.condition = {
