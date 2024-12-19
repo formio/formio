@@ -200,6 +200,22 @@ const Utils = {
    */
   eachComponent: Formio.Utils.eachComponent.bind(Formio.Utils),
 
+ /**
+ * Iterates through each component as well as its data.
+ * with the contextual data for that component in addition to the absolute path for that component.
+ *
+ * @param {Object} components
+ *    The array of JSON components to iterate through.
+ * @param {Object} data
+ *    The contextual data object for the components.
+ * @param {Function} fn
+ *    The callback function to trigger for each component following the signature (component, data, row, path, components, index, parent).
+ * @param {Object} parent
+ *    The parent component.
+ * @param {Boolean} includeAll
+ */
+    eachComponentData: Formio.Utils.eachComponentData.bind(Formio.Utils),
+
   /**
    * Get a component by its key
    *

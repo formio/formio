@@ -153,7 +153,9 @@ module.exports = (router) => {
               // Array for promises
               const promises = [];
 
-              _.each(data, (field, key) => {
+              router.formio.util.eachComponentData(form.components, data, (component, data, row, path) => {
+                const field = _.get(data, path);
+
                 if (field && field._id) {
                   // Add data property for resource fields
                   promises.push(
@@ -165,21 +167,20 @@ module.exports = (router) => {
 
                         // Recurse for nested resources
                         return addSubData(result.data)
-                          .then(res => newData[key] = {data: res});
+                          .then(res => _.set(newData, path, {data: res}));
                       })
                       .catch((error) => {
                         debug(error);
-                        newData[key] = field;
+                        _.set(newData, path, field);
                       })
                   );
                 }
-                else {
-                  if (req.encryptedComponents && Object.keys(req.encryptedComponents).includes(key) && field) {
-                    newData[key] = hook.alter('decrypt', req, field);
-                  }
-                  else {
-                    newData[key] = field;
-                  }
+                else if (component.encrypted && field) {
+                  const result = hook.alter('decrypt', req, field);
+                  _.set(newData, path, result);
+                }
+                else if (Object.keys(data).includes(path)) {
+                    newData[path] = data[path];
                 }
               });
               await Promise.all(promises);
