@@ -18,8 +18,8 @@ module.exports = (router) => {
    *   This class is used to create the Authentication action.
    */
   class LoginAction extends Action {
-    static info(req, res, next) {
-      next(null, {
+    static info(req, res) {
+      return {
         name: 'login',
         title: 'Login',
         description: 'Provides a way to login to the application.',
@@ -32,7 +32,7 @@ module.exports = (router) => {
           handler: false,
           method: false,
         },
-      });
+      };
     }
 
     /**
@@ -40,13 +40,12 @@ module.exports = (router) => {
      *
      * @param req
      * @param res
-     * @param next
      */
-    static settingsForm(req, res, next) {
+    static settingsForm(req, res) {
       const basePath = hook.alter('path', '/form', req);
       const dataSrc = `${basePath}/${req.params.formId}/components`;
 
-      next(null, [
+      return [
         {
           type: 'select',
           input: true,
@@ -120,7 +119,7 @@ module.exports = (router) => {
           defaultValue: '1800',
           suffix: 'seconds',
         },
-      ]);
+      ];
     }
 
     /**
@@ -137,18 +136,23 @@ module.exports = (router) => {
      * Checks the login attempts for a certain login.
      *
      * @param user
-     * @param next
      * @returns {*}
      */
     /* eslint-disable max-statements */
-    async checkAttempts(error, req, user, next) {
+    async checkAttempts(error, req, user) {
       if (!user || !user._id || !this.settings.allowedAttempts) {
-        return next(error);
+        if (error) {
+          throw error;
+        }
+        return;
       }
 
       const allowedAttempts = parseInt(this.settings.allowedAttempts, 10);
       if (Number.isNaN(allowedAttempts) || allowedAttempts === 0) {
-        return next(error);
+        if (error) {
+          throw error;
+        }
+        return;
       }
 
       // Initialize the login metadata.
@@ -179,7 +183,7 @@ module.exports = (router) => {
         }
         else {
           const howLong = (lastAttempt + lockWait) - now;
-          return next(`You must wait ${this.waitText(howLong / 1000)} before you can login.`);
+          throw `You must wait ${this.waitText(howLong / 1000)} before you can login.`;
         }
       }
       else if (error) {
@@ -221,15 +225,13 @@ module.exports = (router) => {
         await submissionModel.updateOne(
           {_id: user._id},
           {$set: {metadata: user.metadata}});
-        return next(error);
       }
       catch (err) {
-        if (err) {
           log(req, ecode.auth.ELOGINCOUNT, err);
-          return next(ecode.auth.ELOGINCOUNT);
-        }
-
-        return next(error);
+          throw ecode.auth.ELOGINCOUNT;
+      }
+      if (error) {
+        throw error;
       }
     }
     /* eslint-enable max-statements */
@@ -245,13 +247,11 @@ module.exports = (router) => {
      *   The Express request object.
      * @param res {Object}
      *   The Express response object.
-     * @param next {Function}
-     *   The callback function to execute upon completion.
      */
-    resolve(handler, method, req, res, next) {
+    async resolve(handler, method, req, res) {
       // Some higher priority action has decided to skip authentication
       if (req.skipAuth) {
-        return next();
+        return;
       }
 
       if (!this.settings) {
@@ -268,53 +268,62 @@ module.exports = (router) => {
         return res.status(401).send('User or password was incorrect.');
       }
 
-      router.formio.auth.authenticate(
-        req,
-        this.settings.resources,
-        this.settings.username,
-        this.settings.password,
-        _.get(req.submission.data, this.settings.username),
-        _.get(req.submission.data, this.settings.password),
-        (err, response) => {
-          if (err && !response) {
-            audit('EAUTH_NOUSER', req, _.get(req.submission.data, this.settings.username));
-            log(req, ecode.auth.EAUTH, err);
-            return res.status(401).send(err);
+      try {
+        const response = await router.formio.auth.authenticate(
+          req,
+          this.settings.resources,
+          this.settings.username,
+          this.settings.password,
+          _.get(req.submission.data, this.settings.username),
+          _.get(req.submission.data, this.settings.password));
+
+        await this.checkAttempts(null, req, response.user);
+
+        // Check the amount of attempts made by this user.
+        try {
+          // Set the user and generate a token.
+          req.user = response.user;
+          req.token = response.token.decoded;
+          res.token = response.token.token;
+          req['x-jwt-token'] = response.token.token;
+
+          const role = await hook.alter('getPrimaryProjectAdminRole', req, res);
+          if (req.user.roles.includes(role)) {
+            req.isAdmin = true;
           }
 
-          // Check the amount of attempts made by this user.
-          this.checkAttempts(err, req, response.user, async (error) => {
-            if (error) {
-              audit('EAUTH_LOGINCOUNT', req, _.get(req.submission.data, this.settings.username));
-              log(req, ecode.auth.EAUTH, error);
-              return res.status(401).send(error);
-            }
-
-            // Set the user and generate a token.
-            req.user = response.user;
-            req.token = response.token.decoded;
-            res.token = response.token.token;
-            req['x-jwt-token'] = response.token.token;
-
-            const role = await hook.alter('getPrimaryProjectAdminRole', req, res);
-              if (req.user.roles.includes(role)) {
-                req.isAdmin = true;
-              }
-
-              hook.alter('oAuthResponse', req, res, () => {
-                router.formio.auth.currentUser(req, res, (err) => {
-                  if (err) {
-                    log(req, ecode.auth.EAUTH, err);
-                    return res.status(401).send(err.message);
-                  }
-                  hook.alter('currentUserLoginAction', req, res);
-
-                  next();
-                });
-              });
+          await new Promise((resolve, reject) => {
+            hook.alter('oAuthResponse', req, res, () => {
+              resolve();
+            });
           });
-        },
-      );
+
+          try {
+            await router.formio.auth.currentUser(req, res);
+            hook.alter('currentUserLoginAction', req, res);
+          }
+          catch (err) {
+            log(req, ecode.auth.EAUTH, err);
+            return res.status(401).send(err.message);
+          }
+        }
+        catch (error) {
+          audit('EAUTH_LOGINCOUNT', req, _.get(req.submission.data, this.settings.username));
+          log(req, ecode.auth.EAUTH, error);
+          return res.status(401).send(error);
+        }
+      }
+      catch (err) {
+        audit('EAUTH_NOUSER', req, _.get(req.submission.data, this.settings.username));
+        log(req, ecode.auth.EAUTH, err);
+        try {
+          await this.checkAttempts(err, req, err.user);
+        }
+        catch (error) {
+          return res.status(401).send(error.message || error);
+        }
+        return res.status(401).send(err.message || err);
+      }
     }
   }
 
