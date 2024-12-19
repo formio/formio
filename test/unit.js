@@ -89,10 +89,8 @@ module.exports = function(app, template, hook) {
       .then(params => {
         params.content = content;
         email.send(req, res, message, params)
-          .then(response => {
-            return cb(null, response);
-          })
-          .catch(cb)
+          .then((response) => cb(null, response))
+          .catch(cb);
       })
       .catch(cb)
     };
