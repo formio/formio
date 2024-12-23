@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.3.1-rc.8
+### Changed
+ - Updated formiojs@4.21.6
+
 ## 4.3.1-rc.7
 ### Changed
  - FIO-9483: fixed email action
