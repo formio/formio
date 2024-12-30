@@ -27,6 +27,10 @@ The fastest way to run this library locally is to use [Docker](https://docker.co
     ```
     docker-compose up -d
     ```
+   For the docker compose v2 use this command
+    ```
+   docker compose up -d
+    ```
 
     Or, if you have an older version of the Docker image on your machine
     ```bash
