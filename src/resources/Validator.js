@@ -343,6 +343,14 @@ class Validator {
       for (const path in context.scope.fetched) {
         _.unset(submission.data, path);
       }
+
+      // Now that the validation is complete, we need to remove null values from the submission so that they are not
+      // returned in the response body
+      for (const submissionKey in submission.data) {
+        if (submission.data[submissionKey] === null) {
+          delete submission.data[submissionKey];
+        }
+      }
     }
     catch (err) {
       debug.error(err.message || err);

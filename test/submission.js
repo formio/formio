@@ -6,6 +6,7 @@ var assert = require('assert');
 var Chance = require('chance');
 var chance = new Chance();
 var _ = require('lodash');
+const test = require("./fixtures/forms/simpletags");
 var docker = process.env.DOCKER;
 
 module.exports = function(app, template, hook) {
@@ -4578,6 +4579,33 @@ module.exports = function(app, template, hook) {
           });
       });
     })
+
+    describe('submission updates', () => {
+      it('should not respond with data if the values are null', (done) => {
+        const test = require('./fixtures/forms/simpletags.js');
+        helper
+          .form('test', test.components)
+          .submission({
+            tags: 'hello'
+          })
+          .execute(function (err) {
+            if(err) {
+              return done(err);
+            }
+            helper.submission('test', {
+              data: {
+                tags: null
+              }
+            }).execute(function (err) {
+              if (err){
+                return done(err);
+              }
+              assert.deepEqual(helper.getLastSubmission().data, {});
+              done();
+            });
+          })
+      });
+    });
   });
 
   describe('Nested Submissions', function() {
@@ -5276,13 +5304,13 @@ module.exports = function(app, template, hook) {
         if (err) {
           return done(err);
         }
-  
+
         nestedSubmission = helper.lastSubmission;
         assert.deepEqual(nestedSubmission.data, { radio: 'b', submit: true });
         done();
       });
     });
-    
+
     it('Should allow you to submit data to the nested form.', (done) => {
       helper.submission('parentForm1', {
         radio: 'a',
@@ -5301,7 +5329,7 @@ module.exports = function(app, template, hook) {
         if (err) {
           return done(err);
         }
-  
+
         nestedSubmission = helper.lastSubmission;
         assert.equal(nestedSubmission.data.radio, 'a');
         assert.equal(nestedSubmission.data.form.data.textFieldForm2, 'Foo');
@@ -5317,7 +5345,7 @@ module.exports = function(app, template, hook) {
         if (err) {
           return done(err);
         }
-  
+
         nestedSubmission = helper.lastSubmission;
         done();
       });
