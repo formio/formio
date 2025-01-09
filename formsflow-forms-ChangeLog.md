@@ -14,7 +14,7 @@
 ### Added
 - Added the formIds query parameter in the /form endpoint to retrieve form components, accessible only to admin users.
 - Added a custom property displayForRole to display specific data based on the assigned role.
-- Added a new endpoint forms/search for listing forms based on their path, name, or title.
+- Added a new endpoint `forms/search` for listing forms based on their path, name, or title.
 
 ### Fixed
 - Fixed the authorization logic for fetching bundle submission data. Now, only the data of the currently viewed form in a bundle is returned, instead of sending all form data.
