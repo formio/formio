@@ -1,15 +1,16 @@
-module.exports = function(app, template, hook) {
+module.exports = function (app, template, hook) {
   const docker = process.env.DOCKER;
   const assert = require('assert');
+  const request = require('../../formio-supertest');
   const Helper = require('../../helper')(app);
   let helper = null;
   const test = require('../../fixtures/forms/datetime-format.js');
   const testFile = require('../../fixtures/forms/fileComponent.js');
   const testTags = require('../../fixtures/forms/tagsWithDelimiter.js');
   const testRadio = require('../../fixtures/forms/radioComponent');
-  const testAzureAddress= require('../../fixtures/forms/azureAddressComponent');
-  const testGoogleAddress= require('../../fixtures/forms/googleAddressComponent');
-  const testNominatimAddress= require('../../fixtures/forms/nominatimAddressComponent');
+  const testAzureAddress = require('../../fixtures/forms/azureAddressComponent');
+  const testGoogleAddress = require('../../fixtures/forms/googleAddressComponent');
+  const testNominatimAddress = require('../../fixtures/forms/nominatimAddressComponent');
 
   function getComponentValue(exportedText, compKey, submissionIndex) {
     const rows = exportedText.split('\n');
@@ -108,7 +109,7 @@ module.exports = function(app, template, hook) {
 
     it(`Test using Tags delimiter`, (done) => {
       let owner = (
-          app.hasProjects || docker
+        app.hasProjects || docker
       ) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
@@ -284,6 +285,87 @@ module.exports = function(app, template, hook) {
             assert.strictEqual(addressLat, expectedAddressLat);
             assert.strictEqual(addressLng, expectedAddressLng);
             assert.strictEqual(addressName, expectedAddressName);
+            done();
+          });
+        });
+    });
+  });
+
+  describe('Nested form CSV export', () => {
+    it('Sets up a default project', (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper.project().user('user', 'user1').execute(done);
+    });
+
+    let childForm, parentForm;
+    const submission = {
+      data: {
+        form: {
+          data: {
+            name: 'Mary Jane',
+            age: 23
+          }
+        }
+      },
+      state: 'submitted'
+    };
+
+    it('Build the forms', (done) => {
+      helper.form('in', [
+        {
+          type: 'textfield',
+          key: 'name',
+          input: true,
+        },
+        {
+          type: 'number',
+          key: 'age',
+          input: true,
+        }
+      ])
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          childForm = helper.template.forms.in;
+          helper.form('out', [
+            {
+              tableView: true,
+              form: childForm._id,
+              useOriginalRevision: false,
+              key: 'form',
+              type: 'form',
+              input: true
+            }
+          ])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+              parentForm = helper.template.forms.out;
+              done();
+            });
+        });
+    });
+
+    it(`Test nested form data`, (done) => {
+      helper
+        .submission(submission)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(parentForm, 'csv', (error, result) => {
+            if (error) {
+              done(error);
+            }
+
+            const age = getComponentValue(result.text, 'form.age', 0);
+            const name = getComponentValue(result.text, 'form.name', 0);
+
+            assert.equal(age, '"23"');
+            assert.equal(name, '"Mary Jane"');
             done();
           });
         });
