@@ -1845,6 +1845,93 @@ module.exports = (app, template, hook) => {
             });
         }, addSettings);
       });
+        
+      it('Should send email with edit grid value', async () => {
+        let testAction = {
+          title: 'Email',
+          name: 'email',
+          handler: ['after'],
+          method: ['create'],
+          priority: 1,
+          settings: {
+            from: 'travis@form.io',
+            replyTo: '',
+            emails: ['test@form.io'],
+            sendEach: false,
+            subject: 'Hello',
+            message: '{{ submission(data, form.components) }}',
+            transport: 'test',
+            template: 'https://pro.formview.io/assets/email.html',
+            renderingMethod: 'dynamic'
+          },
+        }
+        const form = {
+          "_id": "677801142628e5aad5e7b1c2",
+          "title": "editGridEmail",
+          "name": "editGridEmail",
+          "path": "editGridEmail",
+          "type": "form",
+          "access": [],
+          "submissionAccess": [],
+          "components": [
+            {
+              "label": "Edit Grid",
+              "rowDrafts": false,
+              "key": "editGrid",
+              "type": "editgrid",
+              "displayAsTable": false,
+              "input": true,
+              "components": [
+                {
+                  "label": "Text Field",
+                  "key": "textField",
+                  "type": "textfield",
+                  "input": true
+                }
+              ]
+            }
+          ]
+        }
+  
+        const editGridForm = (await request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)).body;
+  
+        testAction.form = editGridForm._id;
+        // Add the action to the form.
+        const testActionRes = (await request(app)
+            .post(hook.alter('url', `/form/${editGridForm._id}/action`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(testAction)).body;
+  
+          
+        testAction = testActionRes;
+
+        const event = template.hooks.getEmitter();
+        event.on('newMail', (email) => {
+          assert(email.html.includes('editGridString'));
+          event.removeAllListeners('newMail');
+        });
+
+        const submission = {
+          noValidate: true,
+          data: {
+            editGrid: [
+              {
+                textField: 'editGridString'
+              }
+            ],
+            submit: true
+          },
+          state: 'submitted'
+        };
+        // Send submission
+        await request(app)
+          .post(hook.alter('url', `/form/${editGridForm._id}/submission`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(submission);
+      });
 
       if (template.users.formioAdmin) {
         describe('EmailAction form.io domain permissions', () => {
