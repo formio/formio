@@ -1,47 +1,12 @@
 // write a test that checks that the Auth component renders a login form when the user is not authenticated
 import userEvent from "@testing-library/user-event";
-import { createContext } from "react";
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { FormioProvider, useFormioContext } from "@formio/react";
+import { FormioProvider } from "@formio/react";
 import "@testing-library/jest-dom";
 
 import App from "../App";
 import { InfoPanelProvider } from "../../hooks/useInfoPanelContext";
-
-type FormioContext = {
-    token: any;
-    setToken: React.Dispatch<any>;
-    isAuthenticated: boolean;
-    logout: () => Promise<void>;
-    Formio: any;
-    baseUrl: any;
-    projectUrl: any;
-};
-
-const OurContext = createContext<FormioContext | null>(null);
-
-const SpoofedFormioProvider = ({ children }: { children: React.ReactNode }) => {
-    const Formio: FormioContext = {
-        token: null,
-        setToken: () => {},
-        isAuthenticated: true,
-        logout: async () => {},
-        Formio: null,
-        baseUrl: "http://localhost:3001",
-        projectUrl: null,
-    };
-
-    return (
-        <OurContext.Provider value={Formio}>
-            <InfoPanelProvider>{children}</InfoPanelProvider>
-        </OurContext.Provider>
-    );
-};
-
-vi.mock("@formio/react", () => ({
-    useFormioContext: () => ({ isAuthenticated: true }),
-}));
 
 test("displays the login form when a user does not have a token", async () => {
     render(
