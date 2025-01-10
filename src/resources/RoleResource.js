@@ -19,7 +19,7 @@ module.exports = function(router) {
     router.formio.middleware.sortMongooseQuery({title: 1})
   ];
   handlers.after = [
-    router.formio.middleware.bootstrapNewRoleAccess,
+    // router.formio.middleware.bootstrapNewRoleAccess, #This line for creating a new role and mapping it with form access is unnecessary
     router.formio.middleware.filterResourcejsResponse(['deleted', '__v'])
   ];
 

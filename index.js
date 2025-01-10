@@ -14,7 +14,6 @@ const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
-const formList = require('./src/resources/formList');
 const logger = require('./src/util/logger')('formio:log');
 
 const originalGetToken = util.Formio.getToken;
@@ -159,16 +158,6 @@ module.exports = function(config) {
         });
       });
 
-      // getting form list
-      router.get("/form",router.formio.middleware.tokenVerify,(req,res)=>{
-        try {
-          formList(req,res,router);
-        }
-        catch (err) {
-          console.log(err);
-        }
-      });
-
       // Error handler for malformed JSON
       router.use((err, req, res, next) => {
         if (err instanceof SyntaxError) {
@@ -305,6 +294,10 @@ module.exports = function(config) {
         // return the form metadata
         const metadataResource = require('./src/resources/formMetadata');
         router.get('/form/:formId/metadata',metadataResource.getFormMetadata(router));
+
+        // return the form metadata
+        const formListingByPathNameTitle = require('./src/resources/FormListingByPathTitleName');
+        router.get('/forms/search',formListingByPathNameTitle.getFormsByTitleOrPathOrName(router));
 
         // Return the form components.
         router.get('/form/:formId/components', function(req, res, next) {

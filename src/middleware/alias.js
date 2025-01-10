@@ -45,7 +45,9 @@ module.exports = function(router) {
 
     // If this is normal request, then pass this middleware.
     /* eslint-disable no-useless-escape */
-    if (!alias || alias.match(/^(form$|form[\?\/])/) || alias === 'spec.json' || alias === "checkpoint" || alias ===  'config.json') {
+    //this custom endpoint written for formsflow
+    const customEndpoint = new Set(["checkpoint", "forms/search"])
+    if (!alias || alias.match(/^(form$|form[\?\/])/) || alias === 'spec.json' || customEndpoint.has(alias) || alias ===  'config.json') {
       return next();
     }
     /* eslint-enable no-useless-escape */
