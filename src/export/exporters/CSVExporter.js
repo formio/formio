@@ -489,7 +489,21 @@ class CSVExporter extends Exporter {
 
   getSubmissionData(submission) {
     const updatedSubmission = {};
+    const pagesPaths = [];
+    if (this.form.display === 'wizard') {
+      this.form.components.forEach((component => {
+        if (component.type === 'panel') {
+          pagesPaths.push(component.key);
+        }
+      }));
+    }
     const result = this.fields.map((column) => {
+      if (this.form.display === 'wizard') {
+        const parts = column.path.split('.');
+        if (parts.length && pagesPaths.includes(parts[0])) {
+          column.path = _.drop(parts).join('.');
+        }
+      }
       const componentData = _.get(submission.data, column.path);
 
       // If the path had no results and the component specifies a path, check for a datagrid component
