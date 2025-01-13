@@ -25,8 +25,8 @@ module.exports = function(router) {
    *   This class is used to create the Role action.
    */
   class RoleAction extends Action {
-    static info(req, res, next) {
-      next(null, {
+    static info(req, res) {
+      return {
         name: 'role',
         title: 'Role Assignment',
         description: 'Provides the Role Assignment capabilities.',
@@ -39,9 +39,9 @@ module.exports = function(router) {
           handler: false,
           method: false
         }
-      });
+      };
     }
-    static async settingsForm(req, res, next) {
+    static async settingsForm(req, res) {
       try {
         const roles = await router.formio.resources.role.model
         .find(hook.alter('roleQuery', {deleted: {$eq: null}}, req))
@@ -53,7 +53,7 @@ module.exports = function(router) {
             return res.status(400).send(ecode.role.EROLESLOAD);
           }
 
-          return next(null, [
+          return [
             {
               type: 'select',
               input: true,
@@ -121,7 +121,7 @@ module.exports = function(router) {
                 required: true
               }
             }
-          ]);
+          ];
       }
       catch (err) {
         log(req, ecode.role.EROLESLOAD, err);
@@ -140,10 +140,8 @@ module.exports = function(router) {
      *   The Express request object.
      * @param res
      *   The Express response object.
-     * @param next
-     *   The callback function to execute upon completion.
      */
-    async resolve(handler, method, req, res, next) {
+    async resolve(handler, method, req, res) {
       // Check the submission for the submissionId.
       if (this.settings.association !== 'existing' && this.settings.association !== 'new') {
         return res.status(400).send('Invalid setting `association` for the RoleAction; expecting `new` or `existing`.');
@@ -179,10 +177,9 @@ module.exports = function(router) {
        *
        * @param submission
        *   The submission id.
-       * @param callback
        * @returns {*}
        */
-      const loadUser = async function(submission, callback) {
+      const loadUser = async function(submission) {
         try {
           const submissionModel = req.submissionModel || router.formio.resources.submission.model;
           const user = await submissionModel.findOne(hook.alter('submissionQuery', {
@@ -194,7 +191,7 @@ module.exports = function(router) {
             return res.status(400).send('No Submission was found with the given setting `submission`.');
           }
 
-          return callback(user);
+          return user;
         }
         catch (err) {
           log(req, ecode.submission.ESUBLOAD, err);
@@ -231,11 +228,11 @@ module.exports = function(router) {
           _id: submission._id
         },
         update);
-        return next();
+        return;
       }
       catch (err) {
           log(req, ecode.submission.ESUBSAVE, err);
-          return next(err);
+          throw err;
       }
     };
 
@@ -261,7 +258,7 @@ module.exports = function(router) {
 
         if (compare.indexOf(role) !== -1) {
           log(req, ecode.role.EROLEEXIST);
-          return next();
+          return;
         }
 
         // Add and save the role to the submission.
@@ -301,7 +298,7 @@ module.exports = function(router) {
 
         if (compare.indexOf(role) === -1) {
           log(req, ecode.role.ENOROLE, new Error('The given role to remove was not found.'), role);
-          return next();
+          return;
         }
 
         // Remove this role from the mongoose model and save.
@@ -360,10 +357,9 @@ module.exports = function(router) {
        * Resolve the action.
        */
       if (typeof resource === 'string') {
-        loadUser(resource, async (user) => {
-          resource = user;
-          await roleManipulation(this.settings.type, this.settings.association);
-        });
+        const user = await loadUser(resource);
+        resource = user;
+        await roleManipulation(this.settings.type, this.settings.association);
       }
       else {
         await roleManipulation(this.settings.type, this.settings.association);

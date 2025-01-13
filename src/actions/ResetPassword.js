@@ -24,8 +24,8 @@ module.exports = (router) => {
    *   This class is used to implement Forgot Password.
    */
   class ResetPasswordAction extends Action {
-    static info(req, res, next) {
-      next(null, {
+    static info(req, res) {
+      return {
         name: 'resetpass',
         title: 'Reset Password',
         description: 'Provides a way to reset a password field.',
@@ -37,10 +37,10 @@ module.exports = (router) => {
           handler: false,
           method: false,
         },
-      });
+      };
     }
 
-    static async settingsForm(req, res, next) {
+    static async settingsForm(req, res) {
       try {
       // Get the available email transports.
         const availableTransports = await emailer.availableTransports(req);
@@ -49,7 +49,7 @@ module.exports = (router) => {
         const dataSrc = `${basePath}/${req.params.formId}/components`;
 
         // Return the reset password information.
-        return next(null, [
+        return [
           {
             type: 'select',
             input: true,
@@ -170,11 +170,11 @@ module.exports = (router) => {
             placeholder: '',
             input: true,
           },
-        ]);
+        ];
       }
       catch (err) {
         log(req, ecode.emailer.ENOTRANSP, err);
-        return next(err);
+        throw err;
       }
     }
 
@@ -183,9 +183,8 @@ module.exports = (router) => {
      *
      * @param req
      * @param token
-     * @param next
      */
-    async getSubmission(req, token, next) {
+    async getSubmission(req, token) {
       // Only continue if the resources are provided.
       if (!token.resources || !token.resources.length) {
         return;
@@ -208,15 +207,15 @@ module.exports = (router) => {
         const submission = await submissionModel.findOne(hook.alter('submissionQuery', query, req));
         if (!submission) {
           log(req, ecode.submission.ENOSUB);
-          return next(ecode.submission.ENOSUB);
+          throw ecode.submission.ENOSUB;
         }
 
         // Submission found.
-        return next(null, submission);
+        return submission;
       }
       catch (err) {
         log(req, ecode.submission.ENOSUB, err);
-        return next(ecode.submission.ENOSUB);
+        throw ecode.submission.ENOSUB;
       }
     }
 
@@ -226,62 +225,68 @@ module.exports = (router) => {
      * @param req
      * @param token
      * @param password
-     * @param next
      */
-    updatePassword(req, token, password, next) {
+    async updatePassword(req, token, password) {
       // Validate password matches length restrictions
       // FIO-4741
       if ( (password || '').length > MAX_PASSWORD_LENGTH) {
-        return next(ecode.auth.EPASSLENGTH);
+        throw ecode.auth.EPASSLENGTH;
       }
 
       // Get the submission.
-      this.getSubmission(req, token, (err, submission) => {
+      try {
+        const submission = await this.getSubmission(req, token);
         // Make sure we found the user.
-        if (err || !submission) {
-          log(req, ecode.user.ENOUSER, err);
-          return next(ecode.user.ENOUSER);
+        if (!submission) {
+          log(req, ecode.user.ENOUSER);
+          throw ecode.user.ENOUSER;
         }
 
         // Get the name of the password field.
         if (!this.settings.password) {
           log(req, ecode.auth.EPASSFIELD, new Error(ecode.auth.EPASSFIELD));
-          return next(ecode.auth.EPASSFIELD);
+          throw ecode.auth.EPASSFIELD;
         }
 
         // Manually encrypt and update the password.
-        router.formio.encrypt(password, async (err, hash) => {
-          if (err) {
-            log(req, ecode.auth.EPASSRESET, err);
-            return next(ecode.auth.EPASSRESET);
-          }
-
-          const setValue = {
-            [`data.${this.settings.password}`]: hash,
-          };
-
-          // Update the password.
-          const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-          try {
-            await submissionModel.updateOne(
-              {_id: submission._id},
-              {$set: setValue});
-
-            // The submission was saved!
-            return next(null, submission);
-          }
-          catch (err) {
-            log(req, ecode.auth.EPASSRESET, err);
-            return next(ecode.auth.EPASSRESET);
-          }
+        const hash = await new Promise((resolve, reject) => {
+          router.formio.encrypt(password, async (err, hash) => {
+            if (err) {
+              reject(err);
+            }
+            resolve(hash);
+          });
         });
-      });
+
+        const setValue = {
+          [`data.${this.settings.password}`]: hash,
+        };
+
+        // Update the password.
+        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+        try {
+          await submissionModel.updateOne(
+            {_id: submission._id},
+            {$set: setValue});
+
+          // The submission was saved!
+          return submission;
+        }
+        catch (err) {
+          log(req, ecode.auth.EPASSRESET, err);
+          throw ecode.auth.EPASSRESET;
+        }
+      }
+      catch (err) {
+        log(req, ecode.user.ENOUSER, err);
+        throw ecode.user.ENOUSER;
+      }
     }
 
     /**
      * Initialize the action.
      */
-    async initialize(method, req, res, next) {
+    async initialize(method, req, res) {
       // See if we have a reset password token.
       const hasResetToken = Boolean(req.tempToken && (req.tempToken.type === 'resetpass'));
       if (!hasResetToken && (method === 'create')) {
@@ -307,10 +312,11 @@ module.exports = (router) => {
         try {
           const form = await router.formio.cache.loadCurrentForm(req);
           // Look up the user.
-          this.getSubmission(req, token, async (err, submission) => {
-            if (err || !submission) {
-              log(req, ecode.user.ENOUSER, err);
-              return next(ecode.user.ENOUSER);
+          try {
+            const submission = await this.getSubmission(req, token);
+            if (!submission) {
+              log(req, ecode.user.ENOUSER);
+              throw ecode.user.ENOUSER;
             }
 
             // Generate a temporary token for resetting their password.
@@ -344,14 +350,18 @@ module.exports = (router) => {
                 message: 'Password reset email was sent.',
               });
             }
- catch (err) {
+            catch (err) {
               log(req, ecode.emailer.ESENDMAIL, err);
             }
-          });
+          }
+          catch (err) {
+            log(req, ecode.user.ENOUSER, err);
+            throw ecode.user.ENOUSER;
+          }
       }
       catch (err) {
         log(req, ecode.cache.EFORMLOAD, err);
-        return next(err);
+        throw err;
         }
       }
       else {
@@ -359,8 +369,6 @@ module.exports = (router) => {
         if (req.tempToken && req.tempToken.type === 'resetpass') {
           _.set(req.body.data, this.settings.username, req.tempToken.username);
         }
-
-        return next();
       }
     }
 
@@ -373,12 +381,10 @@ module.exports = (router) => {
      *   The Express request object.
      * @param res
      *   The Express response object.
-     * @param next
-     *   The callback function to execute upon completion.
      *
      * @returns {*}
      */
-    resolve(handler, method, req, res, next) {
+    async resolve(handler, method, req, res) {
       // See if we have a reset password token.
       const hasResetToken = Boolean(req.tempToken && (req.tempToken.type === 'resetpass'));
 
@@ -411,7 +417,7 @@ module.exports = (router) => {
           }
         });
 
-        return next();
+        return;
       }
 
       // Handle the request after they have come back.
@@ -432,22 +438,23 @@ module.exports = (router) => {
         const password = _.get(req.submission.data, this.settings.password);
         if (!password) {
           debug(ecode.auth.ENOPASSP);
-          return next(ecode.auth.ENOPASSP);
+          throw ecode.auth.ENOPASSP;
         }
 
         // Update the password.
-        this.updatePassword(req, req.tempToken, password, function(err) {
-          if (err) {
-            log(req, ecode.auth.EPASSRESET, new Error(ecode.auth.EPASSRESET));
-            return res.status(400).send('Unable to update the password. Please try again.');
-          }
+        try {
+          await this.updatePassword(req, req.tempToken, password);
           res.status(200).send({
             message: 'Password was successfully updated.',
           });
-        });
+        }
+        catch (err) {
+          log(req, ecode.auth.EPASSRESET, new Error(ecode.auth.EPASSRESET));
+          return res.status(400).send('Unable to update the password. Please try again.');
+        }
       }
       else {
-        return next();
+        return;
       }
     }
   }

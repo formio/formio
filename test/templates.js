@@ -243,14 +243,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err, template) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -276,17 +270,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -351,12 +339,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -367,14 +355,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -400,17 +382,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -478,12 +454,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -494,14 +470,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -527,17 +497,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -605,12 +569,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -621,14 +585,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -654,17 +612,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+         const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -732,12 +684,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -748,14 +700,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -781,17 +727,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -859,12 +799,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -875,14 +815,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -908,17 +842,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -986,12 +914,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1002,14 +930,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -1035,17 +957,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1113,12 +1029,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1129,14 +1045,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -1162,17 +1072,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1240,12 +1144,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1256,14 +1160,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -1289,17 +1187,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1367,12 +1259,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1383,14 +1275,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -1416,17 +1302,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1494,12 +1374,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1510,14 +1390,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -1543,17 +1417,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1625,12 +1493,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1641,14 +1509,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -1674,17 +1536,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1756,12 +1612,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1778,14 +1634,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -1814,17 +1664,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -1875,12 +1719,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -1891,14 +1735,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -1927,17 +1765,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2004,12 +1836,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2020,14 +1852,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('No roles should be imported', function(done) {
@@ -2054,17 +1880,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2133,12 +1953,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2149,14 +1969,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -2182,17 +1996,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2261,12 +2069,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2277,14 +2085,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -2310,17 +2112,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2389,12 +2185,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2405,14 +2201,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -2439,17 +2229,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2518,12 +2302,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2534,14 +2318,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -2567,17 +2345,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2646,12 +2418,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2662,14 +2434,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -2695,17 +2461,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2773,12 +2533,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2789,14 +2549,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -2822,17 +2576,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -2900,12 +2648,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -2916,14 +2664,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -2949,17 +2691,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -3027,12 +2763,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3043,14 +2779,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -3076,17 +2806,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -3158,12 +2882,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3174,14 +2898,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -3208,17 +2926,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -3286,12 +2998,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3302,14 +3014,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -3335,17 +3041,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -3413,12 +3113,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3429,14 +3129,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -3462,17 +3156,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -3540,12 +3228,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3556,14 +3244,8 @@ module.exports = (app, template, hook) => {
       describe('Import', function() {
         let project = {title: 'Export', name: 'export'};
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err) => {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          await importer.import.template(_template, alters);
         });
 
         it('All the roles should be imported', function(done) {
@@ -3590,17 +3272,11 @@ module.exports = (app, template, hook) => {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
-          importer.export(_template, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-
-            exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
-            return done();
-          });
+        it('Should be able to export project data', async function() {
+          const data = await importer.export(_template);
+          exportData = data;
+          exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
+          exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
         });
 
         it('An export should contain the export title', function() {
@@ -3667,12 +3343,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3681,44 +3357,32 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
       const EVERYONE = '000000000000000000000000';
 
-      it('Should translate all "everyone" roles into 000000000000000000000000', function(done) {
-        importer.import.template(_template, alters, (err) => {
-          if (err) {
-            return done(err);
-          }
-
+      it('Should translate all "everyone" roles into 000000000000000000000000', async function() {
+          await importer.import.template(_template, alters);
           assert.equal(_template.resources.a.submissionAccess[0].roles[0].toString(), _template.roles.anonymous._id.toString());
           assert.equal(_template.resources.a.submissionAccess[0].roles[1].toString(), EVERYONE);
           assert.equal(_template.resources.a.submissionAccess[1].roles[0].toString(), EVERYONE);
           assert.equal(_template.resources.b.access[0].roles[0].toString(), _template.roles.authenticated._id.toString());
           assert.equal(_template.resources.b.access[0].roles[1].toString(), _template.roles.anonymous._id.toString());
           assert.equal(_template.resources.b.access[1].roles[0].toString(), EVERYONE);
-          done();
-        });
       });
 
-      it('Should convert ObjectID(000000000000000000000000) to "everyone"', function(done) {
-        importer.export(_template, (err, data) => {
-          if (err) {
-            return done(err);
-          }
-
-          assert.equal(data.resources.a.submissionAccess[0].roles[0].toString(), 'anonymous');
-          assert.equal(data.resources.a.submissionAccess[0].roles[1].toString(), 'everyone');
-          assert.equal(data.resources.a.submissionAccess[1].roles[0].toString(), 'everyone');
-          assert.equal(data.resources.b.access[0].roles[0].toString(), 'authenticated');
-          assert.equal(data.resources.b.access[0].roles[1].toString(), 'anonymous');
-          assert.equal(data.resources.b.access[1].roles[0].toString(), 'everyone');
-          return done();
-        });
+      it('Should convert ObjectID(000000000000000000000000) to "everyone"', async function() {
+        const data = await importer.export(_template);
+        assert.equal(data.resources.a.submissionAccess[0].roles[0].toString(), 'anonymous');
+        assert.equal(data.resources.a.submissionAccess[0].roles[1].toString(), 'everyone');
+        assert.equal(data.resources.a.submissionAccess[1].roles[0].toString(), 'everyone');
+        assert.equal(data.resources.b.access[0].roles[0].toString(), 'authenticated');
+        assert.equal(data.resources.b.access[0].roles[1].toString(), 'anonymous');
+        assert.equal(data.resources.b.access[1].roles[0].toString(), 'everyone');
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3727,19 +3391,16 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
       let project;
 
-      it('Should be able to bootstrap the template', function(done) {
-        importer.import.template(_template, alters, (err, data) => {
-          if (err) {
-            return done(err);
-          }
-          project = data;
-          done();
-        });
+      it('Should be able to bootstrap the template', async function() {
+        const data = await importer.import.template(_template, alters);
+        project = data;
       });
 
       it('All the forms should be imported', function(done) {
+        
         assert.deepEqual(_.omit(project.forms.inner, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', '_vid', 'project', ...ignoredFormProps]),
         _.omit(testTemplate.forms.inner, ['revisions']));
+        
         assert.deepEqual(_.omit(project.forms.outer, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', 'components', '_vid', 'project', ...ignoredFormProps]),
         _.omit(testTemplate.forms.outer, ['revisions', 'components']));
         assert.deepEqual(_.omit(project.forms.outer.components[0], ['form']),
@@ -3748,12 +3409,12 @@ module.exports = (app, template, hook) => {
        done();
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3762,14 +3423,9 @@ module.exports = (app, template, hook) => {
       let _template = _.cloneDeep(testTemplate);
       let project;
 
-      it('Should be able to bootstrap the template', function(done) {
-        importer.import.template(_template, alters, (err, data) => {
-          if (err) {
-            return done(err);
-          }
-          project = data;
-          done();
-        });
+      it('Should be able to bootstrap the template', async function() {
+        const data = await importer.import.template(_template, alters);
+        project = data;
       });
 
       it('All the forms should be imported', function(done) {
@@ -3783,12 +3439,12 @@ module.exports = (app, template, hook) => {
        done();
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3798,14 +3454,9 @@ module.exports = (app, template, hook) => {
       let project;
 
       describe('Import', function() {
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-            project = data;
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          const data = await importer.import.template(_template, alters);
+          project = data;
         });
 
         it ('The Data Table Fetch Resource should be replaced with valid resource id', function(done) {
@@ -3817,14 +3468,9 @@ module.exports = (app, template, hook) => {
       describe('Export', function() {
         let exportData = {};
 
-        it ('Should be able to export project', function(done) {
-          importer.export(project, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-            exportData = data;
-            return done();
-          });
+        it ('Should be able to export project', async function() {
+          const data = await importer.export(project);
+          exportData = data;
         });
 
         it ('The Data Table Fetch Resource should be replaced with resource name', function(done) {
@@ -3833,12 +3479,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
 
@@ -3859,23 +3505,13 @@ module.exports = (app, template, hook) => {
       let templateDataStartValue = _template.forms[selectFormName].components[0].data.resource;
 
       describe('Import', function() {
-        it('Import existing resource template', function(done) {
-          importer.import.template(_existingTemplate, alters, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-            done();
-          });
+        it('Import existing resource template', async function() {
+          const data = await importer.import.template(_existingTemplate, alters);
         });
 
-        it('Should be able to bootstrap the template', function(done) {
-          importer.import.template(_template, alters, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-            project = data;
-            done();
-          });
+        it('Should be able to bootstrap the template', async function() {
+          const data = await importer.import.template(_template, alters);
+          project = data;
         });
 
         it('Template on IMPORT checks for existing resource even if not included in export template', function() {
@@ -3901,14 +3537,9 @@ module.exports = (app, template, hook) => {
       describe('Export', function() {
         let exportData = {};
 
-        it ('Should be able to export project', function(done) {
-          importer.export(project, (err, data) => {
-            if (err) {
-              return done(err);
-            }
-            exportData = data;
-            return done();
-          });
+        it ('Should be able to export project', async function() {
+          const data = await importer.export(project);
+          exportData = data;;
         });
 
         it('Template on EXPORT should de-ref select components defaultValue if dataSrc == resource', function() {
@@ -3919,12 +3550,12 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
-        template.clearData(done);
+      before(async function() {
+        await template.clearData();
       });
 
-      after(function(done) {
-        template.clearData(done);
+      after(async function() {
+        await template.clearData();
       });
     });
   });

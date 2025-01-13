@@ -1,7 +1,5 @@
 'use strict';
 
-let async = require('async');
-
 /**
  * Update 1.0.0
  *
@@ -12,41 +10,35 @@ let async = require('async');
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
-  /**
-   * Example update 1.
-   */
-  let update1 = function(callback) {
-    // db.collection.update();
-    callback();
-  };
+module.exports = async function(db, config, tools) {
+  try {
+    /**
+     * Example update 1.
+     */
+    const update1 = async () => {
+      // db.collection.update();
+    };
 
-  /**
-   * Example update 2.
-   */
-  let update2 = function(callback) {
-    // db.collection.update();
-    callback();
-  };
+    /**
+     * Example update 2.
+     */
+    const update2 = async () => {
+      // db.collection.update();
+    };
 
-  /**
-   * Example update 3.
-   */
-  let update3 = function(callback) {
-    // db.collection.update();
-    callback();
-  };
+    /**
+     * Example update 3.
+     */
+    const update3 = async () => {
+      // db.collection.update();
+    };
 
-  async.series([
-      update1,
-      update2,
-      update3
-    ],
-    function(err) {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
+    // Run updates in sequence
+    await update1();
+    await update2();
+    await update3();
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 };

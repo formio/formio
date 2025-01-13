@@ -554,6 +554,9 @@ const Utils = {
 
     // Initialize our delete fields array.
     const modifyFields = [];
+    // Collect tagpad keys for subsequent path adjustment
+    // (tagpad submission has additional data field)
+    const tagpadComponentsKeys = [];
 
     // Iterate through all components.
     this.eachComponent(form.components, (component, path) => {

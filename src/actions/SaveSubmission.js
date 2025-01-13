@@ -1,7 +1,6 @@
 'use strict';
 
 const _ = require('lodash');
-const async = require('async');
 const util = require('../util/util');
 const {evaluate} = require('@formio/vm');
 const LOG_EVENT = 'Save Submission Action';
@@ -15,8 +14,8 @@ module.exports = function(router) {
   const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   class SaveSubmission extends Action {
-    static info(req, res, next) {
-      next(null, {
+    static info(req, res) {
+      return {
         name: 'save',
         title: 'Save Submission',
         description: 'Saves the submission into the database.',
@@ -29,11 +28,11 @@ module.exports = function(router) {
           handler: false,
           method: false
         }
-      });
+      };
     }
 
-    static settingsForm(req, res, next) {
-      next(null, [
+    static settingsForm(req, res) {
+      return [
         {
           type: 'resourcefields',
           key: 'resource',
@@ -43,7 +42,7 @@ module.exports = function(router) {
           form: req.params.formId,
           required: false
         }
-      ]);
+      ];
     }
 
     /**
@@ -56,10 +55,10 @@ module.exports = function(router) {
      * @param next
      * @returns {*}
      */
-    resolve(handler, method, req, res, next) {
+    async resolve(handler, method, req, res) {
       // Return if this is not a PUT or POST.
       if (req.skipSave || !req.body || (req.method !== 'POST' && req.method !== 'PUT' && req.method !== 'PATCH')) {
-        return next();
+        return;
       }
 
       // Make sure we do not skip the resource.
@@ -67,16 +66,16 @@ module.exports = function(router) {
 
       // If there are not any settings, then move along.
       if (!this.settings || !this.settings.resource) {
-        return next();
+        return;
       }
 
       // Keep track of the cache for this request.
       const cache = {};
 
       // Save data to a separate resource.
-      const saveToResource = function(resource, body, done) {
+      const saveToResource = async function(resource, body) {
         if (!body) {
-          return done();
+          return;
         }
 
         // Here we will clone the request, and then change the request body
@@ -90,7 +89,7 @@ module.exports = function(router) {
             new Error(ecode.request.EREQRECUR),
             '#resolve'
           );
-          return done(ecode.request.EREQRECUR);
+          throw (ecode.request.EREQRECUR);
         }
 
         // Don't recheck permissions against the new resource.
@@ -113,14 +112,21 @@ module.exports = function(router) {
               new Error(ecode.resource.ENOIDP),
               '#resolve'
             );
-            return done(ecode.resource.ENOIDP); // Return an error.
+            throw (ecode.resource.ENOIDP); // Return an error.
           }
         }
 
         childReq.url = url;
         childReq.method = method.toUpperCase();
         if (router.resourcejs.hasOwnProperty(url) && router.resourcejs[url].hasOwnProperty(method)) {
-          router.resourcejs[url][method].call(this, childReq, res, done);
+          return await new Promise((resolve, reject) => {
+            router.resourcejs[url][method].call(this, childReq, res, (err) => {
+              if (err) {
+                reject(err);
+              }
+              resolve();
+            });
+          });
         }
         else {
           log(
@@ -132,7 +138,7 @@ module.exports = function(router) {
             method
           );
 
-          done(ecode.resource.ENOHANDLER);
+          throw (ecode.resource.ENOHANDLER);
         }
       }.bind(this);
 
@@ -140,24 +146,23 @@ module.exports = function(router) {
        * Load a resource.
        * @type {function(this:SaveSubmission)}
        */
-      const loadResource = async function(cache, then) {
+      const loadResource = async function(cache) {
         try {
           const resource = await router.formio.cache.loadForm(req, 'resource', this.settings.resource);
           cache.resource = resource;
-          then();
+          return;
         }
         catch (err) {
           log(req, ecode.cache.EFORMLOAD, err, '#resolve');
-          return then(err);
+          throw err;
         }
       }.bind(this);
 
       /**
        * Assign a resource to the request object for the next submission.
        *
-       * @param then
        */
-      const assignResource = function(then) {
+      const assignResource = function() {
         // Get the resource.
         const resource = (res.resource && res.resource.item) ? res.resource.item : cache.submission;
 
@@ -176,8 +181,6 @@ module.exports = function(router) {
             id: res.resource.item._id.toString()
           });
         }
-
-        then();
       }.bind(this);
 
       /**
@@ -226,32 +229,27 @@ module.exports = function(router) {
        * Load a submission.
        *
        * @param form
-       * @param then
        */
-      const loadSubmission = async function(cache, then) {
+      const loadSubmission = async function(cache) {
         const submission = {data: {}, roles: []};
 
         // For new submissions, just populate the empty submission.
         if (req.method !== 'PUT') {
           cache.submission = await updateSubmission(submission);
-          return then();
+          return;
         }
 
         // Move on if there is no id or form.
         if (!req.body._id || !req.body.form) {
-          return then();
+          return;
         }
 
         // Load this submission.
-        router.formio.cache.loadSubmission(
-          req,
-          req.body.form,
-          req.body._id,
-          function(err, currentSubmission) {
-            if (err) {
-              log(req, ecode.submission.ESUBLOAD, err, '#resolve');
-              return then(err);
-            }
+        try {
+          const currentSubmission = await router.formio.cache.loadSubmission(
+            req,
+            req.body.form,
+            req.body._id);
 
             // Find the external submission.
             const external = _.find(currentSubmission.externalIds, {
@@ -259,47 +257,42 @@ module.exports = function(router) {
               resource: this.settings.resource
             });
             if (!external) {
-              return then();
+              return;
             }
 
             // Load the external submission.
-            router.formio.cache.loadSubmission(
+            const submission = await router.formio.cache.loadSubmission(
               req,
               this.settings.resource,
-              external.id,
-              async function(err, submission) {
-                if (err) {
-                  log(req, ecode.submission.ESUBLOAD, err, '#resolve');
-                  return then();
-                }
-
-                cache.submission = await updateSubmission(submission);
-                then();
-              }
-            );
-          }.bind(this));
+              external.id);
+            cache.submission = await updateSubmission(submission);
+            return;
+        }
+        catch (err) {
+          log(req, ecode.submission.ESUBLOAD, err, '#resolve');
+          throw err;
+        }
       }.bind(this);
 
       // Skip this resource.
       req.skipResource = true;
-      async.series([
-        async.apply(loadResource, cache),
-        async.apply(loadSubmission, cache)
-      ], function(err) {
-        if (err) {
-          log(req, err);
-          return next(err);
-        }
+
+      try {
+        await loadResource(cache);
+        await loadSubmission(cache);
 
         if (!cache.submission) {
-          return next();
+          return;
         }
 
-        async.series([
-          async.apply(saveToResource, cache.resource, cache.submission),
-          assignResource
-        ], next);
-      }.bind(this));
+        await saveToResource(cache.resource, cache.submission);
+        assignResource();
+        return;
+      }
+      catch (err) {
+        log(req, err);
+        throw err;
+      }
     }
   }
 

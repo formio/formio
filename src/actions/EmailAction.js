@@ -1,6 +1,5 @@
 'use strict';
 const fetch = require('@formio/node-fetch-http-proxy');
-const _ = require('lodash');
 
 const LOG_EVENT = 'Email Action';
 
@@ -18,11 +17,11 @@ module.exports = (router) => {
    *   This class is used to create the Email action.
    */
   class EmailAction extends Action {
-    static info(req, res, next) {
+    static info(req, res) {
      if (!hook.alter('hasEmailAccess', req)) {
-       return next(null);
+       return null;
      }
-      next(null, {
+      return {
         name: 'email',
         title: 'Email',
         description: 'Allows you to email people on submission.',
@@ -31,7 +30,7 @@ module.exports = (router) => {
           handler: ['after'],
           method: ['create'],
         },
-      });
+      };
     }
 
     /**
@@ -41,7 +40,7 @@ module.exports = (router) => {
      * @param res
      * @param next
      */
-    static async settingsForm(req, res, next) {
+    static async settingsForm(req, res) {
       try {
         // Get the available transports.
         const availableTransports =  await emailer.availableTransports(req);
@@ -174,11 +173,11 @@ module.exports = (router) => {
           },
         ];
 
-        return next(null, settingsForm);
+        return settingsForm;
       }
       catch (err) {
         log(req, ecode.emailer.ENOTRANSP, err);
-        return next(err);
+        throw err;
       }
     }
 
@@ -189,10 +188,8 @@ module.exports = (router) => {
      *   The Express request object.
      * @param res
      *   The Express response object.
-     * @param cb
-     *   The callback function to execute upon completion.
      */
-    async resolve(handler, method, req, res, next, setActionItemMessage) {
+    async resolve(handler, method, req, res, setActionItemMessage) {
       const loadForm = async function(req, setActionItemMessage, next) {
         try {
           const form = await router.formio.cache.loadCurrentForm(req);
@@ -200,16 +197,14 @@ module.exports = (router) => {
             const err = new Error(ecode.form.ENOFORM);
             setActionItemMessage('Error no form', err, 'error');
             log(req, ecode.cache.EFORMLOAD, err);
-            next(err);
-            return null;
+            throw err;
           }
           return form;
         }
  catch (err) {
           setActionItemMessage('Error loading form', err, 'error');
           log(req, ecode.cache.EFORMLOAD, err);
-          next(err);
-          return null;
+          throw err;
         }
       };
 
@@ -242,10 +237,10 @@ module.exports = (router) => {
 
       if (!this.settings.emails || this.settings.emails.length === 0) {
         setActionItemMessage('No email addresses configured', this.settings, 'error');
-        return next();
+        return;
       }
 
-      const form = await loadForm(req, setActionItemMessage, next);
+      const form = await loadForm(req, setActionItemMessage);
       if (!form) {
         return;
       }
@@ -255,8 +250,7 @@ module.exports = (router) => {
         req.params = reqParams;
       });
 
-      next(); // eslint-disable-line callback-return
-
+    const continueInBackground = async () => {
       try {
         const params = await emailer.getParams(req, res, form, req.body);
 
@@ -279,7 +273,7 @@ module.exports = (router) => {
         if (!this.settings.template) {
           template = this.settings.message;
         }
- else {
+        else {
           template = await fetchTemplate(this.settings, params, setActionItemMessage);
         }
 
@@ -290,10 +284,13 @@ module.exports = (router) => {
 
         await sendEmail(req, res, this.settings, params, setActionItemMessage);
       }
- catch (err) {
+      catch (err) {
         setActionItemMessage('Emailer error', err, 'error');
         log(req, ecode.emailer.ESUBPARAMS, err);
       }
+    };
+
+    continueInBackground();
     }
   }
 
