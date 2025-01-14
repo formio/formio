@@ -219,47 +219,6 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/js@5.1.0-dev.5977.69f20ee":
-  version "5.1.0-dev.5977.69f20ee"
-  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-dev.5977.69f20ee.tgz#8a3d4e7b74e4fa55295d48a34689c49dc61dbd50"
-  integrity sha512-DnPqgj3g2M/+kmcsXPF7B/8npX2SfMoO/Re8bh8evuZANLLXOVhtxZ0b5ivIgXgrfr7zK+wlveRXCcfCBp6U+A==
-  dependencies:
-    "@formio/bootstrap" v3.0.0-dev.121.085d187
-    "@formio/choices.js" "^10.2.1"
-    "@formio/core" v2.4.0-dev.2
-    "@formio/text-mask-addons" "3.8.0-formio.4"
-    "@formio/vanilla-text-mask" "^5.1.1-formio.1"
-    abortcontroller-polyfill "^1.7.5"
-    autocompleter "^8.0.4"
-    bootstrap "^5.3.3"
-    browser-cookies "^1.2.0"
-    browser-md5-file "^1.1.1"
-    compare-versions "^6.1.1"
-    core-js "^3.37.1"
-    dialog-polyfill "^0.5.6"
-    dom-autoscroller "^2.3.4"
-    dompurify "^3.1.6"
-    downloadjs "^1.4.7"
-    dragula "^3.7.3"
-    eventemitter3 "^5.0.1"
-    fast-deep-equal "^3.1.3"
-    fast-json-patch "^3.1.1"
-    idb "^7.1.1"
-    inputmask "^5.0.8"
-    ismobilejs "^1.1.1"
-    json-logic-js "^2.0.5"
-    jstimezonedetect "^1.0.7"
-    jwt-decode "^3.1.2"
-    lodash "^4.17.21"
-    moment "^2.29.4"
-    moment-timezone "^0.5.44"
-    quill "^2.0.2"
-    signature_pad "^4.2.0"
-    string-hash "^1.1.3"
-    tippy.js "^6.3.7"
-    uuid "^9.0.0"
-    vanilla-picker "^2.12.3"
-
 "@formio/js@5.1.0-dev.5979.96c77b0":
   version "5.1.0-dev.5979.96c77b0"
   resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-dev.5979.96c77b0.tgz#2e40928850cd0e0a296c3ffa2a0dba99e05b5309"
@@ -321,13 +280,13 @@
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@v1.0.0-dev.40.35c34ac":
-  version "1.0.0-dev.40.35c34ac"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.0-dev.40.35c34ac.tgz#64ed0b9f3cdc5b39092a44b06454a4adb9d6fdcc"
-  integrity sha512-QWGVJN7Tx8EN8AKZ8hgJ8U5LXKbWJppUzTlbnClsYNjXQ9gtf4KgL2+x0NbhE0oeV6ctobFP/VFT3YV11j5qSA==
+"@formio/vm@1.0.0-dev.43.8b2b3c2":
+  version "1.0.0-dev.43.8b2b3c2"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.0-dev.43.8b2b3c2.tgz#3df782096d30fef65e80dbeb3104159d6504169e"
+  integrity sha512-puoHhV3GmZkTbGy9yfVRL7479TUfvrxU0QlH93FwBhpjmysj/WyJnRR1x/1nCh4I1TSNw9qLolbpFbkqqEjTwA==
   dependencies:
     "@formio/core" "2.4.0-dev.2"
-    "@formio/js" "5.1.0-dev.5977.69f20ee"
+    "@formio/js" "5.1.0-dev.5979.96c77b0"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
