@@ -260,6 +260,47 @@
     uuid "^9.0.0"
     vanilla-picker "^2.12.3"
 
+"@formio/js@5.1.0-dev.5979.96c77b0":
+  version "5.1.0-dev.5979.96c77b0"
+  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-dev.5979.96c77b0.tgz#2e40928850cd0e0a296c3ffa2a0dba99e05b5309"
+  integrity sha512-sSGq7d5cARIkC8UAwR083acTl0HR4REugtarWXOULHujpEWnQOLrGq0UIzUdXhmqNY0p71lOdVSnO6vuhfN3Vw==
+  dependencies:
+    "@formio/bootstrap" v3.0.0-dev.121.085d187
+    "@formio/choices.js" "^10.2.1"
+    "@formio/core" v2.4.0-dev.2
+    "@formio/text-mask-addons" "3.8.0-formio.4"
+    "@formio/vanilla-text-mask" "^5.1.1-formio.1"
+    abortcontroller-polyfill "^1.7.5"
+    autocompleter "^8.0.4"
+    bootstrap "^5.3.3"
+    browser-cookies "^1.2.0"
+    browser-md5-file "^1.1.1"
+    compare-versions "^6.1.1"
+    core-js "^3.37.1"
+    dialog-polyfill "^0.5.6"
+    dom-autoscroller "^2.3.4"
+    dompurify "^3.1.6"
+    downloadjs "^1.4.7"
+    dragula "^3.7.3"
+    eventemitter3 "^5.0.1"
+    fast-deep-equal "^3.1.3"
+    fast-json-patch "^3.1.1"
+    idb "^7.1.1"
+    inputmask "^5.0.8"
+    ismobilejs "^1.1.1"
+    json-logic-js "^2.0.5"
+    jstimezonedetect "^1.0.7"
+    jwt-decode "^3.1.2"
+    lodash "^4.17.21"
+    moment "^2.29.4"
+    moment-timezone "^0.5.44"
+    quill "^2.0.2"
+    signature_pad "^4.2.0"
+    string-hash "^1.1.3"
+    tippy.js "^6.3.7"
+    uuid "^9.0.0"
+    vanilla-picker "^2.12.3"
+
 "@formio/node-fetch-http-proxy@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@formio/node-fetch-http-proxy/-/node-fetch-http-proxy-1.1.0.tgz#a281686f3982a6e07cb1721ffbdbcce0096f538f"
