@@ -22,7 +22,7 @@
     "@formio/core": "2.4.0-rc.4",
     "@formio/js": "5.0.0-rc.97",
     "@formio/node-fetch-http-proxy": "^1.1.0",
-    "@formio/vm": "0.3.0-rc.26",
+    "@formio/vm": "1.0.0-dev.32.743021",
     "JSONStream": "^1.3.5",
     "adm-zip": "^0.5.9",
     "async": "^3.2.4",
