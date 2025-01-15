@@ -14,6 +14,7 @@ import { AccessPanel } from "./InfoPanel/AccessPanel";
 import { ActionsPanel } from "./InfoPanel/ActionsPanel";
 import { UsePanel } from "./InfoPanel/UsePanel";
 import { ViewDataPanel } from "./InfoPanel/ViewDataPanel";
+import { CreatePanel } from "./InfoPanel/CreatePanel";
 
 const App = () => {
     const { isAuthenticated, logout } = useFormioContext();
@@ -35,11 +36,13 @@ const App = () => {
                         <Route path="/newform">
                             <div className="panels">
                                 <NewForm type="form" />
+                                <CreatePanel type="form" />
                             </div>
                         </Route>
                         <Route path="/newresource">
                             <div className="panels">
                                 <NewForm type="resource" />
+                                <CreatePanel type="resource" />
                             </div>
                         </Route>
                         <Route path="/resource/:id" nest>

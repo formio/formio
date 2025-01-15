@@ -1,6 +1,6 @@
 import { EvaluationLicenseInfo } from "./Partials/EvaluationLicenseInfo";
 
-export const EditPanel = ({ type }: { type: "resource" | "form" }) => {
+export const CreatePanel = ({ type }: { type: "resource" | "form" }) => {
     const name = type === "form" ? "Form" : "Resource";
     return (
         <div className="panel-wrap context default">
@@ -15,16 +15,31 @@ export const EditPanel = ({ type }: { type: "resource" | "form" }) => {
                     <div className="context-data edit-form active">
                         <div className="context-header">
                             <h2 className="strong">
-                                Editing{" "}
+                                Creating{" "}
                                 <span className="item-type-label">{name}</span>s
                             </h2>
                         </div>
                         <div className="context-expand">
                             <p>
-                                Add, edit, reorder, and remove{" "}
-                                <span className="item-type-label">{name}</span>{" "}
-                                components.
+                                <span>
+                                    Drag and Drop components onto your <span className="item-type-label">{name}</span>.{" "} 
+                                    <a
+                                        target="_blank"
+                                        title="Form Building Documentation"
+                                        href="https://help.form.io/userguide/form-building"
+                                        rel="noreferrer"
+                                    >
+                                    See Form Building Documentation 
+                                    </a>
+                                    {" "}for more information on the types of components and how to configure them. 
+                                </span>
                             </p>
+                            <p>
+                                Enter a title, name and path for your{" "}
+                                <span className="item-type-label">{name}.</span>{" "}
+                                This will help you identify it later.
+                            </p>
+                            
                             <ul>
                                 <li className="enterprise">
                                     <span className="strong">
