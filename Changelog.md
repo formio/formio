@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 ## [Unreleased: 4.4.0-rc.10]
  - FIO-8295: cache promisifying, mongoose upgrade
  - FIO-8428: Fixes save submission action data transformation
+ - FIO-9503: fixed nested form data not appearing in emails
 
 ## 4.4.0-rc.9
 ### Changed
