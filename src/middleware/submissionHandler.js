@@ -415,8 +415,8 @@ module.exports = (router, resourceName, resourceId) => {
     handlers[after] = async (req, res, next) => {
       req.handlerName = after;
       try {
-        await executeActions('after', req, res);
         await executeFieldHandlers(true, req, res);
+        await executeActions('after', req, res);
         await alterSubmission(req, res);
         await ensureResponse(req, res);
         return next();
