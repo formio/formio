@@ -1,4 +1,4 @@
-import { FormGrid, FormGridProps, ComponentProp } from "@formio/react";
+import { FormGrid, FormGridProps } from "@formio/react";
 import { useHashLocation } from "wouter/use-hash-location";
 
 type FormGridComponentProps = NonNullable<FormGridProps["components"]>;
