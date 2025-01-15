@@ -26,7 +26,7 @@ class ResourceFields extends NestedComponent {
           }
         },
         data: {
-          url: `${Formio.getProjectUrl()}/form?type=resource&limit=4294967295&select=_id,title`,
+          url: `${Formio.getBaseUrl()}/form?type=resource&limit=4294967295&select=_id,title`,
         },
       },
       {
@@ -95,7 +95,7 @@ class ResourceFields extends NestedComponent {
     if (!this.data.resource) {
       return;
     }
-    Formio.request(`${Formio.getProjectUrl()}/form/${this.data.resource}`).then((result: any) => {
+    Formio.request(`${Formio.getBaseUrl()}/form/${this.data.resource}`).then((result: any) => {
       const dynamicFields = (this as any).getComponent('dynamic');
       dynamicFields.destroyComponents();
       const formFields = [
