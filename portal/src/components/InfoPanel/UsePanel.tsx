@@ -1,3 +1,5 @@
+import { EvaluationLicenseInfo } from "./Partials/EvaluationLicenseInfo";
+
 export const UsePanel = ({ type }: { type: "form" | "resource" }) => {
     const name = type === "form" ? "Form" : "Resource";
     return (
@@ -68,28 +70,7 @@ export const UsePanel = ({ type }: { type: "form" | "resource" }) => {
                                     .
                                 </li>
                             </ul>
-                            <div className="section">
-                                <p>
-                                    We offer 30-day evaluation licenses based on
-                                    the{" "}
-                                    <a
-                                        target="_blank"
-                                        href="https://form.io/pricing"
-                                        rel="noreferrer"
-                                    >
-                                        configuration
-                                    </a>{" "}
-                                    of your choice. Contact us to get started.
-                                </p>
-                                <div className="button-wrap">
-                                    <button
-                                        className="button primary open-lightbox"
-                                        data-lightbox="contact"
-                                    >
-                                        Contact Us
-                                    </button>
-                                </div>
-                            </div>
+                            <EvaluationLicenseInfo/>
                         </div>
                     </div>
                 </div>
