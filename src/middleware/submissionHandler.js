@@ -432,8 +432,8 @@ module.exports = (router, resourceName, resourceId) => {
     handlers[after] = (req, res, next) => {
       req.handlerName = after;
       async.series([
-        async.apply(executeActions('after'), req, res),
         async.apply(executeFieldHandlers, true, req, res),
+        async.apply(executeActions('after'), req, res),
         async.apply(alterSubmission, req, res),
         async.apply(ensureResponse, req, res)
       ], (...args) => {
