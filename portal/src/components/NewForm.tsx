@@ -1,7 +1,9 @@
 import { FormEdit, FormType } from "@formio/react";
 import { useHashLocation } from "wouter/use-hash-location";
+import { useBodyClassName } from "../hooks/useBodyClassName";
 
 export const NewForm = ({ type }: { type: "form" | "resource" }) => {
+    useBodyClassName(`item-open`);
     const name = type === "form" ? "Form" : "Resource";
     const setLocation = useHashLocation()[1];
 
