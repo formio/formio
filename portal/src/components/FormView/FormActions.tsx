@@ -248,7 +248,7 @@ export const FormActions = ({
                             <a
                                 target="_blank"
                                 rel="noreferrer"
-                                href="http://help.form.io/userguide/#actions"
+                                href="https://help.form.io/userguide/form-building/actions"
                             >
                                 View documentation
                             </a>{" "}
