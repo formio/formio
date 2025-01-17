@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FormEdit, FormType } from "@formio/react";
 import { useLocation } from "wouter";
+import builderSettingsForm from "../../utils/builderSettingsForm";
 
 export const EditForm = ({
     url,
@@ -52,6 +53,7 @@ export const EditForm = ({
                         ),
                     }}
                     initialForm={initialForm}
+                    settingsForm={builderSettingsForm}
                 />
             ) : null}
         </div>

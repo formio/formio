@@ -1,6 +1,7 @@
 import { FormEdit, FormType } from "@formio/react";
 import { useHashLocation } from "wouter/use-hash-location";
 import { useBodyClassName } from "../hooks/useBodyClassName";
+import builderSettingsForm from "../utils/builderSettingsForm";
 
 export const NewForm = ({ type }: { type: "form" | "resource" }) => {
     useBodyClassName(`item-open`);
@@ -32,6 +33,7 @@ export const NewForm = ({ type }: { type: "form" | "resource" }) => {
             <div className="panel new-item">
                 <FormEdit
                     onSaveForm={(form) => handleSaveForm(form)}
+                    settingsForm={builderSettingsForm}
                     components={{
                         SettingsFormContainer: ({ children }) => (
                             <div className="edit-form-header">{children}</div>
