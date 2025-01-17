@@ -180,6 +180,7 @@ export const FormActions = ({
         }
     };
 
+    const actionAddFormRef = useRef<any>(null);
     const actionsToMap = displayedAction ? [displayedAction] : data;
 
     return (
@@ -228,10 +229,13 @@ export const FormActions = ({
                     <div className="form-action-add-wrap">
                         <Form
                             src={getPossibleActionsForm(formId)}
-                            onChange={(value, _, modified) => {
-                                if (modified) {
-                                    actionToAdd.current = value.data
+                            formReady={(instance) => {
+                                actionAddFormRef.current = instance;        
+                                if (actionAddFormRef.current) {
+                                    actionAddFormRef.current.on('change', (event: any) => {
+                                        actionToAdd.current = event.data
                                         .action as FormAction;
+                                    });
                                 }
                             }}
                         />
