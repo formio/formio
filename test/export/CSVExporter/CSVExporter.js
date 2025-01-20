@@ -8,6 +8,7 @@ module.exports = function (app, template, hook) {
   const testFile = require('../../fixtures/forms/fileComponent.js');
   const testTags = require('../../fixtures/forms/tagsWithDelimiter.js');
   const testRadio = require('../../fixtures/forms/radioComponent');
+  const wizardTest = require('../../fixtures/forms/wizardFormWithAdvancedConditions.js')
   const testAzureAddress = require('../../fixtures/forms/azureAddressComponent');
   const testGoogleAddress = require('../../fixtures/forms/googleAddressComponent');
   const testNominatimAddress = require('../../fixtures/forms/nominatimAddressComponent');
@@ -189,6 +190,35 @@ module.exports = function (app, template, hook) {
 
             const fileValue = getComponentValue(result.text, 'radio', 0);
             assert.strictEqual(fileValue, undefined);
+            done();
+          });
+        });
+    });
+
+    it('Should export csv for wizard forms', (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form(wizardTest)
+        .submission({
+          data: {
+            number: 2,
+            textField: 'test',
+            textArea: 'test New'
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(helper.template.forms.wizardTest, 'csv', (error, result) => {
+            if (error) {
+              return done(error);
+            }
+            assert.strictEqual(getComponentValue(result.text, 'page1.number', 0), '"2"');
+            assert.strictEqual(getComponentValue(result.text, 'page2.textField', 0), '"test"');
+            assert.strictEqual(getComponentValue(result.text, 'page2.textArea', 0), '"test New"');
             done();
           });
         });
