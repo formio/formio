@@ -12,9 +12,7 @@ const _ = require("lodash");
 module.exports = function (router) {
   return function (req, res, next) {
     if (
-      !res ||
-      !res.resource ||
-      !res.resource.item ||
+      !res?.resource?.item ||
       !req.isBundle ||
       (req.isBundle && req.isAdmin && !req.token?.external) 
       /* Added an external check because in non-multi-tenant cases, 
