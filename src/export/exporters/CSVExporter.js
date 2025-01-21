@@ -504,20 +504,16 @@ class CSVExporter extends Exporter {
           column.path = _.drop(parts).join('.');
         }
       }
-      const componentData = _.get(submission.data, column.path);
+      let componentData = _.get(submission.data, column.path);
 
-      // If the path had no results and the component specifies a path, check for a datagrid component
+      // If the path had no results and the component specifies a path, check for a datagrid component or nested form
       if (_.isUndefined(componentData) && column.path.includes('.')) {
-        let parts = column.path.split('.');
-
-        // If array in nested form
-        if (parts.length > 2) {
-          let newParts = _.chunk(parts, parts.length - 1);
-          newParts = newParts.map(part => part.join('.'));
-          parts = newParts;
-        }
+        const parts = column.path.split('.');
         const container = parts.shift();
         const containerData = _.get(submission.data, container);
+        if (containerData && containerData.hasOwnProperty('data')) {
+          componentData = _.get(containerData.data, parts);
+        }
 
         // If the subdata is an array, coerce it to a displayable string.
         if (Array.isArray(containerData)) {
