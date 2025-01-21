@@ -2038,10 +2038,19 @@ button.togglecontext {
 .panel-wrap.forms button.help {
     color: var(--green6);
 }
+.panel-wrap.forms button.help:hover,
+.panel-wrap.forms button.help.active {
+    color: var(--green7);
+}
 
 .panel-wrap.resources .panel-title,
 .panel-wrap.resources button.help {
     color: var(--blue5);
+}
+
+.panel-wrap.resources button.help:hover,
+.panel-wrap.resources button.help.active {
+    color: var(--blue6);
 }
 
 /* Panel Contents */
