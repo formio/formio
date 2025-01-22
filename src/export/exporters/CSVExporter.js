@@ -48,7 +48,7 @@ class CSVExporter extends Exporter {
 
     const ignore = ['password', 'button', 'container', 'datagrid', 'editgrid', 'dynamicWizard'];
     try {
-      util.eachComponent(form.components, (comp, path) => {
+      util.eachComponent(form.components, (comp, path, components, parent, compPaths) => {
         if (!comp.input || !comp.key || ignore.includes(comp.type)) {
           return;
         }
@@ -383,6 +383,7 @@ class CSVExporter extends Exporter {
             key: component.key,
             label: (item.label || path).replace(labelRegexp, '.'),
             title: component.label,
+            dataPath: compPaths.path
           };
 
           if (item.hasOwnProperty('subpath')) {
@@ -489,26 +490,12 @@ class CSVExporter extends Exporter {
 
   getSubmissionData(submission) {
     const updatedSubmission = {};
-    const pagesPaths = [];
-    if (this.form.display === 'wizard') {
-      this.form.components.forEach((component => {
-        if (component.type === 'panel') {
-          pagesPaths.push(component.key);
-        }
-      }));
-    }
     const result = this.fields.map((column) => {
-      if (this.form.display === 'wizard') {
-        const parts = column.path.split('.');
-        if (parts.length && pagesPaths.includes(parts[0])) {
-          column.path = _.drop(parts).join('.');
-        }
-      }
-      let componentData = _.get(submission.data, column.path);
+      let componentData = _.get(submission.data, column.dataPath);
 
       // If the path had no results and the component specifies a path, check for a datagrid component or nested form
-      if (_.isUndefined(componentData) && column.path.includes('.')) {
-        const parts = column.path.split('.');
+      if (_.isUndefined(componentData) && column.dataPath.includes('.')) {
+        const parts = column.dataPath.split('.');
         const container = parts.shift();
         const containerData = _.get(submission.data, container);
         if (containerData && containerData.hasOwnProperty('data')) {
