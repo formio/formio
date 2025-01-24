@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.4.2-rc.2]
+### Changed
+ - FIO-8868: fix issue with multi-instance race conditions during feature detection
+
 ## 4.4.2-rc.1
 ### Changed
  - Updated @formio/core@2.4.1-rc.3

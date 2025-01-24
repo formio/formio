@@ -11,6 +11,10 @@ const debug = {
   sanity: require('debug')('formio:sanityCheck')
 };
 const path = require('path');
+const {customAlphabet} = require('nanoid/non-secure');
+
+// Random string generator HOF
+const nanoid = customAlphabet('1234567890abcdef', 10);
 
 // The mongo database connection.
 let db = null;
@@ -248,11 +252,14 @@ module.exports = function(formio) {
    */
   const checkFeatures = async function() {
     formio.util.log('Determine MongoDB compatibility.');
+    try {
       config.mongoFeatures = formio.mongoFeatures = {
         collation: true,
         compoundIndexWithNestedPath: true,
       };
-      const featuresTest = db.collection('formio-features-test');
+      // Assign a random string to collection name to avoid multi-instance race conditions
+      const randomString = nanoid();
+      const featuresTest = db.collection(randomString);
       // Test for collation support
       try {
         await featuresTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
@@ -273,6 +280,11 @@ module.exports = function(formio) {
         config.mongoFeatures.compoundIndexWithNestedPath = formio.mongoFeatures.compoundIndexWithNestedPath = false;
       }
       await featuresTest.drop();
+    }
+    catch (err) {
+      formio.util.log('Error determining MongoDB compatibility:');
+      formio.util.log(err);
+    }
   };
 
   /**
