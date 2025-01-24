@@ -1,4 +1,4 @@
-import { FormGrid, FormGridProps, ComponentProp } from "@formio/react";
+import { FormGrid, FormGridProps } from "@formio/react";
 import { useState } from "react";
 import { useHashLocation } from "wouter/use-hash-location";
 
@@ -58,8 +58,8 @@ const FormListHeader = ({ type }: { type: "form" | "resource" }) => {
             <div className="panel-title icon">
                 <img src={`icon-${type}.svg`} alt={`${type}s`} />{" "}
                 {pluralName}
-                <button 
-                    className={`help ${isBubbleActive ? 'active' : ''}`} 
+                <button
+                    className={`help ${isBubbleActive ? 'active' : ''}`}
                     type="button"
                     onClick={() => setBubbleActive(!isBubbleActive)}
                 >
@@ -68,8 +68,8 @@ const FormListHeader = ({ type }: { type: "form" | "resource" }) => {
 
             </div>
             <div className={`help-bubble ${isBubbleActive ? 'active' : ''} top wide`}>
-                <button 
-                    className="close-help" 
+                <button
+                    className="close-help"
                     type="button"
                     onClick={() => setBubbleActive(false)}
                 >
@@ -77,7 +77,7 @@ const FormListHeader = ({ type }: { type: "form" | "resource" }) => {
                 </button>
                 <p>
                     {
-                        isForm 
+                        isForm
                             ? 'Forms are the primary interface within the Form.io system.'
                             :'Resources are the objects within your Project. Examples: User, Company, Vehicle, etc.'
                     }
