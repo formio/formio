@@ -1711,6 +1711,111 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('Hidden calculated values are hidden on update of submission', function(done) {
+        var components = [
+          {
+            "label": "Hide 2",
+            "tableView": false,
+            "validateWhenHidden": false,
+            "key": "hide2",
+            "type": "checkbox",
+            "input": true,
+            "defaultValue": false
+          },
+          {
+            "label": "Number1",
+            "applyMaskOn": "change",
+            "mask": false,
+            "tableView": false,
+            "delimiter": false,
+            "requireDecimal": false,
+            "inputFormat": "plain",
+            "truncateMultipleSpaces": false,
+            "validateWhenHidden": false,
+            "key": "number1",
+            "type": "number",
+            "input": true
+          },
+          {
+            "label": "Number2",
+            "applyMaskOn": "change",
+            "mask": false,
+            "tableView": false,
+            "delimiter": false,
+            "requireDecimal": false,
+            "inputFormat": "plain",
+            "truncateMultipleSpaces": false,
+            "validateWhenHidden": false,
+            "key": "number2",
+            "type": "number",
+            "input": true
+          },
+          {
+            "label": "Number3 Calculated clear value when hidden = true",
+            "applyMaskOn": "change",
+            "mask": false,
+            "tableView": true,
+            "delimiter": false,
+            "requireDecimal": false,
+            "inputFormat": "plain",
+            "truncateMultipleSpaces": false,
+            "calculateValue": "value = data.number1 + data.number2",
+            "validateWhenHidden": false,
+            "key": "number3CalculatedClearValueWhenHiddenTrue",
+            "conditional": {
+              "show": false,
+              "conjunction": "all",
+              "conditions": [
+                {
+                  "component": "hide2",
+                  "operator": "isEqual",
+                  "value": true
+                }
+              ]
+            },
+            "type": "number",
+            "input": true
+          }
+        ];
+
+        var values = {
+          hide2: false,
+          number1: 100,
+          number2: 200,
+          number3CalculatedClearValueWhenHiddenTrue: 300,
+        }
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(values, submission.data);
+
+            var updatedSubmission = _.cloneDeep(submission);
+            var updatedData = {
+              "hide2": true,
+              "number1": 100,
+              "number2": 200
+            }
+            _.set(updatedSubmission, 'data', updatedData);
+            
+            helper.updateSubmission(updatedSubmission, (err) => {
+              if (err) {
+                return done(err);
+              }
+              var editedSubmission = helper.getLastSubmission();
+              assert.deepEqual(updatedData, editedSubmission.data);
+              assert(!editedSubmission.data.hasOwnProperty('number3CalculatedClearValueWhenHiddenTrue'));
+              done();
+            })
+          });
+      })
+
       it('Allows a conditionally required field', function(done) {
         var components = [
           {
@@ -2910,6 +3015,114 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(test.submission, submission.data);
             done();
           });
+      });
+
+      it('Does not return a protected password field into tagpad component', function(done) {
+        const  components = [
+          {
+            label: 'Text Field 1',
+            applyMaskOn: 'change',
+            'tableView': true,
+            'validateWhenHidden': false,
+            'key': 'textField1',
+            'type': 'textfield1',
+            'input': true
+          },
+          {
+            label:'Password 1',
+            applyMaskOn:'change',
+            tableView:false,
+            validateWhenHidden:false,
+            key:'password1',
+            type:'password1',
+            input:true,
+            protected:true
+          },
+          {
+            label:'Tagpad',
+            tableView:false,
+            validateWhenHidden:false,
+            key:'tagpad',
+            type:'tagpad',
+            input:true,
+            imageUrl: 'https://googlechrome.github.io/samples/picture-element/images/kitten-large.png',
+
+            components:
+              [
+                {
+                  label:'Password',
+                  applyMaskOn:'change',
+                  tableView:false,
+                  validateWhenHidden:false,
+                  key:'password',
+                  type:'password',
+                  input:true,
+                  protected:true
+                },
+                {
+                  label: 'Text Field',
+                  applyMaskOn: 'change',
+                  'tableView': true,
+                  'validateWhenHidden': false,
+                  'key': 'textField',
+                  'type': 'textfield',
+                  'input': true
+                },
+              ]
+
+            }
+          ];
+
+        const values = {
+          password1: 'password',
+          textField1: 'My Value',
+          tagpad: [
+          {
+              coordinate: {
+                  x: 198,
+                  y: 74,
+                  width: 772,
+                  height: 339
+              },
+              data: {
+                  password: 'password1',
+                  textField: 'My Value 1',
+              }
+          },
+          {
+              coordinate: {
+                  x: 198,
+                  y: 74,
+                  width: 772,
+                  height: 339
+              },
+              data: {
+                  password: 'password2',
+                  textField: 'My Value 2',
+              }
+            }
+          ]
+        };
+
+        helper
+        .form('test', components)
+        .submission(values)
+        .execute(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          _.unset(values, 'password1');
+          _.unset(values, 'tagpad[0].data.password');
+          _.unset(values, 'tagpad[1].data.password');
+          const result = values;
+          const submission = helper.getLastSubmission();
+          assert.equal(result.textField1, submission.data.textField1);
+          assert.equal(result.password1, undefined);
+          if (submission.data.tagpad.length !== 0) {
+            assert.deepEqual(result, submission.data);
+          }
+          done();
+        });
       });
     });
 
