@@ -224,6 +224,36 @@ module.exports = function (app, template, hook) {
         });
     });
 
+    it('Should display data for Components inside the Layout Components', (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form('panelTest', wizardTest.components)
+        .submission({
+          data: {
+            number: 2,
+            textField: 'test Form',
+            textArea: 'test Form New'
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(helper.template.forms.panelTest, 'csv', (error, result) => {
+            if (error) {
+              return done(error);
+            }
+            assert.strictEqual(helper.template.forms.panelTest.display, 'form');
+            assert.strictEqual(getComponentValue(result.text, 'page1.number', 0), '"2"');
+            assert.strictEqual(getComponentValue(result.text, 'page2.textField', 0), '"test Form"');
+            assert.strictEqual(getComponentValue(result.text, 'page2.textArea', 0), '"test Form New"');
+            done();
+          });
+        });
+    });
+
     it(`Test Azure address data`, (done) => {
       let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
