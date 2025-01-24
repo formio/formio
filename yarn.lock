@@ -280,10 +280,10 @@
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@1.0.0-dev.44.59b3edc":
-  version "1.0.0-dev.44.59b3edc"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.0-dev.44.59b3edc.tgz#542a17aa1204d6e173746d59b3ab71f40b053502"
-  integrity sha512-2RNJ7oLA5+mpoBvm1sgYn0vKdipxnweGjCxymDEUYONtVxORd/SKv2tlnSlPo7DLA/E04y0rhOVECIfl13NVrw==
+"@formio/vm@1.0.0-dev.45.7e9ae31":
+  version "1.0.0-dev.45.7e9ae31"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.0-dev.45.7e9ae31.tgz#f625fbe62032c14c546313bffc328cf3c87803ff"
+  integrity sha512-93RhdZXr0xIVKgR/M8YkUmhai8zhsG08m9Ca6Z/uxO90XqtNMdD/XL2fEdO8RXciGzdAb++UsD+PaH6EwxoVPw==
   dependencies:
     "@formio/core" "2.4.0-dev.2"
     "@formio/js" "5.1.0-dev.5977.69f20ee"
