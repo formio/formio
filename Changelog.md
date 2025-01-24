@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.3.1-rc.11
+### Changed
+ - Updated @formio/vm@0.3.1-rc.2
+
 ## 4.3.1-rc.10
  - FIO-9503: fixed nested form data not appearing in emails
 
