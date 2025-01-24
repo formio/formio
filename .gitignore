@@ -2,6 +2,8 @@
 .dccache
 .vscode
 .idea
+.env
+.secrets
 bower_components
 node_modules
 npm-debug.log

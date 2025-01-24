@@ -1,6 +1,7 @@
 import { useFormioContext } from "@formio/react";
 import { ReactNode } from "react";
 import { useHashLocation } from "wouter/use-hash-location";
+import packageJSON from '../../package.json';
 export const Layout = ({
     children,
     onInfoPanelClick,
@@ -12,6 +13,11 @@ export const Layout = ({
 }) => {
     const setLocation = useHashLocation()[1];
     const { isAuthenticated } = useFormioContext();
+    const appVersion: string = packageJSON.version;
+    const rendererVersion: string = packageJSON.dependencies['@formio/js'].replace(/[\^\~]/g, '');
+    const formioReactVersion: string = packageJSON.dependencies['@formio/react'].replace(/[\^\~]/g, '');
+    const reactVersion: string = packageJSON.dependencies['react'].replace(/[\^\~]/g, '');
+    const copyrightYear = new Date().getFullYear();
     return (
         <main>
             <header className="remember-focus">
@@ -38,6 +44,15 @@ export const Layout = ({
                 )}
             </header>
             {children}
+            <footer className="panel-footer footer justify-content-center pt-2">
+                <hr />
+                <a href="https://form.io" className="d-flex w-auto justify-content-center text-center">
+                    <img className="logo w-32 mb-1" alt="Form.io" src="https://portal.form.io/template/images/formio-logo-white.png" height="60px" />
+                </a>
+                <p className="text-center text-muted mb-0">App Version: v{ appVersion }, Renderer: v{ rendererVersion }</p>
+                <p className="text-center text-muted mb-0">React: v{ reactVersion }, React Module: v{ formioReactVersion }</p>
+                <p className="text-center text-muted mb-0">Copyright © Form.io LLC { copyrightYear }. All rights reserved</p>
+            </footer>
         </main>
     );
 };
