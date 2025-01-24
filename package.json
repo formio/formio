@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "4.0.0",
+  "version": "4.5.0-dev.1",
   "description": "The formio server application.",
   "license": "OSL-3.0",
   "main": "index.js",
@@ -19,10 +19,10 @@
   "schema": "3.1.4",
   "templateVersion": "2.0.0",
   "dependencies": {
-    "@formio/core": "2.4.0-rc.4",
-    "@formio/js": "5.0.0-rc.97",
+    "@formio/core": "2.4.0-dev.2",
+    "@formio/js": "5.1.0-dev.5977.69f20ee",
     "@formio/node-fetch-http-proxy": "^1.1.0",
-    "@formio/vm": "1.0.0-dev.42.7ed69a6",
+    "@formio/vm": "1.0.0-dev.45.7e9ae31",
     "JSONStream": "^1.3.5",
     "adm-zip": "^0.5.9",
     "async": "^3.2.4",

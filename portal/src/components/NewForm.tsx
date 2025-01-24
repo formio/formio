@@ -56,6 +56,11 @@ export const NewForm = ({ type }: { type: "form" | "resource" }) => {
                             </button>
                         ),
                     }}
+                    initialForm={{
+                        display: 'form',
+                        type,
+                        components: [],
+                    }}
                 />
             </div>
         </div>
