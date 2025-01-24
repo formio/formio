@@ -6,6 +6,8 @@ const assert = require('assert');
 const fs = require('fs');
 const docker = process.env.DOCKER;
 
+const {sanitizeMongoConnectionString} = require('../src/db/util');
+
 module.exports = function(app, template, hook) {
   // let Thread = require('formio-workers/Thread');
 
@@ -193,4 +195,36 @@ module.exports = function(app, template, hook) {
       done();
     });
   });
-};
+
+  describe('Sanitize db url', function() {
+    it('Should sanitize a db url with a password', function() {
+      const url = 'mongodb://user:password@localhost:27017/db';
+      const sanitized = sanitizeMongoConnectionString(url);
+      assert.equal(sanitized, 'mongodb://user:***@localhost:27017/db');
+    });
+
+    it('Should sanitize a db url without a password', function() {
+      const url = 'mongodb://user@localhost:27017/db';
+      const sanitized = sanitizeMongoConnectionString(url);
+      assert.equal(sanitized, 'mongodb://user@localhost:27017/db');
+    });
+
+    it('Should sanitize a db url with a password and +srv', function() {
+      const url = 'mongodb+srv://user:password@localhost:27017/db';
+      const sanitized = sanitizeMongoConnectionString(url);
+      assert.equal(sanitized, 'mongodb+srv://user:***@localhost:27017/db');
+    });
+
+    it('Should sanitize a db url without a password and +srv', function() {
+      const url = 'mongodb+srv://user@localhost:27017/db';
+      const sanitized = sanitizeMongoConnectionString(url);
+      assert.equal(sanitized, 'mongodb+srv://user@localhost:27017/db');
+    });
+    
+    it('Should not be affected by query string params', function () {
+      const url = 'mongodb://user:password@localhost:27017/db?authSource=admin';
+      const sanitized = sanitizeMongoConnectionString(url);
+      assert.equal(sanitized, 'mongodb://user:***@localhost:27017/db?authSource=admin');
+    });
+  });
+}
