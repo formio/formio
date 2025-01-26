@@ -1,96 +1,154 @@
-// write a test that checks that the Auth component renders a login form when the user is not authenticated
-import userEvent from "@testing-library/user-event";
-import { expect, test } from "vitest";
-import { render, screen } from "@testing-library/react";
-import { FormioProvider } from "@formio/react";
+import {afterAll, beforeAll, beforeEach, expect, test} from "vitest";
+import {render, screen} from "@testing-library/react";
+import {FormioProvider} from "@formio/react";
 import "@testing-library/jest-dom";
+import {userEvent} from "@testing-library/user-event";
+import {setupServer} from "msw/node";
+import {http, HttpResponse} from "msw";
+import {Formio} from "@formio/js";
+import {act} from "react";
 
 import App from "../App";
-import { InfoPanelProvider } from "../../hooks/useInfoPanelContext";
+import {InfoPanelProvider} from "../../hooks/useInfoPanelContext";
 
-test("displays the login form when a user does not have a token", async () => {
+const server = setupServer(
+    http.get('http://localhost:3002/form', () => {
+        return HttpResponse.json([]);
+    }),
+    http.get('http://localhost:3002/logout', () => {
+        return HttpResponse.text('OK', {status: 200})
+    }),
+    http.get('http://localhost:3002/admin/login', () => {
+        return HttpResponse.json({
+            "components": [
+                {
+                    "type": "email",
+                    "persistent": true,
+                    "unique": false,
+                    "protected": false,
+                    "defaultValue": "",
+                    "suffix": "",
+                    "prefix": "",
+                    "placeholder": "Enter your email address",
+                    "key": "email",
+                    "lockKey": true,
+                    "label": "Email",
+                    "inputType": "email",
+                    "tableView": true,
+                    "input": true
+                },
+                {
+                    "type": "password",
+                    "persistent": true,
+                    "protected": true,
+                    "suffix": "",
+                    "prefix": "",
+                    "placeholder": "Enter your password.",
+                    "key": "password",
+                    "lockKey": true,
+                    "label": "Password",
+                    "inputType": "password",
+                    "tableView": false,
+                    "input": true
+                },
+                {
+                    "type": "button",
+                    "theme": "primary",
+                    "disableOnInvalid": true,
+                    "action": "submit",
+                    "block": false,
+                    "rightIcon": "",
+                    "leftIcon": "",
+                    "size": "md",
+                    "key": "submit",
+                    "tableView": false,
+                    "label": "Submit",
+                    "input": true
+                }
+            ],
+        })
+    }),
+    http.get('http://localhost:3002/current', () => {
+        return HttpResponse.json({});
+    }),
+)
+
+beforeAll(() => {
+    server.listen();
+})
+
+beforeEach(() => {
+    localStorage.clear();
+    Formio.tokens = {};
+    server.resetHandlers();
+})
+
+test('Should be on login page if the user is not authenticated', async () => {
     render(
-        // TODO: stub out service worker so server doesn't have to be running
-        <FormioProvider>
+        <FormioProvider baseUrl='http://localhost:3002'>
             <InfoPanelProvider>
-                <App />
+                <App/>
             </InfoPanelProvider>
         </FormioProvider>
     );
-    expect(await screen.findByText("Email"));
-    expect(await screen.findByText("Password"));
+    expect(await screen.findByText('Email'));
+    expect(await screen.findByText('Password'));
 });
 
-test("redirects to the home page when a user has logged in and redirects back to the login form when logout is clicked", async () => {
+test('Navigate to the home page if the user is already authenticated', async () => {
+    localStorage.setItem('formioToken', '12345');
     render(
-        // TODO: stub out service worker so server doesn't have to be running
-        <FormioProvider baseUrl="http://localhost:3001">
+        <FormioProvider baseUrl='http://localhost:3002'>
             <InfoPanelProvider>
-                <App />
+                <App/>
             </InfoPanelProvider>
         </FormioProvider>
     );
-    // 2. Find form fields
-    const emailInput = await screen.findByText("Email");
-    const passwordInput = await screen.findByText("Password");
-    const submitButton = screen.getByRole("button", { name: /submit/i });
+    expect(await screen.findByText('Resources'));
+    expect(await screen.findByText('Forms'));
+});
 
-    // 3. Fill out the fields with userEvent
-    await userEvent.type(emailInput, "brendan@form.io");
-    await userEvent.type(passwordInput, "Sanford1f!");
-
-    // 4. Click the submit button
+test('Clicking on the submit button should navigate you to the home page if login was successful', async () => {
+    server.use(http.post('http://localhost:3002/admin/login/submission', () => {
+        return HttpResponse.json({}, {
+            headers: {
+                'x-jwt-token': 'test123'
+            }
+        });
+    }));
+    render(
+        <FormioProvider baseUrl='http://localhost:3002'>
+            <InfoPanelProvider>
+                <App/>
+            </InfoPanelProvider>
+        </FormioProvider>
+    );
+    const submitButton = await screen.findByText('Submit');
     await userEvent.click(submitButton);
-
-    expect(await screen.findByText("Resources"));
-    expect(await screen.findByText("Forms"));
+    expect(await screen.findByText('Forms'));
+    expect(await screen.findByText('Resources'));
 });
 
-test("Should display Admin and User resources when logged in", async () => {
+test('Clicking the logout button should navigate you back to the home page and remove user from local storage', async () => {
     render(
-        // TODO: stub out service worker so server doesn't have to be running
-        <FormioProvider baseUrl="http://localhost:3001">
+        <FormioProvider baseUrl='http://localhost:3002'>
             <InfoPanelProvider>
-                <App />
+                <App/>
             </InfoPanelProvider>
         </FormioProvider>
     );
-    expect(await screen.findByText("Resources"));
+    localStorage.setItem('formioUser', JSON.stringify({}));
+    act(() => {
+        Formio.events.emit('formio.user', {});
+    });
+    const logoutButton = await screen.findByText('Logout');
+    await userEvent.click(logoutButton);
 
-    expect(await screen.findByText("Admin"));
-    expect(await screen.findByText("User"));
+    expect(await screen.findByText('Email'))
+    expect(await screen.findByText('Password'));
+    expect(localStorage.getItem('formioUser')).to.be.null
 });
 
-test("Should display user and admin login forms when logged in", async () => {
-    render(
-        // TODO: stub out service worker so server doesn't have to be running
-        <FormioProvider baseUrl="http://localhost:3001">
-            <InfoPanelProvider>
-                <App />
-            </InfoPanelProvider>
-        </FormioProvider>
-    );
-    expect(await screen.findByText("Forms"));
-
-    expect(await screen.findByText("User Login"));
-    expect(await screen.findByText("Admin Login"));
-});
-
-// test('redirects to login form when logout is clicked', async () => {
-//   render(
-//       // TODO: stub out service worker so server doesn't have to be running
-//       <FormioProvider baseUrl="http://localhost:3001">
-//           <InfoPanelProvider>
-//               <App />
-//           </InfoPanelProvider>
-//       </FormioProvider>
-//   );
-
-//   expect(await screen.findByText("Resources"));
-//   expect(await screen.findByText("Forms"));
-//   const logoutLink = await screen.findByText("Logout");
-//   await userEvent.click(logoutLink);
-
-//   await screen.findByText("Email", {}, { timeout: 3000 });
-//   await screen.findByLabelText("Password", {}, { timeout: 3000 });
-// })
+afterAll(() => {
+    server.close();
+})
