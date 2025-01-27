@@ -173,6 +173,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     needs: [portal]
     runs-on: ubuntu-latest
+    env:
+      IMAGE_PATH: formio/formio
     steps:
     - run: echo "Triggered by ${{ github.event_name }} event."
     - name: Check out repository code ${{ github.repository }} on ${{ github.ref }}
