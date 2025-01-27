@@ -3,6 +3,9 @@ name: Test, Publish
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  push:
+    tags:
+      - '*' # This will make sure tag creations also trigger the workflow.
 
 env:
   NODE_VERSION: 20.x
