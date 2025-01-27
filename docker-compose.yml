@@ -4,7 +4,7 @@ services:
     image: mongo
     restart: always
     volumes:
-      - mdb-data:/data/db
+      - "./data/db:/data/db"
     environment:
       - MONGO_INITDB_ROOT_USERNAME
       - MONGO_INITDB_ROOT_PASSWORD
@@ -19,10 +19,8 @@ services:
       - "3001:3001"
     environment:
       DEBUG: formio:*
-      NODE_CONFIG: '{"mongo": "mongodb://mongo:27017/formio"}'
+      NODE_CONFIG: '{"mongo": "mongodb://mongo:27017/oss-formio"}'
       ROOT_EMAIL: admin@example.com
       ROOT_PASSWORD: CHANGEME
     stdin_open: true # -i
     tty: true # -t
-volumes:
-  mdb-data:
