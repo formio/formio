@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.4.0-rc.1]
+## 4.5.0-rc.1
 ### Changed
  - Refactor validation processing
  - FIO-7302: Prevent clearing the fields that does not exist on the current form revision if they were on the older one
@@ -12,38 +12,256 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-7549: evaluate axios upgrades and CVE resolution
  - revert changes related to FIO-7125 feature
  - FIO-7514: fixed an issue where submission reference object is not attached to the value of select component with reference enabled
- - FIO-7080 Handled access for token
  - FIO-7482: added ability to update default configuration forms in db to the versions required by the server (required for reportingUI form)
  - FIO-7491: fixed an issue where dataTable component with resource data type does not work after exporting/importing
  - FIO-7371: Adds checks to define if raw DB data should be returned in response
  - FIO-7329: remove nodemailer sendgrid and mailgun
  - FIO-7344 Changed Rendering method tooltipt
  - FIO-8128: add additionalDeps hook to validation process
- - FIO-8235: add timeout to email rendering
- - FIO-8343: Fixed the issue with dereferencing data table components
  - FIO-7299: Fix email action with the 'before' handler issues
- - FIO-8450: Add test for custom error message for unique validation
- - FIO-7835: eSignature
  - FIO-8428: Fixes save submission action data transformation
  - FIO-7614 excluded review page component from the CSV file of the submission
- - FIO-7964: Add resource-based select component validation
  - FIO-7866: date time component with display in timezone of submission in data or edit grid issue fix
  - FIO-7001: new open source developer portal
  - fix: change client to portal
- - Upgrade 5.x renderer
  - FIO-8115: Fix project creation failed in tests because of missing 'project' type
  - FIO-8643: removed erroneous appearing client only field data in submission
  - FIO-6495: form revision id transferring from stage to stage
- - FIO-8810: fixed an issue where the conditional nested form with several nested levels with required fields cannot be submitted when hidden
- - FIO-8851-8898-8850-8859-8854: fixed simple conditions issues
- - FIO-8903: fixed an issue where actions can be saved without required fields
- - FIO-8798: added validation of not full dates
  - FIO-8295: cache promisifying, mongoose upgrade
- - FIO-8849: fixed an issue where isEqual operator doenot work for condition based on selectboxes
- - FIO-8860-8861-8874: fixed an issue where it is impossible to add value for condition operators for time and phone number
  - FIO-8556: Add tests coverage metrics
  - FIO-8295: duplicate res sent removed
+ - FIO-9099: fix various async problems
+ - FIO-9181: fixed an issue where component reference is not attached if several form components refers to the same submission
+ - FIO-9306: fixed an issue where nested forms do not show data in PDF
+ - FIO-9365: allow incomplete req object for Validator constructor
+ - FIO-8431: fixed behavior of tagpad internal protected components
+ - hotfix: update mongoose connection options
+ - tlsCA to tls CAFile
+ - FIO-8644 fixed hidden calculated fields on update submission
+ - CHORE: upgrade mongodb driver dependency
+ - FIO-9436-9437-9481: wait subSubmissions to load
+ - CHORE: update error handling to not throw lock error
+ - FIO-9483: fixed email action
+ - FIO-9503: fixed nested form data not appearing in emails
+ - FIO-9574-9576: fixed info panel on the new form page and fixed the info panels contact btn
+ - FIO-9507 Update formio main branch
+ - FIO-9578: fixed an issue where resource is created as a form in OSS portal
+ - FIO-9499: Add test for email action with edit grid
+ - FIO-9593: fixed actions docs link
+ - FIO-9572: fixed help tooltip does not show any information in oss portal
+ - FIO-9587: add resourcefields component shim for actions
+ - FIO-9471: fixed the display of data for components inside layout components
+ - FIO-9412: sanitize db connection strings
+ - FIO-8868: fix issue with multi-instance race conditions during feature detection
+ - Adding github jobs to support automated builds of Docker containers
+
+## 4.4.0-rc.8
+### Changed
+ - Updated @formio/vm@1.0.0-rc.9
+ - Updated @formio/js@5.1.0-rc.7
+ - FIO-9528: Fixes an issue where nested forms submissions are not preloaded and do not appear in the PDF downloads
+ - FIO-9472: fixed nested component form values in CSV
+
+## 4.4.0-rc.7
+### Changed
+ - Updated @formio/core@2.4.0-rc.5
+ - Updated @formio/vm@1.0.0-rc.8
+ - Updated @formio/js@5.1.0-rc.6
+
+### Changed
+ - FIO-9471 fixed CSVExport for wizard forms
+   
+## 4.4.0-rc.6
+### Changed
+ - Updated @formio/core@2.4.0-rc.4
+ - Updated @formio/vm@1.0.0-rc.7
+ - Updated @formio/js@5.1.0-rc.5
+
+## 4.4.0-rc.5
+### Changed
+ - Updated @formio/core@2.4.0-rc.3
+ - Updated @formio/vm@1.0.0-rc.6
+ - Updated @formio/js@5.1.0-rc.3
+
+## 4.4.0-rc.4
+### Changed
+ - Updated @formio/core@2.4.0-rc.2
+ - Updated @formio/vm@1.0.0-rc.5
+ - Updated @formio/js@5.1.0-rc.2
+
+## 4.4.0-rc.3
+### Changed
+ - Upgrade 5.x renderer 
+ - FIO-7964: Add resource-based select component validation
+ - FIO-8343: Fixed the issue with dereferencing data table components
+ 
+## 4.4.0-rc.2
+### Changed
+ - Updated @formio/core@2.4.0-rc.1
+ - Updated @formio/vm@1.0.0-rc.4
+ - Updated @formio/js@5.1.0-rc.1
+
+## 4.4.0-rc.1
+### Changed
+ - Updated formiojs@4.21.6-rc.2
+ - Updated @formio/core@2.4.0-rc.1
+ - Updated @formio/vm@0.4.0-rc.1
+ - FIO-7080 Handled access for token
+ - FIO-7835: eSignature
+ - FIO-9308: Fixed an issue where nested forms that start with the same keys submit the wrong data.
+ - Increment minor version
+ - FIO-8450: Add test for custom error message for unique validation
+
+## 4.3.0
+### Changed
+ - Official Release
+ - Updated @formio/core@2.3.0
+ - Updated @formio/vm@0.3.0
+
+## 4.3.0-rc.38
+### Changed
+ - Updated @formio/core@2.3.0-rc.23
+ - Updated @formio/vm@0.3.0-rc.28
+
+## 4.3.0-rc.37
+### Changed
+ - Updated @formio/core@2.3.0-rc.22
+ - Updated @formio/vm@0.3.0-rc.27
+ - FIO-9337 code updates
+
+## 4.3.0-rc.36
+### Changed
+ - 4.2.x-4.3.x - FIO-9306: fixed an issue where nested forms do not show data in PDF
+ - FIO-9308: Fixed an issue where nested form data was not getting properly submitted because the data was getting reset before it submitted
+ 
+## 4.3.0-rc.35
+### Changed
+ - Updated @formio/core@2.3.0-rc.21
+ - Updated @formio/vm@0.3.0-rc.26
+
+## 4.3.0-rc.34
+### Changed
+ - Updated @formio/core@2.3.0-rc.18
+ - Updated @formio/vm@0.3.0-rc.25
+
+## 4.3.0-rc.33
+### Changed
+ - Updated @formio/core@2.3.0-rc.17
+ - Updated @formio/vm@0.3.0-rc.24
+ - FIO-9006: Added Last-Modified response header on form index request
+ - FIO-9006: Added Last-Modified response header on form index request
+ - FIO-8866: fixed an issue where action conditions UI shows incorrect operators for premium components
+
+## 4.3.0-rc.32
+### Changed
+ - Updated @formio/core@2.3.0-rc.16
+ - Updated @formio/vm@0.3.0-rc.23
+
+## 4.3.0-rc.31
+### Changed
+ - Updated formiojs@4.21.5
+ - Updated @formio/core@2.3.0-rc.14
+ - Updated @formio/vm@0.3.0-rc.22
+ - FIO-9087: fixed an issue where the app does not implement signature yes or no filter
+
+## 4.3.0-rc.30
+### Changed
+ - Updated formiojs@4.21.5-rc.6
+ - Updated @formio/core@2.3.0-rc.13
+ - Updated @formio/vm@0.3.0-rc.21
+
+## 4.3.0-rc.29
+### Changed
+ - Updated @formio/core@2.3.0-rc.10
+ - Updated @formio/vm@0.3.0-rc.20
+
+## 4.3.0-rc.28
+### Changed
+ - Updated @formio/core@2.3.0-rc.9
+ - Updated @formio/vm@0.3.0-rc.19
+
+## 4.3.0-rc.27
+### Changed
+ - Updated @formio/core@2.3.0-rc.8
+ - Updated @formio/vm@0.3.0-rc.18
+ - FIO-9145: fixed DateFormat setting for created and modified submission parameters
+ - FIO-9121: added check for select boxes components IsNotEqualTo condition
+
+## 4.3.0-rc.26
+### Changed
+ - Updated @formio/core@2.3.0-rc.7
+ - Updated @formio/vm@0.3.0-rc.16
+
+## 4.3.0-rc.25
+
+## 4.3.0-rc.24
+
+## 4.3.0-rc.23
+### Changed
+ - Updated @formio/vm@0.3.0-rc.15
+
+## 4.3.0-rc.22
+### Changed
+ - Updated @formio/core@2.3.0-rc.6
+ - Updated @formio/vm@0.3.0-rc.14
+ - FIO-9064: refactor configureVm to include global timeout, remove timeout from other evaluate args
+
+## 4.3.0-rc.21
+### Changed
+ - Updated @formio/core@2.3.0-rc.4
+ - Updated @formio/vm@0.3.0-rc.13
+
+## 4.3.0-rc.20
+### Changed
+ - Updated formiojs@4.21.4
+
+## 4.3.0-rc.19
+### Changed
+ - Updated @formio/core@2.3.0-rc.3
+ - Updated @formio/vm@0.3.0-rc.12
+
+## 4.3.0-rc.18
+### Changed
+ - Updated @formio/core@2.2.3-rc.2
+ - Updated @formio/vm@0.3.0-rc.11
+
+## 4.3.0-rc.17
+### Changed
+ - Updated @formio/core@2.2.3-rc.1
+ - Updated @formio/vm@0.3.0-rc.10
+ - FIO-8810: fixed an issue where the conditional nested form with several nested levels with required fields cannot be submitted when hidden
+
+## 4.3.0-rc.16
+### Changed
+ - Update formiojs@4.21.4-rc.1
+
+## 4.3.0-rc.15
+### Changed
+ - Updated @formio/core@2.2.2
+ - Updated @formio/vm@0.3.0-rc.9
+ - FIO-8235: add timeout to email rendering
+ - FIO-8235: add timeout to email rendering
  - FIO-8900-8899: fixed address component in condtions UI and fixed an issue where isEmpty operator always return false for address
+
+## 4.3.0-rc.14
+### Changed
+ - Updated @formio/core@2.2.2-rc.5
+ - Updated @formio/vm@0.3.0-rc.8
+ - FIO-8860-8861-8874: fixed an issue where it is impossible to add value for condition operators for time and phone number
+ - FIO-8849: fixed an issue where isEqual operator doenot work for condition based on selectboxes
+ - FIO-8798: added validation of not full dates
+
+## 4.3.0-rc.13
+### Changed
+ - Updated @formio/core@2.2.2-rc.3
+ - Updated @formio/vm@0.3.0-rc.7
+ - FIO-8903: fixed an issue where actions can be saved without required fields
+ - FIO-8851-8898-8850-8859-8854: fixed simple conditions issues
+
+## 4.3.0-rc.12
+### Changed
+ - Updated @formio/core@2.2.2-rc.2
+ - Updated @formio/vm@0.3.0-rc.6
 
 ## 4.3.0-rc.11
 ### Changed
