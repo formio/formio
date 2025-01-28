@@ -1,6 +1,6 @@
 {
   "name": "oss-portal",
-  "version": "0.0.1",
+  "version": "4.5.0-rc.1",
   "main": "index.js",
   "author": "brendanjbond <brendanbond@gmail.com>",
   "license": "MIT",
