@@ -85,6 +85,7 @@ jobs:
   ## Test Target Branch
   ###################################################################################
   test-target:
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
     needs: [setup]
     runs-on: ubuntu-latest
     services:
