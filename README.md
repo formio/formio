@@ -9,7 +9,7 @@ Form Building & Rendering Demo
 -------------------
 Here is a link to a demo of the Form Building and Form Rendering capability that can be hooked into this API platform.
 
-[http://codepen.io/travist/full/xVyMjo/](https://formio.github.io/formio.js/app/builder.html)
+[https://formio.github.io/formio.js/app/builder.html](https://formio.github.io/formio.js/app/builder.html)
 
 Run with Docker Compose
 ------------------
