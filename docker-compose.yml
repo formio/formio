@@ -1,26 +1,38 @@
 version: "3.8"
 services:
-  mongo:
+  mongo-ce:
     image: mongo
-    restart: always
+    container_name: formio-mongo-ce
+    restart: unless-stopped
     volumes:
       - "./data/db:/data/db"
     environment:
       - MONGO_INITDB_ROOT_USERNAME
-      - MONGO_INITDB_ROOT_PASSWORD
-  formio:
-    build:
-      context: ./
-      dockerfile: Dockerfile
+      - MONGO_INITDB_ROOT_PASSWOR
+    networks:
+      - formio-ce
+  formio-ce:
+    image: formio/formio:rc
+    container_name: formio-ce
     restart: always
-    links:
-      - mongo
     ports:
       - "3001:3001"
     environment:
       DEBUG: formio:*
-      NODE_CONFIG: '{"mongo": "mongodb://mongo:27017/oss-formio"}'
       ROOT_EMAIL: admin@example.com
       ROOT_PASSWORD: CHANGEME
-    stdin_open: true # -i
-    tty: true # -t
+      NODE_CONFIG: |
+        {
+          "mongo": "mongodb://mongo-ce:27017/formio-ce",
+          "port": 3001,
+          "jwt": {
+            "secret": "CHANGEME"
+          }
+        }
+    networks:
+      - formio-ce
+    depends_on:
+      - mongo-ce
+networks:
+  formio-ce:
+    driver: bridge
