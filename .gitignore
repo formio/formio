@@ -4,6 +4,7 @@
 .idea
 .env
 .secrets
+data
 bower_components
 node_modules
 npm-debug.log
