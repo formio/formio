@@ -200,7 +200,7 @@ jobs:
   ###########################################################################
   portal:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [publish]
+    needs: [test-current]
     runs-on: ubuntu-latest
     steps:
     - run: echo "Triggered by ${{ github.event_name }} event."
