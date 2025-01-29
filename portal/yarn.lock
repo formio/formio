@@ -65,10 +65,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.4.0-rc.5":
-  version "2.4.0-rc.5"
-  resolved "https://registry.npmjs.org/@formio/core/-/core-2.4.0-rc.5.tgz#7ffe86c8c0043cb07dfa08df1e5bbb04f82ec047"
-  integrity sha512-C9dtZt6WyyCsnv2sE6n7gP30ePa2xZQOzrAC0CZRW0O6AjFKM33LhOA6c6TsHoyouTrgtI4ggv6hJ6tIwwRrUA==
+"@formio/core@2.4.0-rc.6":
+  version "2.4.0-rc.6"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-rc.6.tgz#7293023af35c01a39311b07dbae8acbd4ea3443b"
+  integrity sha512-UrRIVmFWeI3juIyd/jYhPJxsH1cOsmHSVIkjrY4EZdG6oWFVJ5DTttHkGujXc5lmlqMPVTcZxL7M1R17Z+wiwA==
   dependencies:
     browser-cookies "^1.2.0"
     core-js "^3.39.0"
@@ -82,14 +82,14 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/js@5.1.0-rc.7":
-  version "5.1.0-rc.7"
-  resolved "https://registry.npmjs.org/@formio/js/-/js-5.1.0-rc.7.tgz#c70ec44b1fee4c6caf8f071a9fa394e4d6105b88"
-  integrity sha512-J+tO9WGA6lGrVTWAjbsj6EM5TP/sDEeahlqrwYan7D0RD6P7pCFlEDBKZxueZY9SKYBZnTZUYc4+9swsejj97w==
+"@formio/js@5.1.0-rc.9":
+  version "5.1.0-rc.9"
+  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-rc.9.tgz#d34b5bf11033270d7ac3fe3c6d92b242ea718109"
+  integrity sha512-f0zjH8CNBHwH1Bv+wNihbA8AioXD8u8GyQxjKHiNGE4GzRboQlymlCbXc0UPRZ4Mvdl1KK/eHZ/tNgwNwWSEeQ==
   dependencies:
     "@formio/bootstrap" "3.1.0-rc.1"
     "@formio/choices.js" "^10.2.1"
-    "@formio/core" "2.4.0-rc.5"
+    "@formio/core" "2.4.0-rc.6"
     "@formio/text-mask-addons" "^3.8.0-formio.4"
     "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     abortcontroller-polyfill "^1.7.5"
@@ -123,10 +123,10 @@
     uuid "^9.0.0"
     vanilla-picker "^2.12.3"
 
-"@formio/react@6.0.0-rc.3":
-  version "6.0.0-rc.3"
-  resolved "https://registry.npmjs.org/@formio/react/-/react-6.0.0-rc.3.tgz#25e4609cde2183b358974a41e791a46040efe1b3"
-  integrity sha512-6FKReiQseWiA+HgivDYWutsudbo+FimD2ep2NCz3Eggcklzu07KZyNoLSfaF3qepqxFMmp+ssX1UtyY16rXExA==
+"@formio/react@6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@formio/react/-/react-6.0.0.tgz#9e15287e01c28d805e889a706f3db71d444347cf"
+  integrity sha512-Z86xON8udDoCrzIQA4hywaP5c9Dswk4tKrgGVW/6kOuXez4A/PLIczctL4JMsE5euFFNYmvsW7vIY+leMMLXMA==
   dependencies:
     "@ungap/structured-clone" "^1.2.0"
     core-js "^3.35.1"
