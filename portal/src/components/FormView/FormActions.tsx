@@ -213,7 +213,7 @@ export const FormActions = ({ formId, limit }: { formId: string; limit?: number 
               <i className="ri-add-line"></i> Add Action
             </button>
             <p className="helptext">
-              <a target="_blank" rel="noreferrer" href="https://help.form.io/form-building/actions">
+              <a target="_blank" rel="noreferrer" href="https://help.form.io/userguide/form-building/actions">
                 View documentation
               </a>{' '}
               on actions.
