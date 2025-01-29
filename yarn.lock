@@ -2144,7 +2144,7 @@ mongodb@^6.12.0, mongodb@~6.12.0:
     bson "^6.10.1"
     mongodb-connection-string-url "^3.0.0"
 
-mongoose@^8.4.4:
+mongoose@^8.9.5:
   version "8.9.5"
   resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-8.9.5.tgz#90a2d70b48a66022a61d7a170ab4fad106b83cba"
   integrity sha512-SPhOrgBm0nKV3b+IIHGqpUTOmgVL5Z3OO9AwkFEmvOZznXTvplbomstCnPOGAyungtRXE5pJTgKpKcZTdjeESg==
@@ -2603,16 +2603,16 @@ resolve@^1.22.8:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-resourcejs@2.6.1-rc.3:
-  version "2.6.1-rc.3"
-  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.1-rc.3.tgz#f30f7c894b8d8aa6b3e3994aaad734c4b7384e87"
-  integrity sha512-ZJ6vJsiGpiQx3kn8cwifLaYRRc/3WBeHS8PUjNbOP7O6nf5Ra3P6BtwYaw+lp7Rhp2iJHGlXpZGhuTm2vr0kfw==
+resourcejs@2.6.1-rc.4:
+  version "2.6.1-rc.4"
+  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.1-rc.4.tgz#9034b856af263601174de209ee91b932b4662c28"
+  integrity sha512-81DUauE5UesWKABBEypNfpKXvt7kTIa+sHvTF+NFnGYGlR8Rv0J2rrkXqWEFMp75/htKnc5LuF+ZmaDnehwoSA==
   dependencies:
     debug "^4.3.2"
     fast-json-patch "^3.1.1"
     moment "^2.29.1"
     mongodb "^6.12.0"
-    mongoose "^8.4.4"
+    mongoose "^8.9.5"
     node-paginate-anything "^1.0.0"
     range-parser "^1.2.1"
 

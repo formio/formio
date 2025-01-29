@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.3.1-rc.14
+### Changed
+ - Updated resourcejs@2.6.1-rc.4
+ - Update mongoose@8.9.5
+
 ## 4.3.1-rc.13
 ### Changed
  - Updated resourcejs@2.6.1-rc.3
