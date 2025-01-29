@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.3.1-rc.13]
+## 4.3.1-rc.13
+### Changed
+ - Updated resourcejs@2.6.1-rc.3
+ - Updated @formio/vm@0.3.1-rc.4
+
 ### Changed
  - Update mongoose dep
 

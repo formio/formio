@@ -105,10 +105,10 @@
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.3.1-rc.3":
-  version "0.3.1-rc.3"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.3.1-rc.3.tgz#e98be0ba1f0643cb75a1599f511951bbec269742"
-  integrity sha512-7UzehzaxswdMSwoRdKKRa31fI/g45UfEZ5kPT9c2C/a8JQE7KPCjYjAHUxZAiHbCoTA4NlG60+DbCjwhPKBzBw==
+"@formio/vm@0.3.1-rc.4":
+  version "0.3.1-rc.4"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.3.1-rc.4.tgz#1c3374dce3464f0ebf554c733ca01114d9d38924"
+  integrity sha512-k+MuplP0AXO5a+4utrmX+SrNHiO/lMXqjxDcok+VFyXncxY2Q7efY3AB8Mfas4wbbq+5lZrgSRV5F3Np0JNzCg==
   dependencies:
     "@formio/core" "2.3.2-rc.1"
     debug "^4.3.4"
@@ -2603,10 +2603,10 @@ resolve@^1.22.8:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-resourcejs@2.6.1-rc.2:
-  version "2.6.1-rc.2"
-  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.1-rc.2.tgz#fc10dfe1868afcebf3d48a59d51b639275c90f8c"
-  integrity sha512-xiXfxNi/hiPFSRf8Bzsg2tPQxufPGp5xjJJ7Jc78fS9JLzp+AZXpjcwlWXejQqGLvFknDzcgOHvi6aawwpMYVw==
+resourcejs@2.6.1-rc.3:
+  version "2.6.1-rc.3"
+  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.1-rc.3.tgz#f30f7c894b8d8aa6b3e3994aaad734c4b7384e87"
+  integrity sha512-ZJ6vJsiGpiQx3kn8cwifLaYRRc/3WBeHS8PUjNbOP7O6nf5Ra3P6BtwYaw+lp7Rhp2iJHGlXpZGhuTm2vr0kfw==
   dependencies:
     debug "^4.3.2"
     fast-json-patch "^3.1.1"
