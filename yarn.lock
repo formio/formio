@@ -60,10 +60,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.4.0-rc.5":
-  version "2.4.0-rc.5"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-rc.5.tgz#7ffe86c8c0043cb07dfa08df1e5bbb04f82ec047"
-  integrity sha512-C9dtZt6WyyCsnv2sE6n7gP30ePa2xZQOzrAC0CZRW0O6AjFKM33LhOA6c6TsHoyouTrgtI4ggv6hJ6tIwwRrUA==
+"@formio/core@2.4.0-rc.6":
+  version "2.4.0-rc.6"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-rc.6.tgz#7293023af35c01a39311b07dbae8acbd4ea3443b"
+  integrity sha512-UrRIVmFWeI3juIyd/jYhPJxsH1cOsmHSVIkjrY4EZdG6oWFVJ5DTttHkGujXc5lmlqMPVTcZxL7M1R17Z+wiwA==
   dependencies:
     browser-cookies "^1.2.0"
     core-js "^3.39.0"
@@ -77,14 +77,14 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/js@5.1.0-rc.8":
-  version "5.1.0-rc.8"
-  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-rc.8.tgz#12e23fc6f47b1a64839a7c34edeae6c8e5e55f3e"
-  integrity sha512-V2GGijvynVfOg9lCtNjUGAsHQ2rfakGsw1RM1vcGxjCNx3f0Myo55Rk+iN9n8JmS0/2kCJ/r5hU0vc3FSTlyIg==
+"@formio/js@5.1.0-rc.9":
+  version "5.1.0-rc.9"
+  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-rc.9.tgz#d34b5bf11033270d7ac3fe3c6d92b242ea718109"
+  integrity sha512-f0zjH8CNBHwH1Bv+wNihbA8AioXD8u8GyQxjKHiNGE4GzRboQlymlCbXc0UPRZ4Mvdl1KK/eHZ/tNgwNwWSEeQ==
   dependencies:
     "@formio/bootstrap" "3.1.0-rc.1"
     "@formio/choices.js" "^10.2.1"
-    "@formio/core" "2.4.0-rc.5"
+    "@formio/core" "2.4.0-rc.6"
     "@formio/text-mask-addons" "^3.8.0-formio.4"
     "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     abortcontroller-polyfill "^1.7.5"
@@ -138,13 +138,13 @@
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@1.0.0-rc.10":
-  version "1.0.0-rc.10"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.0-rc.10.tgz#c83f64f8a5e5734daf16dea2119aa7284ea80497"
-  integrity sha512-4jt2OdXeSD+QFOeoq7Vn3m9Gugzubfe7m8LR2fldu7ZihPbHR91s34DMXinWa2Xe1F6LJ0hN673rohReIiubaQ==
+"@formio/vm@1.0.0-rc.11":
+  version "1.0.0-rc.11"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.0-rc.11.tgz#8474e5c4490f3b3e53ad878f868f1326a9054500"
+  integrity sha512-uglXVR1n8Z/NkXYKgke/VGnOYrApY0U1MSLk+OxpL4uubxq2r0LkEG9RC0IGjqJCVQmIaJIcYTrxGcQNLwEEGw==
   dependencies:
-    "@formio/core" "2.4.0-rc.5"
-    "@formio/js" "5.1.0-rc.8"
+    "@formio/core" "2.4.0-rc.6"
+    "@formio/js" "5.1.0-rc.9"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
@@ -175,10 +175,10 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-2.0.3.tgz#4a2868d75d6d6963e423bcf90b7fd1be343409d3"
   integrity sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==
 
-"@mongodb-js/saslprep@^1.1.5":
-  version "1.1.8"
-  resolved "https://registry.yarnpkg.com/@mongodb-js/saslprep/-/saslprep-1.1.8.tgz#d39744540be8800d17749990b0da95b4271840d1"
-  integrity sha512-qKwC/M/nNNaKUBMQ0nuzm47b7ZYWQHN3pcXq4IIcoSBc2hOIrflAxJduIvvqmhoz3gR2TacTAs8vlsCVPkiEdQ==
+"@mongodb-js/saslprep@^1.1.9":
+  version "1.1.9"
+  resolved "https://registry.yarnpkg.com/@mongodb-js/saslprep/-/saslprep-1.1.9.tgz#e974bab8eca9faa88677d4ea4da8d09a52069004"
+  integrity sha512-tVkljjeEaAhCqTzajSdgbQ6gE6f3oneVwa3iXR6csiEwXXOFsiC6Uh9iAjAhXPtqa/XMDHWjjeNH/77m/Yq2dw==
   dependencies:
     sparse-bitfield "^3.0.3"
 
@@ -496,11 +496,6 @@ bson@^6.10.1:
   resolved "https://registry.yarnpkg.com/bson/-/bson-6.10.1.tgz#dcd04703178f5ecf5b25de04edd2a95ec79385d3"
   integrity sha512-P92xmHDQjSKPLHqFxefqMxASNq/aWJMEZugpCjf+AF/pgcUpMMQCg7t7+ewko0/u8AapvF3luf/FoehddEK+sA==
 
-bson@^6.7.0:
-  version "6.8.0"
-  resolved "https://registry.yarnpkg.com/bson/-/bson-6.8.0.tgz#5063c41ba2437c2b8ff851b50d9e36cb7aaa7525"
-  integrity sha512-iOJg8pr7wq2tg/zSlCCHMi3hMm5JTOxLTagf3zxhcenHsFp+c6uOs6K7W5UE7A4QIJGtqh/ZovFNMP4mOPJynQ==
-
 buffer-equal-constant-time@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/buffer-equal-constant-time/-/buffer-equal-constant-time-1.0.1.tgz#f8e71132f7ffe6e01a5c9697a4c6f3e48d5cc819"
@@ -748,17 +743,17 @@ crossvent@1.5.5:
   dependencies:
     custom-event "^1.0.0"
 
-csv-generate@^4.4.2:
+csv-generate@^4.4.1:
   version "4.4.2"
   resolved "https://registry.yarnpkg.com/csv-generate/-/csv-generate-4.4.2.tgz#001d7eda4993a72d24f73e15c9b9d7b251af8a2e"
   integrity sha512-W6nVsf+rz0J3yo9FOjeer7tmzBJKaTTxf7K0uw6GZgRocZYPVpuSWWa5/aoWWrjQZj4/oNIKTYapOM7hiNjVMA==
 
-csv-parse@^5.6.0:
+csv-parse@^5.5.6:
   version "5.6.0"
   resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-5.6.0.tgz#219beace2a3e9f28929999d2aa417d3fb3071c7f"
   integrity sha512-l3nz3euub2QMg5ouu5U09Ew9Wf6/wQ8I++ch1loQ0ljmzhmfZYrH9fflS22i/PQEvsPvxCwxgz5q7UB8K1JO4Q==
 
-csv-stringify@^6.5.2:
+csv-stringify@^6.5.1:
   version "6.5.2"
   resolved "https://registry.yarnpkg.com/csv-stringify/-/csv-stringify-6.5.2.tgz#b51d61cd949906d5b5b790463f3055d95915193e"
   integrity sha512-RFPahj0sXcmUyjrObAK+DOWtMvMIFV328n4qZJhgX3x2RqkQgOTU2mCUmiFR0CzM6AzChlRSUErjiJeEt8BaQA==
@@ -2088,7 +2083,7 @@ mongodb-connection-string-url@^3.0.0:
     "@types/whatwg-url" "^11.0.2"
     whatwg-url "^13.0.0"
 
-mongodb@^6.8.0, mongodb@~6.12.0:
+mongodb@^6.12.0, mongodb@^6.8.0, mongodb@~6.12.0:
   version "6.12.0"
   resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-6.12.0.tgz#8b0bda1b18cbb3f0aec8ab4119c5dc535a43c444"
   integrity sha512-RM7AHlvYfS7jv7+BXund/kR64DryVI+cHbVAy9P61fnb1RcWZqOW1/Wj2YhqMCx+MuYhqTRGv7AwHBzmsCKBfA==
@@ -2126,11 +2121,6 @@ ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
   integrity sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==
-
-ms@2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
-  integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
 ms@2.1.3, ms@^2.1.1, ms@^2.1.3:
   version "2.1.3"
@@ -2553,15 +2543,15 @@ resolve@^1.22.8:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-resourcejs@2.6.0-dev.148.e514d9c:
-  version "2.6.0-dev.148.e514d9c"
-  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.0-dev.148.e514d9c.tgz#d7f35cababdf9627e0a4a2ac62caba6abb58ab19"
-  integrity sha512-4d5ZevcnAOXZBI+m8BnlG3IqpJNc4nPJh1Gu0angYesEJEAQjL6gbIlJhgVhwwi1qLwBuWkNkUxZHVWyRB7vug==
+resourcejs@2.6.1-rc.3:
+  version "2.6.1-rc.3"
+  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.1-rc.3.tgz#f30f7c894b8d8aa6b3e3994aaad734c4b7384e87"
+  integrity sha512-ZJ6vJsiGpiQx3kn8cwifLaYRRc/3WBeHS8PUjNbOP7O6nf5Ra3P6BtwYaw+lp7Rhp2iJHGlXpZGhuTm2vr0kfw==
   dependencies:
     debug "^4.3.2"
     fast-json-patch "^3.1.1"
     moment "^2.29.1"
-    mongodb "^6.8.0"
+    mongodb "^6.12.0"
     mongoose "^8.4.4"
     node-paginate-anything "^1.0.0"
     range-parser "^1.2.1"
@@ -2786,7 +2776,7 @@ statuses@2.0.1:
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-2.0.1.tgz#55cb000ccf1d48728bd23c685a063998cf1a1b63"
   integrity sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==
 
-stream-transform@^3.3.3:
+stream-transform@^3.3.2:
   version "3.3.3"
   resolved "https://registry.yarnpkg.com/stream-transform/-/stream-transform-3.3.3.tgz#d130bfed33739de6ef190a8f06cc8ad1b4c1635a"
   integrity sha512-dALXrXe+uq4aO5oStdHKlfCM/b3NBdouigvxVPxCdrMRAU6oHh3KNss20VbTPQNQmjAHzZGKGe66vgwegFEIog==

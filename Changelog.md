@@ -4,7 +4,19 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.4.0-rc.10]
+## 4.4.0-rc.10
+### Changed
+ - Updated resourcejs@2.6.1-rc.3
+ - Updated @formio/core@2.4.0-rc.6
+ - Updated @formio/vm@1.0.0-rc.11
+ - Updated @formio/js@5.1.0-rc.9
+ - FIO-8295: duplicate res sent removed
+ - FIO-9099: fix various async problems
+ - hotfix: throw actual db error
+ - update tls options
+ - fix tls options
+ - tlsCA to tls CAFile
+ - FIO-9483: fixed email action
  - FIO-8295: cache promisifying, mongoose upgrade
  - FIO-8428: Fixes save submission action data transformation
  - FIO-9503: fixed nested form data not appearing in emails
