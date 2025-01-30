@@ -2566,7 +2566,7 @@ mongodb-connection-string-url@^3.0.0:
     "@types/whatwg-url" "^11.0.2"
     whatwg-url "^13.0.0"
 
-mongodb@^6.12.0, mongodb@^6.8.0, mongodb@~6.12.0:
+mongodb@^6.12.0, mongodb@~6.12.0:
   version "6.12.0"
   resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-6.12.0.tgz#8b0bda1b18cbb3f0aec8ab4119c5dc535a43c444"
   integrity sha512-RM7AHlvYfS7jv7+BXund/kR64DryVI+cHbVAy9P61fnb1RcWZqOW1/Wj2YhqMCx+MuYhqTRGv7AwHBzmsCKBfA==
@@ -2575,10 +2575,10 @@ mongodb@^6.12.0, mongodb@^6.8.0, mongodb@~6.12.0:
     bson "^6.10.1"
     mongodb-connection-string-url "^3.0.0"
 
-mongoose@^8.4.4:
-  version "8.9.4"
-  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-8.9.4.tgz#de93b9ec27a9384d013312e835667e540fd1dcef"
-  integrity sha512-DndoI01aV/q40P9DiYDXsYjhj8vZjmmuFwcC3Tro5wFznoE1z6Fe2JgMnbLR6ghglym5ziYizSfAJykp+UPZWg==
+mongoose@^8.9.5:
+  version "8.9.5"
+  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-8.9.5.tgz#90a2d70b48a66022a61d7a170ab4fad106b83cba"
+  integrity sha512-SPhOrgBm0nKV3b+IIHGqpUTOmgVL5Z3OO9AwkFEmvOZznXTvplbomstCnPOGAyungtRXE5pJTgKpKcZTdjeESg==
   dependencies:
     bson "^6.10.1"
     kareem "2.6.3"
@@ -3148,16 +3148,16 @@ resolve@^1.22.8:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-resourcejs@2.6.0-dev.148.e514d9c:
-  version "2.6.0-dev.148.e514d9c"
-  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.0-dev.148.e514d9c.tgz#d7f35cababdf9627e0a4a2ac62caba6abb58ab19"
-  integrity sha512-4d5ZevcnAOXZBI+m8BnlG3IqpJNc4nPJh1Gu0angYesEJEAQjL6gbIlJhgVhwwi1qLwBuWkNkUxZHVWyRB7vug==
+resourcejs@2.6.1:
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.1.tgz#553bde80c974e0eea6c107d214f7ef7825fb713a"
+  integrity sha512-j7z/IGYTFhB+gUBjLlLQJMiCv50s2tKHev4eHkTPQ71rdR2PHcyYyneqQd3Zix6Yiz9ibkwnLYxzCNSaf+uoCg==
   dependencies:
     debug "^4.3.2"
     fast-json-patch "^3.1.1"
     moment "^2.29.1"
-    mongodb "^6.8.0"
-    mongoose "^8.4.4"
+    mongodb "^6.12.0"
+    mongoose "^8.9.5"
     node-paginate-anything "^1.0.0"
     range-parser "^1.2.1"
 
