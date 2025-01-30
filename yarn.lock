@@ -62,10 +62,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.3.2-rc.1":
-  version "2.3.2-rc.1"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.3.2-rc.1.tgz#a6d524d85a2fa06b31f7ca0c5f21da6dbabaeaf3"
-  integrity sha512-xyECSvcxCF9vPrD779vSvxrYQ7zIORLcqd/OLOWJ3FCw8cJ76J6AELrAVYgFmv0I1B7CJ05A7LQNes/Pv3mebw==
+"@formio/core@2.3.2":
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.3.2.tgz#16ceffbd6c7120e6ed922b08f50d5d659a4b156c"
+  integrity sha512-tkH9MtDR+nZuTuizy+qlnce03C3hnd4Dm/2eFjY7cEUZdpIIh1QQ9j9s4W47Si/QOMkS7trIVxKUjxuKrt8j6Q==
   dependencies:
     "@types/json-logic-js" "^2.0.7"
     browser-cookies "^1.2.0"
@@ -105,12 +105,12 @@
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.3.1-rc.4":
-  version "0.3.1-rc.4"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.3.1-rc.4.tgz#1c3374dce3464f0ebf554c733ca01114d9d38924"
-  integrity sha512-k+MuplP0AXO5a+4utrmX+SrNHiO/lMXqjxDcok+VFyXncxY2Q7efY3AB8Mfas4wbbq+5lZrgSRV5F3Np0JNzCg==
+"@formio/vm@0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.3.1.tgz#e4727c1781291f2e381dde635cee14c8369a7848"
+  integrity sha512-H3NCqHzEo6pElAhYhFj9XkBvdF4iB2inpjaLiF8PK3Dkc9w519s5H9Eq62OzAeHFZUevRn4hRuPxVRbCvaGHWA==
   dependencies:
-    "@formio/core" "2.3.2-rc.1"
+    "@formio/core" "2.3.2"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
@@ -2603,10 +2603,10 @@ resolve@^1.22.8:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-resourcejs@2.6.1-rc.4:
-  version "2.6.1-rc.4"
-  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.1-rc.4.tgz#9034b856af263601174de209ee91b932b4662c28"
-  integrity sha512-81DUauE5UesWKABBEypNfpKXvt7kTIa+sHvTF+NFnGYGlR8Rv0J2rrkXqWEFMp75/htKnc5LuF+ZmaDnehwoSA==
+resourcejs@2.6.1:
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.1.tgz#553bde80c974e0eea6c107d214f7ef7825fb713a"
+  integrity sha512-j7z/IGYTFhB+gUBjLlLQJMiCv50s2tKHev4eHkTPQ71rdR2PHcyYyneqQd3Zix6Yiz9ibkwnLYxzCNSaf+uoCg==
   dependencies:
     debug "^4.3.2"
     fast-json-patch "^3.1.1"
