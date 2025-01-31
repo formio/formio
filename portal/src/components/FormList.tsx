@@ -16,16 +16,15 @@ const FormActionButton: FormGridComponentProps["FormActionButton"] = ({
     action,
     onClick,
 }) => (
-    <button
-        type={"button"}
-        className={`btn btn-sm ${action && action.name === "Edit" ? "edit" : "trash"}`}
+    <a
+        className={`btn ${action && action.name === "Edit" ? "edit" : "trash"}`}
         onClick={onClick}
     >
         <i
             className={`${action && action.name === "Edit" ? "ri-edit-box-line" : "ri-delete-bin-line"}`}
         ></i>{" "}
         {action && action.name === "Edit" ? "Edit" : ""}
-    </button>
+    </a>
 );
 
 const PaginationContainer: FormGridComponentProps["PaginationContainer"] = ({
