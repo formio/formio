@@ -18,30 +18,17 @@ const debug = {
 };
 
 // Promisify cache load form.
-function loadFormById(cache, req, formId) {
-  return new Promise((resolve, reject) => {
-    cache.loadForm(req, null, formId, (err, resource) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve(resource);
-    });
-  });
+async function loadFormById(cache, req, formId) {
+  return await cache.loadForm(req, null, formId);
 }
 
 // Promisify submission model find.
-function submissionQueryExists(submissionModel, query) {
-  return new Promise((resolve, reject) => {
-    submissionModel.find(query, (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      if (result.length === 0 || !result) {
-        return resolve(false);
-      }
-      return resolve(true);
-    });
-  });
+async function submissionQueryExists(submissionModel, query) {
+  const result = await submissionModel.find(query);
+  if (result.length === 0 || !result) {
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -244,7 +231,10 @@ class Validator {
     const query = {
       form: new ObjectId(component.data.resource),
       deleted: null,
-      state: 'submitted',
+      $or: [
+        {state: 'submitted'}, // state is 'submitted'
+        {state: {$exists: false}} // state field does not exist (actual for formio)
+      ],
       $and:[
         valueQuery,
         this.submissionResource.getFindQuery({query: filterQueries})
