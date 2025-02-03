@@ -1,6 +1,6 @@
 {
   "name": "formio",
-  "version": "4.4.0-rc.12",
+  "version": "4.4.0-rc.13",
   "description": "The formio server application.",
   "license": "OSL-3.0",
   "main": "index.js",
