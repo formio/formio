@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.4.0-rc.16]
+ - FIO-9483: fixed email action
+ - FIO-8428: Fixes save submission action data transformation
+ - FIO-8644 fixed hidden calculated fields on update submission
+ - FIO-9499: Update to vm version including mocked NodeList obj
+ - FIO-9690: upgrade mongoose to 8.9.5
+ - Upgrade mongoose and mongodb to 8.x/6.x
+
 ## 4.4.0-rc.15
 ### Changed
  - Updated @formio/core@2.4.0-rc.7
@@ -22,14 +30,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - Updated @formio/vm@1.0.0-rc.12
  - Updated @formio/js@5.1.0-rc.9
  - FIO-8644 fixed hidden calculated fields on update submission
-
  - FIO-9499: Add test for email action with edit grid
  
 ## 4.4.0-rc.9
 ### Changed
  - Updated @formio/vm@1.0.0-rc.10
  - Updated @formio/js@5.1.0-rc.8
-
  - FIO-9499: Add test for email action with edit grid
 
 ## 4.4.0-rc.8
