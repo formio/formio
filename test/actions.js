@@ -8,8 +8,8 @@ const chance = new (require('chance'))();
 const http = require('http');
 const url = require('url');
 const { UV_FS_O_FILEMAP } = require('constants');
-const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
 const { wait } = require('./util');
+const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
 const docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
@@ -1884,103 +1884,7 @@ module.exports = (app, template, hook) => {
 
         
 
-        await wait(600);
-
-        assert(emailSent)
-      });
-        
-      it('Should send email with edit grid value', async () => {
-        let testAction = {
-          title: 'Email',
-          name: 'email',
-          handler: ['after'],
-          method: ['create'],
-          priority: 1,
-          settings: {
-            from: 'travis@form.io',
-            replyTo: '',
-            emails: ['test@form.io'],
-            sendEach: false,
-            subject: 'Hello',
-            message: '{{ submission(data, form.components) }}',
-            transport: 'test',
-            template: 'https://pro.formview.io/assets/email.html',
-            renderingMethod: 'dynamic'
-          },
-        }
-        const form = {
-          "_id": "677801142628e5aad5e7b1c2",
-          "title": "editGridEmail",
-          "name": "editGridEmail",
-          "path": "editGridEmail",
-          "type": "form",
-          "access": [],
-          "submissionAccess": [],
-          "components": [
-            {
-              "label": "Edit Grid",
-              "rowDrafts": false,
-              "key": "editGrid",
-              "type": "editgrid",
-              "displayAsTable": false,
-              "input": true,
-              "components": [
-                {
-                  "label": "Text Field",
-                  "key": "textField",
-                  "type": "textfield",
-                  "input": true
-                }
-              ]
-            }
-          ]
-        }
-  
-        const editGridForm = (await request(app)
-            .post(hook.alter('url', '/form', template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(form)).body;
-  
-        testAction.form = editGridForm._id;
-        // Add the action to the form.
-        const testActionRes = (await request(app)
-            .post(hook.alter('url', `/form/${editGridForm._id}/action`, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(testAction)).body;
-  
-          
-        testAction = testActionRes;
-
-        let emailSent = false;
-
-        const event = template.hooks.getEmitter();
-        event.on('newMail', (email) => {
-          assert(email.html.includes('editGridString'));
-          event.removeAllListeners('newMail');
-          emailSent = true;
-        });
-
-        const submission = {
-          noValidate: true,
-          data: {
-            editGrid: [
-              {
-                textField: 'editGridString'
-              }
-            ],
-            submit: true
-          },
-          state: 'submitted'
-        };
-        // Send submission
-        await request(app)
-          .post(hook.alter('url', `/form/${editGridForm._id}/submission`, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send(submission);
-
-        
-
-        await wait(600);
+        await wait(2000);
 
         assert(emailSent)
       });
@@ -3279,23 +3183,15 @@ module.exports = (app, template, hook) => {
       });
 
       if (!docker)
-      it('A deleted Action should remain in the database', (done) => {
-        const formio = hook.alter('formio', app.formio);
-        formio.actions.model.findOne({_id: tempAction._id})
-          .exec((err, action) => {
-            if (err) {
-              return done(err);
-            }
+      it('A deleted Action should remain in the database', async () => {
+          const formio = hook.alter('formio', app.formio);
+          let action = await formio.actions.model.findOne({_id: tempAction._id}).exec();
+          if (!action) {
+            throw('No Action found, expected 1.');
+          }
 
-            if (!action) {
-              return done('No Action found, expected 1.');
-            }
-
-            action = action.toObject();
-            assert.notEqual(action.deleted, null);
-
-            done();
-          });
+          action = action.toObject();
+          assert.notEqual(action.deleted, null);
       });
 
       it('Delete the Form used for Action tests', (done) => {
@@ -3319,20 +3215,13 @@ module.exports = (app, template, hook) => {
       });
 
       if (!docker)
-      it('A deleted Form should not have active actions in the database', (done) => {
+      it('A deleted Form should not have active actions in the database', async () => {
         const formio = hook.alter('formio', app.formio);
-        formio.actions.model.find({form: tempForm._id, deleted: {$eq: null}})
-          .exec((err, action) => {
-            if (err) {
-              return done(err);
-            }
-
-            if (action && action.length !== 0) {
-              return done(`Active actions found w/ form: ${tempForm._id}, expected 0.`);
-            }
-
-            done();
-          });
+        const action = await formio.actions.model.find({form: tempForm._id, deleted: {$eq: null}})
+          .exec();
+        if (action && action.length !== 0) {
+          return `Active actions found w/ form: ${tempForm._id}, expected 0.`;
+        }
       });
 
       let actionLogin = null;

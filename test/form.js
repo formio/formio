@@ -1311,21 +1311,16 @@ module.exports = function(app, template, hook) {
       });
 
       if (!docker)
-      it('A deleted Form should remain in the database', function(done) {
+      it('A deleted Form should remain in the database', async function() {
         var formio = hook.alter('formio', app.formio);
-        formio.resources.form.model.findOne({_id: template.forms.tempForm._id})
-          .exec(function(err, form) {
-            if (err) {
-              return done(err);
-            }
-            if (!form) {
-              return done('No Form w/ _id: ' + template.forms.tempForm._id + ' found, expected 1.');
-            }
+        let form = await formio.resources.form.model.findOne({_id: template.forms.tempForm._id})
+          .exec();
+        if (!form) {
+          throw ('No Form w/ _id: ' + template.forms.tempForm._id + ' found, expected 1.');
+        }
 
-            form = form.toObject();
-            assert.notEqual(form.deleted, null);
-            done();
-          });
+        form = form.toObject();
+        assert.notEqual(form.deleted, null);
       });
 
       it('An administrator should be able to Create a Register Form', function(done) {

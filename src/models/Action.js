@@ -99,22 +99,21 @@ module.exports = function(formio) {
   // Add machineName to the schema.
   Action.schema.plugin(require('../plugins/machineName')('action', formio));
 
-  Action.schema.machineName = function(document, done) {
-    formio.mongoose.model('form').findOne({_id: document.form, deleted: {$eq: null}})
-      .exec((err, form) => {
-        if (err) {
-          return done(err);
-        }
+  Action.schema.machineName = async function(document, done) {
+    try {
+      const form = await formio.mongoose.model('form').findOne({_id: document.form, deleted: {$eq: null}})
+        .exec();
+      if (!form) {
+        hook.alter('actionMachineName', `${document.form}:${document.name}`, document, done);
+        return;
+      }
 
-        if (!form) {
-          hook.alter('actionMachineName', `${document.form}:${document.name}`, document, done);
-          return;
-        }
-
-        const formMachineName = _last(form.machineName.split(':'));
-
-        hook.alter('actionMachineName', `${formMachineName || form.name}:${document.name}`, document, done);
-      });
+      const formMachineName = _last(form.machineName.split(':'));
+      hook.alter('actionMachineName', `${formMachineName || form.name}:${document.name}`, document, done);
+    }
+    catch (err) {
+      return done(err);
+    }
   };
 
    // Execute a pre-save method for the SaveSubmission action.

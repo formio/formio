@@ -11,7 +11,7 @@ const _ = require('lodash');
  */
 module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
-  return function formLoader(req, res, next) {
+  return async function formLoader(req, res, next) {
     if (
       req.method !== 'GET' ||
       Array.isArray(res.resource.item) ||
@@ -23,7 +23,7 @@ module.exports = function(router) {
     let shouldLoadSubForms = true;
     // Only process on GET request, and if they provide full query.
     if (
-      !req.query.full ||
+      !req.full ||
       !res.resource ||
       !res.resource.item
     ) {
@@ -31,14 +31,14 @@ module.exports = function(router) {
     }
 
     // Allow modules to hook into the form loader middleware.
-    hook.alter('formResponse', res.resource.item, req, () => {
-      // Load all subforms recursively.
-      if (shouldLoadSubForms) {
-        router.formio.cache.loadSubForms(res.resource.item, req, next);
-      }
-      else {
-        return next();
-      }
-    });
+    await hook.alter('formResponse', res.resource.item, req);
+    // Load all subforms recursively.
+    if (shouldLoadSubForms) {
+      await router.formio.cache.loadSubForms(res.resource.item, req);
+      return next();
+    }
+    else {
+      return next();
+    }
   };
 };

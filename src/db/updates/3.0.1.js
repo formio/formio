@@ -19,18 +19,15 @@ module.exports = function(db, config, tools, done) {
   let formCollection = db.collection('forms');
   actionCollection.find({
     name: 'auth'
-  }).snapshot({$snapshot: true}).toArray(function(err, actions) {
-    if (err) {
-      return done(err);
-    }
-
+  }).toArray()
+  .then(actions => {
     // Iterate through all of the actions.
     async.forEachOf(actions, function(action, key, next) {
       if (!action.settings.username || !action.settings.password) { return next(); }
 
       // Load the form this action is attached to.
-      formCollection.findOne({_id: action.form}, function(err, form) {
-        if (err) { return next(err); }
+      formCollection.findOne({_id: action.form})
+      .then(form => {
         if (!form || !form._id) { return next(); }
 
         let userparts = action.settings.username.split('.');
@@ -61,8 +58,8 @@ module.exports = function(db, config, tools, done) {
         }
 
         // Load the associated form.
-        formCollection.findOne(query, function(err, resourceForm) {
-          if (err) { return next(err); }
+        formCollection.findOne(query)
+        .then(resourceForm => {
           if (!resourceForm || !resourceForm._id) { return next(); }
 
           // Create the new actions for authentication and registration.
@@ -111,13 +108,16 @@ module.exports = function(db, config, tools, done) {
 
           actionCollection.deleteOne({_id: action._id});
           next();
-        });
-      });
+        })
+        .catch(err => next(err));
+      })
+      .catch(err => next(err));
     }, function(err) {
       if (err) {
         return done(err);
       }
       done();
     });
-  });
+  })
+  .catch(err => done(err));
 };

@@ -10,7 +10,7 @@ module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
   const formio = hook.alter('formio', router.formio);
 
-  return function formHandler(req, res, next) {
+  return async function formHandler(req, res, next) {
     if (['POST', 'PUT'].indexOf(req.method) !== -1 && req.body.path) {
       const fragments = req.body.path.split('/');
       if (
@@ -44,7 +44,7 @@ module.exports = function(router) {
 
     hook.invoke('formRequest', req, res);
     if (req.method === 'GET') {
-      const formQuery = hook.alter('formQuery', {}, req);
+      const formQuery = await hook.alter('formQuery', {}, req);
       req.countQuery = req.countQuery || req.model || this.model;
       req.modelQuery = req.modelQuery || req.model || this.model;
       req.countQuery = req.countQuery.find(formQuery);
