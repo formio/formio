@@ -1711,6 +1711,111 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('Hidden calculated values are hidden on update of submission', function(done) {
+        var components = [
+          {
+            "label": "Hide 2",
+            "tableView": false,
+            "validateWhenHidden": false,
+            "key": "hide2",
+            "type": "checkbox",
+            "input": true,
+            "defaultValue": false
+          },
+          {
+            "label": "Number1",
+            "applyMaskOn": "change",
+            "mask": false,
+            "tableView": false,
+            "delimiter": false,
+            "requireDecimal": false,
+            "inputFormat": "plain",
+            "truncateMultipleSpaces": false,
+            "validateWhenHidden": false,
+            "key": "number1",
+            "type": "number",
+            "input": true
+          },
+          {
+            "label": "Number2",
+            "applyMaskOn": "change",
+            "mask": false,
+            "tableView": false,
+            "delimiter": false,
+            "requireDecimal": false,
+            "inputFormat": "plain",
+            "truncateMultipleSpaces": false,
+            "validateWhenHidden": false,
+            "key": "number2",
+            "type": "number",
+            "input": true
+          },
+          {
+            "label": "Number3 Calculated clear value when hidden = true",
+            "applyMaskOn": "change",
+            "mask": false,
+            "tableView": true,
+            "delimiter": false,
+            "requireDecimal": false,
+            "inputFormat": "plain",
+            "truncateMultipleSpaces": false,
+            "calculateValue": "value = data.number1 + data.number2",
+            "validateWhenHidden": false,
+            "key": "number3CalculatedClearValueWhenHiddenTrue",
+            "conditional": {
+              "show": false,
+              "conjunction": "all",
+              "conditions": [
+                {
+                  "component": "hide2",
+                  "operator": "isEqual",
+                  "value": true
+                }
+              ]
+            },
+            "type": "number",
+            "input": true
+          }
+        ];
+
+        var values = {
+          hide2: false,
+          number1: 100,
+          number2: 200,
+          number3CalculatedClearValueWhenHiddenTrue: 300,
+        }
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(values, submission.data);
+
+            var updatedSubmission = _.cloneDeep(submission);
+            var updatedData = {
+              "hide2": true,
+              "number1": 100,
+              "number2": 200
+            }
+            _.set(updatedSubmission, 'data', updatedData);
+            
+            helper.updateSubmission(updatedSubmission, (err) => {
+              if (err) {
+                return done(err);
+              }
+              var editedSubmission = helper.getLastSubmission();
+              assert.deepEqual(updatedData, editedSubmission.data);
+              assert(!editedSubmission.data.hasOwnProperty('number3CalculatedClearValueWhenHiddenTrue'));
+              done();
+            })
+          });
+      })
+
       it('Allows a conditionally required field', function(done) {
         var components = [
           {
