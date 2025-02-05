@@ -2,11 +2,11 @@ import { afterAll, afterEach, beforeAll, beforeEach, expect, test } from 'vitest
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { FormioProvider } from '@formio/react';
-import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
 import { render, screen } from '@testing-library/react';
-import App from '../App';
 import { userEvent } from '@testing-library/user-event';
 import { Formio } from '@formio/js';
+import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
+import App from '../App';
 
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {

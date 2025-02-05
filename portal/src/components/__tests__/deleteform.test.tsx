@@ -3,10 +3,9 @@ import { setupServer } from 'msw/node';
 import { Formio } from '@formio/js';
 import { render, screen, waitFor } from '@testing-library/react';
 import { FormioProvider } from '@formio/react';
+import { http, HttpResponse } from 'msw';
 import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
 import App from '../App';
-import '@testing-library/jest-dom'
-import { http, HttpResponse } from 'msw';
 
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {

@@ -4,9 +4,9 @@ import { http, HttpResponse } from 'msw';
 import { Formio } from '@formio/js';
 import { render, screen, waitFor } from '@testing-library/react';
 import { FormioProvider } from '@formio/react';
+import { userEvent } from '@testing-library/user-event';
 import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
 import App from '../App';
-import { userEvent } from '@testing-library/user-event';
 
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {
@@ -398,7 +398,7 @@ test('Clicking on Export CSV makes a request to /form/:formID/export?format=csv'
   await waitFor(() => {
     expect(exportCSVClicked).to.be.true;
   });
-})
+});
 
 afterEach(() => {
   server.resetHandlers();

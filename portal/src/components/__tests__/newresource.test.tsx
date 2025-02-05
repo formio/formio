@@ -3,10 +3,10 @@ import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { Formio } from '@formio/js';
 import { FormioProvider } from '@formio/react';
-import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
-import App from '../App';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
+import App from '../App';
 
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {
@@ -158,9 +158,16 @@ test('Clicking on Display As Wizard adds a Page 1 panel with a Page 1 button and
   const page1Text = await screen.findAllByText('Page 1');
   expect(Array.from(page1Text).length).to.equal(2);
   await waitFor(() => {
-    const createPageButton = document.querySelector('span[ref="addPage"]')
+    const createPageButton = document.querySelector('span[ref="addPage"]');
     expect(createPageButton).to.exist;
-  })
+  });
+});
+
+test('Display as PDF should not exist', async () => {
+  const newResourceButton = await screen.findByText('+ New Resource');
+  await userEvent.click(newResourceButton);
+  expect(await screen.findByText('New Resource'));
+  expect(screen.queryByText('PDF')).to.be.null;
 });
 
 afterEach(() => {

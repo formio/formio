@@ -4,9 +4,9 @@ import { http, HttpResponse } from 'msw';
 import { Formio } from '@formio/js';
 import { render, screen, waitFor } from '@testing-library/react';
 import { FormioProvider } from '@formio/react';
+import { userEvent } from '@testing-library/user-event';
 import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
 import App from '../App';
-import { userEvent } from '@testing-library/user-event';
 
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {

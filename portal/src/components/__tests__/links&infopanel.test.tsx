@@ -1,10 +1,10 @@
-import { afterAll, beforeAll, beforeEach, expect, test } from 'vitest';
+import { afterAll, afterEach, beforeAll, expect, test } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { FormioProvider } from '@formio/react';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { Formio } from '@formio/js';
-
+import { userEvent } from '@testing-library/user-event';
 import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
 import App from '../App';
 
@@ -22,12 +22,6 @@ const server = setupServer(
 
 beforeAll(() => {
   server.listen();
-});
-
-beforeEach(() => {
-  localStorage.clear();
-  Formio.tokens = {};
-  server.resetHandlers();
 });
 
 test('Link to help documentation should be in the login page', async () => {
@@ -121,6 +115,194 @@ test('Forms help icon documentation should exists, have a link to resources docu
   }
 });
 
+test('Home screen info panel isn\'t visible when first logging in and is visible when clicked', async () => {
+  localStorage.setItem('formioToken', '12345');
+  render(
+    <FormioProvider baseUrl="http://localhost:3002">
+      <InfoPanelProvider>
+        <App />
+      </InfoPanelProvider>
+    </FormioProvider>
+  );
+  expect(Array.from(document.body.classList)).to.contain('context-toggled');
+
+  await userEvent.click(await screen.findByText('Info Panel', { exact: false }));
+
+  expect(Array.from(document.body.classList)).to.be.empty;
+
+});
+
+test('The info panel in /newresource page should display creating resources info panel and have correct links', async () => {
+  server.use(
+    http.get('http://localhost:3002/form', () => {
+      return HttpResponse.json([]);
+    })
+  );
+  localStorage.setItem('formioToken', '12345');
+  render(
+    <FormioProvider baseUrl="http://localhost:3002">
+      <InfoPanelProvider>
+        <App />
+      </InfoPanelProvider>
+    </FormioProvider>
+  );
+  await screen.findByText('Forms');
+  await screen.findByText('Resources');
+  await userEvent.click(await screen.findByText('+ New Resource'));
+  await waitFor(() => {
+    expect(document.querySelector('div.context-header')!.textContent).to.equal('Creating Resources');
+  });
+  const seeFormBuildingDocumentationLink: HTMLAnchorElement = await screen.findByText('See Form Building Documentation');
+  expect(seeFormBuildingDocumentationLink.href).to.equal('https://help.form.io/userguide/form-building');
+  const viewDocumentationLink: HTMLAnchorElement = await screen.findByText('View Documentation');
+  expect(viewDocumentationLink.href).to.equal('https://help.form.io/userguide/forms/form-revisions');
+  const configurationLink: HTMLAnchorElement = await screen.findByText('configuration');
+  expect(configurationLink.href).to.equal('https://form.io/pricing');
+  const contactUsLink: HTMLAnchorElement = await screen.findByText('Contact Us');
+  expect(contactUsLink.href).to.equal('https://form.io/contact-us/');
+});
+
+test('The info panel in /newform page should display creating forms info panel and have correct links', async () => {
+  server.use(
+    http.get('http://localhost:3002/form', () => {
+      return HttpResponse.json([]);
+    })
+  );
+  localStorage.setItem('formioToken', '12345');
+  render(
+    <FormioProvider baseUrl="http://localhost:3002">
+      <InfoPanelProvider>
+        <App />
+      </InfoPanelProvider>
+    </FormioProvider>
+  );
+  await screen.findByText('Forms');
+  await screen.findByText('Resources');
+  await userEvent.click(await screen.findByText('+ New Form'));
+  await waitFor(() => {
+    expect(document.querySelector('div.context-header')!.textContent).to.equal('Creating Forms');
+  });
+  const seeFormBuildingDocumentationLink: HTMLAnchorElement = await screen.findByText('See Form Building Documentation');
+  expect(seeFormBuildingDocumentationLink.href).to.equal('https://help.form.io/userguide/form-building');
+  const viewDocumentationLink: HTMLAnchorElement = await screen.findByText('View Documentation');
+  expect(viewDocumentationLink.href).to.equal('https://help.form.io/userguide/forms/form-revisions');
+  const configurationLink: HTMLAnchorElement = await screen.findByText('configuration');
+  expect(configurationLink.href).to.equal('https://form.io/pricing');
+  const contactUsLink: HTMLAnchorElement = await screen.findByText('Contact Us');
+  expect(contactUsLink.href).to.equal('https://form.io/contact-us/');
+});
+
+test('The info panel in /form/:id page should display editing forms info panel and have correct links', async () => {
+  server.use(
+    http.get('http://localhost:3002/form', ({ request }) => {
+      const queryParameters = new URL(request.url).searchParams;
+      if (queryParameters.get('type') === 'form') {
+        return HttpResponse.json([
+          {
+            '_id': '679bc82961e9293dee60f88a',
+            'title': 'test',
+            'name': 'test',
+            'path': 'test',
+            'type': 'form',
+            'display': 'form'
+          }
+        ]);
+      } else {
+        return HttpResponse.json([]);
+      }
+    }),
+    http.get('/form/679bc82961e9293dee60f88a', () => {
+      return HttpResponse.json({
+        '_id': '679bc82961e9293dee60f88a',
+        'title': 'test',
+        'name': 'test',
+        'path': 'test',
+        'type': 'form',
+        'display': 'form'
+      });
+    })
+  );
+  localStorage.setItem('formioToken', '12345');
+  render(
+    <FormioProvider baseUrl="http://localhost:3002">
+      <InfoPanelProvider>
+        <App />
+      </InfoPanelProvider>
+    </FormioProvider>
+  );
+  await screen.findByText('Forms');
+  await screen.findByText('Resources');
+  await userEvent.click(await screen.findByText('test'));
+  await waitFor(() => {
+    expect(document.querySelector('div.context-header')!.textContent).to.equal('Editing Forms');
+  });
+  const viewDocumentationLink: HTMLAnchorElement = await screen.findByText('View Documentation');
+  expect(viewDocumentationLink.href).to.equal('https://help.form.io/userguide/forms/form-revisions');
+  const configurationLink: HTMLAnchorElement = await screen.findByText('configuration');
+  expect(configurationLink.href).to.equal('https://form.io/pricing');
+  const contactUsLink: HTMLAnchorElement = await screen.findByText('Contact Us');
+  expect(contactUsLink.href).to.equal('https://form.io/contact-us/');
+});
+
+test('The info panel in /resource:id page should display editing resources info panel and have correct links', async () => {
+  server.use(
+    http.get('http://localhost:3002/form', ({ request }) => {
+      const queryParameters = new URL(request.url).searchParams;
+      if (queryParameters.get('type') === 'resource') {
+        return HttpResponse.json([
+          {
+            '_id': '679bc82961e9293dee60f88a',
+            'title': 'test',
+            'name': 'test',
+            'path': 'test',
+            'type': 'resource',
+            'display': 'form'
+          }
+        ]);
+      } else {
+        return HttpResponse.json([]);
+      }
+    }),
+    http.get('/form/679bc82961e9293dee60f88a', () => {
+      return HttpResponse.json({
+        '_id': '679bc82961e9293dee60f88a',
+        'title': 'test',
+        'name': 'test',
+        'path': 'test',
+        'type': 'resource',
+        'display': 'form'
+      });
+    })
+  );
+  localStorage.setItem('formioToken', '12345');
+  render(
+    <FormioProvider baseUrl="http://localhost:3002">
+      <InfoPanelProvider>
+        <App />
+      </InfoPanelProvider>
+    </FormioProvider>
+  );
+  await screen.findByText('Forms');
+  await screen.findByText('Resources');
+  await userEvent.click(await screen.findByText('test'));
+  await waitFor(() => {
+    expect(document.querySelector('div.context-header')!.textContent).to.equal('Editing Resources');
+  });
+  const viewDocumentationLink: HTMLAnchorElement = await screen.findByText('View Documentation');
+  expect(viewDocumentationLink.href).to.equal('https://help.form.io/userguide/forms/form-revisions');
+  const configurationLink: HTMLAnchorElement = await screen.findByText('configuration');
+  expect(configurationLink.href).to.equal('https://form.io/pricing');
+  const contactUsLink: HTMLAnchorElement = await screen.findByText('Contact Us');
+  expect(contactUsLink.href).to.equal('https://form.io/contact-us/');
+});
+
+afterEach(() => {
+  server.resetHandlers();
+  Formio.clearCache();
+  Formio.tokens = {};
+  localStorage.clear();
+  window.location.href = '';
+});
 
 afterAll(() => {
   server.close();

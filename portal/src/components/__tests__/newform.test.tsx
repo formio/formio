@@ -3,10 +3,10 @@ import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { Formio } from '@formio/js';
 import { FormioProvider } from '@formio/react';
-import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
-import App from '../App';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
+import App from '../App';
 
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {

@@ -3,10 +3,10 @@ import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { render, screen } from '@testing-library/react';
 import { FormioProvider } from '@formio/react';
-import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
-import App from '../App';
 import { Formio } from '@formio/js';
 import { userEvent } from '@testing-library/user-event';
+import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
+import App from '../App';
 
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {
@@ -18,7 +18,6 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-  server.resetHandlers();
   localStorage.setItem('formioToken', '12345');
   render(
     <FormioProvider baseUrl="http://localhost:3002">
@@ -837,9 +836,11 @@ test('Forms prev button should be disabled if there are no forms to go back to',
 });
 
 afterEach(() => {
-  localStorage.clear();
-  Formio.tokens = {};
+  server.resetHandlers();
   Formio.clearCache();
+  Formio.tokens = {};
+  localStorage.clear();
+  window.location.href = '';
 });
 
 afterAll(() => {
