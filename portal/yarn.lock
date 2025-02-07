@@ -65,10 +65,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.4.0-rc.6":
-  version "2.4.0-rc.6"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-rc.6.tgz#7293023af35c01a39311b07dbae8acbd4ea3443b"
-  integrity sha512-UrRIVmFWeI3juIyd/jYhPJxsH1cOsmHSVIkjrY4EZdG6oWFVJ5DTttHkGujXc5lmlqMPVTcZxL7M1R17Z+wiwA==
+"@formio/core@2.4.0-rc.7":
+  version "2.4.0-rc.7"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-rc.7.tgz#8f68214d2de5a2893987a17bb1ead5afe3dab991"
+  integrity sha512-rwgE1dNF/0rkrzya93KP/Otee5UcuD8OXf5Hp1AMk4DlaWqiXswDmqCUcNMf+3IAAk4/bDPbLhDLeAAv2OaUPQ==
   dependencies:
     browser-cookies "^1.2.0"
     core-js "^3.39.0"
@@ -82,14 +82,14 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/js@5.1.0-rc.9":
-  version "5.1.0-rc.9"
-  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-rc.9.tgz#d34b5bf11033270d7ac3fe3c6d92b242ea718109"
-  integrity sha512-f0zjH8CNBHwH1Bv+wNihbA8AioXD8u8GyQxjKHiNGE4GzRboQlymlCbXc0UPRZ4Mvdl1KK/eHZ/tNgwNwWSEeQ==
+"@formio/js@5.1.0-rc.13":
+  version "5.1.0-rc.13"
+  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-rc.13.tgz#1315df1bbe86958f17c7e03401bf8a9886550edd"
+  integrity sha512-95KYZySSueJ9CB58k88dEMNkhVx6K7YrH+1sgDecCcz/M7yDbKcyhPTwYemr6NQGJ0u01HolddxpX+ysqZwSHg==
   dependencies:
     "@formio/bootstrap" "3.1.0-rc.1"
     "@formio/choices.js" "^10.2.1"
-    "@formio/core" "2.4.0-rc.6"
+    "@formio/core" "2.4.0-rc.7"
     "@formio/text-mask-addons" "^3.8.0-formio.4"
     "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     abortcontroller-polyfill "^1.7.5"
@@ -123,10 +123,10 @@
     uuid "^9.0.0"
     vanilla-picker "^2.12.3"
 
-"@formio/react@6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@formio/react/-/react-6.0.0.tgz#9e15287e01c28d805e889a706f3db71d444347cf"
-  integrity sha512-Z86xON8udDoCrzIQA4hywaP5c9Dswk4tKrgGVW/6kOuXez4A/PLIczctL4JMsE5euFFNYmvsW7vIY+leMMLXMA==
+"@formio/react@6.0.2-rc.1":
+  version "6.0.2-rc.1"
+  resolved "https://registry.yarnpkg.com/@formio/react/-/react-6.0.2-rc.1.tgz#f3afba6ac1347b2703a7b77d32f8c87b5d298442"
+  integrity sha512-AoIyVq4n59UDfvXVVmZN/AJVw/Vc/IMRoyGNs4rJYxfj5mGBrGss10ni3LvanCdlK5GX7zzTKzpv64G36XqPMQ==
   dependencies:
     "@ungap/structured-clone" "^1.2.0"
     core-js "^3.35.1"

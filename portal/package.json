@@ -1,12 +1,12 @@
 {
   "name": "oss-portal",
-  "version": "4.5.0-rc.4",
+  "version": "4.5.0-rc.5",
   "main": "index.js",
   "author": "brendanjbond <brendanbond@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@formio/js": "5.1.0-rc.9",
-    "@formio/react": "6.0.0",
+    "@formio/js": "5.1.0-rc.13",
+    "@formio/react": "6.0.2-rc.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "remixicon": "^4.2.0",
