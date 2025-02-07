@@ -296,6 +296,67 @@ test('The info panel in /resource:id page should display editing resources info 
   expect(contactUsLink.href).to.equal('https://form.io/contact-us/');
 });
 
+test('The view documentation link in actions tab is displayed and href is correct', async () => {
+  server.use(
+    http.get('http://localhost:3002/form', ({ request }) => {
+      const queryParameters = new URL(request.url).searchParams;
+      if (queryParameters.get('type') === 'resource') {
+        return HttpResponse.json([
+          {
+            '_id': '679d116aa90ca7ccebc38597',
+            'title': 'test',
+            'name': 'test',
+            'path': 'test',
+            'type': 'resource',
+            'display': 'form'
+          }
+        ]);
+      }
+      return HttpResponse.json([]);
+    }),
+    http.get('/form/679d116aa90ca7ccebc38597', () => {
+      return HttpResponse.json({
+        '_id': '679d116aa90ca7ccebc38597',
+        'title': 'test',
+        'name': 'test',
+        'path': 'test',
+        'type': 'resource',
+        'display': 'form'
+      });
+    }),
+    http.get('http://localhost:3002/form/679d116aa90ca7ccebc38597', () => {
+      return HttpResponse.json({
+        '_id': '679d116aa90ca7ccebc38597',
+        'title': 'test',
+        'name': 'test',
+        'path': 'test',
+        'type': 'resource',
+        'display': 'form'
+      });
+    }),
+    http.get('http://localhost:3002/form/679d116aa90ca7ccebc38597/action', () => {
+      return HttpResponse.json([]);
+    })
+  );
+  localStorage.setItem('formioToken', '12345');
+  render(
+    <FormioProvider baseUrl="http://localhost:3002">
+      <InfoPanelProvider>
+        <App />
+      </InfoPanelProvider>
+    </FormioProvider>
+  );
+  await screen.findByText('Resources');
+  await screen.findByText('Forms');
+  await userEvent.click(await screen.findByText('test'));
+  await userEvent.click(await screen.findByText('Resource Actions'));
+  await waitFor(() => {
+    const viewDocumentationLink: HTMLAnchorElement = document.querySelector('.helptext > a')!;
+    expect(viewDocumentationLink.textContent).to.equal('View documentation');
+    expect(viewDocumentationLink.href).to.equal('https://help.form.io/userguide/form-building/actions');
+  });
+});
+
 afterEach(() => {
   server.resetHandlers();
   Formio.clearCache();
