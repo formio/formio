@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Params, Route, Switch, useLocation } from "wouter";
 import { EnterData } from "./EnterData";
 import { ViewData } from "./ViewData";
@@ -43,6 +43,12 @@ export const FormView = ({
         };
         fetchFormDisplayData();
     }, [formUrl]);
+
+    const onSaveForm = useCallback((data: any) => {
+        if (data){
+            setFormDisplayData(data);
+        }
+    }, [setFormDisplayData])
 
     return (
         <div
@@ -111,7 +117,7 @@ export const FormView = ({
                     <ViewData formId={id} />
                 </Route>
                 <Route path="/edit">
-                    <EditForm type={type} url={formUrl} />
+                    <EditForm type={type} url={formUrl} onSaveForm={onSaveForm}/>
                 </Route>
                 <Route path="/access">
                     <FormAccess id={id} />
@@ -120,7 +126,7 @@ export const FormView = ({
                     <FormActions formId={id} />
                 </Route>
                 <Route path="/">
-                    <EditForm type={type} url={formUrl} />
+                    <EditForm type={type} url={formUrl} onSaveForm={onSaveForm}/>
                 </Route>
             </Switch>
         </div>
