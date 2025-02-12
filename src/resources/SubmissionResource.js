@@ -108,6 +108,32 @@ module.exports = (router) => {
     router.formio.middleware.filterProtectedFields('delete', (req) => router.formio.cache.getCurrentFormId(req)),
   ];
 
+  // Register an endpoint to get total count of submissions
+  router.get('/form/:formId/count', async (req, res, next) => {
+    try {
+      const formId = req.params.formId;
+      
+      // Ensure the form exists
+      const form = await router.formio.cache.loadCurrentForm(req);
+      if (!form) {
+        return res.status(404).send('Form not found');
+      }
+  
+      // Construct query to count only non-deleted submissions
+      const query = {
+        form: formId,
+        deleted: { $eq: null }
+      };
+  
+      // Get the count
+      const count = await router.formio.resources.submission.model.countDocuments(query);
+      
+      return res.status(200).json({ totalSubmissions: count });
+    } catch (err) {
+      return next(err);
+    }
+  });
+
   // Register an exists endpoint to see if a submission exists.
   router.get('/form/:formId/exists', async (req, res, next) => {
     const {ignoreCase = false} = req.query;
