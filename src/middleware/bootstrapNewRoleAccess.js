@@ -1,6 +1,7 @@
 'use strict';
 
-const debug = require('debug')('formio:middleware:bootstrapNewRoleAccess');
+const {createFilteredLogger} = require('@formio/logger');
+const debug = createFilteredLogger('formio:middleware:bootstrapNewRoleAccess');
 const async = require('async');
 const _ = require('lodash');
 
@@ -69,7 +70,7 @@ module.exports = function(router) {
         }, done);
       }
       catch (err) {
-        debug(err);
+        debug.error(err);
         return done(err);
       }
     };
@@ -82,7 +83,7 @@ module.exports = function(router) {
 
     async.series(bound, function(err, result) {
       if (err) {
-        debug(err);
+        debug.error(err);
         return next(err);
       }
 

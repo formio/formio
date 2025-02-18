@@ -2,14 +2,15 @@
 
 let async = require('async');
 let _ = require('lodash');
+const {createFilteredLogger} = require('@formio/logger');
 let debug = {
-  getFormsWithUniqueComponents: require('debug')('formio:update:3.0.5-getFormsWithUniqueComponents'),
-  getFormsWithUniqueComponentsInLayoutComponents: require('debug')('formio:update:3.0.5-getFormsWithUniqueComponentsInLayoutComponents'),
-  getFormsWithPotentialUniqueComponentsInLayoutComponents: require('debug')('formio:update:3.0.5-getFormsWithPotentialUniqueComponentsInLayoutComponents'),
-  getAffectedSubmissions: require('debug')('formio:update:3.0.5-getAffectedSubmissions'),
-  buildUniqueComponentList: require('debug')('formio:update:3.0.5-buildUniqueComponentList'),
-  fixSubmissionUniques: require('debug')('formio:update:3.0.5-fixSubmissionUniques'),
-  mergeForms: require('debug')('formio:update:3.0.5-mergeForms')
+  getFormsWithUniqueComponents: createFilteredLogger('formio:update:3.0.5-getFormsWithUniqueComponents'),
+  getFormsWithUniqueComponentsInLayoutComponents: createFilteredLogger('formio:update:3.0.5-getFormsWithUniqueComponentsInLayoutComponents'),
+  getFormsWithPotentialUniqueComponentsInLayoutComponents: createFilteredLogger('formio:update:3.0.5-getFormsWithPotentialUniqueComponentsInLayoutComponents'),
+  getAffectedSubmissions: createFilteredLogger('formio:update:3.0.5-getAffectedSubmissions'),
+  buildUniqueComponentList: createFilteredLogger('formio:update:3.0.5-buildUniqueComponentList'),
+  fixSubmissionUniques: createFilteredLogger('formio:update:3.0.5-fixSubmissionUniques'),
+  mergeForms: createFilteredLogger('formio:update:3.0.5-mergeForms')
 };
 
 /**
@@ -52,7 +53,7 @@ module.exports = function(db, config, tools, done) {
         if (item) {
           // Coerce all unique string fields to be lowercase.
           if (typeof item === 'string') {
-            debug.fixSubmissionUniques(submission._id.toString());
+            debug.fixSubmissionUniques.info('submission._id', submission._id.toString());
             update['data.' + path] = item.toString().toLowerCase();
           }
           // Coerce all unique string fields in an array to be lowercase.
@@ -68,12 +69,12 @@ module.exports = function(db, config, tools, done) {
       });
 
       if (Object.keys(update).length === 0) {
-        debug.fixSubmissionUniques(submission.form + ': No updates! -> ' + submission._id.toString());
+        debug.fixSubmissionUniques.info(submission.form + ': No updates! -> ' + submission._id.toString());
         return cb();
       }
       else {
-        debug.fixSubmissionUniques(submission.form + ': Updates! -> ');
-        debug.fixSubmissionUniques(update);
+        debug.fixSubmissionUniques.info(submission.form + ': Updates! -> ');
+        debug.fixSubmissionUniques.info(update);
       }
 
       submissionCollection.updateOne(
@@ -113,7 +114,7 @@ module.exports = function(db, config, tools, done) {
             && _.get(component, 'unique') === true
             && blackListedComponents.indexOf(_.get(component, 'type')) === -1
           ) {
-            debug.buildUniqueComponentList(form._id.toString() + ' -> ' + path);
+            debug.buildUniqueComponentList.info(form._id.toString() + ' -> ' + path);
             uniques[form._id.toString()] = uniques[form._id.toString()] || {};
             uniques[form._id.toString()][component.key] = path;
           }
@@ -141,7 +142,7 @@ module.exports = function(db, config, tools, done) {
       }
 
       console.log(forms[0])
-      debug.getFormsWithUniqueComponents(forms.length);
+      debug.getFormsWithUniqueComponents.info(forms.length);
       return next(null, forms);
     });
   };
@@ -173,7 +174,7 @@ module.exports = function(db, config, tools, done) {
         return next(err);
       }
 
-      debug.getFormsWithUniqueComponentsInLayoutComponents(forms.length);
+      debug.getFormsWithUniqueComponentsInLayoutComponents.info(forms.length);
       return next(null, forms);
     });
   };
@@ -255,8 +256,8 @@ module.exports = function(db, config, tools, done) {
         }
       });
 
-      debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(filtered);
-      debug.getFormsWithPotentialUniqueComponentsInLayoutComponents(filtered.length);
+      debug.getFormsWithPotentialUniqueComponentsInLayoutComponents.info('filtered', filtered);
+      debug.getFormsWithPotentialUniqueComponentsInLayoutComponents.info('filtered length', filtered.length);
       return next(null, filtered);
     })
     .catch(err => next(err));
@@ -274,7 +275,7 @@ module.exports = function(db, config, tools, done) {
     })
     .toArray()
     .then(submissions => {
-      debug.getAffectedSubmissions(submissions.length);
+      debug.getAffectedSubmissions.info('Submissions length', submissions.length);
       return next(null, submissions);
     })
     .catch(err => next(err));
@@ -287,10 +288,10 @@ module.exports = function(db, config, tools, done) {
    * @param next
    */
   let mergeForms = function(newForms, next) {
-    debug.mergeForms('Old: ' + forms.length);
-    debug.mergeForms('New: ' + newForms.length);
+    debug.mergeForms.info('Old: ' + forms.length);
+    debug.mergeForms.info('New: ' + newForms.length);
     forms = forms.concat(newForms);
-    debug.mergeForms('Total: ' + forms.length);
+    debug.mergeForms.info('Total: ' + forms.length);
 
     next();
   };

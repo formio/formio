@@ -11,7 +11,8 @@ const _ = require('lodash');
 const events = require('events');
 const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
-const log = require('debug')('formio:log');
+const {createFilteredLogger} = require('@formio/logger');
+const log = createFilteredLogger('formio:log');
 const gc = require('expose-gc/function');
 const {configureVm} = require('@formio/vm');
 
@@ -45,7 +46,7 @@ module.exports = function(config) {
     const result = router.formio.hook.alter('log', event, req, ...info);
 
     if (result) {
-      log(event, ...info);
+      log.info(event, ...info);
     }
   };
 

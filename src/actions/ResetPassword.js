@@ -14,7 +14,8 @@ module.exports = (router) => {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router.formio);
-  const debug = require('debug')('formio:action:passrest');
+  const {createFilteredLogger} = require('@formio/logger');
+  const debug = createFilteredLogger('formio:action:passrest');
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug;
   const log = (...args) => logOutput(LOG_EVENT, ...args);
@@ -424,14 +425,14 @@ module.exports = (router) => {
           !req.tempToken.username ||
           !req.tempToken.form
         ) {
-          debug(ecode.auth.ERESETTOKEN, req);
+          debug.error(ecode.auth.ERESETTOKEN, req);
           return res.status(400).send(ecode.auth.ERESETTOKEN);
         }
 
         // Get the password
         const password = _.get(req.submission.data, this.settings.password);
         if (!password) {
-          debug(ecode.auth.ENOPASSP);
+          debug.error(ecode.auth.ENOPASSP);
           return next(ecode.auth.ENOPASSP);
         }
 

@@ -4,7 +4,8 @@ const exporters = require('.');
 const _ = require('lodash');
 const through = require('through');
 const ResourceFactory = require('resourcejs');
-const debug = require('debug')('formio:error');
+const {createFilteredLogger} = require('@formio/logger');
+const debug = createFilteredLogger('formio:error');
 
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
@@ -50,7 +51,7 @@ module.exports = (router) => {
           query = JSON.parse(req.headers['x-query']);
         }
         catch (e) {
-          debug(e);
+          debug.error(e);
           router.formio.util.log(e);
         }
       }
@@ -168,7 +169,7 @@ module.exports = (router) => {
                           .then(res => newData[key] = {data: res});
                       })
                       .catch((error) => {
-                        debug(error);
+                        debug.error(error);
                         newData[key] = field;
                       })
                   );
@@ -212,7 +213,7 @@ module.exports = (router) => {
             }), {end: false});
             // If the DB cursor throws an error, send the error.
             cursor.on('error', (error) => {
-              debug(error);
+              debug.error(error);
               router.formio.util.log(error);
               next(error);
             });

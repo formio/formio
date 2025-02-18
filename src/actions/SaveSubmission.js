@@ -8,7 +8,8 @@ const LOG_EVENT = 'Save Submission Action';
 
 module.exports = function(router) {
   const Action = router.formio.Action;
-  const debug = require('debug')('formio:action:saveSubmission');
+  const {createFilteredLogger} = require('@formio/logger');
+  const debug = createFilteredLogger('formio:action:saveSubmission');
   const hook = require('../util/hook')(router.formio);
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug;
@@ -215,7 +216,7 @@ module.exports = function(router) {
             req.isTransformedData = true;
           }
           catch (err) {
-            debug(`Error in submission transform: ${err.message || err}`);
+            debug.error(`Error in submission transform: ${err.message || err}`);
           }
         }
 

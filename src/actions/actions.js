@@ -3,9 +3,10 @@
 const Resource = require('resourcejs');
 const async = require('async');
 const _ = require('lodash');
+const {createFilteredLogger} = require('@formio/logger');
 const debug = {
-  error: require('debug')('formio:error'),
-  action: require('debug')('formio:action')
+  error: createFilteredLogger('formio:error'),
+  action: createFilteredLogger('formio:action')
 };
 const util = require('../util/util');
 const moment = require('moment');
@@ -278,7 +279,7 @@ module.exports = (router) => {
             req,
             err.message || err
           );
-          debug.error(err.message || err);
+          debug.error.error(err.message || err);
           return false;
         }
       }
@@ -290,7 +291,7 @@ module.exports = (router) => {
         const eq = condition.eq || '';
         const value = String(await getComponentValueFromRequest(req, res, field));
         const compare = String(condition.value || '');
-        debug.action(
+        debug.action.error(
           '\nfield', field,
           '\neq', eq,
           '\nvalue', value,
@@ -712,7 +713,7 @@ module.exports = (router) => {
         req,
         err
       );
-      debug.error(err);
+      debug.error.error(err);
       return false;
     }
   }
@@ -821,7 +822,7 @@ module.exports = (router) => {
         });
       }
       catch (e) {
-        debug.error(e);
+        debug.error.error(e);
         return res.sendStatus(400);
       }
     });

@@ -3,9 +3,10 @@
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 const util = require('../util/util');
+const {createFilteredLogger} = require('@formio/logger');
 const debug = {
-  error: require('debug')('formio:error'),
-  handler: require('debug')('formio:middleware:tokenHandler'),
+  error: createFilteredLogger('formio:error'),
+  handler: createFilteredLogger('formio:middleware:tokenHandler'),
 };
 
 /**
@@ -132,7 +133,7 @@ module.exports = (router) => {
     // Decode/refresh the token and store for later middleware.
     jwt.verify(token, jwtConfig.secret, (err, decoded) => {
       if (err || !decoded) {
-        debug.handler(err || `Token could not decoded: ${token}`);
+        debug.handler.error(err || `Token could not decoded: ${token}`);
         router.formio.audit('EAUTH_TOKENBAD', req, err);
         router.formio.log('Token', req, 'Token could not be decoded');
 
@@ -160,7 +161,7 @@ module.exports = (router) => {
         // If this is a temporary token, then decode it and set it in the request.
         if (decoded.temp) {
           router.formio.log('Token', req, 'Using temp token');
-          debug.handler('Temp token');
+          debug.handler.info('Temp token');
           req.tempToken = decoded;
           req.user = null;
           req.token = null;

@@ -1,6 +1,7 @@
 'use strict';
 
-const debug = require('debug')('formio:middleware:deleteSubmissionHandler');
+const {createFilteredLogger} = require('@formio/logger');
+const debug = createFilteredLogger('formio:middleware:deleteSubmissionHandler');
 
 /**
  * The deleteSubmissionHandler middleware.
@@ -32,7 +33,7 @@ module.exports = (router) => {
           next();
         })
         .catch((err) => {
-          debug(err);
+          debug.error(err);
           return next(err);
         });
     }
@@ -56,7 +57,7 @@ module.exports = (router) => {
           next();
         })
         .catch((err) => {
-          debug(err);
+          debug.error(err);
           return next(err);
         });
     }

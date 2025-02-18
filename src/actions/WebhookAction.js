@@ -9,8 +9,9 @@ const LOG_EVENT = 'Webhook Action';
 module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = router.formio.hook;
-  const debug = require('debug')('formio:action:webhook');
-  const logOutput = router.formio.log || debug;
+  const {createFilteredLogger} = require('@formio/logger');
+  const debug = createFilteredLogger('formio:action:webhook');
+  const logOutput = router.formio.log || debug.error;
   const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**

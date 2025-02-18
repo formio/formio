@@ -1,7 +1,8 @@
 'use strict';
 
 const _ = require('lodash');
-const debug = require('debug')('formio:middleware:submissionResourceAccessFilter');
+const {createFilteredLogger} = require('@formio/logger');
+const debug = createFilteredLogger('formio:middleware:submissionResourceAccessFilter');
 const EVERYONE = '000000000000000000000000';
 
 module.exports = function(router) {
@@ -69,7 +70,7 @@ module.exports = function(router) {
 
     // Skip this filter, if request is from an administrator.
     if (req.isAdmin) {
-      debug('Skipping, request is from an administrator.');
+      debug.info('Skipping, request is from an administrator.');
       return next();
     }
 
@@ -113,7 +114,7 @@ module.exports = function(router) {
   }
   catch (err) {
       // Try to recover if the hook fails.
-      debug(err);
+      debug.error(err);
     }
   };
 };

@@ -1,6 +1,7 @@
 'use strict';
 const url = require('url');
-const debug = require('debug')('formio:alias');
+const {createFilteredLogger} = require('@formio/logger');
+const debug = createFilteredLogger('formio:alias');
 
 /**
  * Provides URL alias capabilities.
@@ -74,7 +75,7 @@ module.exports = function(router) {
       return next();
     }
     catch (err) {
-      debug(`Error: ${err}`);
+      debug.error(`Error: ${err}`);
       return res.status(400).send('Invalid alias');
     }
   };

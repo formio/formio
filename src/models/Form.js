@@ -1,7 +1,8 @@
 'use strict';
 
 const _ = require('lodash');
-const debug = require('debug')('formio:models:form');
+const {createFilteredLogger} = require('@formio/logger');
+const debug = createFilteredLogger('formio:models:form');
 
 module.exports = (formio) => {
   const hook = require('../util/hook')(formio);
@@ -79,7 +80,7 @@ module.exports = (formio) => {
       return !result;
     }
     catch (err) {
-      debug(err);
+      debug.error(err);
       return false;
     }
   };

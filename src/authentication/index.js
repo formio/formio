@@ -12,8 +12,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const util = require('../util/util');
 const _ = require('lodash');
+const {createFilteredLogger} = require('@formio/logger');
 const debug = {
-  authenticate: require('debug')('formio:authentication:authenticate'),
+  authenticate: createFilteredLogger('formio:authentication:authenticate'),
 };
 
 module.exports = (router) => {
@@ -92,7 +93,7 @@ module.exports = (router) => {
         }
       }
       catch (err) {
-        debug.authenticate('Bad token allow string.');
+        debug.authenticate.error('Bad token allow string.');
       }
 
       return false;
@@ -257,11 +258,11 @@ module.exports = (router) => {
         hook.alter('user', user, (err, _user) => {
           if (err) {
             // Attempt to fail safely and not update the user reference.
-            debug.authenticate(err);
+            debug.error(err);
           }
           else {
             // Update the user with the hook results.
-            debug.authenticate(user);
+            debug.authenticate.info(user);
             user = _user;
           }
 

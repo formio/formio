@@ -2,8 +2,9 @@
 
 const _ = require('lodash');
 const util = require('../util/util');
+const {createFilteredLogger} = require('@formio/logger');
 const debug = {
-  error: require('debug')('formio:error')
+  error: createFilteredLogger('formio:error')
 };
 
 module.exports = async function(req, router, cb) {
@@ -220,7 +221,7 @@ module.exports = async function(req, router, cb) {
       swagger = router.formio.resources.submission.swagger.call(resource, true);
     }
     catch (err) {
-      debug.error(err);
+      debug.error.error(err);
     }
 
     // Override the body definition.

@@ -7,9 +7,10 @@ const LOG_EVENT = 'Login Action';
 module.exports = (router) => {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
-  const debug = require('debug')('formio:action:login');
+  const {createFilteredLogger} = require('@formio/logger');
+  const debug = createFilteredLogger('formio:action:login');
   const ecode = router.formio.util.errorCodes;
-  const logOutput = router.formio.log || debug;
+  const logOutput = router.formio.log || debug.error;
   const audit = router.formio.audit || (() => {});
   const log = (...args) => logOutput(LOG_EVENT, ...args);
 

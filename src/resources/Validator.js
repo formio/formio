@@ -12,9 +12,10 @@ const {
 const {evaluateProcess} = require('@formio/vm');
 const Utils = require('../util/util');
 const fetch = require('@formio/node-fetch-http-proxy');
+const {createFilteredLogger} = require('@formio/logger');
 const debug = {
-  validator: require('debug')('formio:validator'),
-  error: require('debug')('formio:error')
+  validator: createFilteredLogger('formio:validator'),
+  error: createFilteredLogger('formio:error')
 };
 
 async function loadFormById(cache, req, formId) {
@@ -283,11 +284,11 @@ class Validator {
    */
   /* eslint-disable max-statements */
   async validate(submission, next) {
-    debug.validator('Starting validation');
+    debug.validator.info('Starting validation');
 
     // Skip validation if no data is provided.
     if (!submission.data) {
-      debug.validator('No data skipping validation');
+      debug.validator.info('No data skipping validation');
       return next();
     }
 
@@ -345,7 +346,7 @@ class Validator {
       }
     }
     catch (err) {
-      debug.error(err.message || err);
+      debug.error.error(err.message || err);
       return next(err.message || err);
     }
 

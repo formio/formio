@@ -1,7 +1,8 @@
 'use strict';
 
 const util = require('../util/util');
-const debug = require('debug')('formio:middleware:deleteActionHandler');
+const {createFilteredLogger} = require('@formio/logger');
+const debug = createFilteredLogger('formio:middleware:deleteActionHandler');
 
 /**
  * The deleteActionHandler middleware.
@@ -34,7 +35,7 @@ module.exports = (router) => {
     prune.action(actionId, null, req)
       .then(() => res.sendStatus(200))
       .catch((err) => {
-        debug(err);
+        debug.error(err);
         return next(err);
       });
   };
