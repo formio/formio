@@ -300,6 +300,11 @@ body.noscroll {
     background: var(--gray4);
 }
 
+main {
+    position: relative;
+    height: 100vh;
+}
+
 /* Titles, Text Sizing, Colors, Links, Buttons ============================================== */
 
 /* Headings & Text */
@@ -1472,6 +1477,7 @@ label {
     box-shadow: var(--cardBoxShadow);
     border: 1px solid var(--gray3);
     overflow: hidden;
+    left: 0 !important
 }
 
 .message,
@@ -1892,13 +1898,22 @@ button.togglecontext {
     display: none;
 }
 
+/* Footer */
+.panel-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+}
+
 /* Panels */
 
 .panels {
     position: fixed;
     top: 45px;
     left: 15px;
-    bottom: 15px;
+    bottom: 215px;
     right: 15px;
     overflow: hidden;
     max-width: 3390px;
@@ -2037,10 +2052,19 @@ button.togglecontext {
 .panel-wrap.forms button.help {
     color: var(--green6);
 }
+.panel-wrap.forms button.help:hover,
+.panel-wrap.forms button.help.active {
+    color: var(--green7);
+}
 
 .panel-wrap.resources .panel-title,
 .panel-wrap.resources button.help {
     color: var(--blue5);
+}
+
+.panel-wrap.resources button.help:hover,
+.panel-wrap.resources button.help.active {
+    color: var(--blue6);
 }
 
 /* Panel Contents */
@@ -4850,6 +4874,9 @@ input.notop {
         border-radius: 0;
         border-left: 0;
         border-right: 0;
+    }
+    .panel-footer {
+        display: none; 
     }
 }
 

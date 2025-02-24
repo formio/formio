@@ -499,16 +499,17 @@ module.exports = function(router) {
 
       // Get all the subform data.
       const subs = {};
-      const getSubs = (components, outerPath) => util.eachComponent(components, function(component, path) {
-        const subData = _.get(submission.data, path);
+      const getSubs = (components, outerPath) => util.eachComponent(components, function(component, path, components, parent, compPaths) {
+        const dataPath = compPaths.dataPath || path;
+        const subData = _.get(submission.data, dataPath);
         if (Array.isArray(subData)) {
-          return subData.forEach((_, idx) => getSubs(component.components, `${path}[${idx}]`));
+          return subData.forEach((_, idx) => getSubs(component.components, `${dataPath}[${idx}]`));
         }
         if (component.type === 'form' || component.reference) {
-          const subData = _.get(submission.data, path);
+          const subData = _.get(submission.data, dataPath);
           if (subData && subData._id) {
             const dataId = subData._id.toString();
-            const subInfo = {component, path, data: subData.data};
+            const subInfo = {component, path: dataPath, data: subData.data};
             if (subs[dataId] && _.isArray(subs[dataId])) {
               subs[dataId].push(subInfo);
             }
@@ -543,7 +544,7 @@ module.exports = function(router) {
               // Load all subdata within this submission.
               submissionPromises.push(this.loadSubSubmissions(subInfo.component, sub, req, depth + 1));
             });
-            Promise.all(submissionPromises);
+            await Promise.all(submissionPromises);
           }
         });
       }
