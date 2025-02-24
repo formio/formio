@@ -1,7 +1,8 @@
 'use strict';
 
 const util = require('../util/util');
-const debug = require('debug')('formio:middleware:deleteRoleHandler');
+const {createFilteredLogger} = require('@formio/logger');
+const debug = createFilteredLogger('formio:middleware:deleteRoleHandler');
 
 /**
  * The Delete Role Handler middleware.
@@ -54,7 +55,7 @@ module.exports = (router) => {
         res.sendStatus(200);
       }
       catch (err) {
-        debug(err);
+        debug.error(err);
         return next(err);
       }
     }

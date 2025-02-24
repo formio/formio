@@ -1,16 +1,17 @@
 'use strict';
 const async = require('async');
 const _ = require('lodash');
+const {createFilteredLogger} = require('@formio/logger');
 const debug = {
-  form: require('debug')('formio:cache:form'),
-  loadForm: require('debug')('formio:cache:loadForm'),
-  loadForms: require('debug')('formio:cache:loadForms'),
-  loadFormByName: require('debug')('formio:cache:loadFormByName'),
-  loadFormByAlias: require('debug')('formio:cache:loadFormByAlias'),
-  loadSubmission: require('debug')('formio:cache:loadSubmission'),
-  loadSubmissions: require('debug')('formio:cache:loadSubmissions'),
-  loadSubForms: require('debug')('formio:cache:loadSubForms'),
-  error: require('debug')('formio:error')
+  form: createFilteredLogger('formio:cache:form'),
+  loadForm: createFilteredLogger('formio:cache:loadForm'),
+  loadForms: createFilteredLogger('formio:cache:loadForms'),
+  loadFormByName: createFilteredLogger('formio:cache:loadFormByName'),
+  loadFormByAlias: createFilteredLogger('formio:cache:loadFormByAlias'),
+  loadSubmission: createFilteredLogger('formio:cache:loadSubmission'),
+  loadSubmissions: createFilteredLogger('formio:cache:loadSubmissions'),
+  loadSubForms: createFilteredLogger('formio:cache:loadSubForms'),
+  error: createFilteredLogger('formio:error')
 };
 
 module.exports = function(router) {
@@ -67,11 +68,11 @@ module.exports = function(router) {
     async loadForm(req, type, id, noCachedResult) {
       const cache = this.cache(req);
       if (!noCachedResult && cache.forms[id]) {
-        debug.loadForm(`Cache hit: ${id}`);
+        debug.loadForm.info(`Cache hit: ${id}`);
         return cache.forms[id];
       }
 
-      debug.loadForm(`${typeof id}: ${id}`);
+      debug.loadForm.info(`${typeof id}: ${id}`);
       id = util.idToBson(id);
       if (id === false) {
         throw new Error('Invalid form _id given.');
@@ -87,17 +88,17 @@ module.exports = function(router) {
         await hook.alter('formQuery', query, req)
       ).lean().exec();
       if (!result) {
-        debug.loadForm('Resource not found for the query');
+        debug.loadForm.error('Resource not found for the query');
         throw new Error('Resource not found');
       }
 
       const finalResult = await hook.alter('loadForm', result, req);
         this.updateCache(req, cache, finalResult);
-        debug.loadForm('Caching result');
+        debug.loadForm.info('Caching result');
         return finalResult;
       }
       catch (err) {
-        debug.loadForm(err);
+        debug.loadForm.error(err);
         throw new Error(err);
       }
     },
@@ -129,21 +130,21 @@ module.exports = function(router) {
         return result;
       }
       catch (err) {
-        debug.loadForms(err);
+        debug.loadForms.error(err);
         throw err;
       }
     },
 
     async loadFormRevisions(req, revs) {
       if (!revs || !revs.length || !router.formio.resources.formrevision) {
-        debug.loadSubForms(`Form revisions not used.`);
+        debug.loadSubForms.info(`Form revisions not used.`);
         return;
       }
 
       const formRevs = {};
       async.each(revs, async (rev) => {
         const formRevision = rev.revision || rev.formRevision;
-        debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${formRevision}`);
+        debug.loadSubForms.info(`Loading form ${util.idToBson(rev.form)} revision ${formRevision}`);
         const loadRevision = formRevision.length === 24 ? router.formio.resources.formrevision.model.findOne(
           {$revisionId: util.idToBson(rev.revision)}
         ) :
@@ -157,18 +158,18 @@ module.exports = function(router) {
 
         const result = await loadRevision.lean().exec();
           if (!result) {
-            debug.loadSubForms(
+            debug.loadSubForms.error(
               `Cannot find form revision for form ${rev.form} revision ${formRevision}`,
             );
             return;
           }
 
-          debug.loadSubForms(`Loaded revision for form ${rev.form} revision ${formRevision}`);
+          debug.loadSubForms.info(`Loaded revision for form ${rev.form} revision ${formRevision}`);
           formRevs[rev.form.toString()] = result;
       }, (err) => {
         if (err) {
-          debug.loadSubForms(err);
-          debug.loadFormRevisions(err);
+          debug.loadSubForms.error(err);
+          debug.loadFormRevisions.error(err);
           throw err;
         }
 
@@ -225,7 +226,7 @@ module.exports = function(router) {
     async loadSubmission(req, formId, subId, noCachedResult) {
       const cache = this.cache(req);
       if (!noCachedResult && cache.submissions[subId]) {
-        debug.loadSubmission(`Cache hit: ${subId}`);
+        debug.loadSubmission.info(`Cache hit: ${subId}`);
         return cache.submissions[subId];
       }
 
@@ -239,14 +240,14 @@ module.exports = function(router) {
         throw new Error('Invalid form _id given.');
       }
 
-      debug.loadSubmission(`Searching for form: ${formId}, and submission: ${subId}`);
+      debug.loadSubmission.info(`Searching for form: ${formId}, and submission: ${subId}`);
       const query = {_id: subId, form: formId, deleted: {$eq: null}};
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
       try {
         const submission = await submissionModel.findOne(hook.alter('submissionQuery', query, req)).lean().exec();
         if (!submission) {
-          debug.loadSubmission('No submission found for the given query.');
+          debug.loadSubmission.info('No submission found for the given query.');
           return;
         }
 
@@ -255,7 +256,7 @@ module.exports = function(router) {
           return finalResult;
       }
       catch (err) {
-      debug.loadSubmission(err);
+      debug.loadSubmission.error(err);
       throw err;
       }
     },
@@ -285,7 +286,7 @@ module.exports = function(router) {
         return submissions;
       }
       catch (err) {
-        debug.loadSubmissions(err);
+        debug.loadSubmissions.error(err);
         throw err;
       }
     },
@@ -317,7 +318,7 @@ module.exports = function(router) {
     async loadFormByName(req, name) {
       const cache = this.cache(req);
       if (cache.names[name]) {
-        debug.loadFormByName(`Cache hit: ${name}`);
+        debug.loadFormByName.info(`Cache hit: ${name}`);
         return await this.loadForm(req, 'resource', cache.names[name]);
       }
       else {
@@ -335,16 +336,16 @@ module.exports = function(router) {
           try {
             const finalResult = await hook.alter('loadForm', result, req);
             this.updateCache(req, cache, finalResult);
-            debug.loadForm('Caching result');
+            debug.loadForm.info('Caching result');
             return finalResult;
         }
         catch (err) {
-          debug.loadForm(err);
+          debug.loadForm.error(err);
           throw err;
           }
         }
         catch (err) {
-          debug.loadFormByName(err);
+          debug.loadFormByName.error(err);
           throw err;
         }
       }
@@ -361,7 +362,7 @@ module.exports = function(router) {
     async loadFormByAlias(req, alias) {
       const cache = this.cache(req);
       if (cache.aliases[alias]) {
-        debug.loadFormByAlias(`Cache hit: ${alias}`);
+        debug.loadFormByAlias.info(`Cache hit: ${alias}`);
         return await this.loadForm(req, 'resource', cache.aliases[alias]);
       }
       else {
@@ -379,16 +380,16 @@ module.exports = function(router) {
           try {
             const finalResult = await hook.alter('loadForm', result, req);
             this.updateCache(req, cache, finalResult);
-            debug.loadForm('Caching result');
+            debug.loadForm.info('Caching result');
             return finalResult;
           }
           catch (err) {
-            debug.loadForm(err);
+            debug.loadForm.error(err);
             throw err;
           }
       }
       catch (err) {
-        debug.loadFormByAlias(err);
+        debug.loadFormByAlias.error(err);
         throw err;
        }
       }
@@ -406,7 +407,7 @@ module.exports = function(router) {
     async loadAllForms(form, req, depth, forms) {
       depth = depth || 0;
       forms = forms || {};
-      debug.loadSubForms(`Loading subforms for ${form._id}`);
+      debug.loadSubForms.info(`Loading subforms for ${form._id}`);
 
       // Only allow 5 deep.
       if (depth >= 5) {
@@ -420,7 +421,7 @@ module.exports = function(router) {
         if ((component.type === 'form') && component.form) {
           const formId = component.form.toString();
           formIds.push(formId);
-          debug.loadSubForms(`Found subform ${formId}`);
+          debug.loadSubForms.info(`Found subform ${formId}`);
           // 'formRevision' was used in the older builder versions
           if (component.revision || component.formRevision) {
             formRevs.push(component);
@@ -434,7 +435,7 @@ module.exports = function(router) {
       }
 
       // Load all subforms in this form.
-      debug.loadSubForms(`Loading subforms ${formIds.join(', ')}`);
+      debug.loadSubForms.info(`Loading subforms ${formIds.join(', ')}`);
       try {
         const result = await this.loadForms(req, formIds);
         // Load all form revisions.
@@ -444,7 +445,7 @@ module.exports = function(router) {
         return async.each(result, async (subForm) => {
           const formId = subForm._id.toString();
           if (forms[formId]) {
-            debug.loadSubForms(`Subforms already loaded for ${formId}.`);
+            debug.loadSubForms.info(`Subforms already loaded for ${formId}.`);
             return;
           }
           forms[formId] = revs[formId] ? revs[formId] : subForm;
