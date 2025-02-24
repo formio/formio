@@ -9,6 +9,7 @@ const http = require('http');
 const url = require('url');
 const { UV_FS_O_FILEMAP } = require('constants');
 const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
+const { wait } = require('./util');
 const docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
@@ -45,7 +46,6 @@ module.exports = (app, template, hook) => {
         },
       ],
     };
-
 
     // Store the temp action for this test suite.
     let tempAction = {};
@@ -99,7 +99,6 @@ module.exports = (app, template, hook) => {
             done();
           });
       });
-
    });
 
     describe('Permissions - Project Level - Project Owner', () => {
@@ -277,6 +276,48 @@ module.exports = (app, template, hook) => {
           .expect('Content-Type', /text\/plain/)
           .expect(401)
           .end(done);
+      });
+
+      it('A user should not be able to Delete an Action using incorrect path', (done) => {
+        let tempForm2 = {
+          title: 'Temp Form 2',
+          name: 'tempForm2',
+          path: 'temp2',
+          type: 'form',
+          access: [],
+          submissionAccess: [],
+          components: [
+            {
+              type: 'textfield',
+              key: 'bar',
+              label: 'bar',
+              inputMask: '',
+              input: true,
+            },
+          ],
+        };
+        request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(tempForm2)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          tempForm2 = res.body;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          request(app)
+          .delete(hook.alter('url', `/form/${tempForm2._id}/action/${tempAction._id}`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(400)
+          .end(done);
+        });
       });
 
       it('A user should not be able to Delete an Action for a User-Created Project Form', (done) => {
@@ -1804,6 +1845,102 @@ module.exports = (app, template, hook) => {
               }
             });
         }, addSettings);
+      });
+        
+      it('Should send email with edit grid value', async () => {
+        let testAction = {
+          title: 'Email',
+          name: 'email',
+          handler: ['after'],
+          method: ['create'],
+          priority: 1,
+          settings: {
+            from: 'travis@form.io',
+            replyTo: '',
+            emails: ['test@form.io'],
+            sendEach: false,
+            subject: 'Hello',
+            message: '{{ submission(data, form.components) }}',
+            transport: 'test',
+            template: 'https://pro.formview.io/assets/email.html',
+            renderingMethod: 'dynamic'
+          },
+        }
+        const form = {
+          "_id": "677801142628e5aad5e7b1c2",
+          "title": "editGridEmail",
+          "name": "editGridEmail",
+          "path": "editGridEmail",
+          "type": "form",
+          "access": [],
+          "submissionAccess": [],
+          "components": [
+            {
+              "label": "Edit Grid",
+              "rowDrafts": false,
+              "key": "editGrid",
+              "type": "editgrid",
+              "displayAsTable": false,
+              "input": true,
+              "components": [
+                {
+                  "label": "Text Field",
+                  "key": "textField",
+                  "type": "textfield",
+                  "input": true
+                }
+              ]
+            }
+          ]
+        }
+  
+        const editGridForm = (await request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)).body;
+  
+        testAction.form = editGridForm._id;
+        // Add the action to the form.
+        const testActionRes = (await request(app)
+            .post(hook.alter('url', `/form/${editGridForm._id}/action`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(testAction)).body;
+  
+          
+        testAction = testActionRes;
+
+        let emailSent = false;
+
+        const event = template.hooks.getEmitter();
+        event.on('newMail', (email) => {
+          assert(email.html.includes('editGridString'));
+          event.removeAllListeners('newMail');
+          emailSent = true;
+        });
+
+        const submission = {
+          noValidate: true,
+          data: {
+            editGrid: [
+              {
+                textField: 'editGridString'
+              }
+            ],
+            submit: true
+          },
+          state: 'submitted'
+        };
+        // Send submission
+        await request(app)
+          .post(hook.alter('url', `/form/${editGridForm._id}/submission`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(submission);
+
+        
+
+        await wait(600);
+
+        assert(emailSent)
       });
 
       if (template.users.formioAdmin) {

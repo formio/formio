@@ -48,7 +48,7 @@ class CSVExporter extends Exporter {
 
     const ignore = ['password', 'button', 'container', 'datagrid', 'editgrid', 'dynamicWizard', 'reviewpage'];
     try {
-      util.eachComponent(form.components, (comp, path) => {
+      util.eachComponent(form.components, (comp, path, components, parent, compPaths) => {
         if (!comp.input || !comp.key || ignore.includes(comp.type)) {
           return;
         }
@@ -391,6 +391,7 @@ class CSVExporter extends Exporter {
             key: component.key,
             label: (item.label || path).replace(labelRegexp, '.'),
             title: component.label,
+            dataPath: compPaths.path
           };
 
           if (item.hasOwnProperty('subpath')) {
@@ -497,19 +498,16 @@ class CSVExporter extends Exporter {
   getSubmissionData(submission) {
     const updatedSubmission = {};
     const result = this.fields.map((column) => {
-      const componentData = _.get(submission.data, column.path);
-      // If the path had no results and the component specifies a path, check for a datagrid component
-      if (_.isUndefined(componentData) && column.path.includes('.')) {
-        let parts = column.path.split('.');
+    let componentData = _.get(submission.data, column.dataPath);
 
-        // If array in nested form
-        if (parts.length > 2) {
-          let newParts = _.chunk(parts, parts.length - 1);
-          newParts = newParts.map(part => part.join('.'));
-          parts = newParts;
-        }
+      // If the path had no results and the component specifies a path, check for a datagrid component or nested form
+      if (_.isUndefined(componentData) && column.dataPath.includes('.')) {
+        const parts = column.dataPath.split('.');
         const container = parts.shift();
         const containerData = _.get(submission.data, container);
+        if (containerData && containerData.hasOwnProperty('data')) {
+          componentData = _.get(containerData.data, parts);
+        }
 
         // If the subdata is an array, coerce it to a displayable string.
         if (Array.isArray(containerData)) {

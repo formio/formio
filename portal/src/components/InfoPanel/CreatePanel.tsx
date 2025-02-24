@@ -1,6 +1,6 @@
 import { EvaluationLicenseInfo } from "./Partials/EvaluationLicenseInfo";
 
-export const EditPanel = ({ type }: { type: "resource" | "form" }) => {
+export const CreatePanel = ({ type }: { type: "resource" | "form" }) => {
     const name = type === "form" ? "Form" : "Resource";
     return (
         <div className="panel-wrap context default">
@@ -15,16 +15,31 @@ export const EditPanel = ({ type }: { type: "resource" | "form" }) => {
                     <div className="context-data edit-form active">
                         <div className="context-header">
                             <h2 className="strong">
-                                Self-Hosting With Form.io Enterprise{" "}
+                                Creating{" "}
+                                <span className="item-type-label">{name}</span>s
                             </h2>
                         </div>
                         <div className="context-expand">
                             <p>
-                                Take greater control over your software development lifecycle through deploying as many environments as you need and giving you 100% control of your forms and data. This allows for the process and storing of sensitive data, scaling up for future usage, and upgrading the platform on your timelines. 90% of our customers self-host the Form.io platform in their own environment, including the enterprise developer portal application.
+                                <span>
+                                    Drag and Drop components onto your <span className="item-type-label">{name}</span>.{" "} 
+                                    <a
+                                        target="_blank"
+                                        title="Form Building Documentation"
+                                        href="https://help.form.io/userguide/form-building"
+                                        rel="noreferrer"
+                                    >
+                                    See Form Building Documentation 
+                                    </a>
+                                    {" "}for more information on the types of components and how to configure them. 
+                                </span>
                             </p>
                             <p>
-                                Form.io’s Enterprise offering includes many different features that make it easier to build and manage more complex form-centric applications. Capabilities available within the Enterprise offering are denoted by the Form.io logo.
-                            </p>          
+                                Enter a title, name and path for your{" "}
+                                <span className="item-type-label">{name}.</span>{" "}
+                                This will help you identify it later.
+                            </p>
+                            
                             <ul>
                                 <li className="enterprise">
                                     <span className="strong">

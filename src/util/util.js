@@ -306,7 +306,7 @@ const Utils = {
    *   The header value if found or false.
    */
   getHeader(req, key) {
-    if (typeof req.headers[key] !== 'undefined') {
+    if (req.headers && typeof req.headers[key] !== 'undefined') {
       return req.headers[key];
     }
 
@@ -325,7 +325,7 @@ const Utils = {
    *   The query value if found or false.
    */
   getQuery(req, key) {
-    if (typeof req.query[key] !== 'undefined') {
+    if (req.query && typeof req.query[key] !== 'undefined') {
       return req.query[key];
     }
 
@@ -344,7 +344,7 @@ const Utils = {
    *   The parameter value if found or false.
    */
   getParameter(req, key) {
-    if (typeof req.params[key] !== 'undefined') {
+    if (req.params && typeof req.params[key] !== 'undefined') {
       return req.params[key];
     }
 
@@ -548,15 +548,66 @@ const Utils = {
       submissions = [submissions];
     }
 
+    // Collect tagpad keys for subsequent path adjustment
+    // (tagpad submission has additional data field)
+    const tagpadComponentsKeys = [];
+
     // Initialize our delete fields array.
     const modifyFields = [];
 
     // Iterate through all components.
     this.eachComponent(form.components, (component, path) => {
       path = `data.${path}`;
+      if (component.type === 'tagpad') {
+        tagpadComponentsKeys.push(component.key);
+      }
       if (component.protected) {
         debug.removeProtectedFields('Removing protected field:', component.key);
-        modifyFields.push(deleteProp(path));
+
+        modifyFields.push((submission) => {
+          function removeFieldByPath(obj, path) {
+            // Split the path into an array of keys
+            const keys = path.split('.');
+
+            // Helper function to recursively traverse the object
+            function traverseAndRemove(currentObj, currentKeys) {
+              if (!currentObj || typeof currentObj !== 'object') {
+                return;
+              }
+
+              // Add data field to tagpad component path
+              if (tagpadComponentsKeys.includes(currentKeys[0])) {
+                currentKeys = [currentKeys[0], 'data', ...currentKeys.slice(1)];
+              }
+
+              // Get the current key
+              const key = currentKeys[0];
+
+              // If this is the last key, delete the field
+              if (currentKeys.length === 1) {
+                if (Array.isArray(currentObj)) {
+                  currentObj.forEach(item => delete item[key]);
+                }
+                else {
+                  delete currentObj[key];
+                }
+              }
+              else {
+                // Recurse for arrays and objects
+                if (Array.isArray(currentObj)) {
+                  currentObj.forEach(item => traverseAndRemove(item, currentKeys));
+                }
+                else {
+                    traverseAndRemove(currentObj[key], currentKeys.slice(1));
+                  }
+                }
+              }
+
+              // Start the recursion
+              traverseAndRemove(obj, keys);
+            }
+            removeFieldByPath(submission, path);
+        });
       }
       else if ((component.type === 'signature') && (action === 'index') && !doNotMinify) {
         modifyFields.push(((submission) => {
@@ -743,6 +794,20 @@ const Utils = {
               context,
               this.valuePath(path, component.key),
             );
+          }
+          else if (['tagpad'].includes(component.type)) {
+            const value = _.get(data, component.key) || [];
+            if (Array.isArray(value)) {
+              value.forEach((row, index) => {
+                this.eachValue(
+                  component.components,
+                  row.data,
+                  fn,
+                  context,
+                  this.valuePath(path, `${component.key}.data`),
+                );
+              });
+            }
           }
           else {
             this.eachValue(

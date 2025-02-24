@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { FormEdit, FormType } from "@formio/react";
+import { FormEdit, FormType} from "@formio/react";
 import { useLocation } from "wouter";
 
 export const EditForm = ({
     url,
     type,
+    onSaveForm = () => {},
 }: {
     url: string;
     type: "form" | "resource";
+    onSaveForm?: (data: FormType | any) => void;
 }) => {
     const [initialForm, setInitialForm] = useState<FormType | undefined>();
     const setLocation = useLocation()[1];
@@ -23,6 +25,7 @@ export const EditForm = ({
             const form = await response.json();
             setInitialForm(form);
         };
+        setInitialForm(undefined);
         fetchForm();
     }, [url]);
     return (
@@ -31,6 +34,7 @@ export const EditForm = ({
                 <FormEdit
                     onSaveForm={(form) => {
                         setInitialForm(form);
+                        onSaveForm(form);
                         setLocation("/edit");
                     }}
                     components={{

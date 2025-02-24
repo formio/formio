@@ -11,6 +11,12 @@ const debug = {
   sanity: require('debug')('formio:sanityCheck')
 };
 const path = require('path');
+const {customAlphabet} = require('nanoid/non-secure');
+
+// Random string generator HOF
+const nanoid = customAlphabet('1234567890abcdef', 10);
+
+const {sanitizeMongoConnectionString} = require('./util');
 
 // The mongo database connection.
 let db = null;
@@ -128,42 +134,52 @@ module.exports = function(formio) {
       return;
     }
 
-    console.log('Loading Mongo SSL Certificates');
+    console.log('Loading Mongo TLS Certificates');
 
     const certs = {
-      sslValidate: !!config.mongoSSLValidate,
-      ssl: true,
+      tls: true,
+      tlsAllowInvalidCertificates: !config.mongoSSLValidate,
     };
 
     if (config.mongoSSLPassword) {
-      certs.sslPass = config.mongoSSLPassword;
+      certs.tlsCertificateKeyFilePassword = config.mongoSSLPassword;
     }
 
     const files = {
-      sslCA: 'ca.pem',
-      sslCert: 'cert.pem',
-      sslCRL: 'crl.pem',
-      sslKey: 'key.pem',
+      ca: 'ca.pem',
+      cert: 'cert.pem',
+      crl: 'crl.pem',
+      key: 'key.pem',
     };
 
-    // Load each file into its setting.
     Object.keys(files).forEach((key) => {
       const file = files[key];
-      if (fs.existsSync(path.join(config.mongoSSL, file))) {
-        console.log(' > Reading', path.join(config.mongoSSL, file));
-        if (key === 'sslCA') {
-          certs[key] = [fs.readFileSync(path.join(config.mongoSSL, file))];
+      const filePath = path.join(config.mongoSSL, file);
+
+      if (fs.existsSync(filePath)) {
+        console.log(' > Reading', filePath);
+        const data = fs.readFileSync(filePath);
+
+        if (key === 'ca') {
+          // 'ca' can be an array if multiple CAs need to be trusted
+          certs.ca = [data];
         }
-        else {
-          certs[key] = fs.readFileSync(path.join(config.mongoSSL, file));
+        else if (key === 'crl') {
+          certs.crl = data;
+        }
+        else if (key === 'cert') {
+          certs.cert = data;
+        }
+        else if (key === 'key') {
+          certs.key = data;
         }
       }
       else {
-        console.log(' > Could not find', path.join(config.mongoSSL, file), 'skipping');
+        console.log(' > Could not find', filePath, 'skipping');
       }
     });
-    console.log('');
 
+    console.log('');
     config.mongoSSL = certs;
   };
 
@@ -185,7 +201,8 @@ module.exports = function(formio) {
       ? config.mongo
       : config.mongo[0];
 
-    debug.db(`Opening new connection to ${dbUrl}`);
+    const sanitizedDbUrl = sanitizeMongoConnectionString(dbUrl);
+    debug.db(`Opening new connection to ${sanitizedDbUrl}`);
     let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
     if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
       mongoConfig.connectTimeoutMS = 300000;
@@ -194,8 +211,8 @@ module.exports = function(formio) {
       mongoConfig.socketTimeoutMS = 300000;
     }
     if (config.mongoSA || config.mongoCA) {
-      mongoConfig.sslValidate = true;
-      mongoConfig.sslCA = config.mongoSA || config.mongoCA;
+      mongoConfig.tls = true;
+      mongoConfig.tlsCAFile = config.mongoSA || config.mongoCA;
     }
     if (config.mongoSSL) {
       mongoConfig = {
@@ -220,8 +237,13 @@ module.exports = function(formio) {
       }
        catch (err) {
         debug.db(`Connection Error: ${err}`);
-        await unlock();
-        throw new Error(`Could not connect to the given Database for server updates: ${dbUrl}.`);
+        try {
+          await unlock();
+        }
+        catch (ignoreErr) {
+          debug.db(`Unlock Error: ${ignoreErr}`);
+        }
+        throw new Error(`Could not connect to the given Database for server updates: ${sanitizedDbUrl}.`);
       }
     }
 
@@ -233,8 +255,7 @@ module.exports = function(formio) {
    * Test to see if the application has been installed. Install if not.
    */
   const checkSetup = async function() {
-    formio.util.log('Checking for db setup.');
-    const collections = await db.listCollections().toArray();
+    formio.util.log('Checking for db setup.'); const collections = await db.listCollections().toArray();
     debug.db(`Collections found: ${collections.length}`);
     // 3 is an arbitrary length. We just want a general idea that things have been installed.
     if (collections.length < 3) {
@@ -256,11 +277,14 @@ module.exports = function(formio) {
    */
   const checkFeatures = async function() {
     formio.util.log('Determine MongoDB compatibility.');
+    try {
       config.mongoFeatures = formio.mongoFeatures = {
         collation: true,
         compoundIndexWithNestedPath: true,
       };
-      const featuresTest = db.collection('formio-features-test');
+      // Assign a random string to collection name to avoid multi-instance race conditions
+      const randomString = nanoid();
+      const featuresTest = db.collection(randomString);
       // Test for collation support
       try {
         await featuresTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
@@ -281,6 +305,11 @@ module.exports = function(formio) {
         config.mongoFeatures.compoundIndexWithNestedPath = formio.mongoFeatures.compoundIndexWithNestedPath = false;
       }
       await featuresTest.drop();
+    }
+    catch (err) {
+      formio.util.log('Error determining MongoDB compatibility:');
+      formio.util.log(err);
+    }
   };
 
   /**
@@ -735,7 +764,8 @@ module.exports = function(formio) {
         await unlock();
         return db;
       }
-      catch (err) {
+      catch (ignoreErr) {
+        // ignore unlock error, as database has already erred, so you probably can't unlock anyway
         debug.db(err);
         throw err;
       }

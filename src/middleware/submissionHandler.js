@@ -297,19 +297,6 @@ module.exports = (router, resourceName, resourceId) => {
           ) {
             util.deleteProp(component.key)(data);
           }
-          else if (req.method === 'PUT') {
-            // Restore value of components with calculated value and disabled server calculation
-            // if they don't present in submission data
-            const newCompData = _.get(submissionData, componentPath, undefined);
-            const currentCompData = _.get(req.currentSubmissionData, componentPath);
-
-            if (component.calculateValue &&
-                !component.calculateServer &&
-                currentCompData &&
-                newCompData === undefined) {
-              _.set(submissionData, componentPath, _.get(req.currentSubmissionData, componentPath));
-            }
-          }
 
           const fieldActions = hook.alter('fieldActions', fActions);
           const propertyActions = hook.alter('propertyActions', pActions);
@@ -327,7 +314,10 @@ module.exports = (router, resourceName, resourceId) => {
               res,
             },
           ];
-
+          // Execute the field handler.
+          if (fieldActions.hasOwnProperty(component.type)) {
+            promises.push(fieldActions[component.type](...handlerArgs));
+          }
           if (validation) {
             Object.keys(propertyActions).forEach((property) => {
               // Set the default value of property if only minified schema of component is loaded
@@ -338,10 +328,6 @@ module.exports = (router, resourceName, resourceId) => {
                 promises.push(propertyActions[property](...handlerArgs));
               }
             });
-          }
-          // Execute the field handler.
-          if (fieldActions.hasOwnProperty(component.type)) {
-            promises.push(fieldActions[component.type](...handlerArgs));
           }
         }
       }, {
@@ -429,8 +415,8 @@ module.exports = (router, resourceName, resourceId) => {
     handlers[after] = async (req, res, next) => {
       req.handlerName = after;
       try {
-        await executeActions('after', req, res);
         await executeFieldHandlers(true, req, res);
+        await executeActions('after', req, res);
         await alterSubmission(req, res);
         await ensureResponse(req, res);
         return next();

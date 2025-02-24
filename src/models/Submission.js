@@ -93,16 +93,5 @@ module.exports = function(formio) {
     next();
   });
 
-  model.schema.index({
-    deleted: 1
-  });
-
-  // Add a "recommmended" combined index.
-  model.schema.index({
-    form: 1,
-    deleted: 1,
-    created: -1
-  });
-
   return model;
 };

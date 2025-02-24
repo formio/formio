@@ -1,6 +1,7 @@
-module.exports = function(app, template, hook) {
+module.exports = function (app, template, hook) {
   const docker = process.env.DOCKER;
   const assert = require('assert');
+  const request = require('../../formio-supertest');
   const moment = require('moment-timezone');
   const Helper = require('../../helper')(app);
   let helper = null;
@@ -9,10 +10,11 @@ module.exports = function(app, template, hook) {
   const testTags = require('../../fixtures/forms/tagsWithDelimiter.js');
   const testRadio = require('../../fixtures/forms/radioComponent');
   const testFormWithReviewPage = require('../../fixtures/forms/formWithReviewPage.js');
-  const testAzureAddress= require('../../fixtures/forms/azureAddressComponent');
-  const testGoogleAddress= require('../../fixtures/forms/googleAddressComponent');
-  const testNominatimAddress= require('../../fixtures/forms/nominatimAddressComponent');
+  const testAzureAddress = require('../../fixtures/forms/azureAddressComponent');
+  const testGoogleAddress = require('../../fixtures/forms/googleAddressComponent');
+  const testNominatimAddress = require('../../fixtures/forms/nominatimAddressComponent');
   const testTimeDate = require('../../fixtures/forms/timeDateComponent.js');
+  const wizardTest = require('../../fixtures/forms/wizardFormWithAdvancedConditions.js');
   function getComponentValue(exportedText, compKey, submissionIndex) {
     const rows = exportedText.split('\n');
     const headerRow = rows[0];
@@ -110,7 +112,7 @@ module.exports = function(app, template, hook) {
 
     it(`Test using Tags delimiter`, (done) => {
       let owner = (
-          app.hasProjects || docker
+        app.hasProjects || docker
       ) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
@@ -220,6 +222,66 @@ module.exports = function(app, template, hook) {
 
             const fileValue = getComponentValue(result.text, 'radio', 0);
             assert.strictEqual(fileValue, undefined);
+            done();
+          });
+        });
+    });
+
+    it('Should export csv for wizard forms', (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form(wizardTest)
+        .submission({
+          data: {
+            number: 2,
+            textField: 'test',
+            textArea: 'test New'
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(helper.template.forms.wizardTest, 'csv', (error, result) => {
+            if (error) {
+              return done(error);
+            }
+            assert.strictEqual(getComponentValue(result.text, 'page1.number', 0), '"2"');
+            assert.strictEqual(getComponentValue(result.text, 'page2.textField', 0), '"test"');
+            assert.strictEqual(getComponentValue(result.text, 'page2.textArea', 0), '"test New"');
+            done();
+          });
+        });
+    });
+
+    it('Should display data for Components inside the Layout Components', (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form('panelTest', wizardTest.components)
+        .submission({
+          data: {
+            number: 2,
+            textField: 'test Form',
+            textArea: 'test Form New'
+          }
+        })
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(helper.template.forms.panelTest, 'csv', (error, result) => {
+            if (error) {
+              return done(error);
+            }
+
+            assert.strictEqual(helper.template.forms.panelTest.display, 'form');
+            assert.strictEqual(getComponentValue(result.text, 'page1.number', 0), '"2"');
+            assert.strictEqual(getComponentValue(result.text, 'page2.textField', 0), '"test Form"');
+            assert.strictEqual(getComponentValue(result.text, 'page2.textArea', 0), '"test Form New"');
             done();
           });
         });
@@ -421,6 +483,88 @@ module.exports = function(app, template, hook) {
             const date = getComponentValue(result.text, 'editGrid.dateTime', 0);
             assert.strictEqual(date, `"${formattedDate}"`);
 
+            done();
+          });
+        });
+    });
+
+  });
+
+  describe('Nested form CSV export', () => {
+    it('Sets up a default project', (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper.project().user('user', 'user1').execute(done);
+    });
+
+    let childForm, parentForm;
+    const submission = {
+      data: {
+        form: {
+          data: {
+            name: 'Mary Jane',
+            age: 23
+          }
+        }
+      },
+      state: 'submitted'
+    };
+
+    it('Build the forms', (done) => {
+      helper.form('in', [
+        {
+          type: 'textfield',
+          key: 'name',
+          input: true,
+        },
+        {
+          type: 'number',
+          key: 'age',
+          input: true,
+        }
+      ])
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          childForm = helper.template.forms.in;
+          helper.form('out', [
+            {
+              tableView: true,
+              form: childForm._id,
+              useOriginalRevision: false,
+              key: 'form',
+              type: 'form',
+              input: true
+            }
+          ])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+              parentForm = helper.template.forms.out;
+              done();
+            });
+        });
+    });
+
+    it(`Test nested form data`, (done) => {
+      helper
+        .submission(submission)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(parentForm, 'csv', (error, result) => {
+            if (error) {
+              done(error);
+            }
+
+            const age = getComponentValue(result.text, 'form.age', 0);
+            const name = getComponentValue(result.text, 'form.name', 0);
+
+            assert.equal(age, '"23"');
+            assert.equal(name, '"Mary Jane"');
             done();
           });
         });
