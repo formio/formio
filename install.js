@@ -1,14 +1,13 @@
 'use strict';
 
 const prompt = require('prompt');
-const async = require('async');
 const fs = require('fs-extra');
 const nunjucks = require('nunjucks');
 nunjucks.configure([], {watch: false});
 const util = require('./src/util/util');
 const debug = require('debug')('formio:error');
 
-module.exports = function(formio, items, done) {
+module.exports = async function(formio, items, done) {
   // The project that was created.
   let project = {};
 
@@ -19,52 +18,46 @@ module.exports = function(formio, items, done) {
     /**
      * Select the template to use.
      *
-     * @param done
      * @return {*}
      */
-    whatTemplate: function(done) {
+    whatTemplate: async function() {
       if (process.env.ROOT_EMAIL) {
         templateFile = './default-template.json';
-        return done();
+        return;
       }
 
       let message = '\nWhich project template would you like to install?\n'.green;
       message += '\n   Please provide the local file path of the template file.'.yellow;
       message += '\n   Or, just press '.yellow + 'ENTER'.green + ' to use the default template.\n'.yellow;
       util.log(message);
-      prompt.get([
+      const results = await prompt.get([
         {
           name: 'templateFile',
           description: 'Enter a local file path or press Enter for the default template.',
           default: './default-template.json',
           required: true
         }
-      ], function(err, results) {
-        if (err) {
-          return done(err);
-        }
-        if (!results.templateFile) {
-          return done('Cannot find the template file!'.red);
-        }
+      ]);
 
-        templateFile = results.templateFile;
-        done();
-      });
+      if (!results.templateFile) {
+        throw ('Cannot find the template file!'.red);
+      }
+      templateFile = results.templateFile;
     },
 
     /**
      * Import the template.
      * @param done
      */
-    importTemplate: function(done) {
+    importTemplate: async function() {
       if (!items.import) {
-        return done();
+        return;
       }
 
       // Determine if this is a custom project.
       if (!fs.existsSync(templateFile)) {
         util.log(templateFile);
-        return done('Cannot find the template file!'.red);
+        throw ('Cannot find the template file!'.red);
       }
 
       let template = {};
@@ -73,20 +66,16 @@ module.exports = function(formio, items, done) {
       }
       catch (err) {
         debug(err);
-        return done(err);
+        throw err;
       }
 
       // Get the form.io service.
       util.log('Importing template...'.green);
       const importer = require('./src/templates/import')({formio: formio});
-      importer.template(template, function(err, template) {
-        if (err) {
-          return done(err);
-        }
+      const importedTemplate = await importer.template(template);
 
-        project = template;
-        done(null, template);
-      });
+      project = importedTemplate;
+      return importedTemplate;
     },
 
     /**
@@ -94,7 +83,7 @@ module.exports = function(formio, items, done) {
      *
      * @param done
      */
-    createRootUser: function(done) {
+    createRootUser: async function(done) {
       if (process.env.ROOT_EMAIL) {
         prompt.override = {
           email: process.env.ROOT_EMAIL,
@@ -102,10 +91,10 @@ module.exports = function(formio, items, done) {
         };
       }
       if (!items.user) {
-        return done();
+        return;
       }
       util.log('Creating root user account...'.green);
-      prompt.get([
+      const result = await prompt.get([
         {
           name: 'email',
           description: 'Enter your email address for the root account.',
@@ -119,53 +108,38 @@ module.exports = function(formio, items, done) {
           require: true,
           hidden: true
         }
-      ], function(err, result) {
-        if (err) {
-          return done(err);
-        }
+      ]);
 
-        util.log('Encrypting password');
-        formio.encrypt(result.password, async function(err, hash) {
-          if (err) {
-            return done(err);
-          }
-
-          // Create the root user submission.
-          util.log('Creating root user account');
-          try {
-          await formio.resources.submission.model.create({
-            form: project.resources.admin._id,
-            data: {
-              email: result.email,
-              password: hash
-            },
-            roles: [
-              project.roles.administrator._id
-            ]
-          });
-          return done();
-          }
-          catch (err) {
-            return done(err);
-          }
+      util.log('Encrypting password');
+      formio.encrypt(result.password, async function(err, hash) {
+        // Create the root user submission.
+        util.log('Creating root user account');
+        await formio.resources.submission.model.create({
+          form: project.resources.admin._id,
+          data: {
+            email: result.email,
+            password: hash
+          },
+          roles: [
+            project.roles.administrator._id
+          ]
         });
+        return;
       });
     }
   };
 
   util.log('Installing...');
   prompt.start();
-  async.series([
-    steps.whatTemplate,
-    steps.importTemplate,
-    steps.createRootUser
-  ], function(err, result) {
-    if (err) {
-      util.log(err);
-      return done(err);
-    }
 
+  try {
+    await steps.whatTemplate(),
+    await steps.importTemplate(),
+    await steps.createRootUser();
     util.log('Install successful!'.green);
-    done();
-  });
+  }
+  catch (err) {
+    util.log(err);
+    throw err;
+  }
 };
