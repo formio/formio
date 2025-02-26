@@ -89,7 +89,7 @@ module.exports = function(options) {
       util.log(err.message);
     });
   };
-  
+
   const handleInstallation = (formio, install) => {
     return new Promise((resolve, reject) => {
       require('./install')(formio, install, (err) => {
@@ -104,7 +104,7 @@ module.exports = function(options) {
       });
     });
   };
-  
+
   // Called when we are ready to start the server.
   const startServer = (formio) => {
     /// Mount the Form.io API platform.
@@ -113,7 +113,7 @@ module.exports = function(options) {
     // Allow tests access server internals.
     app.formio = formio;
 
-    return { server: app, config: config };
+    return {server: app, config: config};
   };
 
   const initializeServer = () => {
@@ -140,5 +140,5 @@ module.exports = function(options) {
   };
 
   const initializePromise = initializeServer();
-  return initializePromise;    
+  return initializePromise;
 };
