@@ -2571,15 +2571,6 @@ mongodb-connection-string-url@^3.0.0:
     "@types/whatwg-url" "^11.0.2"
     whatwg-url "^13.0.0"
 
-mongodb@^6.12.0, mongodb@~6.12.0:
-  version "6.12.0"
-  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-6.12.0.tgz#8b0bda1b18cbb3f0aec8ab4119c5dc535a43c444"
-  integrity sha512-RM7AHlvYfS7jv7+BXund/kR64DryVI+cHbVAy9P61fnb1RcWZqOW1/Wj2YhqMCx+MuYhqTRGv7AwHBzmsCKBfA==
-  dependencies:
-    "@mongodb-js/saslprep" "^1.1.9"
-    bson "^6.10.1"
-    mongodb-connection-string-url "^3.0.0"
-
 mongodb@^6.13.1, mongodb@~6.13.0:
   version "6.13.1"
   resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-6.13.1.tgz#924319f957a22efda45a96d38c08a594fd7929fa"
@@ -2597,19 +2588,6 @@ mongoose@^8.11.0:
     bson "^6.10.1"
     kareem "2.6.3"
     mongodb "~6.13.0"
-    mpath "0.9.0"
-    mquery "5.0.0"
-    ms "2.1.3"
-    sift "17.1.3"
-
-mongoose@^8.9.5:
-  version "8.9.5"
-  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-8.9.5.tgz#90a2d70b48a66022a61d7a170ab4fad106b83cba"
-  integrity sha512-SPhOrgBm0nKV3b+IIHGqpUTOmgVL5Z3OO9AwkFEmvOZznXTvplbomstCnPOGAyungtRXE5pJTgKpKcZTdjeESg==
-  dependencies:
-    bson "^6.10.1"
-    kareem "2.6.3"
-    mongodb "~6.12.0"
     mpath "0.9.0"
     mquery "5.0.0"
     ms "2.1.3"
@@ -3170,16 +3148,16 @@ resolve@^1.22.8:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-resourcejs@2.6.1:
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.1.tgz#553bde80c974e0eea6c107d214f7ef7825fb713a"
-  integrity sha512-j7z/IGYTFhB+gUBjLlLQJMiCv50s2tKHev4eHkTPQ71rdR2PHcyYyneqQd3Zix6Yiz9ibkwnLYxzCNSaf+uoCg==
+resourcejs@2.6.2-dev.151.789661d:
+  version "2.6.2-dev.151.789661d"
+  resolved "https://registry.yarnpkg.com/resourcejs/-/resourcejs-2.6.2-dev.151.789661d.tgz#cf65ef7d6bb8d9c976eedcd387cf5a336b29b9db"
+  integrity sha512-nMUv4+XqkxuNZU+gSb9ls9Q09V9DnvrNzasi6KK8mnWVUj9Y2zo/LCksAbDbO7svPRcDBGvJITK0daV1qnEkLg==
   dependencies:
     debug "^4.3.2"
     fast-json-patch "^3.1.1"
     moment "^2.29.1"
-    mongodb "^6.12.0"
-    mongoose "^8.9.5"
+    mongodb "^6.13.1"
+    mongoose "^8.11.0"
     node-paginate-anything "^1.0.0"
     range-parser "^1.2.1"
 
