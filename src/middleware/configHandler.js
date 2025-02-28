@@ -1,5 +1,6 @@
 'use strict';
-const debug = require('debug')('formio:config');
+const {createFilteredLogger} = require('@formio/logger');
+const debug = createFilteredLogger('formio:config');
 const _ = require('lodash');
 
 /**
@@ -26,8 +27,7 @@ module.exports = function(router) {
       });
     }
     catch (err) {
-      debug('Failed to parse public configuration.');
-      debug(err);
+      debug.error('Failed to parse public configuration.', err);
     }
   }
 

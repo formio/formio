@@ -1,13 +1,14 @@
 'use strict';
 
 const _ = require('lodash');
+const {createFilteredLogger} = require('@formio/logger');
 const debug = {
-  role: require('debug')('formio:action:role'),
-  loadUser: require('debug')('formio:action:role#loadUser'),
-  addRole: require('debug')('formio:action:role#addRole'),
-  removeRole: require('debug')('formio:action:role#removeRole'),
-  roleManipulation: require('debug')('formio:action:role#roleManipulation'),
-  updateModel: require('debug')('formio:action:role#updateModel')
+  role: createFilteredLogger('formio:action:role'),
+  loadUser: createFilteredLogger('formio:action:role#loadUser'),
+  addRole: createFilteredLogger('formio:action:role#addRole'),
+  removeRole: createFilteredLogger('formio:action:role#removeRole'),
+  roleManipulation: createFilteredLogger('formio:action:role#roleManipulation'),
+  updateModel: createFilteredLogger('formio:action:role#updateModel')
 };
 
 const LOG_EVENT = 'Role Action';
@@ -17,7 +18,7 @@ module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
   const util = router.formio.util;
   const ecode = router.formio.util.errorCodes;
-  const logOutput = router.formio.log || debug.role;
+  const logOutput = router.formio.log || debug.role.error;
   const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**
@@ -223,7 +224,7 @@ module.exports = function(router) {
        */
       const updateModel = async function(submission, association, update) {
         // Try to update the submission directly.
-        debug.updateModel(association);
+        debug.updateModel.info(association);
 
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         try {
@@ -249,7 +250,7 @@ module.exports = function(router) {
        * @returns {*}
        */
       const addRole = async function(role, submission, association) {
-        debug.addRole(`Role: ${role}`);
+        debug.addRole.info(`Role: ${role}`);
 
         // The given role already exists in the resource.
         let compare = [];
@@ -287,7 +288,7 @@ module.exports = function(router) {
        * @returns {*}
        */
       const removeRole = async function(role, submission, association) {
-        debug.removeRole(`Role: ${role}`);
+        debug.removeRole.info(`Role: ${role}`);
 
         // The given role does not exist in the resource.
         let compare = [];
@@ -323,7 +324,7 @@ module.exports = function(router) {
        *   The type of role manipulation.
        */
       const roleManipulation = async function(type, association) {
-        debug.roleManipulation(`Type: ${type}`);
+        debug.roleManipulation.info(`Type: ${type}`);
 
         // Confirm that the given/configured role is actually accessible.
         const query = hook.alter('roleQuery', {_id: role, deleted: {$eq: null}}, req);
@@ -335,7 +336,7 @@ module.exports = function(router) {
           }
 
           role = role._id.toString();
-          debug.roleManipulation(role);
+          debug.roleManipulation.info(role);
           if (type === 'add') {
             await addRole(role, resource, association);
           }
