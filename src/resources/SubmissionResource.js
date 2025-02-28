@@ -185,7 +185,7 @@ module.exports = (router) => {
         }
 
         const update = _.omit(req.body, ['_id', '__v']);
-
+        update.modified = new Date();
         router.formio.resources.submission.model.findOneAndUpdate(
           {_id: req.params[`${this.name}Id`]},
           {$set: update}
