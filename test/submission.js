@@ -50,7 +50,7 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
-
+   
       it('Saves values for each single value component type2', function(done) {
         var test = require('./fixtures/forms/singlecomponents2.js');
         helper
@@ -1803,7 +1803,7 @@ module.exports = function(app, template, hook) {
               "number2": 200
             }
             _.set(updatedSubmission, 'data', updatedData);
-            
+
             helper.updateSubmission(updatedSubmission, (err) => {
               if (err) {
                 return done(err);
@@ -4559,6 +4559,34 @@ module.exports = function(app, template, hook) {
               });
             });
         });
+
+        it('Should change modified date when patch submission', function (done) {
+          const test = require('./fixtures/forms/singlecomponentsSimple.js');
+          helper
+            .form('patchFormMike', test.components)
+            .submission(test.submission)
+            .execute(function (err) {
+              if (err) {
+                return done(err);
+              }
+              const submissionBeforePatch = helper.getLastSubmission();
+              const update = [
+                {
+                  "op": "replace",
+                  "path": "/data/textField",
+                  "value": "PATCH Update"
+                }
+              ]
+              helper.patchSubmission(submissionBeforePatch, update, (err) => {
+                if (err) {
+                  return done(err);
+                }
+                const submissionAfterPatch = helper.getLastSubmission();
+                assert.notEqual(submissionBeforePatch.modified, submissionAfterPatch.modified)
+                done();
+              })
+            })
+        });
       });
 
     });
@@ -5489,13 +5517,13 @@ module.exports = function(app, template, hook) {
         if (err) {
           return done(err);
         }
-  
+
         nestedSubmission = helper.lastSubmission;
         assert.deepEqual(nestedSubmission.data, { radio: 'b', submit: true });
         done();
       });
     });
-    
+
     it('Should allow you to submit data to the nested form.', (done) => {
       helper.submission('parentForm1', {
         radio: 'a',
@@ -5514,7 +5542,7 @@ module.exports = function(app, template, hook) {
         if (err) {
           return done(err);
         }
-  
+
         nestedSubmission = helper.lastSubmission;
         assert.equal(nestedSubmission.data.radio, 'a');
         assert.equal(nestedSubmission.data.form.data.textFieldForm2, 'Foo');
@@ -5530,7 +5558,7 @@ module.exports = function(app, template, hook) {
         if (err) {
           return done(err);
         }
-  
+
         nestedSubmission = helper.lastSubmission;
         done();
       });
