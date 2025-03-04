@@ -35,13 +35,19 @@ module.exports = function(router) {
     static settingsForm(req, res, next) {
       next(null, [
         {
-          type: 'resourcefields',
+          type: 'select',
+          label: 'Save submission to',
+          authenticate: true,
+          valueProperty: '_id',
+          template: '<span>{{ item.title }}</span>',
+          searchField: 'title__regex',
           key: 'resource',
-          title: 'Save submission to',
-          placeholder: 'This form',
-          basePath: hook.alter('path', '/form', req),
-          form: req.params.formId,
-          required: false
+          lazyLoad: false,
+          tooltip: 'Select the Resource to save submissions to.',
+          dataSrc: 'url',
+          data: {
+            url: router.formio.hook.alter('path', `/form?type=resource`, req)
+          }
         }
       ]);
     }
