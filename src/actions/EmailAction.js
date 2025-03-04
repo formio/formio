@@ -8,9 +8,10 @@ module.exports = (router) => {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router.formio);
-  const debug = require('debug')('formio:action:email');
+  const {createFilteredLogger} = require('@formio/logger');
+  const debug = createFilteredLogger('formio:action:email');
   const ecode = router.formio.util.errorCodes;
-  const logOutput = router.formio.log || debug;
+  const logOutput = router.formio.log || debug.error;
   const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**
