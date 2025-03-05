@@ -2836,7 +2836,7 @@ module.exports = function(app, template, hook) {
           ];
         const values = {
           email: 'brendan@form.io',
-          textField: 'I am a unique snowflake'
+          textField: 'IAmAUniqueSnowflake'
         }
         helper
           .form('uniqueTest', components)
@@ -2844,9 +2844,9 @@ module.exports = function(app, template, hook) {
           .expect(201)
           .execute(function(err) {
             if (err) {
-              done(err);
+              return done(err);
             }
-            done();
+            return done();
           });
       });
 
@@ -2928,7 +2928,7 @@ module.exports = function(app, template, hook) {
         ];
         const values = {
           email: 'brendan@form.io',
-          textField: 'I am a unique snowflake'
+          textField: 'IAmAUniqueSnowflake'
         };
 
         helper
