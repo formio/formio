@@ -9,6 +9,7 @@ module.exports = (router, resourceName, resourceId) => {
   const hook = require('../util/hook')(router.formio);
   const fActions = require('../actions/fields')(router);
   const pActions = require('../actions/properties')(router);
+  const config = router.formio.config;
   const handlers = {};
 
   // Iterate through the possible handlers.
@@ -220,6 +221,7 @@ module.exports = (router, resourceName, resourceId) => {
           formModel,
           tokenModel,
           hook,
+          config
         );
         await validator.validate(req.body, (err, data, visibleComponents) => {
           if (req.noValidate) {
