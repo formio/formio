@@ -231,6 +231,54 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('Should validate input mask', function(done) {
+        var components = [
+          {
+            "label": "Text Field",
+            "inputMask": "aaa",
+            "applyMaskOn": "change",
+            "tableView": true,
+            "validateWhenHidden": false,
+            "key": "textField",
+            "type": "textfield",
+            "input": true
+          }
+        ];
+
+        var values = {
+          textField: '123'
+        };
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .expect(400)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            var submission = helper.getLastSubmission();
+            assert.equal(submission.name, 'ValidationError');
+            assert.deepEqual(submission.details, [
+              {
+                context: {
+                  hasLabel: true,
+                  index: 0,
+                  key: 'textField',
+                  validator: 'mask',
+                  label: 'Text Field',
+                  path: 'textField',
+                  value: '123',
+                },
+                message: 'Text Field does not match the mask.',
+                level: 'error',
+                path: ['textField']
+              }
+            ]);
+            done();
+          });
+      });
+
       it('Saves values for each multiple value component', function(done) {
         var test = require('./fixtures/forms/multicomponents.js');
         helper
