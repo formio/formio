@@ -1884,7 +1884,7 @@ module.exports = (app, template, hook) => {
 
         
 
-        await wait(2000);
+        await wait(1800);
 
         assert(emailSent)
       });
