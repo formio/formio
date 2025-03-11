@@ -50,7 +50,7 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
-   
+
       it('Saves values for each single value component type2', function(done) {
         var test = require('./fixtures/forms/singlecomponents2.js');
         helper
@@ -2862,6 +2862,42 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Unique Fields', function() {
+      before('Sets up the submissions', function(done) {
+        const components = [
+            {
+              input: true,
+              label: 'Email',
+              key: 'email',
+              unique: true,
+              type: 'email'
+            },
+            {
+              input: true,
+              label: 'Text Field',
+              key: 'textField',
+              unique: true,
+              type: 'textfield',
+              validate: {
+                pattern: '[A-Za-z0-9]+'
+              }
+            }
+          ];
+        const values = {
+          email: 'brendan@form.io',
+          textField: 'IAmAUniqueSnowflake'
+        }
+        helper
+          .form('uniqueTest', components)
+          .submission(values)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            return done();
+          });
+      });
+
       it('Returns an error when non-unique', function(done) {
         var components = [
           {
@@ -2914,6 +2950,52 @@ module.exports = function(app, template, hook) {
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be unique');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+            done();
+          });
+      });
+
+      it('Returns an error for non-unique emails and text fields with pattern [A-Za-z0-9]+', function (done) {
+        const components = [
+        {
+          input: true,
+          label: 'Email',
+          key: 'email',
+          unique: true,
+          type: 'email'
+        },
+        {
+          input: true,
+          label: 'Text Field',
+          key: 'textField',
+          unique: true,
+          type: 'textfield',
+          validate: {
+            pattern: '[A-Za-z0-9]+'
+          }
+        }
+        ];
+        const values = {
+          email: 'brendan@form.io',
+          textField: 'IAmAUniqueSnowflake'
+        };
+
+        helper
+          .form('uniqueTest', components)
+          .submission(values)
+          .expect(400)
+          .execute(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            helper.getLastSubmission();
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 2);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Email must be unique');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['email']);
+            assert.equal(helper.lastResponse.body.details[1].message, 'Text Field must be unique');
+            assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
             done();
           });
       });
