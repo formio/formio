@@ -1942,6 +1942,78 @@ module.exports = (app, template, hook) => {
 
         assert(emailSent)
       });
+      
+      describe('Select Component Emails', () => {
+        let helper;
+        let test = require('./fixtures/forms/selectComponent.js');
+
+        before(() => {
+          helper = new Helper(template.users.admin, template);
+        });
+
+        it('Setup the form and the action', (done) => {
+          let testAction = {
+            title: 'Email',
+            name: 'email',
+            handler: ['after'],
+            method: ['create'],
+            priority: 1,
+            settings: {
+              from: 'travis@form.io',
+              replyTo: '',
+              emails: ['test@form.io'],
+              sendEach: false,
+              subject: 'Hello',
+              message: '{{ submission(data, form.components) }}',
+              transport: 'test',
+              template: 'https://pro.formview.io/assets/email.html',
+              renderingMethod: 'dynamic'
+            },
+          }
+
+          helper
+            .form('test', test.components)
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+              testAction.form = helper.template.forms.test._id;
+              helper
+                .action(testAction)
+                .execute((err, result) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  testAction = result.getAction('Email');
+                  done();
+              })
+            });
+        });
+
+        it('Should show select component label in email' , async () => {
+          let emailSent = false;
+  
+          const event = template.hooks.getEmitter();
+          event.once('newMail', (email) => {
+            emailSent = true;
+            assert(email.html.includes('Arkansas'));
+            assert(email.html.includes('label'));
+            assert(email.html.includes('Two'));
+            event.removeAllListeners('newMail');
+          });
+  
+          helper
+            .submission(test.submission)
+            .execute((err, result) => {
+              if (err) {
+                return done(err);
+              };
+            })
+
+            await wait(1500);
+            assert(emailSent);
+        });
+      });
 
       if (template.users.formioAdmin) {
         describe('EmailAction form.io domain permissions', () => {
