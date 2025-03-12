@@ -1947,11 +1947,8 @@ module.exports = (app, template, hook) => {
         let helper;
         let test = require('./fixtures/forms/selectComponent.js');
 
-        before(() => {
+        before((done) => {
           helper = new Helper(template.users.admin, template);
-        });
-
-        it('Setup the form and the action', (done) => {
           let testAction = {
             title: 'Email',
             name: 'email',
@@ -1989,7 +1986,7 @@ module.exports = (app, template, hook) => {
               })
             });
         });
-
+        
         it('Should show select component label in email' , async () => {
           let emailSent = false;
   
@@ -2013,6 +2010,12 @@ module.exports = (app, template, hook) => {
             await wait(1500);
             assert(emailSent);
         });
+
+        after((done) => {
+          delete template.forms.test;
+          delete template.actions.test;
+          done()
+        })
       });
 
       if (template.users.formioAdmin) {
