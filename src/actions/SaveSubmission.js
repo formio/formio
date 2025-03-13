@@ -8,11 +8,9 @@ const LOG_EVENT = 'Save Submission Action';
 
 module.exports = function(router) {
   const Action = router.formio.Action;
-  const debug = require('debug')('formio:action:saveSubmission');
   const hook = require('../util/hook')(router.formio);
   const ecode = router.formio.util.errorCodes;
-  const logOutput = router.formio.log || debug;
-  const log = (...args) => logOutput(LOG_EVENT, ...args);
+  const log = (...args) => router.formio.log?.(LOG_EVENT, ...args);
 
   class SaveSubmission extends Action {
     static info(req, res, next) {
@@ -57,6 +55,7 @@ module.exports = function(router) {
      * @returns {*}
      */
     resolve(handler, method, req, res, next) {
+      const httpLogger = req.log.child({module: 'formio:action:saveSubmission'});
       // Return if this is not a PUT or POST.
       if (req.skipSave || !req.body || (req.method !== 'POST' && req.method !== 'PUT' && req.method !== 'PATCH')) {
         return next();
@@ -90,6 +89,7 @@ module.exports = function(router) {
             new Error(ecode.request.EREQRECUR),
             '#resolve'
           );
+          httpLogger.error(ecode.request.EREQRECUR, {err: new Error(ecode.request.EREQRECUR), location: '#resolve'});
           return done(ecode.request.EREQRECUR);
         }
 
@@ -113,6 +113,7 @@ module.exports = function(router) {
               new Error(ecode.resource.ENOIDP),
               '#resolve'
             );
+            httpLogger.error(ecode.resource.ENOIDP, {err: new Error(ecode.resource.ENOIDP), location: '#resolve'});
             return done(ecode.resource.ENOIDP); // Return an error.
           }
         }
@@ -131,7 +132,10 @@ module.exports = function(router) {
             url,
             method
           );
-
+          httpLogger.error(
+            ecode.resource.ENOHANDLER,
+            {err: new Error(ecode.resource.ENOHANDLER), location: '#resolve'}
+          );
           done(ecode.resource.ENOHANDLER);
         }
       }.bind(this);
@@ -148,6 +152,7 @@ module.exports = function(router) {
         }
         catch (err) {
           log(req, ecode.cache.EFORMLOAD, err, '#resolve');
+          httpLogger.error(ecode.cache.EFORMLOAD, {err, location: '#resolve'});
           return then(err);
         }
       }.bind(this);
@@ -215,7 +220,7 @@ module.exports = function(router) {
             req.isTransformedData = true;
           }
           catch (err) {
-            debug(`Error in submission transform: ${err.message || err}`);
+            httpLogger.error(`Error in submission transform: ${err.message || err}`);
           }
         }
 
@@ -250,6 +255,7 @@ module.exports = function(router) {
           function(err, currentSubmission) {
             if (err) {
               log(req, ecode.submission.ESUBLOAD, err, '#resolve');
+              httpLogger.error(ecode.submission.ESUBLOAD, {err, location: '#resolve'});
               return then(err);
             }
 
@@ -270,6 +276,7 @@ module.exports = function(router) {
               async function(err, submission) {
                 if (err) {
                   log(req, ecode.submission.ESUBLOAD, err, '#resolve');
+                  httpLogger.error(ecode.submission.ESUBLOAD, {err, location: '#resolve'});
                   return then();
                 }
 
@@ -288,6 +295,7 @@ module.exports = function(router) {
       ], function(err) {
         if (err) {
           log(req, err);
+          httpLogger.error(err);
           return next(err);
         }
 

@@ -2,9 +2,6 @@
 
 const _ = require('lodash');
 const util = require('../util/util');
-const debug = {
-  error: require('debug')('formio:error')
-};
 
 module.exports = async function(req, router, cb) {
   const hook = require('./hook')(router.formio);
@@ -220,7 +217,7 @@ module.exports = async function(req, router, cb) {
       swagger = router.formio.resources.submission.swagger.call(resource, true);
     }
     catch (err) {
-      debug.error(err);
+      req.log.child({module: 'formio:error'}).error(err);
     }
 
     // Override the body definition.

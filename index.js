@@ -11,9 +11,10 @@ const _ = require('lodash');
 const events = require('events');
 const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
-const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
 const {configureVm} = require('@formio/vm');
+const {logger} = require('@formio/logger');
+const log = logger.child({module: 'formio:log'});
 
 // Keep track of the formio interface.
 router.formio = {};
@@ -45,7 +46,7 @@ module.exports = function(config) {
     const result = router.formio.hook.alter('log', event, req, ...info);
 
     if (result) {
-      log(event, ...info);
+      log.info({event, info});
     }
   };
 

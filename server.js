@@ -12,6 +12,7 @@ require('colors');
 const cors = require('cors');
 const test = process.env.TEST_SUITE;
 const noInstall = process.env.NO_INSTALL;
+const {httpLogger} = require('@formio/logger');
 
 module.exports = function(options) {
   options = options || {};
@@ -39,6 +40,7 @@ module.exports = function(options) {
 
   // Use the express application.
   const app = options.app || express();
+  app.use(httpLogger);
 
   // Use the given config.
   const config = options.config || require('config');

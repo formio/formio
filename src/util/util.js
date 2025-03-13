@@ -9,11 +9,10 @@ const deleteProp = require('delete-property').default;
 const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
 const mockBrowserContext = require('@formio/vm/build/mockBrowserContext');
-const debug = {
-  idToBson: require('debug')('formio:util:idToBson'),
-  getUrlParams: require('debug')('formio:util:getUrlParams'),
-  removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
-};
+const {logger} = require('@formio/logger');
+const idToBsonLogger = logger.child({module: 'formio:util:idToBson'});
+const getUrlParamsLogger = logger.child({module: 'formio:util:getUrlParams'});
+const removeProtectedFieldsLogger = logger.child({module: 'formio:util:removeProtectedFields'});
 
 mockBrowserContext.default();
 const Formio = require('@formio/js');
@@ -402,7 +401,7 @@ const Utils = {
     }
     const parsed = nodeUrl.parse(url);
     let parts = parsed.pathname.split('/');
-    debug.getUrlParams(parsed);
+    getUrlParamsLogger.info(parsed);
 
     // Remove element originating from first slash.
     parts = _.tail(parts);
@@ -417,7 +416,7 @@ const Utils = {
       urlParams[parts[a]] = parts[a + 1];
     }
 
-    debug.getUrlParams(urlParams);
+    getUrlParamsLogger.info(urlParams);
     return urlParams;
   },
 
@@ -473,7 +472,7 @@ const Utils = {
         : new mongoose.Types.ObjectId(_id);
     }
     catch (e) {
-      debug.idToBson(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
+      idToBsonLogger.error(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
     }
 
     return _id;
@@ -562,7 +561,7 @@ const Utils = {
         tagpadComponentsKeys.push(component.key);
       }
       if (component.protected) {
-        debug.removeProtectedFields('Removing protected field:', component.key);
+        removeProtectedFieldsLogger.info('Removing protected field:', component.key);
 
         modifyFields.push((submission) => {
           function removeFieldByPath(obj, path) {
