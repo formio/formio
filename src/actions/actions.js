@@ -3,10 +3,6 @@
 const Resource = require('resourcejs');
 const async = require('async');
 const _ = require('lodash');
-const debug = {
-  error: require('debug')('formio:error'),
-  action: require('debug')('formio:action')
-};
 const util = require('../util/util');
 const moment = require('moment');
 const {
@@ -278,7 +274,7 @@ module.exports = (router) => {
             req,
             err.message || err
           );
-          debug.error(err.message || err);
+          req.log.child({module: 'formio:error'}).error(err.message || err);
           return false;
         }
       }
@@ -290,12 +286,12 @@ module.exports = (router) => {
         const eq = condition.eq || '';
         const value = String(await getComponentValueFromRequest(req, res, field));
         const compare = String(condition.value || '');
-        debug.action(
-          '\nfield', field,
-          '\neq', eq,
-          '\nvalue', value,
-          '\ncompare', compare
-        );
+        req.log.child({module: 'formio:info'}).info({
+          field,
+          eq,
+          value,
+          compare
+        });
 
         // Cancel the action if the field and eq aren't set, in addition to the value not being the same as compare.
         return (eq === 'equals') ===
@@ -712,7 +708,7 @@ module.exports = (router) => {
         req,
         err
       );
-      debug.error(err);
+      req.log.child({module: 'formio:error'}).error(err);
       return false;
     }
   }
@@ -821,7 +817,7 @@ module.exports = (router) => {
         });
       }
       catch (e) {
-        debug.error(e);
+        req.log.child({module: 'formio:error'}).error(e);
         return res.sendStatus(400);
       }
     });

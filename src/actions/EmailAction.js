@@ -8,10 +8,8 @@ module.exports = (router) => {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router.formio);
-  const debug = require('debug')('formio:action:email');
   const ecode = router.formio.util.errorCodes;
-  const logOutput = router.formio.log || debug;
-  const log = (...args) => logOutput(LOG_EVENT, ...args);
+  const log = (...args) => router.formio.log?.(LOG_EVENT, ...args);
 
   /**
    * EmailAction class.
@@ -178,6 +176,7 @@ module.exports = (router) => {
       }
       catch (err) {
         log(req, ecode.emailer.ENOTRANSP, err);
+        req.log.child({module: 'formio:action:email'}).error(ecode.emailer.ENOTRANSP, err);
         return next(err);
       }
     }
@@ -200,6 +199,7 @@ module.exports = (router) => {
             const err = new Error(ecode.form.ENOFORM);
             setActionItemMessage('Error no form', err, 'error');
             log(req, ecode.cache.EFORMLOAD, err);
+            req.log.child({module: 'formio:action:email'}).error(ecode.cache.EFORMLOAD, err);
             next(err);
             return null;
           }
@@ -208,6 +208,7 @@ module.exports = (router) => {
  catch (err) {
           setActionItemMessage('Error loading form', err, 'error');
           log(req, ecode.cache.EFORMLOAD, err);
+          req.log.child({module: 'formio:action:email'}).error(ecode.cache.EFORMLOAD, err);
           next(err);
           return null;
         }
@@ -237,6 +238,7 @@ module.exports = (router) => {
             message: err.message || err
           }, 'error');
           log(req, ecode.emailer.ESENDMAIL, JSON.stringify(err));
+          req.log.child({module: 'formio:action:email'}).error(ecode.emailer.ESENDMAIL, err);
         }
       };
 
@@ -293,6 +295,7 @@ module.exports = (router) => {
  catch (err) {
         setActionItemMessage('Emailer error', err, 'error');
         log(req, ecode.emailer.ESUBPARAMS, err);
+        req.log.child({module: 'formio:action:email'}).error(ecode.emailer.ESUBPARAMS, err);
       }
     }
   }

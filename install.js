@@ -6,7 +6,8 @@ const fs = require('fs-extra');
 const nunjucks = require('nunjucks');
 nunjucks.configure([], {watch: false});
 const util = require('./src/util/util');
-const debug = require('debug')('formio:error');
+const {logger} = require('@formio/logger');
+const log = logger.child({module: 'formio:log'});
 
 module.exports = function(formio, items, done) {
   // The project that was created.
@@ -72,7 +73,7 @@ module.exports = function(formio, items, done) {
         template = JSON.parse(fs.readFileSync(templateFile));
       }
       catch (err) {
-        debug(err);
+        log.error(err);
         return done(err);
       }
 

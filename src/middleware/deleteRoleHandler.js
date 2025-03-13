@@ -1,7 +1,6 @@
 'use strict';
 
 const util = require('../util/util');
-const debug = require('debug')('formio:middleware:deleteRoleHandler');
 
 /**
  * The Delete Role Handler middleware.
@@ -54,7 +53,7 @@ module.exports = (router) => {
         res.sendStatus(200);
       }
       catch (err) {
-        debug(err);
+        req.log.child({module: 'formio:middleware:deleteRoleHandler'}).error(err);
         return next(err);
       }
     }

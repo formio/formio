@@ -14,10 +14,8 @@ module.exports = (router) => {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const emailer = require('../util/email')(router.formio);
-  const debug = require('debug')('formio:action:passrest');
   const ecode = router.formio.util.errorCodes;
-  const logOutput = router.formio.log || debug;
-  const log = (...args) => logOutput(LOG_EVENT, ...args);
+  const log = (...args) => router.formio.log?.(LOG_EVENT, ...args);
 
   /**
    * ResetPasswordAction class.
@@ -174,6 +172,7 @@ module.exports = (router) => {
       }
       catch (err) {
         log(req, ecode.emailer.ENOTRANSP, err);
+        req.log.child({module: 'formio:action:passrest'}).error(ecode.emailer.ENOTRANSP, err);
         return next(err);
       }
     }
@@ -186,6 +185,7 @@ module.exports = (router) => {
      * @param next
      */
     async getSubmission(req, token, next) {
+      const httpLogger = req.log.child({module: 'formio:action:passrest'});
       // Only continue if the resources are provided.
       if (!token.resources || !token.resources.length) {
         return;
@@ -208,6 +208,7 @@ module.exports = (router) => {
         const submission = await submissionModel.findOne(hook.alter('submissionQuery', query, req));
         if (!submission) {
           log(req, ecode.submission.ENOSUB);
+          httpLogger.error(ecode.submission.ENOSUB);
           return next(ecode.submission.ENOSUB);
         }
 
@@ -216,6 +217,7 @@ module.exports = (router) => {
       }
       catch (err) {
         log(req, ecode.submission.ENOSUB, err);
+        httpLogger.error(ecode.submission.ENOSUB);
         return next(ecode.submission.ENOSUB);
       }
     }
@@ -229,6 +231,7 @@ module.exports = (router) => {
      * @param next
      */
     updatePassword(req, token, password, next) {
+      const httpLogger = req.log.child({module: 'formio:action:passrest'});
       // Validate password matches length restrictions
       // FIO-4741
       if ( (password || '').length > MAX_PASSWORD_LENGTH) {
@@ -240,12 +243,14 @@ module.exports = (router) => {
         // Make sure we found the user.
         if (err || !submission) {
           log(req, ecode.user.ENOUSER, err);
+          httpLogger.error(ecode.user.ENOUSER, err);
           return next(ecode.user.ENOUSER);
         }
 
         // Get the name of the password field.
         if (!this.settings.password) {
           log(req, ecode.auth.EPASSFIELD, new Error(ecode.auth.EPASSFIELD));
+          httpLogger.error(ecode.user.ENOUSER, new Error(ecode.auth.EPASSFIELD));
           return next(ecode.auth.EPASSFIELD);
         }
 
@@ -282,6 +287,7 @@ module.exports = (router) => {
      * Initialize the action.
      */
     async initialize(method, req, res, next) {
+      const httpLogger = req.log.child({module: 'formio:action:passrest'});
       // See if we have a reset password token.
       const hasResetToken = Boolean(req.tempToken && (req.tempToken.type === 'resetpass'));
       if (!hasResetToken && (method === 'create')) {
@@ -291,6 +297,7 @@ module.exports = (router) => {
         // Make sure they have a username.
         if (!username) {
           log(req, ecode.user.ENONAMEP, new Error(ecode.user.ENONAMEP));
+          httpLogger.error(ecode.user.ENONAMEP, new Error(ecode.user.ENONAMEP));
           return res.status(400).send('You must provide a username to reset your password.');
         }
 
@@ -310,6 +317,7 @@ module.exports = (router) => {
           this.getSubmission(req, token, async (err, submission) => {
             if (err || !submission) {
               log(req, ecode.user.ENOUSER, err);
+              httpLogger.error(ecode.user.ENOUSER, err);
               return next(ecode.user.ENOUSER);
             }
 
@@ -346,11 +354,13 @@ module.exports = (router) => {
             }
  catch (err) {
               log(req, ecode.emailer.ESENDMAIL, err);
+              httpLogger.error(ecode.emailer.ESENDMAIL, err);
             }
           });
       }
       catch (err) {
         log(req, ecode.cache.EFORMLOAD, err);
+        httpLogger.error(ecode.cache.EFORMLOAD, err);
         return next(err);
         }
       }
@@ -379,6 +389,7 @@ module.exports = (router) => {
      * @returns {*}
      */
     resolve(handler, method, req, res, next) {
+      const logger = req.log.child({module: 'formio:action:passrest'});
       // See if we have a reset password token.
       const hasResetToken = Boolean(req.tempToken && (req.tempToken.type === 'resetpass'));
 
@@ -424,14 +435,14 @@ module.exports = (router) => {
           !req.tempToken.username ||
           !req.tempToken.form
         ) {
-          debug(ecode.auth.ERESETTOKEN, req);
+          logger.error(ecode.auth.ERESETTOKEN);
           return res.status(400).send(ecode.auth.ERESETTOKEN);
         }
 
         // Get the password
         const password = _.get(req.submission.data, this.settings.password);
         if (!password) {
-          debug(ecode.auth.ENOPASSP);
+          logger.error(ecode.auth.ENOPASSP);
           return next(ecode.auth.ENOPASSP);
         }
 
@@ -439,6 +450,7 @@ module.exports = (router) => {
         this.updatePassword(req, req.tempToken, password, function(err) {
           if (err) {
             log(req, ecode.auth.EPASSRESET, new Error(ecode.auth.EPASSRESET));
+            req.log.child({module: 'formio:action:passrest'}).error(ecode.auth.EPASSRESET, new Error(ecode.auth.EPASSRESET));
             return res.status(400).send('Unable to update the password. Please try again.');
           }
           res.status(200).send({
