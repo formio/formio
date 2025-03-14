@@ -77,10 +77,10 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/js@5.1.0-rc.24":
-  version "5.1.0-rc.24"
-  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-rc.24.tgz#076a57b06f30311dd833323a940567528361379f"
-  integrity sha512-yrEf+R+QtpiGHyUDlAOvFHJ4JyTumbdX8BMUTFyCi9rmfu51o3sF+4XC1wS07teCYlnFZOcgmcshrXGsUz7rIA==
+"@formio/js@5.1.0-rc.25":
+  version "5.1.0-rc.25"
+  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-rc.25.tgz#d96d979c3d9398c95b935924b415087718f6a055"
+  integrity sha512-mWtJIaEpBWR7vHNb8UwCs+27KK7NnM54X1lMh8fbiE5Mq7UC3qbZ6XoB5ziMeapAJOrYPg60+qpwD7F1Oc4kpw==
   dependencies:
     "@formio/bootstrap" "3.1.0-rc.4"
     "@formio/choices.js" "^10.2.1"
@@ -96,7 +96,7 @@
     core-js "^3.37.1"
     dialog-polyfill "^0.5.6"
     dom-autoscroller "^2.3.4"
-    dompurify "^3.1.3"
+    dompurify "^3.2.4"
     downloadjs "^1.4.7"
     dragula "^3.7.3"
     eventemitter3 "^5.0.1"
@@ -138,13 +138,13 @@
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@1.0.0-rc.24":
-  version "1.0.0-rc.24"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.0-rc.24.tgz#cf9364a165f29429c980bfa53b0a05c54f80c181"
-  integrity sha512-l2bJlO708682rRPs75awQPQYJNp/m5VpxpJ7sOM5XjcOb/UmRYJh5i5DPhzHq3D/EOES2eehDmVij1es0yF7IA==
+"@formio/vm@1.0.0-rc.25":
+  version "1.0.0-rc.25"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.0-rc.25.tgz#cdb452b960ca74cd6dc3397075b5c9df055a5c4a"
+  integrity sha512-t2x3dNgM5J+egYmwQfurAUl0Y7nUY+bS7N5TTTShI3yWWJgdNJspOAY7+kgRROEtMP2uxQuO1hKfpi6Ev2+GgA==
   dependencies:
     "@formio/core" "2.4.0-rc.12"
-    "@formio/js" "5.1.0-rc.24"
+    "@formio/js" "5.1.0-rc.25"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
@@ -898,7 +898,7 @@ dom-set@^1.0.1:
     is-array "^1.0.1"
     iselement "^1.1.4"
 
-dompurify@^3.1.3, dompurify@^3.2.4:
+dompurify@^3.2.4:
   version "3.2.4"
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.2.4.tgz#af5a5a11407524431456cf18836c55d13441cd8e"
   integrity sha512-ysFSFEDVduQpyhzAob/kkuJjf5zWkZD8/A9ywSp1byueyuCfHamrCBa14/Oc2iiB0e51B+NpxSl5gmzn+Ms/mg==
