@@ -116,6 +116,7 @@ module.exports = (router) => {
    * Set parent submission id in externalIds of child form component's submission
    */
   const setChildFormParenthood = async function(component, data, validation, req, res, path, next) {
+    const childLogger = req.log.child({module: 'formio:form'});
     if (
       res.resource &&
       res.resource.item &&
@@ -133,7 +134,8 @@ module.exports = (router) => {
             {_id: compValue._id, deleted: {$eq: null}}
           ).exec();
           if (!submission) {
-            return router.formio.util.log('No subform found to update external ids.');
+            childLogger.info('No subform found to update external ids.');
+            return;
           }
 
           // Update the submission's externalIds.
@@ -156,7 +158,8 @@ module.exports = (router) => {
           }
         }
         catch (err) {
-          return router.formio.util.log(err);
+          childLogger.error(err);
+          return;
         }
       }
     }

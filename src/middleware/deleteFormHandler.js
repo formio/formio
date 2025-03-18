@@ -1,7 +1,5 @@
 'use strict';
 
-const debug = require('debug')('formio:middleware:deleteFormHandler');
-
 /**
  * The deleteFormHandler middleware.
  *
@@ -21,7 +19,7 @@ module.exports = (router) => {
     prune.form(req.formId, req)
       .then(() => res.sendStatus(200))
       .catch((err) => {
-        debug(err);
+        req.log.error({module: 'formio:middleware:deleteFormHandler', err});
         return next(err);
       });
   };
