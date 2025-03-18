@@ -19,7 +19,7 @@ module.exports = (router) => {
     prune.form(req.formId, req)
       .then(() => res.sendStatus(200))
       .catch((err) => {
-        req.log.child({module: 'formio:middleware:deleteFormHandler'}).error(err);
+        req.log.error({module: 'formio:middleware:deleteFormHandler', err});
         return next(err);
       });
   };

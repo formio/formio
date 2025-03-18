@@ -27,7 +27,7 @@ module.exports = function(router) {
       });
     }
     catch (err) {
-      childLogger.error('Failed to parse public configuration.', err);
+      childLogger.error(err, 'Failed to parse public configuration.');
     }
   }
 

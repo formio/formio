@@ -89,7 +89,7 @@ module.exports = (router) => {
         }
       }
       catch (err) {
-        req.log.child({module: 'formio:authentication:authenticate'}).error('Bad token allow string.');
+        req.log.error({module: 'formio:authentication:authenticate'}, 'Bad token allow string.');
       }
 
       return false;

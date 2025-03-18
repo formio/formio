@@ -14,7 +14,6 @@ const Utils = require('../util/util');
 const fetch = require('@formio/node-fetch-http-proxy');
 const {logger} = require('@formio/logger');
 const validatorLogger = logger.child({module: 'formio:validator'});
-const errorLogger = logger.child({module: 'formio:error'});
 
 async function loadFormById(cache, req, formId) {
   const resource = await cache.loadForm(req, null, formId);
@@ -344,7 +343,7 @@ class Validator {
       }
     }
     catch (err) {
-      errorLogger.error(err.message || err);
+      validatorLogger.error(err.message || err);
       return next(err.message || err);
     }
 

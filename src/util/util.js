@@ -561,7 +561,7 @@ const Utils = {
         tagpadComponentsKeys.push(component.key);
       }
       if (component.protected) {
-        removeProtectedFieldsLogger.info('Removing protected field:', component.key);
+        removeProtectedFieldsLogger.info(`Removing protected field: ${component.key}`);
 
         modifyFields.push((submission) => {
           function removeFieldByPath(obj, path) {

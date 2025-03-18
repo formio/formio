@@ -55,6 +55,7 @@ module.exports = (router) => {
    * @param next
    */
   const userHandler = (req, res, decoded, token, user, next) => {
+    const httpLogger = req.log.child({module: 'formio:middleware:tokenHandler'});
     hook.alter('user', user, (err, user) => {
       if (err) {
         return next();
@@ -77,9 +78,9 @@ module.exports = (router) => {
       // Refresh the token that is sent back to the user when appropriate.
       req.tokenIssued = Math.trunc(Date.now() / 1000);
       generateToken(token, decoded, res, req);
-      router.formio.log('Token', req, 'Using normal token');
+      httpLogger.info('Using normal token');
       if (req.user) {
-        router.formio.log('User', req, req.user._id);
+        httpLogger.info(`User: ${req.user._id}`);
       }
       next();
     });
@@ -95,7 +96,7 @@ module.exports = (router) => {
 
     const token = util.getRequestValue(req, 'x-jwt-token');
     const noToken = () => {
-      router.formio.log('Token', req, 'No token found');
+      httpLogger.info('No token found');
       // Try the request with no tokens.
       delete req.headers['x-jwt-token'];
       req.user = null;
@@ -131,16 +132,15 @@ module.exports = (router) => {
       if (err || !decoded) {
         httpLogger.error(err || `Token could not decoded: ${token}`);
         router.formio.audit('EAUTH_TOKENBAD', req, err);
-        router.formio.log('Token', req, 'Token could not be decoded');
-
+        httpLogger.error('Token could not be decoded');
         // If the token has expired, send a 440 error (Login Timeout)
         if (err && (err.name === 'JsonWebTokenError')) {
-          router.formio.log('Token', req, 'Bad Token');
+          httpLogger.error('Bad Token');
           return res.status(400).send('Bad Token');
         }
         else if (err && (err.name === 'TokenExpiredError')) {
           router.formio.audit('EAUTH_TOKENEXPIRED', req, err);
-          router.formio.log('Token', req, 'Token Expired');
+          httpLogger.error('Token Expired');
           return res.status(440).send('Token Expired');
         }
         else {
@@ -156,7 +156,6 @@ module.exports = (router) => {
 
         // If this is a temporary token, then decode it and set it in the request.
         if (decoded.temp) {
-          router.formio.log('Token', req, 'Using temp token');
           httpLogger.info('Temp token');
           req.tempToken = decoded;
           req.user = null;
@@ -179,9 +178,9 @@ module.exports = (router) => {
         }
 
         if (decoded.isAdmin) {
-          router.formio.log('Token', req, 'User is admin');
+          httpLogger.info('User is admin');
           if (req.user) {
-            router.formio.log('User', req, req.user._id);
+            httpLogger.info(`User: ${req.user._id}`);
           }
           req.permissionsChecked = true;
           req.isAdmin = true;
@@ -229,7 +228,7 @@ module.exports = (router) => {
               && user.metadata.jwtIssuedAfter
               && decoded.iat < user.metadata.jwtIssuedAfter
             ) {
-              router.formio.log('Token', req, 'Token No Longer Valid');
+              httpLogger.error('Token No Longer Valid');
               return res.status(440).send('Token No Longer Valid');
             }
 

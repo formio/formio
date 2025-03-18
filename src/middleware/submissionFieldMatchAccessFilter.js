@@ -8,7 +8,7 @@ module.exports = function(router) {
 
     // Skip this filter, if request is from an administrator.
     if (req.isAdmin) {
-      req.log.child({module: 'formio:middleware:submissionResourceAccessFilter'}).info('Skipping, request is from an administrator.');
+      req.log.info({module: 'formio:middleware:submissionResourceAccessFilter'}, 'Skipping, request is from an administrator.');
       return next();
     }
 

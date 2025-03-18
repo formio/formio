@@ -217,7 +217,7 @@ module.exports = async function(req, router, cb) {
       swagger = router.formio.resources.submission.swagger.call(resource, true);
     }
     catch (err) {
-      req.log.child({module: 'formio:error'}).error(err);
+      req.log.error(err);
     }
 
     // Override the body definition.

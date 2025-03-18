@@ -7,14 +7,11 @@ const removeRoleLogger = logger.child({module: 'formio:action:role#removeRole'})
 const roleManipulationLogger = logger.child({module: 'formio:action:role#roleManipulation'});
 const updateModelLogger = logger.child({module: 'formio:action:role#updateModel'});
 
-const LOG_EVENT = 'Role Action';
-
 module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const util = router.formio.util;
   const ecode = router.formio.util.errorCodes;
-  const log = (...args) => router.formio.log?.(LOG_EVENT, ...args);
 
   /**
    * RoleAction class.
@@ -46,7 +43,6 @@ module.exports = function(router) {
           .lean()
           .exec();
           if (!roles) {
-            log(req, ecode.role.EROLESLOAD, 'No roles');
             httpLogger.info({code: ecode.role.EROLESLOAD}, 'No roles');
             return res.status(400).send(ecode.role.EROLESLOAD);
           }
@@ -122,9 +118,7 @@ module.exports = function(router) {
           ]);
       }
       catch (err) {
-        log(req, ecode.role.EROLESLOAD, err);
-        httpLogger.error(ecode.role.EROLESLOAD, err);
-
+        httpLogger.error(err, ecode.role.EROLESLOAD);
         return res.status(400).send(ecode.role.EROLESLOAD);
       }
     }
@@ -191,7 +185,6 @@ module.exports = function(router) {
             deleted: {$eq: null}
           }, req)).exec();
           if (!user) {
-            log(req, ecode.submission.ENOSUB);
             httpLogger.error(ecode.submission.ENOSUB);
             return res.status(400).send('No Submission was found with the given setting `submission`.');
           }
@@ -199,8 +192,7 @@ module.exports = function(router) {
           return callback(user);
         }
         catch (err) {
-          log(req, ecode.submission.ESUBLOAD, err);
-          httpLogger.error(ecode.submission.ESUBLOAD, err);
+          httpLogger.error(err, ecode.submission.ESUBLOAD);
           return res.status(400).send(err.message || err);
         }
       };
@@ -237,8 +229,7 @@ module.exports = function(router) {
         return next();
       }
       catch (err) {
-          log(req, ecode.submission.ESUBSAVE, err);
-          httpLogger.error(ecode.submission.ESUBSAVE, err);
+          httpLogger.error(err, ecode.submission.ESUBSAVE);
           return next(err);
       }
     };
@@ -264,7 +255,6 @@ module.exports = function(router) {
         });
 
         if (compare.indexOf(role) !== -1) {
-          log(req, ecode.role.EROLEEXIST);
           httpLogger.info(ecode.role.EROLEEXIST);
           return next();
         }
@@ -305,8 +295,7 @@ module.exports = function(router) {
         }
 
         if (compare.indexOf(role) === -1) {
-          log(req, ecode.role.ENOROLE, new Error('The given role to remove was not found.'), role);
-          httpLogger.error(ecode.role.ENOROLE, {err: new Error('The given role to remove was not found.'), role});
+          httpLogger.error({err: new Error('The given role to remove was not found.'), role}, ecode.role.ENOROLE);
           return next();
         }
 
@@ -336,8 +325,7 @@ module.exports = function(router) {
         try {
           let role = await router.formio.resources.role.model.findOne(query).lean().exec();
           if (!role) {
-            log(req, ecode.role.ENOROLE, new Error(ecode.role.ENOROLE), '#roleManipulation');
-            httpLogger.error(ecode.role.ENOROLE, {err: new Error(ecode.role.ENOROLE), location: '#roleManipulation'});
+            httpLogger.error({err: new Error(ecode.role.ENOROLE), location: '#roleManipulation'}, ecode.role.ENOROLE);
             return res.status(400).send(ecode.role.ENOROLE);
           }
 
@@ -351,8 +339,7 @@ module.exports = function(router) {
           }
         }
         catch (err) {
-          log(req, ecode.role.EROLELOAD, err, '#roleManipulation');
-          httpLogger.error(ecode.role.EROLELOAD, {err, location: '#roleManipulation'});
+          httpLogger.error({err, location: '#roleManipulation'}, ecode.role.EROLELOAD);
           return res.status(400).send(ecode.role.EROLELOAD);
         }
       };

@@ -2,14 +2,11 @@
 
 const _ = require('lodash');
 
-const LOG_EVENT = 'Login Action';
-
 module.exports = (router) => {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const ecode = router.formio.util.errorCodes;
   const audit = router.formio.audit || (() => {});
-  const log = (...args) => router.formio.log?.(LOG_EVENT, ...args);
 
   /**
    * AuthAction class.
@@ -223,8 +220,7 @@ module.exports = (router) => {
       }
       catch (err) {
         if (err) {
-          log(req, ecode.auth.ELOGINCOUNT, err);
-          req.log.child({module: 'formio:action:login'}).error(ecode.auth.ELOGINCOUNT, err);
+          req.log.error({module: 'formio:action:login', err}, ecode.emailer.ELOGINCOUNT);
           return next(ecode.auth.ELOGINCOUNT);
         }
 
@@ -278,8 +274,7 @@ module.exports = (router) => {
         (err, response) => {
           if (err && !response) {
             audit('EAUTH_NOUSER', req, _.get(req.submission.data, this.settings.username));
-            log(req, ecode.auth.EAUTH, err);
-            httpLogger.error(ecode.auth.EAUTH, err);
+            httpLogger(err, ecode.auth.EAUTH);
             return res.status(401).send(err);
           }
 
@@ -287,8 +282,7 @@ module.exports = (router) => {
           this.checkAttempts(err, req, response.user, async (error) => {
             if (error) {
               audit('EAUTH_LOGINCOUNT', req, _.get(req.submission.data, this.settings.username));
-              log(req, ecode.auth.EAUTH, error);
-              httpLogger.error(ecode.auth.EAUTH, error);
+              httpLogger.error(error, ecode.auth.EAUTH);
               return res.status(401).send(error);
             }
 
@@ -306,8 +300,7 @@ module.exports = (router) => {
               hook.alter('oAuthResponse', req, res, () => {
                 router.formio.auth.currentUser(req, res, (err) => {
                   if (err) {
-                    log(req, ecode.auth.EAUTH, err);
-                    httpLogger.error(ecode.auth.EAUTH, err);
+                    httpLogger.error(err, ecode.auth.EAUTH);
                     return res.status(401).send(err.message);
                   }
                   hook.alter('currentUserLoginAction', req, res);

@@ -73,7 +73,7 @@ module.exports = function(router) {
       return next();
     }
     catch (err) {
-      req.log.child({module: 'formio:alias'}).error(err);
+      req.log.error({module: 'formio:alias', err});
       return res.status(400).send('Invalid alias');
     }
   };

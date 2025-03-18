@@ -33,7 +33,7 @@ module.exports = (router) => {
     prune.action(actionId, null, req)
       .then(() => res.sendStatus(200))
       .catch((err) => {
-        req.log.child({module: 'formio:middleware:deleteActionHandler'}).error(err);
+        req.log.error({module: 'formio:middleware:deleteActionHandler', err});
         return next(err);
       });
   };

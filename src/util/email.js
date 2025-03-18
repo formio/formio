@@ -6,7 +6,6 @@ const {logger} = require('@formio/logger');
 const nunjucksInjectorLogger = logger.child({module: 'formio:email:nunjucksInjector'});
 const emailLogger = logger.child({module: 'formio:settings:email'});
 const sendLogger = logger.child({module: 'formio:settings:send'});
-const errorLogger = logger.child({module: 'formio:error'});
 const fetch = require('@formio/node-fetch-http-proxy');
 const util = require('./util');
 const _ = require('lodash');
@@ -441,7 +440,7 @@ module.exports = (formio) => {
               try {
                 return transporter.sendMail(email, (err, info) => {
                   if (err) {
-                    errorLogger.error(err);
+                    sendLogger.error(err);
                     return reject(err);
                   }
 
@@ -504,7 +503,7 @@ module.exports = (formio) => {
         : 'default';
 
       const _config = (formio && formio.config && formio.config.email && formio.config.email.type);
-      sendLogger.info(message, emailType);
+      sendLogger.info({message, emailType});
       // Get the settings.
       const settings = await hook.settings(req); // eslint-disable-line max-statements
       // Force the email type to custom for EMAIL_OVERRIDE which will allow
@@ -535,7 +534,7 @@ module.exports = (formio) => {
 
       // If we don't have a valid transport, don't waste time with nunjucks.
       if (isTransportValid(transporter)) {
-        errorLogger.error(`Could not determine which email transport to use for ${emailType}`);
+        sendLogger.error(`Could not determine which email transport to use for ${emailType}`);
         return;
       }
 

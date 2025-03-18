@@ -121,7 +121,7 @@ module.exports = function(router) {
         return result;
       }
       catch (err) {
-        req.log.child({module: 'formio:cache:loadForms'}).error(err);
+        req.log.error({module: 'formio:cache:loadForms', err});
         throw err;
       }
     },

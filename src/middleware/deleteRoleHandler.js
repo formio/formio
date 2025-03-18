@@ -53,7 +53,7 @@ module.exports = (router) => {
         res.sendStatus(200);
       }
       catch (err) {
-        req.log.child({module: 'formio:middleware:deleteRoleHandler'}).error(err);
+        req.log.error({module: 'formio:middleware:deleteRoleHandler', err});
         return next(err);
       }
     }

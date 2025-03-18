@@ -58,7 +58,7 @@ module.exports = function(router) {
         return next();
     }
     catch (err) {
-      req.log.child({module: 'formio:middleware:bootstrapFormAccess'}).error(err);
+      req.log.error({module: 'formio:middleware:bootstrapFormAccess', err});
       return next(err);
     }
   };

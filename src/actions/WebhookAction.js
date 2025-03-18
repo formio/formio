@@ -9,7 +9,7 @@ const LOG_EVENT = 'Webhook Action';
 module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = router.formio.hook;
-  const log = (...args) => router.formio.log?.(LOG_EVENT, ...args);
+  const log = (...args) => router.formio?.log?.(LOG_EVENT, ...args);
 
   /**
    * WebhookAction class.
@@ -137,7 +137,7 @@ module.exports = function(router) {
         setActionItemMessage('Webhook failed', response);
         const message = data ? (data.message || data) : response.statusMessage;
         logerr(message);
-        req.log.child({module: 'formio:action:webhook'}).error(message);
+        req.log.error({module: 'formio:action:webhook'}, message);
 
         if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
           return;
