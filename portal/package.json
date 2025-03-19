@@ -40,7 +40,7 @@
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint ./src",
-    "build": "NODE_CONFIG_DIR=../config webpack",
+    "build": "webpack",
     "watch": "webpack --watch",
     "clean": "rm yarn.lock && yarn && yarn watch"
   }
