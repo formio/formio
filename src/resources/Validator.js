@@ -38,7 +38,7 @@ async function submissionQueryExists(submissionModel, query) {
  * @constructor
  */
 class Validator {
-  constructor(req, submissionModel, submissionResource, cache, formModel, tokenModel, hook) {
+  constructor(req, submissionModel, submissionResource, cache, formModel, tokenModel, hook, config = {}) {
     const tokens = {};
     const token = Utils.getRequestValue(req, 'x-jwt-token');
     if (token) {
@@ -65,6 +65,7 @@ class Validator {
     this.decodedToken = req.token;
     this.tokens = tokens;
     this.hook = hook;
+    this.config = config;
   }
 
   addPathQueryParams(pathQueryParams, query, path) {
@@ -103,12 +104,12 @@ class Validator {
       // because we (by and large) only have to worry about ASCII and partial unicode; this way, we can use collation-
       // aware indexes with case insensitive email searches to make things like login and registration a whole lot faster
       else if (
-        component.type === 'email' ||
+        (component.type === 'email' ||
         (
           component.type === 'textfield' &&
           component.validate &&
           component.validate.pattern === '[A-Za-z0-9]+'
-        )
+        )) && this.config.mongoFeatures?.collation
       ) {
         this.addPathQueryParams(value, query, path);
         collationOptions = {collation: {locale: 'en', strength: 2}};
@@ -168,24 +169,7 @@ class Validator {
       return cb(null, result);
     }
     catch (err) {
-      if (err && collationOptions.collation) {
-        // presume this error comes from db compatibility, try again as regex
-        delete query[path];
-        this.addPathQueryParams({
-          $regex: new RegExp(`^${escapeRegExCharacters(value)}$`),
-          $options: 'i'
-        }, query, path);
-        try {
-          await this.submissionModel.findOne(query);
-          return cb();
-        }
-        catch (err) {
-          return cb(err);
-        }
-      }
-      else {
         return cb(err);
-      }
     }
   }
 
