@@ -2,10 +2,9 @@
 
 let async = require('async');
 let chance = new (require('chance'))();
-let debug = {
-  findBrokenForms: require('debug')('formio:update:3.0.6-findBrokenForms'),
-  randomizeBrokenFormPaths: require('debug')('formio:update:3.0.6-randomizeBrokenFormPaths')
-};
+const {logger} = require('@formio/logger');
+const findBrokenFormsLogger = logger.child({module: 'formio:update:3.0.6-findBrokenForms'});
+const randomizeBrokenFormPathsLogger = logger.child({module: 'formio:update:3.0.6-randomizeBrokenFormPaths'});
 
 /**
  * Update 3.0.6
@@ -38,7 +37,7 @@ module.exports = function(db, config, tools, done) {
       })
       .toArray()
       .then(forms => {
-        debug.findBrokenForms(forms.length);
+        findBrokenFormsLogger.info(forms.length);
         return next(null, forms);
       })
       .catch(err => next(err));
@@ -47,7 +46,7 @@ module.exports = function(db, config, tools, done) {
       async.each(forms, function(form, callback) {
         formCollection.updateOne({_id: tools.util.idToBson(form._id)}, {$set: {path: chance.word()}})
         .then(() => {
-          debug.randomizeBrokenFormPaths('Updated: ' + form._id);
+          randomizeBrokenFormPathsLogger.info('Updated: ' + form._id);
           return callback();
         })
         .catch(err => callback(err));
