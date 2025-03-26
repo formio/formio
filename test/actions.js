@@ -12,7 +12,6 @@ const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
 const customSaveSubmissionTransformForm = require('./fixtures/forms/customSaveSubmissionTransformForm');
 const customSaveSubmissionTransformResource = require('./fixtures/forms/customSaveSubmissionTransformResource');
 const { wait } = require('./util');
-const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
 const docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
