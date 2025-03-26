@@ -9,6 +9,8 @@ const http = require('http');
 const url = require('url');
 const { UV_FS_O_FILEMAP } = require('constants');
 const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
+const customSaveSubmissionTransformForm = require('./fixtures/forms/customSaveSubmissionTransformForm');
+const customSaveSubmissionTransformResource = require('./fixtures/forms/customSaveSubmissionTransformResource');
 const { wait } = require('./util');
 const docker = process.env.DOCKER;
 
@@ -375,7 +377,6 @@ module.exports = (app, template, hook) => {
     });
 
     describe('Test action with custom transform mapping data', () => {
-
       const addFormFields = (isForm) => ({
         title: chance.word(),
         name: chance.word(),
@@ -505,6 +506,159 @@ module.exports = (app, template, hook) => {
         delete template.testFormToSave;
         done()
       })
+    });
+
+    describe('Test action with custom transform to another resource with new data', () => {
+      let addFormFields, form, resource;
+
+      before(async function () {
+        addFormFields = (isForm) => ({
+          title: chance.word(),
+          name: chance.word(),
+          path: chance.word(),
+          type: isForm ? 'form' : 'resource',
+          ...(isForm && { noSave: true }),
+        });
+
+        const formDef = { ..._.cloneDeep(customSaveSubmissionTransformForm), ...addFormFields(true) };
+
+        const response = await request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(formDef);
+
+        assert(response.body);
+        assert(response.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(response.body.title, formDef.title);
+        assert.equal(response.body.name, formDef.name);
+        form = response.body;
+
+        const resourceDef = { ..._.cloneDeep(customSaveSubmissionTransformResource), ...addFormFields() };
+        const resourceResponse = await request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(resourceDef);
+
+        assert(resourceResponse.body);
+        assert(resourceResponse.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(resourceResponse.body.title, resourceDef.title);
+        assert.equal(resourceResponse.body.name, resourceDef.name);
+        resource = resourceResponse.body;
+
+        const action = {
+          priority: 10,
+          name: 'save',
+          title: 'Save Submission',
+          settings: {
+            resource: resource._id,
+            property: '',
+            fields: {},
+            transform: `
+            const highEarner = submission.data.salesBySalesperson.reduce((acc, curr) => curr.sales > acc.sales ? curr : acc);
+            data = {
+              month: new Date().toLocaleString('default', { month: 'long' }),
+              name: highEarner.name,
+              sales: highEarner.sales
+            };`,
+          },
+          condition: {
+            conjunction: '',
+            conditions: [],
+            custom: '',
+          },
+          submit: true,
+          handler: ['before'],
+          method: ['create', 'update'],
+        };
+
+        const resultAction = await request(app)
+          .post(hook.alter('url', `/form/${form._id}/action`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(action);
+
+        const responseAction = resultAction.body;
+        assert(responseAction.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(action.title, responseAction.title);
+        assert.equal(action.name, responseAction.name);
+      });
+
+      it('Submit form', (done) => {
+        request(app)
+          .post(hook.alter('url', `/form/${form._id}/submission`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              salesBySalesperson: [
+                {
+                  name: "John Doe",
+                  sales: 10000
+                },
+                {
+                  name: "Jane Smith",
+                  sales: 10000.03
+                },
+                {
+                  name: "Hank Williams",
+                  sales: 10003.5
+                }
+              ],
+              submit: true
+            }
+          })
+          .expect('Content-Type', /json/)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            const result = res.body;
+            assert(result.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert.deepEqual(result.data, {
+              month: new Date().toLocaleString('default', { month: 'long' }),
+              name: "Hank Williams",
+              sales: 10003.5
+            });
+            done()
+          });
+      });
+
+      it('Get submissions from submitted form', (done) => {
+        request(app)
+        .get(hook.alter('url', `/form/${form._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const result = res.body;
+          assert.deepEqual(result, [], "Should be empty as our submission has been moved to resource form");
+          done()
+        });
+      });
+
+      it('Get submissions from connected form', (done) => {
+        request(app)
+        .get(hook.alter('url', `/form/${resource._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          assert(res.body.length, 1);
+
+          const result = res.body[0];
+          assert(result.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.deepEqual(result.data, {
+            month: new Date().toLocaleString('default', { month: 'long' }),
+            name: "Hank Williams",
+            sales: 10003.5
+          });
+          done()
+        });
+      });
     });
 
     describe('Action MachineNames', () => {
@@ -1125,7 +1279,7 @@ module.exports = (app, template, hook) => {
           body = hook.alter('webhookBody', body);
 
           assert.equal(body.params.formId, webhookForm2._id.toString());
-          assert.equal(body.request.owner, template.users.admin._id.toString());          
+          assert.equal(body.request.owner, template.users.admin._id.toString());
 
           done();
         };
@@ -1846,7 +2000,7 @@ module.exports = (app, template, hook) => {
             });
         }, addSettings);
       });
-        
+
       it('Should send email with edit grid value', async () => {
         let testAction = {
           title: 'Email',
@@ -1893,20 +2047,20 @@ module.exports = (app, template, hook) => {
             }
           ]
         }
-  
+
         const editGridForm = (await request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
             .send(form)).body;
-  
+
         testAction.form = editGridForm._id;
         // Add the action to the form.
         const testActionRes = (await request(app)
             .post(hook.alter('url', `/form/${editGridForm._id}/action`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(testAction)).body;
-  
-          
+
+
         testAction = testActionRes;
 
         let emailSent = false;
@@ -1936,13 +2090,13 @@ module.exports = (app, template, hook) => {
           .set('x-jwt-token', template.users.admin.token)
           .send(submission);
 
-        
+
 
         await wait(1800);
 
         assert(emailSent)
       });
-      
+
       describe('Select Component Emails', () => {
         let helper;
         let test = require('./fixtures/forms/selectComponent.js');
@@ -1986,10 +2140,10 @@ module.exports = (app, template, hook) => {
               })
             });
         });
-        
+
         it('Should show select component label in email' , async () => {
           let emailSent = false;
-  
+
           const event = template.hooks.getEmitter();
           event.once('newMail', (email) => {
             emailSent = true;
@@ -1998,7 +2152,7 @@ module.exports = (app, template, hook) => {
             assert(email.html.includes('Two'));
             event.removeAllListeners('newMail');
           });
-  
+
           helper
             .submission(test.submission)
             .execute((err, result) => {
@@ -4510,10 +4664,10 @@ module.exports = (app, template, hook) => {
                     if (err) {
                       return done(err);
                     }
-  
+
                     const submission = helper.getLastSubmission();
                     assert(!submission.hasOwnProperty('_id'));
-  
+
                     done();
                   });
                 });
