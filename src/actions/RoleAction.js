@@ -2,10 +2,8 @@
 
 const _ = require('lodash');
 const {logger} = require('@formio/logger');
-const addRoleLogger = logger.child({module: 'formio:action:role#addRole'});
-const removeRoleLogger = logger.child({module: 'formio:action:role#removeRole'});
-const roleManipulationLogger = logger.child({module: 'formio:action:role#roleManipulation'});
-const updateModelLogger = logger.child({module: 'formio:action:role#updateModel'});
+const taggedLogModule = (tag) => ({module: `formio:actionZ:role#${tag}`});
+
 
 module.exports = function(router) {
   const Action = router.formio.Action;
@@ -218,7 +216,8 @@ module.exports = function(router) {
        */
       const updateModel = async function(submission, association, update) {
         // Try to update the submission directly.
-        updateModelLogger.info(association);
+        
+        httpLogger.info(taggedLogModule`updateModel`, association);
 
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         try {
@@ -244,7 +243,7 @@ module.exports = function(router) {
        * @returns {*}
        */
       const addRole = async function(role, submission, association) {
-        addRoleLogger.info(`Role: ${role}`);
+        httpLogger.info(taggedLogModule`addRole`, `Role: ${role}`);
 
         // The given role already exists in the resource.
         let compare = [];
@@ -282,7 +281,7 @@ module.exports = function(router) {
        * @returns {*}
        */
       const removeRole = async function(role, submission, association) {
-        removeRoleLogger.info(`Role: ${role}`);
+        httpLogger.info(taggedLogModule`removeRole`, `Role: ${role}`);
 
         // The given role does not exist in the resource.
         let compare = [];
@@ -318,7 +317,7 @@ module.exports = function(router) {
        *   The type of role manipulation.
        */
       const roleManipulation = async function(type, association) {
-        roleManipulationLogger.info(`Type: ${type}`);
+        httpLogger.info(taggedLogModule`roleManipulation`, `Type: ${type}`);
 
         // Confirm that the given/configured role is actually accessible.
         const query = hook.alter('roleQuery', {_id: role, deleted: {$eq: null}}, req);
@@ -330,7 +329,7 @@ module.exports = function(router) {
           }
 
           role = role._id.toString();
-          roleManipulationLogger.info(role);
+          httpLogger.info(taggedLogModule`roleManipulation`, role);
           if (type === 'add') {
             await addRole(role, resource, association);
           }
@@ -339,7 +338,7 @@ module.exports = function(router) {
           }
         }
         catch (err) {
-          httpLogger.error({err, location: '#roleManipulation'}, ecode.role.EROLELOAD);
+          httpLogger.error({err, ...taggedLogModule`roleManipulation`}, ecode.role.EROLELOAD);
           return res.status(400).send(ecode.role.EROLELOAD);
         }
       };
