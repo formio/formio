@@ -12,7 +12,7 @@ module.exports = function (app, template, hook) {
   const testAzureAddress = require('../../fixtures/forms/azureAddressComponent');
   const testGoogleAddress = require('../../fixtures/forms/googleAddressComponent');
   const testNominatimAddress = require('../../fixtures/forms/nominatimAddressComponent');
-
+  const formWithLayoutComponents = require('../../fixtures/forms/formWithLayoutComponents.js');
   function getComponentValue(exportedText, compKey, submissionIndex) {
     const rows = exportedText.split('\n');
     const headerRow = rows[0];
@@ -21,15 +21,15 @@ module.exports = function (app, template, hook) {
     const submissionRow = rows[submissionIndex + 1];
     const submissionRowValues = submissionRow.split(/,(?=")/);
     const compValue = submissionRowValues[compColIndex];
-    console.log({
-      rows,
-      headerRow,
-      headings,
-      compColIndex,
-      submissionRow,
-      submissionRowValues,
-      compValue
-    });
+    // console.log({
+    //   rows,
+    //   headerRow,
+    //   headings,
+    //   compColIndex,
+    //   submissionRow,
+    //   submissionRowValues,
+    //   compValue
+    // });
     return compValue;
   }
 
@@ -216,9 +216,9 @@ module.exports = function (app, template, hook) {
             if (error) {
               return done(error);
             }
-            assert.strictEqual(getComponentValue(result.text, 'page1.number', 0), '"2"');
-            assert.strictEqual(getComponentValue(result.text, 'page2.textField', 0), '"test"');
-            assert.strictEqual(getComponentValue(result.text, 'page2.textArea', 0), '"test New"');
+            assert.strictEqual(getComponentValue(result.text, 'number', 0), '"2"');
+            assert.strictEqual(getComponentValue(result.text, 'textField', 0), '"test"');
+            assert.strictEqual(getComponentValue(result.text, 'textArea', 0), '"test New"');
             done();
           });
         });
@@ -246,9 +246,47 @@ module.exports = function (app, template, hook) {
               return done(error);
             }
             assert.strictEqual(helper.template.forms.panelTest.display, 'form');
-            assert.strictEqual(getComponentValue(result.text, 'page1.number', 0), '"2"');
-            assert.strictEqual(getComponentValue(result.text, 'page2.textField', 0), '"test Form"');
-            assert.strictEqual(getComponentValue(result.text, 'page2.textArea', 0), '"test Form New"');
+            assert.strictEqual(getComponentValue(result.text, 'number', 0), '"2"');
+            assert.strictEqual(getComponentValue(result.text, 'textField', 0), '"test Form"');
+            assert.strictEqual(getComponentValue(result.text, 'textArea', 0), '"test Form New"');
+            done();
+          });
+        });
+    });
+
+    it('Should correctly display paths for component inside layout components', (done) => {
+      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .project()
+        .form('layoutTest', formWithLayoutComponents.form.components)
+        .submission(formWithLayoutComponents.submission)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+          helper.getExport(helper.template.forms.layoutTest, 'csv', (error, result) => {
+            if (error) {
+              return done(error);
+            }
+            const rows = result.text.split('\n');
+            const headerRow = rows[0];
+            const headings = headerRow.split(/,(?=")/);
+            assert.deepEqual(headings, [
+              '"_id"',
+              '"created"',
+              '"modified"',
+              '"id"',
+              '"number"',
+              '"firstName"',
+              '"lastName"',
+              '"age"',
+              '"textArea"',
+              '"email"',
+              '"phoneNumber"',
+              '"container.signature"'
+            ]);
+      
             done();
           });
         });
