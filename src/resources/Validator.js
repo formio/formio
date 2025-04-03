@@ -238,7 +238,7 @@ class Validator {
     }
 
     const resourceId = component.fetch.resource;
-    const resource = await this.formModel.findOne({_id: resourceId, deleted: null});
+    const resource = await this.formModel.findOne({_id: new ObjectId(resourceId.toString()), deleted: null});
     if (!resource) {
       throw new Error(`Resource at ${resourceId} not found for dereferencing`);
     }
@@ -246,13 +246,54 @@ class Validator {
       .map(component => CoreUtils.getComponent(resource.components || [], component.path));
 
     const filterComponents = (component) => {
-      if (!component.components) {
+      const info = CoreUtils.componentInfo(component);
+      if (!(info.hasColumns || info.hasRows || info.hasComps)) {
         return component;
       }
-      component.components = component.components
-        .map((component) => filterComponents(component))
-        .filter((component) =>
-          CoreUtils.getComponent(dataTableComponents, component.key) || component.components?.length > 0);
+      if (info.hasColumns) {
+        component.columns = component.columns.map((column) => {
+          column.components = column.components
+            .map((component) => filterComponents(component))
+            .filter((component) => {
+              return CoreUtils.getComponent(dataTableComponents, component.key) || (
+                component.columns?.length > 0 ||
+                component.rows?.length > 0 ||
+                component.components?.length > 0
+              );
+            });
+          return column;
+        });
+      }
+      else if (info.hasRows) {
+        component.rows = component.rows.map((row) => {
+          if (Array.isArray(row)) {
+            return row.map((column) => {
+              column.components = column.components
+                .map((component) => filterComponents(component))
+                .filter((component) => {
+                  return CoreUtils.getComponent(dataTableComponents, component.key) || (
+                    component.columns?.length > 0 ||
+                    component.rows?.length > 0 ||
+                    component.components?.length > 0
+                  );
+                });
+              return column;
+            });
+          }
+          return row;
+        });
+      }
+      else {
+        component.components = component.components
+          .map((component) => filterComponents(component))
+          .filter((component) => {
+              return CoreUtils.getComponent(dataTableComponents, component.key) || (
+                component.columns?.length > 0 ||
+                component.rows?.length > 0 ||
+                component.components?.length > 0
+              );
+          });
+      }
       return component;
     };
 
