@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.4.0-rc.37
+### Changed
+ - Updated @formio/core@2.4.0-rc.14
+ - Updated @formio/vm@1.0.0-rc.32
+ - Updated @formio/js@5.1.0-rc.32
+ - FIO-9946: Fixing issues with data table submissions with columns and tables.
+
 ## 4.4.0-rc.36
 ### Changed
  - Updated @formio/core@2.4.0-rc.13
