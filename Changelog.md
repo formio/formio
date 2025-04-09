@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.4.1-rc.1
+### Changed
+ - Updated @formio/core@2.4.1-rc.1
+ - Updated @formio/vm@1.0.1-rc.1
+ - Updated @formio/js@5.1.1-rc.1
+ - FIO-8868: fix issue with multi-instance race conditions during feature detection
+
 ## 4.4.0
 ### Changed
  - Official Release
