@@ -3,7 +3,6 @@
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const _ = require('lodash');
-const debug = require('debug')('formio:middleware:bootstrapFormAccess');
 
 /**
  * Middleware to bootstrap the access of forms.
@@ -59,7 +58,7 @@ module.exports = function(router) {
         return next();
     }
     catch (err) {
-      debug(err);
+      req.log.error({module: 'formio:middleware:bootstrapFormAccess', err});
       return next(err);
     }
   };

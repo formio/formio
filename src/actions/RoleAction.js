@@ -1,24 +1,17 @@
 'use strict';
 
 const _ = require('lodash');
-const debug = {
-  role: require('debug')('formio:action:role'),
-  loadUser: require('debug')('formio:action:role#loadUser'),
-  addRole: require('debug')('formio:action:role#addRole'),
-  removeRole: require('debug')('formio:action:role#removeRole'),
-  roleManipulation: require('debug')('formio:action:role#roleManipulation'),
-  updateModel: require('debug')('formio:action:role#updateModel')
-};
-
-const LOG_EVENT = 'Role Action';
+const {logger} = require('@formio/logger');
+const addRoleLogger = logger.child({module: 'formio:action:role#addRole'});
+const removeRoleLogger = logger.child({module: 'formio:action:role#removeRole'});
+const roleManipulationLogger = logger.child({module: 'formio:action:role#roleManipulation'});
+const updateModelLogger = logger.child({module: 'formio:action:role#updateModel'});
 
 module.exports = function(router) {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
   const util = router.formio.util;
   const ecode = router.formio.util.errorCodes;
-  const logOutput = router.formio.log || debug.role;
-  const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**
    * RoleAction class.
@@ -42,6 +35,7 @@ module.exports = function(router) {
       });
     }
     static async settingsForm(req, res, next) {
+      const httpLogger = req.log.child({module: 'formio:action:role'});
       try {
         const roles = await router.formio.resources.role.model
         .find(hook.alter('roleQuery', {deleted: {$eq: null}}, req))
@@ -49,7 +43,7 @@ module.exports = function(router) {
           .lean()
           .exec();
           if (!roles) {
-            log(req, ecode.role.EROLESLOAD, 'No roles');
+            httpLogger.info({code: ecode.role.EROLESLOAD}, 'No roles');
             return res.status(400).send(ecode.role.EROLESLOAD);
           }
 
@@ -124,7 +118,7 @@ module.exports = function(router) {
           ]);
       }
       catch (err) {
-        log(req, ecode.role.EROLESLOAD, err);
+        httpLogger.error(err, ecode.role.EROLESLOAD);
         return res.status(400).send(ecode.role.EROLESLOAD);
       }
     }
@@ -144,6 +138,7 @@ module.exports = function(router) {
      *   The callback function to execute upon completion.
      */
     async resolve(handler, method, req, res, next) {
+      const httpLogger = req.log.child({module: 'formio:action:role'});
       // Check the submission for the submissionId.
       if (this.settings.association !== 'existing' && this.settings.association !== 'new') {
         return res.status(400).send('Invalid setting `association` for the RoleAction; expecting `new` or `existing`.');
@@ -190,14 +185,14 @@ module.exports = function(router) {
             deleted: {$eq: null}
           }, req)).exec();
           if (!user) {
-            log(req, ecode.submission.ENOSUB);
+            httpLogger.error(ecode.submission.ENOSUB);
             return res.status(400).send('No Submission was found with the given setting `submission`.');
           }
 
           return callback(user);
         }
         catch (err) {
-          log(req, ecode.submission.ESUBLOAD, err);
+          httpLogger.error(err, ecode.submission.ESUBLOAD);
           return res.status(400).send(err.message || err);
         }
       };
@@ -223,7 +218,7 @@ module.exports = function(router) {
        */
       const updateModel = async function(submission, association, update) {
         // Try to update the submission directly.
-        debug.updateModel(association);
+        updateModelLogger.info(association);
 
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         try {
@@ -234,7 +229,7 @@ module.exports = function(router) {
         return next();
       }
       catch (err) {
-          log(req, ecode.submission.ESUBSAVE, err);
+          httpLogger.error(err, ecode.submission.ESUBSAVE);
           return next(err);
       }
     };
@@ -249,7 +244,7 @@ module.exports = function(router) {
        * @returns {*}
        */
       const addRole = async function(role, submission, association) {
-        debug.addRole(`Role: ${role}`);
+        addRoleLogger.info(`Role: ${role}`);
 
         // The given role already exists in the resource.
         let compare = [];
@@ -260,7 +255,7 @@ module.exports = function(router) {
         });
 
         if (compare.indexOf(role) !== -1) {
-          log(req, ecode.role.EROLEEXIST);
+          httpLogger.info(ecode.role.EROLEEXIST);
           return next();
         }
 
@@ -287,7 +282,7 @@ module.exports = function(router) {
        * @returns {*}
        */
       const removeRole = async function(role, submission, association) {
-        debug.removeRole(`Role: ${role}`);
+        removeRoleLogger.info(`Role: ${role}`);
 
         // The given role does not exist in the resource.
         let compare = [];
@@ -300,7 +295,7 @@ module.exports = function(router) {
         }
 
         if (compare.indexOf(role) === -1) {
-          log(req, ecode.role.ENOROLE, new Error('The given role to remove was not found.'), role);
+          httpLogger.error({err: new Error('The given role to remove was not found.'), role}, ecode.role.ENOROLE);
           return next();
         }
 
@@ -323,19 +318,19 @@ module.exports = function(router) {
        *   The type of role manipulation.
        */
       const roleManipulation = async function(type, association) {
-        debug.roleManipulation(`Type: ${type}`);
+        roleManipulationLogger.info(`Type: ${type}`);
 
         // Confirm that the given/configured role is actually accessible.
         const query = hook.alter('roleQuery', {_id: role, deleted: {$eq: null}}, req);
         try {
           let role = await router.formio.resources.role.model.findOne(query).lean().exec();
           if (!role) {
-            log(req, ecode.role.ENOROLE, new Error(ecode.role.ENOROLE), '#roleManipulation');
+            httpLogger.error({err: new Error(ecode.role.ENOROLE), location: '#roleManipulation'}, ecode.role.ENOROLE);
             return res.status(400).send(ecode.role.ENOROLE);
           }
 
           role = role._id.toString();
-          debug.roleManipulation(role);
+          roleManipulationLogger.info(role);
           if (type === 'add') {
             await addRole(role, resource, association);
           }
@@ -344,7 +339,7 @@ module.exports = function(router) {
           }
         }
         catch (err) {
-          log(req, ecode.role.EROLELOAD, err, '#roleManipulation');
+          httpLogger.error({err, location: '#roleManipulation'}, ecode.role.EROLELOAD);
           return res.status(400).send(ecode.role.EROLELOAD);
         }
       };
