@@ -30,25 +30,19 @@ module.exports = (app, template, hook) => {
       });
     });
 
-    it('Should be able to export what was imported', function(done) {
-      app.formio.template.export({
+    it('Should be able to export what was imported', async function() {
+      const _export = await app.formio.template.export({
         title: template.title,
         description: template.description,
         name: template.name
-      }, function(err, _export) {
-        if (err) {
-          return done(err);
-        }
-
-        assert.equal(_export.title, comparison.title);
-        assert.equal(_export.description, comparison.description);
-        assert.equal(_export.name, comparison.name);
-        assert.deepEqual(_export.roles, comparison.roles);
-        assert.deepEqual(_export.forms, comparison.forms);
-        assert.deepEqual(_export.resources, comparison.resources);
-        assert.equal(_export.actions.length, comparison.actions.length);
-        done();
       });
+      assert.equal(_export.title, comparison.title);
+      assert.equal(_export.description, comparison.description);
+      assert.equal(_export.name, comparison.name);
+      assert.deepEqual(_export.roles, comparison.roles);
+      assert.deepEqual(_export.forms, comparison.forms);
+      assert.deepEqual(_export.resources, comparison.resources);
+      assert.equal(_export.actions.length, comparison.actions.length);
     });
   });
 };
