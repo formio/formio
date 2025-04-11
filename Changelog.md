@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.4.2-rc.1]
+## 4.4.2-rc.1
+### Changed
+ - Updated @formio/core@2.4.1-rc.3
+ - Updated @formio/vm@1.0.2-rc.2
+ - Updated @formio/js@5.1.2-rc.1
+
 
 ## 4.4.1-rc.1
 ### Changed
