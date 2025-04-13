@@ -1,5 +1,6 @@
 test/*
 portal/*
 src/db/updates/*
+vm/*
 node_modules/*
 bower_components/*
