@@ -9,7 +9,6 @@ const {
   serverRules,
   Utils: CoreUtils,
 } = require('@formio/core');
-const {evaluateProcess} = require('@formio/vm');
 const Utils = require('../util/util');
 const fetch = require('@formio/node-fetch-http-proxy');
 const debug = {
@@ -39,7 +38,7 @@ async function submissionQueryExists(submissionModel, query) {
  * @constructor
  */
 class Validator {
-  constructor(req, submissionModel, submissionResource, cache, formModel, tokenModel, hook, config = {}) {
+  constructor(req, formio) {
     const tokens = {};
     const token = Utils.getRequestValue(req, 'x-jwt-token');
     if (token) {
@@ -56,17 +55,18 @@ class Validator {
     }
 
     this.req = req;
-    this.submissionModel = submissionModel;
-    this.submissionResource = submissionResource;
-    this.cache = cache;
-    this.formModel = formModel;
-    this.tokenModel = tokenModel;
+    this.submissionModel = req.submissionModel || formio.resources.submission.model;
+    this.submissionResource = formio.resources.submission;
+    this.cache = formio.cache;
+    this.vm = formio.vm;
+    this.formModel = formio.resources.form.model;
+    this.tokenModel = formio.mongoose.models.token;
     this.form = req.currentForm;
     this.project = req.currentProject;
     this.decodedToken = req.token;
     this.tokens = tokens;
-    this.hook = hook;
-    this.config = config;
+    this.hook = formio.hook;
+    this.config = formio.config;
   }
 
   addPathQueryParams(pathQueryParams, query, path) {
@@ -318,8 +318,10 @@ class Validator {
       return next();
     }
 
-    let config = this.project ? (this.project.config || {}) : {};
-    config = {...(this.form.config || {}), ...config};
+    const projectAndFormConfig = {
+      ...(this.project ? this.project.config ?? {} : {}),
+      ...(this.form ? this.form.config ?? {} : {}),
+    };
 
     const context = {
       form: this.form,
@@ -330,7 +332,7 @@ class Validator {
       fetch,
       scope: {},
       config: {
-        ...(config || {}),
+        ...projectAndFormConfig,
         headers: JSON.parse(JSON.stringify(this.req.headers)),
         server: true,
         token: this.tokens['x-jwt-token'],
@@ -351,16 +353,21 @@ class Validator {
       await process(context);
       submission.data = context.data;
 
-      const additionalDeps = this.hook.alter('dynamicVmDependencies', [], this.form);
+      const serializedSubmission = JSON.parse(JSON.stringify(submission));
       // Process the evaulator
-      const {scope, data} = await evaluateProcess({
-        ...(config || {}),
-        form: this.form,
-        submission,
-        scope: context.scope,
-        token: this.tokens['x-jwt-token'],
-        tokens: this.tokens,
-        additionalDeps
+      const {scope, data} = await this.vm.evaluate('evaluateProcess(context)', {
+        context: {
+          ...projectAndFormConfig,
+          form: this.form,
+          components: this.form.components,
+          submission: serializedSubmission,
+          data: serializedSubmission.data,
+          config: {
+            server: true,
+            token: this.tokens['x-jwt-token'],
+          },
+          scope: context.scope,
+        }
       });
       context.scope = scope;
       submission.data = data;

@@ -256,8 +256,7 @@ module.exports = (router) => {
             _
           }, req);
 
-          const result = await evaluate({
-            deps: ['lodash', 'moment', 'core'],
+          const result = await router.formio.vm.evaluate({
             code: json ?
               `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
               condition.custom,

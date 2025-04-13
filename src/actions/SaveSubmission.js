@@ -3,7 +3,6 @@
 const _ = require('lodash');
 const async = require('async');
 const util = require('../util/util');
-const {evaluate} = require('@formio/vm');
 const LOG_EVENT = 'Save Submission Action';
 
 module.exports = function(router) {
@@ -203,8 +202,7 @@ module.exports = function(router) {
 
         if (this.settings.transform) {
           try {
-            const newData = await evaluate({
-              deps: [],
+            const newData = await router.formio.vm.evaluate({
               code: `data=submission.data;\n${this.settings.transform}\ndata;`,
               data: {
                 submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
