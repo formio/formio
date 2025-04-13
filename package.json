@@ -9,6 +9,7 @@
     "start": "node --no-node-snapshot main.js",
     "start:dev": "nodemon --no-node-snapshot main.js",
     "lint": "eslint .",
+    "build:vm": "webpack --config vm/webpack.vm.config.js",
     "build:portal": "cd portal && yarn && yarn build && cd ..",
     "show-coverage": "open coverage/lcov-report/index.html"
   },
@@ -70,7 +71,10 @@
     "pre-commit": "^1.2.2",
     "superagent-use": "^0.1.0",
     "supertest": "^6.3.0",
-    "supertest-capture-error": "^1.0.0"
+    "supertest-capture-error": "^1.0.0",
+    "terser-webpack-plugin": "^5.3.14",
+    "webpack": "^5.99.5",
+    "webpack-cli": "^6.0.1"
   },
   "nyc": {
     "check-coverage": true,

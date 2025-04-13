@@ -307,11 +307,11 @@ const getValueComponentRequiredSettings = (valueComponentsByFieldPath) => {
             schemaDefinition: `
             const valueComponentsByFieldPath = ${JSON.stringify(valueComponentsByFieldPath)};
             const valueComponent = valueComponentsByFieldPath[row.component] || { type: 'textfield' };
-            
+
             if (valueComponent.type !== 'datetime') {
               valueComponent.widget = null;
             }
-            
+
             schema = {
               ...valueComponent,
               ..._.pick(component, [
