@@ -1,11 +1,6 @@
 'use strict';
 
 const _ = require('lodash');
-const {logger} = require('@formio/logger');
-const addRoleLogger = logger.child({module: 'formio:action:role#addRole'});
-const removeRoleLogger = logger.child({module: 'formio:action:role#removeRole'});
-const roleManipulationLogger = logger.child({module: 'formio:action:role#roleManipulation'});
-const updateModelLogger = logger.child({module: 'formio:action:role#updateModel'});
 
 module.exports = function(router) {
   const Action = router.formio.Action;
@@ -138,7 +133,8 @@ module.exports = function(router) {
      *   The callback function to execute upon completion.
      */
     async resolve(handler, method, req, res, next) {
-      const httpLogger = req.log.child({module: 'formio:action:role'});
+      const actionRoleLogger = req.log.child({module: 'formio:action:role'});
+      const roleManipulationLogger = req.log.child({module: 'formio:action:role#roleManipulation'});
       // Check the submission for the submissionId.
       if (this.settings.association !== 'existing' && this.settings.association !== 'new') {
         return res.status(400).send('Invalid setting `association` for the RoleAction; expecting `new` or `existing`.');
@@ -185,14 +181,14 @@ module.exports = function(router) {
             deleted: {$eq: null}
           }, req)).exec();
           if (!user) {
-            httpLogger.error(ecode.submission.ENOSUB);
+            actionRoleLogger.error(ecode.submission.ENOSUB);
             return res.status(400).send('No Submission was found with the given setting `submission`.');
           }
 
           return callback(user);
         }
         catch (err) {
-          httpLogger.error(err, ecode.submission.ESUBLOAD);
+          actionRoleLogger.error(err, ecode.submission.ESUBLOAD);
           return res.status(400).send(err.message || err);
         }
       };
@@ -218,7 +214,7 @@ module.exports = function(router) {
        */
       const updateModel = async function(submission, association, update) {
         // Try to update the submission directly.
-        updateModelLogger.info(association);
+        req.log.info({module: 'formio:action:role#updateModel', association});
 
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         try {
@@ -229,7 +225,7 @@ module.exports = function(router) {
         return next();
       }
       catch (err) {
-          httpLogger.error(err, ecode.submission.ESUBSAVE);
+          actionRoleLogger.error(err, ecode.submission.ESUBSAVE);
           return next(err);
       }
     };
@@ -244,7 +240,7 @@ module.exports = function(router) {
        * @returns {*}
        */
       const addRole = async function(role, submission, association) {
-        addRoleLogger.info(`Role: ${role}`);
+        req.log.info({module: 'formio:action:role#addRole'}, `Role: ${role}`);
 
         // The given role already exists in the resource.
         let compare = [];
@@ -255,7 +251,7 @@ module.exports = function(router) {
         });
 
         if (compare.indexOf(role) !== -1) {
-          httpLogger.info(ecode.role.EROLEEXIST);
+          actionRoleLogger.info(ecode.role.EROLEEXIST);
           return next();
         }
 
@@ -282,7 +278,7 @@ module.exports = function(router) {
        * @returns {*}
        */
       const removeRole = async function(role, submission, association) {
-        removeRoleLogger.info(`Role: ${role}`);
+        req.log.info({module: 'formio:action:role#removeRole'}, `Role: ${role}`);
 
         // The given role does not exist in the resource.
         let compare = [];
@@ -295,7 +291,7 @@ module.exports = function(router) {
         }
 
         if (compare.indexOf(role) === -1) {
-          httpLogger.error({err: new Error('The given role to remove was not found.'), role}, ecode.role.ENOROLE);
+          actionRoleLogger.error({err: new Error('The given role to remove was not found.'), role}, ecode.role.ENOROLE);
           return next();
         }
 
@@ -325,7 +321,10 @@ module.exports = function(router) {
         try {
           let role = await router.formio.resources.role.model.findOne(query).lean().exec();
           if (!role) {
-            httpLogger.error({err: new Error(ecode.role.ENOROLE), location: '#roleManipulation'}, ecode.role.ENOROLE);
+            actionRoleLogger.error({
+              err: new Error(ecode.role.ENOROLE),
+              location: '#roleManipulation'},
+            ecode.role.ENOROLE);
             return res.status(400).send(ecode.role.ENOROLE);
           }
 
@@ -339,7 +338,7 @@ module.exports = function(router) {
           }
         }
         catch (err) {
-          httpLogger.error({err, location: '#roleManipulation'}, ecode.role.EROLELOAD);
+          actionRoleLogger.error({err, location: '#roleManipulation'}, ecode.role.EROLELOAD);
           return res.status(400).send(ecode.role.EROLELOAD);
         }
       };

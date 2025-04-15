@@ -10,9 +10,7 @@ const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
 const mockBrowserContext = require('@formio/vm/build/mockBrowserContext');
 const {logger} = require('@formio/logger');
-const idToBsonLogger = logger.child({module: 'formio:util:idToBson'});
 const getUrlParamsLogger = logger.child({module: 'formio:util:getUrlParams'});
-const removeProtectedFieldsLogger = logger.child({module: 'formio:util:removeProtectedFields'});
 
 mockBrowserContext.default();
 const Formio = require('@formio/js');
@@ -471,8 +469,8 @@ const Utils = {
         ? _id
         : new mongoose.Types.ObjectId(_id);
     }
-    catch (e) {
-      idToBsonLogger.error(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
+    catch (err) {
+      logger.error({module: 'formio:util:idToBson', err}, `Unknown _id given: ${_id}, typeof: ${typeof _id}`);
     }
 
     return _id;
@@ -561,7 +559,7 @@ const Utils = {
         tagpadComponentsKeys.push(component.key);
       }
       if (component.protected) {
-        removeProtectedFieldsLogger.info(`Removing protected field: ${component.key}`);
+        logger.info({module: 'formio:util:removeProtectedFields'}, `Removing protected field: ${component.key}`);
 
         modifyFields.push((submission) => {
           function removeFieldByPath(obj, path) {

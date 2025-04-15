@@ -1,8 +1,6 @@
 'use strict';
 const async = require('async');
 const _ = require('lodash');
-const {logger} = require('@formio/logger');
-const loadSubFormsLogger = logger.child({module: 'formio:cache:loadSubForms'});
 
 module.exports = function(router) {
   const hook = require('../util/hook')(router.formio);
@@ -404,6 +402,7 @@ module.exports = function(router) {
      * @returns {*}
      */
     async loadAllForms(form, req, depth, forms) {
+      const loadSubFormsLogger = req.log.child({module: 'formio:cache:loadSubForms'});
       depth = depth || 0;
       forms = forms || {};
       loadSubFormsLogger.info(`Loading subforms for ${form._id}`);

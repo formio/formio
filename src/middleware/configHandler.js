@@ -1,6 +1,5 @@
 'use strict';
 const {logger} = require('@formio/logger');
-const childLogger = logger.child({module: 'formio:config'});
 const _ = require('lodash');
 
 /**
@@ -27,7 +26,7 @@ module.exports = function(router) {
       });
     }
     catch (err) {
-      childLogger.error(err, 'Failed to parse public configuration.');
+      logger.error({module: 'formio:config', err}, 'Failed to parse public configuration.');
     }
   }
 

@@ -2,7 +2,6 @@
 
 const _ = require('lodash');
 const {logger} = require('@formio/logger');
-const childLogger = logger.child({module: 'formio:models:form'});
 
 module.exports = (formio) => {
   const hook = require('../util/hook')(formio);
@@ -80,7 +79,7 @@ module.exports = (formio) => {
       return !result;
     }
     catch (err) {
-      childLogger.error(err);
+      logger.error({module: 'formio:models:form', err});
       return false;
     }
   };

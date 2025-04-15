@@ -4,8 +4,6 @@
 const nodemailer = require('nodemailer');
 const {logger} = require('@formio/logger');
 const nunjucksInjectorLogger = logger.child({module: 'formio:email:nunjucksInjector'});
-const emailLogger = logger.child({module: 'formio:settings:email'});
-const sendLogger = logger.child({module: 'formio:settings:send'});
 const fetch = require('@formio/node-fetch-http-proxy');
 const util = require('./util');
 const _ = require('lodash');
@@ -215,6 +213,9 @@ module.exports = (formio) => {
    * @returns {*}
    */
   const send = async (req, res, message, params, setActionItemMessage = () => {}) => {
+    const emailLogger = req.log.child({module: 'formio:settings:email'});
+    const sendLogger = req.log.child({module: 'formio:settings:send'});
+
     const setParams = (params, req, res, message) => {
         // Add the request params.
         params.req = _.pick(req, [

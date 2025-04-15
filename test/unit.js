@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const assert = require('assert');
 const fs = require('fs');
 const docker = process.env.DOCKER;
+const {logger} = require('@formio/logger');
 
 const {sanitizeMongoConnectionString} = require('../src/db/util');
 
@@ -73,7 +74,8 @@ module.exports = function(app, template, hook) {
             email: 'test@example.com',
             fullName: 'Joe Smith'
           }
-        }
+        },
+        log: logger
       };
       var messageText = (fs.readFileSync(__dirname + '/' + dirName + 'message.html')).toString();
       var message = {

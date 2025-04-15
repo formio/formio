@@ -320,6 +320,7 @@ module.exports = function(formio) {
    * @returns {*}
    */
   const sanityCheck = async function sanityCheck(req, res, next) {
+    const dbLogger = req.log.child({module: 'formio:db'});
     // Determine if a response is expected by the request path.
     const response = (req.path === '/health');
     const {verboseHealth} = req;
