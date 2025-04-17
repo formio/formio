@@ -2,12 +2,8 @@
 'use strict';
 
 const nodemailer = require('nodemailer');
-const debug = {
-  email: require('debug')('formio:settings:email'),
-  send: require('debug')('formio:settings:send'),
-  error: require('debug')('formio:error'),
-  nunjucksInjector: require('debug')('formio:email:nunjucksInjector')
-};
+const {logger} = require('@formio/logger');
+const nunjucksInjectorLogger = logger.child({module: 'formio:email:nunjucksInjector'});
 const fetch = require('@formio/node-fetch-http-proxy');
 const util = require('./util');
 const _ = require('lodash');
@@ -32,6 +28,7 @@ module.exports = (formio) => {
    * @param req
    */
   const availableTransports = async (req) => {
+    const emailLogger = req.log.child({module: 'formio:settings:email'});
     try {
       const settings = await hook.settings(req);
       // Build the list of available transports, based on the present project settings.
@@ -81,7 +78,7 @@ module.exports = (formio) => {
       }
     }
     catch (err) {
-      debug.email(err);
+      emailLogger.error(err);
     }
   };
 
@@ -182,7 +179,7 @@ module.exports = (formio) => {
     if (mail.html && (typeof mail.html === 'string')) {
       mail.html = mail.html.replace(/\n/g, '');
     }
-    debug.nunjucksInjector(mail);
+    nunjucksInjectorLogger.info(mail);
 
     // Allow the nunjucks templates to be reflective.
     params.mail = mail;
@@ -194,7 +191,7 @@ module.exports = (formio) => {
       timeout: formio.config.vmTimeout,
     })
     .then((injectedEmail) => {
-      debug.nunjucksInjector(injectedEmail);
+      nunjucksInjectorLogger.info(injectedEmail);
       if (!injectedEmail) {
         return reject(`An error occurred while processing the Email.`);
       }
@@ -216,6 +213,9 @@ module.exports = (formio) => {
    * @returns {*}
    */
   const send = async (req, res, message, params, setActionItemMessage = () => {}) => {
+    const emailLogger = req.log.child({module: 'formio:settings:email'});
+    const sendLogger = req.log.child({module: 'formio:settings:send'});
+
     const setParams = (params, req, res, message) => {
         // Add the request params.
         params.req = _.pick(req, [
@@ -252,7 +252,7 @@ module.exports = (formio) => {
           break;
         case 'sendgrid':
           if (_.has(settings, 'email.sendgrid')) {
-            debug.email(settings.email.sendgrid);
+            emailLogger.info(settings.email.sendgrid);
             transporter = nodemailer.createTransport({
               host: 'smtp.sendgrid.net',
               port: 587,
@@ -441,7 +441,7 @@ module.exports = (formio) => {
               try {
                 return transporter.sendMail(email, (err, info) => {
                   if (err) {
-                    debug.error(err);
+                    sendLogger.error(err);
                     return reject(err);
                   }
 
@@ -462,11 +462,11 @@ module.exports = (formio) => {
         .then((email) => {
           let emails = [];
 
-          debug.send(`message.sendEach: ${message.sendEach}`);
-          // debug.send(`email: ${JSON.stringify(email)}`);
+          sendLogger.info(`message.sendEach: ${message.sendEach}`);
+          // sendLogger.info(`email: ${JSON.stringify(email)}`);
           if (message.sendEach === true) {
             const addresses = _.uniq(email.to.split(',').map(_.trim)).filter(address=>address.length&&address.length>0);
-            // debug.send(`addresses: ${JSON.stringify(addresses)}`);
+            // sendLogger.info(`addresses: ${JSON.stringify(addresses)}`);
             // Make a copy of the email for each recipient.
             emails = addresses.map((address) => Object.assign({}, email, {to: address}));
           }
@@ -474,7 +474,7 @@ module.exports = (formio) => {
             emails = [email];
           }
 
-          // debug.send(`emails: ${JSON.stringify(emails)}`);
+          // sendLogger.info(`emails: ${JSON.stringify(emails)}`);
 
           const chunks = _.chunk(emails, EMAIL_CHUNK_SIZE);
           return chunks.reduce((result, chunk) => {
@@ -504,8 +504,7 @@ module.exports = (formio) => {
         : 'default';
 
       const _config = (formio && formio.config && formio.config.email && formio.config.email.type);
-      debug.send(message);
-      debug.send(emailType);
+      sendLogger.info({message, emailType});
       // Get the settings.
       const settings = await hook.settings(req); // eslint-disable-line max-statements
       // Force the email type to custom for EMAIL_OVERRIDE which will allow
@@ -536,7 +535,7 @@ module.exports = (formio) => {
 
       // If we don't have a valid transport, don't waste time with nunjucks.
       if (isTransportValid(transporter)) {
-        debug.error(`Could not determine which email transport to use for ${emailType}`);
+        sendLogger.error(`Could not determine which email transport to use for ${emailType}`);
         return;
       }
 
@@ -547,7 +546,7 @@ module.exports = (formio) => {
       return await send(transporter, message, options);
     }
     catch (err) {
-      debug.send(err);
+      sendLogger.error(err);
       throw new Error(err);
     }
   };
