@@ -11,7 +11,7 @@ const events = require('events');
 const nunjucks = require('nunjucks');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
-const {QuickJSVM} = require('@formio/vm');
+const {IsolateVM} = require('@formio/vm');
 
 const util = require('./src/util/util');
 const path = require('path');
@@ -296,7 +296,7 @@ module.exports = function(config) {
 
           // Configure the VM
           const bundle = await fs.readFile(path.resolve(__dirname, 'vm', 'default_bundle.js'), 'utf8');
-          router.formio.vm = new QuickJSVM();
+          router.formio.vm = new IsolateVM();
           await router.formio.vm.init(bundle);
 
           // Say we are done.

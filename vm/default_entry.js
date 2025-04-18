@@ -314,14 +314,4 @@ function evaluateProcess(context) {
   return {scope, data};
 }
 
-globalThis.evaluateProcess = evaluateProcess;
-globalThis.Event = Event;
-globalThis.FormioCore = FormioCore;
-globalThis.InstanceShim = InstanceShim;
-globalThis.RootShim = RootShim;
-globalThis.nunjucks = nunjucks;
-globalThis.moment = moment;
-globalThis.inputmask = inputmask;
-globalThis._ = _;
-
-module.exports = {};
+module.exports = {FormioCore, evaluateProcess, RootShim, InstanceShim, Event, nunjucks, moment, inputmask, _};
