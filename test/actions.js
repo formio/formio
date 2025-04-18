@@ -12,6 +12,7 @@ const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
 const customSaveSubmissionTransformForm = require('./fixtures/forms/customSaveSubmissionTransformForm');
 const customSaveSubmissionTransformResource = require('./fixtures/forms/customSaveSubmissionTransformResource');
 const { wait } = require('./util');
+const helper = require('./helper');
 const docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
@@ -375,6 +376,58 @@ module.exports = (app, template, hook) => {
           .end(done);
       });
     });
+
+    describe('Action with missing fields creation', () => {
+
+      it('Should add Save action and apply defaults for handler and method if fields are missing', async () => {      
+        const action = {
+          name: 'save',
+          title: 'Save Submission',
+          priority: 10,
+          form: tempForm._id,
+          machineName: 'saveActionFormSave',
+          settings: {},
+          defaults: {
+            handler: ['before'],
+            method: ['create', 'update']
+          }
+        };
+      
+        const response = await request(app)
+          .post(hook.alter('url', `/form/${tempForm._id}/action`, template))
+          .set('x-jwt-token',  template.users.admin.token)
+          .send({ data: action });
+      
+        assert.equal(response.status, 201);
+        assert.deepEqual(response.body.handler, ['before'], 'Default handler should be applied');
+        assert.deepEqual(response.body.method, ['create', 'update'], 'Default method should be applied');
+      });
+      
+      it('Should add Webhook action and do not apply defaults for handler and method (fields are set)', async () => {      
+        const action = {
+          name: 'webhook',
+          title: 'Webhook Action',
+          priority: 5,
+          form: tempForm._id,
+          machineName: 'webhookActionForm',
+          handler: [],
+          method: [],
+          defaults: {
+            handler: ['after'],
+            method: ['create'],
+          },
+        };
+      
+        const response = await request(app)
+          .post(hook.alter('url', `/form/${tempForm._id}/action`, template))
+          .set('x-jwt-token',  template.users.admin.token)
+          .send({ data: action });
+      
+        assert.equal(response.status, 201);
+        assert.deepEqual(response.body.handler, [], 'Handler should remain empty');
+        assert.deepEqual(response.body.method, [], 'Method should remain empty');
+      });
+    })
 
     describe('Test action with custom transform mapping data', () => {
       const addFormFields = (isForm) => ({
