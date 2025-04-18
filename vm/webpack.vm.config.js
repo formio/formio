@@ -10,8 +10,7 @@ module.exports = {
     filename: "default_bundle.js",
     path: __dirname,
     library: {
-      type: "var",
-      name: "FormioDefaultVMBundle",
+      type: "global",
     },
     globalObject: "globalThis",
   },
