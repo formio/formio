@@ -1,6 +1,6 @@
 'use strict';
 
-const FormioCore = require("@formio/core");
+const CoreUtils = require("@formio/core/utils");
 const _ = require("lodash");
 const nunjucks = require("nunjucks");
 const moment = require("moment");
@@ -51,7 +51,7 @@ class InstanceShim {
 
   // Returns row
   get data() {
-    return FormioCore.Utils.getContextualRowData(
+    return CoreUtils.getContextualRowData(
       this.component,
       this.component.path,
       this._data
@@ -104,38 +104,38 @@ class InstanceShim {
   }
 
   isEmpty() {
-    return FormioCore.Utils.isComponentDataEmpty(
+    return CoreUtils.isComponentDataEmpty(
       this.component,
       this._data,
       this._path
     );
   }
 
-  getCustomDefaultValue() {
-    if (this.component.customDefaultValue) {
-      const evaluationContext = {
-        form: this.root.form,
-        component: this.component,
-        submission: this.root.submission,
-        data: this.root.data,
-        config: {
-          server: true,
-        },
-        options: {
-          server: true,
-        },
-        value: null,
-        util: FormioCore.Utils,
-        utils: FormioCore.Utils,
-      };
-      const defaultValue = FormioCore.JSONLogicEvaluator.evaluate(
-        this.component.customDefaultValue,
-        evaluationContext,
-        "value"
-      );
-      return defaultValue;
-    }
-  }
+  // getCustomDefaultValue() {
+  //   if (this.component.customDefaultValue) {
+  //     const evaluationContext = {
+  //       form: this.root.form,
+  //       component: this.component,
+  //       submission: this.root.submission,
+  //       data: this.root.data,
+  //       config: {
+  //         server: true,
+  //       },
+  //       options: {
+  //         server: true,
+  //       },
+  //       value: null,
+  //       util: CoreUtils,
+  //       utils: CoreUtils,
+  //     };
+  //     const defaultValue = FormioCore.JSONLogicEvaluator.evaluate(
+  //       this.component.customDefaultValue,
+  //       evaluationContext,
+  //       "value"
+  //     );
+  //     return defaultValue;
+  //   }
+  // }
 
   // Do nothing functions.
   on() {}
@@ -172,12 +172,12 @@ class RootShim {
     this.data = submission.data;
     this.components = [];
     this._scope = scope || {};
-    FormioCore.Utils.eachComponentData(
+    CoreUtils.eachComponentData(
       form.components,
       submission.data,
       (component, data, row, compPath, components, index, parent, paths) => {
         if (!paths) {
-          paths = FormioCore.Utils.getComponentPaths(component);
+          paths = CoreUtils.getComponentPaths(component);
         }
         const {path, fullPath, fullLocalPath, dataPath, localDataPath} =
           paths;
@@ -211,7 +211,7 @@ class RootShim {
   }
 
   getComponent(pathArg) {
-    const path = FormioCore.Utils.getStringFromComponentPath(pathArg);
+    const path = CoreUtils.getStringFromComponentPath(pathArg);
     // If we don't have an exact path match, compare the final pathname segment with the path argument for each component
     // i.e. getComponent('foo') should return a component at the path 'bar.foo' if it exists
     if (!this.instanceMap[path]) {
@@ -287,31 +287,4 @@ globalThis.setTimeout = (cb) => {
   cb();
 };
 
-function evaluateProcess(context) {
-  const root = new RootShim(context.form, context.submission, context.scope);
-  const data = context.data;
-  context.instances = root.instanceMap;
-
-  if (context.form.module) {
-    try {
-      // Wrap with parentheses to return object, not function
-      const formModule = eval(`(${context.form.module})`);
-      const evalContext = formModule?.options?.form?.evalContext;
-
-      if (evalContext) {
-        const evalContextFn = (context) => Object.assign({}, context, evalContext);
-        context.evalContext = evalContextFn;
-      }
-    }
-    catch (ignoreErr) {
-      // Ignore errors
-    }
-  }
-
-  context.processors = FormioCore.ProcessTargets.evaluator;
-  const scope = FormioCore.processSync(context);
-
-  return {scope, data};
-}
-
-module.exports = {FormioCore, evaluateProcess, RootShim, InstanceShim, Event, nunjucks, moment, inputmask, _};
+module.exports = {util: CoreUtils, utils: CoreUtils, RootShim, InstanceShim, Event, nunjucks, moment, inputmask, _};

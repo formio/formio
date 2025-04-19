@@ -16,13 +16,11 @@ const debug = {
 };
 
 mockBrowserContext();
-const Formio = require('@formio/js');
-global.Formio = Formio.Formio;
-Formio.Utils.Evaluator.noeval = true;
+const FormioCore = require('@formio/core');
 
 const Utils = {
-  Formio: Formio.Formio,
-  FormioUtils: Formio.Utils,
+  Formio: FormioCore.Formio,
+  FormioUtils: FormioCore.Utils,
   deleteProp: deleteProp,
 
   /**
@@ -198,7 +196,7 @@ const Utils = {
    *   Whether or not to include layout components.
    * @param {String} path
    */
-  eachComponent: Formio.Utils.eachComponent.bind(Formio.Utils),
+  eachComponent: FormioCore.Utils.eachComponent.bind(FormioCore.Utils),
 
   /**
    * Get a component by its key
@@ -211,7 +209,7 @@ const Utils = {
    * @returns {Object}
    *   The component that matches the given key, or undefined if not found.
    */
-  getComponent: Formio.Utils.getComponent.bind(Formio.Utils),
+  getComponent: FormioCore.Utils.getComponent.bind(FormioCore.Utils),
 
   /**
    * Define if component should be considered input component
@@ -222,7 +220,7 @@ const Utils = {
    * @returns {Boolean}
    *   If component is input or not
    */
-  isInputComponent: Formio.Utils.isInputComponent.bind(Formio.Utils),
+  // isInputComponent: FormioCore.Utils.isInputComponent.bind(FormioCore.Utils),
 
   /**
    * Flatten the form components for data manipulation.
@@ -235,7 +233,7 @@ const Utils = {
    * @returns {Object}
    *   The flattened components map.
    */
-  flattenComponents: Formio.Utils.flattenComponents.bind(Formio.Utils),
+  flattenComponents: FormioCore.Utils.flattenComponents.bind(FormioCore.Utils),
 
   /**
    * Get the value for a component key, in the given submission.
@@ -245,7 +243,7 @@ const Utils = {
    * @param {String} key
    *   A for components API key to search for.
    */
-  getValue: Formio.Utils.getValue.bind(Formio.Utils),
+  getValue: FormioCore.Utils.getValue.bind(FormioCore.Utils),
 
   /**
    * Determine if a component is a layout component or not.
@@ -256,7 +254,7 @@ const Utils = {
    * @returns {Boolean}
    *   Whether or not the component is a layout component.
    */
-  isLayoutComponent: Formio.Utils.isLayoutComponent.bind(Formio.Utils),
+  isLayoutComponent: FormioCore.Utils.isLayoutComponent.bind(FormioCore.Utils),
 
   /**
    * Apply JSON logic functionality.
@@ -265,7 +263,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  jsonLogic: Formio.Utils.jsonLogic,
+  jsonLogic: FormioCore.Utils.jsonLogic,
 
   /**
    * Check if the condition for a component is true or not.
@@ -274,7 +272,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  checkCondition: Formio.Utils.checkCondition.bind(Formio.Utils),
+  // checkCondition: FormioCore.Utils.checkCondition.bind(FormioCore.Utils),
 
   /**
    * Return the objectId.

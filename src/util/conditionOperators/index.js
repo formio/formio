@@ -19,7 +19,6 @@ const GreaterThanOrEqual = require('./GreaterThanOrEqual');
 const IsDateEqual = require('./IsDateEqual');
 const IsNotDateEqual = require('./IsNotDateEqual');
 const _ = require('lodash');
-const {Formio} = require('../util');
 
 const ConditionOperators = {
   [`${IsNotEqualTo.operatorKey}`]: IsNotEqualTo,
@@ -50,17 +49,17 @@ const conditionOperatorsByComponentType = {
     IsNotEmptyValue.operatorKey,
   ]};
 
-if (Formio.Components) {
-  Object.keys(Formio.Components.components).forEach((type) => {
-    const component = Formio.Components.components[type];
-    const operators = component && component.serverConditionSettings
-      ? component.serverConditionSettings.operators
-      : null;
-    if (operators) {
-      conditionOperatorsByComponentType[type] = operators;
-    }
-  });
-}
+// if (false) {
+//   Object.keys(Formio.Components.components).forEach((type) => {
+//     const component = Formio.Components.components[type];
+//     const operators = component && component.serverConditionSettings
+//       ? component.serverConditionSettings.operators
+//       : null;
+//     if (operators) {
+//       conditionOperatorsByComponentType[type] = operators;
+//     }
+//   });
+// }
 
 // (submission) prefix is required to differ form fields data paths from root level properties
 const rootLevelProperties = [
@@ -246,7 +245,7 @@ const getValueComponentsForEachFormComponent = (flattenedComponents) => {
   Object.keys(flattenedComponents).forEach((path) => {
     const componentSchema = flattenedComponents[path];
     const component = componentSchema && componentSchema.type
-      ? Formio.AllComponents[componentSchema.type]
+      ? {}
       : null;
     const getValueComponent = component && component.serverConditionSettings ?
       component.serverConditionSettings.valueComponent :
