@@ -1,0 +1,48 @@
+'use strict';
+const {Evaluator} = require('@formio/core');
+const {IsolateVM} = require('@formio/vm');
+const {isObject, get} = require('lodash');
+
+class IsolateVMEvaluator extends Evaluator {
+  constructor() {
+    super();
+    this.vm = new IsolateVM();
+  }
+
+  evaluate(func, args, ret, interpolate, context, options) {
+    options = isObject(options) ? options : {noeval: options};
+    const component = args.component ? args.component : {key: 'unknown'};
+    if (!args.form && args.instance) {
+      args.form = get(args.instance, 'root._form', {});
+    }
+    const componentKey = component.key;
+    if (typeof func === 'object') {
+      return super.evaluate(func, args, ret, interpolate, context, options);
+    }
+    else if (typeof func === 'string') {
+      if (ret) {
+        func = `var ${ret};${func};${ret}`;
+      }
+
+      if (interpolate) {
+        func = this.interpolate(func, args, options);
+      }
+
+      try {
+        if (this.noeval || options.noeval) {
+          console.warn('No evaluations allowed for this renderer.');
+          return null;
+        }
+        else {
+          return this.vm.evaluateSync(func, args);
+        }
+      }
+      catch (err) {
+        console.warn(`An error occured within the custom function for ${componentKey}`, err);
+        return null;
+      }
+    }
+  }
+}
+
+module.exports = {IsolateVMEvaluator};

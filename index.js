@@ -11,10 +11,10 @@ const events = require('events');
 const nunjucks = require('nunjucks');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
-const {IsolateVM} = require('@formio/vm');
+const {setEvaluator} = require('@formio/core');
 
 const util = require('./src/util/util');
-const path = require('path');
+const {IsolateVMEvaluator} = require('./src/util/IsolateVMEvaluator');
 
 mongoose.Promise = global.Promise;
 const router = express.Router();
@@ -26,6 +26,9 @@ router.formio.mongoose = mongoose;
 
 // Use custom template delimiters.
 _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
+
+const evaluator = new IsolateVMEvaluator();
+setEvaluator(evaluator);
 
 // Allow custom configurations passed to the Form.IO server.
 module.exports = function(config) {
@@ -293,11 +296,6 @@ module.exports = function(config) {
           });
 
           require('./src/middleware/recaptcha')(router);
-
-          // Configure the VM
-          const bundle = await fs.readFile(path.resolve(__dirname, 'vm', 'default_bundle.js'), 'utf8');
-          router.formio.vm = new IsolateVM();
-          await router.formio.vm.init(bundle);
 
           // Say we are done.
           router.formio.db = mongoose.connection;
