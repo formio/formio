@@ -179,12 +179,12 @@ module.exports = function(config) {
         mongoConfig.tlsCAFile = config.mongoSA || config.mongoCA;
       }
 
-      if (config.mongoSSL) {
-        mongoConfig = {
-          ...mongoConfig,
-          ...config.mongoSSL,
-        };
-      }
+        if (config.mongoSSL) {
+          mongoConfig = {
+            ...mongoConfig,
+            ...config.mongoSSL,
+          };
+        }
 
         // ensure that ObjectIds are serialized as strings, opt out using {transorm: false} when calling
         // toObject() or toJSON() on a document or model. Note that opting out of transform when calling

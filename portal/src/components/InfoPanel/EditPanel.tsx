@@ -15,16 +15,16 @@ export const EditPanel = ({ type }: { type: "resource" | "form" }) => {
                     <div className="context-data edit-form active">
                         <div className="context-header">
                             <h2 className="strong">
-                                Editing{" "}
-                                <span className="item-type-label">{name}</span>s
+                                Self-Hosting With Form.io Enterprise{" "}
                             </h2>
                         </div>
                         <div className="context-expand">
                             <p>
-                                Add, edit, reorder, and remove{" "}
-                                <span className="item-type-label">{name}</span>{" "}
-                                components.
+                                Take greater control over your software development lifecycle through deploying as many environments as you need and giving you 100% control of your forms and data. This allows for the process and storing of sensitive data, scaling up for future usage, and upgrading the platform on your timelines. 90% of our customers self-host the Form.io platform in their own environment, including the enterprise developer portal application.
                             </p>
+                            <p>
+                                Form.io’s Enterprise offering includes many different features that make it easier to build and manage more complex form-centric applications. Capabilities available within the Enterprise offering are denoted by the Form.io logo.
+                            </p>          
                             <ul>
                                 <li className="enterprise">
                                     <span className="strong">

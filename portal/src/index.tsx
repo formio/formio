@@ -16,7 +16,8 @@ if (!el) {
 const root = createRoot(el);
 root.render(
     <StrictMode>
-        <FormioProvider Formio={Formio} baseUrl="http://localhost:3001">
+        {/* Since this portal is built to be hosted by the OSS Form.io server, we set baseUrl to a whitespace character to ensure that all calls to the API use relative URL paths */}
+        <FormioProvider Formio={Formio} baseUrl=" ">
             <InfoPanelProvider>
                 <App />
             </InfoPanelProvider>

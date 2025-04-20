@@ -45,7 +45,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-7344 Changed Rendering method tooltipt
  - FIO-8128: add additionalDeps hook to validation process
  - FIO-7299: Fix email action with the 'before' handler issues
- - FIO-8428: Fixes save submission action data transformation
  - FIO-7614 excluded review page component from the CSV file of the submission
  - FIO-7866: date time component with display in timezone of submission in data or edit grid issue fix
  - FIO-7001: new open source developer portal
@@ -63,79 +62,77 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - FIO-8431: fixed behavior of tagpad internal protected components
  - hotfix: update mongoose connection options
  - tlsCA to tls CAFile
- - FIO-8644 fixed hidden calculated fields on update submission
  - CHORE: upgrade mongodb driver dependency
- - FIO-9436-9437-9481: wait subSubmissions to load
  - CHORE: update error handling to not throw lock error
- - FIO-9483: fixed email action
- - FIO-9503: fixed nested form data not appearing in emails
  - FIO-9574-9576: fixed info panel on the new form page and fixed the info panels contact btn
  - FIO-9507 Update formio main branch
  - FIO-9578: fixed an issue where resource is created as a form in OSS portal
- - FIO-9499: Add test for email action with edit grid
  - FIO-9593: fixed actions docs link
  - FIO-9572: fixed help tooltip does not show any information in oss portal
  - FIO-9587: add resourcefields component shim for actions
  - FIO-9471: fixed the display of data for components inside layout components
  - FIO-9412: sanitize db connection strings
- - FIO-8868: fix issue with multi-instance race conditions during feature detection
  - Adding github jobs to support automated builds of Docker containers
+ - FIO-9727: Allow admin users to override created and modified dates when making POST/PUT requests to the submission endpoint
+ - FIO-9850: no longer hardcode baseUrl
+ - FIO-9814: fix problem with unique validation for email components
+ - FIO-9532: added tests for select component showing values instead of labels
+ - FIO-9771: make submission PATCH update the modified date
+ - HOTFIX: update mongodb and mongoose drivers, minor lint
+ - FIO-5868: Pass additional req parameter to validateSubmissionForm hook
+ - FIO-8547: removed deprecated Q library
+ - FIO-9701: fixed an issue where the form title is not updated on the edit page after form is saved/fixed unnecessary edit page redrawing
+ - FIO-9677: improved info panel text in OSS portal
+ - GH-1925: removed duplicate index creation
+ - Updates to Docker compose and docker deployments
+ - update CSS to un-break footer
 
-## 4.4.0-rc.8
+## 4.4.2-rc.2
 ### Changed
- - Updated @formio/vm@1.0.0-rc.9
- - Updated @formio/js@5.1.0-rc.7
+ - Updated @formio/vm@1.0.2-rc.3
+ - Updated @formio/js@5.1.2-rc.2
+ - FIO-8868: fix issue with multi-instance race conditions during feature detection
+
+## 4.4.1-rc.1
+### Changed
+ - Updated @formio/core@2.4.1-rc.1
+ - Updated @formio/vm@1.0.1-rc.1
+ - Updated @formio/js@5.1.1-rc.1
+ - FIO-8868: fix issue with multi-instance race conditions during feature detection
+
+## 4.4.0
+### Changed
+ - Official Release
+ - Updated @formio/core@2.4.0
+ - Updated @formio/vm@1.0.0
+ - Updated @formio/js@5.1.0
+ - FIO-9946: Fixing issues with data table submissions with columns and tables.
+ - FIO-9952: fixed components paths in  CSV export
+ - FIO-9919: update Save Submission action's transform
+ - FIO-8250: added test for input mask validation
+ - FIO-9789: update needless synchronous throttle to fix error handling in email action
+ - FIO-9436-9437-9481: wait subSubmissions to load
+ - Update ssl to TLS in mongo config
+ - FIO-9483: fixed email action
+ - FIO-8428: Fixes save submission action data transformation
+ - FIO-8644 fixed hidden calculated fields on update submission
+ - FIO-9499: Update to vm version including mocked NodeList obj
+ - FIO-9690: upgrade mongoose to 8.9.5
+ - Upgrade mongoose and mongodb to 8.x/6.x
+ - FIO-8428: Fixes save submission action data transformation
+ - FIO-9503: fixed nested form data not appearing in emails
+ - FIO-8644 fixed hidden calculated fields on update submission
+ - FIO-9499: Add test for email action with edit grid
+ - FIO-9499: Add test for email action with edit grid
  - FIO-9528: Fixes an issue where nested forms submissions are not preloaded and do not appear in the PDF downloads
  - FIO-9472: fixed nested component form values in CSV
-
-## 4.4.0-rc.7
-### Changed
- - Updated @formio/core@2.4.0-rc.5
- - Updated @formio/vm@1.0.0-rc.8
- - Updated @formio/js@5.1.0-rc.6
-
-### Changed
  - FIO-9471 fixed CSVExport for wizard forms
-   
-## 4.4.0-rc.6
-### Changed
- - Updated @formio/core@2.4.0-rc.4
- - Updated @formio/vm@1.0.0-rc.7
- - Updated @formio/js@5.1.0-rc.5
-
-## 4.4.0-rc.5
-### Changed
- - Updated @formio/core@2.4.0-rc.3
- - Updated @formio/vm@1.0.0-rc.6
- - Updated @formio/js@5.1.0-rc.3
-
-## 4.4.0-rc.4
-### Changed
- - Updated @formio/core@2.4.0-rc.2
- - Updated @formio/vm@1.0.0-rc.5
- - Updated @formio/js@5.1.0-rc.2
-
-## 4.4.0-rc.3
-### Changed
  - Upgrade 5.x renderer 
  - FIO-7964: Add resource-based select component validation
  - FIO-8343: Fixed the issue with dereferencing data table components
- 
-## 4.4.0-rc.2
-### Changed
- - Updated @formio/core@2.4.0-rc.1
- - Updated @formio/vm@1.0.0-rc.4
- - Updated @formio/js@5.1.0-rc.1
-
-## 4.4.0-rc.1
-### Changed
- - Updated formiojs@4.21.6-rc.2
- - Updated @formio/core@2.4.0-rc.1
- - Updated @formio/vm@0.4.0-rc.1
  - FIO-7080 Handled access for token
  - FIO-7835: eSignature
  - FIO-9308: Fixed an issue where nested forms that start with the same keys submit the wrong data.
- - Increment minor version
  - FIO-8450: Add test for custom error message for unique validation
 
 ## 4.3.0
