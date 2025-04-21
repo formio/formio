@@ -3,10 +3,6 @@
 const Resource = require('resourcejs');
 const async = require('async');
 const _ = require('lodash');
-const debug = {
-  error: require('debug')('formio:error'),
-  action: require('debug')('formio:action')
-};
 const util = require('../util/util');
 const moment = require('moment');
 const {
@@ -174,16 +170,11 @@ module.exports = (router) => {
      * @param next
      */
     async execute(handler, method, req, res, next) {
+      const logger = req.log.child({module: 'formio:action'});
       // Find the available actions.
       await this.search(handler, method, req, res, (err, actions) => {
         if (err) {
-          router.formio.log(
-            'Actions search fail',
-            req,
-            handler,
-            method,
-            err
-          );
+          logger.error({err, handler}, 'Actions search fail');
           return next(err);
         }
 
@@ -193,8 +184,7 @@ module.exports = (router) => {
               return cb();
             }
             // Resolve the action.
-            router.formio.log('Action', req, handler, method, action.name, action.title);
-
+            logger.info({handler, actionName: action.name, actionTitle: action.title});
             hook.alter('logAction', req, res, action, handler, method, (err, logAction) => {
               if (err) {
                 return cb(err);
@@ -213,7 +203,7 @@ module.exports = (router) => {
           });
         }, (err) => {
           if (err) {
-            router.formio.log('Actions execution fail', req, handler, method, err);
+            logger.error({err, handler}, 'Actions execution fail');
             return next(err);
           }
 
@@ -223,6 +213,7 @@ module.exports = (router) => {
     },
 
     async shouldExecute(action, req, res) {
+      const httpLogger = req.log.child({module: 'formio:action'});
       const condition = action.condition;
       if (!condition) {
         return true;
@@ -273,12 +264,7 @@ module.exports = (router) => {
           return result;
         }
         catch (err) {
-          router.formio.log(
-            'Error during executing action custom logic',
-            req,
-            err.message || err
-          );
-          debug.error(err.message || err);
+          httpLogger.error({err: err.message || err}, 'Error during executing action custom logic');
           return false;
         }
       }
@@ -290,12 +276,12 @@ module.exports = (router) => {
         const eq = condition.eq || '';
         const value = String(await getComponentValueFromRequest(req, res, field));
         const compare = String(condition.value || '');
-        debug.action(
-          '\nfield', field,
-          '\neq', eq,
-          '\nvalue', value,
-          '\ncompare', compare
-        );
+        httpLogger.info({
+          field,
+          eq,
+          value,
+          compare
+        });
 
         // Cancel the action if the field and eq aren't set, in addition to the value not being the same as compare.
         return (eq === 'equals') ===
@@ -707,12 +693,7 @@ module.exports = (router) => {
       return await router.formio.cache.loadSubmission(req, req.body.form, req.body._id,);
     }
     catch (err) {
-      router.formio.log(
-        'Error during executing action custom logic',
-        req,
-        err
-      );
-      debug.error(err);
+      req.log.error({module: 'formio:action', err}, 'Error during executing action custom logic');
       return false;
     }
   }
@@ -731,6 +712,7 @@ module.exports = (router) => {
 
   // Return a list of available actions.
   router.get('/form/:formId/actions', (req, res, next) => {
+    const httpLogger = req.log.child({module: 'formio:action'});
     const result = [];
 
     // Add an action to the results array.
@@ -750,7 +732,7 @@ module.exports = (router) => {
     async.eachSeries(_.values(ActionIndex.actions), (action, callback) => {
       action.info(req, res, (err, info) => {
         if (err) {
-          router.formio.log('Error, can\'t get action info', req, err);
+          httpLogger.error(err, 'Error, can\'t get action info');
           return callback(err);
         }
         if (!info || (info.name === 'default')) {
@@ -762,7 +744,7 @@ module.exports = (router) => {
       });
     }, (err) => {
       if (err) {
-        router.formio.log('Error during actions info parsing', req, err);
+        httpLogger.error(err, 'Error during actions info parsing');
         return next(err);
       }
 
@@ -772,6 +754,7 @@ module.exports = (router) => {
 
   // Return a list of available actions.
   router.get('/form/:formId/actions/:name', (req, res, next) => {
+    const httpLogger = req.log.child({module: 'formio:action'});
     const action = ActionIndex.actions[req.params.name];
     if (!action) {
       return res.status(400).send('Action not found');
@@ -779,7 +762,7 @@ module.exports = (router) => {
 
     action.info(req, res, async (err, info) => {
       if (err) {
-        router.formio.log('Error, can\'t get action info', req, err);
+        httpLogger.error(err, 'Error, can\'t get action info');
         return next(err);
       }
 
@@ -796,13 +779,13 @@ module.exports = (router) => {
           settings = await getSettingsForm(info, req);
         }
         catch (err) {
-          router.formio.log('Error, can\'t get action settings', req, err);
+          httpLogger.error(err, 'Error, can\'t get action settings');
           return res.status(400).send(err);
         }
 
           action.settingsForm(req, res, (err, settingsForm) => {
             if (err) {
-              router.formio.log('Error, can\'t get form settings', req, err);
+              httpLogger.error(err, 'Error, can\'t get form settings');
               return next(err);
             }
 
@@ -820,8 +803,8 @@ module.exports = (router) => {
             res.json(info);
         });
       }
-      catch (e) {
-        debug.error(e);
+      catch (err) {
+        req.log.error({module: 'formio:action', err});
         return res.sendStatus(400);
       }
     });

@@ -11,9 +11,9 @@ const _ = require('lodash');
 const events = require('events');
 const nunjucks = require('nunjucks');
 const util = require('./src/util/util');
-const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
 const {configureVm} = require('@formio/vm');
+const {logger} = require('@formio/logger');
 
 // Keep track of the formio interface.
 router.formio = {};
@@ -40,14 +40,6 @@ module.exports = function(config) {
   // Allow events to be triggered.
   router.formio.events = new events.EventEmitter();
   router.formio.config.schema = require('./package.json').schema;
-
-  router.formio.log = (event, req, ...info) => {
-    const result = router.formio.hook.alter('log', event, req, ...info);
-
-    if (result) {
-      log(event, ...info);
-    }
-  };
 
   router.formio.audit = (event, req, ...info) => {
     if (config.audit) {
@@ -195,7 +187,7 @@ module.exports = function(config) {
         const connectToMongoDB = async () => {
         try {
           await mongoose.connect(mongoUrl, mongoConfig);
-          util.log(' > Mongo connection established.');
+          logger.info({module: 'formio:db'}, ' > Mongo connection established.');
 
           // Load the BaseModel.
           router.formio.BaseModel = require('./src/models/BaseModel');
@@ -255,6 +247,7 @@ module.exports = function(config) {
               );
             }
             catch (err) {
+              req.log.error({module: 'formio:db', err});
               return next(err);
             }
           });
@@ -310,7 +303,7 @@ module.exports = function(config) {
           return router.formio;
         }
         catch (err) {
-          util.log(err.message);
+          logger.error({module: 'formio:db'}, err.message);
           throw err.message;
         }
         };
@@ -336,7 +329,7 @@ module.exports = function(config) {
     // Run the healthCheck sanity check on /health
     /* eslint-disable max-statements */
     const db = await router.formio.update.initialize();
-    util.log('Initializing API Server.');
+    logger.info({module: 'formio:initialization'}, 'Initializing API Server.');
     // Add the database connection to the router.
     router.formio.db = db;
 

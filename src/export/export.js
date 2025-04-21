@@ -4,7 +4,6 @@ const exporters = require('.');
 const _ = require('lodash');
 const through = require('through');
 const ResourceFactory = require('resourcejs');
-const debug = require('debug')('formio:error');
 
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
@@ -22,6 +21,7 @@ module.exports = (router) => {
 
   // Mount the export endpoint using the url.
   router.get('/form/:formId/export', async (req, res, next) => {
+    const logger = req.log.child({module: 'formio:export'});
     if (!req.isAdmin && !_.has(req, 'token.user._id')) {
       return res.sendStatus(400);
     }
@@ -50,8 +50,7 @@ module.exports = (router) => {
           query = JSON.parse(req.headers['x-query']);
         }
         catch (e) {
-          debug(e);
-          router.formio.util.log(e);
+          logger.error(e);
         }
       }
       else {
@@ -168,7 +167,7 @@ module.exports = (router) => {
                           .then(res => newData[key] = {data: res});
                       })
                       .catch((error) => {
-                        debug(error);
+                        logger.error(error);
                         newData[key] = field;
                       })
                   );
@@ -212,8 +211,7 @@ module.exports = (router) => {
             }), {end: false});
             // If the DB cursor throws an error, send the error.
             cursor.on('error', (error) => {
-              debug(error);
-              router.formio.util.log(error);
+              logger.error(error);
               next(error);
             });
             // When the DB cursor ends, allow the output stream a tick to perform the last write,

@@ -2,6 +2,7 @@
 
 const async = require('async');
 const util = require('../util/util');
+const {logger} = require('@formio/logger');
 
 /**
  * Install script.
@@ -10,7 +11,7 @@ const util = require('../util/util');
  * update is expecting.
  */
 module.exports = function(db, config, next) {
-  util.log(' > Performing install.');
+  logger.info({module: 'formio:db'}, '> Performing install.');
 
   async.parallel([
     async function() {

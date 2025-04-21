@@ -12,6 +12,8 @@ require('colors');
 const cors = require('cors');
 const test = process.env.TEST_SUITE;
 const noInstall = process.env.NO_INSTALL;
+const {httpLogger, logger} = require('@formio/logger');
+const installLogger = logger.child({module: 'formio:install'});
 
 module.exports = function(options) {
   options = options || {};
@@ -39,6 +41,7 @@ module.exports = function(options) {
 
   // Use the express application.
   const app = options.app || express();
+  app.use(httpLogger);
 
   // Use the given config.
   const config = options.config || require('config');
@@ -86,7 +89,7 @@ module.exports = function(options) {
       return true;
     })
     .catch(err => {
-      util.log(err.message);
+      installLogger.error(err.message);
     });
   };
 
@@ -95,7 +98,7 @@ module.exports = function(options) {
       require('./install')(formio, install, (err) => {
         if (err) {
           if (err === 'Installation canceled.') {
-            util.log(err.message);
+            installLogger.error(err.message);
             return resolve();
           }
           return reject(new Error(`Installation failed: ${err.message}`));

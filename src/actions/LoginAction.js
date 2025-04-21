@@ -2,16 +2,11 @@
 
 const _ = require('lodash');
 
-const LOG_EVENT = 'Login Action';
-
 module.exports = (router) => {
   const Action = router.formio.Action;
   const hook = require('../util/hook')(router.formio);
-  const debug = require('debug')('formio:action:login');
   const ecode = router.formio.util.errorCodes;
-  const logOutput = router.formio.log || debug;
   const audit = router.formio.audit || (() => {});
-  const log = (...args) => logOutput(LOG_EVENT, ...args);
 
   /**
    * AuthAction class.
@@ -225,7 +220,7 @@ module.exports = (router) => {
       }
       catch (err) {
         if (err) {
-          log(req, ecode.auth.ELOGINCOUNT, err);
+          req.log.error({module: 'formio:action:login', err}, ecode.emailer.ELOGINCOUNT);
           return next(ecode.auth.ELOGINCOUNT);
         }
 
@@ -249,6 +244,7 @@ module.exports = (router) => {
      *   The callback function to execute upon completion.
      */
     resolve(handler, method, req, res, next) {
+      const httpLogger = req.log.child({module: 'formio:action:login'});
       // Some higher priority action has decided to skip authentication
       if (req.skipAuth) {
         return next();
@@ -278,7 +274,7 @@ module.exports = (router) => {
         (err, response) => {
           if (err && !response) {
             audit('EAUTH_NOUSER', req, _.get(req.submission.data, this.settings.username));
-            log(req, ecode.auth.EAUTH, err);
+            httpLogger(err, ecode.auth.EAUTH);
             return res.status(401).send(err);
           }
 
@@ -286,7 +282,7 @@ module.exports = (router) => {
           this.checkAttempts(err, req, response.user, async (error) => {
             if (error) {
               audit('EAUTH_LOGINCOUNT', req, _.get(req.submission.data, this.settings.username));
-              log(req, ecode.auth.EAUTH, error);
+              httpLogger.error(error, ecode.auth.EAUTH);
               return res.status(401).send(error);
             }
 
@@ -304,7 +300,7 @@ module.exports = (router) => {
               hook.alter('oAuthResponse', req, res, () => {
                 router.formio.auth.currentUser(req, res, (err) => {
                   if (err) {
-                    log(req, ecode.auth.EAUTH, err);
+                    httpLogger.error(err, ecode.auth.EAUTH);
                     return res.status(401).send(err.message);
                   }
                   hook.alter('currentUserLoginAction', req, res);
