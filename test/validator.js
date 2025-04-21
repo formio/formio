@@ -100,6 +100,177 @@ module.exports = function(app, template, hook) {
                     key: 'textField',
                     type: 'textfield',
                     input: true
+                  },
+                  {
+                    "label": "Columns",
+                    "columns": [
+                      {
+                        "components": [
+                          {
+                            "label": "Text Field",
+                            "applyMaskOn": "change",
+                            "tableView": true,
+                            "validateWhenHidden": false,
+                            "key": "textFieldColumn",
+                            "type": "textfield",
+                            "input": true
+                          }
+                        ],
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
+                      },
+                      {
+                        "components": [
+                          {
+                            "label": "Text Area",
+                            "applyMaskOn": "change",
+                            "autoExpand": false,
+                            "tableView": true,
+                            "validateWhenHidden": false,
+                            "key": "textAreaColumn",
+                            "type": "textarea",
+                            "input": true
+                          }
+                        ],
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
+                      }
+                    ],
+                    "key": "columns",
+                    "type": "columns",
+                    "input": false,
+                    "tableView": false
+                  },
+                  {
+                    "label": "Table",
+                    "cellAlignment": "left",
+                    "key": "table",
+                    "type": "table",
+                    "input": false,
+                    "tableView": false,
+                    "rows": [
+                      [
+                        {
+                          "components": [
+                            {
+                              "label": "A",
+                              "applyMaskOn": "change",
+                              "mask": false,
+                              "tableView": false,
+                              "delimiter": false,
+                              "requireDecimal": false,
+                              "inputFormat": "plain",
+                              "truncateMultipleSpaces": false,
+                              "validateWhenHidden": false,
+                              "key": "a",
+                              "type": "number",
+                              "input": true
+                            }
+                          ]
+                        },
+                        {
+                          "components": [
+                            {
+                              "label": "B",
+                              "applyMaskOn": "change",
+                              "mask": false,
+                              "tableView": false,
+                              "delimiter": false,
+                              "requireDecimal": false,
+                              "inputFormat": "plain",
+                              "truncateMultipleSpaces": false,
+                              "validateWhenHidden": false,
+                              "key": "b",
+                              "type": "number",
+                              "input": true
+                            }
+                          ]
+                        },
+                        {
+                          "components": [
+                            {
+                              "label": "C",
+                              "applyMaskOn": "change",
+                              "mask": false,
+                              "tableView": false,
+                              "delimiter": false,
+                              "requireDecimal": false,
+                              "inputFormat": "plain",
+                              "truncateMultipleSpaces": false,
+                              "validateWhenHidden": false,
+                              "key": "c",
+                              "type": "number",
+                              "input": true
+                            }
+                          ]
+                        }
+                      ],
+                      [
+                        {
+                          "components": [
+                            {
+                              "label": "D",
+                              "applyMaskOn": "change",
+                              "mask": false,
+                              "tableView": false,
+                              "delimiter": false,
+                              "requireDecimal": false,
+                              "inputFormat": "plain",
+                              "truncateMultipleSpaces": false,
+                              "validateWhenHidden": false,
+                              "key": "d",
+                              "type": "number",
+                              "input": true
+                            }
+                          ]
+                        },
+                        {
+                          "components": [
+                            {
+                              "label": "E",
+                              "applyMaskOn": "change",
+                              "mask": false,
+                              "tableView": false,
+                              "delimiter": false,
+                              "requireDecimal": false,
+                              "inputFormat": "plain",
+                              "truncateMultipleSpaces": false,
+                              "validateWhenHidden": false,
+                              "key": "e",
+                              "type": "number",
+                              "input": true
+                            }
+                          ]
+                        },
+                        {
+                          "components": [
+                            {
+                              "label": "F",
+                              "applyMaskOn": "change",
+                              "mask": false,
+                              "tableView": false,
+                              "delimiter": false,
+                              "requireDecimal": false,
+                              "inputFormat": "plain",
+                              "truncateMultipleSpaces": false,
+                              "validateWhenHidden": false,
+                              "key": "f",
+                              "type": "number",
+                              "input": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    "numRows": 2
                   }
                 ]
               }
@@ -240,6 +411,18 @@ module.exports = function(app, template, hook) {
             {
               path: 'container.textField',
               key: 'container.textField'
+            },
+            {
+              path: 'container.textFieldColumn',
+              key: 'container.textFieldColumn'
+            },
+            {
+              path: 'container.a',
+              key: 'container.a'
+            },
+            {
+              path: 'container.b',
+              key: 'container.b'
             }
           ],
           dataSrc: 'resource',
@@ -277,6 +460,106 @@ module.exports = function(app, template, hook) {
                       key: 'textField',
                       type: 'textfield',
                       input: true
+                    },
+                    {
+                      "label": "Columns",
+                      "columns": [
+                        {
+                          "components": [
+                            {
+                              "label": "Text Field",
+                              "applyMaskOn": "change",
+                              "tableView": true,
+                              "validateWhenHidden": false,
+                              "key": "textFieldColumn",
+                              "type": "textfield",
+                              "input": true
+                            }
+                          ],
+                          "width": 6,
+                          "offset": 0,
+                          "push": 0,
+                          "pull": 0,
+                          "size": "md",
+                          "currentWidth": 6
+                        },
+                        {
+                          "components": [],
+                          "width": 6,
+                          "offset": 0,
+                          "push": 0,
+                          "pull": 0,
+                          "size": "md",
+                          "currentWidth": 6
+                        }
+                      ],
+                      "key": "columns",
+                      "type": "columns",
+                      "input": false,
+                      "tableView": false
+                    },
+                    {
+                      "label": "Table",
+                      "cellAlignment": "left",
+                      "key": "table",
+                      "type": "table",
+                      "input": false,
+                      "tableView": false,
+                      "rows": [
+                        [
+                          {
+                            "components": [
+                              {
+                                "label": "A",
+                                "applyMaskOn": "change",
+                                "mask": false,
+                                "tableView": false,
+                                "delimiter": false,
+                                "requireDecimal": false,
+                                "inputFormat": "plain",
+                                "truncateMultipleSpaces": false,
+                                "validateWhenHidden": false,
+                                "key": "a",
+                                "type": "number",
+                                "input": true
+                              }
+                            ]
+                          },
+                          {
+                            "components": [
+                              {
+                                "label": "B",
+                                "applyMaskOn": "change",
+                                "mask": false,
+                                "tableView": false,
+                                "delimiter": false,
+                                "requireDecimal": false,
+                                "inputFormat": "plain",
+                                "truncateMultipleSpaces": false,
+                                "validateWhenHidden": false,
+                                "key": "b",
+                                "type": "number",
+                                "input": true
+                              }
+                            ]
+                          },
+                          {
+                            "components": []
+                          }
+                        ],
+                        [
+                          {
+                            "components": []
+                          },
+                          {
+                            "components": []
+                          },
+                          {
+                            "components": []
+                          }
+                        ]
+                      ],
+                      "numRows": 2
                     }
                   ]
                 }
