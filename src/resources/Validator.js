@@ -131,7 +131,7 @@ class InstanceShim {
         util: FormioCore.Utils,
         utils: FormioCore.Utils,
       };
-      const defaultValue = FormioCore.JSONLogicEvaluator.evaluate(
+      const defaultValue = FormioCore.Evaluator.evaluate(
         this.component.customDefaultValue,
         evaluationContext,
         "value"
@@ -290,7 +290,6 @@ class Validator {
     this.submissionModel = req.submissionModel || formio.resources.submission.model;
     this.submissionResource = formio.resources.submission;
     this.cache = formio.cache;
-    this.vm = formio.vm;
     this.formModel = formio.resources.form.model;
     this.tokenModel = formio.mongoose.models.token;
     this.form = req.currentForm;

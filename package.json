@@ -9,7 +9,7 @@
     "start": "node --no-node-snapshot main.js",
     "start:dev": "nodemon --no-node-snapshot main.js",
     "lint": "eslint .",
-    "build:vm": "webpack --config vm/webpack.vm.config.js",
+    "build:vm": "webpack --config src/vm/webpack.vm.config.js",
     "build:portal": "cd portal && yarn && yarn build && cd ..",
     "show-coverage": "open coverage/lcov-report/index.html"
   },
@@ -54,6 +54,7 @@
     "mongoose": "^8.11.0",
     "nanoid": "3",
     "nodemailer": "^6.8.0",
+    "nunjucks": "^3.2.4",
     "progress": "^2.0.3",
     "prompt": "^1.3.0",
     "q": "^1.5.0",

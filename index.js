@@ -11,7 +11,7 @@ const events = require('events');
 const nunjucks = require('nunjucks');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
-const {setEvaluator} = require('@formio/core');
+const {registerEvaluator} = require('@formio/core');
 
 const util = require('./src/util/util');
 const {IsolateVMEvaluator} = require('./src/util/IsolateVMEvaluator');
@@ -26,9 +26,6 @@ router.formio.mongoose = mongoose;
 
 // Use custom template delimiters.
 _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
-
-const evaluator = new IsolateVMEvaluator();
-setEvaluator(evaluator);
 
 // Allow custom configurations passed to the Form.IO server.
 module.exports = function(config) {
@@ -64,6 +61,10 @@ module.exports = function(config) {
       }
     }
   };
+
+  // Configure the evaluator
+  const evaluator = new IsolateVMEvaluator({timeoutMs: config.vmTimeout});
+  registerEvaluator(evaluator);
 
   /**
    * Initialize the formio server.

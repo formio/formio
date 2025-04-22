@@ -1,4 +1,3 @@
-/* eslint-disable curly */
 'use strict';
 
 /**

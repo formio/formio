@@ -1,12 +1,13 @@
 'use strict';
-const {Evaluator} = require('@formio/core');
+const {DefaultEvaluator} = require('@formio/core');
 const {IsolateVM} = require('@formio/vm');
 const {isObject, get} = require('lodash');
+const {defaultBundle} = require('../vm');
 
-class IsolateVMEvaluator extends Evaluator {
-  constructor() {
-    super();
-    this.vm = new IsolateVM();
+class IsolateVMEvaluator extends DefaultEvaluator {
+  constructor(options) {
+    super(options);
+    this.vm = new IsolateVM({env: defaultBundle});
   }
 
   evaluate(func, args, ret, interpolate, context, options) {

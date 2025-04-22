@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const async = require('async');
+const {IsolateVM} = require('@formio/vm');
 const util = require('../util/util');
 const LOG_EVENT = 'Save Submission Action';
 
@@ -12,6 +13,8 @@ module.exports = function(router) {
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug;
   const log = (...args) => logOutput(LOG_EVENT, ...args);
+  const config = router.formio.config;
+  const SaveSubmissionVM = new IsolateVM({timeoutMs: config.vmTimeout});
 
   class SaveSubmission extends Action {
     static info(req, res, next) {
@@ -202,13 +205,13 @@ module.exports = function(router) {
 
         if (this.settings.transform) {
           try {
-            const newData = await router.formio.vm.evaluate({
-              code: `data=submission.data;\n${this.settings.transform}\ndata;`,
-              data: {
-                submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
-                data: submission.data,
+            const newData = await SaveSubmissionVM.evaluate(
+              `data=submission.data;\n${this.settings.transform}\ndata;`,
+              {
+                  submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
+                  data: submission.data,
               },
-            });
+            );
             submission.data = newData;
             req.isTransformedData = true;
           }

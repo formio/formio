@@ -3,14 +3,13 @@
 const Resource = require('resourcejs');
 const async = require('async');
 const _ = require('lodash');
+const moment = require('moment');
 const debug = {
   error: require('debug')('formio:error'),
   action: require('debug')('formio:action')
 };
 const util = require('../util/util');
-const moment = require('moment');
-const {evaluate} = require('@formio/vm');
-const promisify = require('util').promisify;
+const {IsolateVM} = require('@formio/vm');
 const {
   ConditionOperators,
   filterComponentsForConditionComponentFieldOptions,
@@ -21,16 +20,19 @@ const {
   rootLevelProperties,
   rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
+const {defaultBundle} = require('../vm');
 
 /**
  * The ActionIndex export.
- *
- * @param router
- *
- * @returns {{actions: {}, register: Function, search: Function, execute: Function}}
- */
+*
+* @param router
+*
+* @returns {{actions: {}, register: Function, search: Function, execute: Function}}
+*/
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
+  const config = router.formio.config;
+  const ConditionalActionsVM = new IsolateVM({env: defaultBundle, timeoutMs: config.vmTimeout});
 
   /**
    * Create the ActionIndex object.
@@ -256,20 +258,19 @@ module.exports = (router) => {
             _
           }, req);
 
-          const result = await router.formio.vm.evaluate({
-            code: json ?
+          const result = await ConditionalActionsVM.evaluate(
+            json ?
               `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
               condition.custom,
-            data: {
+            {
               execute: params.execute,
               query: params.query,
               data: params.data,
               form: params.form,
               submission: params.submission,
               previous: params.previous,
-            },
-          });
-
+            }
+          );
           return result;
         }
         catch (err) {
@@ -565,7 +566,7 @@ module.exports = (router) => {
                             const rootLevelProperties = ${JSON.stringify(rootLevelPropertiesOperatorsByPath)};
                             const isRootLevelProperty = row.component &&
                               row.component.startsWith &&
-                              row.component.startsWith('(submission).'); 
+                              row.component.startsWith('(submission).');
                             const conditionComponent = formComponents[row.component];
                             let componentType = conditionComponent ? conditionComponent.type : 'base';
                             if (isRootLevelProperty) {

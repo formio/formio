@@ -2,7 +2,7 @@ test/*
 app/*
 client/*
 src/db/updates/*
-vm/*
+src/vm/bundles/*
 node_modules/*
 bower_components/*
 portal/*

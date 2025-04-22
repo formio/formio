@@ -9,18 +9,17 @@ const deleteProp = require('delete-property').default;
 const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
 const {mockBrowserContext} = require('@formio/vm');
+mockBrowserContext();
+const Formio = require('@formio/js');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
 
-mockBrowserContext();
-const FormioCore = require('@formio/core');
-
 const Utils = {
-  Formio: FormioCore.Formio,
-  FormioUtils: FormioCore.Utils,
+  Formio: Formio.Formio,
+  FormioUtils: Formio.Utils,
   deleteProp: deleteProp,
 
   /**
@@ -196,7 +195,7 @@ const Utils = {
    *   Whether or not to include layout components.
    * @param {String} path
    */
-  eachComponent: FormioCore.Utils.eachComponent.bind(FormioCore.Utils),
+  eachComponent: Formio.Utils.eachComponent.bind(Formio.Utils),
 
   /**
    * Get a component by its key
@@ -209,7 +208,7 @@ const Utils = {
    * @returns {Object}
    *   The component that matches the given key, or undefined if not found.
    */
-  getComponent: FormioCore.Utils.getComponent.bind(FormioCore.Utils),
+  getComponent: Formio.Utils.getComponent.bind(Formio.Utils),
 
   /**
    * Define if component should be considered input component
@@ -220,7 +219,7 @@ const Utils = {
    * @returns {Boolean}
    *   If component is input or not
    */
-  // isInputComponent: FormioCore.Utils.isInputComponent.bind(FormioCore.Utils),
+  isInputComponent: Formio.Utils.isInputComponent.bind(Formio.Utils),
 
   /**
    * Flatten the form components for data manipulation.
@@ -233,7 +232,7 @@ const Utils = {
    * @returns {Object}
    *   The flattened components map.
    */
-  flattenComponents: FormioCore.Utils.flattenComponents.bind(FormioCore.Utils),
+  flattenComponents: Formio.Utils.flattenComponents.bind(Formio.Utils),
 
   /**
    * Get the value for a component key, in the given submission.
@@ -243,7 +242,7 @@ const Utils = {
    * @param {String} key
    *   A for components API key to search for.
    */
-  getValue: FormioCore.Utils.getValue.bind(FormioCore.Utils),
+  getValue: Formio.Utils.getValue.bind(Formio.Utils),
 
   /**
    * Determine if a component is a layout component or not.
@@ -254,7 +253,7 @@ const Utils = {
    * @returns {Boolean}
    *   Whether or not the component is a layout component.
    */
-  isLayoutComponent: FormioCore.Utils.isLayoutComponent.bind(FormioCore.Utils),
+  isLayoutComponent: Formio.Utils.isLayoutComponent.bind(Formio.Utils),
 
   /**
    * Apply JSON logic functionality.
@@ -263,7 +262,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  jsonLogic: FormioCore.Utils.jsonLogic,
+  jsonLogic: Formio.Utils.jsonLogic,
 
   /**
    * Check if the condition for a component is true or not.
@@ -272,7 +271,7 @@ const Utils = {
    * @param row
    * @param data
    */
-  // checkCondition: FormioCore.Utils.checkCondition.bind(FormioCore.Utils),
+  checkCondition: Formio.Utils.checkCondition.bind(Formio.Utils),
 
   /**
    * Return the objectId.
