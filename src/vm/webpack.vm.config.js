@@ -5,10 +5,10 @@ const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = {
   mode: "production",
-  entry: path.resolve(__dirname, "default_entry.js"),
+  entry: path.resolve(__dirname, "entries/default_entry.js"),
   output: {
     filename: "default_bundle.js",
-    path: __dirname,
+    path: path.resolve(__dirname, "bundles"),
     library: {
       type: "global",
     },
