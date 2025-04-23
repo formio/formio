@@ -126,8 +126,8 @@ export const FormActions = ({ formId, limit }: { formId: string; limit?: number 
         console.warn("Can't edit action without submit button");
         return;
       }
-      submitButton.action = 'event';
-      submitButton.event = 'updateAction';
+      (submitButton as ButtonComponent).action = 'event';
+      (submitButton as ButtonComponent).event = 'updateAction';
       setActiveAction({
         form: settingsForm,
         title: action.title,
