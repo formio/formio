@@ -1,4 +1,6 @@
+/* eslint-disable max-depth */
 /* global nunjucks, moment */
+'use strict';
 /**
  * nunjucks-date-filter
  * https://github.com/piwi/nunjucks-date-filter
@@ -22,21 +24,25 @@ function dateFilter(date, format) {
     Array.prototype.push.apply(args, arguments);
     try {
         obj = moment.utc(date);
-    } catch (err) {
+    }
+    catch (err) {
         errs.push(err);
     }
     if (obj) {
         try {
             if (obj[format] && nlib.isFunction(obj[format])) {
                 result = obj[format].apply(obj, args.slice(2));
-            } else {
+            }
+            else {
                 if (dateFilterDefaultFormat !== null) {
                     result = obj.format(format || dateFilterDefaultFormat);
-                } else {
+                }
+                else {
                     result = obj.format(format);
                 }
             }
-        } catch (err) {
+        }
+        catch (err) {
             errs.push(err);
         }
     }
@@ -47,11 +53,11 @@ function dateFilter(date, format) {
     return result;
 }
 
-dateFilter.setDefaultFormat = function (format) {
+dateFilter.setDefaultFormat = function(format) {
     dateFilterDefaultFormat = format;
 };
-dateFilter.install = function (env, customName) {
+dateFilter.install = function(env, customName) {
     (env || nunjucks.configure()).addFilter(customName || 'date', dateFilter);
 };
 
-dateFilter;
+module.exports = {dateFilter};
