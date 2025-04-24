@@ -2,12 +2,12 @@
 const {DefaultEvaluator} = require('@formio/core');
 const {IsolateVM} = require('@formio/vm');
 const {isObject, get} = require('lodash');
-const {defaultBundle} = require('../vm');
+const {CORE_LODASH_MOMENT_INPUTMASK} = require('../vm');
 
 class IsolateVMEvaluator extends DefaultEvaluator {
   constructor(options) {
     super(options);
-    this.vm = new IsolateVM({env: defaultBundle});
+    this.vm = new IsolateVM({env: CORE_LODASH_MOMENT_INPUTMASK});
   }
 
   evaluate(func, args, ret, interpolate, context, options) {

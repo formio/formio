@@ -604,7 +604,7 @@ class Validator {
       };
 
       const scope = FormioCore.processSync(submissionContext);
-      const data = context.data;
+      const data = submissionContext.data;
 
       context.scope = scope;
       submission.data = data;

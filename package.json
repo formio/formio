@@ -20,7 +20,7 @@
   "schema": "3.1.4",
   "templateVersion": "2.0.0",
   "dependencies": {
-    "@formio/core": "2.4.0-dev.245.3d53057",
+    "@formio/core": "2.4.0-dev.245.b457894",
     "@formio/js": "5.1.0-dev.6102.8eddaab",
     "@formio/node-fetch-http-proxy": "^1.1.0",
     "@formio/vm": "1.0.0-dev.58.b77f20f",
@@ -45,6 +45,7 @@
     "fs-extra": "^10.1.0",
     "html-entities": "^2.3.3",
     "inputmask": "^5.0.9",
+    "jsdom": "^26.1.0",
     "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
     "memory-cache": "^0.2.0",

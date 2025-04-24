@@ -14,7 +14,7 @@ const gc = require('expose-gc/function');
 const {registerEvaluator} = require('@formio/core');
 
 const util = require('./src/util/util');
-const {IsolateVMEvaluator} = require('./src/util/IsolateVMEvaluator');
+const {IsolateVMEvaluator} = require('./src/vm');
 
 mongoose.Promise = global.Promise;
 const router = express.Router();
