@@ -60,4 +60,4 @@ dateFilter.install = function(env, customName) {
     (env || nunjucks.configure()).addFilter(customName || 'date', dateFilter);
 };
 
-dateFilter;
+module.exports = {dateFilter};
