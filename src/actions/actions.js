@@ -20,7 +20,7 @@ const {
   rootLevelProperties,
   rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
-const {defaultBundle} = require('../vm');
+const {CORE_LODASH_MOMENT_INPUTMASK} = require('../vm');
 
 /**
  * The ActionIndex export.
@@ -32,7 +32,7 @@ const {defaultBundle} = require('../vm');
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
   const config = router.formio.config;
-  const ConditionalActionsVM = new IsolateVM({env: defaultBundle, timeoutMs: config.vmTimeout});
+  const ConditionalActionsVM = new IsolateVM({env: CORE_LODASH_MOMENT_INPUTMASK, timeoutMs: config.vmTimeout});
 
   /**
    * Create the ActionIndex object.

@@ -5,9 +5,12 @@ const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = {
   mode: "production",
-  entry: path.resolve(__dirname, "entries/default_entry.js"),
+  entry: {
+    'core-lodash-moment-inputmask': path.resolve(__dirname, 'entries/core-lodash-moment-inputmask.js'),
+    'core-lodash-moment-inputmask-nunjucks': path.resolve(__dirname, 'entries/core-lodash-moment-inputmask-nunjucks.js')
+  },
   output: {
-    filename: "default_bundle.js",
+    filename: "[name].js",
     path: path.resolve(__dirname, "bundles"),
     library: {
       type: "global",

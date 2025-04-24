@@ -2090,8 +2090,6 @@ module.exports = (app, template, hook) => {
           .set('x-jwt-token', template.users.admin.token)
           .send(submission);
 
-
-
         await wait(1800);
 
         assert(emailSent)

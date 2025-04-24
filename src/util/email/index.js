@@ -9,14 +9,15 @@ const debug = {
   nunjucksInjector: require('debug')('formio:email:nunjucksInjector')
 };
 const fetch = require('@formio/node-fetch-http-proxy');
-const util = require('./util');
+const {IsolateVM} = require('@formio/vm');
 const _ = require('lodash');
-const {renderEmail} = require('@formio/vm');
+const {renderEmail} = require('./renderEmail');
+const util = require('../util');
+const {CORE_LODASH_MOMENT_INPUTMASK_NUNJUCKS} = require('../../vm');
 
 const DEFAULT_TRANSPORT = process.env.DEFAULT_TRANSPORT;
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
 const EMAIL_CHUNK_SIZE = process.env.EMAIL_CHUNK_SIZE || 100;
-const NON_PRIORITY_QUEUE_TIMEOUT = process.env.NON_PRIORITY_QUEUE_TIMEOUT || 1000;
 
 /**
  * The email sender for emails.
@@ -24,7 +25,9 @@ const NON_PRIORITY_QUEUE_TIMEOUT = process.env.NON_PRIORITY_QUEUE_TIMEOUT || 100
  * @returns {{send: Function}}
  */
 module.exports = (formio) => {
-  const hook = require('./hook')(formio);
+  const hook = require('../hook')(formio);
+  const config = formio.config;
+  const EmailRenderVM = new IsolateVM({timeoutMs: config.vmTimeout, env: CORE_LODASH_MOMENT_INPUTMASK_NUNJUCKS});
 
   /**
    * Get the list of available email transports.
@@ -191,6 +194,7 @@ module.exports = (formio) => {
     return renderEmail({
       render: mail,
       context: params,
+      vm: EmailRenderVM,
       timeout: formio.config.vmTimeout,
     })
     .then((injectedEmail) => {
