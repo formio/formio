@@ -434,5 +434,16 @@ module.exports = {
   formatCurrency,
   formatDatetime,
   formatTime,
-  insertRow
+  insertRow,
+  insertTable,
+  insertGridChildTable,
+  insertGridHtml,
+  insertHtml,
+  t,
+  shouldInsertGridChild,
+  isValueInLegacyFormat,
+  normalizeValue,
+  getProviderDisplayValue,
+  insertGridHeader,
+  insertGridRow,
 };
