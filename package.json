@@ -5,7 +5,8 @@
   "license": "OSL-3.0",
   "main": "index.js",
   "scripts": {
-    "test": "TEST_SUITE=1 nyc --reporter=lcov --reporter=text --reporter=text-summary mocha test/test.js -b -t 60000 --no-node-snapshot --exit",
+    "test": "TEST_SUITE=1 mocha test/test.js -b -t 60000 --no-node-snapshot --exit",
+    "coverage": "TEST_SUITE=1 nyc --reporter=lcov --reporter=text --reporter=text-summary mocha test/test.js -b -t 60000 --no-node-snapshot --exit",
     "start": "node --no-node-snapshot main.js",
     "start:dev": "nodemon --no-node-snapshot main.js",
     "lint": "eslint .",
