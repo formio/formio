@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 4.5.0-rc.7
+### Changed
+ - Updated @formio/js@5.2.0-rc.2
+ - Updated @formio/react@6.1.0-rc.2
+ - FIO-10036: fixed types for OSS portal
+
 ## 4.5.0-rc.6
 ### Changed
  - Updated @formio/js@5.1.0-rc.15
