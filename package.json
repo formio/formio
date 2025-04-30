@@ -5,7 +5,7 @@
   "license": "OSL-3.0",
   "main": "index.js",
   "scripts": {
-    "test": "TEST_SUITE=1 mocha test/test.js -b -t 60000 --no-node-snapshot --exit",
+    "test": "TEST_SUITE=1 mocha test/test.js -b -t 60000 --no-node-snapshot --trace-warnings --exit",
     "coverage": "TEST_SUITE=1 nyc --reporter=lcov --reporter=text --reporter=text-summary mocha test/test.js -b -t 60000 --no-node-snapshot --exit",
     "start": "node --no-node-snapshot main.js",
     "start:dev": "nodemon --no-node-snapshot main.js",
@@ -21,10 +21,10 @@
   "schema": "3.1.4",
   "templateVersion": "2.0.0",
   "dependencies": {
-    "@formio/core": "2.4.0-dev.245.360e161",
+    "@formio/core": "2.4.0-dev.245.38ad126",
     "@formio/js": "5.1.0-dev.6102.8eddaab",
     "@formio/node-fetch-http-proxy": "^1.1.0",
-    "@formio/vm": "1.0.0-dev.58.e9b3cf0",
+    "@formio/vm": "1.0.0-dev.58.28c592a",
     "JSONStream": "^1.3.5",
     "adm-zip": "^0.5.9",
     "async": "^3.2.4",

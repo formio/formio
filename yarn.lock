@@ -230,10 +230,10 @@
   resolved "https://registry.yarnpkg.com/@formio/bootstrap/-/bootstrap-3.0.0-dev.121.085d187.tgz#7cc8c3a62e531b9b508e68d08fa513241c659da6"
   integrity sha512-V9AgDNTiFuvw0g/+QbUu2e8c061obSInmwn3qjsxkySg1VtpuVO2hrhgS8Lqxa5Q3IKbgmkrbCJGex8GCxNAnA==
 
-"@formio/core@2.4.0-dev.245.360e161":
-  version "2.4.0-dev.245.360e161"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.245.360e161.tgz#3ec41cb2cf08ded45ed404a1e5cf62705b205867"
-  integrity sha512-IuZGLNbMXI6yfLz4doWJlxx4q5IqmBBDHvvrrReP+pRWwsIZPtQauRPIzz6fMA2wrlKEG4+n2yTfr3x8o10+6Q==
+"@formio/core@2.4.0-dev.245.38ad126":
+  version "2.4.0-dev.245.38ad126"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.245.38ad126.tgz#a8f266bdbb200f5e2b7e55784aebc4757c0fec94"
+  integrity sha512-kyoW1TDTjuwbXbq8NrfgwziSLPqlhJkyS42VNDW4cUOsOVKv4mKFlpl3DewDxBNXUdtK0Jzs4uaz0JmqDZnOMg==
   dependencies:
     browser-cookies "^1.2.0"
     core-js "^3.40.0"
@@ -325,10 +325,10 @@
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@1.0.0-dev.58.e9b3cf0":
-  version "1.0.0-dev.58.e9b3cf0"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.0-dev.58.e9b3cf0.tgz#369441cab67cd828f08e044ea4e0cbf5839385f8"
-  integrity sha512-oG+dTqSuT9kvOoA/Ea7ZaBE0DQpnnQvfxDn1CmwA5BpbwbldoUSnRGjY+IteuMMLEGcLs3FkpKHld6wBZaycGQ==
+"@formio/vm@1.0.0-dev.58.28c592a":
+  version "1.0.0-dev.58.28c592a"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.0-dev.58.28c592a.tgz#69776914b53a7e480d3ebf501bed048f692f830c"
+  integrity sha512-S8CgLEYUxI+QfQkTtPWPMhfE7Nr/irIQ+oDEnobZVJdsHNp3/N4kv40uQzf2ccbtot5JPEJ4nHSchXos6s62Cg==
   dependencies:
     debug "^4.3.4"
     isolated-vm "^4.6.0"
