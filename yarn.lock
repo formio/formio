@@ -88,10 +88,10 @@
   resolved "https://registry.yarnpkg.com/@formio/bootstrap/-/bootstrap-3.0.0-dev.121.085d187.tgz#7cc8c3a62e531b9b508e68d08fa513241c659da6"
   integrity sha512-V9AgDNTiFuvw0g/+QbUu2e8c061obSInmwn3qjsxkySg1VtpuVO2hrhgS8Lqxa5Q3IKbgmkrbCJGex8GCxNAnA==
 
-"@formio/core@2.4.0-dev.245.38b3ee1":
-  version "2.4.0-dev.245.38b3ee1"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.245.38b3ee1.tgz#b1cc3c69a3916ce5e40fe0d43923d42b2b88fc88"
-  integrity sha512-6Y3Vt5bfINK5qsAnmPCx2mg7kb+AhA5+DFwQgQmv5vsDBe37vrVXb/rNhOAkwTgksnIIT5+w9yd/go3ku4czEA==
+"@formio/core@2.4.0-dev.245.2fcb1c6":
+  version "2.4.0-dev.245.2fcb1c6"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.245.2fcb1c6.tgz#7df3114138d186c53c88efedf2dfc6e2407bbe00"
+  integrity sha512-VIRLVsrqNKNcdvZ3zpZ2LN2thx7h8eEGK4zeBXtB0ZXZqcZjv1mjz4Ex+2DAmlPhnKOJRL+SR+P4E8Z5o9DCOw==
   dependencies:
     browser-cookies "^1.2.0"
     core-js "^3.40.0"
