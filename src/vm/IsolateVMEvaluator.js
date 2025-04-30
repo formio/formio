@@ -35,7 +35,15 @@ class IsolateVMEvaluator extends DefaultEvaluator {
           return null;
         }
         else {
-          return this.vm.evaluateSync(func, args);
+          return this.vm.evaluateSync(
+            func,
+            {...args, ...context},
+            {
+              modifyEnv: options.formModule ?
+              `const module=${options.formModule};Object.keys(module).forEach((key) => globalThis[key] = module[key]);`
+              : undefined
+            }
+          );
         }
       }
       catch (err) {
