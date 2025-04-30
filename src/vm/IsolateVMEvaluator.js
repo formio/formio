@@ -42,7 +42,8 @@ class IsolateVMEvaluator extends DefaultEvaluator {
               modifyEnv: options.formModule ?
               `const module = ${options.formModule};
               if (module.options?.form?.evalContext) {
-                Object.keys(module.options.form.evalContext).forEach((key) => globalThis[key] = module[key]);
+                const evalContext = module.options.form.evalContext;
+                Object.keys(evalContext).forEach((key) => globalThis[key] = evalContext[key]);
               }`
               : undefined
             }
