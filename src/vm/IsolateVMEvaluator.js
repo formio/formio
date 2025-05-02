@@ -26,7 +26,7 @@ class IsolateVMEvaluator extends DefaultEvaluator {
       }
 
       if (interpolate) {
-        func = this.interpolate(func, args, options);
+        func = this.interpolate(func, args, {...options, noeval: true});
       }
 
       try {
