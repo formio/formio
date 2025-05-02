@@ -11,7 +11,11 @@ const { UV_FS_O_FILEMAP } = require('constants');
 const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
 const customSaveSubmissionTransformForm = require('./fixtures/forms/customSaveSubmissionTransformForm');
 const customSaveSubmissionTransformResource = require('./fixtures/forms/customSaveSubmissionTransformResource');
+const basicAndAdvancedForm = require('./fixtures/forms/basicAndAdvancedComponentsForm');
+const dataComponentsForm = require('./fixtures/forms/dataComponentsForm');
+const componentsWithMultiples = require('./fixtures/forms/componentsWithMultipleValues');
 const { wait } = require('./util');
+const helper = require('./helper');
 const docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
@@ -375,6 +379,58 @@ module.exports = (app, template, hook) => {
           .end(done);
       });
     });
+
+    describe('Action with missing fields creation', () => {
+
+      it('Should add Save action and apply defaults for handler and method if fields are missing', async () => {
+        const action = {
+          name: 'save',
+          title: 'Save Submission',
+          priority: 10,
+          form: tempForm._id,
+          machineName: 'saveActionFormSave',
+          settings: {},
+          defaults: {
+            handler: ['before'],
+            method: ['create', 'update']
+          }
+        };
+
+        const response = await request(app)
+          .post(hook.alter('url', `/form/${tempForm._id}/action`, template))
+          .set('x-jwt-token',  template.users.admin.token)
+          .send({ data: action });
+
+        assert.equal(response.status, 201);
+        assert.deepEqual(response.body.handler, ['before'], 'Default handler should be applied');
+        assert.deepEqual(response.body.method, ['create', 'update'], 'Default method should be applied');
+      });
+
+      it('Should add Webhook action and do not apply defaults for handler and method (fields are set)', async () => {
+        const action = {
+          name: 'webhook',
+          title: 'Webhook Action',
+          priority: 5,
+          form: tempForm._id,
+          machineName: 'webhookActionForm',
+          handler: [],
+          method: [],
+          defaults: {
+            handler: ['after'],
+            method: ['create'],
+          },
+        };
+
+        const response = await request(app)
+          .post(hook.alter('url', `/form/${tempForm._id}/action`, template))
+          .set('x-jwt-token',  template.users.admin.token)
+          .send({ data: action });
+
+        assert.equal(response.status, 201);
+        assert.deepEqual(response.body.handler, [], 'Handler should remain empty');
+        assert.deepEqual(response.body.method, [], 'Method should remain empty');
+      });
+    })
 
     describe('Test action with custom transform mapping data', () => {
       const addFormFields = (isForm) => ({
@@ -2001,8 +2057,8 @@ module.exports = (app, template, hook) => {
         }, addSettings);
       });
 
-      it('Should send email with edit grid value', async () => {
-        let testAction = {
+      describe('EmailAction template component rendering', () => {
+        const createTestAction = () => ({
           title: 'Email',
           name: 'email',
           handler: ['after'],
@@ -2019,80 +2075,157 @@ module.exports = (app, template, hook) => {
             template: 'https://pro.formview.io/assets/email.html',
             renderingMethod: 'dynamic'
           },
-        }
-        const form = {
-          "_id": "677801142628e5aad5e7b1c2",
-          "title": "editGridEmail",
-          "name": "editGridEmail",
-          "path": "editGridEmail",
-          "type": "form",
-          "access": [],
-          "submissionAccess": [],
-          "components": [
-            {
-              "label": "Edit Grid",
-              "rowDrafts": false,
-              "key": "editGrid",
-              "type": "editgrid",
-              "displayAsTable": false,
-              "input": true,
-              "components": [
-                {
-                  "label": "Text Field",
-                  "key": "textField",
-                  "type": "textfield",
-                  "input": true
-                }
-              ]
-            }
-          ]
-        }
-
-        const editGridForm = (await request(app)
-            .post(hook.alter('url', '/form', template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(form)).body;
-
-        testAction.form = editGridForm._id;
-        // Add the action to the form.
-        const testActionRes = (await request(app)
-            .post(hook.alter('url', `/form/${editGridForm._id}/action`, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(testAction)).body;
-
-
-        testAction = testActionRes;
-
-        let emailSent = false;
-
-        const event = template.hooks.getEmitter();
-        event.on('newMail', (email) => {
-          assert(email.html.includes('editGridString'));
-          event.removeAllListeners('newMail');
-          emailSent = true;
         });
 
-        const submission = {
-          noValidate: true,
-          data: {
-            editGrid: [
-              {
-                textField: 'editGridString'
-              }
-            ],
-            submit: true
-          },
-          state: 'submitted'
-        };
-        // Send submission
-        await request(app)
-          .post(hook.alter('url', `/form/${editGridForm._id}/submission`, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send(submission);
+        it('Should send email with a bunch of simple components', async () => {
+          const form = basicAndAdvancedForm.formJson;
 
-        await wait(1800);
+          const oForm = (await request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = oForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+              .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(testAction)).body;
 
-        assert(emailSent)
+          await wait(1800);
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes('>textFieldString<'));
+            assert(emailTemplateNoWhitespace.includes('>textAreaString<'));
+            assert(emailTemplateNoWhitespace.includes('>Yes<'));
+            assert(emailTemplateNoWhitespace.includes('>ho<'));
+            assert(emailTemplateNoWhitespace.includes('>two<'));
+            assert(emailTemplateNoWhitespace.includes('>five<'));
+            assert(emailTemplateNoWhitespace.includes('>blake2@form.io<'));
+            assert(emailTemplateNoWhitespace.includes('>https://google.com<'));
+            assert(emailTemplateNoWhitespace.includes('>(111)111-1111<'));
+            assert(emailTemplateNoWhitespace.includes('>4,5,6<'));
+            assert(emailTemplateNoWhitespace.includes('>10431,WestOldNashvilleRoad,BartholomewCounty,Indiana,47201,UnitedStates<'));
+            assert(emailTemplateNoWhitespace.includes('>2025-04-0105:00PMUTC<'));
+            assert(emailTemplateNoWhitespace.includes('>1<'));
+            assert(emailTemplateNoWhitespace.includes('>01/01/2024<'));
+            assert(emailTemplateNoWhitespace.includes('>01:23<'));
+            assert(emailTemplateNoWhitespace.includes('>$234.20<'));
+            assert(emailTemplateNoWhitespace.includes('>doyoulikefish?<'));
+            assert(emailTemplateNoWhitespace.includes('>doyoulikefrenchtoast?<'));
+            assert(emailTemplateNoWhitespace.includes('>doyoulikebison?<'));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = basicAndAdvancedForm.submissionJson;
+          // Send submission
+          await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          await wait(1800);
+          assert(emailSent)
+        });
+
+        it('Should send email with data (and nested data) components', async () => {
+          const form = dataComponentsForm.formJson;
+
+          const dataComponentForm = (await request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = dataComponentForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+              .post(hook.alter('url', `/form/${dataComponentForm._id}/action`, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(testAction)).body;
+
+
+          testAction = testActionRes;
+
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes('>123<'));
+            assert(emailTemplateNoWhitespace.includes('>234<'));
+            assert(emailTemplateNoWhitespace.includes('>o<'));
+            assert(emailTemplateNoWhitespace.includes('>t<'));
+            assert(emailTemplateNoWhitespace.includes('>r<'));
+            assert(emailTemplateNoWhitespace.includes('>222<'));
+            assert(emailTemplateNoWhitespace.includes('>33<'));
+            assert(emailTemplateNoWhitespace.includes('>444<'));
+            assert(emailTemplateNoWhitespace.includes('>20<'));
+            assert(emailTemplateNoWhitespace.includes('>ooo<'));
+            assert(emailTemplateNoWhitespace.includes('>20<'));
+            assert(emailTemplateNoWhitespace.includes('>aaaa<'));
+            assert(emailTemplateNoWhitespace.includes('>2344<'));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = dataComponentsForm.submissionJson;
+          // Send submission
+          await request(app)
+            .post(hook.alter('url', `/form/${dataComponentForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          await wait(1800);
+          assert(emailSent)
+        });
+
+        it('Should send email having components with multiple values', async () => {
+          const form = componentsWithMultiples.formJson;
+
+          const multiplesForm = (await request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = multiplesForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+              .post(hook.alter('url', `/form/${multiplesForm._id}/action`, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(testAction)).body;
+
+
+          testAction = testActionRes;
+
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes('>Commodiveritatisab,Irureconsequaturc,Exercitationsintn<'));
+            assert(emailTemplateNoWhitespace.includes('>Eunequedebitisdis,Quietexpeditanost,Consecteturnisisu<'));
+            assert(emailTemplateNoWhitespace.includes('>679,728,561<'));
+            assert(emailTemplateNoWhitespace.includes('>jyhivigi@mailinator.com,camy@mailinator.com,seduxaqe@mailinator.com<'));
+            assert(emailTemplateNoWhitespace.includes('>https://google.com,https://google1.com,https://google2.com<'));
+            assert(emailTemplateNoWhitespace.includes('>(175)358-2292,(194)335-4830,(160)719-9441<'));
+            assert(emailTemplateNoWhitespace.includes('>2025-04-0312:56AMUTC,2025-04-0205:00PMUTC,2025-04-1105:00PMUTC<'));
+            assert(emailTemplateNoWhitespace.includes('>08:27,12:27,07:47<'));
+            assert(emailTemplateNoWhitespace.includes('>10431,WestOldNashvilleRoad,BartholomewCounty,Indiana,47201,UnitedStates,10432,NashvilleFerryRoadEast,LowndesCounty,Mississippi,39702,UnitedStates,10435,NashvilleRoad,Woodburn,WarrenCounty,Kentucky,42101,UnitedStates<'));
+            assert(emailTemplateNoWhitespace.includes('>$938.00,$953.00,$286.00<'));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = componentsWithMultiples.submissionJson;
+          // Send submission
+          await request(app)
+            .post(hook.alter('url', `/form/${multiplesForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          await wait(1800);
+          assert(emailSent)
+        });
       });
 
       describe('Select Component Emails', () => {

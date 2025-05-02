@@ -87,7 +87,7 @@ module.exports = function(router) {
         const childReq = util.createSubRequest(req);
         if (!childReq) {
           log(
-            req,
+            {...req, body: '[Protected info]'},
             ecode.request.EREQRECUR,
             new Error(ecode.request.EREQRECUR),
             '#resolve'
@@ -126,7 +126,7 @@ module.exports = function(router) {
         }
         else {
           log(
-            req,
+            {...req, body: '[Protected Info]'},
             ecode.resource.ENOHANDLER,
             new Error(ecode.resource.ENOHANDLER),
             '#resolve',
