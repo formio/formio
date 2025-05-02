@@ -184,7 +184,7 @@ module.exports = function(router) {
 
         // Interpolate URL if possible
         if (res && res.resource && res.resource.item && res.resource.item.data) {
-          url = util.FormioUtils.Evaluator.interpolate(url, res.resource.item.data);
+          url = util.FormioUtils.Evaluator.interpolate(url, res.resource.item.data, {noeval: true});
         }
 
         // Fall back if interpolation failed
