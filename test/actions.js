@@ -2092,7 +2092,9 @@ module.exports = (app, template, hook) => {
               .set('x-jwt-token', template.users.admin.token)
               .send(testAction)).body;
 
-          await wait(1800);
+          testAction = testActionRes;
+
+          let emailSent = false;
 
           const event = template.hooks.getEmitter();
           event.on('newMail', (email) => {
