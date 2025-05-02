@@ -205,13 +205,13 @@ module.exports = function(router) {
           try {
             const newData = await evaluate({
               deps: [],
-              code: `data=submission.data\n${this.settings.transform}\nsubmission`,
+              code: `data=submission.data;\n${this.settings.transform}\ndata;`,
               data: {
                 submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
                 data: submission.data,
               },
             });
-            submission = {...submission, ...newData};
+            submission.data = newData;
             req.isTransformedData = true;
           }
           catch (err) {

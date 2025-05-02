@@ -2,12 +2,13 @@ import { Form, FormProps, useFormioContext } from "@formio/react";
 import { Form as FormType, Access, Role } from "@formio/core";
 import { useEffect, useState } from "react";
 
-const getFormAccessForm = (roles: Role[]) => ({
-    display: "form" as const,
+const getFormAccessForm = (roles: Role[]): FormType => ({
+    display: 'form',
     components: [
         {
             type: "container",
             key: "submissionAccess",
+            input: true,
             components: [
                 {
                     label: "<b>Read Own Submissions</b>",
@@ -134,6 +135,7 @@ const getFormAccessForm = (roles: Role[]) => ({
         },
         {
             type: "container",
+            input: true,
             key: "access",
             components: [
                 {
