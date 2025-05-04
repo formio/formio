@@ -10,12 +10,12 @@ class RootShim {
     this.data = submission.data;
     this.components = [];
     this._scope = scope || {};
-    FormioCore.eachComponentData(
+    FormioCore.Utils.eachComponentData(
       form.components,
       submission.data,
       (component, data, row, compPath, components, index, parent, paths) => {
         if (!paths) {
-          paths = FormioCore.getComponentPaths(component);
+          paths = FormioCore.Utils.getComponentPaths(component);
         }
         const {path, fullPath, fullLocalPath, dataPath, localDataPath} =
           paths;
@@ -49,7 +49,7 @@ class RootShim {
   }
 
   getComponent(pathArg) {
-    const path = FormioCore.getStringFromComponentPath(pathArg);
+    const path = FormioCore.Utils.getStringFromComponentPath(pathArg);
     // If we don't have an exact path match, compare the final pathname segment with the path argument for each component
     // i.e. getComponent('foo') should return a component at the path 'bar.foo' if it exists
     if (!this.instanceMap[path]) {
