@@ -337,4 +337,4 @@ function getRenderMethod(render) {
   return renderMethod;
 }
 
-module.exports = {renderEmail};
+module.exports = {renderEmail, getScript};
