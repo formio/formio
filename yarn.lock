@@ -247,35 +247,18 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/core@2.4.0-dev.245.3d53057":
-  version "2.4.0-dev.245.3d53057"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.245.3d53057.tgz#5584fefca57cb5ba7c194ae60184eb2e894aae9b"
-  integrity sha512-sgMa0v3EDzPliiYs6oOwxdZZN6i9KX/4JyI8C+X7w1m+//QmsKaQzK2RaW/fD7WqpOGPneIopiqSELoIZEOl5w==
-  dependencies:
-    browser-cookies "^1.2.0"
-    core-js "^3.40.0"
-    dayjs "^1.11.12"
-    dompurify "^3.2.4"
-    eventemitter3 "^5.0.0"
-    fast-json-patch "^3.1.1"
-    fetch-ponyfill "^7.1.0"
-    inputmask "5.0.9"
-    json-logic-js "^2.0.5"
-    lodash "^4.17.21"
-    moment "^2.29.4"
-
-"@formio/js@5.1.0-dev.6102.8eddaab":
-  version "5.1.0-dev.6102.8eddaab"
-  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-dev.6102.8eddaab.tgz#cd8601664e56b6adaf5169ca0d5f23b5d7758192"
-  integrity sha512-zKqZoEpVdIVRhHvne5UMXPCBlxP1o36gqp+89xa1u/nExMuyYhr05Axv5DFGYFcPOG5/f+SFuY3hWJVjllXSow==
+"@formio/js@5.1.0-dev.6102.9a0147c":
+  version "5.1.0-dev.6102.9a0147c"
+  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-dev.6102.9a0147c.tgz#561dedbbd3aa0b6dffe627c9c2f2a7c30895c205"
+  integrity sha512-W3DUnLrITzsQWsZzpRSUoN71j/D1y0FHi7Mxu/vV0/Y/aqj+EswgGbom5PZ+d1PPlo5/XQisQsGzWQn/MdMq+Q==
   dependencies:
     "@formio/bootstrap" v3.0.0-dev.121.085d187
-    "@formio/core" "2.4.0-dev.245.3d53057"
+    "@formio/core" "2.4.0-dev.245.326cac7"
     "@formio/text-mask-addons" "3.8.0-formio.4"
     "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     abortcontroller-polyfill "^1.7.5"
     autocompleter "^8.0.4"
-    bootstrap "^5.3.3"
+    bootstrap "^5.3.4"
     browser-cookies "^1.2.0"
     browser-md5-file "^1.1.1"
     choices.js "^11.0.6"
@@ -283,7 +266,7 @@
     core-js "^3.37.1"
     dialog-polyfill "^0.5.6"
     dom-autoscroller "^2.3.4"
-    dompurify "^3.1.6"
+    dompurify "^3.2.5"
     downloadjs "^1.4.7"
     dragula "^3.7.3"
     eventemitter3 "^5.0.1"
@@ -937,10 +920,10 @@ body-parser@1.20.3, body-parser@^1.20.1:
     type-is "~1.6.18"
     unpipe "1.0.0"
 
-bootstrap@^5.3.3:
-  version "5.3.3"
-  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-5.3.3.tgz#de35e1a765c897ac940021900fcbb831602bac38"
-  integrity sha512-8HLCdWgyoMguSO9o+aH+iuZ+aht+mzW0u3HIMzVu7Srrpv7EBBxTnrFlSCskwdY1+EOFQSm7uMJhNQHkdPcmjg==
+bootstrap@^5.3.4:
+  version "5.3.5"
+  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-5.3.5.tgz#be42cfe0d580e97ee1abb7d38ce94f5c393c9bb6"
+  integrity sha512-ct1CHKtiobRimyGzmsSldEtM03E8fcEX4Tb3dGXz1V8faRwM50+vfHwTzOxB3IlKO7m+9vTH3s/3C6T2EAPeTA==
 
 brace-expansion@^1.1.7:
   version "1.1.11"
@@ -1539,17 +1522,17 @@ dom-set@^1.0.1:
     is-array "^1.0.1"
     iselement "^1.1.4"
 
-dompurify@^3.1.6:
-  version "3.2.5"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.2.5.tgz#11b108656a5fb72b24d916df17a1421663d7129c"
-  integrity sha512-mLPd29uoRe9HpvwP2TxClGQBzGXeEC/we/q+bFlmPPmj2p2Ugl3r6ATu/UU1v77DXNcehiBg9zsr1dREyA/dJQ==
-  optionalDependencies:
-    "@types/trusted-types" "^2.0.7"
-
 dompurify@^3.2.4:
   version "3.2.4"
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.2.4.tgz#af5a5a11407524431456cf18836c55d13441cd8e"
   integrity sha512-ysFSFEDVduQpyhzAob/kkuJjf5zWkZD8/A9ywSp1byueyuCfHamrCBa14/Oc2iiB0e51B+NpxSl5gmzn+Ms/mg==
+  optionalDependencies:
+    "@types/trusted-types" "^2.0.7"
+
+dompurify@^3.2.5:
+  version "3.2.5"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.2.5.tgz#11b108656a5fb72b24d916df17a1421663d7129c"
+  integrity sha512-mLPd29uoRe9HpvwP2TxClGQBzGXeEC/we/q+bFlmPPmj2p2Ugl3r6ATu/UU1v77DXNcehiBg9zsr1dREyA/dJQ==
   optionalDependencies:
     "@types/trusted-types" "^2.0.7"
 

@@ -22,7 +22,7 @@
   "templateVersion": "2.0.0",
   "dependencies": {
     "@formio/core": "2.4.0-dev.245.326cac7",
-    "@formio/js": "5.1.0-dev.6102.8eddaab",
+    "@formio/js": "5.1.0-dev.6102.9a0147c",
     "@formio/node-fetch-http-proxy": "^1.1.0",
     "@formio/vm": "1.0.0-dev.58.db88b77",
     "JSONStream": "^1.3.5",
