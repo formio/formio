@@ -37,7 +37,7 @@ class IsolateVMEvaluator extends DefaultEvaluator {
         else {
           return this.vm.evaluateSync(
             func,
-            {...args, ...context},
+            args,
             {
               modifyEnv: options.formModule ?
               `const module = ${options.formModule};
@@ -51,6 +51,10 @@ class IsolateVMEvaluator extends DefaultEvaluator {
         }
       }
       catch (err) {
+        // Timeout errors should cause the request to fail
+        if (err.message.includes('Script execution timed out')) {
+          throw err;
+        }
         console.warn(`An error occured within the custom function for ${componentKey}`, err);
         return null;
       }
