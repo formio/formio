@@ -124,7 +124,7 @@ class InstanceShim {
         util: FormioCore.Utils,
         utils: FormioCore.Utils,
       };
-      const defaultValue = FormioCore.Utils.Evaluator.evaluate(
+      const defaultValue = FormioCore.Evaluator.evaluate(
         this.component.customDefaultValue,
         evaluationContext,
         "value"
