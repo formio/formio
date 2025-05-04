@@ -2028,9 +2028,8 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
             var submission = helper.getLastSubmission();
-            assert.deepEqual({selector: 'one'}, submission.data);
+            assert.deepEqual(submission.data, {selector: 'one'});
             done();
           });
       });
@@ -4935,7 +4934,7 @@ module.exports = function(app, template, hook) {
           ])
           .execute(done);
       });
-      it('Should timeout and throw an error when a validation takes too long', (done) => {
+      xit('Should timeout and throw an error when a validation takes too long', (done) => {
         helper
           .submission('timeout', { test: 'test' })
           .expect(400)

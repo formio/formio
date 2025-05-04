@@ -59,6 +59,7 @@ describe('Initialization', function() {
   });
 
   after(function() {
+    require('./vm')(app, template, hook);
     require('./templates')(app, template, hook);
     require('./bootstrap')(app, template, hook);
     require('./auth')(app, template, hook);

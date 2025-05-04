@@ -1,21 +1,252 @@
 'use strict';
 const _ = require('lodash');
 const {ObjectId} = require('mongodb');
-const {
-  ProcessTargets,
-  process,
-  interpolateErrors,
-  escapeRegExCharacters,
-  serverRules,
-  Utils: CoreUtils,
-} = require('@formio/core');
-const {evaluateProcess} = require('@formio/vm');
+const FormioCore = require('@formio/core');
 const Utils = require('../util/util');
 const fetch = require('@formio/node-fetch-http-proxy');
 const debug = {
   validator: require('debug')('formio:validator'),
   error: require('debug')('formio:error')
 };
+
+class InstanceShim {
+  constructor(
+    component,
+    root,
+    data,
+    path = component.path || component.key,
+    dataIndex = null,
+    scope
+  ) {
+    this._component = component;
+    this._root = root;
+    this._data = data;
+    this._path = path;
+    this._rowIndex = dataIndex;
+    this._conditionals = scope.conditionals || [];
+  }
+
+  get root() {
+    return this._root;
+  }
+
+  get rowIndex() {
+    return this._rowIndex;
+  }
+
+  get component() {
+    return this._component;
+  }
+
+  // No op
+  get schema() {
+    return {};
+  }
+
+  // No op
+  get options() {
+    return {};
+  }
+
+  get currentForm() {
+    return this.root.form;
+  }
+
+  // Returns row
+  get data() {
+    return FormioCore.Utils.getContextualRowData(
+      this.component,
+      this.component.path,
+      this._data
+    );
+  }
+
+  // No op
+  set data(data) {}
+
+  // Returns parent instance
+  get parent() {
+    return this.root.getComponent(
+      this.component.path.replace(/(\.[^.]+)$/, "")
+    );
+  }
+
+  // Returns component value
+  get dataValue() {
+    return _.get(this._data, this._path);
+  }
+
+  get visible() {
+    return !_.some(
+      this._conditionals || [],
+      (condComp) =>
+        condComp.conditionallyHidden &&
+        (condComp.path === this._path ||
+          _.startsWith(condComp.path, this._path))
+    );
+  }
+
+  // Question: Should we allow this?
+  // Sets component value
+  set dataValue(value) {
+    _.set(this._data, this._path, value);
+  }
+
+  // return component value
+  getValue() {
+    return this.dataValue;
+  }
+
+  // set component value
+  setValue(value) {
+    this.dataValue = value;
+  }
+
+  shouldSkipValidation() {
+    return false;
+  }
+
+  isEmpty() {
+    return FormioCore.Utils.isComponentDataEmpty(
+      this.component,
+      this._data,
+      this._path
+    );
+  }
+
+  getCustomDefaultValue() {
+    if (this.component.customDefaultValue) {
+      const evaluationContext = {
+        form: this.root.form,
+        component: this.component,
+        submission: this.root.submission,
+        data: this.root.data,
+        config: {
+          server: true,
+        },
+        options: {
+          server: true,
+        },
+        value: null,
+        util: FormioCore.Utils,
+        utils: FormioCore.Utils,
+      };
+      const defaultValue = FormioCore.Evaluator.evaluate(
+        this.component.customDefaultValue,
+        evaluationContext,
+        "value"
+      );
+      return defaultValue;
+    }
+  }
+
+  // Do nothing functions.
+  on() {}
+  off() {}
+  render() {
+    return "";
+  }
+  redraw() {}
+  ready() {
+    return Promise.resolve();
+  }
+  init() {}
+  destroy() {}
+  teardown() {}
+  attach() {}
+  detach() {}
+  build() {}
+  t(text) {
+    return text;
+  }
+  sanitize(dirty) {
+    return dirty;
+  }
+  renderString(template) {
+    return template;
+  }
+}
+
+class RootShim {
+  constructor(form, submission, scope) {
+    this.instanceMap = {};
+    this._form = form;
+    this._submission = submission;
+    this.data = submission.data;
+    this.components = [];
+    this._scope = scope || {};
+    FormioCore.Utils.eachComponentData(
+      form.components,
+      submission.data,
+      (component, data, row, compPath, components, index, parent, paths) => {
+        if (!paths) {
+          paths = FormioCore.Utils.getComponentPaths(component);
+        }
+        const {path, fullPath, fullLocalPath, dataPath, localDataPath} =
+          paths;
+        const instance = new InstanceShim(
+          component,
+          this,
+          submission.data,
+          dataPath ?? path ?? component.key,
+          index,
+          this._scope
+        );
+        this.components.push(instance);
+        if (path && !this.instanceMap[path]) {
+          this.instanceMap[path] = instance;
+        }
+        if (fullPath && !this.instanceMap[fullPath]) {
+          this.instanceMap[fullPath] = instance;
+        }
+        if (fullLocalPath && !this.instanceMap[fullLocalPath]) {
+          this.instanceMap[fullLocalPath] = instance;
+        }
+        if (dataPath && !this.instanceMap[dataPath]) {
+          this.instanceMap[dataPath] = instance;
+        }
+        if (localDataPath && !this.instanceMap[localDataPath]) {
+          this.instanceMap[localDataPath] = instance;
+        }
+      },
+      true
+    );
+  }
+
+  getComponent(pathArg) {
+    const path = FormioCore.Utils.getStringFromComponentPath(pathArg);
+    // If we don't have an exact path match, compare the final pathname segment with the path argument for each component
+    // i.e. getComponent('foo') should return a component at the path 'bar.foo' if it exists
+    if (!this.instanceMap[path]) {
+      for (const key in this.instanceMap) {
+        const match = key.match(new RegExp(`\\.${path}$`));
+        const lastPathSegment = match ? match[0].slice(1) : "";
+        if (lastPathSegment === path) {
+          // set a cache for future `getComponent` calls in this lifecycle
+          this.instanceMap[path] = this.instanceMap[key];
+          break;
+        }
+      }
+    }
+    return this.instanceMap[path];
+  }
+
+  get submission() {
+    return this._submission;
+  }
+
+  set submission(data) {}
+
+  get form() {
+    return this._form;
+  }
+
+  set form(form) {}
+
+  get root() {
+    return null;
+  }
+}
 
 async function loadFormById(cache, req, formId) {
   const resource = await cache.loadForm(req, null, formId);
@@ -38,7 +269,7 @@ async function submissionQueryExists(submissionModel, query) {
  * @constructor
  */
 class Validator {
-  constructor(req, submissionModel, submissionResource, cache, formModel, tokenModel, hook, config = {}) {
+  constructor(req, formio) {
     const tokens = {};
     const token = Utils.getRequestValue(req, 'x-jwt-token');
     if (token) {
@@ -55,17 +286,17 @@ class Validator {
     }
 
     this.req = req;
-    this.submissionModel = submissionModel;
-    this.submissionResource = submissionResource;
-    this.cache = cache;
-    this.formModel = formModel;
-    this.tokenModel = tokenModel;
+    this.submissionModel = req.submissionModel || formio.resources.submission.model;
+    this.submissionResource = formio.resources.submission;
+    this.cache = formio.cache;
+    this.formModel = formio.resources.form.model;
+    this.tokenModel = formio.mongoose.models.token;
     this.form = req.currentForm;
     this.project = req.currentProject;
     this.decodedToken = req.token;
     this.tokens = tokens;
-    this.hook = hook;
-    this.config = config;
+    this.hook = formio.hook;
+    this.config = formio.config;
   }
 
   addPathQueryParams(pathQueryParams, query, path) {
@@ -116,7 +347,7 @@ class Validator {
       }
       else {
         this.addPathQueryParams({
-          $regex: new RegExp(`^${escapeRegExCharacters(value)}$`),
+          $regex: new RegExp(`^${FormioCore.escapeRegExCharacters(value)}$`),
           $options: 'i'
         }, query, path);
       }
@@ -129,7 +360,7 @@ class Validator {
       value.address['place_id']
     ) {
       this.addPathQueryParams({
-        $regex: new RegExp(`^${escapeRegExCharacters(value.address['place_id'])}$`),
+        $regex: new RegExp(`^${FormioCore.escapeRegExCharacters(value.address['place_id'])}$`),
         $options: 'i'
       }, query, `${path}.address.place_id`);
     }
@@ -241,10 +472,10 @@ class Validator {
       throw new Error(`Resource at ${resourceId} not found for dereferencing`);
     }
     const dataTableComponents = (component.fetch.components || [])
-      .map(component => CoreUtils.getComponent(resource.components || [], component.path));
+      .map(component => FormioCore.Utils.getComponent(resource.components || [], component.path));
 
     const filterComponents = (component) => {
-      const info = CoreUtils.componentInfo(component);
+      const info = FormioCore.Utils.componentInfo(component);
       if (!(info.hasColumns || info.hasRows || info.hasComps)) {
         return component;
       }
@@ -253,7 +484,7 @@ class Validator {
           column.components = column.components
             .map((component) => filterComponents(component))
             .filter((component) => {
-              return CoreUtils.getComponent(dataTableComponents, component.key) || (
+              return FormioCore.Utils.getComponent(dataTableComponents, component.key) || (
                 component.columns?.length > 0 ||
                 component.rows?.length > 0 ||
                 component.components?.length > 0
@@ -269,7 +500,7 @@ class Validator {
               column.components = column.components
                 .map((component) => filterComponents(component))
                 .filter((component) => {
-                  return CoreUtils.getComponent(dataTableComponents, component.key) || (
+                  return FormioCore.Utils.getComponent(dataTableComponents, component.key) || (
                     component.columns?.length > 0 ||
                     component.rows?.length > 0 ||
                     component.components?.length > 0
@@ -285,7 +516,7 @@ class Validator {
         component.components = component.components
           .map((component) => filterComponents(component))
           .filter((component) => {
-              return CoreUtils.getComponent(dataTableComponents, component.key) || (
+              return FormioCore.Utils.getComponent(dataTableComponents, component.key) || (
                 component.columns?.length > 0 ||
                 component.rows?.length > 0 ||
                 component.components?.length > 0
@@ -316,8 +547,10 @@ class Validator {
       return next();
     }
 
-    let config = this.project ? (this.project.config || {}) : {};
-    config = {...(this.form.config || {}), ...config};
+    const projectAndFormConfig = {
+      ...(this.project ? this.project.config ?? {} : {}),
+      ...(this.form ? this.form.config ?? {} : {}),
+    };
 
     const context = {
       form: this.form,
@@ -328,7 +561,7 @@ class Validator {
       fetch,
       scope: {},
       config: {
-        ...(config || {}),
+        ...projectAndFormConfig,
         headers: JSON.parse(JSON.stringify(this.req.headers)),
         server: true,
         token: this.tokens['x-jwt-token'],
@@ -344,22 +577,33 @@ class Validator {
     };
     try {
       // Process the server processes
-      context.processors = ProcessTargets.submission;
-      context.rules = this.hook.alter('serverRules', serverRules);
-      await process(context);
+      context.processors = FormioCore.ProcessTargets.submission;
+      context.rules = this.hook.alter('serverRules', FormioCore.serverRules);
+      await FormioCore.process(context);
       submission.data = context.data;
 
-      const additionalDeps = this.hook.alter('dynamicVmDependencies', [], this.form);
-      // Process the evaulator
-      const {scope, data} = await evaluateProcess({
-        ...(config || {}),
+      const serializedSubmission = JSON.parse(JSON.stringify(submission));
+      const root = new RootShim(context.form, serializedSubmission, context.scope);
+      const submissionContext = {
         form: this.form,
-        submission,
-        scope: context.scope,
-        token: this.tokens['x-jwt-token'],
-        tokens: this.tokens,
-        additionalDeps
-      });
+        components: this.form.components,
+        submission: serializedSubmission,
+        data: serializedSubmission.data,
+        scope: context.scope || {},
+        config: {
+            server: true,
+            token: context.token || '',
+        },
+        options: {
+            server: true,
+        },
+        instances: root.instanceMap,
+        processors: FormioCore.ProcessTargets.evaluator,
+      };
+
+      const scope = FormioCore.processSync(submissionContext);
+      const data = submissionContext.data;
+
       context.scope = scope;
       submission.data = data;
       submission.scope = scope;
@@ -378,7 +622,7 @@ class Validator {
     if (context.scope.errors && context.scope.errors.length) {
       return next({
         name: 'ValidationError',
-        details: interpolateErrors(context.scope.errors)
+        details: FormioCore.interpolateErrors(context.scope.errors)
       });
     }
 

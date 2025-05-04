@@ -3,12 +3,13 @@
 const Resource = require('resourcejs');
 const async = require('async');
 const _ = require('lodash');
+const moment = require('moment');
 const debug = {
   error: require('debug')('formio:error'),
   action: require('debug')('formio:action')
 };
 const util = require('../util/util');
-const moment = require('moment');
+const {IsolateVM} = require('@formio/vm');
 const {
   ConditionOperators,
   filterComponentsForConditionComponentFieldOptions,
@@ -19,17 +20,19 @@ const {
   rootLevelProperties,
   rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
-const {evaluate} = require('@formio/vm');
+const {CORE_LODASH_MOMENT_INPUTMASK} = require('../vm/bundles');
 
 /**
  * The ActionIndex export.
- *
- * @param router
- *
- * @returns {{actions: {}, register: Function, search: Function, execute: Function}}
- */
+*
+* @param router
+*
+* @returns {{actions: {}, register: Function, search: Function, execute: Function}}
+*/
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
+  const config = router.formio.config;
+  const ConditionalActionsVM = new IsolateVM({env: CORE_LODASH_MOMENT_INPUTMASK, timeoutMs: config.vmTimeout});
 
   /**
    * Create the ActionIndex object.
@@ -255,21 +258,19 @@ module.exports = (router) => {
             _
           }, req);
 
-          const result = await evaluate({
-            deps: ['lodash', 'moment', 'core'],
-            code: json ?
+          const result = await ConditionalActionsVM.evaluate(
+            json ?
               `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
               condition.custom,
-            data: {
+            {
               execute: params.execute,
               query: params.query,
               data: params.data,
               form: params.form,
               submission: params.submission,
               previous: params.previous,
-            },
-          });
-
+            }
+          );
           return result;
         }
         catch (err) {

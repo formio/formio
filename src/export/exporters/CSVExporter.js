@@ -47,6 +47,9 @@ class CSVExporter extends Exporter {
     this.formattedView = formattedView;
 
     const ignore = ['password', 'button', 'container', 'datagrid', 'editgrid', 'dynamicWizard', 'reviewpage'];
+    if (!util.Formio) {
+      return;
+    }
     try {
       util.eachComponent(form.components, (comp, path, components, parent, compPaths) => {
         if (!comp.input || !comp.key || ignore.includes(comp.type)) {
