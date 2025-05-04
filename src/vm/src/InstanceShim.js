@@ -47,7 +47,7 @@ class InstanceShim {
 
   // Returns row
   get data() {
-    return FormioCore.getContextualRowData(
+    return FormioCore.Utils.getContextualRowData(
       this.component,
       this.component.path,
       this._data
@@ -100,7 +100,7 @@ class InstanceShim {
   }
 
   isEmpty() {
-    return FormioCore.isComponentDataEmpty(
+    return FormioCore.Utils.isComponentDataEmpty(
       this.component,
       this._data,
       this._path
@@ -124,7 +124,7 @@ class InstanceShim {
         util: FormioCore.Utils,
         utils: FormioCore.Utils,
       };
-      const defaultValue = FormioCore.Evaluator.evaluate(
+      const defaultValue = FormioCore.Utils.Evaluator.evaluate(
         this.component.customDefaultValue,
         evaluationContext,
         "value"
