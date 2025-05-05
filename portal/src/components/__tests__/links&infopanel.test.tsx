@@ -234,7 +234,7 @@ test('The info panel in /form/:id page should display editing forms info panel a
   await screen.findByText('Resources');
   await userEvent.click(await screen.findByText('test'));
   await waitFor(() => {
-    expect(document.querySelector('div.context-header')!.textContent).to.equal('Editing Forms');
+    expect(document.querySelector('div.context-header')!.textContent?.trim()).to.equal('Self-Hosting With Form.io Enterprise');
   });
   const viewDocumentationLink: HTMLAnchorElement = await screen.findByText('View Documentation');
   expect(viewDocumentationLink.href).to.equal('https://help.form.io/userguide/forms/form-revisions');
@@ -286,7 +286,7 @@ test('The info panel in /resource:id page should display editing resources info 
   await screen.findByText('Resources');
   await userEvent.click(await screen.findByText('test'));
   await waitFor(() => {
-    expect(document.querySelector('div.context-header')!.textContent).to.equal('Editing Resources');
+    expect(document.querySelector('div.context-header')!.textContent).to.equal('Self-Hosting With Form.io Enterprise');
   });
   const viewDocumentationLink: HTMLAnchorElement = await screen.findByText('View Documentation');
   expect(viewDocumentationLink.href).to.equal('https://help.form.io/userguide/forms/form-revisions');

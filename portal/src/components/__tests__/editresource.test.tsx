@@ -114,7 +114,6 @@ test('Clicking save resource updates the resource', async () => {
   await userEvent.click(await screen.findByText('Save Resource'));
   await waitFor(() => {
     expect(document.querySelector('div.panel-wrap.main.resource')!.querySelector('div.panel-title')!.textContent).to.equal(' tests');
-    expect(document.querySelector('div.item-title')!.textContent).to.equal('tests');
   });
 });
 

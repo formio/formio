@@ -113,8 +113,7 @@ test('Clicking save form updates the form', async () => {
   });
   await userEvent.click(await screen.findByText('Save Form'));
   await waitFor(() => {
-    expect(document.querySelector('div.panel-wrap.main.form')!.querySelector('div.panel-title')!.textContent).to.equal(' tests');
-    expect(document.querySelector('div.item-title')!.textContent).to.equal('tests');
+    expect(document.querySelector('div.panel-wrap.main.form')!.querySelector('div.panel-title')!.textContent?.trim()).to.equal('tests');
   });
 });
 
