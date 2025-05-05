@@ -6,8 +6,8 @@ import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { Formio } from '@formio/js';
 import { act } from 'react';
-import App from '../App';
-import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
+import App from '../src/components/App';
+import { InfoPanelProvider } from '../src/hooks/useInfoPanelContext';
 
 const server = setupServer(
   http.get('http://localhost:3002/form', () => {

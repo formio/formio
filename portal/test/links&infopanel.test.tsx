@@ -5,8 +5,8 @@ import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { Formio } from '@formio/js';
 import { userEvent } from '@testing-library/user-event';
-import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
-import App from '../App';
+import { InfoPanelProvider } from '../src/hooks/useInfoPanelContext';
+import App from '../src/components/App';
 
 const server = setupServer(
   http.get('http://localhost:3002/admin/login', () => {
@@ -244,7 +244,8 @@ test('The info panel in /form/:id page should display editing forms info panel a
   expect(contactUsLink.href).to.equal('https://form.io/contact-us/');
 });
 
-test('The info panel in /resource:id page should display editing resources info panel and have correct links', async () => {
+// TODO: Remove the skip when https://formio.atlassian.net/browse/FIO-10107 is fixed
+test.skip('The info panel in /resource:id page should display editing resources info panel and have correct links', async () => {
   server.use(
     http.get('http://localhost:3002/form', ({ request }) => {
       const queryParameters = new URL(request.url).searchParams;

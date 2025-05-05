@@ -5,8 +5,8 @@ import { FormioProvider } from '@formio/react';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { Formio } from '@formio/js';
-import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
-import App from '../App';
+import { InfoPanelProvider } from '../src/hooks/useInfoPanelContext';
+import App from '../src/components/App';
 
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {
@@ -29,18 +29,18 @@ beforeEach(() => {
   );
 });
 
-test('Clicking on Resource Actions tab takes you to /actions page', async () => {
+test('Clicking on Form Actions tab takes you to /actions page', async () => {
   server.use(
     http.get('http://localhost:3002/form', ({ request }) => {
       const queryParameters = new URL(request.url).searchParams;
-      if (queryParameters.get('type') === 'resource') {
+      if (queryParameters.get('type') === 'form') {
         return HttpResponse.json([
           {
             _id: '679d387ba90ca7ccebc387a1',
             name: 'test',
             title: 'test',
             path: 'test',
-            type: 'resource',
+            type: 'form',
             display: 'form'
           }
         ]);
@@ -54,7 +54,7 @@ test('Clicking on Resource Actions tab takes you to /actions page', async () => 
         name: 'test',
         title: 'test',
         path: 'test',
-        type: 'resource',
+        type: 'form',
         display: 'form'
       });
     }),
@@ -64,7 +64,7 @@ test('Clicking on Resource Actions tab takes you to /actions page', async () => 
         name: 'test',
         title: 'test',
         path: 'test',
-        type: 'resource',
+        type: 'form',
         display: 'form'
       });
     }),
@@ -75,7 +75,7 @@ test('Clicking on Resource Actions tab takes you to /actions page', async () => 
   await screen.findByText('Resources');
   await screen.findByText('Forms');
   await userEvent.click(await screen.findByText('test'));
-  await userEvent.click(await screen.findByText('Resource Actions'));
+  await userEvent.click(await screen.findByText('Form Actions'));
   expect(await screen.findByText('Name'));
   expect(await screen.findByText('Operations'));
   expect(await screen.findByText('Add Action', { exact: false }));
@@ -86,14 +86,14 @@ test('A request to /action on the actions page will load the actions on the page
   server.use(
     http.get('http://localhost:3002/form', ({ request }) => {
       const queryParameters = new URL(request.url).searchParams;
-      if (queryParameters.get('type') === 'resource') {
+      if (queryParameters.get('type') === 'form') {
         return HttpResponse.json([
           {
             _id: '679d387ba90ca7ccebc387a1',
             name: 'test',
             title: 'test',
             path: 'test',
-            type: 'resource',
+            type: 'form',
             display: 'form'
           }
         ]);
@@ -107,7 +107,7 @@ test('A request to /action on the actions page will load the actions on the page
         name: 'test',
         title: 'test',
         path: 'test',
-        type: 'resource',
+        type: 'form',
         display: 'form'
       });
     }),
@@ -117,7 +117,7 @@ test('A request to /action on the actions page will load the actions on the page
         name: 'test',
         title: 'test',
         path: 'test',
-        type: 'resource',
+        type: 'form',
         display: 'form'
       });
     }),
@@ -135,7 +135,7 @@ test('A request to /action on the actions page will load the actions on the page
   await screen.findByText('Resources');
   await screen.findByText('Forms');
   await userEvent.click(await screen.findByText('test'));
-  await userEvent.click(await screen.findByText('Resource Actions'));
+  await userEvent.click(await screen.findByText('Form Actions'));
   await screen.findByText('Add Action', { exact: false });
   expect(await screen.findByText('Save Submission'));
 });

@@ -4,8 +4,8 @@ import { Formio } from '@formio/js';
 import { render, screen, waitFor } from '@testing-library/react';
 import { FormioProvider } from '@formio/react';
 import { http, HttpResponse } from 'msw';
-import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
-import App from '../App';
+import { InfoPanelProvider } from '../src/hooks/useInfoPanelContext';
+import App from '../src/components/App';
 
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {
@@ -28,30 +28,30 @@ beforeEach(() => {
   );
 });
 
-test('Clicking on delete form removes the form from the page', async () => {
+test('Clicking on delete resource removes the resource from the page', async () => {
   const originalWindowConfirm = window.confirm;
   window.confirm = () => true;
-  const formForms = [
+  const resourceForms = [
     {
       '_id': '679cfb424554d6489e37cd15',
       'title': 'test',
       'name': 'test',
       'path': 'test',
-      'type': 'form',
+      'type': 'resource',
       'display': 'form'
     }
   ];
   server.use(
     http.get('http://localhost:3002/form', ({ request }) => {
       const queryParameters = new URL(request.url).searchParams;
-      if (queryParameters.get('type') === 'form') {
-        return HttpResponse.json(formForms);
+      if (queryParameters.get('type') === 'resource') {
+        return HttpResponse.json(resourceForms);
       } else {
         return HttpResponse.json([]);
       }
     }),
     http.delete('http://localhost:3002/form/679cfb424554d6489e37cd15', () => {
-      formForms.splice(0, 1);
+      resourceForms.splice(0, 1);
       return HttpResponse.text(null, { status: 200 });
     })
   )

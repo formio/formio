@@ -5,8 +5,8 @@ import { render, screen } from '@testing-library/react';
 import { FormioProvider } from '@formio/react';
 import { Formio } from '@formio/js';
 import { userEvent } from '@testing-library/user-event';
-import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
-import App from '../App';
+import { InfoPanelProvider } from '../src/hooks/useInfoPanelContext';
+import App from '../src/components/App';
 
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {

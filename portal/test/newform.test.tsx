@@ -5,8 +5,8 @@ import { Formio } from '@formio/js';
 import { FormioProvider } from '@formio/react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { InfoPanelProvider } from '../../hooks/useInfoPanelContext';
-import App from '../App';
+import { InfoPanelProvider } from '../src/hooks/useInfoPanelContext';
+import App from '../src/components/App';
 
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {
@@ -32,88 +32,88 @@ beforeEach(() => {
   );
 });
 
-test('Clicking on + New Resource button navigates you to the new resource page', async () => {
-  const newResourceButton = await screen.findByText('+ New Resource');
-  await userEvent.click(newResourceButton);
-  expect(await screen.findByText('New Resource'));
+test('Clicking on + New Form button navigates you to the new form page', async () => {
+  const newFormButton = await screen.findByText('+ New Form');
+  await userEvent.click(newFormButton);
+  expect(await screen.findByText('New Form'));
   expect(await screen.findByText('Form Title'));
   expect(await screen.findByText('Form Name'));
-  expect(window.location.href).to.include('/newresource');
+  expect(window.location.href).to.include('/newform');
 });
 
-test('Creating a new resource should take you to edit resource', async () => {
+test('Creating a new form should take you to edit form', async () => {
   server.use(
     http.get('/form/679912ea8071e982d2b214c9', () => {
       return HttpResponse.json({
-        '_id': '679912ea8071e982d2b214c9',
+        '_id': '679bc82961e9293dee60f88a',
         'title': 'test',
         'name': 'test',
         'path': 'test',
-        'type': 'resource',
+        'type': 'form',
         'display': 'form',
         'tags': [
           ''
         ],
-        'owner': '6796959fd194b4e879fe3c97',
+        'owner': '679bc6e961e9293dee60f7fd',
         'components': [],
         'pdfComponents': [],
         'access': [
           {
             'type': 'read_all',
             'roles': [
-              '67969590d194b4e879fe3c44',
-              '67969590d194b4e879fe3c48',
-              '67969590d194b4e879fe3c4c'
+              '679bc6de61e9293dee60f7aa',
+              '679bc6de61e9293dee60f7ae',
+              '679bc6de61e9293dee60f7b2'
             ]
           }
         ],
         'submissionAccess': [],
-        'created': '2025-01-28T17:24:58.838Z',
-        'modified': '2025-01-28T17:24:58.840Z',
+        'created': '2025-01-30T18:42:49.240Z',
+        'modified': '2025-01-30T18:42:49.243Z',
         'machineName': 'test'
       });
     }),
     http.post('http://localhost:3002/form', () => {
       return HttpResponse.json({
-        '_id': '679912ea8071e982d2b214c9',
+        '_id': '679bc82961e9293dee60f88a',
         'title': 'test',
         'name': 'test',
         'path': 'test',
-        'type': 'resource',
+        'type': 'form',
         'display': 'form',
         'tags': [
           ''
         ],
-        'owner': '6796959fd194b4e879fe3c97',
+        'owner': '679bc6e961e9293dee60f7fd',
         'components': [],
         'pdfComponents': [],
         'access': [
           {
             'type': 'read_all',
             'roles': [
-              '67969590d194b4e879fe3c44',
-              '67969590d194b4e879fe3c48',
-              '67969590d194b4e879fe3c4c'
+              '679bc6de61e9293dee60f7aa',
+              '679bc6de61e9293dee60f7ae',
+              '679bc6de61e9293dee60f7b2'
             ]
           }
         ],
         'submissionAccess': [],
-        'created': '2025-01-28T17:24:58.838Z',
-        'modified': '2025-01-28T17:24:58.840Z',
+        'created': '2025-01-30T18:42:49.240Z',
+        'modified': '2025-01-30T18:42:49.243Z',
         'machineName': 'test'
       });
     })
   );
-  await userEvent.click(await screen.findByText('+ New Resource'));
+  await userEvent.click(await screen.findByText('+ New Form'));
   await screen.findByText('Form Title');
   await userEvent.type(document.querySelector('[name="data[title]"]')!, 'test');
-  const createResourceButton = await screen.findByText('Create Resource');
-  await userEvent.click(createResourceButton);
-  const editResourceTab = await screen.findByText('Edit Resource');
-  expect(Array.from(editResourceTab.classList)).contains('active');
+  const createFormButton = await screen.findByText('Create Form');
+  await userEvent.click(createFormButton);
+  const editFormTab = await screen.findByText('Edit Form');
+  expect(Array.from(editFormTab.classList)).contains('active');
 });
 
-test('Create a resource without a title, name, and path should display validation error', async () => {
+test('Create a form without a title, name, and path should display validation error', async () => {
   server.use(
     http.post('http://localhost:3002/form', () => {
       return HttpResponse.json({
@@ -139,13 +139,13 @@ test('Create a resource without a title, name, and path should display validatio
       }, { status: 400 });
     })
   );
-  await userEvent.click(await screen.findByText('+ New Resource'));
-  await userEvent.click(await screen.findByText('Create Resource'));
+  await userEvent.click(await screen.findByText('+ New Form'));
+  await userEvent.click(await screen.findByText('Create Form'));
   expect(await screen.findByText('Could not connect to API server (form validation failed: path: Path `path` is required., name: Path `name` is required., title: Path `title` is required.): http://localhost:3002/form'));
 });
 
 test('Clicking on Display As Wizard adds a Page 1 panel with a Page 1 button and + Page button', async () => {
-  await userEvent.click(await screen.findByText('+ New Resource'));
+  await userEvent.click(await screen.findByText('+ New Form'));
   await screen.findByText('Form Title');
   await waitFor(() => {
     const choicesHandler = (document.querySelector('div.formio-component.formio-component-select.formio-component-display') as HTMLElement & {
@@ -164,9 +164,9 @@ test('Clicking on Display As Wizard adds a Page 1 panel with a Page 1 button and
 });
 
 test('Display as PDF should not exist', async () => {
-  const newResourceButton = await screen.findByText('+ New Resource');
-  await userEvent.click(newResourceButton);
-  expect(await screen.findByText('New Resource'));
+  const newFormButton = await screen.findByText('+ New Form');
+  await userEvent.click(newFormButton);
+  expect(await screen.findByText('New Form'));
   expect(screen.queryByText('PDF')).to.be.null;
 });
 
