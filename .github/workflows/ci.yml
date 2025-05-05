@@ -199,7 +199,6 @@ jobs:
   ## Portal Build
   ###########################################################################
   portal:
-    if: startsWith(github.ref, 'refs/tags/')
     needs: [test-current]
     runs-on: ubuntu-latest
     steps:
@@ -220,6 +219,10 @@ jobs:
           ${{ runner.os }}-node-
     - name: Build Portal
       uses: borales/actions-yarn@v4
+      env:
+        NODE_VERSION: 20.x
+        GIT_EMAIL: pkgbot@form.io
+        GIT_USERNAME: pkgbot
       with:
         cmd: build:portal
     - name: Cache Portal
@@ -230,6 +233,11 @@ jobs:
         restore-keys: |
             ${{ runner.os }}-portal-
 
+    - name: test
+      uses: borales/actions-yarn@v4
+      with:
+        dir: 'portal'
+        cmd: test
   ###########################################################################
   ## Docker
   ###########################################################################
