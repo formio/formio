@@ -451,6 +451,23 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
+"@formio/core@2.4.0-dev.246.b4982b4":
+  version "2.4.0-dev.246.b4982b4"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.246.b4982b4.tgz#38d1fb3dcafc8e62ac995f93775aae3620f0df09"
+  integrity sha512-Otzyv6YUWQZ+kRPKYEZV60IpoDiLApJT6GvnN2mlOhTd/9+LEHXpqnIMmcx4D/SGlIgap8nX0aBsgxe+7M98Wg==
+  dependencies:
+    browser-cookies "^1.2.0"
+    core-js "^3.40.0"
+    dayjs "^1.11.12"
+    dompurify "^3.2.4"
+    eventemitter3 "^5.0.0"
+    fast-json-patch "^3.1.1"
+    fetch-ponyfill "^7.1.0"
+    inputmask "5.0.9"
+    json-logic-js "^2.0.5"
+    lodash "^4.17.21"
+    moment "^2.29.4"
+
 "@formio/js@^5.0.1":
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.1.tgz#992c32b3f64aac6d5883c85e44a414e70b8fd9de"
@@ -1921,7 +1938,7 @@ copy-webpack-plugin@^12.0.2:
     schema-utils "^4.2.0"
     serialize-javascript "^6.0.2"
 
-core-js@^3.35.1, core-js@^3.37.1, core-js@^3.39.0:
+core-js@^3.35.1, core-js@^3.37.1, core-js@^3.39.0, core-js@^3.40.0:
   version "3.42.0"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.42.0.tgz#edbe91f78ac8cfb6df8d997e74d368a68082fe37"
   integrity sha512-Sz4PP4ZA+Rq4II21qkNqOEDTDrCvcANId3xpIgB34NDkWc3UduWj2dqEtN9yZIq8Dk3HyPI33x9sqqU5C8sr0g==

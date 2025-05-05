@@ -219,10 +219,6 @@ jobs:
           ${{ runner.os }}-node-
     - name: Build Portal
       uses: borales/actions-yarn@v4
-      env:
-        NODE_VERSION: 20.x
-        GIT_EMAIL: pkgbot@form.io
-        GIT_USERNAME: pkgbot
       with:
         cmd: build:portal
     - name: Cache Portal
