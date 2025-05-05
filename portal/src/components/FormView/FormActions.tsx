@@ -7,6 +7,7 @@ import {
   FormProps,
 } from '@formio/react';
 import { Component, ButtonComponent } from '@formio/core';
+import { Utils } from '@formio/js';
 import { useCallback, useState, useRef, useEffect } from 'react';
 
 export type FormAction = {
@@ -98,11 +99,39 @@ export const FormActions = ({ formId, limit }: { formId: string; limit?: number 
   const handleAddAction = async (action: FormAction) => {
     try {
       const actionInfo = await getActionInfo(formId, action.name, token);
+      // check for presence of not hidden handler and method components
+      let hasHandlerField = false;
+      let hasMethodField = false;
+      Utils.eachComponent(
+        actionInfo.settingsForm.components,
+        (component: any, path: any) => {
+          if (component.key === 'handler' && component.type !== 'hidden') {
+            hasHandlerField = true;
+          }
+          if (component.key === 'method' && component.type !== 'hidden') {
+            hasMethodField = true;
+          }
+        },
+        true,
+      );
+
+      const submissionData = {
+        ...action,
+      };
+
+      // if handler and method are not present in he form, set to defaults
+      const defaults = actionInfo?.defaults;
+      if (!hasHandlerField && defaults?.handler) {
+        submissionData.handler = defaults.handler;
+      }
+      if (!hasMethodField && defaults?.method) {
+        submissionData.method = defaults.method;
+      }
       setActiveAction({
         form: actionInfo.settingsForm,
         title: actionInfo.title,
         submission: {
-          data: action,
+          data: submissionData,
         },
         action: 'Add',
       });
@@ -126,8 +155,8 @@ export const FormActions = ({ formId, limit }: { formId: string; limit?: number 
         console.warn("Can't edit action without submit button");
         return;
       }
-      submitButton.action = 'event';
-      submitButton.event = 'updateAction';
+      (submitButton as ButtonComponent).action = 'event';
+      (submitButton as ButtonComponent).event = 'updateAction';
       setActiveAction({
         form: settingsForm,
         title: action.title,

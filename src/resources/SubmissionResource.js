@@ -14,6 +14,7 @@ module.exports = (router) => {
     router.formio.middleware.filterIdCreate,
     router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
+    router.formio.middleware.allowTimestampOverride,
     router.formio.middleware.bootstrapEntityOwner,
     router.formio.middleware.bootstrapSubmissionAccess,
     router.formio.middleware.addSubmissionResourceAccess,
@@ -50,6 +51,7 @@ module.exports = (router) => {
     router.formio.middleware.permissionHandler,
     router.formio.middleware.submissionApplyPatch,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
+    router.formio.middleware.allowTimestampOverride,
     router.formio.middleware.bootstrapEntityOwner,
     router.formio.middleware.bootstrapSubmissionAccess,
     router.formio.middleware.addSubmissionResourceAccess,
@@ -185,7 +187,7 @@ module.exports = (router) => {
         }
 
         const update = _.omit(req.body, ['_id', '__v']);
-
+        update.modified = new Date();
         router.formio.resources.submission.model.findOneAndUpdate(
           {_id: req.params[`${this.name}Id`]},
           {$set: update}

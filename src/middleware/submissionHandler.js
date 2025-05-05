@@ -9,6 +9,7 @@ module.exports = (router, resourceName, resourceId) => {
   const hook = require('../util/hook')(router.formio);
   const fActions = require('../actions/fields')(router);
   const pActions = require('../actions/properties')(router);
+  const config = router.formio.config;
   const handlers = {};
 
   // Iterate through the possible handlers.
@@ -204,7 +205,7 @@ module.exports = (router, resourceName, resourceId) => {
 
       // Next we need to validate the input.
       await new Promise((resolve, reject) => {
-        hook.alter('validateSubmissionForm', req.currentForm, req.body, async (form) => {
+        hook.alter('validateSubmissionForm', req.currentForm, req.body, req, async (form) => {
         // Get the models for validation
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;//
         const submissionResource = router.formio.resources.submission;
@@ -220,6 +221,7 @@ module.exports = (router, resourceName, resourceId) => {
           formModel,
           tokenModel,
           hook,
+          config
         );
         await validator.validate(req.body, (err, data, visibleComponents) => {
           if (req.noValidate) {

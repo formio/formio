@@ -133,7 +133,7 @@ export const FormList = ({ type }: { type: "form" | "resource" }) => {
             <FormListHeader type={type}/>
             <FormGrid
                 formQuery={{ type }}
-                onFormClick={(id) => setLocation(`/${type}/${id}`)}
+                onFormClick={(id) => setLocation(`/${type}/${id}/edit`)}
                 components={{
                     Container,
                     FormContainer,

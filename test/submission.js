@@ -231,6 +231,54 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('Should validate input mask', function(done) {
+        var components = [
+          {
+            "label": "Text Field",
+            "inputMask": "aaa",
+            "applyMaskOn": "change",
+            "tableView": true,
+            "validateWhenHidden": false,
+            "key": "textField",
+            "type": "textfield",
+            "input": true
+          }
+        ];
+
+        var values = {
+          textField: '123'
+        };
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .expect(400)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            var submission = helper.getLastSubmission();
+            assert.equal(submission.name, 'ValidationError');
+            assert.deepEqual(submission.details, [
+              {
+                context: {
+                  hasLabel: true,
+                  index: 0,
+                  key: 'textField',
+                  validator: 'mask',
+                  label: 'Text Field',
+                  path: 'textField',
+                  value: '123',
+                },
+                message: 'Text Field does not match the mask.',
+                level: 'error',
+                path: ['textField']
+              }
+            ]);
+            done();
+          });
+      });
+
       it('Saves values for each multiple value component', function(done) {
         var test = require('./fixtures/forms/multicomponents.js');
         helper
@@ -1803,7 +1851,7 @@ module.exports = function(app, template, hook) {
               "number2": 200
             }
             _.set(updatedSubmission, 'data', updatedData);
-            
+
             helper.updateSubmission(updatedSubmission, (err) => {
               if (err) {
                 return done(err);
@@ -2814,6 +2862,42 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Unique Fields', function() {
+      before('Sets up the submissions', function(done) {
+        const components = [
+            {
+              input: true,
+              label: 'Email',
+              key: 'email',
+              unique: true,
+              type: 'email'
+            },
+            {
+              input: true,
+              label: 'Text Field',
+              key: 'textField',
+              unique: true,
+              type: 'textfield',
+              validate: {
+                pattern: '[A-Za-z0-9]+'
+              }
+            }
+          ];
+        const values = {
+          email: 'brendan@form.io',
+          textField: 'IAmAUniqueSnowflake'
+        }
+        helper
+          .form('uniqueTest', components)
+          .submission(values)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            return done();
+          });
+      });
+
       it('Returns an error when non-unique', function(done) {
         var components = [
           {
@@ -2866,6 +2950,52 @@ module.exports = function(app, template, hook) {
             assert.equal(helper.lastResponse.body.details.length, 1);
             assert.equal(helper.lastResponse.body.details[0].message, 'Text Field must be unique');
             assert.deepEqual(helper.lastResponse.body.details[0].path, ['textField']);
+            done();
+          });
+      });
+
+      it('Returns an error for non-unique emails and text fields with pattern [A-Za-z0-9]+', function (done) {
+        const components = [
+        {
+          input: true,
+          label: 'Email',
+          key: 'email',
+          unique: true,
+          type: 'email'
+        },
+        {
+          input: true,
+          label: 'Text Field',
+          key: 'textField',
+          unique: true,
+          type: 'textfield',
+          validate: {
+            pattern: '[A-Za-z0-9]+'
+          }
+        }
+        ];
+        const values = {
+          email: 'brendan@form.io',
+          textField: 'IAmAUniqueSnowflake'
+        };
+
+        helper
+          .form('uniqueTest', components)
+          .submission(values)
+          .expect(400)
+          .execute(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            helper.getLastSubmission();
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 2);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Email must be unique');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['email']);
+            assert.equal(helper.lastResponse.body.details[1].message, 'Text Field must be unique');
+            assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
             done();
           });
       });
@@ -4559,6 +4689,34 @@ module.exports = function(app, template, hook) {
               });
             });
         });
+
+        it('Should change modified date when patch submission', function (done) {
+          const test = require('./fixtures/forms/singlecomponentsSimple.js');
+          helper
+            .form('patchFormMike', test.components)
+            .submission(test.submission)
+            .execute(function (err) {
+              if (err) {
+                return done(err);
+              }
+              const submissionBeforePatch = helper.getLastSubmission();
+              const update = [
+                {
+                  "op": "replace",
+                  "path": "/data/textField",
+                  "value": "PATCH Update"
+                }
+              ]
+              helper.patchSubmission(submissionBeforePatch, update, (err) => {
+                if (err) {
+                  return done(err);
+                }
+                const submissionAfterPatch = helper.getLastSubmission();
+                assert.notEqual(submissionBeforePatch.modified, submissionAfterPatch.modified)
+                done();
+              })
+            })
+        });
       });
 
     });
@@ -5489,13 +5647,13 @@ module.exports = function(app, template, hook) {
         if (err) {
           return done(err);
         }
-  
+
         nestedSubmission = helper.lastSubmission;
         assert.deepEqual(nestedSubmission.data, { radio: 'b', submit: true });
         done();
       });
     });
-    
+
     it('Should allow you to submit data to the nested form.', (done) => {
       helper.submission('parentForm1', {
         radio: 'a',
@@ -5514,7 +5672,7 @@ module.exports = function(app, template, hook) {
         if (err) {
           return done(err);
         }
-  
+
         nestedSubmission = helper.lastSubmission;
         assert.equal(nestedSubmission.data.radio, 'a');
         assert.equal(nestedSubmission.data.form.data.textFieldForm2, 'Foo');
@@ -5530,7 +5688,7 @@ module.exports = function(app, template, hook) {
         if (err) {
           return done(err);
         }
-  
+
         nestedSubmission = helper.lastSubmission;
         done();
       });

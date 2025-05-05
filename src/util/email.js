@@ -489,34 +489,8 @@ module.exports = (formio) => {
           }, Promise.resolve());
       });
 
-      const throttledSendEmails = _.throttle(sendEmails , NON_PRIORITY_QUEUE_TIMEOUT);
-      const sendWithUser = async () => {
-        try {
-          const response = await sendEmails();
-          return response;
-        }
-        catch (err) {
-          debug.error(err);
-          throw new Error(err);
-        }
-      };
-
-      const sensWithoutUser = () => {
-        try {
-          throttledSendEmails();
-        }
-        catch (err) {
-          debug.error(err);
-          throw new Error(err);
-        }
-      };
-
-      if (req.user) {
-        return await sendWithUser();
-      }
-      else {
-        return await sensWithoutUser();
-      }
+      const response = await sendEmails();
+      return response;
     };
 
     const isTransportValid = (transporter) => !transporter || typeof transporter.sendMail !== 'function';
@@ -529,7 +503,7 @@ module.exports = (formio) => {
         ? message.transport
         : 'default';
 
-     const _config = (formio && formio.config && formio.config.email && formio.config.email.type);
+      const _config = (formio && formio.config && formio.config.email && formio.config.email.type);
       debug.send(message);
       debug.send(emailType);
       // Get the settings.
