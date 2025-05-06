@@ -3,7 +3,7 @@ import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { Formio } from '@formio/js';
 import { FormioProvider } from '@formio/react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { InfoPanelProvider } from '../src/hooks/useInfoPanelContext';
 import App from '../src/components/App';
@@ -43,7 +43,7 @@ test('Clicking on + New Form button navigates you to the new form page', async (
 
 test('Creating a new form should take you to edit form', async () => {
   server.use(
-    http.get('/form/679912ea8071e982d2b214c9', () => {
+    http.get('/form/679bc82961e9293dee60f88a', () => {
       return HttpResponse.json({
         '_id': '679bc82961e9293dee60f88a',
         'title': 'test',
@@ -108,7 +108,7 @@ test('Creating a new form should take you to edit form', async () => {
   await screen.findByText('Form Title');
   await userEvent.type(document.querySelector('[name="data[title]"]')!, 'test');
   const createFormButton = await screen.findByText('Create Form');
-  await userEvent.click(createFormButton);
+  fireEvent.click(createFormButton);
   const editFormTab = await screen.findByText('Edit Form');
   expect(Array.from(editFormTab.classList)).contains('active');
 });

@@ -3,7 +3,7 @@ import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { Formio } from '@formio/js';
 import { FormioProvider } from '@formio/react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { InfoPanelProvider } from '../src/hooks/useInfoPanelContext';
 import App from '../src/components/App';
@@ -108,7 +108,7 @@ test('Creating a new resource should take you to edit resource', async () => {
   await screen.findByText('Form Title');
   await userEvent.type(document.querySelector('[name="data[title]"]')!, 'test');
   const createResourceButton = await screen.findByText('Create Resource');
-  await userEvent.click(createResourceButton);
+  fireEvent.click(createResourceButton);
   const editResourceTab = await screen.findByText('Edit Resource');
   expect(Array.from(editResourceTab.classList)).contains('active');
 });

@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, expect, test } from 'vitest
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { Formio } from '@formio/js';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { FormioProvider } from '@formio/react';
 import { userEvent } from '@testing-library/user-event';
 import { InfoPanelProvider } from '../src/hooks/useInfoPanelContext';
@@ -111,7 +111,7 @@ test('Clicking save form updates the form', async () => {
   await waitFor(() => {
     expect((document.querySelector('[name="data[name]"]')! as HTMLInputElement).value).to.equal('tests');
   });
-  await userEvent.click(await screen.findByText('Save Form'));
+  fireEvent.click(await screen.findByText('Save Form'));
   await waitFor(() => {
     expect(document.querySelector('div.panel-wrap.main.form')!.querySelector('div.panel-title')!.textContent?.trim()).to.equal('tests');
   });
