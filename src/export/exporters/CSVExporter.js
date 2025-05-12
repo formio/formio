@@ -387,9 +387,9 @@ class CSVExporter extends Exporter {
 
         items.forEach((item) => {
           const finalItem = {
-            path,
+            path: compPaths.path,
             key: component.key,
-            label: (item.label || path).replace(labelRegexp, '.'),
+            label: (item.label || compPaths.path).replace(labelRegexp, '.'),
             title: component.label,
             dataPath: compPaths.path
           };

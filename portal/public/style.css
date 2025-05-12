@@ -1900,24 +1900,17 @@ button.togglecontext {
 
 /* Footer */
 .panel-footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
     height: 200px;
 }
 
 /* Panels */
 
 .panels {
-    position: fixed;
-    top: 45px;
-    left: 15px;
-    bottom: 215px;
-    right: 15px;
+    height: 90vh;
+    margin-top: 85px;
+    margin-bottom: 85px;
     overflow: hidden;
     max-width: 3390px;
-    margin: 0 auto;
 }
 
 .panel-wrap {
@@ -1925,6 +1918,8 @@ button.togglecontext {
     top: 0;
     left: 0;
     bottom: 0;
+    margin-left: 15px;
+    margin-right: 15px;
 }
 .panel-header {
     position: absolute;
@@ -4876,7 +4871,7 @@ input.notop {
         border-right: 0;
     }
     .panel-footer {
-        display: none; 
+        display: none;
     }
 }
 

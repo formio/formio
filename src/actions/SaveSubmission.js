@@ -85,7 +85,7 @@ module.exports = function(router) {
         const childReq = util.createSubRequest(req);
         if (!childReq) {
           log(
-            req,
+            {...req, body: '[Protected info]'},
             ecode.request.EREQRECUR,
             new Error(ecode.request.EREQRECUR),
             '#resolve'
@@ -124,7 +124,7 @@ module.exports = function(router) {
         }
         else {
           log(
-            req,
+            {...req, body: '[Protected Info]'},
             ecode.resource.ENOHANDLER,
             new Error(ecode.resource.ENOHANDLER),
             '#resolve',
@@ -205,13 +205,13 @@ module.exports = function(router) {
           try {
             const newData = await evaluate({
               deps: [],
-              code: `data=submission.data\n${this.settings.transform}\nsubmission`,
+              code: `data=submission.data;\n${this.settings.transform}\ndata;`,
               data: {
                 submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
                 data: submission.data,
               },
             });
-            submission = {...submission, ...newData};
+            submission.data = newData;
             req.isTransformedData = true;
           }
           catch (err) {

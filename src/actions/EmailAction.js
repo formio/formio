@@ -232,7 +232,7 @@ module.exports = (router) => {
           await emailer.send(req, res, settings, params, setActionItemMessage);
           setActionItemMessage('Message Sent');
         }
- catch (err) {
+        catch (err) {
           setActionItemMessage('Error sending message', {
             message: err.message || err
           }, 'error');
