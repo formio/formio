@@ -44,6 +44,7 @@
     "fs-extra": "^10.1.0",
     "html-entities": "^2.3.3",
     "inputmask": "^5.0.8",
+    "inquirer": "^12.6.1",
     "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
     "memory-cache": "^0.2.0",
