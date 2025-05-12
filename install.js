@@ -1,5 +1,4 @@
 'use strict';
-require('dotenv').config();
 const inquirer = require('inquirer').default;
 const async = require('async');
 const fs = require('fs-extra');
@@ -99,9 +98,9 @@ module.exports = function(formio, items, done) {
      * @param done
      */
     createRootUser: function(done) {
-      // if (!items.user) {
-      //   return done();
-      // }
+      if (!items.user) {
+        return done();
+      }
       util.log('Creating root user account...'.green);
       inquirer.prompt([
         {
@@ -145,16 +144,16 @@ module.exports = function(formio, items, done) {
           // Create the root user submission.
           util.log('Creating root user account');
           try {
-            // await formio.resources.submission.model.create({
-            //   form: project.resources.admin._id,
-            //   data: {
-            //     email: result.email,
-            //     password: hash
-            //   },
-            //   roles: [
-            //     project.roles.administrator._id
-            //   ]
-            // });
+            await formio.resources.submission.model.create({
+              form: project.resources.admin._id,
+              data: {
+                email: result.email,
+                password: hash
+              },
+              roles: [
+                project.roles.administrator._id
+              ]
+            });
             return done();
           }
           catch (err) {
