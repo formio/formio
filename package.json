@@ -22,12 +22,7 @@
     "@formio/core": "2.4.0-dev.235.b497e17",
     "@formio/js": "5.1.0-dev.6043.03460d9",
     "@formio/node-fetch-http-proxy": "^1.1.0",
-<<<<<<< HEAD
-    "@formio/vm": "1.0.0-dev.45.7e9ae31",
-=======
     "@formio/vm": "1.0.0-dev.57.5c79f75",
-    "JSONStream": "^1.3.5",
->>>>>>> d3dbcbd7149779c851927ed199352ef178b2d8ec
     "adm-zip": "^0.5.9",
     "async": "^3.2.4",
     "bcryptjs": "^2.4.3",
@@ -48,6 +43,7 @@
     "fs-extra": "^10.1.0",
     "html-entities": "^2.3.3",
     "inputmask": "^5.0.8",
+    "inquirer": "^12.6.1",
     "JSONStream": "^1.3.5",
     "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",

@@ -81,14 +81,14 @@ module.exports = function(formio, items, done) {
       // Get the form.io service.
       util.log('Importing template...'.green);
       const importer = require('./src/templates/import')({formio: formio});
-      // importer.template(template, function(err, template) {
-      //   if (err) {
-      //     return done(err);
-      //   }
-      //
-      //   project = template;
-      //   done(null, template);
-      // });
+      importer.template(template, function(err, template) {
+        if (err) {
+          return done(err);
+        }
+
+        project = template;
+        done(null, template);
+      });
       done();
     },
 
