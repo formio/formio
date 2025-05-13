@@ -491,7 +491,7 @@ module.exports = function(formio) {
       if (!insertionResult.acknowledged || !insertionResult.insertedId) {
         throw new Error('Could not create a lock for the formio schema.');
       }
-      const lock = await schema.findOne({_id: insertionResult.insertedId});
+      const lock = await schema.findOne({_id: insertionResult.insertedId}, {readPreference: 'primary'});
       currentLock = sanitizeLock(lock);
       debug.db('Created a new lock');
     }
