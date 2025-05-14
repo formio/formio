@@ -60,10 +60,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.4.1-rc.4":
-  version "2.4.1-rc.4"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.1-rc.4.tgz#8f772e9df99c3424283133197a849865dae77d7d"
-  integrity sha512-PrXN4TAjssJmESj3q2eEt2G9dGtPWR/1xN36MARbgt96WueTiElXWRmUo+u/KRuTUbI2eoCbPmmitBiQIcXs1A==
+"@formio/core@2.4.1-rc.5":
+  version "2.4.1-rc.5"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.1-rc.5.tgz#a9825bb30ef1b1ac1d2b6f945ea346d8b975e88c"
+  integrity sha512-AG88nuA78RYfM53qMICRRS9tc9cC1nPQ72Ymge69HNuUQNLf0f2IwxtnuZm185y/BnKS4qiehujRbLxuQoADLg==
   dependencies:
     browser-cookies "^1.2.0"
     core-js "^3.39.0"
@@ -77,14 +77,14 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/js@5.1.2-rc.5":
-  version "5.1.2-rc.5"
-  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.2-rc.5.tgz#5ee289b3f1443a4812ea0b626604488adda7d46f"
-  integrity sha512-blaqI2hX0Xtjlkr78Wi0cGT8RkMIBTNqmtuAdCy6PlojPreK5j9DFl50LkLJEVksAGHZmJ5jnpzX7dstaSiYxg==
+"@formio/js@5.1.2-rc.6":
+  version "5.1.2-rc.6"
+  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.2-rc.6.tgz#d36891e56b1c33312ba15bd27593685784ecc35c"
+  integrity sha512-40qWarB/DVQ7FgTuhHljoyK/S1nixpmemXrHXMTlhD6ZvrLeZT55RToTK+PUXBoNSZ/X0YPItabMYHGkO0Sdcw==
   dependencies:
     "@formio/bootstrap" "3.1.1-rc.3"
     "@formio/choices.js" "^10.2.1"
-    "@formio/core" "2.4.1-rc.4"
+    "@formio/core" "2.4.1-rc.5"
     "@formio/text-mask-addons" "^3.8.0-formio.4"
     "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     abortcontroller-polyfill "^1.7.5"
@@ -138,13 +138,13 @@
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@1.0.2-rc.6":
-  version "1.0.2-rc.6"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.2-rc.6.tgz#4227d7efeac31907a3315aceea471cbf42b39784"
-  integrity sha512-EEkQ809alfpFsfYfw/ZIQSpgsNOjzdwo/jsmV1WF/0o0mRoqLBOpfDpYAqRma2R/M+/TGlhnoauRjzPQlDuX9w==
+"@formio/vm@1.0.2-rc.7":
+  version "1.0.2-rc.7"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.2-rc.7.tgz#72c9c23e679cda11ad14723b29f2b734b266e688"
+  integrity sha512-0jXwRD4HY7pnm+pVwT59vLJJyq1i6yevK/iw+bFD3euVoZVPZ8g/OiEPjlp/K0SYJhWu044O1cqnwPvqdb1z1g==
   dependencies:
-    "@formio/core" "2.4.1-rc.4"
-    "@formio/js" "5.1.2-rc.5"
+    "@formio/core" "2.4.1-rc.5"
+    "@formio/js" "5.1.2-rc.6"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
