@@ -70,6 +70,26 @@ module.exports = function(formio) {
   };
 
   /**
+   *
+   * @param {object} lock - The lock object to sanitize.
+   * @returns {object|undefined} - The sanitized lock object.
+   */
+  const sanitizeLock = function(lock) {
+    if (!lock) {
+      return;
+    }
+    if (typeof lock !== 'object') {
+      throw new Error('Invalid lock object');
+    }
+    const validLock = {
+      key: lock.key,
+      isLocked: lock.isLocked,
+      version: lock.version
+    };
+    return validLock;
+  };
+
+  /**
    * Unlock the formio lock.
    *
    *   The next function to invoke after this function has finished.
@@ -80,12 +100,12 @@ module.exports = function(formio) {
     }
 
     currentLock.isLocked = false;
-      await schema.updateOne(
-        {key: 'formio'},
-        {$set: {isLocked: currentLock.isLocked}});
-      const result = await schema.findOne({key: 'formio'});
-      currentLock = result;
-      debug.db('Lock unlocked');
+    await schema.updateOne(
+      {key: 'formio'},
+      {$set: {isLocked: currentLock.isLocked}});
+    const result = await schema.findOne({key: 'formio'});
+    currentLock = sanitizeLock(result);
+    debug.db('Lock unlocked');
   };
   /**
    * Fetch the SA certificate.
@@ -206,7 +226,7 @@ module.exports = function(formio) {
         await client.connect();
         db = client.db(client.s.options.dbName);
         debug.db('Connection successful');
-        const collection = await db.collection('schema');
+        const collection = db.collection('schema');
         debug.db('Schema collection opened');
         schema = collection;
         // Load the tools available to help manage updates.
@@ -227,20 +247,18 @@ module.exports = function(formio) {
    * Test to see if the application has been installed. Install if not.
    */
   const checkSetup = async function() {
-    setTimeout(async () => {
-      formio.util.log('Checking for db setup.');
-      const collections = await db.listCollections().toArray();
-      debug.db(`Collections found: ${collections.length}`);
-      // 3 is an arbitrary length. We just want a general idea that things have been installed.
-      if (collections.length < 3) {
-        formio.util.log(' > No collections found. Starting new setup.');
-        await require(path.join(__dirname, '/install'))(db, config);
-        formio.util.log(' > Setup complete.\n');
-      }
- else {
-        formio.util.log(' > Setup complete.\n');
-      }
-    }, Math.random() * 1000);
+    formio.util.log('Checking for db setup.');
+    const collections = await db.listCollections().toArray();
+    debug.db(`Collections found: ${collections.length}`);
+    // 3 is an arbitrary length. We just want a general idea that things have been installed.
+    if (collections.length < 3) {
+      formio.util.log(' > No collections found. Starting new setup.');
+      await require(path.join(__dirname, '/install'))(db, config);
+      formio.util.log(' > Setup complete.\n');
+    }
+    else {
+      formio.util.log(' > Setup complete.\n');
+    }
   };
 
   const checkEncryption = function() {
@@ -460,38 +478,43 @@ module.exports = function(formio) {
     }
 
     const document = await schema.find({key: 'formio'}).toArray();
-      // Engage the lock.
-      if (!document || document.length === 0) {
-        // Create a new lock, because one was not present.
-        debug.db('Creating a lock, because one was not found.');
-        const document = await schema.insertOne({
-          key: 'formio',
-          isLocked: (new Date()).getTime(),
-          version: config.schema
-        });
-        currentLock = document.ops[0];
-        debug.db('Created a new lock');
+    // Engage the lock.
+    if (!document || document.length === 0) {
+      // Create a new lock, because one was not present.
+      debug.db('Creating a lock, because one was not found.');
+      const document = {
+        key: 'formio',
+        isLocked: (new Date()).getTime(),
+        version: config.schema
+      };
+      const insertionResult = await schema.insertOne(document);
+      if (!insertionResult.acknowledged || !insertionResult.insertedId) {
+        throw new Error('Could not create a lock for the formio schema.');
       }
-      else if (document.length > 1) {
-        throw ('More than one lock was found, terminating updates.');
+      const lock = await schema.findOne({_id: insertionResult.insertedId}, {readPreference: 'primary'});
+      currentLock = sanitizeLock(lock);
+      debug.db('Created a new lock');
+    }
+    else if (document.length > 1) {
+      throw ('More than one lock was found, terminating updates.');
+    }
+    else {
+      debug.db(document);
+      currentLock = document[0];
+
+      if (currentLock.isLocked) {
+        formio.util.log(' > DB is already locked for updating');
       }
       else {
-        debug.db(document);
-        currentLock = document[0];
-
-        if (currentLock.isLocked) {
-          formio.util.log(' > DB is already locked for updating');
-        }
-        else {
-          // Lock
-          await schema.updateOne(
-            {key: 'formio'},
-            {$set: {isLocked: (new Date()).getTime()}});
-          const result = await schema.findOne({key: 'formio'});
-          currentLock = result;
-          debug.db('Lock engaged');
-        }
+        // Lock
+        await schema.updateOne(
+          {key: 'formio'},
+          {$set: {isLocked: (new Date()).getTime()}});
+        const result = await schema.findOne({key: 'formio'});
+        currentLock = sanitizeLock(result);
+        debug.db('Lock engaged');
       }
+    }
   };
 
   /**
