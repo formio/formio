@@ -92,12 +92,12 @@ const FormListHeader = ({ type }: { type: "form" | "resource" }) => {
                     .
                 </p>
             </div>
-            <a
+            <button
                 onClick={() => setLocation(`/new${type}`)}
                 className={`button small new-${type} ${type === "form" ? "primary" : "blue"}`}
             >
                 + New {name}
-            </a>
+            </button>
 
         </div>
         <div className="panel-header-section bottom">

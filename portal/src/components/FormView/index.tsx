@@ -79,7 +79,7 @@ export const FormView = ({
                             className={`menu-item enter-data${location === "/edit" || location === "/" ? " active" : ""}`}
                             onClick={() => setLocation("/edit")}
                         >
-                            Edit <span className="item-type-label">{name}</span>
+                            Edit {name}
                         </button>
                         <button
                             className={`menu-item enter-data${location === "/use" ? " active" : ""}`}
@@ -97,8 +97,7 @@ export const FormView = ({
                             className={`menu-item enter-data${location === "/actions" ? " active" : ""}`}
                             onClick={() => setLocation("/actions")}
                         >
-                            <span className="item-type-label">{name}</span>{" "}
-                            Actions
+                            <span className="item-type-label">{name}{" "}Actions</span>
                         </button>
                         <button
                             className={`menu-item enter-data${location === "/access" ? " active" : ""}`}
