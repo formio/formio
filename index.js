@@ -1,20 +1,23 @@
 'use strict';
 
 // Setup the Form.IO server.//
+const fs = require('fs/promises');
 const express = require('express');
 const cors = require('cors');
-const router = express.Router();
 const mongoose = require('mongoose');
-mongoose.Promise = global.Promise;
 const bodyParser = require('body-parser');
 const _ = require('lodash');
 const events = require('events');
 const nunjucks = require('nunjucks');
-const util = require('./src/util/util');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
-const {configureVm} = require('@formio/vm');
+const {registerEvaluator} = require('@formio/core');
 
+const util = require('./src/util/util');
+const {IsolateVMEvaluator} = require('./src/vm');
+
+mongoose.Promise = global.Promise;
+const router = express.Router();
 // Keep track of the formio interface.
 router.formio = {};
 
@@ -58,6 +61,10 @@ module.exports = function(config) {
       }
     }
   };
+
+  // Configure the evaluator
+  const evaluator = new IsolateVMEvaluator({timeoutMs: config.vmTimeout});
+  registerEvaluator(evaluator);
 
   /**
    * Initialize the formio server.
@@ -291,20 +298,6 @@ module.exports = function(config) {
 
           require('./src/middleware/recaptcha')(router);
 
-          // Read the static VM depdenencies into memory and configure the VM
-          const {lodash, moment, inputmask, core, fastJsonPatch, nunjucks} = require('./src/util/staticVmDependencies');
-          configureVm({
-            dependencies: {
-              lodash,
-              moment,
-              inputmask,
-              core,
-              fastJsonPatch,
-              nunjucks
-            },
-            timeout: config.vmTimeout
-          });
-
           // Say we are done.
           router.formio.db = mongoose.connection;
           return router.formio;
@@ -326,6 +319,7 @@ module.exports = function(config) {
     // Get the hook system.
     router.formio.hook = require('./src/util/hook')(router.formio);
 
+    // Configure Formio, if applicaple.
     router.formio.hook.alter('configFormio', {Formio: util.Formio});
 
     // Get the encryption system.

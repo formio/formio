@@ -7,7 +7,6 @@ const _ = require('lodash');
 const chance = new (require('chance'))();
 const http = require('http');
 const url = require('url');
-const { UV_FS_O_FILEMAP } = require('constants');
 const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
 const customSaveSubmissionTransformForm = require('./fixtures/forms/customSaveSubmissionTransformForm');
 const customSaveSubmissionTransformResource = require('./fixtures/forms/customSaveSubmissionTransformResource');
@@ -382,7 +381,7 @@ module.exports = (app, template, hook) => {
 
     describe('Action with missing fields creation', () => {
 
-      it('Should add Save action and apply defaults for handler and method if fields are missing', async () => {      
+      it('Should add Save action and apply defaults for handler and method if fields are missing', async () => {
         const action = {
           name: 'save',
           title: 'Save Submission',
@@ -395,18 +394,18 @@ module.exports = (app, template, hook) => {
             method: ['create', 'update']
           }
         };
-      
+
         const response = await request(app)
           .post(hook.alter('url', `/form/${tempForm._id}/action`, template))
           .set('x-jwt-token',  template.users.admin.token)
           .send({ data: action });
-      
+
         assert.equal(response.status, 201);
         assert.deepEqual(response.body.handler, ['before'], 'Default handler should be applied');
         assert.deepEqual(response.body.method, ['create', 'update'], 'Default method should be applied');
       });
-      
-      it('Should add Webhook action and do not apply defaults for handler and method (fields are set)', async () => {      
+
+      it('Should add Webhook action and do not apply defaults for handler and method (fields are set)', async () => {
         const action = {
           name: 'webhook',
           title: 'Webhook Action',
@@ -420,12 +419,12 @@ module.exports = (app, template, hook) => {
             method: ['create'],
           },
         };
-      
+
         const response = await request(app)
           .post(hook.alter('url', `/form/${tempForm._id}/action`, template))
           .set('x-jwt-token',  template.users.admin.token)
           .send({ data: action });
-      
+
         assert.equal(response.status, 201);
         assert.deepEqual(response.body.handler, [], 'Handler should remain empty');
         assert.deepEqual(response.body.method, [], 'Method should remain empty');
@@ -2091,7 +2090,6 @@ module.exports = (app, template, hook) => {
               .post(hook.alter('url', `/form/${oForm._id}/action`, template))
               .set('x-jwt-token', template.users.admin.token)
               .send(testAction)).body;
-
 
           testAction = testActionRes;
 
