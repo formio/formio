@@ -213,12 +213,10 @@ module.exports = function(config) {
       if (!router.formio.hook.invoke('init', 'config', router.formio)) {
         router.use('/config.json', router.formio.middleware.configHandler);
       }
-
       // Authorize all urls based on roles and permissions.
       if (!router.formio.hook.invoke('init', 'perms', router.formio)) {
         router.use(router.formio.middleware.permissionHandler);
       }
-
       let mongoUrl = config.mongo;
       let mongoConfig = config.mongoConfig ? JSON.parse(config.mongoConfig) : {};
       if (!mongoConfig.hasOwnProperty('connectTimeoutMS')) {
@@ -299,6 +297,8 @@ module.exports = function(config) {
         const formListingByPathNameTitle = require('./src/resources/FormListingByPathTitleName');
         router.get('/forms/search',formListingByPathNameTitle.getFormsByTitleOrPathOrName(router));
 
+        const submissionList = require('./src/resources/SubmissionList').getAllSubmissions(router);
+        router.post('/submissions',router.formio.middleware.tokenVerify,submissionList);
         // Return the form components.
         router.get('/form/:formId/components', function(req, res, next) {
           router.formio.resources.form.model.findOne({_id: req.params.formId}, function(err, form) {
