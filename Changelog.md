@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.5.0-rc.7]
+ - Change 4.5.x to fork from 4.4.x
+
 ## 4.4.2
 ### Changed
  - Official Release
