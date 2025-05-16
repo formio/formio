@@ -10,10 +10,8 @@
  * @param db
  * @param config
  * @param tools
- * @param done
  */
-module.exports = function(db, config, tools, done) {
-  done();
+module.exports = function(db, config, tools) {
   /*
   // See the manual update hook @ ./src/db/manual/3.1.1.js
   */
