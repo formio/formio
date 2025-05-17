@@ -8,17 +8,14 @@ const nodeUrl = require('url');
 const deleteProp = require('delete-property').default;
 const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
-const mockBrowserContext = require('@formio/vm/build/mockBrowserContext');
+const {mockBrowserContext} = require('@formio/vm');
+mockBrowserContext();
+const Formio = require('@formio/js');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
-
-mockBrowserContext.default();
-const Formio = require('@formio/js');
-global.Formio = Formio.Formio;
-Formio.Utils.Evaluator.noeval = true;
 
 const Utils = {
   Formio: Formio.Formio,

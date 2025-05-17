@@ -2,5 +2,8 @@ test/*
 app/*
 client/*
 src/db/updates/*
+src/vm/bundles/*
 node_modules/*
 bower_components/*
+portal/*
+vm/*

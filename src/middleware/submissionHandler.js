@@ -9,7 +9,6 @@ module.exports = (router, resourceName, resourceId) => {
   const hook = require('../util/hook')(router.formio);
   const fActions = require('../actions/fields')(router);
   const pActions = require('../actions/properties')(router);
-  const config = router.formio.config;
   const handlers = {};
 
   // Iterate through the possible handlers.
@@ -205,23 +204,11 @@ module.exports = (router, resourceName, resourceId) => {
 
       // Next we need to validate the input.
       await new Promise((resolve, reject) => {
-        hook.alter('validateSubmissionForm', req.currentForm, req.body, async (form) => {
-        // Get the models for validation
-        const submissionModel = req.submissionModel || router.formio.resources.submission.model;//
-        const submissionResource = router.formio.resources.submission;
-        const cache = router.formio.cache;
-        const formModel = router.formio.resources.form.model;//
-        const tokenModel = router.formio.mongoose.models.token;//
+        hook.alter('validateSubmissionForm', req.currentForm, req.body, req, async (form) => {
         // Validate the request.
         const validator = new Validator(
           req,
-          submissionModel,
-          submissionResource,
-          cache,
-          formModel,
-          tokenModel,
-          hook,
-          config
+          router.formio
         );
         await validator.validate(req.body, (err, data, visibleComponents) => {
           if (req.noValidate) {

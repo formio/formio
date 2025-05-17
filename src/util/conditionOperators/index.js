@@ -246,7 +246,7 @@ const getValueComponentsForEachFormComponent = (flattenedComponents) => {
   Object.keys(flattenedComponents).forEach((path) => {
     const componentSchema = flattenedComponents[path];
     const component = componentSchema && componentSchema.type
-      ? Formio.AllComponents[componentSchema.type]
+      ? {}
       : null;
     const getValueComponent = component && component.serverConditionSettings ?
       component.serverConditionSettings.valueComponent :
@@ -307,11 +307,11 @@ const getValueComponentRequiredSettings = (valueComponentsByFieldPath) => {
             schemaDefinition: `
             const valueComponentsByFieldPath = ${JSON.stringify(valueComponentsByFieldPath)};
             const valueComponent = valueComponentsByFieldPath[row.component] || { type: 'textfield' };
-            
+
             if (valueComponent.type !== 'datetime') {
               valueComponent.widget = null;
             }
-            
+
             schema = {
               ...valueComponent,
               ..._.pick(component, [
