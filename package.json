@@ -69,6 +69,7 @@
   "devDependencies": {
     "eslint": "^8.25.0",
     "mocha": "^10.0.0",
+    "monorepo-sync": "git+https://github.com/johnformio/monorepo-sync.git",
     "nodemon": "^2.0.20",
     "nyc": "^17.0.0",
     "pre-commit": "^1.2.2",
