@@ -297,6 +297,29 @@ module.exports = function(formio) {
         formio.util.log('Compound indexes that contain nested paths are not supported.');
         config.mongoFeatures.compoundIndexWithNestedPath = formio.mongoFeatures.compoundIndexWithNestedPath = false;
       }
+
+      // check CosmosDB indexes
+      try {
+        // Checking whether indexes need to be created for CosmosDB to function
+        await featuresTest.dropIndexes();
+        await featuresTest.insertOne({title: 'Test Title', nested: {test: 'value'}});
+        await featuresTest.find().sort({title: 1}).limit(1).toArray();
+      }
+      catch (err) {
+        // Create indexes if they don't exist
+        const collections = await db.listCollections().toArray();
+
+        for (const {name} of collections) {
+          const collection = db.collection(name);
+          const indexes = await collection.indexes();
+
+          const hasWildcard = indexes.some(idx => idx.key && idx.key["$**"] === 1);
+
+          if (!hasWildcard) {
+            await collection.createIndex({"$**": 1});
+          }
+        }
+      }
       await featuresTest.drop();
     }
     catch (err) {
