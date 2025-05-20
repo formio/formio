@@ -1,0 +1,69 @@
+{% macro dataValue(dValue, data) %}
+  {% if dValue | is_object %}
+    <table border="1" style="width:100%">
+      {% for dValueKey, dValueValue in dValue %}
+        <tr>
+          <th style="text-align:right;padding: 5px 10px;">{{ dValueKey }}</th>
+          <td style="width:100%;padding:5px 10px;">{{ dataValue(dValueValue, data) }}</td>
+        </tr>
+      {% endfor %}
+    </table><br/>
+  {% elif dValue | is_array %}
+    <ul>
+      {% for arrayValue in dValue %}
+        <li>{{ dataValue(arrayValue, data) }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    {{ renderValue(dValue, data) }}
+  {% endif %}
+{% endmacro %}
+{% macro dataTable(components, submissionData, title) %}
+  {% for component in components %}
+    {% if component.type == 'well' %}
+      {{ dataTable(component.components, submissionData) }}
+    {% elif component.type == 'columns' %}
+      {% for column in component.columns %}
+        {{ dataTable(column.components, submissionData) }}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+  <table border="1" style="width:100%">
+    <tbody>
+      {% if title %}
+        <tr><td colspan="2"><h2>{{ title }}</h2></td></tr>
+      {% endif %}
+      {% for component in components %}
+        {% if component.type == 'panel' %}
+        {% elif component.type == 'well' %}
+        {% elif component.type == 'fieldset' %}
+        {% elif component.type == 'columns' %}
+        {% elif not submissionData[component.key] %}
+        {% else %}
+          <tr>
+            <th style="text-align:right;padding: 5px 10px;">{{ component.label }}</th>
+            <td style="width:100%;padding:5px 10px;">
+              {% if component.type == 'password' %}
+                --- PASSWORD ---
+              {% elif component.type == 'address' %}
+                {{ submissionData[component.key].formatted_address }}
+              {% else %}
+                {{ dataValue(submissionData[component.key], submissionData) }}
+              {% endif %}
+            </td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+    </tbody>
+  </table><br/>
+  {% for component in components %}
+    {% if component.type == 'panel' %}
+      {{ dataTable(component.components, submissionData, component.title) }}
+    {% elif component.type == 'fieldset' %}
+      {{ dataTable(component.components, submissionData, component.legend) }}
+    {% endif %}
+  {% endfor %}
+{% endmacro %}
+{% macro table(components, title) %}
+  {{ dataTable(components, data, title) }}
+{% endmacro %}

@@ -7,7 +7,6 @@ const _ = require('lodash');
 const chance = new (require('chance'))();
 const http = require('http');
 const url = require('url');
-const { UV_FS_O_FILEMAP } = require('constants');
 const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
 const customSaveSubmissionTransformForm = require('./fixtures/forms/customSaveSubmissionTransformForm');
 const customSaveSubmissionTransformResource = require('./fixtures/forms/customSaveSubmissionTransformResource');
@@ -2035,8 +2034,6 @@ module.exports = (app, template, hook) => {
           .post(hook.alter('url', `/form/${editGridForm._id}/submission`, template))
           .set('x-jwt-token', template.users.admin.token)
           .send(submission);
-
-
 
         await wait(1800);
 
