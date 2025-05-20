@@ -13,6 +13,11 @@
     "@csstools/css-tokenizer" "^3.0.3"
     lru-cache "^10.4.3"
 
+"@babel/runtime@^7.9.2":
+  version "7.27.1"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.27.1.tgz#9fce313d12c9a77507f264de74626e87fd0dc541"
+  integrity sha512-1x3D2xEk2fRo3PAhwQwu5UubzgiVWSXTBfWpVd2Mx2AzRqJuDJCsgaDVZ7HB5iGzDW1Hl1sWN2mFyKjmR9uAog==
+
 "@colors/colors@1.5.0":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
@@ -83,18 +88,27 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
-"@formio/bootstrap@v3.0.0-dev.121.085d187":
-  version "3.0.0-dev.121.085d187"
-  resolved "https://registry.yarnpkg.com/@formio/bootstrap/-/bootstrap-3.0.0-dev.121.085d187.tgz#7cc8c3a62e531b9b508e68d08fa513241c659da6"
-  integrity sha512-V9AgDNTiFuvw0g/+QbUu2e8c061obSInmwn3qjsxkySg1VtpuVO2hrhgS8Lqxa5Q3IKbgmkrbCJGex8GCxNAnA==
+"@formio/bootstrap@3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@formio/bootstrap/-/bootstrap-3.1.1.tgz#a8cceb3fd5498994c50176e5ad3866bb23667e8d"
+  integrity sha512-VXm5P5Ic3q7d5tkWaweIRAaPtBjDoov6Vv28y5aHKbR2Ri8ykMINtQJ70NwPHghW+csZmjmtKDDGDXENQVhIbA==
 
-"@formio/core@2.4.0-dev.245.326cac7":
-  version "2.4.0-dev.245.326cac7"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.245.326cac7.tgz#3859a319287924df7f4d6f9b8ebebf13a0546926"
-  integrity sha512-u18VsvdZv2PpzQah3ncc3koRMTmYUFL5lfQudPW5SwUourLIoB0SFB59uC0ySB/ldFsNl4cPPAnLE47OJcFNfg==
+"@formio/choices.js@^10.2.1":
+  version "10.2.1"
+  resolved "https://registry.yarnpkg.com/@formio/choices.js/-/choices.js-10.2.1.tgz#d0f5c032d94f33152b6036f6a5bb42fcc4684e31"
+  integrity sha512-NCE5u7jG3XGokJP16MyAbVSUptKu/mpJYAxd4PPIoLiO/l9Do5uoOQ0MgNb9qG9qABJiOX+qNRE8q8RybY/SwQ==
+  dependencies:
+    deepmerge "^4.2.2"
+    fuse.js "^6.6.2"
+    redux "^4.2.0"
+
+"@formio/core@2.5.0-rc.3":
+  version "2.5.0-rc.3"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.5.0-rc.3.tgz#dbc5b36200703e847fe03bf58e321b8039c185a6"
+  integrity sha512-5cNYUxPiADypv+JRh51wKqVz+7aGVd+ZFwLBj/kexXBNcQ2WKi3IPMr+2rqJ04IEnnCUvmIPYafC95iQRgAvIA==
   dependencies:
     browser-cookies "^1.2.0"
-    core-js "^3.40.0"
+    core-js "^3.39.0"
     dayjs "^1.11.12"
     dompurify "^3.2.4"
     eventemitter3 "^5.0.0"
@@ -105,26 +119,26 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/js@5.1.0-dev.6102.9a0147c":
-  version "5.1.0-dev.6102.9a0147c"
-  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-dev.6102.9a0147c.tgz#561dedbbd3aa0b6dffe627c9c2f2a7c30895c205"
-  integrity sha512-W3DUnLrITzsQWsZzpRSUoN71j/D1y0FHi7Mxu/vV0/Y/aqj+EswgGbom5PZ+d1PPlo5/XQisQsGzWQn/MdMq+Q==
+"@formio/js@5.2.0-rc.4":
+  version "5.2.0-rc.4"
+  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.2.0-rc.4.tgz#0dc1eb0ac79be91eeb642ce4887d02507a93311f"
+  integrity sha512-LDMpTc66Wd3SUAKO4ehCtVwpEtvcj6mTTd4ZzApJ16ej4HoK9h5cXFvmqb8HgNXflw/cEDfvVzSLhNbUlzbkWA==
   dependencies:
-    "@formio/bootstrap" v3.0.0-dev.121.085d187
-    "@formio/core" "2.4.0-dev.245.326cac7"
-    "@formio/text-mask-addons" "3.8.0-formio.4"
+    "@formio/bootstrap" "3.1.1"
+    "@formio/choices.js" "^10.2.1"
+    "@formio/core" "2.5.0-rc.3"
+    "@formio/text-mask-addons" "^3.8.0-formio.4"
     "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     abortcontroller-polyfill "^1.7.5"
     autocompleter "^8.0.4"
-    bootstrap "^5.3.4"
+    bootstrap "^5.3.3"
     browser-cookies "^1.2.0"
     browser-md5-file "^1.1.1"
-    choices.js "^11.0.6"
-    compare-versions "^6.1.1"
+    compare-versions "^6.0.0-rc.2"
     core-js "^3.37.1"
     dialog-polyfill "^0.5.6"
     dom-autoscroller "^2.3.4"
-    dompurify "^3.2.5"
+    dompurify "^3.2.4"
     downloadjs "^1.4.7"
     dragula "^3.7.3"
     eventemitter3 "^5.0.1"
@@ -133,12 +147,12 @@
     idb "^7.1.1"
     inputmask "^5.0.8"
     ismobilejs "^1.1.1"
-    json-logic-js "^2.0.5"
+    json-logic-js "^2.0.2"
     jstimezonedetect "^1.0.7"
     jwt-decode "^3.1.2"
     lodash "^4.17.21"
     moment "^2.29.4"
-    moment-timezone "^0.5.48"
+    moment-timezone "^0.5.44"
     quill "^2.0.2"
     signature_pad "^4.2.0"
     string-hash "^1.1.3"
@@ -156,7 +170,7 @@
     lodash "^4.17.21"
     node-fetch "^2.6.1"
 
-"@formio/text-mask-addons@3.8.0-formio.4":
+"@formio/text-mask-addons@^3.8.0-formio.4":
   version "3.8.0-formio.4"
   resolved "https://registry.yarnpkg.com/@formio/text-mask-addons/-/text-mask-addons-3.8.0-formio.4.tgz#f3ce4bf978c6c5e8f671641d96f6fd116f7c92a3"
   integrity sha512-vhkeIyuL+1rtC9S4IW8O3JCwroPtvJrkrcMO4wyELNqMIgQRKbiyBAitZfUP4tY04xdB5lxAinbzdwb+NMdX6w==
@@ -166,10 +180,10 @@
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@1.0.0-dev.58.db88b77":
-  version "1.0.0-dev.58.db88b77"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-1.0.0-dev.58.db88b77.tgz#90bf76df1abf3bbf2543d2b8345da2ce60d3b4b4"
-  integrity sha512-4yfmwVuaPbkC9WYMgaju/uRuCVCqlf+ag72y/C+in+9ZDB9tUpMt83sPHj3ikKGPtn3mS5hOByNtw97UinasvQ==
+"@formio/vm@2.0.0-rc.1":
+  version "2.0.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-2.0.0-rc.1.tgz#05a0722771d4d054149bcb46386b026a4d92f931"
+  integrity sha512-xeKz7ci05z19CtqDUo6BydAh0Tfq0dwTX/f7dRbPvLjJR+4bpyBUhtsG6yn+6barC93m10COhwPj2bZ5PgJJNg==
   dependencies:
     debug "^4.3.4"
     isolated-vm "^4.6.0"
@@ -735,10 +749,10 @@ body-parser@1.20.3, body-parser@^1.20.1:
     type-is "~1.6.18"
     unpipe "1.0.0"
 
-bootstrap@^5.3.4:
-  version "5.3.5"
-  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-5.3.5.tgz#be42cfe0d580e97ee1abb7d38ce94f5c393c9bb6"
-  integrity sha512-ct1CHKtiobRimyGzmsSldEtM03E8fcEX4Tb3dGXz1V8faRwM50+vfHwTzOxB3IlKO7m+9vTH3s/3C6T2EAPeTA==
+bootstrap@^5.3.3:
+  version "5.3.6"
+  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-5.3.6.tgz#fbd91ebaff093f5b191a1c01a8c866d24f9fa6e1"
+  integrity sha512-jX0GAcRzvdwISuvArXn3m7KZscWWFAf1MKBcnzaN02qWMb3jpMoUX4/qgeiGzqyIb4ojulRzs89UCUmGcFSzTA==
 
 brace-expansion@^1.1.7:
   version "1.1.11"
@@ -866,13 +880,6 @@ chance@^1.1.8:
   resolved "https://registry.yarnpkg.com/chance/-/chance-1.1.12.tgz#6a263cf241674af50a1b903357f9d328a6f252fb"
   integrity sha512-vVBIGQVnwtUG+SYe0ge+3MvF78cvSpuCOEUJr7sVEk2vSBuMW6OXNJjSzdtzrlxNUEaoqH2GBd5Y/+18BEB01Q==
 
-choices.js@^11.0.6:
-  version "11.1.0"
-  resolved "https://registry.yarnpkg.com/choices.js/-/choices.js-11.1.0.tgz#4fcfb5834fdf0c7d1959f0261d1bbe526a7c9222"
-  integrity sha512-mIt0uLhedHg2ea/K2PACrVpt391vRGHuOoctPAiHcyemezwzNMxj7jOzNEk8e7EbjLh0S0sspDkSCADOKz9kcw==
-  dependencies:
-    fuse.js "^7.0.0"
-
 chokidar@^3.5.2, chokidar@^3.5.3:
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-3.6.0.tgz#197c6cc669ef2a8dc5e7b4d97ee4e092c3eb0d5b"
@@ -970,7 +977,7 @@ commander@^5.1.0:
   resolved "https://registry.yarnpkg.com/commander/-/commander-5.1.0.tgz#46abbd1652f8e059bddaef99bbdcb2ad9cf179ae"
   integrity sha512-P0CysNDQ7rtVw4QIQtm+MRxV66vKFSvlsQvGYXZWR3qFU0jlMKHZZZgw8e+8DSah4UDKMqnknRDQz+xuQXQ/Zg==
 
-compare-versions@^6.1.1:
+compare-versions@^6.0.0-rc.2:
   version "6.1.1"
   resolved "https://registry.yarnpkg.com/compare-versions/-/compare-versions-6.1.1.tgz#7af3cc1099ba37d244b3145a9af5201b629148a9"
   integrity sha512-4hm4VPpIecmlg59CHXnRDnqGplJFrbLG4aFEl5vl6cK1u76ws3LLvX7ikFnTDl5vo39sjWD6AaDPYodJp/NNHg==
@@ -1042,10 +1049,10 @@ core-js@^3.37.1:
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.40.0.tgz#2773f6b06877d8eda102fc42f828176437062476"
   integrity sha512-7vsMc/Lty6AGnn7uFpYT56QesI5D2Y/UkgKounk87OP9Z2H9Z8kj6jzcSGAxFmUtDOS0ntK6lbQz+Nsa0Jj6mQ==
 
-core-js@^3.40.0:
-  version "3.41.0"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.41.0.tgz#57714dafb8c751a6095d028a7428f1fb5834a776"
-  integrity sha512-SJ4/EHwS36QMJd6h/Rg+GyR4A5xE0FSI3eZ+iBVpfqf1x0eTSg1smWLHrA+2jQThZSh97fmSgFSU8B61nxosxA==
+core-js@^3.39.0:
+  version "3.42.0"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.42.0.tgz#edbe91f78ac8cfb6df8d997e74d368a68082fe37"
+  integrity sha512-Sz4PP4ZA+Rq4II21qkNqOEDTDrCvcANId3xpIgB34NDkWc3UduWj2dqEtN9yZIq8Dk3HyPI33x9sqqU5C8sr0g==
 
 core-util-is@~1.0.0:
   version "1.0.3"
@@ -1196,6 +1203,11 @@ deep-is@^0.1.3:
   resolved "https://registry.yarnpkg.com/deep-is/-/deep-is-0.1.4.tgz#a6f2dce612fadd2ef1f519b73551f17e85199831"
   integrity sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==
 
+deepmerge@^4.2.2:
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/deepmerge/-/deepmerge-4.3.1.tgz#44b5f2147cd3b00d4b56137685966f26fd25dd4a"
+  integrity sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==
+
 delayed-stream@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/delayed-stream/-/delayed-stream-1.0.0.tgz#df3ae199acadfb7d440aaae0b29e2272b24ec619"
@@ -1285,13 +1297,6 @@ dompurify@^3.2.4:
   version "3.2.4"
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.2.4.tgz#af5a5a11407524431456cf18836c55d13441cd8e"
   integrity sha512-ysFSFEDVduQpyhzAob/kkuJjf5zWkZD8/A9ywSp1byueyuCfHamrCBa14/Oc2iiB0e51B+NpxSl5gmzn+Ms/mg==
-  optionalDependencies:
-    "@types/trusted-types" "^2.0.7"
-
-dompurify@^3.2.5:
-  version "3.2.5"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.2.5.tgz#11b108656a5fb72b24d916df17a1421663d7129c"
-  integrity sha512-mLPd29uoRe9HpvwP2TxClGQBzGXeEC/we/q+bFlmPPmj2p2Ugl3r6ATu/UU1v77DXNcehiBg9zsr1dREyA/dJQ==
   optionalDependencies:
     "@types/trusted-types" "^2.0.7"
 
@@ -1778,10 +1783,10 @@ function-bind@^1.1.2:
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.2.tgz#2c02d864d97f3ea6c8830c464cbd11ab6eab7a1c"
   integrity sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==
 
-fuse.js@^7.0.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/fuse.js/-/fuse.js-7.1.0.tgz#306228b4befeee11e05b027087c2744158527d09"
-  integrity sha512-trLf4SzuuUxfusZADLINj+dE8clK1frKdmqiJNb1Es75fmI5oY6X2mxLVUciLLjxqw/xr72Dhy+lER6dGd02FQ==
+fuse.js@^6.6.2:
+  version "6.6.2"
+  resolved "https://registry.yarnpkg.com/fuse.js/-/fuse.js-6.6.2.tgz#fe463fed4b98c0226ac3da2856a415576dc9a111"
+  integrity sha512-cJaJkxCCxC8qIIcPBF9yGxY0W/tVZS3uEISDxhYIdtk8OL93pe+6Zj7LjCqVV4dzbqcriOZ+kQ/NE4RXZHsIGA==
 
 get-caller-file@^2.0.5:
   version "2.0.5"
@@ -2200,7 +2205,7 @@ json-buffer@3.0.1:
   resolved "https://registry.yarnpkg.com/json-buffer/-/json-buffer-3.0.1.tgz#9338802a30d3b6605fbe0613e094008ca8c05a13"
   integrity sha512-4bV5BfR2mqfQTJm+V5tPPdf+ZpuhiIvTuAB5g8kcrXOZpTT/QwwVRWBywX1ozr6lEuPdbHxwaJlm9G6mI2sfSQ==
 
-json-logic-js@^2.0.5:
+json-logic-js@^2.0.2, json-logic-js@^2.0.5:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/json-logic-js/-/json-logic-js-2.0.5.tgz#55f0c687dd6f56b02ccdcfdd64171ed998ab5499"
   integrity sha512-rTT2+lqcuUmj4DgWfmzupZqQDA64AdmYqizzMPWj3DxGdfFNsxPpcNVSaTj4l8W2tG/+hg7/mQhxjU3aPacO6g==
@@ -2638,7 +2643,7 @@ moment-timezone@^0.5.34:
   dependencies:
     moment "^2.29.4"
 
-moment-timezone@^0.5.48:
+moment-timezone@^0.5.44:
   version "0.5.48"
   resolved "https://registry.yarnpkg.com/moment-timezone/-/moment-timezone-0.5.48.tgz#111727bb274734a518ae154b5ca589283f058967"
   integrity sha512-f22b8LV1gbTO2ms2j2z13MuPogNoh5UzxL3nzNAYKGraILnbGc9NEE6dyiiiLv46DGRb8A4kg8UKWLjPthxBHw==
@@ -3193,6 +3198,13 @@ rechoir@^0.8.0:
   integrity sha512-/vxpCXddiX8NGfGO/mTafwjq4aFa/71pvamip0++IQk3zG8cbCj0fifNPrjjF1XMXUne91jL9OoxmdykoEtifQ==
   dependencies:
     resolve "^1.20.0"
+
+redux@^4.2.0:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/redux/-/redux-4.2.1.tgz#c08f4306826c49b5e9dc901dee0452ea8fce6197"
+  integrity sha512-LAUYz4lc+Do8/g7aeRa8JkyDErK6ekstQaqWQrNRW//MY1TvCEpMtpTWvlQ+FPbWCx+Xixu/6SHt5N0HR+SB4w==
+  dependencies:
+    "@babel/runtime" "^7.9.2"
 
 require-directory@^2.1.1:
   version "2.1.1"
