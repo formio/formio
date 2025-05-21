@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 const { IsolateVM } = require('@formio/vm');
-const { CORE_LODASH_MOMENT_INPUTMASK_NUNJUCKS } = require('../src/vm/bundles');
+const { CORE_LODASH_MOMENT_INPUTMASK_NUNJUCKS } = require('../src/vm');
 const { getScript } = require('../src/util/email/renderEmail');
 const { RootShim } = require('../src/vm/src/RootShim');
 const { InstanceShim } = require('../src/vm/src/InstanceShim');
