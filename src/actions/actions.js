@@ -20,7 +20,7 @@ const {
   rootLevelProperties,
   rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
-const {CORE_LODASH_MOMENT_INPUTMASK} = require('../vm/bundles');
+const {CORE_LODASH_MOMENT_INPUTMASK} = require('../vm');
 
 /**
  * The ActionIndex export.

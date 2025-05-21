@@ -13,7 +13,7 @@ const {IsolateVM} = require('@formio/vm');
 const _ = require('lodash');
 const {renderEmail} = require('./renderEmail');
 const util = require('../util');
-const {CORE_LODASH_MOMENT_INPUTMASK_NUNJUCKS} = require('../../vm/bundles');
+const {CORE_LODASH_MOMENT_INPUTMASK_NUNJUCKS} = require('../../vm');
 
 const DEFAULT_TRANSPORT = process.env.DEFAULT_TRANSPORT;
 const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE;
