@@ -135,6 +135,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-
 
+    - name: Build vm bundles
+      uses: borales/actions-yarn@v4
+      with:
+        cmd: build:vm
+    
     - name: Test
       uses: borales/actions-yarn@v4
       with:
