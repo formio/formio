@@ -76,6 +76,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-
 
+    - name: Build vm bundles
+      uses: borales/actions-yarn@v4
+      with:
+        cmd: build:vm
+
     - name: Test
       uses: borales/actions-yarn@v4
       with:
@@ -129,7 +134,7 @@ jobs:
         key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-node-
-  
+
     - name: Test
       uses: borales/actions-yarn@v4
       with:
@@ -173,16 +178,16 @@ jobs:
           # Extract the pull request number and the short SHA of the commit
           PR_NUMBER=$(echo ${{ github.event.number }})
           COMMIT_SHORT_SHA=$(echo "${{ github.event.pull_request.head.sha }}" | cut -c1-7)
-          
+
           # Extract the current version from package.json
           CURRENT_VERSION=$(node -p "require('./package.json').version")
-          
+
           # Create the base version
           BASE_VERSION=$(echo "$CURRENT_VERSION" | cut -d'-' -f1)
-          
+
           # Construct the new version string
           NEW_VERSION="${BASE_VERSION}-dev.${PR_NUMBER}.${COMMIT_SHORT_SHA}"
-          
+
           # Output the new version for use in subsequent GitHub Actions steps
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
@@ -266,7 +271,7 @@ jobs:
         key: ${{ runner.os }}-portal-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-portal-
-    
+
     - name: Build the Docker image
       run: docker build -f Dockerfile -t $IMAGE_PATH:${{github.ref_name}} .
 
@@ -281,7 +286,7 @@ jobs:
 
     - name: Push image to DockerHub
       run: docker push $IMAGE_PATH:${{github.ref_name}}
-    
+
     - name: Push image to DockerHub tag
       run: docker push $IMAGE_PATH:rc
 
@@ -317,7 +322,7 @@ jobs:
         key: ${{ runner.os }}-portal-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-portal-
-    
+
     - name: Build the Docker image
       run: docker build -f Dockerfile -t $IMAGE_PATH:${{github.ref_name}} .
 
@@ -332,6 +337,6 @@ jobs:
 
     - name: Push image to DockerHub
       run: docker push $IMAGE_PATH:${{github.ref_name}}
-    
+
     - name: Push image to DockerHub tag
       run: docker push $IMAGE_PATH:latest
