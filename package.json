@@ -13,7 +13,7 @@
     "build:vm": "webpack --config src/vm/webpack.vm.config.js",
     "build:portal": "cd portal && yarn && yarn build && cd ..",
     "show-coverage": "open coverage/lcov-report/index.html",
-    "postinstall": "npm run build:vm"
+    "prepare": "npm run build:vm"
   },
   "author": "support@form.io",
   "engines": {

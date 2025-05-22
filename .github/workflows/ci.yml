@@ -139,7 +139,7 @@ jobs:
       uses: borales/actions-yarn@v4
       with:
         cmd: build:vm
-    
+
     - name: Test
       uses: borales/actions-yarn@v4
       with:
@@ -202,6 +202,7 @@ jobs:
 
       - name: Publish to npm
         run: |
+          yarn
           npm version $NEW_VERSION
           yarn publish --tag dev
 
