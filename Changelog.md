@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.5.0-rc.11]
+### Changed
+ - FIO-9783: add prepare step instead of postinstall
+ - FIO-9783: fix build output
+
 ## 4.5.0-rc.10
 ### Changed
  - Updated @formio/js@5.2.0-rc.5
