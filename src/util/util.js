@@ -438,7 +438,7 @@ const Utils = {
 
     // Build key/value list.
     for (let a = 0; a < parts.length; a += 2) {
-      urlParams[parts[a]] = parts[a + 1];
+      urlParams[parts[a].toLowerCase()] = parts[a + 1];
     }
 
     debug.getUrlParams(urlParams);
