@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 ## 4.5.0-rc.11
 ### Changed
- - FIO-10194 Ensure the case is consistent for the url parameters.
  - FIO-9783: add prepare step instead of postinstall
  - FIO-9783: fix build output
 
