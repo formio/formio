@@ -11,3 +11,7 @@ docker-compose.yml
 .bithoundrc
 .eslintignore
 .dccache
+.nyc_output
+.nycrc
+coverage
+welcome.txt
