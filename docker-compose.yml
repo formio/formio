@@ -7,7 +7,7 @@ services:
       - "./data/db:/data/db"
     environment:
       - MONGO_INITDB_ROOT_USERNAME
-      - MONGO_INITDB_ROOT_PASSWOR
+      - MONGO_INITDB_ROOT_PASSWORD
     networks:
       - formio-ce
   formio-ce:
