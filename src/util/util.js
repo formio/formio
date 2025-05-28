@@ -625,7 +625,7 @@ const Utils = {
    */
   async uniqueMachineName(document, model, next) {
     var query = {
-      machineName: {$regex: `^${document.machineName}[0-9]*$`},
+      machineName: {$regex: `^${_.escapeRegExp(document.machineName)}[0-9]*$`},
       deleted: {$eq: null}
     };
     if (document._id) {
