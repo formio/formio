@@ -1,0 +1,49 @@
+name: Sync Merged PR to Monorepo
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+      - master
+
+jobs:
+  sync-to-monorepo:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.MONOREPO_SYNC_TOKEN }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      SOURCE_REPO_NAME: ${{ github.event.repository.name }}
+      MONOREPO_PACKAGE_LOCATION: apps/${{ github.event.repository.name }}
+      MONOREPO_PATH: ${{ github.workspace }}/monorepo
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        # Install project dependencies (including dev dependencies)
+        run: npm install
+      - name: Install zx
+        run: npm install zx
+        
+      - name: Install monorepo-sync package
+        run: npm install git+https://github.com/formio/monorepo-sync.git
+      - name: Clone Monorepo 
+        run: |
+            gh repo clone formio/formio-monorepo monorepo -- --depth=1
+      
+      - name: Sync to Monorepo
+        run: |
+          echo "Syncing PR #${PR_NUMBER}: ${PR_TITLE}"
+          node .github/workflows/sync-monorepo.mjs
