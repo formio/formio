@@ -9,6 +9,15 @@ module.exports = (formio) => {
       return;
     }
 
-    return await hook.invoke('validateEmail', component, path, req, res);
+    return new Promise((resolve, reject) => {
+      if (!hook.invoke('validateEmail', component, path, req, res, (err) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve();
+      })) {
+        return resolve();
+      }
+    });
   };
 };
