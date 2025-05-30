@@ -149,12 +149,21 @@ function renderEmailProcessorSync(context) {
       return;
     }
     case 'selectboxes': {
-      const outputValue = rowValue
-        ? component?.values
-            ?.filter((v) => rowValue[v.value])
-            .map((v) => v.label)
-            .join(', ')
-        : '';
+      let outputValue = '';
+      if (rowValue) {
+        if (component.dataSrc === 'url') {
+          outputValue = _(rowValue)
+            .pickBy(Boolean)
+            .keys()
+            .join(', ');
+        }
+        else {
+          outputValue = component?.values
+            ?.filter(v => rowValue[v.value])
+            .map(v => v.label)
+            .join(', ') || '';
+        }
+      }
       insertRow(componentRenderContext, outputValue);
       return;
     }
@@ -331,7 +340,7 @@ function getRenderMethod(render) {
   if (process.env.RENDER_METHOD) {
     renderMethod = process.env.RENDER_METHOD;
   }
- else if (render && render.renderingMethod) {
+  else if (render && render.renderingMethod) {
     renderMethod = render.renderingMethod;
   }
   return renderMethod;
