@@ -13,6 +13,7 @@ const customSaveSubmissionTransformResource = require('./fixtures/forms/customSa
 const basicAndAdvancedForm = require('./fixtures/forms/basicAndAdvancedComponentsForm');
 const dataComponentsForm = require('./fixtures/forms/dataComponentsForm');
 const componentsWithMultiples = require('./fixtures/forms/componentsWithMultipleValues');
+const selectBoxesSourceTypeForm = require('./fixtures/forms/selectBoxesSourceTypeForm.js');
 const { wait } = require('./util');
 const helper = require('./helper');
 const docker = process.env.DOCKER;
@@ -2074,6 +2075,41 @@ module.exports = (app, template, hook) => {
             template: 'https://pro.formview.io/assets/email.html',
             renderingMethod: 'dynamic'
           },
+        });
+
+      it('Select boxes should be rendered in template if data source = url', async () => {
+          const form = selectBoxesSourceTypeForm.formJson;
+          const oForm = (await request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = oForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(testAction)).body;
+
+          testAction = testActionRes;
+
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes('>AK,AL<'));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = selectBoxesSourceTypeForm.submissionJson;
+          // Send submission
+          await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          await wait(1800);
         });
 
         it('Should send email with a bunch of simple components', async () => {
