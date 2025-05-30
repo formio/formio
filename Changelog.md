@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 3.5.7-rc.1
+### Changed
+ - Fixed the handling of case with url parameters
+
 ## 3.5.6
 ### Changed
  - Official Release
