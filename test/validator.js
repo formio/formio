@@ -564,6 +564,44 @@ module.exports = function(app, template, hook) {
         });
     });
 
+    it('Should be able to leverage instances in custom validation', async function () {
+      const form = {
+        components: [
+          {
+            type: 'textfield',
+            key: 'a',
+            input: true,
+            label: "Text Field"
+          },
+          {
+            type: 'textfield',
+            key: 'b',
+            input: true,
+            validate: {
+              custom: 'valid = instance.root.getComponent("a")?.component.label === "Oopsie" ? true : "Should have Oopsie Label";'
+            }
+          }
+        ]
+      };
+      const validator = new Validator(
+        {
+          headers: {
+            'x-jwt-token': template.users.admin.token,
+          },
+          currentForm: form,
+        },
+        formio
+      );
+      const submission = {
+        data: {}
+      };
+      await validator. validate(submission, (err) => {
+        assert(err !== null, "We should have validator errors");
+        assert(err.name === 'ValidationError');
+        assert(err.details[0]?.message === 'Should have Oopsie Label');
+      });
+    });
+
     after(function(done) {
       request(app)
         .delete(hook.alter('url', `/form/${resourceWithFlatComponentsId}`, template))
