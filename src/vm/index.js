@@ -4,6 +4,7 @@ const path = require('path');
 const {DefaultEvaluator} = require('@formio/core');
 const {IsolateVM} = require('@formio/vm');
 const {isObject, get} = require('lodash');
+const {RootShim} = require('./src/RootShim');
 
 const CORE_LODASH_MOMENT_INPUTMASK = fs.readFileSync(
   path.resolve(__dirname, 'bundles/core-lodash-moment-inputmask.js'),
@@ -40,6 +41,30 @@ class IsolateVMEvaluator extends DefaultEvaluator {
         func = this.interpolate(func, args, {...options, noeval: true});
       }
 
+            // We have to compile the InstanceShims as a part of evaluation, since they contain functions and setters & getters (@formio/vm
+      // uses the structured clone algorithm to serialize into the sandbox, which means no functions and no setters/getters). To do this,
+      // we filter out the instance variable that might be in the context and compile it is a part of the sandboxes' `env`
+      let filteredArgs = args;
+      let modifyEnv = '';
+      if (args.instance) {
+        const {instance, ...rest} = args;
+        filteredArgs = rest;
+        modifyEnv = `
+          const root = new RootShim(form, submission, scope);
+          const instances = root.instanceMap;
+          const instance = instances[component.modelType === 'none' && paths?.fullPath ? paths.fullPath : path];
+        `;
+      }
+
+      // Update the env to account for form modules
+      if (options.formModule) {
+        modifyEnv += `const module = ${options.formModule};
+              if (module.options?.form?.evalContext) {
+                const evalContext = module.options.form.evalContext;
+                Object.keys(evalContext).forEach((key) => globalThis[key] = evalContext[key]);
+              }`;
+      }
+
       try {
         if (this.noeval || options.noeval) {
           console.warn('No evaluations allowed for this renderer.');
@@ -48,15 +73,9 @@ class IsolateVMEvaluator extends DefaultEvaluator {
         else {
           return this.vm.evaluateSync(
             func,
-            args,
+            filteredArgs,
             {
-              modifyEnv: options.formModule ?
-              `const module = ${options.formModule};
-              if (module.options?.form?.evalContext) {
-                const evalContext = module.options.form.evalContext;
-                Object.keys(evalContext).forEach((key) => globalThis[key] = evalContext[key]);
-              }`
-              : undefined
+              modifyEnv,
             }
           );
         }
@@ -75,6 +94,7 @@ class IsolateVMEvaluator extends DefaultEvaluator {
 
 module.exports = {
   IsolateVMEvaluator,
+  RootShim,
   CORE_LODASH_MOMENT_INPUTMASK,
   CORE_LODASH_MOMENT_INPUTMASK_NUNJUCKS
 };
