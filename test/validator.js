@@ -595,7 +595,7 @@ module.exports = function(app, template, hook) {
       const submission = {
         data: {}
       };
-      await validator. validate(submission, (err) => {
+      await validator.validate(submission, (err) => {
         assert(err !== null, "We should have validator errors");
         assert(err.name === 'ValidationError');
         assert(err.details[0]?.message === 'Should have Oopsie Label');
