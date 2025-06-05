@@ -325,6 +325,8 @@ module.exports = function(formio) {
           if (!hasWildcard) {
             await collection.createIndex({"$**": 1});
           }
+
+          await collection.createIndex({priority: 1, title: 1});
         }
       }
       await featuresTest.drop();
