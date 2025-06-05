@@ -242,6 +242,23 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
+"@formio/core@2.4.0-dev.260.c2dbf59":
+  version "2.4.0-dev.260.c2dbf59"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.260.c2dbf59.tgz#279f8d0e41563c7d95888a04973706ced9172d99"
+  integrity sha512-b6ZD/PbVFZWq3X7yY+Fsr2/RDkW48pEGBi4XyAlboCewUwR4hgKRCQg8v+L9+zYPh4RD5KiF4Oq30toLq9nBLg==
+  dependencies:
+    browser-cookies "^1.2.0"
+    core-js "^3.40.0"
+    dayjs "^1.11.12"
+    dompurify "^3.2.4"
+    eventemitter3 "^5.0.0"
+    fast-json-patch "^3.1.1"
+    fetch-ponyfill "^7.1.0"
+    inputmask "5.0.9"
+    json-logic-js "^2.0.5"
+    lodash "^4.17.21"
+    moment "^2.29.4"
+
 "@formio/js@5.1.0-dev.6102.9a0147c":
   version "5.1.0-dev.6102.9a0147c"
   resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-dev.6102.9a0147c.tgz#561dedbbd3aa0b6dffe627c9c2f2a7c30895c205"
