@@ -10,6 +10,7 @@ const url = require('url');
 const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
 const customSaveSubmissionTransformForm = require('./fixtures/forms/customSaveSubmissionTransformForm');
 const customSaveSubmissionTransformResource = require('./fixtures/forms/customSaveSubmissionTransformResource');
+const selectBoxesSourceTypeForm = require('./fixtures/forms/selectBoxesSourceTypeForm.js');
 const { wait } = require('./util');
 const docker = process.env.DOCKER;
 
@@ -1992,6 +1993,41 @@ module.exports = (app, template, hook) => {
             }
           ]
         }
+
+      it('Select boxes should be rendered in template if data source = url', async () => {
+          const form = selectBoxesSourceTypeForm.formJson;
+          const oForm = (await request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = oForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(testAction)).body;
+
+          testAction = testActionRes;
+
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes('>AK,AL<'));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = selectBoxesSourceTypeForm.submissionJson;
+          // Send submission
+          await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          await wait(1800);
+        });
 
         const editGridForm = (await request(app)
             .post(hook.alter('url', '/form', template))
