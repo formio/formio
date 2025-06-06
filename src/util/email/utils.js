@@ -423,6 +423,20 @@ const insertDataMapTable = (
   insertTable(componentRenderContext, rows);
 };
 
+const convertToString = (value) => {
+  if (_.isObject(value)) {
+    try {
+      return JSON.stringify(value);
+    }
+    catch (e) {
+      return value;
+    }
+  }
+  else {
+    return value;
+  }
+};
+
 module.exports = {
   isLayoutComponent,
   isGridBasedComponent,
@@ -446,4 +460,5 @@ module.exports = {
   getProviderDisplayValue,
   insertGridHeader,
   insertGridRow,
+  convertToString,
 };
