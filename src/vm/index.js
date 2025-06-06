@@ -73,7 +73,7 @@ class IsolateVMEvaluator extends DefaultEvaluator {
         `;
       }
 
-      this.hook.alter('dynamicVmDependencies', modifyEnv, context.form);
+      this.hook.alter('dynamicVmDependencies', modifyEnv, context?.form);
 
       try {
         if (this.noeval || options.noeval) {
