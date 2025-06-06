@@ -246,7 +246,7 @@ const getValueComponentsForEachFormComponent = (flattenedComponents) => {
   Object.keys(flattenedComponents).forEach((path) => {
     const componentSchema = flattenedComponents[path];
     const component = componentSchema && componentSchema.type
-      ? {}
+      ? Formio.AllComponents[componentSchema.type]
       : null;
     const getValueComponent = component && component.serverConditionSettings ?
       component.serverConditionSettings.valueComponent :
