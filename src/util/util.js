@@ -900,6 +900,12 @@ const Utils = {
             if (Number(value) || value === "0") {
               return Number(value);
             }
+            return value;
+          }
+          case 'selectboxes': {
+            if (['true', 'false'].includes(value)) {
+              return value !== 'false';
+            }
           }
         }
       }
