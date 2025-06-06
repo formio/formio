@@ -17,6 +17,7 @@ const {
   insertTable,
   isGridBasedComponent,
   isLayoutComponent,
+  convertToString
 } = require('./utils');
 const macros = require('./nunjucks-macros');
 
@@ -123,7 +124,6 @@ function renderEmailProcessorSync(context) {
     case 'textfield':
     case 'number':
     case 'password':
-    case 'select':
     case 'radio':
     case 'email':
     case 'url':
@@ -132,6 +132,13 @@ function renderEmailProcessorSync(context) {
     case 'tags':
     case 'reviewpage': {
       const outputValue = component.multiple ? rowValue?.join(', ') : rowValue;
+      insertRow(componentRenderContext, outputValue);
+      return;
+    }
+    case 'select': {
+      const outputValue = component.multiple
+        ? rowValue?.map(v => convertToString(v)).join(', ')
+        : convertToString(rowValue);
       insertRow(componentRenderContext, outputValue);
       return;
     }
