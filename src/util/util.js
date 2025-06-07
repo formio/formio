@@ -45,7 +45,9 @@ _.each(Formio.Displays.displays, (display) => {
 });
 
 const vm = new VM({
-  timeout: 250,
+  // use the environment variable directly here so as to avoid refactoring utils everywhere it is called to access the config object
+  // (this is a backport after all)
+  timeout: process.env.FORMIO_VM_TIMEOUT || 5000,
   sandbox: {
     result: null,
   },
