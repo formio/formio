@@ -1,7 +1,5 @@
 'use strict';
 
-let async = require('async');
-
 /**
  * Update 2.3.1
  *
@@ -12,7 +10,7 @@ let async = require('async');
  *
  * Update the projects name index.
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function(db, config, tools) {
   let projects = db.collection('projects');
 
   let dropOldIndex = function(name, cb) {
@@ -27,15 +25,7 @@ module.exports = function(db, config, tools, done) {
     .catch(err => cb(err));
   };
 
-  async.series([
-    async.apply(dropOldIndex, 'name_1'),
-    async.apply(dropOldIndex, 'name_1_1'),
-    addNewNameIndex
-  ], function(err) {
-    if (err) {
-      return done(err);
-    }
-
-    done();
-  });
+  dropOldIndex('name_1')
+    .then(() => dropOldIndex('name_1_1'))
+    .then(() => addNewNameIndex())
 };

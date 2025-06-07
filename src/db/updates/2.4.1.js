@@ -12,53 +12,44 @@ let _ = require('lodash');
  * @param db
  * @param config
  * @param tools
- * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = async function (db, config, tools) {
   let forms = db.collection('forms');
+  let submissions = db.collection('submissions');
   let formsToPurge = {};
 
-  forms.find().toArray().forEach(function(form) {
-    let deleteFns = _(util.flattenComponents(form.components))
-      .filter(function(component) {
-        // Filter for non-persistent components
-        return (component.hasOwnProperty('persistent') && !component.persistent)
-      })
-      .map(function(component, path) {
-        return function(obj) {
-          deleteProp('data.' + path)(obj);
-        }
-      })
-      .value();
+    let formsArray = await forms.find().toArray();
+    formsArray.forEach((form) => {
+      let deleteFns = _(util.flattenComponents(form.components))
+        .filter((component) => {
+          // Filter for non-persistent components
+          return component.hasOwnProperty('persistent') && !component.persistent;
+        })
+        .map((component, path) => {
+          return function (obj) {
+            deleteProp('data.' + path)(obj);
+          };
+        })
+        .value();
 
-    if(deleteFns.length) {
-      // Save delete functions under the form id
-      formsToPurge[form._id.toString()] = deleteFns;
-    }
-  }, function() {
-    let submissions = db.collection('submissions');
-
-    // Create a single query for every form id in formsToPurge
-    let query = _.map(Object.keys(formsToPurge), function(id) {
-      return {form: new ObjectID(id)};
+      if (deleteFns.length) {
+        // Save delete functions under the form id
+        formsToPurge[form._id.toString()] = deleteFns;
+      }
     });
 
-    let updatePromises = [];
+    // Create a single query for every form id in formsToPurge
+    let query = _.map(Object.keys(formsToPurge), (id) => {
+      return { form: new ObjectID(id) };
+    });
 
-    submissions.find({$or: query}).toArray().forEach(function(submission) {
+    let submissionsArray = await submissions.find({ $or: query }).toArray();
+
+    for (let submission of submissionsArray) {
       // Call each deleteFn with submission as the argument
       _.invoke(formsToPurge[submission.form.toString()], Function.call, null, submission);
       // Update new submission
-      updatePromises.push(submissions.updateOne({_id: submission._id}, submission));
-    }, function() {
-      // Finish when all updates are done.
-      Promise.all(updatePromises)
-        .then(function() {
-          done();
-        })
-        .catch(done);
-    });
-  });
-
+      await submissions.updateOne({ _id: submission._id }, { $set: submission });
+    }
 
 };
