@@ -3,7 +3,6 @@
 
 const request = require('./formio-supertest');
 var assert = require('assert');
-var async = require('async');
 var _ = require('lodash');
 var docker = process.env.DOCKER;
 
@@ -5550,32 +5549,20 @@ module.exports = function(app, template, hook) {
         });
 
         describe('Submission Normalization', function() {
-          it('Delete the Submissions created for Ownership Checks', function(done) {
-            async.eachSeries(tempSubmissions, function(submission, subDone) {
-              request(app)
-                .delete(hook.alter('url', '/form/' + tempForm._id + '/submission/' + submission._id, template))
+          it('Delete the Submissions created for Ownership Checks', async function() {
+            for (const submission of tempSubmissions) {
+              const res = await request(app)
+                .delete(hook.alter('url', `/form/${tempForm._id}/submission/${submission._id}`, template))
                 .set('x-jwt-token', template.users.admin.token)
-                .expect(200)
-                .end(function(err, res) {
-                  if (err) {
-                    return subDone(err);
-                  }
+                .expect(200);
+              const response = res.body;
+              assert.deepEqual(response, {});
 
-                  var response = res.body;
-                  assert.deepEqual(response, {});
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+            }
 
-                  // Store the JWT for future API calls.
-                  template.users.admin.token = res.headers['x-jwt-token'];
-                  subDone();
-                });
-            }, function(err) {
-              if (err) {
-                return done(err);
-              }
-
-              tempSubmissions = [];
-              done();
-            });
+            tempSubmissions = [];
           });
         });
 
@@ -10763,10 +10750,10 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('Bootstrap the admin submissions', function(done) {
-        async.each(adminValues, function(value, cb) {
-          request(app)
-            .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+      it('Bootstrap the admin submissions', async function() {
+        for (const value of adminValues) {
+          const res = await request(app)
+            .post(hook.alter('url', `/form/${tempForm._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -10774,30 +10761,17 @@ module.exports = function(app, template, hook) {
               }
             })
             .expect('Content-Type', /json/)
-            .expect(201)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
+            .expect(201);
 
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              cb();
-            });
-        }, function(err) {
-          if (err) {
-            return done(err);
-          }
-
-          done();
-        });
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+        }
       });
 
-      it('Bootstrap the user submissions', function(done) {
-        async.each(userValues, function(value, cb) {
-          request(app)
-            .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+      it('Bootstrap the user submissions', async function() {
+        for (const value of userValues) {
+          const res = await request(app)
+            .post(hook.alter('url', `/form/${tempForm._id}/submission`, template))
             .set('x-jwt-token', template.users.user1.token)
             .send({
               data: {
@@ -10805,58 +10779,32 @@ module.exports = function(app, template, hook) {
               }
             })
             .expect('Content-Type', /json/)
-            .expect(201)
-            .end(function(err, res) {
-              if (err) {
-                return done(err);
-              }
+            .expect(201);
 
-              // Store the JWT for future API calls.
-              template.users.user1.token = res.headers['x-jwt-token'];
-
-              cb();
-            });
-        }, function(err) {
-          if (err) {
-            return done(err);
-          }
-
-          done();
-        });
+          // Store the JWT for future API calls.
+          template.users.user1.token = res.headers['x-jwt-token'];
+        }
       });
 
-      it('An Admin should see all submissions', function(done) {
-        request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+      it('An Admin should see all submissions', async function() {
+        const res = await request(app)
+          .get(hook.alter('url', `/form/${tempForm._id}/export`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
+          .expect(200);
+        const response = res.body;
+        assert.equal(response.length, adminValues.length + userValues.length);
+        assert(response instanceof Array);
 
-            var response = res.body;
-            assert.equal(response.length, (adminValues.length + userValues.length));
-            assert(response instanceof Array);
+        const values = [].concat(adminValues, userValues);
+        for (const value of response) {
+          assert(value.hasOwnProperty('data'));
+          assert(value.data.hasOwnProperty('value'));
+          assert.notEqual(values.indexOf(value.data.value), -1);
+        }
 
-            var values = [].concat(adminValues, userValues);
-            async.each(response, function(value, cb) {
-              assert(value.hasOwnProperty('data'));
-              assert(value.data.hasOwnProperty('value'));
-              assert.notEqual(values.indexOf(value.data.value), -1);
-              cb();
-            }, function(err) {
-              if (err) {
-                return done(err);
-              }
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-          });
+        // Store the JWT for future API calls.
+        template.users.admin.token = res.headers['x-jwt-token'];
       });
 
       it('An admin should be able to export with filters', (done) => {
@@ -10901,39 +10849,26 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('A user should only be able to see their submissions', function(done) {
-        request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+      it('A user should only be able to see their submissions', async function() {
+        const res = await request(app)
+          .get(hook.alter('url', `/form/${tempForm._id}/export`, template))
           .set('x-jwt-token', template.users.user1.token)
           .expect('Content-Type', /json/)
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
+          .expect(200);
+        const response = res.body;
+    
+        assert.equal(response.length, userValues.length);
+        assert(Array.isArray(response));
 
-            var response = res.body;
-            assert.equal(response.length, userValues.length);
-            assert(response instanceof Array);
+        for (const value of response) {
+          assert(value.hasOwnProperty('data'));
+          assert(value.data.hasOwnProperty('value'));
+          assert.notEqual(userValues.indexOf(value.data.value), -1);
+          assert.equal(adminValues.indexOf(value.data.value), -1);
+        }
 
-            async.each(response, function(value, cb) {
-              assert(value.hasOwnProperty('data'));
-              assert(value.data.hasOwnProperty('value'));
-              assert.notEqual(userValues.indexOf(value.data.value), -1);
-              assert.equal(adminValues.indexOf(value.data.value), -1);
-
-              cb();
-            }, function(err) {
-              if (err) {
-                return done(err);
-              }
-
-              // Store the JWT for future API calls.
-              template.users.user1.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-          });
+        // Store the JWT for future API calls.
+        template.users.user1.token = res.headers['x-jwt-token'];
       });
 
       it('A user should be able to export with filters', (done) => {
@@ -11036,107 +10971,69 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('An Admin should see all submissions', function(done) {
-        request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+      it('An Admin should see all submissions', async function() {
+        const res = await request(app)
+          .get(hook.alter('url', `/form/${tempForm._id}/export`, template))
           .set('x-jwt-token', template.users.admin.token)
           .expect('Content-Type', /json/)
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
-
-            var response = res.body;
-            assert.equal(response.length, (adminValues.length + userValues.length));
-            assert(response instanceof Array);
-
-            var values = [].concat(adminValues, userValues);
-            async.each(response, function(value, cb) {
-              assert(value.hasOwnProperty('data'));
-              assert(value.data.hasOwnProperty('value'));
-              assert.notEqual(values.indexOf(value.data.value), -1);
-              cb();
-            }, function(err) {
-              if (err) {
-                return done(err);
-              }
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-          });
+          .expect(200);
+    
+        const response = res.body;
+        assert.equal(response.length, adminValues.length + userValues.length);
+        assert(Array.isArray(response));
+    
+        const values = adminValues.concat(userValues);
+        for (const value of response) {
+          assert(value.hasOwnProperty('data'));
+          assert(value.data.hasOwnProperty('value'));
+          assert.notEqual(values.indexOf(value.data.value), -1);
+        }
+    
+        template.users.admin.token = res.headers['x-jwt-token'];
       });
-
-      it('A user should be able to see all submissions', function(done) {
-        request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+      
+      it('A user should be able to see all submissions', async function() {
+        const res = await request(app)
+          .get(hook.alter('url', `/form/${tempForm._id}/export`, template))
           .set('x-jwt-token', template.users.user1.token)
           .expect('Content-Type', /json/)
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
-
-            var response = res.body;
-            assert.equal(response.length, (adminValues.length + userValues.length));
-            assert(response instanceof Array);
-
-            var values = [].concat(adminValues, userValues);
-            async.each(response, function(value, cb) {
-              assert(value.hasOwnProperty('data'));
-              assert(value.data.hasOwnProperty('value'));
-              assert.notEqual(values.indexOf(value.data.value), -1);
-              cb();
-            }, function(err) {
-              if (err) {
-                return done(err);
-              }
-
-              // Store the JWT for future API calls.
-              template.users.user1.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-          });
+          .expect(200);
+    
+        const response = res.body;
+        assert.equal(response.length, adminValues.length + userValues.length);
+        assert(Array.isArray(response));
+    
+        const values = adminValues.concat(userValues);
+        for (const value of response) {
+          assert(value.hasOwnProperty('data'));
+          assert(value.data.hasOwnProperty('value'));
+          assert.notEqual(values.indexOf(value.data.value), -1);
+        }
+    
+        template.users.user1.token = res.headers['x-jwt-token'];
       });
-
-      it('A user without submissions will not see results', function(done) {
-        request(app)
-          .get(hook.alter('url', '/form/' + tempForm._id + '/export', template))
+      
+      it('A user without submissions will not see results', async function() {
+        const res = await request(app)
+          .get(hook.alter('url', `/form/${tempForm._id}/export`, template))
           .set('x-jwt-token', template.users.user2.token)
           .expect('Content-Type', /json/)
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
-
-            var response = res.body;
-            assert.equal(response.length, (adminValues.length + userValues.length));
-            assert(response instanceof Array);
-
-            var values = [].concat(adminValues, userValues);
-            async.each(response, function(value, cb) {
-              assert(value.hasOwnProperty('data'));
-              assert(value.data.hasOwnProperty('value'));
-              assert.notEqual(values.indexOf(value.data.value), -1);
-              cb();
-            }, function(err) {
-              if (err) {
-                return done(err);
-              }
-
-              // Store the JWT for future API calls.
-              template.users.user2.token = res.headers['x-jwt-token'];
-
-              done();
-            });
-          });
+          .expect(200);
+    
+        const response = res.body;
+        assert.equal(response.length, adminValues.length + userValues.length);
+        assert(Array.isArray(response));
+    
+        const values = adminValues.concat(userValues);
+        for (const value of response) {
+          assert(value.hasOwnProperty('data'));
+          assert(value.data.hasOwnProperty('value'));
+          assert.notEqual(values.indexOf(value.data.value), -1);
+        }
+    
+        template.users.user2.token = res.headers['x-jwt-token'];
       });
+      
 
       it('An anonymous user will not be able to export', function(done) {
         request(app)

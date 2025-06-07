@@ -4,7 +4,6 @@
 const request = require('./formio-supertest');
 var assert = require('assert');
 var _ = require('lodash');
-var async = require('async');
 var docker = process.env.DOCKER;
 var chance = new (require('chance'))();
 
@@ -584,32 +583,19 @@ module.exports = function(app, template, hook) {
       });
 
       describe('Suite normalization', function() {
-        it('Clean up the test forms', function(done) {
-          async.each([f1, f2], function(form, cb) {
-            request(app)
-              .delete(hook.alter('url', '/form/' + form._id, template))
+        it('Clean up the test forms', async function() {
+          for (const form of [f1, f2]) {
+            const res = await request(app)
+              .delete(hook.alter('url', `/form/${form._id}`, template))
               .set('x-jwt-token', template.users.admin.token)
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return cb(err);
-                }
+              .expect(200);
+      
+            const response = res.body;
+            assert.deepEqual(response, {});
 
-                var response = res.body;
-                assert.deepEqual(response, {});
-
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
-
-                cb();
-              });
-          }, function(err) {
-            if (err) {
-              return done(err);
-            }
-
-            done();
-          });
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+          }
         });
       });
     });
@@ -996,30 +982,16 @@ module.exports = function(app, template, hook) {
       });
     });
 
-    it('Cleanup', (done) => {
-      accessHelper
+    it('Cleanup', async () => {
+      await accessHelper
         .deleteForm('access-manager')
         .deleteForm('access-employee')
         .deleteForm('access-login')
-        .execute((err) => {
-          if (err) {
-            return done(err);
-          }
+        .execute();
 
-          async.series(
-            [
-              (next) => accessHelper.deleteRole('access-manager', next), 
-              (next) => accessHelper.deleteRole('access-employee', next)
-            ],
-            (err) => {
-              if (err) {
-                return done(err);
-              }
-
-              done();
-            }
-          );
-        });
+        await accessHelper.deleteRole('access-manager');
+        await accessHelper.deleteRole('access-employee');
     });
+    
   });
 };
