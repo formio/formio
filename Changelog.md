@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.5.0-rc.14
+### Changed
+ - Updated @formio/core@2.5.0-rc.5
+ - Updated @formio/js@5.2.0-rc.8
+ - FIO-10231: fixed an issue where select value (object type)  is rendered as object Object in email
+ - FIO-10236: Fixes an issue where Value component does not change type in the Action Conditions form
+ - FIO-10232: update email rendering to show the timezone of an email in the timezone of the submission
+
 ## 4.5.0-rc.13
 ### Changed
  - Updated @formio/core@2.5.0-rc.4
