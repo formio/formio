@@ -329,7 +329,9 @@ module.exports = (router) => {
         return buildPipeline(component, path, req, res).then((subpipe) => {
           let pipeline = req.modelQuery.pipeline || [];
           pipeline = pipeline.concat(subpipe);
-          req.countQuery.pipeline = req.modelQuery.pipeline = pipeline;
+          req.modelQuery.pipeline = pipeline;
+          // The pipeline for references is not needed to get the count of documents
+          req.countQuery.pipeline = req.countQuery.pipeline || [];
         });
       case 'afterIndex': {
         const form = await router.formio.cache.loadForm(req, null, formId);
