@@ -22,6 +22,13 @@ module.exports = function(db, config, next) {
             'form' : 1
           },
           name: 'form_1'
+        },
+        {
+          key: {
+            'priority': 1,
+            'title': 1
+          },
+          name: 'priority_1_title_1'
         }
       ]);
     },
