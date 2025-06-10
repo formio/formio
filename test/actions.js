@@ -1946,6 +1946,100 @@ module.exports = (app, template, hook) => {
             });
         });
       });
+
+      it('Should send email for delete method', async () => {
+      const createTestAction = () => ({
+        title: 'Email',
+        name: 'email',
+        handler: ['after'],
+        method: ['delete'],
+        priority: 1,
+        settings: {
+          from: 'no-reply@example.com',
+          replyTo: '',
+          emails: ['test@example.com'],
+          sendEach: false,
+          subject: 'Hello',
+          message: '{{ submission(data, form.components) }}',
+          transport: 'test',
+          template: 'https://pro.formview.io/assets/email.html',
+          renderingMethod: 'dynamic'
+        },
+      });
+
+      const form = {
+        "_id": "683db072e69799ee3678e8aa",
+        "title": "deletemethodcheck",
+        "name": "deletemethodcheck",
+        "path": "deletemethodcheck",
+        "type": "form",
+        "display": "form",
+        "tags": [],
+        "components": [
+          {
+            "label": "Text Field",
+            "applyMaskOn": "change",
+            "tableView": true,
+            "validateWhenHidden": false,
+            "key": "textField",
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "type": "button",
+            "label": "Submit",
+            "key": "submit",
+            "disableOnInvalid": true,
+            "input": true,
+            "tableView": false
+          }
+        ]
+      }
+        
+      const oForm = (await request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(form)).body;
+
+      let testAction = createTestAction();
+      testAction.form = oForm._id;
+      // Add the action to the form.
+      const testActionRes = (await request(app)
+        .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(testAction)).body;
+
+      testAction = testActionRes;
+
+      const mailReceived = new Promise((resolve, reject) => {
+        const event = template.hooks.getEmitter();
+        event.on('newMail', (email) => {
+          assert.equal(email.from, 'no-reply@example.com');
+          assert.equal(email.to, 'test@example.com');
+          assert.equal(email.subject, 'Hello');
+          event.removeAllListeners('newMail');
+          resolve();
+        });
+      });
+
+      // Create submission
+      const submissionResponse = await request(app)
+        .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          textField: "123",
+          submit: true
+        })
+        .expect(201);
+
+      // Delete submission
+      await request(app)
+      .delete(hook.alter('url', `/form/${oForm._id}/submission/${submissionResponse.body._id}`, template))
+      .set('x-jwt-token', template.users.admin.token)
+      .expect(200);
+        
+      await mailReceived;
+      });
         
       it('Should send email with edit grid value', async () => {
         let testAction = {
