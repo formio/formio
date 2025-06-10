@@ -1,0 +1,38 @@
+export default {
+  type: 'form',
+  display: 'form',
+  components: [
+    {
+      label: 'Checkbox A',
+      inputType: 'radio',
+      tableView: false,
+      validateWhenHidden: false,
+      key: 'checkboxA',
+      type: 'checkbox',
+      name: 'radio',
+      value: 'A',
+      input: true,
+      defaultValue: false,
+    },
+    {
+      label: 'Checkbox B',
+      inputType: 'radio',
+      tableView: false,
+      defaultValue: false,
+      validateWhenHidden: false,
+      key: 'checkboxA1',
+      type: 'checkbox',
+      name: 'radio',
+      value: 'B',
+      input: true,
+    },
+    {
+      type: 'button',
+      label: 'Submit',
+      key: 'submit',
+      disableOnInvalid: true,
+      input: true,
+      tableView: false,
+    },
+  ],
+}

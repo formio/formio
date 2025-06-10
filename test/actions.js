@@ -2077,7 +2077,7 @@ module.exports = (app, template, hook) => {
           },
         });
 
-      it('Select boxes should be rendered in template if data source = url', async () => {
+        it('Select boxes should be rendered in template if data source = url', async () => {
           const form = selectBoxesSourceTypeForm.formJson;
           const oForm = (await request(app)
             .post(hook.alter('url', '/form', template))
@@ -2258,6 +2258,49 @@ module.exports = (app, template, hook) => {
           // Send submission
           await request(app)
             .post(hook.alter('url', `/form/${multiplesForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          await wait(1800);
+          assert(emailSent)
+        });
+
+        it('Should render values of radio type Checkbox component properly', async () => {
+          const form =  require('./fixtures/forms/radioTypeCheckboxes.js');
+
+          const oForm = (await request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = oForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(testAction)).body;
+
+          testAction = testActionRes;
+
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes(`>Checkbox</th><tdstyle=3D"width:100%;padding:5px10px;">=Yes<`));
+            assert(emailTemplateNoWhitespace.includes(`>CheckboxB</th><tdstyle=3D"width:100%;padding:5px10px;">=No<`));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = {
+            data: {
+              radio: 'A',
+            },
+          };
+
+          // Send submission
+          await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(submission);
           await wait(1800);
