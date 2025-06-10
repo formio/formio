@@ -2286,7 +2286,7 @@ module.exports = (app, template, hook) => {
           const event = template.hooks.getEmitter();
           event.on('newMail', (email) => {
             const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
-            assert(emailTemplateNoWhitespace.includes(`>Checkbox</th><tdstyle=3D"width:100%;padding:5px10px;">=Yes<`));
+            assert(emailTemplateNoWhitespace.includes(`>CheckboxA</th><tdstyle=3D"width:100%;padding:5px10px;">=Yes<`));
             assert(emailTemplateNoWhitespace.includes(`>CheckboxB</th><tdstyle=3D"width:100%;padding:5px10px;">=No<`));
             event.removeAllListeners('newMail');
             emailSent = true;
