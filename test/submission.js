@@ -99,6 +99,31 @@ module.exports = function(app, template, hook) {
         });
       });
 
+      var signatureSubmission2 = null;
+      it('Create submission with empty signature', function(done) {
+        var test = _.cloneDeep(require('./fixtures/forms/singleComponents4.js'));
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            signatureSubmission2 = helper.getLastSubmission();
+            assert.deepEqual(test.submission, signatureSubmission2.data);
+            done();
+          });
+      });
+
+      it('Should not to add emtpy signature value in response if we do not put it in submission data', function(done) {
+        var updateSub = _.cloneDeep(signatureSubmission2);
+        delete updateSub.data.signature;
+        helper.updateSubmission(updateSub, function(err, updated) {
+          assert.deepEqual(updateSub.data, updated.data);
+          done();
+        });
+      });
+
       var signatureSubmission = null;
       it('Saves values with required signature', function(done) {
         var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
@@ -1665,6 +1690,7 @@ module.exports = function(app, template, hook) {
                   setting: true,
                   validator: 'required',
                   label: 'Required Field',
+                  value: '',
                   path: 'requiredField',
                 },
                 message: 'Required Field is required',
@@ -2138,6 +2164,7 @@ module.exports = function(app, template, hook) {
                   label: 'Required Field',
                   setting: true,
                   validator: 'required',
+                  value: '',
                   path: 'requiredField',
                 },
                 message: 'Required Field is required',
@@ -3014,7 +3041,6 @@ module.exports = function(app, template, hook) {
             "prefix": "",
             "suffix": "",
             "multiple": true,
-            "defaultValue": "",
             "protected": false,
             "unique": false,
             "persistent": true,
@@ -4135,6 +4161,7 @@ module.exports = function(app, template, hook) {
                   label: 'Two',
                   setting: true,
                   path: 'changeme',
+                  value: '',
                   validator: 'required',
                 },
                 level: 'error',
@@ -4370,6 +4397,7 @@ module.exports = function(app, template, hook) {
                   label: 'Test',
                   setting: true,
                   path: 'test',
+                  value: '',
                   validator: 'required',
                 },
                 level: 'error',

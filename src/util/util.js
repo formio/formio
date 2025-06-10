@@ -411,7 +411,7 @@ const Utils = {
 
     // Build key/value list.
     for (let a = 0; a < parts.length; a += 2) {
-      urlParams[parts[a]] = parts[a + 1];
+      urlParams[parts[a].toLowerCase()] = parts[a + 1];
     }
 
     debug.getUrlParams(urlParams);
@@ -899,6 +899,12 @@ const Utils = {
           case 'select': {
             if (Number(value) || value === "0") {
               return Number(value);
+            }
+            return value;
+          }
+          case 'selectboxes': {
+            if (['true', 'false'].includes(value)) {
+              return value !== 'false';
             }
           }
         }

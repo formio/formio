@@ -17,6 +17,7 @@ const {
   insertTable,
   isGridBasedComponent,
   isLayoutComponent,
+  convertToString
 } = require('./utils');
 const macros = require('./nunjucks-macros');
 
@@ -29,7 +30,7 @@ function renderEmailProcessorSync(context) {
     return;
   }
 
-  const conditionallyHidden = scopeRef.conditionals.find(
+  const conditionallyHidden = scopeRef.conditionals?.find(
     (cond) => cond.path === paths?.dataPath && cond.conditionallyHidden,
   );
   const intentionallyHidden = component.hidden;
@@ -123,7 +124,6 @@ function renderEmailProcessorSync(context) {
     case 'textfield':
     case 'number':
     case 'password':
-    case 'select':
     case 'radio':
     case 'email':
     case 'url':
@@ -132,6 +132,13 @@ function renderEmailProcessorSync(context) {
     case 'tags':
     case 'reviewpage': {
       const outputValue = component.multiple ? rowValue?.join(', ') : rowValue;
+      insertRow(componentRenderContext, outputValue);
+      return;
+    }
+    case 'select': {
+      const outputValue = component.multiple
+        ? rowValue?.map(v => convertToString(v)).join(', ')
+        : convertToString(rowValue);
       insertRow(componentRenderContext, outputValue);
       return;
     }
@@ -149,12 +156,21 @@ function renderEmailProcessorSync(context) {
       return;
     }
     case 'selectboxes': {
-      const outputValue = rowValue
-        ? component?.values
-            ?.filter((v) => rowValue[v.value])
-            .map((v) => v.label)
-            .join(', ')
-        : '';
+      let outputValue = '';
+      if (rowValue) {
+        if (component.dataSrc === 'url') {
+          outputValue = _(rowValue)
+            .pickBy(Boolean)
+            .keys()
+            .join(', ');
+        }
+        else {
+          outputValue = component?.values
+            ?.filter(v => rowValue[v.value])
+            .map(v => v.label)
+            .join(', ') || '';
+        }
+      }
       insertRow(componentRenderContext, outputValue);
       return;
     }
@@ -331,7 +347,7 @@ function getRenderMethod(render) {
   if (process.env.RENDER_METHOD) {
     renderMethod = process.env.RENDER_METHOD;
   }
- else if (render && render.renderingMethod) {
+  else if (render && render.renderingMethod) {
     renderMethod = render.renderingMethod;
   }
   return renderMethod;

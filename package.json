@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "build:vm": "webpack --config src/vm/webpack.vm.config.js",
     "build:portal": "cd portal && yarn && yarn build && cd ..",
-    "show-coverage": "open coverage/lcov-report/index.html"
+    "show-coverage": "open coverage/lcov-report/index.html",
+    "prepare": "npm run build:vm"
   },
   "author": "support@form.io",
   "engines": {
@@ -21,7 +22,7 @@
   "schema": "3.1.4",
   "templateVersion": "2.0.0",
   "dependencies": {
-    "@formio/core": "v2.4.0-dev.255.7fab6ff",
+    "@formio/core": "v2.4.0-dev.266.e541799",
     "@formio/js": "5.1.0-dev.6102.9a0147c",
     "@formio/node-fetch-http-proxy": "^1.1.0",
     "@formio/vm": "1.0.0-dev.58.db88b77",
@@ -69,6 +70,7 @@
   "devDependencies": {
     "eslint": "^8.25.0",
     "mocha": "^10.0.0",
+    "monorepo-sync": "git+https://github.com/johnformio/monorepo-sync.git",
     "nodemon": "^2.0.20",
     "nyc": "^17.0.0",
     "pre-commit": "^1.2.2",

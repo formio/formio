@@ -38,8 +38,9 @@ module.exports = (formio) => async (component, data, handler, action, {validatio
         if (!submission) {
           throw new Error('No submission found.');
         }
-
-        _.set(data, component.key, _.get(submission.data, path));
+        if (!_.isNil(value)) {
+          _.set(data, component.key, _.get(submission.data, path));
+        }
       }
   }
 };
