@@ -30,7 +30,7 @@ function renderEmailProcessorSync(context) {
     return;
   }
 
-  const conditionallyHidden = scopeRef.conditionals.find(
+  const conditionallyHidden = scopeRef.conditionals?.find(
     (cond) => cond.path === paths?.dataPath && cond.conditionallyHidden,
   );
   const intentionallyHidden = component.hidden;
