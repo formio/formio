@@ -58,7 +58,9 @@ function renderEmailProcessorSync(context) {
 
   const language = context?.metadata?.language;
 
-  const rowValue = _.get(data, paths?.dataPath ?? component.key);
+  const isRadioCheckbox = component.type === 'checkbox' && component.inputType === 'radio';
+  const value = _.get(data, paths?.dataPath ?? component.key);
+  const rowValue = isRadioCheckbox ? value === component.value : value;
 
   // some components (like nested forms) add .data to the path
   // this makes it hard to map onto the parent while iterating through nested children
