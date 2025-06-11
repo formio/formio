@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.5.0-rc.16]
+## 4.5.0-rc.16
 ### Changed
  - FIO-10237: update IsolateVMEvaluator to leverage hook system for Enterprise features
  - FIO-10241: delete method for email action fix
