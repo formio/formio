@@ -434,7 +434,12 @@ module.exports = (router) => {
 
         return false;
       },
-      transform: (template, role) => role,
+      transform: (template, role) => {
+        if (role.machineName === 'everyone') {
+          return null;
+        }
+        return role;
+      },
       query(document, template) {
         const query = {
           $or: [
