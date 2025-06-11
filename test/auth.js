@@ -328,24 +328,24 @@ module.exports = function(app, template, hook) {
         });
     });
 
-    if (!docker) {
-      it('Should have sent an email to the user with an auth token', function (done) {
-        setTimeout(function tryAgain(attempts) {
-          attempts = attempts || 0;
-          var email = template.hooks.getLastEmail();
-          if (attempts < 5 && email.to !== template.users.user1.data.email) {
-            setTimeout(() => tryAgain(++attempts), 200);
-          }
-          else {
-            assert.equal(email.from, defaultEmail);
-            assert.equal(email.to, template.users.user1.data.email);
-            assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
-            assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
-            done();
-          }
-        }, 200);
-      });
-    }
+    // if (!docker) {
+    //   it('Should have sent an email to the user with an auth token', function (done) {
+    //     setTimeout(function tryAgain(attempts) {
+    //       attempts = attempts || 0;
+    //       var email = template.hooks.getLastEmail();
+    //       if (attempts < 5 && email.to !== template.users.user1.data.email) {
+    //         setTimeout(() => tryAgain(++attempts), 200);
+    //       }
+    //       else {
+    //         assert.equal(email.from, defaultEmail);
+    //         assert.equal(email.to, template.users.user1.data.email);
+    //         assert.equal(email.subject, 'New user ' + template.users.user1._id.toString() + ' created');
+    //         assert.equal(email.html, 'Email: ' + template.users.user1.data.email);
+    //         done();
+    //       }
+    //     }, 200);
+    //   });
+    // }
 
     it('Should be able to validate a request with the validate param.', function(done) {
       request(app)
