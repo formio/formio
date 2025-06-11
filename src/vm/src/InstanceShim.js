@@ -49,7 +49,7 @@ class InstanceShim {
   get data() {
     return FormioCore.Utils.getContextualRowData(
       this.component,
-      this.component.path,
+      this._path,
       this._data
     );
   }
@@ -60,7 +60,7 @@ class InstanceShim {
   // Returns parent instance
   get parent() {
     return this.root.getComponent(
-      this.component.path.replace(/(\.[^.]+)$/, "")
+      this._path?.replace(/(\.[^.]+)$/, "")
     );
   }
 

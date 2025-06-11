@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const debug = require('debug')('formio:models:form');
+const {Utils: CoreUtils} = require('@formio/core');
 
 module.exports = (formio) => {
   const hook = require('../util/hook')(formio);
@@ -23,9 +24,11 @@ module.exports = (formio) => {
 
   const componentPaths = (components) => {
     const paths = [];
-    util.eachComponent(components, (component, path) => {
+    util.eachComponent(components, (component, fullPath, components, parent, compPaths) => {
+      const path = compPaths.dataPath;
+      const componentInfo = CoreUtils.componentInfo(component);
       if (
-        util.isInputComponent(component) &&
+        !componentInfo.layout &&
         !_.isUndefined(component.key) &&
         !_.isNull(component.key)
       ) {

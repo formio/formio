@@ -62,10 +62,6 @@ module.exports = function(config) {
     }
   };
 
-  // Configure the evaluator
-  const evaluator = new IsolateVMEvaluator({timeoutMs: config.vmTimeout});
-  registerEvaluator(evaluator);
-
   /**
    * Initialize the formio server.
    */
@@ -83,7 +79,7 @@ module.exports = function(config) {
             }
           }
         }
- catch (error) {
+        catch (error) {
           console.log(error);
         }
 
@@ -310,6 +306,12 @@ module.exports = function(config) {
         await connectToMongoDB();
     }
 
+    function configureEvaluator() {
+        // Configure the evaluator
+        const evaluator = new IsolateVMEvaluator({timeoutMs: config.vmTimeout}, router.formio.hook);
+        registerEvaluator(evaluator);
+    }
+
     // Hooks system during boot.
     router.formio.hooks = hooks;
 
@@ -336,6 +338,7 @@ module.exports = function(config) {
 
     setupMemoryLeakPrevention();
     setupMiddlewares();
+    configureEvaluator();
     await setupMongoDBConnection();
 
     return router.formio;

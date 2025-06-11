@@ -178,14 +178,14 @@ return '';
         : locationTimezone && displayInTimezone === 'location'
           ? locationTimezone
           : // of viewer (i.e. wherever this server is)
-            currentTimezone();
+            userProvidedTimezone || currentTimezone();
   return momentDate(value, format, timezone).format(format);
 };
 
 const formatTime = (component, value) => {
   if (!value) {
-return '';
-}
+    return '';
+  }
   const format = component.format ?? 'HH:mm';
   const dataFormat = component.dataFormat ?? 'HH:mm:ss';
   return moment(value, dataFormat).format(format);
@@ -423,6 +423,20 @@ const insertDataMapTable = (
   insertTable(componentRenderContext, rows);
 };
 
+const convertToString = (value) => {
+  if (_.isObject(value)) {
+    try {
+      return JSON.stringify(value);
+    }
+    catch (e) {
+      return value;
+    }
+  }
+  else {
+    return value;
+  }
+};
+
 module.exports = {
   isLayoutComponent,
   isGridBasedComponent,
@@ -446,4 +460,5 @@ module.exports = {
   getProviderDisplayValue,
   insertGridHeader,
   insertGridRow,
+  convertToString,
 };
