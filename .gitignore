@@ -2,8 +2,14 @@
 .dccache
 .vscode
 .idea
+.env
+.secrets
+data
 bower_components
 node_modules
-client*
-app*
 npm-debug.log
+portal/node_modules
+portal/dist
+coverage
+.nyc_output
+src/vm/bundles

@@ -13,15 +13,33 @@ module.exports = class DateGeaterThan extends ConditionOperator {
   }
 
   getValidationFormat(component) {
-    return component.dayFirst ? 'DD-MM-YYYY' : 'MM-DD-YYYY';
+    let validationFormat = component.dayFirst ? 'DD-MM-YYYY' : 'MM-DD-YYYY';
+    if (component.fields?.day?.hide) {
+      validationFormat = validationFormat.replace('DD-', '');
+    }
+    if (component.fields?.month?.hide) {
+      validationFormat = validationFormat.replace('MM-', '');
+    }
+
+    if ( component.fields?.year?.hide ) {
+      validationFormat = validationFormat.replace('-YYYY', '');
+    }
+
+    return validationFormat;
+  }
+
+  setDateFormat(component) {
+    return component?.type === 'day' ? this.getValidationFormat(component) : '';
   }
 
   getFormattedDates({
     value,
     comparedValue,
+    component
   }) {
-    const date = moment(value);
-    const comparedDate = moment(comparedValue);
+    const dateFormat = this.setDateFormat(component);
+    const date = moment(value, dateFormat);
+    const comparedDate = moment(comparedValue, dateFormat);
 
     return {
       date,

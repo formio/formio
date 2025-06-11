@@ -1,7 +1,7 @@
 .idea
 bower_components
 node_modules
-test
+portal
 .github
 .circleci
 .vscode
@@ -10,3 +10,8 @@ docker-compose.yml
 .eslintrc
 .bithoundrc
 .eslintignore
+.dccache
+.nyc_output
+.nycrc
+coverage
+welcome.txt

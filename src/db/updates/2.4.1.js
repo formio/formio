@@ -1,5 +1,4 @@
 'use strict';
-let Q = require('q');
 let util = require('../../util/util');
 let deleteProp = require('delete-property').default;
 let ObjectID = require('mongodb').ObjectId;
@@ -19,7 +18,7 @@ module.exports = function(db, config, tools, done) {
   let forms = db.collection('forms');
   let formsToPurge = {};
 
-  forms.find().snapshot({$snapshot: true}).forEach(function(form) {
+  forms.find().toArray().forEach(function(form) {
     let deleteFns = _(util.flattenComponents(form.components))
       .filter(function(component) {
         // Filter for non-persistent components
@@ -46,14 +45,14 @@ module.exports = function(db, config, tools, done) {
 
     let updatePromises = [];
 
-    submissions.find({$or: query}).snapshot({$snapshot: true}).forEach(function(submission) {
+    submissions.find({$or: query}).toArray().forEach(function(submission) {
       // Call each deleteFn with submission as the argument
       _.invoke(formsToPurge[submission.form.toString()], Function.call, null, submission);
       // Update new submission
       updatePromises.push(submissions.updateOne({_id: submission._id}, submission));
     }, function() {
       // Finish when all updates are done.
-      Q.all(updatePromises)
+      Promise.all(updatePromises)
         .then(function() {
           done();
         })

@@ -3,15 +3,13 @@
 const _ = require('lodash');
 
 module.exports = function(router) {
-    return function storageAccessHandler(req, res, next) {
+    return async function storageAccessHandler(req, res, next) {
         if (!req.originalUrl.split('/').includes('storage')) {
             return next();
         }
 
-        router.formio.cache.loadForm(req, null, req.formId, function(err, item) {
-            if (err) {
-                return next(err);
-            }
+        try {
+            const item = await router.formio.cache.loadForm(req, null, req.formId);
             if (!item) {
                 return next(`No Form found with formId: ${req.formId}`);
             }
@@ -38,6 +36,9 @@ module.exports = function(router) {
             }
 
             return next();
-        });
+        }
+        catch (err) {
+            return next(err);
+        }
     };
 };

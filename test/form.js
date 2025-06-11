@@ -5,8 +5,10 @@ const request = require('./formio-supertest');
 var assert = require('assert');
 var _ = require('lodash');
 var chance = new (require('chance'))();
-var formioUtils = require('formiojs/utils').default;
+const { Utils } = require('@formio/core/utils');
+const formioUtils = Utils;
 var async = require('async');
+const uniqueValidationCustomMessage = require('./fixtures/forms/uniqueValidationCustomMessage');
 var docker = process.env.DOCKER;
 var customer = process.env.CUSTOMER;
 
@@ -1309,21 +1311,16 @@ module.exports = function(app, template, hook) {
       });
 
       if (!docker)
-      it('A deleted Form should remain in the database', function(done) {
+      it('A deleted Form should remain in the database', async function() {
         var formio = hook.alter('formio', app.formio);
-        formio.resources.form.model.findOne({_id: template.forms.tempForm._id})
-          .exec(function(err, form) {
-            if (err) {
-              return done(err);
-            }
-            if (!form) {
-              return done('No Form w/ _id: ' + template.forms.tempForm._id + ' found, expected 1.');
-            }
+        let form = await formio.resources.form.model.findOne({_id: template.forms.tempForm._id})
+          .exec();
+        if (!form) {
+          throw ('No Form w/ _id: ' + template.forms.tempForm._id + ' found, expected 1.');
+        }
 
-            form = form.toObject();
-            assert.notEqual(form.deleted, null);
-            done();
-          });
+        form = form.toObject();
+        assert.notEqual(form.deleted, null);
       });
 
       it('An administrator should be able to Create a Register Form', function(done) {
@@ -3030,6 +3027,79 @@ module.exports = function(app, template, hook) {
         });
       });
 
+      describe('Custom validation error message', () => {
+        before(async () => {
+          // Create the test form
+          const response = await request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(uniqueValidationCustomMessage);
+
+          const data = response.body;
+          assert(data.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert(data.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+          assert(data.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+          assert(data.hasOwnProperty('access'), 'The response should contain an the `access`.');
+          assert.equal(data.title, uniqueValidationCustomMessage.title);
+          assert.equal(data.name, uniqueValidationCustomMessage.name);
+          assert.equal(data.path, uniqueValidationCustomMessage.path);
+          assert.equal(data.type, 'form');
+          assert.deepEqual(data.submissionAccess, []);
+          assert.deepEqual(data.components, uniqueValidationCustomMessage.components);
+
+          template.forms.uniqueValidationCustomMessage = data;
+        });
+
+        it('Should return custom message for unique validation error', async function () {
+          const submission = {
+            data: {
+              container: {
+                dataGrid: [
+                  {
+                    textField: 'everyone',
+                  },
+                ],
+                textField: 'everyone',
+              },
+              textField: 'everyone',
+              submit: true,
+            },
+          };
+          const result = await request(app)
+            .post(hook.alter('url', '/form/' + template.forms.uniqueValidationCustomMessage._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          assert.deepEqual(result.body.data, submission.data);
+
+          const response = await request(app)
+            .post(hook.alter('url', '/form/' + template.forms.uniqueValidationCustomMessage._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          const data = response.body;
+          assert.deepEqual(data.name, 'ValidationError');
+          assert.equal(data.details.length, 3);
+          assert.equal(data.details[0].message, 'Text Field Hello');
+          assert.equal(data.details[1].message, 'Text Field Hello');
+          assert.equal(data.details[2].message, 'Text Field must be unique');
+        });
+
+        after(done => {
+          request(app)
+            .delete(hook.alter('url', '/form/' + template.forms.uniqueValidationCustomMessage._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              const response = res.body;
+              assert.deepEqual(response, {});
+              delete template.forms.uniqueValidationCustomMessage;
+              done();
+            });
+        });
+      });
       // FOR-136 && FOR-182
       describe('Unique fields work inside layout components', function() {
         var testUniqueField;
@@ -4837,6 +4907,124 @@ module.exports = function(app, template, hook) {
             assert.equal(_.isEqual(res.body[0].data, { check: 'two', submit: true }), true)
             done()
           })
+      });
+    });
+
+    describe('Last Modified Header', () => {
+      it('Should create a new form and get Last-Modified header of created form', (done) => {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            title: chance.word(),
+            name: chance.word(),
+            path: chance.word(),
+            type: 'form',
+            access: [],
+            submissionAccess: [],
+            components: []
+          })
+          .expect(201)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            template.forms.tempLastModifiedForm = res.body;
+
+            request(app)
+              .get(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .expect('Content-Type', /json/)
+              .expect(206)
+              .expect('Last-Modified', new Date(template.forms.tempLastModifiedForm.modified).toUTCString())
+              .end(done);
+          });
+      });
+
+      it('Should get 200 response when request forms with If-Modified-Since header of not last modified date', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .set('If-Modified-Since', new Date(template.forms.tempLastModifiedForm.modified - 1000).toUTCString())
+          .expect(206)
+          .expect('Last-Modified', new Date(template.forms.tempLastModifiedForm.modified).toUTCString())
+          .end(done);
+      });
+
+      it('Should get 304 response when request forms with If-Modified-Since header of last modified date', (done) => {
+        request(app)
+          .get(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .set('If-Modified-Since', new Date(template.forms.tempLastModifiedForm.modified).toUTCString())
+          .expect(304)
+          .expect('Last-Modified', new Date(template.forms.tempLastModifiedForm.modified).toUTCString())
+          .end(done);
+      });
+
+      it('Should update the form and get Last-Modified header of updated form', (done) => {
+        // delay 1 second to make sure the modified date is different
+        setTimeout(() => {
+          request(app)
+            .put(hook.alter('url', '/form/' + template.forms.tempLastModifiedForm._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              title: chance.word(),
+            })
+            .expect(200)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              const previousModified = template.forms.tempLastModifiedForm.modified;
+              template.forms.tempLastModifiedForm = res.body;
+
+              request(app)
+                .get(hook.alter('url', '/form', template))
+                .set('x-jwt-token', template.users.admin.token)
+                .set('If-Modified-Since', new Date(previousModified).toUTCString())
+                .expect('Content-Type', /json/)
+                .expect(206)
+                .expect('Last-Modified', new Date(template.forms.tempLastModifiedForm.modified).toUTCString())
+                .end(done);
+            });
+        }, 1000);
+      });
+
+      it('Should remove the form and get Last-Modified header of removed form', function(done) {
+        // delay 1 second to make sure the modified date is different
+        setTimeout(() => {
+          request(app)
+            .delete(hook.alter('url', '/form/' + template.forms.tempLastModifiedForm._id, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200)
+            .end((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              request(app)
+                .get(hook.alter('url', '/form', template))
+                .set('x-jwt-token', template.users.admin.token)
+                .set('If-Modified-Since', new Date(template.forms.tempLastModifiedForm.modified).toUTCString())
+                .expect('Content-Type', /json/)
+                .expect(206)
+                .end((err, res) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  assert.notEqual(res.headers['last-modified'], new Date(template.forms.tempLastModifiedForm.modified).toUTCString());
+                  done();
+                });
+            });
+        }, 1000);
+      });
+
+      after((done) => {
+        delete template.forms.tempLastModifiedForm;
+        done();
       });
     });
   });

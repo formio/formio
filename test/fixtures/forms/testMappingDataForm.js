@@ -1,0 +1,42 @@
+module.exports = {
+  access: [],
+  submissionAccess: [],
+  components: [
+    {
+      type: 'textfield',
+      validate: {
+        custom: '',
+        pattern: '',
+        maxLength: '',
+        minLength: '',
+        required: false,
+      },
+      defaultValue: '',
+      multiple: false,
+      suffix: '',
+      prefix: '',
+      key: 'textField1',
+      inputMask: '',
+      inputType: 'text',
+      input: true,
+    },
+    {
+      type: 'textfield',
+      validate: {
+        custom: '',
+        pattern: '',
+        maxLength: '',
+        minLength: '',
+        required: false,
+      },
+      defaultValue: '',
+      multiple: false,
+      suffix: '',
+      prefix: '',
+      key: 'textField2',
+      inputMask: '',
+      inputType: 'text',
+      input: true,
+    },
+  ],
+};

@@ -99,6 +99,31 @@ module.exports = function(app, template, hook) {
         });
       });
 
+      var signatureSubmission2 = null;
+      it('Create submission with empty signature', function(done) {
+        var test = _.cloneDeep(require('./fixtures/forms/singleComponents4.js'));
+        helper
+          .form('test', test.components)
+          .submission(test.submission)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            signatureSubmission2 = helper.getLastSubmission();
+            assert.deepEqual(test.submission, signatureSubmission2.data);
+            done();
+          });
+      });
+
+      it('Should not to add emtpy signature value in response if we do not put it in submission data', function(done) {
+        var updateSub = _.cloneDeep(signatureSubmission2);
+        delete updateSub.data.signature;
+        helper.updateSubmission(updateSub, function(err, updated) {
+          assert.deepEqual(updateSub.data, updated.data);
+          done();
+        });
+      });
+
       var signatureSubmission = null;
       it('Saves values with required signature', function(done) {
         var test = _.cloneDeep(require('./fixtures/forms/singlecomponents3.js'));
@@ -227,6 +252,54 @@ module.exports = function(app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
+            done();
+          });
+      });
+
+      it('Should validate input mask', function(done) {
+        var components = [
+          {
+            "label": "Text Field",
+            "inputMask": "aaa",
+            "applyMaskOn": "change",
+            "tableView": true,
+            "validateWhenHidden": false,
+            "key": "textField",
+            "type": "textfield",
+            "input": true
+          }
+        ];
+
+        var values = {
+          textField: '123'
+        };
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .expect(400)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            var submission = helper.getLastSubmission();
+            assert.equal(submission.name, 'ValidationError');
+            assert.deepEqual(submission.details, [
+              {
+                context: {
+                  hasLabel: true,
+                  index: 0,
+                  key: 'textField',
+                  validator: 'mask',
+                  label: 'Text Field',
+                  path: 'textField',
+                  value: '123',
+                },
+                message: 'Text Field does not match the mask.',
+                level: 'error',
+                path: ['textField']
+              }
+            ]);
             done();
           });
       });
@@ -1711,6 +1784,111 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('Hidden calculated values are hidden on update of submission', function(done) {
+        var components = [
+          {
+            "label": "Hide 2",
+            "tableView": false,
+            "validateWhenHidden": false,
+            "key": "hide2",
+            "type": "checkbox",
+            "input": true,
+            "defaultValue": false
+          },
+          {
+            "label": "Number1",
+            "applyMaskOn": "change",
+            "mask": false,
+            "tableView": false,
+            "delimiter": false,
+            "requireDecimal": false,
+            "inputFormat": "plain",
+            "truncateMultipleSpaces": false,
+            "validateWhenHidden": false,
+            "key": "number1",
+            "type": "number",
+            "input": true
+          },
+          {
+            "label": "Number2",
+            "applyMaskOn": "change",
+            "mask": false,
+            "tableView": false,
+            "delimiter": false,
+            "requireDecimal": false,
+            "inputFormat": "plain",
+            "truncateMultipleSpaces": false,
+            "validateWhenHidden": false,
+            "key": "number2",
+            "type": "number",
+            "input": true
+          },
+          {
+            "label": "Number3 Calculated clear value when hidden = true",
+            "applyMaskOn": "change",
+            "mask": false,
+            "tableView": true,
+            "delimiter": false,
+            "requireDecimal": false,
+            "inputFormat": "plain",
+            "truncateMultipleSpaces": false,
+            "calculateValue": "value = data.number1 + data.number2",
+            "validateWhenHidden": false,
+            "key": "number3CalculatedClearValueWhenHiddenTrue",
+            "conditional": {
+              "show": false,
+              "conjunction": "all",
+              "conditions": [
+                {
+                  "component": "hide2",
+                  "operator": "isEqual",
+                  "value": true
+                }
+              ]
+            },
+            "type": "number",
+            "input": true
+          }
+        ];
+
+        var values = {
+          hide2: false,
+          number1: 100,
+          number2: 200,
+          number3CalculatedClearValueWhenHiddenTrue: 300,
+        }
+
+        helper
+          .form('test', components)
+          .submission(values)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+
+            var submission = helper.getLastSubmission();
+            assert.deepEqual(values, submission.data);
+
+            var updatedSubmission = _.cloneDeep(submission);
+            var updatedData = {
+              "hide2": true,
+              "number1": 100,
+              "number2": 200
+            }
+            _.set(updatedSubmission, 'data', updatedData);
+
+            helper.updateSubmission(updatedSubmission, (err) => {
+              if (err) {
+                return done(err);
+              }
+              var editedSubmission = helper.getLastSubmission();
+              assert.deepEqual(updatedData, editedSubmission.data);
+              assert(!editedSubmission.data.hasOwnProperty('number3CalculatedClearValueWhenHiddenTrue'));
+              done();
+            })
+          });
+      })
+
       it('Allows a conditionally required field', function(done) {
         var components = [
           {
@@ -1875,9 +2053,8 @@ module.exports = function(app, template, hook) {
               return done(err);
             }
 
-            var result = {textField: 'My Value'};
             var submission = helper.getLastSubmission();
-            assert.deepEqual({selector: 'one'}, submission.data);
+            assert.deepEqual(submission.data, {selector: 'one'});
             done();
           });
       });
@@ -2709,6 +2886,42 @@ module.exports = function(app, template, hook) {
     });
 
     describe('Unique Fields', function() {
+      before('Sets up the submissions', function(done) {
+        const components = [
+            {
+              input: true,
+              label: 'Email',
+              key: 'email',
+              unique: true,
+              type: 'email'
+            },
+            {
+              input: true,
+              label: 'Text Field',
+              key: 'textField',
+              unique: true,
+              type: 'textfield',
+              validate: {
+                pattern: '[A-Za-z0-9]+'
+              }
+            }
+          ];
+        const values = {
+          email: 'brendan@form.io',
+          textField: 'IAmAUniqueSnowflake'
+        }
+        helper
+          .form('uniqueTest', components)
+          .submission(values)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            return done();
+          });
+      });
+
       it('Returns an error when non-unique', function(done) {
         var components = [
           {
@@ -2764,6 +2977,52 @@ module.exports = function(app, template, hook) {
             done();
           });
       });
+
+      it('Returns an error for non-unique emails and text fields with pattern [A-Za-z0-9]+', function (done) {
+        const components = [
+        {
+          input: true,
+          label: 'Email',
+          key: 'email',
+          unique: true,
+          type: 'email'
+        },
+        {
+          input: true,
+          label: 'Text Field',
+          key: 'textField',
+          unique: true,
+          type: 'textfield',
+          validate: {
+            pattern: '[A-Za-z0-9]+'
+          }
+        }
+        ];
+        const values = {
+          email: 'brendan@form.io',
+          textField: 'IAmAUniqueSnowflake'
+        };
+
+        helper
+          .form('uniqueTest', components)
+          .submission(values)
+          .expect(400)
+          .execute(function (err) {
+            if (err) {
+              return done(err);
+            }
+
+            helper.getLastSubmission();
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 2);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Email must be unique');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['email']);
+            assert.equal(helper.lastResponse.body.details[1].message, 'Text Field must be unique');
+            assert.deepEqual(helper.lastResponse.body.details[1].path, ['textField']);
+            done();
+          });
+      });
     });
 
     describe('Required multivalue fields', function() {
@@ -2780,7 +3039,6 @@ module.exports = function(app, template, hook) {
             "prefix": "",
             "suffix": "",
             "multiple": true,
-            "defaultValue": "",
             "protected": false,
             "unique": false,
             "persistent": true,
@@ -2910,6 +3168,114 @@ module.exports = function(app, template, hook) {
             assert.deepEqual(test.submission, submission.data);
             done();
           });
+      });
+
+      it('Does not return a protected password field into tagpad component', function(done) {
+        const  components = [
+          {
+            label: 'Text Field 1',
+            applyMaskOn: 'change',
+            'tableView': true,
+            'validateWhenHidden': false,
+            'key': 'textField1',
+            'type': 'textfield1',
+            'input': true
+          },
+          {
+            label:'Password 1',
+            applyMaskOn:'change',
+            tableView:false,
+            validateWhenHidden:false,
+            key:'password1',
+            type:'password1',
+            input:true,
+            protected:true
+          },
+          {
+            label:'Tagpad',
+            tableView:false,
+            validateWhenHidden:false,
+            key:'tagpad',
+            type:'tagpad',
+            input:true,
+            imageUrl: 'https://googlechrome.github.io/samples/picture-element/images/kitten-large.png',
+
+            components:
+              [
+                {
+                  label:'Password',
+                  applyMaskOn:'change',
+                  tableView:false,
+                  validateWhenHidden:false,
+                  key:'password',
+                  type:'password',
+                  input:true,
+                  protected:true
+                },
+                {
+                  label: 'Text Field',
+                  applyMaskOn: 'change',
+                  'tableView': true,
+                  'validateWhenHidden': false,
+                  'key': 'textField',
+                  'type': 'textfield',
+                  'input': true
+                },
+              ]
+
+            }
+          ];
+
+        const values = {
+          password1: 'password',
+          textField1: 'My Value',
+          tagpad: [
+          {
+              coordinate: {
+                  x: 198,
+                  y: 74,
+                  width: 772,
+                  height: 339
+              },
+              data: {
+                  password: 'password1',
+                  textField: 'My Value 1',
+              }
+          },
+          {
+              coordinate: {
+                  x: 198,
+                  y: 74,
+                  width: 772,
+                  height: 339
+              },
+              data: {
+                  password: 'password2',
+                  textField: 'My Value 2',
+              }
+            }
+          ]
+        };
+
+        helper
+        .form('test', components)
+        .submission(values)
+        .execute(function(err, res) {
+          if (err) {
+            return done(err);
+          }
+          _.unset(values, 'password1');
+          _.unset(values, 'tagpad[0].data.password');
+          _.unset(values, 'tagpad[1].data.password');
+          const result = values;
+          const submission = helper.getLastSubmission();
+          assert.equal(result.textField1, submission.data.textField1);
+          assert.equal(result.password1, undefined);
+          if (submission.data.tagpad.length !== 0) {
+            assert.deepEqual(result, submission.data);
+          }
+          done();
+        });
       });
     });
 
@@ -3324,70 +3690,153 @@ module.exports = function(app, template, hook) {
         });
       });
 
-      it('Should allow saving select resource by reference', done => {
-        const submission = helper.template.submissions['fruits'][0];
-        helper
-          .form('myFruit', [{
-            input: true,
-            label: "Fruit",
-            key: "fruit",
-            data: {
-              resource: helper.template.forms['fruits']._id,
-              project: helper.template.project ? helper.template.project._id : ''
-            },
-            dataSrc: "resource",
-            reference: true,
-            valueProperty: "",
-            defaultValue: "",
-            template: "<span>{{ item.data.name }}</span>",
-            multiple: false,
-            persistent: true,
-            type: "select"
-          }], {
-            submissionAccess: [
+      describe('Select components with resource values', () => {
+        before('Create a fruit select form that loads a resource', (done) => {
+          helper
+            .form('fruitSelectResource', [
               {
-                type: 'read_all',
-                roles: [helper.template.roles.authenticated._id.toString()]
+                type: 'select',
+                key: 'fruit',
+                label: 'Select a fruit',
+                dataSrc: 'resource',
+                searchField: 'data.name',
+                valueProperty: 'data.name',
+                filter: 'data.name__ne=Orange',
+                authenticate: true,
+                persistent: true,
+                data: {
+                  resource: helper.template.forms['fruits']._id,
+                },
+                validate: {
+                  select: true
+                }
               }
-            ]
-          })
-          .submission('myFruit', {fruit: {_id: submission._id, form: helper.template.forms['fruits']._id}})
-          .execute(err => {
-            if (err) {
-              return done(err);
-            }
-            helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+            ])
+            .execute((err) => {
               if (err) {
                 return done(err);
               }
-              assert.equal(submission._id, fromsub.data.fruit._id);
-              assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+
               done();
             });
-          });
-      });
+        });
 
-      it('Should allow saving select resource with whole object by reference', done => {
-        const submission = helper.template.submissions['fruits'][0];
-        helper
-          .submission('myFruit', {fruit: submission})
-          .execute(err => {
-            if (err) {
-              return done(err);
-            }
-            helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+        it('Should perform a backend validation of the selected value and reject values not in the referenced resource', (done) => {
+          helper.submission('fruitSelectResource', {fruit: 'No Fruit Here'}).expect(400).execute(() => {
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Select a fruit contains an invalid selection');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
+            done();
+          });
+        });
+
+        it('Should perform a backend validation of the selected value and succeed if the value is in the referenced resource', (done) => {
+          helper.submission('fruitSelectResource', {fruit: 'Apple'})
+            .expect(201)
+            .execute((err) => {
               if (err) {
                 return done(err);
               }
-              assert.equal(submission._id, fromsub.data.fruit._id);
-              assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+
+              var submission = helper.getLastSubmission();
+              assert.deepEqual({fruit: 'Apple'}, submission.data);
               done();
             });
-          });
-      });
+        });
 
-      it('Should check permissions when loading from reference', done => {
-        request(app)
+        it('Should perform a backend validation of the selected value and reject values if the value is in the referenced resource but excluded by the filter', (done) => {
+          helper.submission('fruitSelectResource', {fruit: 'Orange'}).expect(400).execute(() => {
+            assert.equal(helper.lastResponse.statusCode, 400);
+            assert.equal(helper.lastResponse.body.name, 'ValidationError');
+            assert.equal(helper.lastResponse.body.details.length, 1);
+            assert.equal(helper.lastResponse.body.details[0].message, 'Select a fruit contains an invalid selection');
+            assert.deepEqual(helper.lastResponse.body.details[0].path, ['fruit']);
+            done();
+          });
+        });
+
+        it('Should allow saving select resource by reference', done => {
+          const submission = helper.template.submissions['fruits'][0];
+          helper
+            .form('myFruit', [{
+              input: true,
+              label: "Fruit",
+              key: "fruit",
+              data: {
+                resource: helper.template.forms['fruits']._id,
+                project: helper.template.project ? helper.template.project._id : ''
+              },
+              dataSrc: "resource",
+              reference: true,
+              valueProperty: "",
+              defaultValue: "",
+              template: "<span>{{ item.data.name }}</span>",
+              multiple: false,
+              persistent: true,
+              type: "select"
+            }], {
+              submissionAccess: [
+                {
+                  type: 'read_all',
+                  roles: [helper.template.roles.authenticated._id.toString()]
+                }
+              ]
+            })
+            .submission('myFruit', {fruit: {_id: submission._id, form: helper.template.forms['fruits']._id}})
+            .execute(err => {
+              if (err) {
+                return done(err);
+              }
+              helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(submission._id, fromsub.data.fruit._id);
+                assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+                done();
+              });
+            });
+        });
+
+        it('Should allow saving select resource with whole object by reference', done => {
+          const submission = helper.template.submissions['fruits'][0];
+          helper
+            .submission('myFruit', {fruit: submission})
+            .execute(err => {
+              if (err) {
+                return done(err);
+              }
+              helper.getSubmission('myFruit', helper.lastSubmission._id, (err, fromsub) => {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(submission._id, fromsub.data.fruit._id);
+                assert.equal(submission.data.name, fromsub.data.fruit.data.name);
+                done();
+              });
+            });
+        });
+
+        it('Should check permissions when loading from reference', done => {
+          request(app)
+            .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission/' + helper.lastSubmission._id, helper.template))
+            .set('x-jwt-token', helper.template.users.user1.token)
+            .send()
+            // .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.data.fruit.hasOwnProperty('_id'), 'Must contain the _id.');
+              assert.equal(1, Object.keys(res.body.data.fruit).length);
+              done();
+            });
+        });
+
+        it('Should not allow submissions with items that are not in the resource', (done) => {
+          request(app)
           .get(hook.alter('url', '/form/' + helper.template.forms['myFruit']._id + '/submission/' + helper.lastSubmission._id, helper.template))
           .set('x-jwt-token', helper.template.users.user1.token)
           .send()
@@ -3400,7 +3849,8 @@ module.exports = function(app, template, hook) {
             assert.equal(1, Object.keys(res.body.data.fruit).length);
             done();
           });
-      });
+        });
+      })
     });
 
     describe('Data table validation', () => {
@@ -3505,7 +3955,7 @@ module.exports = function(app, template, hook) {
           }
 
           var submission = helper.getLastSubmission();
-          assert.deepEqual({dataTable: [{name: 'Apple'}, {name: 'Pear'}]}, submission.data);
+          assert.deepEqual(submission.data, {dataTable: [{name: 'Apple'}, {name: 'Pear'}]});
           done();
         });
       });
@@ -4262,6 +4712,34 @@ module.exports = function(app, template, hook) {
               });
             });
         });
+
+        it('Should change modified date when patch submission', function (done) {
+          const test = require('./fixtures/forms/singlecomponentsSimple.js');
+          helper
+            .form('patchFormMike', test.components)
+            .submission(test.submission)
+            .execute(function (err) {
+              if (err) {
+                return done(err);
+              }
+              const submissionBeforePatch = helper.getLastSubmission();
+              const update = [
+                {
+                  "op": "replace",
+                  "path": "/data/textField",
+                  "value": "PATCH Update"
+                }
+              ]
+              helper.patchSubmission(submissionBeforePatch, update, (err) => {
+                if (err) {
+                  return done(err);
+                }
+                const submissionAfterPatch = helper.getLastSubmission();
+                assert.notEqual(submissionBeforePatch.modified, submissionAfterPatch.modified)
+                done();
+              })
+            })
+        });
       });
 
     });
@@ -4464,6 +4942,36 @@ module.exports = function(app, template, hook) {
           });
       });
     });
+
+    describe('VM Timeouts', () => {
+      before('Create form with a long running validation', (done) => {
+        helper
+          .form('timeout', [
+            {
+              type: 'textfield',
+              label: 'Test',
+              key: 'test',
+              validate: {
+                custom: "if (input === 'test') { while(true) {} }"
+              }
+            }
+          ])
+          .execute(done);
+      });
+      xit('Should timeout and throw an error when a validation takes too long', (done) => {
+        helper
+          .submission('timeout', { test: 'test' })
+          .expect(400)
+          .execute((err) => {
+            if (err) {
+              done(err);
+            }
+            const response = helper.lastResponse;
+            assert.equal(response.text, '"Script execution timed out."');
+            done();
+          });
+      });
+    })
   });
 
   describe('Nested Submissions', function() {
@@ -4883,6 +5391,342 @@ module.exports = function(app, template, hook) {
           assert.equal(JSON.stringify(submission.data), JSON.stringify(expectedData));
           done();
         });
+    });
+  });
+
+  describe('Conditional Nested Forms Submissions', function () {
+    before('Sets up a default project', function (done) {
+      var owner =
+        app.hasProjects || docker ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper.project().execute(done);
+    });
+
+    before('Create the child form1', (done) => {
+      helper
+        .form('childForm1', [
+          {
+            label: 'Text Field form1',
+            applyMaskOn: 'change',
+            tableView: true,
+            validate: {
+              required: true,
+            },
+            validateWhenHidden: false,
+            key: 'textFieldForm1',
+            type: 'textfield',
+            input: true,
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ])
+        .execute(done);
+    });
+
+    before('Create the child form2', (done) => {
+      helper
+        .form('childForm2', [
+          {
+            label: 'Text Field - form2',
+            applyMaskOn: 'change',
+            tableView: true,
+            validate: {
+              required: true,
+            },
+            validateWhenHidden: false,
+            key: 'textFieldForm2',
+            type: 'textfield',
+            input: true,
+          },
+          {
+            label: 'Form',
+            tableView: true,
+            form: helper.template.forms.childForm1._id,
+            useOriginalRevision: false,
+            key: 'form',
+            type: 'form',
+            input: true,
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ])
+        .execute(done);
+    });
+
+    before('Create the child form3', (done) => {
+      helper
+        .form('childForm3', [
+          {
+            label: 'Text Field - form3',
+            applyMaskOn: 'change',
+            tableView: true,
+            validate: {
+              required: true,
+            },
+            validateWhenHidden: false,
+            key: 'textFieldForm3',
+            type: 'textfield',
+            input: true,
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ])
+        .execute(done);
+    });
+
+    before('Create the parent form', (done) => {
+      helper
+        .form('parentForm1', [
+          {
+            label: 'Radio',
+            optionsLabelPosition: 'right',
+            inline: false,
+            tableView: false,
+            values: [
+              {
+                label: 'a',
+                value: 'a',
+                shortcut: '',
+              },
+              {
+                label: 'b',
+                value: 'b',
+                shortcut: '',
+              },
+            ],
+            validateWhenHidden: false,
+            key: 'radio',
+            type: 'radio',
+            input: true,
+          },
+          {
+            label: 'Form',
+            tableView: true,
+            form: helper.template.forms.childForm2._id,
+            useOriginalRevision: false,
+            key: 'form',
+            conditional: {
+              show: true,
+              conjunction: 'all',
+              conditions: [
+                {
+                  component: 'radio',
+                  operator: 'isEqual',
+                  value: 'a',
+                },
+              ],
+            },
+            type: 'form',
+            input: true,
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ])
+        .execute(done);
+    });
+
+    before('Create the parent form 2', (done) => {
+      helper
+        .form('parentForm2', [
+          {
+            label: 'Radio',
+            optionsLabelPosition: 'right',
+            inline: false,
+            tableView: false,
+            values: [
+              {
+                label: 'a',
+                value: 'a',
+                shortcut: '',
+              },
+              {
+                label: 'b',
+                value: 'b',
+                shortcut: '',
+              },
+            ],
+            validateWhenHidden: false,
+            key: 'radio',
+            type: 'radio',
+            input: true,
+          },
+          {
+            label: 'Form',
+            tableView: true,
+            form: helper.template.forms.childForm1._id,
+            useOriginalRevision: false,
+            key: 'form',
+            conditional: {
+              show: true,
+              conjunction: 'all',
+              conditions: [
+                {
+                  component: 'radio',
+                  operator: 'isEqual',
+                  value: 'a',
+                },
+              ],
+            },
+            type: 'form',
+            input: true,
+          },
+          {
+            label: 'Form 2',
+            tableView: true,
+            form: helper.template.forms.childForm3._id,
+            useOriginalRevision: false,
+            key: 'form2',
+            conditional: {
+              show: true,
+              conjunction: 'all',
+              conditions: [
+                {
+                  component: 'radio',
+                  operator: 'isEqual',
+                  value: 'b',
+                },
+              ],
+            },
+            type: 'form',
+            input: true,
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ])
+        .execute(done);
+    });
+
+    let nestedSubmission = null;
+    it('Should allow you to submit data into a conditionally visible form if another nested form is conditionally hidden', (done) => {
+      helper.submission('parentForm2', {
+        radio: 'b',
+        submit: true,
+        form2: {
+          data: {
+            textFieldForm3: 'Hello'
+          }
+        }
+      }).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        nestedSubmission = helper.lastSubmission;
+        assert.equal(nestedSubmission.data.radio, 'b');
+        assert.equal(nestedSubmission.data.form2.data.textFieldForm3, 'Hello');
+        done();
+      });
+    });
+
+    it('Should allow you to update data into a conditionally visible form if another nested form is conditionally hidden', (done) => {
+      nestedSubmission.data.form2.data.textFieldForm3 = 'Hello Update';
+      helper.submission('parentForm2', nestedSubmission).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        nestedSubmission = helper.lastSubmission;
+        assert.equal(nestedSubmission.data.radio, 'b');
+        assert.equal(nestedSubmission.data.form2.data.textFieldForm3, 'Hello Update');
+        done();
+      });
+    });
+
+    it('Should let you create a submission without errors', (done) => {
+      helper.submission('parentForm1', {
+        radio: 'b',
+        submit: true
+      }).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        nestedSubmission = helper.lastSubmission;
+        assert.deepEqual(nestedSubmission.data, { radio: 'b', submit: true });
+        done();
+      });
+    });
+
+    it('Should allow you to submit data to the nested form.', (done) => {
+      helper.submission('parentForm1', {
+        radio: 'a',
+        form: {
+          data: {
+            textFieldForm2: 'Foo',
+            form: {
+              data: {
+                textFieldForm1: 'Bar'
+              }
+            }
+          }
+        },
+        submit: true
+      }).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        nestedSubmission = helper.lastSubmission;
+        assert.equal(nestedSubmission.data.radio, 'a');
+        assert.equal(nestedSubmission.data.form.data.textFieldForm2, 'Foo');
+        assert.equal(nestedSubmission.data.form.data.form.data.textFieldForm1, 'Bar');
+        done();
+      });
+    });
+
+    it('Should allow you to update data to the nested form.', (done) => {
+      nestedSubmission.data.form.data.textFieldForm2 = 'Foo 1';
+      nestedSubmission.data.form.data.form.data.textFieldForm1 = 'Bar 1';
+      helper.submission('parentForm1', nestedSubmission).execute((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        nestedSubmission = helper.lastSubmission;
+        done();
+      });
+    });
+
+    it('Should have updated the data of the nested forms.', (done) => {
+      helper.getSubmission('parentForm1', nestedSubmission._id, function(err, submission) {
+        if (err) {
+          done(err);
+        }
+        assert.equal(submission.data.radio, 'a');
+        assert.equal(submission.data.form.data.textFieldForm2, 'Foo 1');
+        assert.equal(submission.data.form.data.form.data.textFieldForm1, 'Bar 1');
+        done();
+      });
     });
   });
 };

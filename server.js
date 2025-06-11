@@ -9,14 +9,12 @@ const fs = require('fs-extra');
 const path = require('path');
 const util = require('./src/util/util');
 require('colors');
-const Q = require('q');
 const cors = require('cors');
 const test = process.env.TEST_SUITE;
 const noInstall = process.env.NO_INSTALL;
 
 module.exports = function(options) {
   options = options || {};
-  const q = Q.defer();
 
   util.log('');
   const rl = require('readline').createInterface({
@@ -67,79 +65,80 @@ module.exports = function(options) {
     }));
   }
   // Mount the client application.
-  app.use('/', express.static(path.join(__dirname, '/client/dist')));
+  app.use('/', express.static(path.join(__dirname, '/portal/dist')));
 
   // Load the form.io server.
   const server = options.server || require('./index')(config);
   const hooks = options.hooks || {};
 
   app.use(server.formio.middleware.restrictRequestTypes);
-  server.init(hooks).then(function(formio) {
-    // Called when we are ready to start the server.
-    const start = function() {
-      // Start the application.
-      if (fs.existsSync('app')) {
-        const application = express();
-        application.use('/', express.static(path.join(__dirname, '/app/dist')));
-        config.appPort = config.appPort || 8080;
-        application.listen(config.appPort);
-        const appHost = `http://localhost:${config.appPort}`;
-        util.log(` > Serving application at ${appHost.green}`);
+
+  const checkFormsAndInstall = (formio, install) => {
+    return formio.db.collection('forms').estimatedDocumentCount()
+    .then(numForms => {
+      // If there are forms, then go ahead and start the server without installation
+      if (numForms > 0 || test || noInstall) {
+        return false;
       }
-
-      // Mount the Form.io API platform.
-      app.use(options.mount || '/', server);
-
-      // Allow tests access server internals.
-      app.formio = formio;
-
-      // Listen on the configured port.
-      return q.resolve({
-        server: app,
-        config: config
-      });
-    };
-
-    // Which items should be installed.
-    const install = {
-      download: false,
-      extract: false,
-      import: false,
-      user: false
-    };
-
-    // Check for the client folder.
-    if (!fs.existsSync('client') && !test && !noInstall) {
-      install.download = true;
-      install.extract = true;
-    }
-
-    // See if they have any forms available.
-    formio.db.collection('forms').estimatedDocumentCount(function(err, numForms) {
-      // If there are forms, then go ahead and start the server.
-      if ((!err && numForms > 0) || test || noInstall) {
-        if (!install.download && !install.extract) {
-          return start();
-        }
-      }
-
       // Import the project and create the user.
       install.import = true;
       install.user = true;
+      return true;
+    })
+    .catch(err => {
+      util.log(err.message);
+    });
+  };
 
-      // Install.
-      require('./install')(formio, install, function(err) {
+  const handleInstallation = (formio, install) => {
+    return new Promise((resolve, reject) => {
+      require('./install')(formio, install, (err) => {
         if (err) {
-          if (err !== 'Installation canceled.') {
-            return util.log(err.message);
+          if (err === 'Installation canceled.') {
+            util.log(err.message);
+            return resolve();
           }
+          return reject(new Error(`Installation failed: ${err.message}`));
         }
-
-        // Start the server.
-        start();
+        resolve();
       });
     });
-  });
+  };
 
-  return q.promise;
+  // Called when we are ready to start the server.
+  const startServer = (formio) => {
+    /// Mount the Form.io API platform.
+    app.use(options.mount || '/', server);
+
+    // Allow tests access server internals.
+    app.formio = formio;
+
+    return {server: app, config: config};
+  };
+
+  const initializeServer = () => {
+    return server.init(hooks).then(function(formio) {
+      // Which items should be installed.
+      const install = {
+        import: false,
+        user: false
+      };
+
+      // See if they have any forms available.
+      return checkFormsAndInstall(formio, install)
+        .then(requiresInstall => {
+          if (requiresInstall) {
+            // If installation is required, handle the installation
+            return handleInstallation(formio, install);
+          }
+        })
+        .then(() => {
+          // Start the server and return the result
+          return startServer(formio);
+        });
+    });
+  };
+
+  const initializePromise = initializeServer();
+  return initializePromise;
 };

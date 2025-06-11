@@ -38,8 +38,10 @@ module.exports = function(router) {
     tokenHandler: require('./tokenHandler')(router),
     restrictRequestTypes: require('./restrictRequestTypes')(router),
     filterIndex: require('./filterIndex')(router),
+    allowTimestampOverride: require('./allowTimestampOverride')(router),
     mongodbConnectionState: require('./mongodbConnectionState')(router),
     formRevisionLoader: require('./formRevisionLoader')(router),
-    submissionRevisionLoader: require('./submissionRevisionLoader')(router)
+    submissionRevisionLoader: require('./submissionRevisionLoader')(router),
+    lastModifiedIndexHandler: require('./lastModifiedIndexHandler')(router),
   };
 };

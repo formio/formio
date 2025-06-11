@@ -15,22 +15,19 @@ const config = require('config');
 const async = require('async');
 const mongodb = require('mongodb');
 const MongoClient = mongodb.MongoClient;
-MongoClient.connect(config.mongo, {useNewUrlParser: true}, (err, client) => {
-  if (err) {
-    /* eslint-disable no-console */
-    return console.log(`Could not connect to database ${config.mongo}`);
-    /* eslint-enable no-console */
-  }
 
-  const db = client.db(client.s.options.dbName);
-  const formCollection = db.collection('forms');
-  const submissionCollection = db.collection('submissions');
-  const setDateField = (field, data) => {
-    if (!data) {
-      return false;
-    }
-    const parts = field.split('.');
-    const value = data[parts[0]];
+(async () => {
+  try {
+    const client = await MongoClient.connect(config.mongo);
+    const db = client.db(client.s.options.dbName);
+    const formCollection = db.collection('forms');
+    const submissionCollection = db.collection('submissions');
+    const setDateField = (field, data) => {
+      if (!data) {
+        return false;
+      }
+      const parts = field.split('.');
+      const value = data[parts[0]];
     // Handle Datagrids
     if (Array.isArray(value)) {
       return value.reduce((changed, row) => {
@@ -50,7 +47,7 @@ MongoClient.connect(config.mongo, {useNewUrlParser: true}, (err, client) => {
     }
   };
 
-  const getNext = function(cursor, next) {
+    const getNext = function(cursor, next) {
     cursor.hasNext().then((hasNext) => {
       if (hasNext) {
         return cursor.next().then(next);
@@ -59,11 +56,11 @@ MongoClient.connect(config.mongo, {useNewUrlParser: true}, (err, client) => {
         return next();
       }
     });
-  };
+    };
 
-  let hasNextForm = true;
-  const formCursor = formCollection.find({deleted: {$eq: null}});
-  async.doWhilst((nextForm) => {
+    let hasNextForm = true;
+    const formCursor = formCollection.find({deleted: {$eq: null}});
+    async.doWhilst((nextForm) => {
     getNext(formCursor, (form) => {
       if (!form) {
         hasNextForm = false;
@@ -144,5 +141,11 @@ MongoClient.connect(config.mongo, {useNewUrlParser: true}, (err, client) => {
     /* eslint-disable no-console */
     console.log('Done');
     /* eslint-enable no-console */
-  });
-});
+    });
+  }
+  catch (err) {
+        /* eslint-disable no-console */
+        return console.log(`Could not connect to database ${config.mongo}`);
+        /* eslint-enable no-console */
+  }
+})();

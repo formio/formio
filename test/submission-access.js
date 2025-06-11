@@ -530,20 +530,15 @@ module.exports = function(app, template, hook) {
           });
 
           if (!docker)
-          it('A deleted Submission should remain in the database', function(done) {
+          it('A deleted Submission should remain in the database', async function() {
             var formio = hook.alter('formio', app.formio);
-            formio.resources.submission.model.findOne({_id: deleteTest._id}, function(err, submission) {
-              if (err) {
-                return done(err);
-              }
-              if (!submission) {
-                return done('No submission found with _id: ' + deleteTest._id + ', expected 1.');
-              }
+            let submission = await formio.resources.submission.model.findOne({_id: deleteTest._id});
+            if (!submission) {
+              throw('No submission found with _id: ' + deleteTest._id + ', expected 1.');
+            }
 
-              submission = submission.toObject();
-              assert.notEqual(submission.deleted, null);
-              done();
-            });
+            submission = submission.toObject();
+            assert.notEqual(submission.deleted, null);
           });
 
           it('Cant access a submission without a valid Submission Id', function(done) {
@@ -738,21 +733,16 @@ module.exports = function(app, template, hook) {
           });
 
           if (!docker)
-          it('A deleted Submission should remain in the database', function(done) {
+          it('A deleted Submission should remain in the database', async function() {
             var formio = hook.alter('formio', app.formio);
-            formio.resources.submission.model.findOne({_id: tempSubmission._id})
-              .exec(function(err, submission) {
-                if (err) {
-                  return done(err);
-                }
-                if (!submission) {
-                  return done('No submission found w/ _id: ' + submission._id + ', expected 1.');
-                }
+            let submission = await formio.resources.submission.model.findOne({_id: tempSubmission._id})
+              .exec();
+            if (!submission) {
+              throw('No submission found w/ _id: ' + submission._id + ', expected 1.');
+            }
 
-                submission = submission.toObject();
-                assert.notEqual(submission.deleted, null);
-                done();
-              });
+            submission = submission.toObject();
+            assert.notEqual(submission.deleted, null);
           });
 
           it('Delete the Submissions created for Ownership Checks', function(done) {
@@ -801,19 +791,13 @@ module.exports = function(app, template, hook) {
           });
 
           if (!docker)
-          it('A deleted Form should not have active submissions in the database', function(done) {
+          it('A deleted Form should not have active submissions in the database', async function() {
             var formio = hook.alter('formio', app.formio);
-            formio.resources.submission.model.findOne({form: tempForm._id, deleted: {$eq: null}})
-              .exec(function(err, submissions) {
-                if (err) {
-                  return done(err);
-                }
-                if (submissions && submissions.length !== 0) {
-                  return done(submissions.length + ' submissions found with the form: ' + tempForm._id + ', expected 0.');
-                }
-
-                done();
-              });
+            const submissions = await formio.resources.submission.model.findOne({form: tempForm._id, deleted: {$eq: null}})
+              .exec();
+            if (submissions && submissions.length !== 0) {
+              throw(submissions.length + ' submissions found with the form: ' + tempForm._id + ', expected 0.');
+            }
           });
         });
       });
@@ -6072,6 +6056,23 @@ module.exports = function(app, template, hook) {
             label: 'Non-Persistent',
             inputType: 'text',
             input: true
+          },
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            key: 'clientOnly',
+            persistent: 'client-only',
+            label: 'Client only',
+            inputType: 'text',
+            input: true
           }
         ]
       };
@@ -6080,7 +6081,8 @@ module.exports = function(app, template, hook) {
       var tempSubmission = {data: {
         persistent: 'exists',
         implicitPersistent: 'also exists',
-        nonPersistent: 'should not exist'
+        nonPersistent: 'should not exist',
+        clientOnly: 'should also not exist'
       }};
 
       describe('Bootstrap', function() {
@@ -6213,7 +6215,10 @@ module.exports = function(app, template, hook) {
           updateSubmission.data = {
             persistent: 'still exists',
             implicitPersistent: 'still also exists',
-            nonPersistent: 'still should not exist'
+            nonPersistent: 'still should not exist',
+            clientOnly: 'still should also not exist'
+
+            
           };
 
           request(app)
@@ -11145,6 +11150,212 @@ module.exports = function(app, template, hook) {
 
             done()
           });
+      });
+    });
+
+    describe('_', function() {
+
+      const submissionData = {
+        data: {
+          textField: '1',
+          submit: true
+        },
+        created: "2025-03-19T14:13:10.069Z",
+        modified: "2025-03-19T14:13:10.070Z"
+      };
+    
+      var tempForm = {
+        title: 'overrideTestForm',
+        name: 'overrideTestForm',
+        path: 'overridetestform',
+        type: 'form',
+        access: [],
+        submissionAccess: [],
+        components: [
+          {
+            label: 'Text Field',
+            key: 'textField',
+            type: 'textfield',
+            input: true
+          }
+        ]
+      };
+      var adminValues = ['test1', 'test2', 'test3', 'test4', 'other7', 'other8'];
+      var userValues = ['test5', 'test6', 'test7', 'test8'];
+
+      before(function() {
+        tempForm.access = [{
+          type: 'read_all',
+          roles: [template.roles.authenticated._id.toString(), template.roles.anonymous._id.toString()]
+        }];
+        tempForm.submissionAccess = [
+          {type: 'create_own', roles: [template.roles.authenticated._id.toString(), template.roles.anonymous._id.toString()]},
+          {type: 'read_own', roles: [template.roles.authenticated._id.toString(), template.roles.anonymous._id.toString()]}
+        ];
+      });
+
+      it('Bootstrap the form', function(done) {
+        request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(tempForm)
+          .expect('Content-Type', /json/)
+          .expect(201)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            var response = res.body;
+            assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert(response.hasOwnProperty('modified'), 'The response should contain a `modified` timestamp.');
+            assert(response.hasOwnProperty('created'), 'The response should contain a `created` timestamp.');
+            assert(response.hasOwnProperty('access'), 'The response should contain an the `access`.');
+            assert.equal(response.title, tempForm.title);
+            assert.equal(response.name, tempForm.name);
+            assert.equal(response.path, tempForm.path);
+            assert.equal(response.type, 'form');
+            assert.equal(response.access.length, 1);
+            assert.equal(response.access[0].type, 'read_all');
+            assert.equal(response.access[0].roles.length, 2);
+            assert.notEqual(response.access[0].roles.indexOf(template.roles.anonymous._id.toString()), -1);
+            assert.notEqual(response.access[0].roles.indexOf(template.roles.authenticated._id.toString()), -1);
+
+            // Build a temp list to compare access without mongo id's.
+            var tempSubmissionAccess = [];
+            response.submissionAccess.forEach(function(role) {
+              tempSubmissionAccess.push(_.omit(role, '_id'));
+            });
+            assert.deepEqual(tempSubmissionAccess, tempForm.submissionAccess);
+            assert.deepEqual(response.components, tempForm.components);
+            tempForm = response;
+
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+
+            done();
+          });
+      });
+
+      it('Bootstrap the admin submissions', function(done) {
+        async.each(adminValues, function(value, cb) {
+          request(app)
+            .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send({
+              data: {
+                value: value
+              }
+            })
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              // Store the JWT for future API calls.
+              template.users.admin.token = res.headers['x-jwt-token'];
+
+              cb();
+            });
+        }, function(err) {
+          if (err) {
+            return done(err);
+          }
+
+          done();
+        });
+      });
+
+      it('Bootstrap the user submissions', function(done) {
+        async.each(userValues, function(value, cb) {
+          request(app)
+            .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+            .set('x-jwt-token', template.users.user1.token)
+            .send({
+              data: {
+                value: value
+              }
+            })
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+
+              // Store the JWT for future API calls.
+              template.users.user1.token = res.headers['x-jwt-token'];
+
+              cb();
+            });
+        }, function(err) {
+          if (err) {
+            return done(err);
+          }
+
+          done();
+        });
+      });
+
+      it('Should not set the modified date based on request data if the x-allow-override-timestamps header is not present and the user is an admin', (done) => {
+        request(app)
+        .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(submissionData)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = res._body;
+          assert.notEqual(submission.modified, submissionData.modified);
+
+          done();
+        });
+      });
+
+      it('Should set the modified date based on request data if the x-allow-override-timestamps header is present and the user is an admin', (done) => {
+        request(app)
+        .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .set('x-allow-override-timestamps', true)
+        .send(submissionData)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const submission = res._body;
+          assert.equal(submission.modified, submissionData.modified);
+
+          done();
+        });
+      });
+
+      it('Should not set the modified date based on request data if the x-allow-override-timestamps header is present and the user is not an admin', (done) => {
+        request(app)
+        .post(hook.alter('url', '/form/' + tempForm._id + '/submission', template))
+        .set('x-jwt-token', template.users.user1.token)
+        .set('x-allow-override-timestamps', true)
+        .send(submissionData)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+  
+          const submission = res._body;
+          assert.notEqual(submission.modified, submissionData.modified);
+  
+          done();
+        });
       });
     });
   });

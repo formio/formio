@@ -50,13 +50,17 @@ const conditionOperatorsByComponentType = {
     IsNotEmptyValue.operatorKey,
   ]};
 
-Object.keys(Formio.AllComponents).forEach((type) => {
-  const component = Formio.AllComponents[type];
-  const operators = component && component.serverConditionSettings ? component.serverConditionSettings.operators : null;
-  if (operators) {
-    conditionOperatorsByComponentType[type] = operators;
-  }
-});
+if (Formio.Components) {
+  Object.keys(Formio.Components.components).forEach((type) => {
+    const component = Formio.Components.components[type];
+    const operators = component && component.serverConditionSettings
+      ? component.serverConditionSettings.operators
+      : null;
+    if (operators) {
+      conditionOperatorsByComponentType[type] = operators;
+    }
+  });
+}
 
 // (submission) prefix is required to differ form fields data paths from root level properties
 const rootLevelProperties = [
@@ -185,11 +189,14 @@ const filterComponentsForConditionComponentFieldOptions = (flattenedComponents) 
   .filter((component) => {
     let allowed = component.key &&
       component.input === true &&
-      !component.hasOwnProperty('components') &&
+      !(component.hasOwnProperty('components') && !['address'].includes(component.type)) &&
       ![
         'form',
         'datasource',
         'button',
+        'reviewpage',
+        'password',
+        'datamap'
       ].includes(component.type);
 
     const pathArr = component.path.split('.');
@@ -199,7 +206,7 @@ const filterComponentsForConditionComponentFieldOptions = (flattenedComponents) 
       let subPath = pathArr[0];
       for (let i = 1; i < pathArr.length; i++) {
         const parent = flattenedComponents[subPath];
-        if (parent && ['datagrid', 'editgrid', 'tagpad', 'datamap'].includes(parent.type)) {
+        if (parent && ['datagrid', 'editgrid', 'tagpad', 'datamap', 'address'].includes(parent.type)) {
           allowed = false;
           break;
         }
@@ -262,6 +269,10 @@ const getValueComponentsForEachFormComponent = (flattenedComponents) => {
       'validate',
       'hidden',
       'customConditional',
+      'disabled',
+      'description',
+      'tooltip',
+      'inputMask'
     ]);
   });
 
@@ -296,11 +307,11 @@ const getValueComponentRequiredSettings = (valueComponentsByFieldPath) => {
             schemaDefinition: `
             const valueComponentsByFieldPath = ${JSON.stringify(valueComponentsByFieldPath)};
             const valueComponent = valueComponentsByFieldPath[row.component] || { type: 'textfield' };
-            
+
             if (valueComponent.type !== 'datetime') {
               valueComponent.widget = null;
             }
-            
+
             schema = {
               ...valueComponent,
               ..._.pick(component, [

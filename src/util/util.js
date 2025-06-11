@@ -1,48 +1,21 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const moment = require('moment');
 const ObjectID = require('mongodb').ObjectId;
 const _ = require('lodash');
 const nodeUrl = require('url');
 const deleteProp = require('delete-property').default;
 const errorCodes = require('./error-codes.js');
 const fetch = require('@formio/node-fetch-http-proxy');
+const {mockBrowserContext} = require('@formio/vm');
+mockBrowserContext();
+const Formio = require('@formio/js');
 const debug = {
   idToBson: require('debug')('formio:util:idToBson'),
   getUrlParams: require('debug')('formio:util:getUrlParams'),
   removeProtectedFields: require('debug')('formio:util:removeProtectedFields')
 };
-
-// Define a few global noop placeholder shims and import the component classes
-global.Text              = class {};
-global.HTMLElement       = class {};
-global.HTMLCanvasElement = class {};
-global.navigator         = {userAgent: ''};
-global.document          = {
-  createElement: () => ({}),
-  cookie: '',
-  getElementsByTagName: () => [],
-  documentElement: {
-    style: [],
-    firstElementChild: {appendChild: () => {}}
-  }
-};
-global.window            = {addEventListener: () => {}, Event: function() {}, navigator: global.navigator};
-global.btoa = (str) => {
-  return (str instanceof Buffer) ?
-    str.toString('base64') :
-    Buffer.from(str.toString(), 'binary').toString('base64');
-};
-global.self = global;
-const Formio = require('formiojs/formio.form.js');
-global.Formio = Formio.Formio;
-
-// Remove onChange events from all renderer displays.
-_.each(Formio.Displays.displays, (display) => {
-  display.prototype.onChange = _.noop;
-});
-
-Formio.Utils.Evaluator.noeval = true;
 
 const Utils = {
   Formio: Formio.Formio,
@@ -311,7 +284,7 @@ const Utils = {
     try {
       return _.isObject(id)
         ? id
-        : mongoose.Types.ObjectId(id);
+        : new ObjectID(id);
     }
     catch (e) {
       return id;
@@ -330,7 +303,7 @@ const Utils = {
    *   The header value if found or false.
    */
   getHeader(req, key) {
-    if (typeof req.headers[key] !== 'undefined') {
+    if (req.headers && typeof req.headers[key] !== 'undefined') {
       return req.headers[key];
     }
 
@@ -349,7 +322,7 @@ const Utils = {
    *   The query value if found or false.
    */
   getQuery(req, key) {
-    if (typeof req.query[key] !== 'undefined') {
+    if (req.query && typeof req.query[key] !== 'undefined') {
       return req.query[key];
     }
 
@@ -368,7 +341,7 @@ const Utils = {
    *   The parameter value if found or false.
    */
   getParameter(req, key) {
-    if (typeof req.params[key] !== 'undefined') {
+    if (req.params && typeof req.params[key] !== 'undefined') {
       return req.params[key];
     }
 
@@ -438,7 +411,7 @@ const Utils = {
 
     // Build key/value list.
     for (let a = 0; a < parts.length; a += 2) {
-      urlParams[parts[a]] = parts[a + 1];
+      urlParams[parts[a].toLowerCase()] = parts[a + 1];
     }
 
     debug.getUrlParams(urlParams);
@@ -494,7 +467,7 @@ const Utils = {
     try {
       _id = _.isObject(_id)
         ? _id
-        : mongoose.Types.ObjectId(_id);
+        : new mongoose.Types.ObjectId(_id);
     }
     catch (e) {
       debug.idToBson(`Unknown _id given: ${_id}, typeof: ${typeof _id}`);
@@ -572,15 +545,66 @@ const Utils = {
       submissions = [submissions];
     }
 
+    // Collect tagpad keys for subsequent path adjustment
+    // (tagpad submission has additional data field)
+    const tagpadComponentsKeys = [];
+
     // Initialize our delete fields array.
     const modifyFields = [];
 
     // Iterate through all components.
     this.eachComponent(form.components, (component, path) => {
       path = `data.${path}`;
+      if (component.type === 'tagpad') {
+        tagpadComponentsKeys.push(component.key);
+      }
       if (component.protected) {
         debug.removeProtectedFields('Removing protected field:', component.key);
-        modifyFields.push(deleteProp(path));
+
+        modifyFields.push((submission) => {
+          function removeFieldByPath(obj, path) {
+            // Split the path into an array of keys
+            const keys = path.split('.');
+
+            // Helper function to recursively traverse the object
+            function traverseAndRemove(currentObj, currentKeys) {
+              if (!currentObj || typeof currentObj !== 'object') {
+                return;
+              }
+
+              // Add data field to tagpad component path
+              if (tagpadComponentsKeys.includes(currentKeys[0])) {
+                currentKeys = [currentKeys[0], 'data', ...currentKeys.slice(1)];
+              }
+
+              // Get the current key
+              const key = currentKeys[0];
+
+              // If this is the last key, delete the field
+              if (currentKeys.length === 1) {
+                if (Array.isArray(currentObj)) {
+                  currentObj.forEach(item => delete item[key]);
+                }
+                else {
+                  delete currentObj[key];
+                }
+              }
+              else {
+                // Recurse for arrays and objects
+                if (Array.isArray(currentObj)) {
+                  currentObj.forEach(item => traverseAndRemove(item, currentKeys));
+                }
+                else {
+                    traverseAndRemove(currentObj[key], currentKeys.slice(1));
+                  }
+                }
+              }
+
+              // Start the recursion
+              traverseAndRemove(obj, keys);
+            }
+            removeFieldByPath(submission, path);
+        });
       }
       else if ((component.type === 'signature') && (action === 'index') && !doNotMinify) {
         modifyFields.push(((submission) => {
@@ -650,20 +674,17 @@ const Utils = {
    * @param next
    * @return {*}
    */
-  uniqueMachineName(document, model, next) {
+  async uniqueMachineName(document, model, next) {
     var query = {
-      machineName: {$regex: `^${document.machineName}[0-9]*$`},
+      machineName: {$regex: `^${_.escapeRegExp(document.machineName)}[0-9]*$`},
       deleted: {$eq: null}
     };
     if (document._id) {
       query._id = {$ne: document._id};
     }
 
-    model.find(query).lean().exec((err, records) => {
-      if (err) {
-        return next(err);
-      }
-
+    try {
+      const records = await model.find(query).lean().exec();
       if (!records || !records.length) {
         return next();
       }
@@ -677,8 +698,11 @@ const Utils = {
         }
       });
       document.machineName += ++i;
-      next();
-    });
+      return next();
+    }
+    catch (err) {
+      return next(err);
+    }
   },
 
   castValue(valueType, value) {
@@ -768,6 +792,20 @@ const Utils = {
               this.valuePath(path, component.key),
             );
           }
+          else if (['tagpad'].includes(component.type)) {
+            const value = _.get(data, component.key) || [];
+            if (Array.isArray(value)) {
+              value.forEach((row, index) => {
+                this.eachValue(
+                  component.components,
+                  row.data,
+                  fn,
+                  context,
+                  this.valuePath(path, `${component.key}.data`),
+                );
+              });
+            }
+          }
           else {
             this.eachValue(
               component.components,
@@ -827,6 +865,56 @@ const Utils = {
   // Skips hook execution in case of no hook by provided name found
   // Pass as the last argument to formio.hook.alter() function
   skipHookIfNotExists: () => _.noop(),
+
+  coerceQueryTypes(query, currentForm, prefix = 'data.') {
+    _.assign(query, _(query)
+      .omit('limit', 'skip', 'select', 'sort', 'populate')
+      .mapValues((value, name) => {
+      // Skip filters not looking at component data
+      if (!name.startsWith(prefix)) {
+          return value;
+      }
+
+      // Get the filter object.
+      const filter = _.zipObject(['name', 'selector'], name.split('__'));
+      // Convert to component key
+      const key = Utils.getFormComponentKey(filter.name).substring(prefix.length);
+      const component = Utils.getComponent(currentForm.components, key);
+      // Coerce these queries to proper data type
+      if (component) {
+        switch (component.type) {
+          case 'number':
+          case 'currency':
+            return Number(value);
+          case 'checkbox':
+            return value !== 'false';
+          case 'datetime': {
+            const date = moment.utc(value, ['YYYY-MM-DD', 'YYYY-MM', 'YYYY', 'x', moment.ISO_8601], true);
+
+            if (date.isValid()) {
+              return date.toDate();
+            }
+            return;
+          }
+          case 'select': {
+            if (Number(value) || value === "0") {
+              return Number(value);
+            }
+            return value;
+          }
+          case 'selectboxes': {
+            if (['true', 'false'].includes(value)) {
+              return value !== 'false';
+            }
+          }
+        }
+      }
+      if (!component && ['true', 'false'].includes(value)) {
+        return value !== 'false';
+      }
+      return value;
+      }).value());
+  }
 };
 
 module.exports = Utils;

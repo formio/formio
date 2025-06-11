@@ -22,6 +22,7 @@ module.exports = function(router) {
       'access',
       'token',
       'recaptcha',
+      'captcha',
       'action',
       'actionItem',
       'tag'
@@ -34,7 +35,7 @@ module.exports = function(router) {
   /* eslint-enable no-useless-escape */
 
   // Handle the request.
-  return function aliasHandler(req, res, next) {
+  return async function aliasHandler(req, res, next) {
     // Allow a base url to be provided to the alias handler.
     const baseUrl = aliasHandler.baseUrl ? aliasHandler.baseUrl(req) : '';
 
@@ -50,11 +51,9 @@ module.exports = function(router) {
     /* eslint-enable no-useless-escape */
 
     // Now load the form by alias.
-    router.formio.cache.loadFormByAlias(req, alias, function(error, form) {
-      if (error) {
-        debug(`Error: ${error}`);
-        return res.status(400).send('Invalid alias');
-      }
+    try {
+      const form = await router.formio.cache.loadFormByAlias(req, alias);
+
       if (!form) {
         return res.status(404).send('Form not found.');
       }
@@ -72,7 +71,11 @@ module.exports = function(router) {
 
       // Create the new URL for the project.
       req.url = `${baseUrl}/form/${form._id}${additional}`;
-      next();
-    });
+      return next();
+    }
+    catch (err) {
+      debug(`Error: ${err}`);
+      return res.status(400).send('Invalid alias');
+    }
   };
 };

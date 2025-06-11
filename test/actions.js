@@ -7,7 +7,15 @@ const _ = require('lodash');
 const chance = new (require('chance'))();
 const http = require('http');
 const url = require('url');
-const { UV_FS_O_FILEMAP } = require('constants');
+const testMappingDataForm = require('./fixtures/forms/testMappingDataForm');
+const customSaveSubmissionTransformForm = require('./fixtures/forms/customSaveSubmissionTransformForm');
+const customSaveSubmissionTransformResource = require('./fixtures/forms/customSaveSubmissionTransformResource');
+const basicAndAdvancedForm = require('./fixtures/forms/basicAndAdvancedComponentsForm');
+const dataComponentsForm = require('./fixtures/forms/dataComponentsForm');
+const componentsWithMultiples = require('./fixtures/forms/componentsWithMultipleValues');
+const selectBoxesSourceTypeForm = require('./fixtures/forms/selectBoxesSourceTypeForm.js');
+const { wait } = require('./util');
+const helper = require('./helper');
 const docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
@@ -97,7 +105,7 @@ module.exports = (app, template, hook) => {
             done();
           });
       });
-    });
+   });
 
     describe('Permissions - Project Level - Project Owner', () => {
       it('A Project Owner should be able to Create an Action', (done) => {
@@ -276,6 +284,48 @@ module.exports = (app, template, hook) => {
           .end(done);
       });
 
+      it('A user should not be able to Delete an Action using incorrect path', (done) => {
+        let tempForm2 = {
+          title: 'Temp Form 2',
+          name: 'tempForm2',
+          path: 'temp2',
+          type: 'form',
+          access: [],
+          submissionAccess: [],
+          components: [
+            {
+              type: 'textfield',
+              key: 'bar',
+              label: 'bar',
+              inputMask: '',
+              input: true,
+            },
+          ],
+        };
+        request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(tempForm2)
+        .expect('Content-Type', /json/)
+        .expect(201)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          tempForm2 = res.body;
+
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+
+          request(app)
+          .delete(hook.alter('url', `/form/${tempForm2._id}/action/${tempAction._id}`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .expect(400)
+          .end(done);
+        });
+      });
+
       it('A user should not be able to Delete an Action for a User-Created Project Form', (done) => {
         request(app)
           .delete(hook.alter('url', `/form/${tempForm._id}/action/${tempAction._id}`, template))
@@ -327,6 +377,343 @@ module.exports = (app, template, hook) => {
           .expect('Content-Type', /text\/plain/)
           .expect(401)
           .end(done);
+      });
+    });
+
+    describe('Action with missing fields creation', () => {
+
+      it('Should add Save action and apply defaults for handler and method if fields are missing', async () => {
+        const action = {
+          name: 'save',
+          title: 'Save Submission',
+          priority: 10,
+          form: tempForm._id,
+          machineName: 'saveActionFormSave',
+          settings: {},
+          defaults: {
+            handler: ['before'],
+            method: ['create', 'update']
+          }
+        };
+
+        const response = await request(app)
+          .post(hook.alter('url', `/form/${tempForm._id}/action`, template))
+          .set('x-jwt-token',  template.users.admin.token)
+          .send({ data: action });
+
+        assert.equal(response.status, 201);
+        assert.deepEqual(response.body.handler, ['before'], 'Default handler should be applied');
+        assert.deepEqual(response.body.method, ['create', 'update'], 'Default method should be applied');
+      });
+
+      it('Should add Webhook action and do not apply defaults for handler and method (fields are set)', async () => {
+        const action = {
+          name: 'webhook',
+          title: 'Webhook Action',
+          priority: 5,
+          form: tempForm._id,
+          machineName: 'webhookActionForm',
+          handler: [],
+          method: [],
+          defaults: {
+            handler: ['after'],
+            method: ['create'],
+          },
+        };
+
+        const response = await request(app)
+          .post(hook.alter('url', `/form/${tempForm._id}/action`, template))
+          .set('x-jwt-token',  template.users.admin.token)
+          .send({ data: action });
+
+        assert.equal(response.status, 201);
+        assert.deepEqual(response.body.handler, [], 'Handler should remain empty');
+        assert.deepEqual(response.body.method, [], 'Method should remain empty');
+      });
+    })
+
+    describe('Test action with custom transform mapping data', () => {
+      const addFormFields = (isForm) => ({
+        title: chance.word(),
+        name: chance.word(),
+        path: chance.word(),
+        type: isForm ? 'form' : 'resource',
+        ...(isForm && { noSave: true }),
+      });
+
+      before('Create testing forms', async function () {
+        const clonedForResourceCreation = { ..._.cloneDeep(testMappingDataForm), ...addFormFields() };
+
+        const formResource = await request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(clonedForResourceCreation);
+
+        const response = formResource.body;
+
+        assert(response.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(response.title, clonedForResourceCreation.title);
+        assert.equal(response.name, clonedForResourceCreation.name);
+        template.testResourceToSave = response;
+
+        const action = {
+          priority: 10,
+          name: 'save',
+          title: 'Save Submission',
+          settings: {
+            resource: response._id,
+            property: '',
+            fields: {
+              textField1: '',
+              textField2: '',
+            },
+            transform: "data.textField1 = '123';submission.data.textField1 = '111';data.textField2 = '222'",
+          },
+          condition: {
+            conjunction: '',
+            conditions: [],
+            custom: '',
+          },
+          submit: true,
+          handler: ['before'],
+          method: ['create', 'update'],
+        };
+        const clonedForFormCreation = { ..._.cloneDeep(testMappingDataForm), ...addFormFields(true) };
+        const testForm = await request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(clonedForFormCreation);
+
+        const responseTest = testForm.body;
+        assert(responseTest.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(clonedForFormCreation.title, responseTest.title);
+        assert.equal(clonedForFormCreation.name, responseTest.name);
+        template.testFormToSave = responseTest;
+
+        const resultAction = await request(app)
+          .post(hook.alter('url', `/form/${responseTest._id}/action`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(action);
+
+        const responseAction = resultAction.body;
+        assert(responseAction.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(action.title, responseAction.title);
+        assert.equal(action.name, responseAction.name);
+      });
+
+      it('Submit form', (done) => {
+        request(app)
+        .post(hook.alter('url', `/form/${template.testFormToSave._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          data: {
+            textField: 'Test',
+          },
+        })
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const result = res.body;
+          assert(result.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.deepEqual(result.data, {textField1: '111', textField2: '222' });
+          done()
+        });
+      });
+
+      it('Get submissions from submitted form', (done) => {
+        request(app)
+        .get(hook.alter('url', `/form/${template.testFormToSave._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const result = res.body;
+          assert.deepEqual(result, [], "Should be empty as our submission has been moved to resource form");
+          done()
+        });
+      });
+
+      it('Get submissions from connected form', (done) => {
+        request(app)
+        .get(hook.alter('url', `/form/${template.testResourceToSave._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          assert(res.body.length, 1);
+
+          const result = res.body[0];
+          assert(result.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.deepEqual(result.data, {textField1: '111', textField2: '222'}, "Should get a transformed submission data from connected form");
+          done()
+        });
+      });
+
+      after(function(done) {
+        delete template.testResourceToSave;
+        delete template.testFormToSave;
+        done()
+      })
+    });
+
+    describe('Test action with custom transform to another resource with new data', () => {
+      let addFormFields, form, resource;
+
+      before(async function () {
+        addFormFields = (isForm) => ({
+          title: chance.word(),
+          name: chance.word(),
+          path: chance.word(),
+          type: isForm ? 'form' : 'resource',
+          ...(isForm && { noSave: true }),
+        });
+
+        const formDef = { ..._.cloneDeep(customSaveSubmissionTransformForm), ...addFormFields(true) };
+
+        const response = await request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(formDef);
+
+        assert(response.body);
+        assert(response.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(response.body.title, formDef.title);
+        assert.equal(response.body.name, formDef.name);
+        form = response.body;
+
+        const resourceDef = { ..._.cloneDeep(customSaveSubmissionTransformResource), ...addFormFields() };
+        const resourceResponse = await request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(resourceDef);
+
+        assert(resourceResponse.body);
+        assert(resourceResponse.body.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(resourceResponse.body.title, resourceDef.title);
+        assert.equal(resourceResponse.body.name, resourceDef.name);
+        resource = resourceResponse.body;
+
+        const action = {
+          priority: 10,
+          name: 'save',
+          title: 'Save Submission',
+          settings: {
+            resource: resource._id,
+            property: '',
+            fields: {},
+            transform: `
+            const highEarner = submission.data.salesBySalesperson.reduce((acc, curr) => curr.sales > acc.sales ? curr : acc);
+            data = {
+              month: new Date().toLocaleString('default', { month: 'long' }),
+              name: highEarner.name,
+              sales: highEarner.sales
+            };`,
+          },
+          condition: {
+            conjunction: '',
+            conditions: [],
+            custom: '',
+          },
+          submit: true,
+          handler: ['before'],
+          method: ['create', 'update'],
+        };
+
+        const resultAction = await request(app)
+          .post(hook.alter('url', `/form/${form._id}/action`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(action);
+
+        const responseAction = resultAction.body;
+        assert(responseAction.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+        assert.equal(action.title, responseAction.title);
+        assert.equal(action.name, responseAction.name);
+      });
+
+      it('Submit form', (done) => {
+        request(app)
+          .post(hook.alter('url', `/form/${form._id}/submission`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              salesBySalesperson: [
+                {
+                  name: "John Doe",
+                  sales: 10000
+                },
+                {
+                  name: "Jane Smith",
+                  sales: 10000.03
+                },
+                {
+                  name: "Hank Williams",
+                  sales: 10003.5
+                }
+              ],
+              submit: true
+            }
+          })
+          .expect('Content-Type', /json/)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            const result = res.body;
+            assert(result.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+            assert.deepEqual(result.data, {
+              month: new Date().toLocaleString('default', { month: 'long' }),
+              name: "Hank Williams",
+              sales: 10003.5
+            });
+            done()
+          });
+      });
+
+      it('Get submissions from submitted form', (done) => {
+        request(app)
+        .get(hook.alter('url', `/form/${form._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const result = res.body;
+          assert.deepEqual(result, [], "Should be empty as our submission has been moved to resource form");
+          done()
+        });
+      });
+
+      it('Get submissions from connected form', (done) => {
+        request(app)
+        .get(hook.alter('url', `/form/${resource._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          assert(res.body.length, 1);
+
+          const result = res.body[0];
+          assert(result.hasOwnProperty('_id'), 'The response should contain an `_id`.');
+          assert.deepEqual(result.data, {
+            month: new Date().toLocaleString('default', { month: 'long' }),
+            name: "Hank Williams",
+            sales: 10003.5
+          });
+          done()
+        });
       });
     });
 
@@ -554,6 +941,29 @@ module.exports = (app, template, hook) => {
             tableView: true,
             input: true,
           },
+        ],
+      };
+
+      let webhookForm2 = {
+        title: 'Webhook Form 2',
+        name: 'webhookform2',
+        path: 'webhookform2',
+        type: 'form',
+        access: [],
+        submissionAccess: [],
+        components: [
+          {
+            type: 'textfield',
+            defaultValue: '',
+            multiple: false,
+            suffix: '',
+            prefix: '',
+            key: 'textfield',
+            label: 'Text Field',
+            inputMask: '',
+            inputType: 'text',
+            input: true,
+          }
         ],
       };
 
@@ -868,6 +1278,87 @@ module.exports = (app, template, hook) => {
           });
       });
 
+      it('Should create the form and action for the webhook tests with conditionals for submission creation parameter', (done) => {
+        newServer((err, server) => {
+          if (err) {
+            return done(err);
+          }
+          webhookServer = server;
+          request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(webhookForm2)
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+              webhookForm2 = res.body;
+              template.users.admin.token = res.headers['x-jwt-token'];
+              request(app)
+                .post(hook.alter('url', `/form/${webhookForm2._id}/action`, template))
+                .set('x-jwt-token', template.users.admin.token)
+                .send({
+                  title: 'Webhook',
+                  name: 'webhook',
+                  form: webhookForm2._id.toString(),
+                  handler: ['after'],
+                  method: ['create', 'update', 'delete'],
+                  priority: 1,
+                  settings: {
+                    url: server.url,
+                    username: '',
+                    password: '',
+                  },
+                  condition: {
+                    component: '(submission).created',
+                    operator: 'dateGreaterThan',
+                    value: '2023-07-01T12:00:00.000Z',
+                  },
+                })
+                .expect('Content-Type', /json/)
+                .expect(201)
+                .end((err, res) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  template.users.admin.token = res.headers['x-jwt-token'];
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Should send a webhook for submission with creation date dateGreaterThan set date', (done) => {
+        webhookHandler = (body) => {
+          body = hook.alter('webhookBody', body);
+
+          assert.equal(body.params.formId, webhookForm2._id.toString());
+          assert.equal(body.request.owner, template.users.admin._id.toString());
+
+          done();
+        };
+
+        request(app)
+          .post(hook.alter('url', `/form/${webhookForm2._id}/submission`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            data: {
+              textfield: ''
+            },
+          })
+          .expect(201)
+          .expect('Content-Type', /json/)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            webhookSubmission = res.body;
+          });
+      });
+
      if (app.hasProject) {
       describe('Webhook with non JSON response', () => {
         if (docker) {
@@ -1083,7 +1574,7 @@ module.exports = (app, template, hook) => {
       };
 
       let numTests = 0;
-      const newEmailTest = (settings, done) => {
+      const newEmailTest = (settings, done, addSettings = {}) => {
         numTests++;
         settings.transport = 'test';
         let testForm = _.assign(_.cloneDeep(emailForm), {
@@ -1093,7 +1584,7 @@ module.exports = (app, template, hook) => {
         });
         let testAction = _.assign(_.cloneDeep(emailAction), {
           settings,
-        });
+        }, addSettings);
 
         // Create the form.
         request(app)
@@ -1509,6 +2000,438 @@ module.exports = (app, template, hook) => {
               }
             });
         });
+      });
+
+      it('Should send correct email for each handler', (done) => {
+        const amountOfEmails = 2;
+
+        const addSettings = {
+          handler: ['before', 'after'],
+        }
+
+        newEmailTest({
+          from: 'travis@form.io',
+          replyTo: 'reply@example.com',
+          emails: '{{ data.email }}',
+          sendEach: false,
+          subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
+          message: 'Howdy, {{ data.firstName }}',
+        }, (err, testForm) => {
+          if (err) {
+            return done(err);
+          }
+
+          // Check for an email.
+          const event = template.hooks.getEmitter();
+          let emailCount = 0;
+          event.on('newMail', (email) => {
+            assert.equal(email.html, 'Howdy, Test');
+            assert.equal(email.from, 'travis@form.io');
+            assert.equal(email.to, 'test@example.com');
+            assert.equal(email.subject, 'Hello there Test Person');
+            assert.equal(email.replyTo, 'reply@example.com');
+            emailCount += 1;
+            if (emailCount === amountOfEmails) {
+              event.removeAllListeners('newMail');
+              done();
+            }
+          });
+
+          request(app)
+            .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
+            .set('x-jwt-token', adminUser().token)
+            .send({
+              data: {
+                firstName: 'Test',
+                lastName: 'Person',
+                email: 'test@example.com',
+              },
+            })
+            .expect(201)
+            .expect('Content-Type', /json/)
+            .end((err) => {
+              if (err) {
+                done(err);
+              }
+            });
+        }, addSettings);
+      });
+
+    it('Should send email for delete method', async () => {
+      const createTestAction = () => ({
+        title: 'Email',
+        name: 'email',
+        handler: ['after'],
+        method: ['delete'],
+        priority: 1,
+        settings: {
+          from: 'no-reply@example.com',
+          replyTo: '',
+          emails: ['test@example.com'],
+          sendEach: false,
+          subject: 'Hello',
+          message: '{{ submission(data, form.components) }}',
+          transport: 'test',
+          template: 'https://pro.formview.io/assets/email.html',
+          renderingMethod: 'dynamic'
+        },
+      });
+
+      const form = {
+        "_id": "683db072e69799ee3678e8aa",
+        "title": "deletemethodcheck",
+        "name": "deletemethodcheck",
+        "path": "deletemethodcheck",
+        "type": "form",
+        "display": "form",
+        "tags": [],
+        "components": [
+          {
+            "label": "Text Field",
+            "applyMaskOn": "change",
+            "tableView": true,
+            "validateWhenHidden": false,
+            "key": "textField",
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "type": "button",
+            "label": "Submit",
+            "key": "submit",
+            "disableOnInvalid": true,
+            "input": true,
+            "tableView": false
+          }
+        ]
+      }
+        
+      const oForm = (await request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(form)).body;
+
+      let testAction = createTestAction();
+      testAction.form = oForm._id;
+      // Add the action to the form.
+      const testActionRes = (await request(app)
+        .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(testAction)).body;
+
+      testAction = testActionRes;
+
+      const mailReceived = new Promise((resolve, reject) => {
+        const event = template.hooks.getEmitter();
+        event.on('newMail', (email) => {
+          assert.equal(email.from, 'no-reply@example.com');
+          assert.equal(email.to, 'test@example.com');
+          assert.equal(email.subject, 'Hello');
+          event.removeAllListeners('newMail');
+          resolve();
+        });
+      });
+
+      // Create submission
+      const submissionResponse = await request(app)
+        .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          textField: "123",
+          submit: true
+        })
+        .expect(201);
+
+      // Delete submission
+      await request(app)
+      .delete(hook.alter('url', `/form/${oForm._id}/submission/${submissionResponse.body._id}`, template))
+      .set('x-jwt-token', template.users.admin.token)
+      .expect(200);
+        
+      await mailReceived;
+      });
+
+      describe('EmailAction template component rendering', () => {
+        const createTestAction = () => ({
+          title: 'Email',
+          name: 'email',
+          handler: ['after'],
+          method: ['create'],
+          priority: 1,
+          settings: {
+            from: 'travis@form.io',
+            replyTo: '',
+            emails: ['test@form.io'],
+            sendEach: false,
+            subject: 'Hello',
+            message: '{{ submission(data, form.components) }}',
+            transport: 'test',
+            template: 'https://pro.formview.io/assets/email.html',
+            renderingMethod: 'dynamic'
+          },
+        });
+
+      it('Select boxes should be rendered in template if data source = url', async () => {
+          const form = selectBoxesSourceTypeForm.formJson;
+          const oForm = (await request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = oForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(testAction)).body;
+
+          testAction = testActionRes;
+
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes('>AK,AL<'));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = selectBoxesSourceTypeForm.submissionJson;
+          // Send submission
+          await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          await wait(1800);
+        });
+
+        it('Should send email with a bunch of simple components', async () => {
+          const form = basicAndAdvancedForm.formJson;
+
+          const oForm = (await request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = oForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+              .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(testAction)).body;
+
+          testAction = testActionRes;
+
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes('>textFieldString<'));
+            assert(emailTemplateNoWhitespace.includes('>textAreaString<'));
+            assert(emailTemplateNoWhitespace.includes('>Yes<'));
+            assert(emailTemplateNoWhitespace.includes('>ho<'));
+            assert(emailTemplateNoWhitespace.includes('>two<'));
+            assert(emailTemplateNoWhitespace.includes('>five<'));
+            assert(emailTemplateNoWhitespace.includes('>blake2@form.io<'));
+            assert(emailTemplateNoWhitespace.includes('>https://google.com<'));
+            assert(emailTemplateNoWhitespace.includes('>(111)111-1111<'));
+            assert(emailTemplateNoWhitespace.includes('>4,5,6<'));
+            assert(emailTemplateNoWhitespace.includes('>10431,WestOldNashvilleRoad,BartholomewCounty,Indiana,47201,UnitedStates<'));
+            assert(emailTemplateNoWhitespace.includes('>2025-04-0105:00PMUTC<'));
+            assert(emailTemplateNoWhitespace.includes('>1<'));
+            assert(emailTemplateNoWhitespace.includes('>01/01/2024<'));
+            assert(emailTemplateNoWhitespace.includes('>01:23<'));
+            assert(emailTemplateNoWhitespace.includes('>$234.20<'));
+            assert(emailTemplateNoWhitespace.includes('>doyoulikefish?<'));
+            assert(emailTemplateNoWhitespace.includes('>doyoulikefrenchtoast?<'));
+            assert(emailTemplateNoWhitespace.includes('>doyoulikebison?<'));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = basicAndAdvancedForm.submissionJson;
+          // Send submission
+          await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          await wait(1800);
+          assert(emailSent)
+        });
+
+        it('Should send email with data (and nested data) components', async () => {
+          const form = dataComponentsForm.formJson;
+
+          const dataComponentForm = (await request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = dataComponentForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+              .post(hook.alter('url', `/form/${dataComponentForm._id}/action`, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(testAction)).body;
+
+
+          testAction = testActionRes;
+
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes('>123<'));
+            assert(emailTemplateNoWhitespace.includes('>234<'));
+            assert(emailTemplateNoWhitespace.includes('>o<'));
+            assert(emailTemplateNoWhitespace.includes('>t<'));
+            assert(emailTemplateNoWhitespace.includes('>r<'));
+            assert(emailTemplateNoWhitespace.includes('>222<'));
+            assert(emailTemplateNoWhitespace.includes('>33<'));
+            assert(emailTemplateNoWhitespace.includes('>444<'));
+            assert(emailTemplateNoWhitespace.includes('>20<'));
+            assert(emailTemplateNoWhitespace.includes('>ooo<'));
+            assert(emailTemplateNoWhitespace.includes('>20<'));
+            assert(emailTemplateNoWhitespace.includes('>aaaa<'));
+            assert(emailTemplateNoWhitespace.includes('>2344<'));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = dataComponentsForm.submissionJson;
+          // Send submission
+          await request(app)
+            .post(hook.alter('url', `/form/${dataComponentForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          await wait(1800);
+          assert(emailSent)
+        });
+
+        it('Should send email having components with multiple values', async () => {
+          const form = componentsWithMultiples.formJson;
+
+          const multiplesForm = (await request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = multiplesForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+              .post(hook.alter('url', `/form/${multiplesForm._id}/action`, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(testAction)).body;
+
+
+          testAction = testActionRes;
+
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes('>Commodiveritatisab,Irureconsequaturc,Exercitationsintn<'));
+            assert(emailTemplateNoWhitespace.includes('>Eunequedebitisdis,Quietexpeditanost,Consecteturnisisu<'));
+            assert(emailTemplateNoWhitespace.includes('>679,728,561<'));
+            assert(emailTemplateNoWhitespace.includes('>jyhivigi@mailinator.com,camy@mailinator.com,seduxaqe@mailinator.com<'));
+            assert(emailTemplateNoWhitespace.includes('>https://google.com,https://google1.com,https://google2.com<'));
+            assert(emailTemplateNoWhitespace.includes('>(175)358-2292,(194)335-4830,(160)719-9441<'));
+            assert(emailTemplateNoWhitespace.includes('>2025-04-0312:56AMUTC,2025-04-0205:00PMUTC,2025-04-1105:00PMUTC<'));
+            assert(emailTemplateNoWhitespace.includes('>08:27,12:27,07:47<'));
+            assert(emailTemplateNoWhitespace.includes('>10431,WestOldNashvilleRoad,BartholomewCounty,Indiana,47201,UnitedStates,10432,NashvilleFerryRoadEast,LowndesCounty,Mississippi,39702,UnitedStates,10435,NashvilleRoad,Woodburn,WarrenCounty,Kentucky,42101,UnitedStates<'));
+            assert(emailTemplateNoWhitespace.includes('>$938.00,$953.00,$286.00<'));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = componentsWithMultiples.submissionJson;
+          // Send submission
+          await request(app)
+            .post(hook.alter('url', `/form/${multiplesForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          await wait(1800);
+          assert(emailSent)
+        });
+      });
+
+      describe('Select Component Emails', () => {
+        let helper;
+        let test = require('./fixtures/forms/selectComponent.js');
+
+        before((done) => {
+          helper = new Helper(template.users.admin, template);
+          let testAction = {
+            title: 'Email',
+            name: 'email',
+            handler: ['after'],
+            method: ['create'],
+            priority: 1,
+            settings: {
+              from: 'travis@form.io',
+              replyTo: '',
+              emails: ['test@form.io'],
+              sendEach: false,
+              subject: 'Hello',
+              message: '{{ submission(data, form.components) }}',
+              transport: 'test',
+              template: 'https://pro.formview.io/assets/email.html',
+              renderingMethod: 'dynamic'
+            },
+          }
+
+          helper
+            .form('test', test.components)
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+              testAction.form = helper.template.forms.test._id;
+              helper
+                .action(testAction)
+                .execute((err, result) => {
+                  if (err) {
+                    return done(err);
+                  }
+                  testAction = result.getAction('Email');
+                  done();
+              })
+            });
+        });
+
+        it('Should show select component label in email' , async () => {
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.once('newMail', (email) => {
+            emailSent = true;
+            assert(email.html.includes('Arkansas'));
+            assert(email.html.includes('label'));
+            assert(email.html.includes('Two'));
+            event.removeAllListeners('newMail');
+          });
+
+          helper
+            .submission(test.submission)
+            .execute((err, result) => {
+              if (err) {
+                return done(err);
+              };
+            })
+
+            await wait(1500);
+            assert(emailSent);
+        });
+
+        after((done) => {
+          delete template.forms.test;
+          delete template.actions.test;
+          done()
+        })
       });
 
       if (template.users.formioAdmin) {
@@ -2805,23 +3728,15 @@ module.exports = (app, template, hook) => {
       });
 
       if (!docker)
-      it('A deleted Action should remain in the database', (done) => {
-        const formio = hook.alter('formio', app.formio);
-        formio.actions.model.findOne({_id: tempAction._id})
-          .exec((err, action) => {
-            if (err) {
-              return done(err);
-            }
+      it('A deleted Action should remain in the database', async () => {
+          const formio = hook.alter('formio', app.formio);
+          let action = await formio.actions.model.findOne({_id: tempAction._id}).exec();
+          if (!action) {
+            throw('No Action found, expected 1.');
+          }
 
-            if (!action) {
-              return done('No Action found, expected 1.');
-            }
-
-            action = action.toObject();
-            assert.notEqual(action.deleted, null);
-
-            done();
-          });
+          action = action.toObject();
+          assert.notEqual(action.deleted, null);
       });
 
       it('Delete the Form used for Action tests', (done) => {
@@ -2845,20 +3760,13 @@ module.exports = (app, template, hook) => {
       });
 
       if (!docker)
-      it('A deleted Form should not have active actions in the database', (done) => {
+      it('A deleted Form should not have active actions in the database', async () => {
         const formio = hook.alter('formio', app.formio);
-        formio.actions.model.find({form: tempForm._id, deleted: {$eq: null}})
-          .exec((err, action) => {
-            if (err) {
-              return done(err);
-            }
-
-            if (action && action.length !== 0) {
-              return done(`Active actions found w/ form: ${tempForm._id}, expected 0.`);
-            }
-
-            done();
-          });
+        const action = await formio.actions.model.find({form: tempForm._id, deleted: {$eq: null}})
+          .exec();
+        if (action && action.length !== 0) {
+          return `Active actions found w/ form: ${tempForm._id}, expected 0.`;
+        }
       });
 
       let actionLogin = null;
@@ -3555,6 +4463,32 @@ module.exports = (app, template, hook) => {
               inputType: 'checkbox',
             },
             {
+              label: 'Select Boxes Numbers',
+              optionsLabelPosition: 'right',
+              tableView: false,
+              values: [
+                {
+                  label: '1',
+                  value: '1',
+                  shortcut: '',
+                },
+                {
+                  label: '2',
+                  value: '2',
+                  shortcut: '',
+                },
+                {
+                  label: '3',
+                  value: '3',
+                  shortcut: '',
+                },
+              ],
+              key: 'selectBoxesNumber',
+              type: 'selectboxes',
+              input: true,
+              inputType: 'checkbox',
+            },
+            {
               label: 'Radio',
               optionsLabelPosition: 'right',
               inline: false,
@@ -3621,6 +4555,75 @@ module.exports = (app, template, hook) => {
                   input: true,
                 },
               ],
+            },
+            {
+              'label': 'Day with full date',
+              'hideInputLabels': false,
+              'inputsLabelPosition': 'top',
+              'useLocaleSettings': false,
+              'tableView': false,
+              'fields': {
+                  'day': {
+                      'hide': false
+                  },
+                  'month': {
+                      'hide': false
+                  },
+                  'year': {
+                      'hide': false
+                  }
+              },
+              'validateWhenHidden': false,
+              'key': 'day',
+              'type': 'day',
+              'input': true,
+              'defaultValue': ''
+            },
+            {
+              'label': 'Day with hidden day',
+              'hideInputLabels': false,
+              'inputsLabelPosition': 'top',
+              'useLocaleSettings': false,
+              'tableView': false,
+              'fields': {
+                  'day': {
+                      'hide': true
+                  },
+                  'month': {
+                      'hide': false
+                  },
+                  'year': {
+                      'hide': false
+                  }
+              },
+              'validateWhenHidden': false,
+              'key': 'day1',
+              'type': 'day',
+              'input': true,
+              'defaultValue': ''
+            },
+            {
+              'label': 'Day with hidden year',
+              'hideInputLabels': false,
+              'inputsLabelPosition': 'top',
+              'useLocaleSettings': false,
+              'tableView': false,
+              'fields': {
+                  'day': {
+                      'hide': false
+                  },
+                  'month': {
+                      'hide': false
+                  },
+                  'year': {
+                      'hide': true
+                  }
+              },
+              'validateWhenHidden': false,
+              'key': 'day2',
+              'type': 'day',
+              'input': true,
+              'defaultValue': ''
             },
             {
               type: 'button',
@@ -3706,6 +4709,11 @@ module.exports = (app, template, hook) => {
               operator: 'isEqual',
               value: 'a',
             },
+            {
+              component: 'selectBoxesNumber',
+              operator: 'isEqual',
+              value: '2',
+            }
           ],
         };
         helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
@@ -3719,6 +4727,11 @@ module.exports = (app, template, hook) => {
                 a: false,
                 b: true,
                 c: false,
+              },
+              selectBoxesNumber: {
+                1: false,
+                2: false,
+                3: false
               }
             }, helper.owner, [/application\/json/, 200])
             .execute((err) => {
@@ -3735,6 +4748,11 @@ module.exports = (app, template, hook) => {
                     a: true,
                     b: false,
                     c: true,
+                  },
+                  selectBoxesNumber: {
+                    1: false,
+                    2: true,
+                    3: false
                   }
                 })
                 .execute((err) => {
@@ -3838,6 +4856,82 @@ module.exports = (app, template, hook) => {
                   assert(submission.hasOwnProperty('_id'));
 
                   done();
+                });
+            });
+        });
+      });
+
+      it('Test IsNotEqual operator with SelectBoxes', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'selectBoxes',
+              operator: 'isNotEqual',
+              value: 'a',
+            },
+            {
+              component: 'selectBoxes',
+              operator: 'isNotEqual',
+              value: 'b',
+            }
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              selectBoxes: {
+                a: false,
+                b: false,
+                c: true,
+              }
+            }, helper.owner, [/application\/json/, 201])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(submission.hasOwnProperty('_id'));
+
+              helper
+                .submission('actionsExtendedConditionalForm', {
+                  selectBoxes: {
+                    a: false,
+                    b: true,
+                    c: true,
+                  }
+                }, helper.owner, [/application\/json/, 200])
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(!submission.hasOwnProperty('_id'));
+
+                  helper
+                  .submission('actionsExtendedConditionalForm', {
+                    selectBoxes: {
+                      a: true,
+                      b: true,
+                      c: true,
+                    }
+                  }, helper.owner, [/application\/json/, 200])
+                  .execute((err) => {
+                    if (err) {
+                      return done(err);
+                    }
+
+                    const submission = helper.getLastSubmission();
+                    assert(!submission.hasOwnProperty('_id'));
+
+                    done();
+                  });
                 });
             });
         });
@@ -4118,6 +5212,7 @@ module.exports = (app, template, hook) => {
             });
         });
       });
+
 
       it('Test StartsWith operator', (done) => {
         action.condition = {
@@ -4410,6 +5505,281 @@ module.exports = (app, template, hook) => {
               helper
                 .submission({
                   dateTime: '',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isEqual operator with Day component with full date', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day',
+              operator: 'isEqual',
+              value: '01/01/2025',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day: '02/01/2025',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day: '01/01/2025',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isNotEqual operator with Day component with full date', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day',
+              operator: 'isNotEqual',
+              value: '01/01/2025',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day: '01/01/2025',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day: '02/01/2025',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isEqual operator with Day component with hidden day', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day1',
+              operator: 'isEqual',
+              value: '01/00/2025',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day1: '02/00/2025',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day1: '01/00/2025',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isNotEqual operator with Day component with day hidden', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day1',
+              operator: 'isNotEqual',
+              value: '01/00/2025',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day1: '01/00/2025',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day1: '02/00/2025',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isEqual operator with Day component with hidden year', (done) => {
+        action.condition = {
+          conjunction: 'all',
+            conditions: [
+              {
+                component: 'day2',
+                operator: 'isEqual',
+                value: '01/01/0000',
+              },
+            ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day2: '02/01/0000',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day2: '01/01/0000',
+                })
+                .execute((err) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  const submission = helper.getLastSubmission();
+                  assert(submission.hasOwnProperty('_id'));
+
+                  done();
+                });
+            });
+        });
+      });
+
+      it('Test isNotEqual operator with Day component with hidden year', (done) => {
+        action.condition = {
+          conjunction: 'all',
+          conditions: [
+            {
+              component: 'day2',
+              operator: 'isNotEqual',
+              value: '01/01/0000',
+            },
+          ],
+        };
+        helper.updateAction('actionsExtendedConditionalForm', action, (err) => {
+          if (err) {
+            done(err);
+          }
+
+          helper
+            .submission('actionsExtendedConditionalForm', {
+              day2: '01/01/0000',
+            }, helper.owner, [/application\/json/, 200])
+            .execute((err) => {
+              if (err) {
+                return done(err);
+              }
+
+              const submission = helper.getLastSubmission();
+              assert(!submission.hasOwnProperty('_id'));
+
+              helper
+                .submission({
+                  day2: '02/01/0000',
                 })
                 .execute((err) => {
                   if (err) {

@@ -20,15 +20,12 @@ module.exports = function(router) {
    * @param {Function} next
    *   The callback function to invoke with the results.
    */
-  const getSubmissionResourceAccess = function(req, submission, access, next) {
-    if (!next) {
+  const getSubmissionResourceAccess = function(req, submission, access) {
+    if (!submission || !access) {
       return;
     }
-    if (!submission || !access) {
-      return next();
-    }
     if (!_.has(submission, 'access')) {
-      return next();
+      return;
     }
 
     /* eslint-disable camelcase */
@@ -121,12 +118,6 @@ module.exports = function(router) {
           adminAccess.includes(el);
         });
       }
-
-      if (err) {
-        return next(err);
-      }
-
-      next();
     });
     /* eslint-enable camelcase */
   };
@@ -300,7 +291,7 @@ module.exports = function(router) {
       const access = {};
       async.series(hook.alter('getAccess', [
         // Get the permissions for a Form and Submissions with the given ObjectId.
-        function getFormAccess(callback) {
+        async function getFormAccess() {
           access.form = access.form || {};
           access.submission = access.submission || {};
           access.role = access.role || {};
@@ -308,16 +299,13 @@ module.exports = function(router) {
           // Skip form access if no formId was given.
           if (!req.formId) {
             access.form['read_own'] = !req.projectId;
-            return callback(null);
+            return null;
           }
 
           // Load the form, and get its roles/permissions data.
-          router.formio.cache.loadForm(req, null, req.formId, function(err, item) {
-            if (err) {
-              return callback(err);
-            }
+          const item =await router.formio.cache.loadForm(req, null, req.formId);
             if (!item) {
-              return callback(`No Form found with formId: ${req.formId}`);
+              throw new Error(`No Form found with formId: ${req.formId}`);
             }
 
             // Attempt to load the Self Access Permissions.
@@ -380,20 +368,15 @@ module.exports = function(router) {
             }
 
             // Return the updated access list.
-            return callback(null);
-          });
+            return null;
         },
 
         // Get a list of all roles associated with this access check.
-        function getAccessRoles(callback) {
+        async function getAccessRoles() {
           // Load all the roles.
-          router.formio.resources.role.model.find(hook.alter('roleQuery', {
-            deleted: {$eq: null}
-          }, req), function(err, roles) {
-            if (err) {
-              return callback(400);
-            }
-
+            const roles = await router.formio.resources.role.model.find(hook.alter('roleQuery', {
+              deleted: {$eq: null}
+            }, req));
             const validRoles = (roles && roles.length) ? roles.map((role) => {
               const roleId = role._id.toString();
               if (role.default) {
@@ -433,28 +416,21 @@ module.exports = function(router) {
             // Add the EVERYONE role.
             access.roles.push(EVERYONE);
             req.accessRoles = access.roles;
-            callback();
-          });
         },
 
         // Load the form and set Field Match Access conditions to the request
-        function setSubmissionFieldMatchAccessToRequest(callback) {
+        async function setSubmissionFieldMatchAccessToRequest() {
           if (!req.formId) {
-            return callback(null);
+            return null;
           }
-          router.formio.cache.loadForm(req, null, req.formId, function(err, item) {
-            if (err) {
-              return callback(err);
-            }
+          const item = await router.formio.cache.loadForm(req, null, req.formId);
             if (!item) {
-              return callback(`No Form found with formId: ${req.formId}`);
+              throw new Error(`No Form found with formId: ${req.formId}`);
             }
 
             if (item.fieldMatchAccess && !_.isEmpty(item.fieldMatchAccess)) {
               req.submissionFieldMatchAccess = item.fieldMatchAccess;
             }
-            return callback(null);
-          });
         },
 
         // Mark the index request to be proccessed by SubmissionFieldMatchAccessFilter
@@ -479,24 +455,24 @@ module.exports = function(router) {
         },
 
         // Get the permissions for a Submission with the given ObjectId.
-        function getSubmissionAccess(callback) {
+        async function getSubmissionAccess() {
           access.submission = access.submission || {};
 
           // Skip submission access if no subId was given.
           if (!req.subId) {
             // Still need to check if the user allowed to create submissions withing Field Match Access
             getSubmissionFieldMatchAccess(req, req.body, access);
-            return callback(null);
+            return null;
           }
           // Get the submission by request id and query its access.
-          router.formio.cache.loadSubmission(req, req.formId, req.subId, function(err, submission) {
-            if (err) {
-              return callback(400);
-            }
-
+          try {
+            const submission = await router.formio.cache.loadSubmission(req, req.formId, req.subId);
             // No submission exists.
             if (!submission) {
-              return callback(404);
+              const err = new Error();
+              err.statusCode = 404;
+              throw err;
+              // return callback(404);
             }
 
             // Add the submission owners UserId to the access list.
@@ -512,33 +488,34 @@ module.exports = function(router) {
             // Load Submission Field Match Access.
             getSubmissionFieldMatchAccess(req, submission, access);
             // Load Submission Resource Access.
-            getSubmissionResourceAccess(req, submission, access, callback);
-          });
+            getSubmissionResourceAccess(req, submission, access);
+          }
+          catch (err) {
+            err.statusCode = 400;
+            throw err;
+          }
         },
 
         // Determine if this is a possible index request against submissions.
-        function flagRequestAsSubmissionResourceAccess(callback) {
+        async function flagRequestAsSubmissionResourceAccess() {
           if (req.method.toUpperCase() !== 'GET') {
-            return callback();
+            return;
           }
 
           if (!req.formId || req.subId) {
-            return callback();
+            return;
           }
 
           // Does not apply if the user doesn't have any roles.
           const userRoles = _.get(req, 'user.roles', []);
           if (!userRoles.length) {
-            return callback();
+            return;
           }
 
           // Load the form, and get its roles/permissions data.
-          router.formio.cache.loadForm(req, null, req.formId, function(err, item) {
-            if (err) {
-              return callback(err);
-            }
+          const item = await router.formio.cache.loadForm(req, null, req.formId);
             if (!item) {
-              return callback(`No Form found with formId: ${req.formId}`);
+              throw new Error(`No Form found with formId: ${req.formId}`);
             }
 
             // See if any of our components have "submissionAccess" or "defaultPermission" established.
@@ -549,9 +526,6 @@ module.exports = function(router) {
                 return true;
               }
             });
-
-            return callback();
-          });
         }
       ], req, res, access), function(err) {
         if (err) {
@@ -729,7 +703,7 @@ module.exports = function(router) {
     // Check for whitelisted paths.
     let skip = false;
     if (req.method === 'GET') {
-      const whitelist = ['/health', '/current', '/logout', '/access', '/token', '/recaptcha'];
+      const whitelist = ['/health', '/current', '/logout', '/access', '/token', '/recaptcha', '/captcha'];
       const url = req.url.split('?')[0];
       skip = _.some(whitelist, function(path) {
         if ((url === path) || (url === hook.alter('path', path, req))) {

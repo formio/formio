@@ -3,12 +3,13 @@
 const Resource = require('resourcejs');
 const async = require('async');
 const _ = require('lodash');
+const moment = require('moment');
 const debug = {
   error: require('debug')('formio:error'),
   action: require('debug')('formio:action')
 };
 const util = require('../util/util');
-const moment = require('moment');
+const {IsolateVM} = require('@formio/vm');
 const {
   ConditionOperators,
   filterComponentsForConditionComponentFieldOptions,
@@ -19,18 +20,19 @@ const {
   rootLevelProperties,
   rootLevelPropertiesOperatorsByPath,
 } = require('../util/conditionOperators');
-const {evaluate} = require('@formio/vm');
-const promisify = require('util').promisify;
+const {CORE_LODASH_MOMENT_INPUTMASK} = require('../vm');
 
 /**
  * The ActionIndex export.
- *
- * @param router
- *
- * @returns {{actions: {}, register: Function, search: Function, execute: Function}}
- */
+*
+* @param router
+*
+* @returns {{actions: {}, register: Function, search: Function, execute: Function}}
+*/
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
+  const config = router.formio.config;
+  const ConditionalActionsVM = new IsolateVM({env: CORE_LODASH_MOMENT_INPUTMASK, timeoutMs: config.vmTimeout});
 
   /**
    * Create the ActionIndex object.
@@ -63,7 +65,7 @@ module.exports = (router) => {
      * @param next
      * @returns {*}
      */
-    loadActions(req, res, next) {
+    async loadActions(req, res, next) {
       if (!req.actions) {
         req.actions = {};
       }
@@ -79,16 +81,14 @@ module.exports = (router) => {
       }
 
       // Find the actions associated with this form.
-      this.model.find(hook.alter('actionsQuery', {
-        form,
-        deleted: {$eq: null},
-      }, req))
-      .sort('-priority')
-      .lean()
-      .exec((err, result) => {
-        if (err) {
-          return next(err);
-        }
+      try {
+        const result = await this.model.find(hook.alter('actionsQuery', {
+          form,
+          deleted: {$eq: null},
+        }, req))
+        .sort('-priority')
+        .lean()
+        .exec();
 
         // Iterate through all of the actions and load them.
         const actions = [];
@@ -104,7 +104,10 @@ module.exports = (router) => {
 
         req.actions[form] = actions;
         return next(null, actions);
-      });
+      }
+      catch (err) {
+        return next(err);
+      }
     },
 
     /**
@@ -115,7 +118,7 @@ module.exports = (router) => {
      * @param req
      * @param next
      */
-    search(handler, method, req, res, next) {
+    async search(handler, method, req, res, next) {
       if (!req.formId) {
         return next(null, []);
       }
@@ -129,7 +132,7 @@ module.exports = (router) => {
       }
       else {
         // Load the actions.
-        this.loadActions(req, res, (err) => {
+        await this.loadActions(req, res, (err) => {
           if (err) {
             return next(err);
           }
@@ -146,8 +149,8 @@ module.exports = (router) => {
      * @param res
      * @param next
      */
-    initialize(method, req, res, next) {
-      this.search(null, method, req, res, (err, actions) => {
+    async initialize(method, req, res, next) {
+      await this.search(null, method, req, res, (err, actions) => {
         if (err) {
           return next(err);
         }
@@ -173,9 +176,9 @@ module.exports = (router) => {
      * @param res
      * @param next
      */
-    execute(handler, method, req, res, next) {
+    async execute(handler, method, req, res, next) {
       // Find the available actions.
-      this.search(handler, method, req, res, (err, actions) => {
+      await this.search(handler, method, req, res, (err, actions) => {
         if (err) {
           router.formio.log(
             'Actions search fail',
@@ -195,9 +198,12 @@ module.exports = (router) => {
             // Resolve the action.
             router.formio.log('Action', req, handler, method, action.name, action.title);
 
-            hook.performAsync('logAction', req, res, action, handler, method).then(logAction => {
+            hook.alter('logAction', req, res, action, handler, method, (err, logAction) => {
+              if (err) {
+                return cb(err);
+              }
               // if logs are allowed and performed, the logging logic resolves the action that is why skip it here.
-              if (logAction) {
+              if (logAction === true) {
                 return cb();
               }
               action.resolve(handler, method, req, res, (err) => {
@@ -206,9 +212,6 @@ module.exports = (router) => {
                 }
                 return cb();
               }, () => {});
-            })
-            .catch((err) => {
-              return cb(err);
             });
           });
         }, (err) => {
@@ -255,12 +258,11 @@ module.exports = (router) => {
             _
           }, req);
 
-          const result = await evaluate({
-            deps: ['core', 'moment', 'lodash'],
-            code: json ?
+          const result = await ConditionalActionsVM.evaluate(
+            json ?
               `execute = jsonLogic.apply(${condition.custom}, { data, form, _, util })` :
               condition.custom,
-            data: {
+            {
               execute: params.execute,
               query: params.query,
               data: params.data,
@@ -268,17 +270,16 @@ module.exports = (router) => {
               submission: params.submission,
               previous: params.previous,
             }
-          });
-
+          );
           return result;
         }
         catch (err) {
           router.formio.log(
             'Error during executing action custom logic',
             req,
-            err
+            err.message || err
           );
-          debug.error(err);
+          debug.error(err.message || err);
           return false;
         }
       }
@@ -339,7 +340,7 @@ module.exports = (router) => {
    *
    * @param action
    */
-  function getSettingsForm(action, req, cb) {
+  async function getSettingsForm(action, req) {
     const mainSettings = {
       components: []
     };
@@ -422,9 +423,10 @@ module.exports = (router) => {
       });
     }
 
-    router.formio.cache.loadForm(req, undefined, req.params.formId, (err, form) => {
-      if (err || !form || !form.components) {
-        return cb('Could not load form components for conditional actions.');
+    try {
+      const form = await router.formio.cache.loadForm(req, undefined, req.params.formId);
+      if (!form || !form.components) {
+        throw new Error('Could not load form components for conditional actions.');
       }
 
       const flattenedComponents = router.formio.util.flattenComponents(form.components);
@@ -632,7 +634,6 @@ module.exports = (router) => {
       const actionSettings = {
         type: 'fieldset',
         input: false,
-        tree: true,
         legend: 'Action Settings',
         components: []
       };
@@ -691,20 +692,20 @@ module.exports = (router) => {
       };
 
       // Return the settings form.
-      return cb(null, {
+      const finalSettings = {
         actionSettings: actionSettings,
         settingsForm: settingsForm
-      });
-    });
+      };
+      return finalSettings;
+    }
+    catch (err) {
+      throw new Error('Could not load form components for conditional actions.');
+    }
   }
 
   async function getDeletedSubmission(req) {
     try {
-      return await promisify(router.formio.cache.loadSubmission)(
-        req,
-        req.body.form,
-        req.body._id,
-      );
+      return await router.formio.cache.loadSubmission(req, req.body.form, req.body._id,);
     }
     catch (err) {
       router.formio.log(
@@ -777,7 +778,7 @@ module.exports = (router) => {
       return res.status(400).send('Action not found');
     }
 
-    action.info(req, res, (err, info) => {
+    action.info(req, res, async (err, info) => {
       if (err) {
         router.formio.log('Error, can\'t get action info', req, err);
         return next(err);
@@ -791,11 +792,14 @@ module.exports = (router) => {
       });
 
       try {
-        getSettingsForm(info, req, (err, settings) => {
-          if (err) {
-            router.formio.log('Error, can\'t get action settings', req, err);
-            return res.status(400).send(err);
-          }
+        let settings;
+        try {
+          settings = await getSettingsForm(info, req);
+        }
+        catch (err) {
+          router.formio.log('Error, can\'t get action settings', req, err);
+          return res.status(400).send(err);
+        }
 
           action.settingsForm(req, res, (err, settingsForm) => {
             if (err) {
@@ -815,7 +819,6 @@ module.exports = (router) => {
             info.settingsForm.action = hook.alter('path', `/form/${req.params.formId}/action`, req);
             hook.alter('actionInfo', info, req);
             res.json(info);
-          });
         });
       }
       catch (e) {
@@ -835,6 +838,14 @@ module.exports = (router) => {
 
       // Set the form on the request body.
       req.body.form = req.params.formId;
+
+      // sets a default value in actions where manual input of this data is not expected (e.g. Save Submission).
+      if (!req.body.hasOwnProperty('handler') && req.body.defaults?.handler) {
+        req.body.handler = req.body.defaults.handler;
+      }
+      if (!req.body.hasOwnProperty('method') && req.body.defaults?.method) {
+        req.body.method = req.body.defaults.method;
+      }
 
       // Make sure to store handler to lowercase.
       if (req.body.handler) {

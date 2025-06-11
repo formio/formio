@@ -8,7 +8,6 @@ const _ = require('lodash');
 const Entities = require('html-entities');
 const moment = require('moment-timezone');
 const {conformToMask} = require('vanilla-text-mask');
-const Formio = require('formiojs/formio.form');
 
 const interpolate = (string, data) => string.replace(/{{\s*(\S*)\s*}}/g, (match, path) => {
   const value = _.get(data, path);
@@ -47,19 +46,29 @@ class CSVExporter extends Exporter {
     const formattedView = req.query.view === 'formatted';
     this.formattedView = formattedView;
 
-    const ignore = ['password', 'button', 'container', 'datagrid', 'editgrid', 'dynamicWizard'];
+    const ignore = ['password', 'button', 'container', 'datagrid', 'editgrid', 'dynamicWizard', 'reviewpage'];
+    if (!util.Formio) {
+      return;
+    }
     try {
-      util.eachComponent(form.components, (comp, path) => {
+      util.eachComponent(form.components, (comp, path, components, parent, compPaths) => {
         if (!comp.input || !comp.key || ignore.includes(comp.type)) {
           return;
         }
 
-        const {component} = Formio.Components.create(comp);
+        const {component} =util.Formio.Components.create(comp);
         const items = [];
         let noRecurse = false;
 
         // If a component has multiple parts, pick what we want.
         if (component.type === 'address') {
+          const getAddressComponentValue = (component, value = {}) => {
+            if (component.enableManualMode && value.address) {
+              return value.address;
+            }
+            return value;
+          };
+
           items.push({
             rename: (label) => `${label}.formatted`,
             preprocessor: (value) => {
@@ -67,7 +76,7 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              const address = (value && value.address) || value || {};
+              const address = getAddressComponentValue(component, value);
 
               // OpenStreetMap || Azure || Google
               // eslint-disable-next-line max-len
@@ -81,7 +90,7 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              const address = (value && value.address) || value || {};
+              const address = getAddressComponentValue(component, value);
 
               // OpenStreetMap || Azure || Google
               return address.lat || _.get(address, 'position.lat') || _.get(address, 'geometry.location.lat') || '';
@@ -94,7 +103,7 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              const address = (value && value.address) || value || {};
+              const address = getAddressComponentValue(component, value);
 
               // OpenStreetMap || Azure || Google
               return address.lon || _.get(address, 'position.lon') || _.get(address, 'geometry.location.lng') || '';
@@ -279,6 +288,7 @@ class CSVExporter extends Exporter {
               // If we wish to display in submission timezone, and there is submission timezone metadata.
               if (
                 (component.displayInTimezone === 'submission') &&
+                submission &&
                 submission.metadata &&
                 submission.metadata.timezone
               ) {
@@ -307,11 +317,7 @@ class CSVExporter extends Exporter {
         else if (component.type === 'signature') {
           items.push({
             preprocessor: (value) => {
-              if (_.isObject(value)) {
-                return value;
-              }
-
-              return value ? 'YES' : 'NO';
+              return value ? value : '';
             }
           });
         }
@@ -384,10 +390,11 @@ class CSVExporter extends Exporter {
 
         items.forEach((item) => {
           const finalItem = {
-            path,
+            path: compPaths.path,
             key: component.key,
-            label: (item.label || path).replace(labelRegexp, '.'),
+            label: (item.label || compPaths.path).replace(labelRegexp, '.'),
             title: component.label,
+            dataPath: compPaths.path
           };
 
           if (item.hasOwnProperty('subpath')) {
@@ -423,7 +430,6 @@ class CSVExporter extends Exporter {
       res.status(400).send(err.message || err);
     }
   }
-  /* eslint-enable max-statements */
 
   /**
    * Start the CSV export by creating the headers.
@@ -495,20 +501,16 @@ class CSVExporter extends Exporter {
   getSubmissionData(submission) {
     const updatedSubmission = {};
     const result = this.fields.map((column) => {
-      const componentData = _.get(submission.data, column.path);
+    let componentData = _.get(submission.data, column.dataPath);
 
-      // If the path had no results and the component specifies a path, check for a datagrid component
-      if (_.isUndefined(componentData) && column.path.includes('.')) {
-        let parts = column.path.split('.');
-
-        // If array in nested form
-        if (parts.length > 2) {
-          let newParts = _.chunk(parts, parts.length - 1);
-          newParts = newParts.map(part => part.join('.'));
-          parts = newParts;
-        }
+      // If the path had no results and the component specifies a path, check for a datagrid component or nested form
+      if (_.isUndefined(componentData) && column.dataPath.includes('.')) {
+        const parts = column.dataPath.split('.');
         const container = parts.shift();
         const containerData = _.get(submission.data, container);
+        if (containerData && containerData.hasOwnProperty('data')) {
+          componentData = _.get(containerData.data, parts);
+        }
 
         // If the subdata is an array, coerce it to a displayable string.
         if (Array.isArray(containerData)) {
@@ -547,7 +549,7 @@ class CSVExporter extends Exporter {
         ? `${column.key}.${column.subpath}`
         : column.key;
 
-      return data.map((item) => `"${this.coerceToString(_.get(item, fullPath, item), column)}"`).join(',');
+    return data.map((item) => `${this.coerceToString(_.get(item, fullPath, item), column, submission)}`).join(',');
     }
     else if (_.isString(data)) {
       if (column.type === 'boolean') {

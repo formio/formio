@@ -5,6 +5,7 @@ const async = require('async');
 
 module.exports = (router) => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
+  const hook = require('../../util/hook')(router.formio);
 
   // Get a subrequest and sub response for a nested request.
   const getSubRequest = function(component, subQuery, req, res, response) {
@@ -203,14 +204,8 @@ module.exports = (router) => {
     // First check their access within this form.
     return checkAccess(component, req.query, req, res).then(async () => {
       const formId = component.form || component.resource || component.data.resource;
-      const form = await new Promise((resolve, reject) =>
-        router.formio.cache.loadForm(req, null, formId, (err, form) => {
-          if (err) {
-            return reject(err);
-          }
-          resolve(form);
-        })
-      );
+      const form = await router.formio.cache.loadForm(req, null, formId);
+
       // Get the subquery.
       const subQuery = getSubQuery(formId, req.query, path);
       const subQueryReq = {query: subQuery.match};
@@ -336,20 +331,15 @@ module.exports = (router) => {
           pipeline = pipeline.concat(subpipe);
           req.countQuery.pipeline = req.modelQuery.pipeline = pipeline;
         });
-      case 'afterIndex':
-        return new Promise((resolve, reject) => {
-          router.formio.cache.loadForm(req, null, formId, function(err, form) {
-            if (err) {
-              return reject(err);
-            }
-            if (res.resource && Array.isArray(res.resource.item)) {
-              util.removeProtectedFields(form, 'index', res.resource.item.map(submission => {
-                return _.get(submission, `data.${path}`);
-              }));
-            }
-            resolve();
-          });
-        });
+      case 'afterIndex': {
+        const form = await router.formio.cache.loadForm(req, null, formId);
+        if (res.resource && Array.isArray(res.resource.item)) {
+          util.removeProtectedFields(form, 'index', res.resource.item.map(submission => {
+            return _.get(submission, `data.${path}`);
+          }));
+        }
+        return form;
+      }
       case 'beforePost':
         return setResource(component, path, req, res);
        case 'afterPost':

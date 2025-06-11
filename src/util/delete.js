@@ -65,7 +65,7 @@ module.exports = (router) => {
    * @returns {Promise}
    *   Result of deleting the action(s), resolved by deleted entity(ies).
    */
-  function deleteAction(actionId, forms, req) {
+  async function deleteAction(actionId, forms, req) {
     const util = router.formio.util;
     if (!actionId && !forms) {
       return Promise.resolve();
@@ -78,6 +78,13 @@ module.exports = (router) => {
     const query = {deleted: {$eq: null}};
     if (actionId) {
       query._id = util.idToBson(actionId);
+      query.form = util.idToBson(req.formId);
+
+      const actions  = await router.formio.actions.model.find(query).exec();
+
+      if (!actions || !actions.length) {
+        throw Error('Could not find the action');
+      }
     }
     else {
       forms = forms.map(util.idToBson);
@@ -129,7 +136,7 @@ module.exports = (router) => {
    * @param {Object} req
    *   The express request object.
    */
-  function deleteRoleAccess(roleId, req) {
+  async function deleteRoleAccess(roleId, req) {
     const util = router.formio.util;
     if (!roleId) {
       return Promise.resolve();
@@ -144,7 +151,7 @@ module.exports = (router) => {
      * @param {[ObjectId]} formIds
      *   Ids of forms for which role should be removed.
      */
-    function removeFromForm(formIds) {
+    async function removeFromForm(formIds) {
       // Build the or query on accessTypes.
       const accessTypes = ['access', 'submissionAccess'];
       const or = accessTypes.map((accessType) => ({
@@ -152,7 +159,7 @@ module.exports = (router) => {
       }));
 
       // Build the search query, and allow anyone to hook it.
-      const query = hook.alter('formQuery', {
+      const query = await hook.alter('formQuery', {
         _id: {$in: formIds.map(util.idToBson)},
         $or: or,
       }, req);
@@ -212,7 +219,7 @@ module.exports = (router) => {
     }
 
     // Build the search query and allow anyone to hook it.
-    const query = hook.alter('formQuery', {deleted: {$eq: null}}, req);
+    const query = await hook.alter('formQuery', {deleted: {$eq: null}}, req);
 
     return router.formio.resources.form.model.find(query).select('_id').lean().exec()
       .then((forms) => {

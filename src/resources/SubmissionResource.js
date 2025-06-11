@@ -14,6 +14,7 @@ module.exports = (router) => {
     router.formio.middleware.filterIdCreate,
     router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
+    router.formio.middleware.allowTimestampOverride,
     router.formio.middleware.bootstrapEntityOwner,
     router.formio.middleware.bootstrapSubmissionAccess,
     router.formio.middleware.addSubmissionResourceAccess,
@@ -34,10 +35,15 @@ module.exports = (router) => {
     handlers.afterGet,
     router.formio.middleware.filterResourcejsResponse(hiddenFields),
     router.formio.middleware.filterProtectedFields('get', (req) => router.formio.cache.getCurrentFormId(req)),
-    (req, res, next) => {
-      router.formio.cache.loadCurrentForm(req, (err, currentForm) => {
-        return hook.alter('getSubmissionRevisionModel', router.formio, req, currentForm, false, next);
-      });
+    async (req, res, next) => {
+      try {
+        const currentForm = await router.formio.cache.loadCurrentForm(req);
+        await hook.alter('getSubmissionRevisionModel', router.formio, req, currentForm, false);
+        return next();
+      }
+      catch (err) {
+        return next(err);
+      }
     },
     router.formio.middleware.submissionRevisionLoader
   ];
@@ -45,6 +51,7 @@ module.exports = (router) => {
     router.formio.middleware.permissionHandler,
     router.formio.middleware.submissionApplyPatch,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
+    router.formio.middleware.allowTimestampOverride,
     router.formio.middleware.bootstrapEntityOwner,
     router.formio.middleware.bootstrapSubmissionAccess,
     router.formio.middleware.addSubmissionResourceAccess,
@@ -63,6 +70,11 @@ module.exports = (router) => {
       if (req.query.list) {
         req.filterIndex = true;
         delete req.query.list;
+      }
+
+      if (req.query.full) {
+        req.full = true;
+        delete req.query.full;
       }
 
       next();
@@ -99,61 +111,53 @@ module.exports = (router) => {
   ];
 
   // Register an exists endpoint to see if a submission exists.
-  router.get('/form/:formId/exists', (req, res, next) => {
+  router.get('/form/:formId/exists', async (req, res, next) => {
     const {ignoreCase = false} = req.query;
     // We need to strip the ignoreCase query out so resourcejs does not use it as a filter
     if (ignoreCase) {
       delete req.query['ignoreCase'];
     }
     // First load the form.
-    router.formio.cache.loadCurrentForm(req, (err, form) => {
-      if (err) {
-        return next(err);
+    try {
+      const form = await router.formio.cache.loadCurrentForm(req);
+      await hook.alter('getSubmissionModel', router.formio, req, form, false);
+      // Get the find query for this item.
+      const query = router.formio.resources.submission.getFindQuery(req);
+      if (_.isEmpty(query)) {
+        return res.status(400).send('Invalid query');
       }
 
-      hook.alter('getSubmissionModel', router.formio, req, form, false, (err, reqModel) => {
-        // Get the find query for this item.
-        const query = router.formio.resources.submission.getFindQuery(req);
-        if (_.isEmpty(query)) {
-          return res.status(400).send('Invalid query');
-        }
+      query.form = form._id;
+      query.deleted = {$eq: null};
+      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
-        query.form = form._id;
-        query.deleted = {$eq: null};
-        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
-
-        // Query the submissions for this submission.
-        submissionModel.findOne(
-          hook.alter('submissionQuery', query, req),
-          null,
-          (ignoreCase && router.formio.mongoFeatures.collation) ? {collation: {locale: 'en', strength: 2}} : {},
-          (err, submission) => {
-            if (err) {
-              return next(err);
-            }
-
-            // Return not found.
-            if (!submission || !submission._id) {
-              return res.status(404).send('Not found');
-            }
-            // By default check permissions to access the endpoint.
-            const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
-
-            if (withoutPermissions) {
-              // Send only the id as a response if the submission exists.
-              return res.status(200).json({
-                _id: submission._id.toString(),
-              });
-            }
-            else {
-              req.subId = submission._id.toString();
-              req.permissionsChecked = false;
-              return next();
-            }
+      // Query the submissions for this submission.
+          const submission = await submissionModel.findOne(
+            hook.alter('submissionQuery', query, req),
+            null,
+            (ignoreCase && router.formio.mongoFeatures.collation) ? {collation: {locale: 'en', strength: 2}} : {});
+          // Return not found.
+          if (!submission || !submission._id) {
+            return res.status(404).send('Not found');
           }
-        );
-      });
-    });
+            // By default check permissions to access the endpoint.
+          const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
+
+          if (withoutPermissions) {
+            // Send only the id as a response if the submission exists.
+            return res.status(200).json({
+              _id: submission._id.toString(),
+            });
+          }
+          else {
+            req.subId = submission._id.toString();
+            req.permissionsChecked = false;
+            return next();
+          }
+    }
+    catch (err) {
+      return next(err);
+    }
   }, router.formio.middleware.permissionHandler, (req, res, next) => {
     return res.status(200).json({
       _id: req.subId,
@@ -183,7 +187,7 @@ module.exports = (router) => {
         }
 
         const update = _.omit(req.body, ['_id', '__v']);
-
+        update.modified = new Date();
         router.formio.resources.submission.model.findOneAndUpdate(
           {_id: req.params[`${this.name}Id`]},
           {$set: update}

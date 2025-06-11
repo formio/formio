@@ -33,19 +33,14 @@ module.exports = (formio) => async (component, data, handler, action, {validatio
         (typeof value !== 'string') ||
         ((value !== '') && (value.substr(0, 5) !== 'data:'))
       ) {
-        return new Promise((resolve, reject) => {
-          formio.cache.loadCurrentSubmission(req, (err, submission) => {
-            if (err) {
-              return reject(err);
-            }
-            if (!submission) {
-              return reject(new Error('No submission found.'));
-            }
+        const submission = await formio.cache.loadCurrentSubmission(req);
 
-            _.set(data, component.key, _.get(submission.data, path));
-            return resolve();
-          });
-        });
+        if (!submission) {
+          throw new Error('No submission found.');
+        }
+        if (!_.isNil(value)) {
+          _.set(data, component.key, _.get(submission.data, path));
+        }
       }
   }
 };

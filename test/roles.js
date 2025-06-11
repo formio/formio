@@ -313,20 +313,15 @@ module.exports = function(app, template, hook) {
       });
 
       if (!docker)
-      it('Deleted roles should remain in the DB', function(done) {
+      it('Deleted roles should remain in the DB', async function() {
         var formio = hook.alter('formio', app.formio);
-        formio.resources.role.model.findOne({_id: template.roles.tempRole._id}, function(err, role) {
-          if (err) {
-            return done(err);
-          }
-          if (!role) {
-            return done('No role found with _id: ' + template.roles.tempRole._id + ', expected 1.');
-          }
+        let role = await formio.resources.role.model.findOne({_id: template.roles.tempRole._id});
+        if (!role) {
+          throw('No role found with _id: ' + template.roles.tempRole._id + ', expected 1.');
+        }
 
-          role = role.toObject();
-          assert.notEqual(role.deleted, null);
-          done();
-        });
+        role = role.toObject();
+        assert.notEqual(role.deleted, null);
       });
 
       it('The default Project Roles should still be available', function(done) {

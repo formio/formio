@@ -1,0 +1,64 @@
+{
+    "title": "Project with Existing Resource",
+    "version": "2.0.0",
+    "name": "projectWithExistingResource",
+    "roles": {},
+    "forms": {},
+    "actions": {
+      "customer:save": {
+        "title": "Save Submission",
+        "name": "save",
+        "form": "customer",
+        "priority": 10,
+        "method": [
+          "create",
+          "update"
+        ],
+        "handler": [
+          "before"
+        ]
+      }
+    },
+    "resources": {
+      "customer": {
+        "title": "Customer",
+        "type": "resource",
+        "name": "customer",
+        "path": "customer",
+        "display": "form",
+        "tags": [],
+        "settings": {},
+        "components": [
+          {
+            "label": "Name",
+            "applyMaskOn": "change",
+            "tableView": true,
+            "key": "name",
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "label": "Email",
+            "applyMaskOn": "change",
+            "tableView": true,
+            "key": "email",
+            "type": "email",
+            "input": true
+          },
+          {
+            "type": "button",
+            "label": "Submit",
+            "key": "submit",
+            "disableOnInvalid": true,
+            "input": true,
+            "tableView": false
+          }
+        ],
+        "properties": {},
+        "controller": "",
+        "submissionRevisions": ""
+      }
+    },
+    "revisions": {},
+    "excludeAccess": true
+  }

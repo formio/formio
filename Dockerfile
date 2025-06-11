@@ -4,14 +4,16 @@
 
 # Use Node image, maintained by Docker:
 # hub.docker.com/r/_/node/
-FROM node:lts-alpine3.19
+FROM node:20-alpine
 
 # Copy source dependencies
 COPY src/ /app/src/
 COPY config/ /app/config
+COPY portal/ /app/portal/
 COPY *.js /app/
 COPY *.txt /app/
 COPY package.json /app/
+COPY default-template.json /app/
 
 WORKDIR /app
 
@@ -27,9 +29,10 @@ RUN apk update && \
 # Use https to avoid requiring ssh keys for public repos.
 RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
-# Use "Continuous Integration" to install as-is from package-lock.json
-RUN yarn install
-
+# install dependencies
+RUN yarn
+# build the client application
+RUN yarn build:portal
 RUN apk del git
 
 # Set this to inspect more from the application. Examples:

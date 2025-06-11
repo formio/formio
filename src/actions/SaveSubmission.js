@@ -2,8 +2,8 @@
 
 const _ = require('lodash');
 const async = require('async');
+const {IsolateVM} = require('@formio/vm');
 const util = require('../util/util');
-const {evaluateSync} = require('@formio/vm');
 const LOG_EVENT = 'Save Submission Action';
 
 module.exports = function(router) {
@@ -13,6 +13,8 @@ module.exports = function(router) {
   const ecode = router.formio.util.errorCodes;
   const logOutput = router.formio.log || debug;
   const log = (...args) => logOutput(LOG_EVENT, ...args);
+  const config = router.formio.config;
+  const SaveSubmissionActionVM = new IsolateVM({timeoutMs: config.vmTimeout});
 
   class SaveSubmission extends Action {
     static info(req, res, next) {
@@ -85,7 +87,7 @@ module.exports = function(router) {
         const childReq = util.createSubRequest(req);
         if (!childReq) {
           log(
-            req,
+            {...req, body: '[Protected info]'},
             ecode.request.EREQRECUR,
             new Error(ecode.request.EREQRECUR),
             '#resolve'
@@ -124,7 +126,7 @@ module.exports = function(router) {
         }
         else {
           log(
-            req,
+            {...req, body: '[Protected Info]'},
             ecode.resource.ENOHANDLER,
             new Error(ecode.resource.ENOHANDLER),
             '#resolve',
@@ -140,16 +142,16 @@ module.exports = function(router) {
        * Load a resource.
        * @type {function(this:SaveSubmission)}
        */
-      const loadResource = function(cache, then) {
-        router.formio.cache.loadForm(req, 'resource', this.settings.resource, function(err, resource) {
-          if (err) {
-            log(req, ecode.cache.EFORMLOAD, err, '#resolve');
-            return then(err);
-          }
-
+      const loadResource = async function(cache, then) {
+        try {
+          const resource = await router.formio.cache.loadForm(req, 'resource', this.settings.resource);
           cache.resource = resource;
           then();
-        });
+        }
+        catch (err) {
+          log(req, ecode.cache.EFORMLOAD, err, '#resolve');
+          return then(err);
+        }
       }.bind(this);
 
       /**
@@ -187,7 +189,7 @@ module.exports = function(router) {
        * @param req
        * @returns {*}
        */
-      const updateSubmission = function(submission) {
+      const updateSubmission =  async function(submission) {
         submission = submission || {};
         submission.data = submission.data || {};
 
@@ -203,18 +205,18 @@ module.exports = function(router) {
 
         if (this.settings.transform) {
           try {
-            const newData = evaluateSync({
-              deps: [],
-              code: this.settings.transform,
-              data: {
-                submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
-                data: submission.data,
-              }
-            });
+            const newData = await SaveSubmissionActionVM.evaluate(
+              `data=submission.data;\n${this.settings.transform}\ndata;`,
+              {
+                  submission: (res.resource && res.resource.item) ? res.resource.item : req.body,
+                  data: submission.data,
+              },
+            );
             submission.data = newData;
+            req.isTransformedData = true;
           }
           catch (err) {
-            debug(`Error in submission transform: ${err.message}`);
+            debug(`Error in submission transform: ${err.message || err}`);
           }
         }
 
@@ -227,12 +229,12 @@ module.exports = function(router) {
        * @param form
        * @param then
        */
-      const loadSubmission = function(cache, then) {
+      const loadSubmission = async function(cache, then) {
         const submission = {data: {}, roles: []};
 
         // For new submissions, just populate the empty submission.
         if (req.method !== 'PUT') {
-          cache.submission = updateSubmission(submission);
+          cache.submission = await updateSubmission(submission);
           return then();
         }
 
@@ -266,13 +268,13 @@ module.exports = function(router) {
               req,
               this.settings.resource,
               external.id,
-              function(err, submission) {
+              async function(err, submission) {
                 if (err) {
                   log(req, ecode.submission.ESUBLOAD, err, '#resolve');
                   return then();
                 }
 
-                cache.submission = updateSubmission(submission);
+                cache.submission = await updateSubmission(submission);
                 then();
               }
             );

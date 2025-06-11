@@ -1,18 +1,27 @@
 'use strict';
 const _ = require('lodash');
-const {
-  ProcessTargets,
-  process,
-  interpolateErrors,
-  escapeRegExCharacters
-} = require('@formio/core');
-const {evaluateProcess} = require('@formio/vm');
-const util = require('../util/util');
+const {ObjectId} = require('mongodb');
+const FormioCore = require('@formio/core');
 const fetch = require('@formio/node-fetch-http-proxy');
 const debug = {
   validator: require('debug')('formio:validator'),
   error: require('debug')('formio:error')
 };
+const Utils = require('../util/util');
+const {RootShim} = require('../vm');
+
+async function loadFormById(cache, req, formId) {
+  const resource = await cache.loadForm(req, null, formId);
+  return resource;
+}
+
+async function submissionQueryExists(submissionModel, query) {
+    const result = await submissionModel.find(query);
+    if (result.length === 0 || !result) {
+      return false;
+    }
+    return true;
+}
 
 /**
  * @TODO: Isomorphic validation system.
@@ -22,9 +31,9 @@ const debug = {
  * @constructor
  */
 class Validator {
-  constructor(req, submissionModel, formModel, tokenModel, hook) {
+  constructor(req, formio) {
     const tokens = {};
-    const token = util.getRequestValue(req, 'x-jwt-token');
+    const token = Utils.getRequestValue(req, 'x-jwt-token');
     if (token) {
       tokens['x-jwt-token'] = token;
     }
@@ -39,14 +48,17 @@ class Validator {
     }
 
     this.req = req;
-    this.submissionModel = submissionModel;
-    this.formModel = formModel;
-    this.tokenModel = tokenModel;
+    this.submissionModel = req.submissionModel || formio.resources.submission.model;
+    this.submissionResource = formio.resources.submission;
+    this.cache = formio.cache;
+    this.formModel = formio.resources.form.model;
+    this.tokenModel = formio.mongoose.models.token;
     this.form = req.currentForm;
     this.project = req.currentProject;
     this.decodedToken = req.token;
     this.tokens = tokens;
-    this.hook = hook;
+    this.hook = formio.hook;
+    this.config = formio.config;
   }
 
   addPathQueryParams(pathQueryParams, query, path) {
@@ -85,19 +97,19 @@ class Validator {
       // because we (by and large) only have to worry about ASCII and partial unicode; this way, we can use collation-
       // aware indexes with case insensitive email searches to make things like login and registration a whole lot faster
       else if (
-        component.type === 'email' ||
+        (component.type === 'email' ||
         (
           component.type === 'textfield' &&
           component.validate &&
           component.validate.pattern === '[A-Za-z0-9]+'
-        )
+        )) && this.config.mongoFeatures?.collation
       ) {
         this.addPathQueryParams(value, query, path);
         collationOptions = {collation: {locale: 'en', strength: 2}};
       }
       else {
         this.addPathQueryParams({
-          $regex: new RegExp(`^${escapeRegExCharacters(value)}$`),
+          $regex: new RegExp(`^${FormioCore.escapeRegExCharacters(value)}$`),
           $options: 'i'
         }, query, path);
       }
@@ -110,7 +122,7 @@ class Validator {
       value.address['place_id']
     ) {
       this.addPathQueryParams({
-        $regex: new RegExp(`^${escapeRegExCharacters(value.address['place_id'])}$`),
+        $regex: new RegExp(`^${FormioCore.escapeRegExCharacters(value.address['place_id'])}$`),
         $options: 'i'
       }, query, `${path}.address.place_id`);
     }
@@ -123,59 +135,87 @@ class Validator {
     }
     // Only search for non-deleted items
     query.deleted = {$eq: null};
-    query.state = 'submitted';
-    return new Promise((resolve) => {
-      const cb = (err, result) => {
-        if (err) {
-          return resolve(false);
-        }
-        else if (result) {
-          // Only OK if it matches the current submission
-          if (submission._id && (result._id.toString() === submission._id)) {
-            resolve(true);
-          }
-          else {
-            component.conflictId = result._id.toString();
-            return resolve(false);
-          }
+    if (submission.hasOwnProperty('state')) {
+      query.state = 'submitted';
+    }
+    const cb = (err, result) => {
+      if (err) {
+        return false;
+      }
+      else if (result) {
+        // Only OK if it matches the current submission
+        if (submission._id && (result._id.toString() === submission._id)) {
+          return true;
         }
         else {
-          return resolve(true);
+          component.conflictId = result._id.toString();
+          return false;
         }
-      };
+      }
+      else {
+        return true;
+      }
+    };
 
-      this.submissionModel.findOne(query, null, collationOptions, (err, result) => {
-        if (err && collationOptions.collation) {
-          // presume this error comes from db compatibility, try again as regex
-          delete query[path];
-          this.addPathQueryParams({
-            $regex: new RegExp(`^${escapeRegExCharacters(value)}$`),
-            $options: 'i'
-          }, query, path);
-          this.submissionModel.findOne(query, cb);
-        }
-        else {
-          return cb(err, result);
-        }
-      });
-    });
+    try {
+      const result = await this.submissionModel.findOne(query, null, collationOptions);
+      return cb(null, result);
+    }
+    catch (err) {
+        return cb(err);
+    }
   }
 
-  validateCaptcha(captchaToken) {
-    return new Promise((resolve, reject) => {
-      this.tokenModel.findOne({value: captchaToken}, (err, token) => {
-        if (err) {
-          return reject(err);
-        }
+  async validateCaptcha(captchaToken) {
+    const token = await this.tokenModel.findOne({value: captchaToken});
+    if (!token) {
+      return false;
+    }
 
-        if (!token) {
-          return resolve(false);
-        }
+    // Remove temp token after submission with reCaptcha
+    return token.remove(() => true);
+  }
 
-        // Remove temp token after submission with reCaptcha
-        return token.remove(() => resolve(true));
-      });
-    });
+  async validateResourceSelectValue(context, value) {
+    const {component} = context;
+    if (!component.data.resource) {
+      throw new Error('Did not receive resource ID for resource select validation');
+    }
+    const resource = await loadFormById(this.cache, this.req, component.data.resource);
+    if (!resource) {
+      throw new Error('Resource not found');
+    }
+    // Curiously, if a value property is not provided, the renderer will submit the entire object.
+    // Even if the user selects "Entire Object" as the value property, the renderer will submit only
+    // the data object. If we don't have a value property we can fallback to the _id, if we don't
+    // have an _id we can fall back to the data object OR the data object plus the "submit" property
+    // (which seems to sometimes be stripped and sometimes not).
+    const valueQuery = component.valueProperty
+      ? {[component.valueProperty]: value}
+      : value._id
+      ? {_id: value._id}
+      : {$or: [{data: value}, {data: {...value, submit: true}}]};
+    if (!component.filter) {
+      component.filter = '';
+    }
+    const filterQueries = component.filter.split(',').reduce((acc, filter) => {
+      const [key, value] = filter.split('=');
+      return {...acc, [key]: value};
+    }, {});
+    Utils.coerceQueryTypes(filterQueries, resource, 'data.');
+
+    const query = {
+      form: new ObjectId(component.data.resource),
+      deleted: null,
+      $and:[
+        valueQuery,
+        this.submissionResource.getFindQuery({query: filterQueries})
+      ]
+    };
+    if (component.data.resource.hasOwnProperty('state')) {
+      query.state = 'submitted';
+    }
+    return await submissionQueryExists(this.submissionModel, query);
   }
 
   async dereferenceDataTableComponent(component) {
@@ -189,11 +229,66 @@ class Validator {
     }
 
     const resourceId = component.fetch.resource;
-    const resource = await this.formModel.findOne({_id: resourceId, deleted: null});
+    const resource = await this.formModel.findOne({_id: new ObjectId(resourceId.toString()), deleted: null});
     if (!resource) {
       throw new Error(`Resource at ${resourceId} not found for dereferencing`);
     }
-    return resource.components || [];
+    const dataTableComponents = (component.fetch.components || [])
+      .map(component => FormioCore.Utils.getComponent(resource.components || [], component.path));
+
+    const filterComponents = (component) => {
+      const info = FormioCore.Utils.componentInfo(component);
+      if (!(info.hasColumns || info.hasRows || info.hasComps)) {
+        return component;
+      }
+      if (info.hasColumns) {
+        component.columns = component.columns.map((column) => {
+          column.components = column.components
+            .map((component) => filterComponents(component))
+            .filter((component) => {
+              return FormioCore.Utils.getComponent(dataTableComponents, component.key) || (
+                component.columns?.length > 0 ||
+                component.rows?.length > 0 ||
+                component.components?.length > 0
+              );
+            });
+          return column;
+        });
+      }
+      else if (info.hasRows) {
+        component.rows = component.rows.map((row) => {
+          if (Array.isArray(row)) {
+            return row.map((column) => {
+              column.components = column.components
+                .map((component) => filterComponents(component))
+                .filter((component) => {
+                  return FormioCore.Utils.getComponent(dataTableComponents, component.key) || (
+                    component.columns?.length > 0 ||
+                    component.rows?.length > 0 ||
+                    component.components?.length > 0
+                  );
+                });
+              return column;
+            });
+          }
+          return row;
+        });
+      }
+      else {
+        component.components = component.components
+          .map((component) => filterComponents(component))
+          .filter((component) => {
+              return FormioCore.Utils.getComponent(dataTableComponents, component.key) || (
+                component.columns?.length > 0 ||
+                component.rows?.length > 0 ||
+                component.components?.length > 0
+              );
+          });
+      }
+      return component;
+    };
+
+    return filterComponents(resource).components || [];
   }
 
   /**
@@ -214,8 +309,10 @@ class Validator {
       return next();
     }
 
-    let config = this.project ? (this.project.config || {}) : {};
-    config = {...(this.form.config || {}), ...config};
+    const projectAndFormConfig = {
+      ...(this.project ? this.project.config ?? {} : {}),
+      ...(this.form ? this.form.config ?? {} : {}),
+    };
 
     const context = {
       form: this.form,
@@ -226,35 +323,49 @@ class Validator {
       fetch,
       scope: {},
       config: {
-        ...(config || {}),
+        ...projectAndFormConfig,
         headers: JSON.parse(JSON.stringify(this.req.headers)),
         server: true,
         token: this.tokens['x-jwt-token'],
         tokens: this.tokens,
-        database: {
+        database: this.hook.alter('validationDatabaseHooks', {
           isUnique: async (context, value) => {
             return this.isUnique(context, submission, value);
           },
-          validateCaptcha: this.validateCaptcha.bind(this),
+          validateResourceSelectValue: this.validateResourceSelectValue.bind(this),
           dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this)
-        }
+        }, this)
       }
     };
     try {
       // Process the server processes
-      context.processors = ProcessTargets.submission;
-      await process(context);
+      context.processors = FormioCore.ProcessTargets.submission;
+      context.rules = this.hook.alter('serverRules', FormioCore.serverRules);
+      await FormioCore.process(context);
       submission.data = context.data;
 
-      // Process the evaulator
-      const {scope, data} = await evaluateProcess({
-        ...(config || {}),
+      const serializedSubmission = JSON.parse(JSON.stringify(submission));
+      const root = new RootShim(context.form, serializedSubmission, context.scope);
+      const submissionContext = {
         form: this.form,
-        submission,
-        scope: context.scope,
-        token: this.tokens['x-jwt-token'],
-        tokens: this.tokens
-      });
+        components: this.form.components,
+        submission: serializedSubmission,
+        data: serializedSubmission.data,
+        scope: context.scope || {},
+        config: {
+            server: true,
+            token: context.token || '',
+        },
+        options: {
+            server: true,
+        },
+        instances: root.instanceMap,
+        processors: FormioCore.ProcessTargets.evaluator,
+      };
+
+      const scope = FormioCore.processSync(submissionContext);
+      const data = submissionContext.data;
+
       context.scope = scope;
       submission.data = data;
       submission.scope = scope;
@@ -273,7 +384,7 @@ class Validator {
     if (context.scope.errors && context.scope.errors.length) {
       return next({
         name: 'ValidationError',
-        details: interpolateErrors(context.scope.errors)
+        details: FormioCore.interpolateErrors(context.scope.errors)
       });
     }
 

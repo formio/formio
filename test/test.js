@@ -41,8 +41,9 @@ describe('Initialization', function() {
          * @param next
          *   The callback to execute.
          */
-        var dropDocuments = function(model, next) {
-          model.deleteMany({}, next);
+        var dropDocuments = async function(model, next) {
+          await model.deleteMany({});
+          return next();
         };
 
         async.series([
@@ -58,6 +59,7 @@ describe('Initialization', function() {
   });
 
   after(function() {
+    require('./vm')(app, template, hook);
     require('./templates')(app, template, hook);
     require('./bootstrap')(app, template, hook);
     require('./auth')(app, template, hook);
@@ -70,5 +72,6 @@ describe('Initialization', function() {
     require('./submission')(app, template, hook);
     require('./export/CSVExporter/CSVExporter')(app, template, hook);
     require('./unit')(app, template, hook);
+    require('./validator')(app, template, hook);
   });
 });
