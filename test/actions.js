@@ -16,6 +16,7 @@ const componentsWithMultiples = require('./fixtures/forms/componentsWithMultiple
 const selectBoxesSourceTypeForm = require('./fixtures/forms/selectBoxesSourceTypeForm.js');
 const { wait } = require('./util');
 const helper = require('./helper');
+const test = require('test/fixtures/forms/selectComponent');
 const docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
@@ -2263,49 +2264,6 @@ module.exports = (app, template, hook) => {
           await wait(1800);
           assert(emailSent)
         });
-
-        it('Should render values of radio type Checkbox component properly', async () => {
-          const form =  require('./fixtures/forms/radioTypeCheckboxes.js');
-
-          const oForm = (await request(app)
-            .post(hook.alter('url', '/form', template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(form)).body;
-          let testAction = createTestAction();
-          testAction.form = oForm._id;
-          // Add the action to the form.
-          const testActionRes = (await request(app)
-            .post(hook.alter('url', `/form/${oForm._id}/action`, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(testAction)).body;
-
-          testAction = testActionRes;
-
-          let emailSent = false;
-
-          const event = template.hooks.getEmitter();
-          event.on('newMail', (email) => {
-            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
-            assert(emailTemplateNoWhitespace.includes(`>CheckboxA</th><tdstyle=3D"width:100%;padding:5px10px;">=Yes<`));
-            assert(emailTemplateNoWhitespace.includes(`>CheckboxB</th><tdstyle=3D"width:100%;padding:5px10px;">=No<`));
-            event.removeAllListeners('newMail');
-            emailSent = true;
-          });
-
-          const submission = {
-            data: {
-              radio: 'A',
-            },
-          };
-
-          // Send submission
-          await request(app)
-            .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
-            .set('x-jwt-token', template.users.admin.token)
-            .send(submission);
-          await wait(1800);
-          assert(emailSent)
-        });
       });
 
       describe('Select Component Emails', () => {
@@ -2383,146 +2341,85 @@ module.exports = (app, template, hook) => {
         })
       });
 
-      if (template.users.formioAdmin) {
-        describe('EmailAction form.io domain permissions', () => {
-          if (docker) {
-            return;
-          }
+      describe('Checkbox with Radio type Component Emails', () => {
+        let helper;
+        let test = require('./fixtures/forms/radioTypeCheckboxes.js');
 
-          // The temp form with the add RoleAction for existing submissions.
-          const emailForm = {
-            title: 'Email Form',
-            name: 'emailform2',
-            path: 'emailform2',
-            type: 'form',
-            access: [],
-            submissionAccess: [],
-            components: [
-              {
-                type: 'textfield',
-                key: 'firstName',
-                label: 'First Name',
-                input: true,
-              },
-              {
-                type: 'textfield',
-                key: 'lastName',
-                label: 'Last Name',
-                input: true,
-              },
-              {
-                type: 'email',
-                key: 'email',
-                label: 'Email',
-                input: true,
-              },
-            ],
-          };
-
-          // The temp role add action for existing submissions.
-          const emailAction = {
+        before((done) => {
+          helper = new Helper(template.users.admin, template);
+          let testAction = {
             title: 'Email',
             name: 'email',
             handler: ['after'],
             method: ['create'],
             priority: 1,
-            settings: {},
-          };
-
-          let numTests = 0;
-          const newEmailTest = (settings, done) => {
-            numTests++;
-            settings.transport = 'test';
-            let testForm = _.assign(_.cloneDeep(emailForm), {
-              title: (emailForm.title + numTests),
-              name: (emailForm.name + numTests),
-              path: (emailForm.path + numTests),
-            });
-            let testAction = _.assign(_.cloneDeep(emailAction), {
-              settings,
-            });
-
-            // Create the form.
-            request(app)
-              .post(hook.alter('url', '/form', template))
-              .set('x-jwt-token', template.users.admin.token)
-              .send(testForm)
-              .expect('Content-Type', /json/)
-              .expect(201)
-              .end((err, res) => {
-                if (err) {
-                  return done(err);
-                }
-
-                testForm = res.body;
-                testAction.form = testForm._id;
-                template.users.admin.token = res.headers['x-jwt-token'];
-
-                // Add the action to the form.
-                request(app)
-                  .post(hook.alter('url', `/form/${testForm._id}/action`, template))
-                  .set('x-jwt-token', template.users.admin.token)
-                  .send(testAction)
-                  .expect('Content-Type', /json/)
-                  .expect(201)
-                  .end((err, res) => {
-                    if (err) {
-                      return done(err);
-                    }
-
-                    testAction = res.body;
-                    template.users.admin.token = res.headers['x-jwt-token'];
-
-                    done(null, testForm, testAction);
-                  });
-              });
-          };
-
-          it('Shouldn\'t send an email from form.io domain if owner is not related to form.io domain.', (done) => {
-            newEmailTest({
+            settings: {
               from: 'travis@form.io',
-              emails: '{{ data.email }}',
+              replyTo: '',
+              emails: ['test@form.io'],
               sendEach: false,
-              subject: 'Hello there {{ data.firstName }} {{ data.lastName }}',
-              message: 'Howdy, {{ id }}',
-            }, (err, testForm) => {
+              subject: 'Hello',
+              message: '{{ submission(data, form.components) }}',
+              transport: 'test',
+              template: 'https://pro.formview.io/assets/email.html',
+              renderingMethod: 'dynamic'
+            },
+          }
+
+          helper
+            .form('testRadioCheckbox', test.components)
+            .execute((err) => {
               if (err) {
                 return done(err);
               }
-
-              // Check for an email.
-              const event = template.hooks.getEmitter();
-              event.once('newMail', (email) => {
-                done('Shouldn\'t send an email from form.io domain if owner is not related to form.io domain.');
-              });
-
-              request(app)
-                .post(hook.alter('url', `/form/${testForm._id}/submission`, template))
-                .set('x-jwt-token', template.users.admin.token)
-                .send({
-                  data: {
-                    firstName: 'Test',
-                    lastName: 'Person',
-                    email: 'test@example.com',
-                  },
-                })
-                .expect(201)
-                .expect('Content-Type', /json/)
-                .end((err) => {
+              testAction.form = helper.template.forms.test._id;
+              helper
+                .action(testAction)
+                .execute((err, result) => {
                   if (err) {
-                    event.removeAllListeners('newMail');
                     return done(err);
                   }
-                  console.log('Script execution timed out after 15000ms');
-                  setTimeout(() => {
-                    event.removeAllListeners('newMail');
-                    done();
-                  }, 15000);
-                });
+                  testAction = result.getAction('Email');
+                  done();
+                })
             });
-          });
         });
-      }
+
+        it('Should show proper value of Checkboxes with Radio type' , async () => {
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.once('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes(`>CheckboxA</th><tdstyle=3D"width:100%;padding:5px10px;">=Yes<`));
+            assert(emailTemplateNoWhitespace.includes(`>CheckboxB</th><tdstyle=3D"width:100%;padding:5px10px;">=No<`));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = {
+            data: {
+              radio: 'A',
+              submit: true,
+            },
+          };
+
+          helper
+            .submission(submission)
+            .execute((err) => {
+              return err;
+            })
+
+          await wait(2000);
+          assert(emailSent);
+        });
+
+        after((done) => {
+          delete template.forms.test;
+          delete template.actions.test;
+          done();
+        });
+      });
     });
 
     describe('RoleAction Functionality tests', () => {
