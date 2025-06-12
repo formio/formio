@@ -1,6 +1,9 @@
-export default {
+module.exports = {
   type: 'form',
   display: 'form',
+  title: "FIO-10253",
+  name: "fio10253",
+  path: "fio10253",
   components: [
     {
       label: 'Checkbox A',

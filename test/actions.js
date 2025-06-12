@@ -2285,17 +2285,11 @@ module.exports = (app, template, hook) => {
 
           const event = template.hooks.getEmitter();
           event.on('newMail', (email) => {
-            try {
-              const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
-              console.log(emailTemplateNoWhitespace);
-              assert(emailTemplateNoWhitespace.includes(`>CheckboxA</th><tdstyle=3D"width:100%;padding:5px10px;">=Yes<`));
-              assert(emailTemplateNoWhitespace.includes(`>CheckboxB</th><tdstyle=3D"width:100%;padding:5px10px;">=No<`));
-              event.removeAllListeners('newMail');
-              emailSent = true;
-            }
-            catch (err) {
-              console.log(err);
-            }
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '').replace(/\r/g, '');
+            assert(emailTemplateNoWhitespace.includes(`>CheckboxA</th><tdstyle="width:100%;padding:5px10px;">Yes<`));
+            assert(emailTemplateNoWhitespace.includes(`>CheckboxB</th><tdstyle="width:100%;padding:5px10px;">No<`));
+            event.removeAllListeners('newMail');
+            emailSent = true;
           });
 
           const submission = {
