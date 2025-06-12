@@ -242,10 +242,10 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/core@v2.4.0-dev.267.2866472":
-  version "2.4.0-dev.267.2866472"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.267.2866472.tgz#99dda0e3c7ffc7810fd8feab466e76e805ef5805"
-  integrity sha512-uZVzBQAWgSVQZgIDlNVzMOSHrlxQ+1+B3aljUd4nzVL9jf67pB5zaexqumwt6+YkWNgEzfNdAGAwmQbu546NWA==
+"@formio/core@v2.4.0-dev.268.1ce2f73":
+  version "2.4.0-dev.268.1ce2f73"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.268.1ce2f73.tgz#1500101f22c8c6ba59b830de2735cc2033acb0f5"
+  integrity sha512-2d2pAO9CRwrunuIZ4YkRlvugq3cqeF+B19a8OurURmAM7aBrMQApewEaRpkRrR1scCrrkCwDHTyV745l6trtcg==
   dependencies:
     browser-cookies "^1.2.0"
     core-js "^3.40.0"
@@ -647,9 +647,9 @@
   integrity sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==
 
 "@types/node@*":
-  version "24.0.0"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.0.0.tgz#14a278ce74dd33993f2c4e5dd614760728c0fba8"
-  integrity sha512-yZQa2zm87aRVcqDyH5+4Hv9KYgSdgwX1rFnGvpbzMaC7YAljmhBET93TPiTd3ObwTL+gSpIzPKg5BqVxdCvxKg==
+  version "24.0.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.0.1.tgz#e9bfcb1c35547437c294403b7bec497772a88b0a"
+  integrity sha512-MX4Zioh39chHlDJbKmEgydJDS3tspMP/lnQC67G3SWsTnb9NeYVWOjkxpOSy4oMfPs4StcWHwBrvUb4ybfnuaw==
   dependencies:
     undici-types "~7.8.0"
 

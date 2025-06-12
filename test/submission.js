@@ -3039,6 +3039,7 @@ module.exports = function(app, template, hook) {
             "prefix": "",
             "suffix": "",
             "multiple": true,
+            "defaultValue": "",
             "protected": false,
             "unique": false,
             "persistent": true,
