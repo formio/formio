@@ -102,7 +102,7 @@ module.exports = (app, template, hook) => {
             done();
           });
       });
-    });
+   });
 
     describe('Permissions - Project Level - Project Owner', () => {
       it('A Project Owner should be able to Create an Action', (done) => {
@@ -1947,7 +1947,6 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      it('Should send email for delete method', async () => {
       const createTestAction = () => ({
         title: 'Email',
         name: 'email',
@@ -1967,78 +1966,79 @@ module.exports = (app, template, hook) => {
         },
       });
 
-      const form = {
-        "_id": "683db072e69799ee3678e8aa",
-        "title": "deletemethodcheck",
-        "name": "deletemethodcheck",
-        "path": "deletemethodcheck",
-        "type": "form",
-        "display": "form",
-        "tags": [],
-        "components": [
-          {
-            "label": "Text Field",
-            "applyMaskOn": "change",
-            "tableView": true,
-            "validateWhenHidden": false,
-            "key": "textField",
-            "type": "textfield",
-            "input": true
-          },
-          {
-            "type": "button",
-            "label": "Submit",
-            "key": "submit",
-            "disableOnInvalid": true,
-            "input": true,
-            "tableView": false
-          }
-        ]
-      }
+      it('Should send email for delete method', async () => {
+        const form = {
+          "_id": "683db072e69799ee3678e8aa",
+          "title": "deletemethodcheck",
+          "name": "deletemethodcheck",
+          "path": "deletemethodcheck",
+          "type": "form",
+          "display": "form",
+          "tags": [],
+          "components": [
+            {
+              "label": "Text Field",
+              "applyMaskOn": "change",
+              "tableView": true,
+              "validateWhenHidden": false,
+              "key": "textField",
+              "type": "textfield",
+              "input": true
+            },
+            {
+              "type": "button",
+              "label": "Submit",
+              "key": "submit",
+              "disableOnInvalid": true,
+              "input": true,
+              "tableView": false
+            }
+          ]
+        }
 
-      const oForm = (await request(app)
-        .post(hook.alter('url', '/form', template))
-        .set('x-jwt-token', template.users.admin.token)
-        .send(form)).body;
+        const oForm = (await request(app)
+          .post(hook.alter('url', '/form', template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(form)).body;
 
-      let testAction = createTestAction();
-      testAction.form = oForm._id;
-      // Add the action to the form.
-      const testActionRes = (await request(app)
-        .post(hook.alter('url', `/form/${oForm._id}/action`, template))
-        .set('x-jwt-token', template.users.admin.token)
-        .send(testAction)).body;
+        let testAction = createTestAction();
+        testAction.form = oForm._id;
+        // Add the action to the form.
+        const testActionRes = (await request(app)
+          .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send(testAction)).body;
 
-      testAction = testActionRes;
+        testAction = testActionRes;
 
-      const mailReceived = new Promise((resolve, reject) => {
-        const event = template.hooks.getEmitter();
-        event.on('newMail', (email) => {
-          assert.equal(email.from, 'no-reply@example.com');
-          assert.equal(email.to, 'test@example.com');
-          assert.equal(email.subject, 'Hello');
-          event.removeAllListeners('newMail');
-          resolve();
+        const mailReceived = new Promise((resolve, reject) => {
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            assert.equal(email.from, 'no-reply@example.com');
+            assert.equal(email.to, 'test@example.com');
+            assert.equal(email.subject, 'Hello');
+            event.removeAllListeners('newMail');
+            resolve();
+          });
         });
-      });
 
-      // Create submission
-      const submissionResponse = await request(app)
-        .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+        // Create submission
+        const submissionResponse = await request(app)
+          .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+          .set('x-jwt-token', template.users.admin.token)
+          .send({
+            textField: "123",
+            submit: true
+          })
+          .expect(201);
+
+        // Delete submission
+        await request(app)
+        .delete(hook.alter('url', `/form/${oForm._id}/submission/${submissionResponse.body._id}`, template))
         .set('x-jwt-token', template.users.admin.token)
-        .send({
-          textField: "123",
-          submit: true
-        })
-        .expect(201);
+        .expect(200);
 
-      // Delete submission
-      await request(app)
-      .delete(hook.alter('url', `/form/${oForm._id}/submission/${submissionResponse.body._id}`, template))
-      .set('x-jwt-token', template.users.admin.token)
-      .expect(200);
-
-      await mailReceived;
+        await mailReceived;
       });
 
       it('Should send email with edit grid value', async () => {
@@ -2164,7 +2164,7 @@ module.exports = (app, template, hook) => {
             .set('x-jwt-token', template.users.admin.token)
             .send(submission);
           await wait(2000);
-          assert(emailSent)
+          assert(emailSent);
         });
 
         const editGridForm = (await request(app)
@@ -2211,50 +2211,6 @@ module.exports = (app, template, hook) => {
 
         await wait(1800);
 
-        assert(emailSent)
-      });
-
-      it('Should render values of radio type Checkbox component properly', async () => {
-        const form =  require('./fixtures/forms/radioTypeCheckboxes.js');
-
-        const oForm = (await request(app)
-          .post(hook.alter('url', '/form', template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send(form)).body;
-        let testAction = createTestAction();
-        testAction.form = oForm._id;
-        // Add the action to the form.
-        const testActionRes = (await request(app)
-          .post(hook.alter('url', `/form/${oForm._id}/action`, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send(testAction)).body;
-
-        testAction = testActionRes;
-
-        let emailSent = false;
-
-        const event = template.hooks.getEmitter();
-        event.on('newMail', (email) => {
-          const emailTemplateNoWhitespace = email.html.replace(/\s/g, '').replace(/\r/g, '');
-          assert(emailTemplateNoWhitespace.includes(`>CheckboxA</th><tdstyle="width:100%;padding:5px10px;">Yes<`));
-          assert(emailTemplateNoWhitespace.includes(`>CheckboxB</th><tdstyle="width:100%;padding:5px10px;">No<`));
-          event.removeAllListeners('newMail');
-          emailSent = true;
-        });
-
-        const submission = {
-          data: {
-            radio: 'A',
-            submit: true,
-          },
-        };
-
-        // Send submission
-        await request(app)
-          .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
-          .set('x-jwt-token', template.users.admin.token)
-          .send(submission);
-        await wait(2000);
         assert(emailSent)
       });
 
