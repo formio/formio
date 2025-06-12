@@ -821,6 +821,7 @@ module.exports = function(app, template, hook) {
                 minLength: '',
                 required: false
               },
+              defaultValue: '',
               multiple: false,
               suffix: '',
               prefix: '',
