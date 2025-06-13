@@ -132,6 +132,7 @@ module.exports = (formio) => {
     // The form components.
     params.components = {};
     params.componentsWithPath = {};
+    params.scope = params.scope || {};
 
     const replacements = [];
 

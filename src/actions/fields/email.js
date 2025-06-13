@@ -8,7 +8,25 @@ module.exports = (formio) => {
     if (validation) {
       return;
     }
+    const promise = {};
+    promise.promise = new Promise((resolve, reject) => {
+      promise.resolve = resolve;
+      promise.reject = reject;
+    });
 
-    return await hook.invoke('validateEmail', component, path, req, res);
+    const result = await hook.invoke('validateEmail', component, path, req, res, (err) => {
+      if (err) {
+        promise.reject(err);
+      }
+      else {
+        promise.resolve();
+      }
+    });
+
+    if (!result) {
+      promise.resolve();
+    }
+
+    return promise.promise;
   };
 };

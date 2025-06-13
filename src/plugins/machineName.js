@@ -14,7 +14,7 @@ module.exports = (modelName, formio) => {
     });
 
     // Add a compound index for both machine name and the deleted flag.
-    schema.index({machineName: 1}, {unique: true, partialFilterExpression: {deleted: {$eq: null}}});
+    schema.index({machineName: 1, deleted: 1}, {unique: true, partialFilterExpression: {deleted: {$eq: null}}});
 
     // Set the machine name for a record.
     schema.pre('save', function(next) {

@@ -13,13 +13,14 @@ const customSaveSubmissionTransformResource = require('./fixtures/forms/customSa
 const basicAndAdvancedForm = require('./fixtures/forms/basicAndAdvancedComponentsForm');
 const dataComponentsForm = require('./fixtures/forms/dataComponentsForm');
 const componentsWithMultiples = require('./fixtures/forms/componentsWithMultipleValues');
+const selectBoxesSourceTypeForm = require('./fixtures/forms/selectBoxesSourceTypeForm.js');
 const { wait } = require('./util');
 const helper = require('./helper');
 const docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
   const Helper = require('./helper')(app);
-  describe('Actions', () => {
+  describe('Actions', () =>  {
     // Store the temp form for this test suite.
     let tempForm = {
       title: 'Temp Form',
@@ -2056,6 +2057,100 @@ module.exports = (app, template, hook) => {
         }, addSettings);
       });
 
+    it('Should send email for delete method', async () => {
+      const createTestAction = () => ({
+        title: 'Email',
+        name: 'email',
+        handler: ['after'],
+        method: ['delete'],
+        priority: 1,
+        settings: {
+          from: 'no-reply@example.com',
+          replyTo: '',
+          emails: ['test@example.com'],
+          sendEach: false,
+          subject: 'Hello',
+          message: '{{ submission(data, form.components) }}',
+          transport: 'test',
+          template: 'https://pro.formview.io/assets/email.html',
+          renderingMethod: 'dynamic'
+        },
+      });
+
+      const form = {
+        "_id": "683db072e69799ee3678e8aa",
+        "title": "deletemethodcheck",
+        "name": "deletemethodcheck",
+        "path": "deletemethodcheck",
+        "type": "form",
+        "display": "form",
+        "tags": [],
+        "components": [
+          {
+            "label": "Text Field",
+            "applyMaskOn": "change",
+            "tableView": true,
+            "validateWhenHidden": false,
+            "key": "textField",
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "type": "button",
+            "label": "Submit",
+            "key": "submit",
+            "disableOnInvalid": true,
+            "input": true,
+            "tableView": false
+          }
+        ]
+      }
+        
+      const oForm = (await request(app)
+        .post(hook.alter('url', '/form', template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(form)).body;
+
+      let testAction = createTestAction();
+      testAction.form = oForm._id;
+      // Add the action to the form.
+      const testActionRes = (await request(app)
+        .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send(testAction)).body;
+
+      testAction = testActionRes;
+
+      const mailReceived = new Promise((resolve, reject) => {
+        const event = template.hooks.getEmitter();
+        event.on('newMail', (email) => {
+          assert.equal(email.from, 'no-reply@example.com');
+          assert.equal(email.to, 'test@example.com');
+          assert.equal(email.subject, 'Hello');
+          event.removeAllListeners('newMail');
+          resolve();
+        });
+      });
+
+      // Create submission
+      const submissionResponse = await request(app)
+        .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+        .set('x-jwt-token', template.users.admin.token)
+        .send({
+          textField: "123",
+          submit: true
+        })
+        .expect(201);
+
+      // Delete submission
+      await request(app)
+      .delete(hook.alter('url', `/form/${oForm._id}/submission/${submissionResponse.body._id}`, template))
+      .set('x-jwt-token', template.users.admin.token)
+      .expect(200);
+        
+      await mailReceived;
+      });
+
       describe('EmailAction template component rendering', () => {
         const createTestAction = () => ({
           title: 'Email',
@@ -2074,6 +2169,41 @@ module.exports = (app, template, hook) => {
             template: 'https://pro.formview.io/assets/email.html',
             renderingMethod: 'dynamic'
           },
+        });
+
+        it('Select boxes should be rendered in template if data source = url', async () => {
+          const form = selectBoxesSourceTypeForm.formJson;
+          const oForm = (await request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = oForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(testAction)).body;
+
+          testAction = testActionRes;
+
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes('>AK,AL<'));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = selectBoxesSourceTypeForm.submissionJson;
+          // Send submission
+          await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          await wait(1800);
         });
 
         it('Should send email with a bunch of simple components', async () => {
@@ -2225,6 +2355,50 @@ module.exports = (app, template, hook) => {
             .set('x-jwt-token', template.users.admin.token)
             .send(submission);
           await wait(1800);
+          assert(emailSent)
+        });
+
+        it('Should render values of radio type Checkbox component properly', async () => {
+          const form =  require('./fixtures/forms/radioTypeCheckboxes.js');
+
+          const oForm = (await request(app)
+            .post(hook.alter('url', '/form', template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = oForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(testAction)).body;
+
+          testAction = testActionRes;
+
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '').replace(/\r/g, '');
+            assert(emailTemplateNoWhitespace.includes(`>CheckboxA</th><tdstyle="width:100%;padding:5px10px;">Yes<`));
+            assert(emailTemplateNoWhitespace.includes(`>CheckboxB</th><tdstyle="width:100%;padding:5px10px;">No<`));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = {
+            data: {
+              radio: 'A',
+              submit: true,
+            },
+          };
+
+          // Send submission
+          await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission);
+          await wait(2000);
           assert(emailSent)
         });
       });

@@ -676,7 +676,7 @@ const Utils = {
    */
   async uniqueMachineName(document, model, next) {
     var query = {
-      machineName: {$regex: `^${document.machineName}[0-9]*$`},
+      machineName: {$regex: `^${_.escapeRegExp(document.machineName)}[0-9]*$`},
       deleted: {$eq: null}
     };
     if (document._id) {
@@ -899,6 +899,12 @@ const Utils = {
           case 'select': {
             if (Number(value) || value === "0") {
               return Number(value);
+            }
+            return value;
+          }
+          case 'selectboxes': {
+            if (['true', 'false'].includes(value)) {
+              return value !== 'false';
             }
           }
         }
