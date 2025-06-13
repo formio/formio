@@ -1,8 +1,6 @@
 /* eslint-env mocha */
 'use strict';
 
-var async = require('async');
-
 // Bootstrap the test environment.
 var app = null;
 var template = require('./fixtures/template')();
@@ -29,29 +27,22 @@ describe('Initialization', function() {
       /**
        * Remove all the mongo data.
        *
-       * @param cb
-       *   The callback to execute.
        */
-      template.clearData = (cb) => {
+      template.clearData = async () => {
         /**
          * Remove all documents using a mongoose model.
          *
          * @param model
          *   The mongoose model to delete.
-         * @param next
-         *   The callback to execute.
          */
-        var dropDocuments = async function(model, next) {
+        var dropDocuments = async function(model) {
           await model.deleteMany({});
-          return next();
         };
 
-        async.series([
-          async.apply(dropDocuments, app.formio.resources.form.model),
-          async.apply(dropDocuments, app.formio.resources.submission.model),
-          async.apply(dropDocuments, app.formio.actions.model),
-          async.apply(dropDocuments, app.formio.resources.role.model)
-        ], cb);
+        await dropDocuments(app.formio.resources.form.model);
+        await dropDocuments(app.formio.resources.submission.model);
+        await dropDocuments(app.formio.actions.model);
+        await dropDocuments(app.formio.resources.role.model);
       };
 
       done();
