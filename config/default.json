@@ -24,6 +24,22 @@
     "recaptcha",
     "captcha"
   ],
+  "reservedProjects": [
+    "submission",
+    "exists",
+    "export",
+    "role",
+    "current",
+    "logout",
+    "form",
+    "access",
+    "token",
+    "recaptcha",
+    "captcha",
+    "action",
+    "actionItem",
+    "tag"
+  ],
   "jwt": {
     "secret": "--- change me now ---",
     "expireTime": 240
