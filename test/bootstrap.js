@@ -12,13 +12,10 @@ module.exports = (app, template, hook) => {
       template.clearData(done);
     });
 
-    it('Should be able to bootstrap the default template', function(done) {
+    it('Should be able to bootstrap the default template', async function() {
       comparison = _.cloneDeep(template);
 
-      app.formio.template.import.template(template, function(err) {
-        if (err) {
-          return done(err);
-        }
+      await app.formio.template.import.template(template);
 
         var resourceA = template.resources.a;
         var resourceB = template.resources.b;
@@ -26,8 +23,6 @@ module.exports = (app, template, hook) => {
         var resourceComponentB = formioUtils.getComponent(resourceA.components, 'b');
         assert.equal(resourceA._id, resourceComponentA.resource, `Resource B's resource component for A should have the correct resource id. (Got ${resourceComponentA.resource}, expected ${resourceA._id})`);
         assert.equal(resourceB._id, resourceComponentB.resource, `Resource A's resource component for B should have the correct resource id. (Got ${resourceComponentB.resource}, expected ${resourceB._id})`);
-        done();
-      });
     });
 
     it('Should be able to export what was imported', function(done) {
