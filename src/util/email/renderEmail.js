@@ -1,7 +1,7 @@
 /* eslint-disable max-statements */
 'use strict';
 
-const {processSync} = require('@formio/core');
+const {processSync, Evaluator} = require('@formio/core');
 const {JSDOM} = require('jsdom');
 const _ = require('lodash');
 const {
@@ -18,7 +18,8 @@ const {
   isGridBasedComponent,
   isLayoutComponent,
   convertToString,
-  formioComponents
+  formioComponents,
+  cleanLabelTemplate
 } = require('./utils');
 const macros = require('./nunjucks-macros');
 
@@ -127,7 +128,6 @@ function renderEmailProcessorSync(context) {
     case 'textfield':
     case 'number':
     case 'password':
-    case 'radio':
     case 'email':
     case 'url':
     case 'phoneNumber':
@@ -137,10 +137,50 @@ function renderEmailProcessorSync(context) {
       insertRow(componentRenderContext, outputValue);
       return;
     }
+    case 'radio': {
+      let outputValue = '';
+    if (rowValue) {
+      if (component.dataSrc === 'url') {
+        // eslint-disable-next-line max-depth
+        if (component.template && _.get(context.metadata, `selectData.${paths?.dataPath}`)) {
+          const selectData = _.get(context.metadata, `selectData.${paths?.dataPath}`);
+          const template = cleanLabelTemplate(component.template);
+          outputValue = Evaluator.interpolate(template, {item: selectData});
+        }
+      }
+      else {
+        outputValue = component?.values?.filter(v => rowValue === v.value)
+          .map(v => v.label)
+          .join(', ') || '';
+      }
+    }
+      else {
+        outputValue = rowValue;
+      }
+
+      insertRow(componentRenderContext, outputValue);
+      return;
+    }
     case 'select': {
-      const outputValue = component.multiple
-        ? rowValue?.map(v => convertToString(v)).join(', ')
-        : convertToString(rowValue);
+      let outputValue;
+      if (rowValue  && _.get(context.metadata, `selectData.${paths?.dataPath}`)) {
+        const selectData = _.get(context.metadata, `selectData.${paths?.dataPath}`);
+        const getValueLabel = (v, labelData, template) => {
+           return labelData
+            ? Evaluator.interpolate(template, {item: labelData})
+            : convertToString(v);
+         };
+        const template = cleanLabelTemplate(component.template) || '{{ item.label }}';
+        outputValue = component.multiple
+          ? rowValue?.map(v => getValueLabel(v, _.get(selectData, v), template)).join(', ')
+          : getValueLabel(rowValue, selectData, template);
+      }
+      else {
+        outputValue = component.multiple
+          ? rowValue?.map(v => convertToString(v)).join(', ')
+          : convertToString(rowValue);
+      }
+
       insertRow(componentRenderContext, outputValue);
       return;
     }
@@ -161,14 +201,21 @@ function renderEmailProcessorSync(context) {
       let outputValue = '';
       if (rowValue) {
         if (component.dataSrc === 'url') {
-          outputValue = _(rowValue)
-            .pickBy(Boolean)
-            .keys()
-            .join(', ');
+          // eslint-disable-next-line max-depth
+          if (component.template && _.isArray(_.get(context.metadata, `selectData.${paths?.dataPath}`))) {
+            const selectData = _.get(context.metadata, `selectData.${paths?.dataPath}`);
+            const template = cleanLabelTemplate(component.template);
+            outputValue = selectData.map(labelData => Evaluator.interpolate(template, {item: labelData})).join(', ');
+          }
+          else {
+            outputValue = _(rowValue)
+              .pickBy(Boolean)
+              .keys()
+              .join(', ');
+          }
         }
         else {
-          outputValue = component?.values
-            ?.filter(v => rowValue[v.value])
+          outputValue = component?.values?.filter(v => rowValue[v.value])
             .map(v => v.label)
             .join(', ') || '';
         }

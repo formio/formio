@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.5.1-rc.7]
+### Changed
+ - FIO-10193: fixed an issue where values of radio/select/selectboxes with resource/url data src rendered values instead of labels in email
+
 ## 4.5.1-rc.6
 ### Changed
  - Updated @formio/core@2.5.1-rc.6
