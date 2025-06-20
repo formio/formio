@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 3.5.8-rc.1
+### Changed
+ - FIO-9727: Allow admin users to override created and modified dates when making POST/PUT requests to the submission endpoint
+
 ## 3.5.7
 ### Changed
  - Official Release
