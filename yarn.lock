@@ -242,10 +242,10 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/core@v2.4.0-dev.268.1ce2f73":
-  version "2.4.0-dev.268.1ce2f73"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.268.1ce2f73.tgz#1500101f22c8c6ba59b830de2735cc2033acb0f5"
-  integrity sha512-2d2pAO9CRwrunuIZ4YkRlvugq3cqeF+B19a8OurURmAM7aBrMQApewEaRpkRrR1scCrrkCwDHTyV745l6trtcg==
+"@formio/core@v2.4.0-dev.269.9bfd803":
+  version "2.4.0-dev.269.9bfd803"
+  resolved "https://registry.npmjs.org/@formio/core/-/core-2.4.0-dev.269.9bfd803.tgz#a7c6e750933a1ed0f7dcf70f579f26557f8787c9"
+  integrity sha512-C9yTWxs0487lugbKczyOmnQAgCTqK75OsUTu2IrOgAIwEVrQkv+QnXjBdaAnVjcuOznWEkmn2XAv6iCgGQ3NAg==
   dependencies:
     browser-cookies "^1.2.0"
     core-js "^3.40.0"
