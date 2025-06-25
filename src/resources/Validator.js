@@ -348,6 +348,7 @@ class Validator {
       // Process the server processes
       context.processors = FormioCore.Processors;
       context.rules = this.hook.alter('serverRules', FormioCore.serverRules);
+      context.rules = FormioCore.rules.concat(context.rules);
       context.scope = await FormioCore.process(context);
       submission.data = context.data;
 
