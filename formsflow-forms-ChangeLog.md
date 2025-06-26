@@ -9,7 +9,13 @@
 - `Untested Features`: Newly introduced features or components that are yet to be thoroughly tested.
 - `Upcoming Features`: Planned features or enhancements that will be available in future releases.
 - `Known Issues`: Existing issues or problems that are acknowledged and will be addressed in subsequent updates.
- 
+
+# Version 7.1.0
+### Added
+- Added FORMIO_JWT_EXPIRE env for handling token expire time
+- Added tenant_key in logger
+- Added New /submissions POST API Allows listing submissions by passing submissionIds in the request body. Ensures access control by verifying form access before returning submissions.
+
 # Version 7.0.0
 ### Added
 - Added the formIds query parameter in the /form endpoint to retrieve form components, accessible only to admin users.

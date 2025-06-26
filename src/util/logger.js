@@ -25,11 +25,29 @@ const logFolder = process.env.LOG_FOLDER || "./logs"
 const archivedFolder = logFolder+"/archived"
 const logFile = "formio-%DATE%.log"
 //Using the printf format.
-const customFormat = printf(({ level, label, timestamp, ...meta}) => {
-    const args = meta[Symbol.for('splat')];
-     if(args) meta.message = util.format(meta.message, ...args);
-     meta.message = formatObjectsAndArrays(meta.message);
-  return `${timestamp} [${label}] ${level}: ${meta.message}`;
+
+const customFormat = printf(({ level, label, timestamp, ...meta }) => {
+  const args = meta[Symbol.for('splat')] || [];
+  let tenantKey;
+  let formattedArgs = args;
+
+  // Extract tenantKey if first arg is an object with tenantKey
+  if (args[0] && typeof args[0] === 'object' && args[0].tenantKey) {
+    tenantKey = args[0].tenantKey;
+    formattedArgs = args[0].info || [];
+  }
+
+  // Format the message
+  if (formattedArgs.length > 0) {
+    meta.message = util.format(meta.message, ...formattedArgs);
+  }
+
+  meta.message = formatObjectsAndArrays(meta.message);
+
+  // Build the log string
+  const tenantPart = tenantKey ? ` [tenantKey: ${tenantKey}]` : '';
+  const log = `${timestamp} [${label}]${tenantPart} ${level}: ${meta.message}`;
+  return log;
 });
 
  

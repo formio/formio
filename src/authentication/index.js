@@ -49,13 +49,13 @@ module.exports = (router) => {
     } = jwtConfig;
 
     // changed the secret and expire to the env
-   
-
+    const expireMinutes = Number(process.env.FORMIO_JWT_EXPIRE) || expireTime || 240;
+    const expiresInSeconds = expireMinutes * 60;
     return jwt.sign(payload, customSecret ||process.env.FORMIO_JWT_SECRET||secret , {
-      expiresIn: (expireTime ||240) * 60,
+      expiresIn: expiresInSeconds,
     });
   };
-  // Number(process.env.FORMIO_JWT_EXPIRE)|| todo 
+
   /**
    * Checks to see if a decoded token is allowed to access this path.
    * @param req

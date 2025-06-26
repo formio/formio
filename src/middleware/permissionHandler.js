@@ -727,9 +727,13 @@ module.exports = function(router) {
 
     // Check for whitelisted paths.
     let skip = false;
+    const url = req.url.split('?')[0];
+    // skipping permission check for this route and it will do manually where route define
+    if(req.method === "POST" && url == "/submissions"){
+      skip = true;
+    }
     if (req.method === 'GET') {
-      const whitelist = ['/health', '/current', '/logout', '/access', '/token', '/recaptcha'];
-      const url = req.url.split('?')[0];
+    const whitelist = ['/health', '/current', '/logout', '/access', '/token', '/recaptcha'];
       skip = _.some(whitelist, function(path) {
         if ((url === path) || (url === hook.alter('path', path, req))) {
           return true;
