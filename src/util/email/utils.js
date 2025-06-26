@@ -436,6 +436,9 @@ const convertToString = (value) => {
     return value;
   }
 };
+const cleanLabelTemplate = (template) => {
+  return (template || '').replace(/<\/?[^>]+(>|$)/g, '');
+};
 
 module.exports = {
   isLayoutComponent,
