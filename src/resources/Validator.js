@@ -60,6 +60,7 @@ class Validator {
     this.tokens = tokens;
     this.hook = formio.hook;
     this.config = formio.config;
+    this.formioUtil = formio.util;
   }
 
   addPathQueryParams(pathQueryParams, query, path) {
@@ -84,11 +85,13 @@ class Validator {
   }
 
   async isUnique(context, submission, value) {
+    value = _.cloneDeep(value);
     const {component} = context;
     const path = `data.${context.path}`;
-    // Build the query
+    // Build the querys
     const query = {form: this.form._id};
     let collationOptions = {};
+    this.formioUtil.transformIdsToObjectIds(value);
 
     if (_.isString(value)) {
       if (component.dbIndex) {
