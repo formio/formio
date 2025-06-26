@@ -57,8 +57,12 @@ class IsolateVMEvaluator extends DefaultEvaluator {
         filteredArgs = rest;
         modifyEnv = `
           const root = new RootShim(form, submission, scope);
+          // modelType is non-enumerable outside of the vm and so won't get cloned,
+          // so calculate it here and attach it to the component
+          const modelType = util.getModelType(component);
+          component.modelType = modelType;
           const instances = root.instanceMap;
-          const instance = instances[component.modelType === 'none' && paths?.fullPath ? paths.fullPath : path];
+          const instance = instances[modelType === 'none' && paths?.fullPath ? paths.fullPath : path];
         `;
       }
 
