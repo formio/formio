@@ -46,7 +46,7 @@ module.exports = function(config) {
   router.formio.config.schema = require('./package.json').schema;
 
   router.formio.log = (event, req, ...info) => {
-    const tenantKey = req.token?.tenantKey;
+    const tenantKey = req.token && req.token.tenantKey;
     const result = router.formio.hook.alter('log', event, req, ...info);
     logger.info(event,{tenantKey: tenantKey, info: info});
     if (result) {
