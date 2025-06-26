@@ -1,6 +1,5 @@
 ## Link to Jira Ticket
 
-https://formio.atlassian.net/browse/FIO-XXXX
 
 ## Description
 

@@ -14,6 +14,7 @@
 ### Added
 - Added FORMIO_JWT_EXPIRE env for handling token expire time
 - Added tenant_key in logger
+- Added New /submissions POST API Allows listing submissions by passing submissionIds in the request body. Ensures access control by verifying form access before returning submissions.
 
 # Version 7.0.0
 ### Added
