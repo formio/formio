@@ -6218,7 +6218,7 @@ module.exports = function(app, template, hook) {
             nonPersistent: 'still should not exist',
             clientOnly: 'still should also not exist'
 
-            
+
           };
 
           request(app)
@@ -11163,7 +11163,7 @@ module.exports = function(app, template, hook) {
         created: "2025-03-19T14:13:10.069Z",
         modified: "2025-03-19T14:13:10.070Z"
       };
-    
+
       var tempForm = {
         title: 'overrideTestForm',
         name: 'overrideTestForm',
@@ -11350,10 +11350,10 @@ module.exports = function(app, template, hook) {
           if (err) {
             return done(err);
           }
-  
+
           const submission = res._body;
           assert.notEqual(submission.modified, submissionData.modified);
-  
+
           done();
         });
       });
