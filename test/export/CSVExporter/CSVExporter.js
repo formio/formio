@@ -1,4 +1,6 @@
-module.exports = function (app, template, hook) {
+'use strict';
+
+module.exports = function(app, template, hook) {
   const docker = process.env.DOCKER;
   const assert = require('assert');
   const request = require('../../formio-supertest');
@@ -38,18 +40,18 @@ module.exports = function (app, template, hook) {
 
   describe('CSVExporter', () => {
     it('Sets up a default project', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper.project().user('user', 'user1').execute(done);
     });
 
     it(`Export works in case when format is not set`, (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
         .form('test', test.components)
-        .submission({ data: { dateTime: '2020-03-10T09:00:00.000Z' } })
+        .submission({data: {dateTime: '2020-03-10T09:00:00.000Z'}})
         .execute((err) => {
           if (err) {
             return done(err);
@@ -65,7 +67,7 @@ module.exports = function (app, template, hook) {
     });
 
     it(`Test displaying File values`, (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -112,7 +114,7 @@ module.exports = function (app, template, hook) {
     });
 
     it(`Test using Tags delimiter`, (done) => {
-      let owner = (
+      const owner = (
         app.hasProjects || docker
       ) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
@@ -144,7 +146,7 @@ module.exports = function (app, template, hook) {
     });
 
     it(`Test displaying File values in Radio component`, (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -172,7 +174,7 @@ module.exports = function (app, template, hook) {
     });
 
     it('Should not include Review Page in the CSV file', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -198,11 +200,11 @@ module.exports = function (app, template, hook) {
             assert.strictEqual(result.text.split('\n')[0].includes('submit'), false);
             done();
           });
-        })
-    })
+        });
+    });
 
     it('Should export csv with conditional radio component', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -229,7 +231,7 @@ module.exports = function (app, template, hook) {
     });
 
     it('Should export csv for wizard forms', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -258,7 +260,7 @@ module.exports = function (app, template, hook) {
     });
 
     it('Should display data for Components inside the Layout Components', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -289,7 +291,7 @@ module.exports = function (app, template, hook) {
     });
 
     it('Should correctly display paths for component inside layout components', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -320,14 +322,14 @@ module.exports = function (app, template, hook) {
               '"phoneNumber"',
               '"container.signature"'
             ]);
-      
+
             done();
           });
         });
     });
 
     it(`Test Azure address data`, (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .form('testAzureAddress', testAzureAddress.components)
@@ -372,7 +374,7 @@ module.exports = function (app, template, hook) {
     });
 
     it(`Test Google address data`, (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .form('testGoogleAddress', testGoogleAddress.components)
@@ -417,7 +419,7 @@ module.exports = function (app, template, hook) {
     });
 
     it(`Test OpenStreetMap Nominatim address data`, (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .form('testNominatimAddress', testNominatimAddress.components)
@@ -465,7 +467,7 @@ module.exports = function (app, template, hook) {
       const currentDate = moment().utc().seconds(0).milliseconds(0);
       const submissionDate = currentDate.format('YYYY-MM-DDTHH:mm:ssZ');
       const formattedDate = currentDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -479,7 +481,7 @@ module.exports = function (app, template, hook) {
           if (err) {
             return done(err);
           }
-          
+
           helper.getExport(helper.template.forms.testTimeDate, 'csv', (error, result) => {
             if (error) {
               return done(error);
@@ -496,7 +498,7 @@ module.exports = function (app, template, hook) {
       const currentDate = moment().utc().seconds(0).milliseconds(0);
       const submissionDate = currentDate.format('YYYY-MM-DDTHH:mm:ssZ');
       const formattedDate = currentDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper
         .project()
@@ -514,7 +516,7 @@ module.exports = function (app, template, hook) {
           if (err) {
             return done(err);
           }
-          
+
           helper.getExport(helper.template.forms.testTimeDateInEditGrid, 'csv', (error, result) => {
             if (error) {
               return done(error);
@@ -526,12 +528,11 @@ module.exports = function (app, template, hook) {
           });
         });
     });
-
   });
 
   describe('Nested form CSV export', () => {
     it('Sets up a default project', (done) => {
-      let owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
       helper = new Helper(owner);
       helper.project().user('user', 'user1').execute(done);
     });
@@ -608,6 +609,5 @@ module.exports = function (app, template, hook) {
           });
         });
     });
-
   });
 };
