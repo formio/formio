@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.5.0
+### Changed
+ - Official Release
+ - Updated @formio/core@2.5.0
+ - Updated @formio/vm@2.0.0
+ - Updated @formio/js@5.2.0
+
 ## 4.5.0-rc.21
 ### Changed
  - Adding jsdom back to dependencies.

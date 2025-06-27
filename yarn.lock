@@ -97,10 +97,10 @@
     fuse.js "^6.6.2"
     redux "^4.2.0"
 
-"@formio/core@2.5.0-rc.6":
-  version "2.5.0-rc.6"
-  resolved "https://registry.npmjs.org/@formio/core/-/core-2.5.0-rc.6.tgz#d86ab6d87ad1931a265879ad7433b14c32a52266"
-  integrity sha512-H82aGeVjQrXbVFpJf6PkwcZAck3BlIHrZP1VMaPVP5cOo84YgCQW4HuNxlDfL/WLMS/jvvFlL8toALtFmzUKtg==
+"@formio/core@2.5.0":
+  version "2.5.0"
+  resolved "https://registry.npmjs.org/@formio/core/-/core-2.5.0.tgz#13eaec3aa8cf37255c17b3cd1681a1677d39bd5e"
+  integrity sha512-UFX0ThWtW6uUaweWUd/CHCbmAW7jSnFKJ9i+9uhVny75SXF2V8vCi/B6eHQpSAash3ZKG9GV1jYMmq2uCJTuVQ==
   dependencies:
     browser-cookies "^1.2.0"
     core-js "^3.39.0"
@@ -114,14 +114,14 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/js@5.2.0-rc.11":
-  version "5.2.0-rc.11"
-  resolved "https://registry.npmjs.org/@formio/js/-/js-5.2.0-rc.11.tgz#97f853122c93635ceb4f100c9aa5f89521605555"
-  integrity sha512-5x/JSenJHY81Ia1jufn1OAb0eE94PaD+hTvxHU0PJ6XFCJUoGUjxFeEAgxB74C3KhnWKWTyH3hGToJ7zZVKpuQ==
+"@formio/js@5.2.0":
+  version "5.2.0"
+  resolved "https://registry.npmjs.org/@formio/js/-/js-5.2.0.tgz#6dbae7ff598ed029fa9a32f1b11e8fd736d5e5e8"
+  integrity sha512-tEZfzyKm2RCAZMyVsA4MagDGfi7f2LuSb1aDSgtjIkcLX2oIB4H1AtanxBVMUkdKFRqwWubJb7hzRTNqZUMdLw==
   dependencies:
     "@formio/bootstrap" "3.1.1"
     "@formio/choices.js" "^10.2.1"
-    "@formio/core" "2.5.0-rc.6"
+    "@formio/core" "2.5.0"
     "@formio/text-mask-addons" "^3.8.0-formio.4"
     "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     abortcontroller-polyfill "^1.7.5"
@@ -175,10 +175,10 @@
   resolved "https://registry.yarnpkg.com/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-2.0.0-rc.1.tgz#05a0722771d4d054149bcb46386b026a4d92f931"
-  integrity sha512-xeKz7ci05z19CtqDUo6BydAh0Tfq0dwTX/f7dRbPvLjJR+4bpyBUhtsG6yn+6barC93m10COhwPj2bZ5PgJJNg==
+"@formio/vm@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/@formio/vm/-/vm-2.0.0.tgz#f63672c027ba713991795ce5151c7806a08067bc"
+  integrity sha512-Rs/2YHiwE3Zjf8CRu24XEbvvwR/Omi80Ci3qfmqDI7h1FdVMpCN1s30eUuF7Cn++5zxb/njl9akC3NfetAMJJg==
   dependencies:
     debug "^4.3.4"
     isolated-vm "^4.6.0"
