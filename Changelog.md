@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.5.0-rc.21]
+### Changed
+ - Adding jsdom back to dependencies.
+
 ## 4.5.0-rc.20
 ### Changed
  - FIO-10083: Replaces prompt library with inquirer
