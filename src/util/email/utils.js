@@ -437,6 +437,10 @@ const convertToString = (value) => {
   }
 };
 
+const cleanLabelTemplate = (template) => {
+  return (template || '').replace(/<\/?[^>]+(>|$)/g, '');
+};
+
 module.exports = {
   isLayoutComponent,
   isGridBasedComponent,
@@ -461,4 +465,5 @@ module.exports = {
   insertGridHeader,
   insertGridRow,
   convertToString,
+  cleanLabelTemplate
 };
