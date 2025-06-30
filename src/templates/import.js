@@ -807,7 +807,7 @@ module.exports = (router) => {
               });
 
               let revisionsToCreate = [];
-              const updateFormRevision = async (foundRevision, revisionTemplate, next) => {
+              const updateFormRevision = async (foundRevision, revisionTemplate) => {
                 try {
                   await formio.resources.formrevision.model.updateOne(
                     {_id: foundRevision._id},
@@ -815,9 +815,9 @@ module.exports = (router) => {
                   );
 
                   foundRevision.revisionId = revisionTemplate.revisionId;
-              }
-              catch (err) {
-                return next(err);
+                }
+                catch (err) {
+                  return next(err);
                 }
               };
 
@@ -831,7 +831,7 @@ module.exports = (router) => {
                     revisionsToCreate.push(revisionTemplate);
                   }
                   else if (revisionTemplate.revisionId) {
-                      await updateFormRevision(foundRevision, revisionTemplate, next);
+                      await updateFormRevision(foundRevision, revisionTemplate);
                   }
                 }
               }
@@ -839,22 +839,23 @@ module.exports = (router) => {
                 revisionsToCreate = revisionsFromTemplate;
               }
 
-                const res = await hook.alter('formRevisionModel').create(revisionsToCreate);
+              const res = await hook.alter('formRevisionModel').create(revisionsToCreate);
 
-                await formio.resources.form.model.updateOne({
-                  _id: result._id
-                },
-                {$set:
-                  {_vid: revisionsToCreate.length + existingRevisions.length}
-                });
+              await formio.resources.form.model.updateOne({
+                _id: result._id
+              },
+              {$set:
+                {_vid: revisionsToCreate.length + existingRevisions.length}
+              });
 
-                res.forEach((createdRevision, i) => {
-                  revisionsToCreate[i].newId = createdRevision._id;
-                });
-                debug.save(items[machineName].machineName);
-                if (entity.hasOwnProperty('deleteAllActions')) {
-                  return entity.deleteAllActions(updatedDoc._id, next);
-                }
+              res.forEach((createdRevision, i) => {
+                revisionsToCreate[i].newId = createdRevision._id;
+              });
+              debug.save(items[machineName].machineName);
+              if (entity.hasOwnProperty('deleteAllActions')) {
+                return entity.deleteAllActions(updatedDoc._id, next);
+              }
+              return next();
             };
             const saveDoc = async function(updatedDoc, isNew = false) {
               try {
@@ -905,8 +906,6 @@ module.exports = (router) => {
 
                   if (revisionsFromTemplate.length > 0) {
                     await createRevisions(result, updatedDoc, revisionsFromTemplate, entity);
-
-                    return next();
                   }
                   else {
                         debug.save(items[machineName].machineName);

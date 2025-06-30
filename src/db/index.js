@@ -596,38 +596,38 @@ module.exports = function(formio) {
    */
   const doUpdates = async function() {
     formio.util.log('Checking for db schema updates.');
-  
+
     // Skip updates if there are no pending updates to apply.
     if (!await pendingUpdates(config.schema, currentLock.version)) {
       formio.util.log(' > No updates found.\n');
       return;
     }
-  
+
     // Store original version to prevent intermediate vesion updates
     const originalVersion = currentLock.version;
-  
+
     // Determine the pending updates, by filtering the searchable updates.
     const pending = _.filter(updates, function(potential) {
       // An update is only applicable if it has not been applied to the db yet, and it is lower than the current.
       const applicable = semver.gt(potential, originalVersion) && semver.lte(potential, config.schema);
-  
+
       // Display progress.
       if (applicable) {
         formio.util.log(` > Pending schema update: ${potential}`);
       }
-  
+
       return applicable;
     });
-  
+
     // Only take action if outstanding updates exist.
     debug.db('Pending updates');
     if (pending.length > 0) {
       async.eachSeries(pending, function(pendingVersion, callback) {
         formio.util.log(` > Starting schema update to ${pendingVersion}`);
-  
+
         // Load the update then update the schema lock version.
         let _update = null;
-  
+
         // Attempt to load the the pending update.
         // Allow anyone to hook the pending updates location.
         try {
@@ -637,7 +637,7 @@ module.exports = function(formio) {
           debug.error(e);
           debug.db(e);
         }
-  
+
         // No private update was found, check the public location.
         debug.db('_update:');
         debug.db(_update);
@@ -652,13 +652,13 @@ module.exports = function(formio) {
             return callback(`Could not load update: ${pendingVersion}`);
           }
         }
-  
+
         // Attempt to resolve the update.
         try {
           if (typeof _update !== 'function') {
             return callback(`Could not resolve the path for update: ${pendingVersion}`);
           }
-  
+
           debug.db('Update Params:');
           debug.db(db);
           debug.db(config);
@@ -668,7 +668,7 @@ module.exports = function(formio) {
               formio.util.log(` > ERROR in update ${pendingVersion}: ${err}`);
               return callback(err);
             }
-  
+
             // Update pendingVersion done() called, proceeding to next update, if exist
             // don't update lock version here - just proceed to next update
             callback();
@@ -683,15 +683,15 @@ module.exports = function(formio) {
           debug.db(err);
           throw err;
         }
-  
+
         // Update lock version to the FINAL version only after ALL updates are started
-        const finalVersion = pending[pending.length - 1];        
+        const finalVersion = pending[pending.length - 1];
         tools.updateLockVersion(finalVersion, function(lockErr) {
           if (lockErr) {
             formio.util.log(` > ERROR updating final lock version: ${lockErr}`);
             throw lockErr;
           }
-          
+
           formio.util.log(' > Done applying pending updates (background work may continue)\n');
         });
       });
