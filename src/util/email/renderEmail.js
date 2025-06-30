@@ -18,7 +18,8 @@ const {
   isGridBasedComponent,
   isLayoutComponent,
   convertToString,
-  cleanLabelTemplate
+  cleanLabelTemplate,
+  formioComponents
 } = require('./utils');
 const macros = require('./nunjucks-macros');
 
@@ -131,8 +132,7 @@ function renderEmailProcessorSync(context) {
     case 'url':
     case 'phoneNumber':
     case 'day':
-    case 'tags':
-    case 'reviewpage': {
+    case 'tags': {
       const outputValue = component.multiple ? rowValue?.join(', ') : rowValue;
       insertRow(componentRenderContext, outputValue);
       return;
@@ -299,8 +299,24 @@ function renderEmailProcessorSync(context) {
       insertTable(componentRenderContext);
       return;
     }
-    default:
+    default:{
+      // render custom component value
+      if (!formioComponents.includes(component.type) && component.input) {
+        if (component.components?.length) {
+          insertTable(componentRenderContext);
+          return;
+        }
+        else {
+          const outputValue = component.multiple
+            ? rowValue?.map(v => convertToString(v)).join(', ')
+            : convertToString(rowValue);
+          insertRow(componentRenderContext, outputValue);
+          return;
+        }
+      }
+
       return;
+    }
   }
 }
 

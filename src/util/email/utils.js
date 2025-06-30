@@ -437,6 +437,66 @@ const convertToString = (value) => {
   }
 };
 
+const cleanLabelTemplate = (template) => {
+  return (template || '').replace(/<\/?[^>]+(>|$)/g, '');
+};
+
+const formioComponents = [
+  'address',
+  'base',
+  'component',
+  'componentmodal',
+  'button',
+  'checkbox',
+  'columns',
+  'container',
+  'content',
+  'currency',
+  'datagrid',
+  'datamap',
+  'datetime',
+  'day',
+  'editgrid',
+  'email',
+  'input',
+  'field',
+  'multivalue',
+  'list',
+  'fieldset',
+  'file',
+  'form',
+  'hidden',
+  'htmlelement',
+  'nested',
+  'nesteddata',
+  'nestedarray',
+  'number',
+  'panel',
+  'password',
+  'phoneNumber',
+  'radio',
+  'recaptcha',
+  'select',
+  'selectboxes',
+  'signature',
+  'survey',
+  'table',
+  'tabs',
+  'tags',
+  'textarea',
+  'textfield',
+  'time',
+  'url',
+  'well',
+  'datasource',
+  'sketchpad',
+  'tagpad',
+  'datatable',
+  'reviewpage',
+  'captcha',
+  'resourcefields',
+];
+
 module.exports = {
   isLayoutComponent,
   isGridBasedComponent,
@@ -461,4 +521,6 @@ module.exports = {
   insertGridHeader,
   insertGridRow,
   convertToString,
+  cleanLabelTemplate,
+  formioComponents
 };
