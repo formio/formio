@@ -817,22 +817,23 @@ module.exports = (router) => {
                 revisionsToCreate = revisionsFromTemplate;
               }
 
-                const res = await hook.alter('formRevisionModel').create(revisionsToCreate);
+              const res = await hook.alter('formRevisionModel').create(revisionsToCreate);
 
-                await formio.resources.form.model.updateOne({
-                  _id: result._id
-                },
-                {$set:
-                  {_vid: revisionsToCreate.length + existingRevisions.length}
-                });
+              await formio.resources.form.model.updateOne({
+                _id: result._id
+              },
+              {$set:
+                {_vid: revisionsToCreate.length + existingRevisions.length}
+              });
 
-                res.forEach((createdRevision, i) => {
-                  revisionsToCreate[i].newId = createdRevision._id;
-                });
-                debug.save(items[machineName].machineName);
-                if (entity.hasOwnProperty('deleteAllActions')) {
-                  return entity.deleteAllActions(updatedDoc._id, next);
-                }
+              res.forEach((createdRevision, i) => {
+                revisionsToCreate[i].newId = createdRevision._id;
+              });
+              debug.save(items[machineName].machineName);
+              if (entity.hasOwnProperty('deleteAllActions')) {
+                return entity.deleteAllActions(updatedDoc._id, next);
+              }
+              return next();
             };
             const saveDoc = async function(updatedDoc, isNew = false) {
               try {
@@ -881,8 +882,6 @@ module.exports = (router) => {
 
                   if (revisionsFromTemplate.length > 0) {
                     await createRevisions(result, updatedDoc, revisionsFromTemplate, entity);
-
-                    return next();
                   }
                   else {
                         debug.save(items[machineName].machineName);
