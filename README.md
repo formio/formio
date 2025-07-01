@@ -35,6 +35,7 @@ To know more about form.io, go to  <https://form.io>.
 |`MULTI_TENANCY_ENABLED`|To enable multit tenancy |true / false|`false`
 |`FORMIO_DEFAULT_PROJECT_URL`:triangular_flag_on_post:|forms-flow-forms default url||`http://{your-ip-address}:3001`
 |`FORMIO_JWT_SECRET`|forms-flow-forms jwt secret| |`--- change me now ---`|
+|`FORMIO_JWT_EXPIRE`|forms-flow-forms jwt expire time| |`240`|
 
 **Additionally, you may want to change these**
 
