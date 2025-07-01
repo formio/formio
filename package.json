@@ -22,7 +22,7 @@
   "schema": "3.1.4",
   "templateVersion": "2.0.0",
   "dependencies": {
-    "@formio/core": "v2.4.0-dev.269.9bfd803",
+    "@formio/core": "v2.4.0-dev.270.3cf81e3",
     "@formio/js": "5.1.0-dev.6102.9a0147c",
     "@formio/node-fetch-http-proxy": "^1.1.0",
     "@formio/vm": "1.0.0-dev.58.db88b77",

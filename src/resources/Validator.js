@@ -354,6 +354,7 @@ class Validator {
       context.rules = FormioCore.rules.concat(context.rules);
       context.scope = await FormioCore.process(context);
       submission.data = context.data;
+      submission.scope = context.scope;
 
       // Now that the validation is complete, we need to remove fetched data from the submission.
       for (const path in context.scope.fetched) {
