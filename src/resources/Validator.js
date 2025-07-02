@@ -317,21 +317,14 @@ class Validator {
       ...(this.form ? this.form.config ?? {} : {}),
     };
 
-    const scope = {};
-    const serializedSubmission = JSON.parse(JSON.stringify(submission));
-    const root = new RootShim(this.form, serializedSubmission, scope);
     const context = {
       form: this.form,
-      submission: serializedSubmission,
+      submission: submission,
       components: this.form.components,
-      data: serializedSubmission.data,
+      data: submission.data,
       processors: [],
       fetch,
-      scope,
-      instances: root.instanceMap,
-      options: {
-        server: true
-      },
+      scope: {},
       config: {
         ...projectAndFormConfig,
         headers: JSON.parse(JSON.stringify(this.req.headers)),
@@ -349,17 +342,37 @@ class Validator {
     };
     try {
       // Process the server processes
-      context.processors = FormioCore.Processors;
+      context.processors = FormioCore.ProcessTargets.submission;
       context.rules = this.hook.alter('serverRules', FormioCore.serverRules);
-      context.rules = FormioCore.rules.concat(context.rules);
-      context.scope = await FormioCore.process(context);
+      await FormioCore.process(context);
       submission.data = context.data;
-      submission.scope = context.scope;
 
-      // Now that the validation is complete, we need to remove fetched data from the submission.
-      for (const path in context.scope.fetched) {
-        _.unset(submission.data, path);
-      }
+      const serializedSubmission = JSON.parse(JSON.stringify(submission));
+      const root = new RootShim(context.form, serializedSubmission, context.scope);
+      const submissionContext = {
+        form: this.form,
+        components: this.form.components,
+        submission: serializedSubmission,
+        data: serializedSubmission.data,
+        scope: context.scope || {},
+        config: {
+            server: true,
+            token: context.token || '',
+        },
+        options: {
+            server: true,
+        },
+        instances: root.instanceMap,
+        processors: FormioCore.ProcessTargets.evaluator,
+      };
+
+      const scope = FormioCore.processSync(submissionContext);
+      const data = submissionContext.data;
+
+      context.scope = scope;
+      submission.data = data;
+      submission.scope = scope;
+
     }
     catch (err) {
       debug.error(err.message || err);

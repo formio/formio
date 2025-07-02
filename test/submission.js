@@ -7,6 +7,7 @@ var Chance = require('chance');
 var chance = new Chance();
 var _ = require('lodash');
 var docker = process.env.DOCKER;
+const nock = require('nock');
 
 module.exports = function(app, template, hook) {
   var Helper = require('./helper')(app);
@@ -26,6 +27,12 @@ module.exports = function(app, template, hook) {
       });
     });
   }
+    nock('https://random.com')
+    .get('/')
+    .reply(200, [
+      {id: 1, name: 'Alice'},
+      {id: 2, name: 'Bob'}
+    ]);
 
   describe('Form Submissions', function() {
     it('Sets up a default project', function(done) {
@@ -47,6 +54,23 @@ module.exports = function(app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
+            done();
+          });
+      });
+
+      it('Custom conditional components that rely on fetched data should work correctly', function(done) {
+        const test = require('./fixtures/forms/CustomConditionalcomponents.js');
+        helper
+          .form('test', test.components)
+          .submission({data:test.submission})
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            const submission = helper.getLastSubmission();
+            assert.strictEqual(Object.keys(submission.data).length, 2);
+            assert('aaPocCheckboxStage' in submission.data);
+            assert('stageData' in submission.data);
             done();
           });
       });
