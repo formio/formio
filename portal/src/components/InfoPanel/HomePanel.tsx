@@ -87,13 +87,11 @@ export const HomePanel = () => {
                                         data.
                                     </li>
                                     <li className="enterprise">
-                                        Standalone, embeddable{" "}
-                                        <span className="strong">
-                                            Form Manager
-                                        </span>{" "}
-                                        application that allows non-developers
-                                        to build drag and drop forms and limits
-                                        access to sensitive configurations.
+                                        The <span className="strong">Enterprise Form Builder Module</span> enables 
+                                        organizations to embed a customizable form-building experience into their 
+                                        applications while streamlining integration and empowering 
+                                        non-developers to create forms using pre-configured components 
+                                        and tailored configuration options.
                                     </li>
                                 </ul>
                             </div>
