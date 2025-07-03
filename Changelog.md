@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.5.1-rc.1
+### Changed
+ - Updated @formio/core@2.5.1-rc.2
+ - Updated @formio/js@5.2.1-rc.1
+ - FIO-9365: allow incomplete req object for Validator constructor
+ - FIO-10212: escape regex in unique machine name query
+ - FIO-10258: remove unused superagent-retry dependency
+ - FIO-10043: adding composite indexes (for CosmosDB)
+ - FIO-10264: add reserved project name to config
+ - FIO-10271: fix next callback being called twice
+
 ## 4.5.0
 ### Changed
  - Official Release
