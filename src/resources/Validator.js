@@ -355,7 +355,6 @@ class Validator {
       context.scope = await FormioCore.process(context);
       submission.data = context.data;
       submission.scope = context.scope;
-
     }
     catch (err) {
       debug.error(err.message || err);
