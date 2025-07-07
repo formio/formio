@@ -4,7 +4,7 @@ services:
     container_name: formio-mongo-ce
     restart: unless-stopped
     volumes:
-      - mongo-data:/data/db
+      - "mongo-data:/data/db"
     environment:
       - MONGO_INITDB_ROOT_USERNAME
       - MONGO_INITDB_ROOT_PASSWORD
