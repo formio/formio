@@ -35,7 +35,10 @@ module.exports = router => (req, res, next) => {
     let patch = req.body;
 
     if (!_.isArray(patch) && req.subPatch && !_.isEmpty(req.body)) {
-      patch = jsonPatch.compare(submission.data, req.body.data)
+      // need to transform all dates to string before comparison as jsonPatch does not support Date objects
+      const changedData = _.cloneDeep( req.body.data);
+      router.formio.util.transformDataDatesToString(changedData);
+      patch = jsonPatch.compare(submission.data, changedData)
         .map((operation) => {
           operation.path = `/data${operation.path}`;
           return operation;
