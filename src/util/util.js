@@ -571,6 +571,30 @@ const Utils = {
     return changed;
   },
 
+   /**
+   * Transform dates objects inside the data into date strings
+   * @param data
+   * @return {boolean}
+   */
+  transformDataDatesToString(data) {
+    if (!data || !_.isObject(data)) {
+      return;
+    }
+
+    _.each(data, (value, key) => {
+      if (!value) {
+        return;
+      }
+
+      if (value instanceof Date) {
+        data[key] = value.toISOString();
+      }
+      else if (_.isObject(value)) {
+        Utils.transformDataDatesToString(value);
+      }
+    });
+  },
+
   removeProtectedFields(form, action, submissions, doNotMinify) {
     if (!Array.isArray(submissions)) {
       submissions = [submissions];
