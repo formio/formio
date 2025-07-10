@@ -4,12 +4,13 @@ services:
     container_name: formio-mongo-ce
     restart: unless-stopped
     volumes:
-      - "./data/db:/data/db"
+      - "mongo-data:/data/db"
     environment:
       - MONGO_INITDB_ROOT_USERNAME
       - MONGO_INITDB_ROOT_PASSWORD
     networks:
       - formio-ce
+    
   formio-ce:
     image: formio/formio:rc
     container_name: formio-ce
@@ -32,6 +33,10 @@ services:
       - formio-ce
     depends_on:
       - mongo-ce
+
 networks:
   formio-ce:
     driver: bridge
+
+volumes:
+  mongo-data:
