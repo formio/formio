@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.5.1-rc.2]
+### Changed
+ - Updated @formio/core@2.5.1-rc.3
+ - Updated @formio/js@5.2.1-rc.2
+ - FIO-9841: remove pipes from countQuery pipeline
+ - FIO-10224: fixed the email rendering for custom components and review page
+ - FIO-10127: run all schema updates in sequence for background updates
+
 ## 4.5.1-rc.1
 ### Changed
  - Updated @formio/core@2.5.1-rc.2
