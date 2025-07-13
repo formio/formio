@@ -49,11 +49,12 @@ module.exports = (router) => {
    *   The project memoization of imported entities.
    * @param {Object} entity
    *   The role object to convert.
-   *
+   * @param {Object[]} fallbacks
+   *   A list of roles that could not be mapped correctly
    * @returns {boolean}
-   *   Whether or not the conversion was successful.
+   *   Whether the conversion was successful.
    */
-  const roleMachineNameToId = (template, entity, fallbacks = []) => {
+  const roleMachineNameToId = (template, entity, fallbacks) => {
     if (!entity) {
       return false;
     }
@@ -67,6 +68,10 @@ module.exports = (router) => {
         else if (template.roles && template.roles.hasOwnProperty(entity.role)) {
           entity.role = template.roles[entity.role]._id.toString();
           return true;
+        }
+        else if (fallbacks === undefined) {
+          // If we don't have a way to fallback then remove the role
+          delete entity.role;
         }
         else {
           fallbacks.push(entity);
@@ -89,6 +94,10 @@ module.exports = (router) => {
         else if (template.roles && template.roles.hasOwnProperty(role) && template.roles[role]._id) {
           access.roles[i] = template.roles[role]._id.toString();
           changes = true;
+        }
+        else if (fallbacks === undefined) {
+          // If we don't have a way to fallback then remove the role
+          delete access.roles[i];
         }
         else {
           if (!accessPushedToFallback) {
@@ -158,15 +167,11 @@ module.exports = (router) => {
       entity.form = template.forms[formName]._id.toString();
       if (template.forms[formName].revisions) {
         const revisionId = entity.revision;
-        const revisionTemplate = template.revisions && template.revisions[`${formName}:${revisionId}`];
-        let revision;
-        if (revisionTemplate && revisionTemplate.revisionId) {
-          revision = revisionTemplate.revisionId;
-         }
-        else {
-          revision = revisionTemplate.newId ? revisionTemplate.newId : getFormRevision(template.forms[formName]._vid);
-        }
-      updateRevisionProperty(entity, revision);
+        const revisionTemplate = (template.revisions && template.revisions[`${formName}:${revisionId}`]) || {};
+        const revision = revisionTemplate.revisionId ||
+          revisionTemplate.newId ||
+          getFormRevision(template.forms[formName]._vid);
+        updateRevisionProperty(entity, revision);
     }
       changes = true;
     }
@@ -179,15 +184,10 @@ module.exports = (router) => {
       entity.form = template.resources[entity.form]._id.toString();
       if (template.resources[formName].revisions) {
         const revisionId = entity.revision;
-        const revisionTemplate = template.revisions[`${formName}:${revisionId}`];
-        let revision;
-          if (revisionTemplate && revisionTemplate.revisionId) {
-            revision = revisionTemplate.revisionId;
-          }
-          else {
-            revision = revisionTemplate.newId ? revisionTemplate.newId
-            : getFormRevision(template.resources[formName]._vid);
-          }
+        const revisionTemplate = template.revisions[`${formName}:${revisionId}`] || {};
+        const revision = revisionTemplate.revisionId ||
+          revisionTemplate.newId ||
+          getFormRevision(template.resources[formName]._vid);
         updateRevisionProperty(entity, revision);
       }
       changes = true;
