@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.3.0-patch.1]
+## 4.3.0-patch.1
+### Changed
+ - Updated @formio/core@2.3.4-rc.1
+ - Updated @formio/vm@0.3.3-rc.1
+
 
 ## 4.3.0
 ### Changed
