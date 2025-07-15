@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 ## 4.5.1-rc.3
 ### Changed
  - Updated @formio/js@5.2.1-rc.3
+ - FIO-10213: FIO-10213 data source not working with custom conditional components
+ - FIO-10337: Improve performance of the data processing system for very large forms
 
 ## 4.5.1-rc.2
 ### Changed
