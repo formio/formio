@@ -59,7 +59,7 @@ module.exports = function(app, template, hook) {
       });
 
       it('Custom conditional components that rely on fetched data should work correctly', function(done) {
-        const test = require('./fixtures/forms/customConditionalcomponents.js');
+        const test = require('./fixtures/forms/customConditionalComponents.js');
         helper
           .form('test', test.components)
           .submission({data:test.submission})
