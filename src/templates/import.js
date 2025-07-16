@@ -54,7 +54,7 @@ module.exports = (router) => {
    * @returns {boolean}
    *   Whether the conversion was successful.
    */
-  const roleMachineNameToId = (template, entity, fallbacks) => {
+  const roleMachineNameToId = (template, entity, fallbacks = []) => {
     if (!entity) {
       return false;
     }
@@ -68,10 +68,6 @@ module.exports = (router) => {
         else if (template.roles && template.roles.hasOwnProperty(entity.role)) {
           entity.role = template.roles[entity.role]._id.toString();
           return true;
-        }
-        else if (fallbacks === undefined) {
-          // If we don't have a way to fallback then remove the role
-          delete entity.role;
         }
         else {
           fallbacks.push(entity);
@@ -94,10 +90,6 @@ module.exports = (router) => {
         else if (template.roles && template.roles.hasOwnProperty(role) && template.roles[role]._id) {
           access.roles[i] = template.roles[role]._id.toString();
           changes = true;
-        }
-        else if (fallbacks === undefined) {
-          // If we don't have a way to fallback then remove the role
-          delete access.roles[i];
         }
         else {
           if (!accessPushedToFallback) {
@@ -883,8 +875,8 @@ module.exports = (router) => {
                       revisionData._vnote = `Deploy version tag ${template.tag}`;
                       revisionData.owner = result.owner;
                       revisionData._vid = revisionsFromTemplate.length + 1;
-                      roleMachineNameToId(template, revisionData.access);
-                      roleMachineNameToId(template, revisionData.submissionAccess);
+                      revisionData.access = result.access;
+                      revisionData.submissionAccess = result.access;
                       revisionsFromTemplate.push(revisionData);
                     }
                   });
