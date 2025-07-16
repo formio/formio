@@ -7,6 +7,7 @@ var Chance = require('chance');
 var chance = new Chance();
 var _ = require('lodash');
 var docker = process.env.DOCKER;
+const nock = require('nock');
 
 module.exports = function(app, template, hook) {
   var Helper = require('./helper')(app);
@@ -26,6 +27,12 @@ module.exports = function(app, template, hook) {
       });
     });
   }
+    nock('https://random.com')
+    .get('/')
+    .reply(200, [
+      {id: 1, name: 'Alice'},
+      {id: 2, name: 'Bob'}
+    ]);
 
   describe('Form Submissions', function() {
     it('Sets up a default project', function(done) {
@@ -47,6 +54,23 @@ module.exports = function(app, template, hook) {
 
             var submission = helper.getLastSubmission();
             assert.deepEqual(test.submission, submission.data);
+            done();
+          });
+      });
+
+      it('Custom conditional components that rely on fetched data should work correctly', function(done) {
+        const test = require('./fixtures/forms/customConditionalcomponents.js');
+        helper
+          .form('test', test.components)
+          .submission({data:test.submission})
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            const submission = helper.getLastSubmission();
+            assert.strictEqual(Object.keys(submission.data).length, 2);
+            assert('aaPocCheckboxStage' in submission.data);
+            assert('stageData' in submission.data);
             done();
           });
       });
@@ -4552,8 +4576,207 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      describe('Filtering submissions', () => {
+      it('Create a form with nested form and submission for parent form for testing', function(done) {
+        const childFormComponents = [
+          {
+            label: 'Text Field',
+            applyMaskOn: 'change',
+            tableView: true,
+            validateWhenHidden: false,
+            key: 'textField',
+            type: 'textfield',
+            input: true,
+          },
+          {
+            label: 'Number',
+            applyMaskOn: 'change',
+            mask: false,
+            tableView: false,
+            delimiter: false,
+            requireDecimal: false,
+            inputFormat: 'plain',
+            truncateMultipleSpaces: false,
+            validateWhenHidden: false,
+            key: 'number',
+            type: 'number',
+            input: true,
+          },
+          {
+            label: 'Date / Time',
+            tableView: false,
+            datePicker: {
+              disableWeekends: false,
+              disableWeekdays: false,
+            },
+            enableMinDateInput: false,
+            enableMaxDateInput: false,
+            validateWhenHidden: false,
+            key: 'dateTime',
+            type: 'datetime',
+            input: true,
+            widget: {
+              type: 'calendar',
+              displayInTimezone: 'viewer',
+              locale: 'en',
+              useLocaleSettings: false,
+              allowInput: true,
+              mode: 'single',
+              enableTime: true,
+              noCalendar: false,
+              format: 'yyyy-MM-dd hh:mm a',
+              hourIncrement: 1,
+              minuteIncrement: 1,
+              'time_24hr': false,
+              minDate: null,
+              disableWeekends: false,
+              disableWeekdays: false,
+              maxDate: null,
+            },
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ];
 
+        const parentFormComponents = [
+          {
+            label: 'Date / Time Parent',
+            tableView: false,
+            datePicker: {
+              disableWeekends: false,
+              disableWeekdays: false,
+            },
+            enableMinDateInput: false,
+            enableMaxDateInput: false,
+            validateWhenHidden: false,
+            key: 'dateTimeParent',
+            type: 'datetime',
+            input: true,
+            widget: {
+              type: 'calendar',
+              displayInTimezone: 'viewer',
+              locale: 'en',
+              useLocaleSettings: false,
+              allowInput: true,
+              mode: 'single',
+              enableTime: true,
+              noCalendar: false,
+              format: 'yyyy-MM-dd hh:mm a',
+              hourIncrement: 1,
+              minuteIncrement: 1,
+              'time_24hr': false,
+              minDate: null,
+              disableWeekends: false,
+              disableWeekdays: false,
+              maxDate: null,
+            },
+          },
+          {
+            label: 'Form',
+            tableView: true,
+            form: '686533d135a85f4b9dd34a65',
+            useOriginalRevision: false,
+            key: 'form',
+            type: 'form',
+            input: true,
+          },
+          {
+            type: 'button',
+            label: 'Submit',
+            key: 'submit',
+            disableOnInvalid: true,
+            input: true,
+            tableView: false,
+          },
+        ];
+
+        const values = {
+          dateTimeParent: '2025-07-01T12:00:00+03:00',
+          submit: true,
+          form: {
+            data: {
+              textField: 'test',
+              number: 1,
+              dateTime: '2025-07-02T09:00:00.000Z',
+            },
+          },
+        };
+
+        helper
+          .form('childFormWithDateTime', childFormComponents)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            parentFormComponents[1].form =
+              helper.template.forms['childFormWithDateTime']._id;
+
+            helper
+              .form('parentFormWithDateTime', parentFormComponents)
+              .submission(values)
+              .expect(201)
+              .execute(function(err) {
+                if (err) {
+                  return done(err);
+                }
+                request(app)
+                  .patch(
+                    hook.alter(
+                      'url',
+                      // eslint-disable-next-line prefer-template
+                      '/form/' + helper.template.forms['parentFormWithDateTime']._id + '/submission/' + helper.lastSubmission._id,
+                      helper.template
+                    )
+                  )
+                  .set('x-jwt-token', helper.owner.token)
+                  .send([
+                    {
+                      op: 'replace',
+                      path: '/data/dateTimeParent',
+                      value: '2020-01-01T07:00:00.000Z',
+                    },
+                    {
+                      op: 'replace',
+                      path: '/data/form/data/textField',
+                      value: 'new value',
+                    },
+                    {
+                      op: 'replace',
+                      path: '/data/form/data/number',
+                      value: '100',
+                    },
+                    {
+                      op: 'replace',
+                      path: '/data/form/data/dateTime',
+                      value: '2020-01-01T10:00:00.000Z',
+                    },
+                  ])
+                  .expect(200)
+                  .end(function(err, res) {
+                    if (err) {
+                      return done(err);
+                    }
+                    assert.equal(
+                      res.body.data.dateTimeParent,
+                      '2020-01-01T07:00:00.000Z'
+                    );
+                    assert.deepEqual(res.body.data.form.data, {
+                      textField: 'new value',
+                      number: 100,
+                      dateTime: '2020-01-01T10:00:00.000Z',
+                    });
+                    done();
+                  });
+              });
+          });
+      });
+
+      describe('Filtering submissions', () => {
         it('Should filter submission for Currency Component', function(done) {
           var components = [
             {
