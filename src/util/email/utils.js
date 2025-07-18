@@ -112,11 +112,11 @@ const formatAddressValue = (
   }
   if (valueInManualMode) {
     if (component.manualModeViewString && address) {
-      return Evaluator.interpolateString(component.manualModeViewString, {
+      return Evaluator.evaluate(component.manualModeViewString, {
         address,
         component,
-        data,
-      });
+        data: value,
+      }, 'value');
     }
   }
   if (address) {
