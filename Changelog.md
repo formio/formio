@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.3.0-patch.2]
+## 4.3.0-patch.2
+### Changed
+ - FIO-10194 Ensure the case is consistent for the url parameters.
+
 
 ## 4.3.0-patch.1
 ### Changed
