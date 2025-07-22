@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 4.6.0-rc.3
+### Changed
+ - Updated @formio/react@6.1.0-rc.5
+
 ## 4.6.0-rc.2
 ### Changed
  - Updated @formio/js@5.3.0-rc.2
