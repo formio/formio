@@ -8,6 +8,7 @@ const _ = require('lodash');
 const Entities = require('html-entities');
 const moment = require('moment-timezone');
 const {conformToMask} = require('vanilla-text-mask');
+const { evaluate } = require('@formio/core');
 
 const interpolate = (string, data) => string.replace(/{{\s*(\S*)\s*}}/g, (match, path) => {
   const value = _.get(data, path);
@@ -77,6 +78,9 @@ class CSVExporter extends Exporter {
               }
 
               const address = getAddressComponentValue(component, value);
+              if (value.mode === 'manual' && component.manualModeViewString) {
+                return evaluate(component.manualModeViewString, {data: value, component}, 'value');
+              }
 
               // OpenStreetMap || Azure || Google
               // eslint-disable-next-line max-len
@@ -93,7 +97,7 @@ class CSVExporter extends Exporter {
               const address = getAddressComponentValue(component, value);
 
               // OpenStreetMap || Azure || Google
-              return address.lat || _.get(address, 'position.lat') || _.get(address, 'geometry.location.lat') || '';
+              return address.lat || _.get(address, 'position.lat') || _.get(address, 'geometry.location.lat') || ' ';
             },
           });
           items.push({
@@ -106,7 +110,7 @@ class CSVExporter extends Exporter {
               const address = getAddressComponentValue(component, value);
 
               // OpenStreetMap || Azure || Google
-              return address.lon || _.get(address, 'position.lon') || _.get(address, 'geometry.location.lng') || '';
+              return address.lon || _.get(address, 'position.lon') || _.get(address, 'geometry.location.lng') || ' ';
             },
           });
 
