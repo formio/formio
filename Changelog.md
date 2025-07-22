@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.6.0-rc.3]
+### Changed
+ - Update OSS portal build
+
 ## 4.6.0-rc.2
 ### Changed
  - Updated @formio/core@2.6.0-rc.2
