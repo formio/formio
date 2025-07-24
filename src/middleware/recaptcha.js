@@ -23,7 +23,7 @@ module.exports = function(router) {
       });
 
       const response = await fetch(`${url}?${query}`, {method: 'POST'});
-      const body = response.ok ? await res.json() : null;
+      const body = response.ok ? await response.json() : null;
       if (!body) {
         throw new Error('No response from Google');
       }
