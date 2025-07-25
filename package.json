@@ -71,7 +71,6 @@
     "mocha": "^10.0.0",
     "monorepo-sync": "git+https://github.com/johnformio/monorepo-sync.git",
     "nodemon": "^2.0.20",
-    "nock": "^13.2.8",
     "nyc": "^17.0.0",
     "pre-commit": "^1.2.2",
     "superagent-use": "^0.1.0",
