@@ -49,9 +49,10 @@ module.exports = (router) => {
    *   The project memoization of imported entities.
    * @param {Object} entity
    *   The role object to convert.
-   *
+   * @param {Object[]} fallbacks
+   *   A list of roles that could not be mapped correctly
    * @returns {boolean}
-   *   Whether or not the conversion was successful.
+   *   Whether the conversion was successful.
    */
   const roleMachineNameToId = (template, entity, fallbacks = []) => {
     if (!entity) {
@@ -154,38 +155,31 @@ module.exports = (router) => {
 
     const formName = entity.form;
     // Attempt to add a form.
-    if (template.forms && template.forms[entity.form]) {
-      // Form has been already imported
-      if (template.forms[entity.form]._id) {
-        entity.form = template.forms[formName]._id.toString();
-        if (template.forms[formName].hasOwnProperty('_vid') && template.forms[formName]._vid) {
-          updateRevisionProperty(entity, template.forms[formName]._vid.toString());
-        }
-        else if (template.forms[formName].revisions) {
-            const revisionId = entity.revision;
-            const revisionTemplate = template.revisions && template.revisions[`${formName}:${revisionId}`];
-            const revision = revisionTemplate && revisionTemplate.newId ? revisionTemplate.newId
-            : getFormRevision(template.forms[formName]._vid);
-            updateRevisionProperty(entity, revision);
-        }
-        changes = true;
+    if (template.forms && template.forms[entity.form] && template.forms[entity.form]._id) {
+      entity.form = template.forms[formName]._id.toString();
+      if (template.forms[formName].revisions) {
+        const revisionId = entity.revision;
+        const revisionTemplate = (template.revisions && template.revisions[`${formName}:${revisionId}`]) || {};
+        const revision = revisionTemplate.revisionId ||
+          revisionTemplate.newId ||
+          getFormRevision(template.forms[formName]._vid);
+        updateRevisionProperty(entity, revision);
       }
-      else {
-        fallbacks.push(entity);
-      }
+      changes = true;
+    }
+    else {
+      fallbacks.push(entity);
     }
 
     // Attempt to add a resource
     if (!changes && template.resources && template.resources[entity.form] && template.resources[entity.form]._id) {
       entity.form = template.resources[entity.form]._id.toString();
-      if (template.resources[formName].hasOwnProperty('_vid') && template.resources[formName]._vid) {
-        updateRevisionProperty(entity, template.resources[formName]._vid.toString());
-      }
-      else if (template.resources[formName].revisions) {
+      if (template.resources[formName].revisions) {
         const revisionId = entity.revision;
-        const revisionTemplate = template.revisions[`${formName}:${revisionId}`];
-        const revision = revisionTemplate && revisionTemplate.newId ? revisionTemplate.newId
-        : getFormRevision(template.resources[formName]._vid);
+        const revisionTemplate = template.revisions[`${formName}:${revisionId}`] || {};
+        const revision = revisionTemplate.revisionId ||
+          revisionTemplate.newId ||
+          getFormRevision(template.resources[formName]._vid);
         updateRevisionProperty(entity, revision);
       }
       changes = true;
@@ -793,48 +787,6 @@ module.exports = (router) => {
 
           try {
             let doc = await model.findOne(query).exec();
-            const createRevisions = async (result, updatedDoc, revisionsFromTemplate, entity) => {
-              const existingRevisions = await hook.alter('formRevisionModel').find({
-                deleted: {$eq: null},
-                _rid: result._id
-              });
-
-              let revisionsToCreate = [];
-
-              if (existingRevisions && existingRevisions.length > 0) {
-               revisionsFromTemplate.forEach((revisionTemplate) => {
-                 if (
-                   !existingRevisions.find(
-                     revision => revision._vnote === revisionTemplate._vnote
-                     )
-                  ) {
-                    revisionTemplate._vid = revisionsToCreate.length + 1;
-                    revisionsToCreate.push(revisionTemplate);
-                 }
-                });
-              }
-              else {
-                revisionsToCreate = revisionsFromTemplate;
-              }
-
-              const res = await hook.alter('formRevisionModel').create(revisionsToCreate);
-
-              await formio.resources.form.model.updateOne({
-                _id: result._id
-              },
-              {$set:
-                {_vid: revisionsToCreate.length + existingRevisions.length}
-              });
-
-              res.forEach((createdRevision, i) => {
-                revisionsToCreate[i].newId = createdRevision._id;
-              });
-              debug.save(items[machineName].machineName);
-              if (entity.hasOwnProperty('deleteAllActions')) {
-                return entity.deleteAllActions(updatedDoc._id, next);
-              }
-              return next();
-            };
             const saveDoc = async function(updatedDoc, isNew = false) {
               try {
                const result = isNew
@@ -846,59 +798,12 @@ module.exports = (router) => {
                 });
 
                 items[machineName] = result.toObject();
-
-                if ((result.type === 'form' || result.type === 'resource') && result.revisions ) {
-                  const revisionsFromTemplate = [];
-                  _.forEach(template.revisions, (revisionData, revisionKey)=>{
-                    if (revisionKey.match(`^${result.name}:`)) {
-                      revisionData._rid = result._id;
-                      revisionData.project = result.project;
-                      revisionData.path = result.path;
-                      revisionData.name = result.name;
-                      revisionData._vuser = 'system';
-                      revisionData._vnote = `Deploy version tag ${template.tag}`;
-                      revisionData.owner = result.owner;
-                      revisionData._vid = revisionsFromTemplate.length + 1;
-                      roleMachineNameToId(template, revisionData.access);
-                      roleMachineNameToId(template, revisionData.submissionAccess);
-                      revisionsFromTemplate.push(revisionData);
-                    }
-                  });
-
-                  revisionsFromTemplate.sort((rev1, rev2)=>rev1.created - rev2.created);
-                  if (revisionsFromTemplate.length > 0
-                    && !_.isEqual(revisionsFromTemplate[revisionsFromTemplate.length -1].components,
-                    result.components.toObject()
-                    )) {
-                      const lastRevision = Object.assign({}, result.toObject());
-                      lastRevision._rid = result._id;
-                      lastRevision._vuser = 'system';
-                      lastRevision._vid = revisionsFromTemplate.length + 1;
-                      lastRevision._vnote = `Deploy version tag ${template.tag}`;
-                      delete lastRevision._id;
-                      delete lastRevision.__v;
-                      revisionsFromTemplate.push(lastRevision);
-                  }
-
-                  if (revisionsFromTemplate.length > 0) {
-                    await createRevisions(result, updatedDoc, revisionsFromTemplate, entity);
-                  }
-                  else {
-                        debug.save(items[machineName].machineName);
-                        // eslint-disable-next-line max-depth
-                        if (entity.hasOwnProperty('deleteAllActions')) {
-                          return entity.deleteAllActions(updatedDoc._id, next);
-                        }
-                    return next();
-                  }
+                await hook.alter('saveRevisions', template, result);
+                debug.save(items[machineName].machineName);
+                if (entity.hasOwnProperty('deleteAllActions')) {
+                  return entity.deleteAllActions(updatedDoc._id, next);
                 }
-                else {
-                  debug.save(items[machineName].machineName);
-                  if (entity.hasOwnProperty('deleteAllActions')) {
-                    return entity.deleteAllActions(updatedDoc._id, next);
-                  }
-                  return next();
-                }
+                return next();
               }
               catch (err) {
                 debug.install(err.errors || err);
