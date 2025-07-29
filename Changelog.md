@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.5.1-rc.9]
+### Changed
+ - FIO-10271-fixed import 400 and 500 errors
+
 ## 4.5.1-rc.8
 ### Changed
  - Updated @formio/core@2.5.1-rc.7
