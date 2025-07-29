@@ -225,15 +225,15 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
-"@formio/bootstrap@3.1.2-rc.1":
-  version "3.1.2-rc.1"
-  resolved "https://registry.yarnpkg.com/@formio/bootstrap/-/bootstrap-3.1.2-rc.1.tgz#175c5155180366d91d47ce0b22e983f543ef08c8"
-  integrity sha512-0xw/r/R+3SUv5X2QxPXQUq0FdcKG93SfX+IiVaL34QngA6NbLGk6sLBNB8sIIaVooNXk8+FT8sVyJ6EKJdUpRg==
+"@formio/bootstrap@3.1.2-rc.3":
+  version "3.1.2-rc.3"
+  resolved "https://registry.yarnpkg.com/@formio/bootstrap/-/bootstrap-3.1.2-rc.3.tgz#7c961ed0d2802b9114539a09dfc8a744c3445813"
+  integrity sha512-ArSVnnu1e/wxAYbiGyHNp75lrgWQ2Ra1owN3bb0s2rC0zobNORECBF72p4ruITa0f4cKP/Ci8J09mduLFGdbvw==
 
-"@formio/core@2.5.1-rc.4":
-  version "2.5.1-rc.4"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.5.1-rc.4.tgz#2f94d74f895632c1825684e1a1dfe169bc6ba031"
-  integrity sha512-+IitS0J586aBs6xhkeeU3BkCWJzwdnzBq0KuHIkNeU95AX5aL3gI4Z01DzlwPZkYg7rVEutPxAVDbUPkKShcuA==
+"@formio/core@2.5.1-rc.7":
+  version "2.5.1-rc.7"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.5.1-rc.7.tgz#c8c5669168dcc2e7fb092700cc80214c2618000f"
+  integrity sha512-nQ032O/W+NDYUa867EZEp+H0hX1usw4WNStaU4hdftRtpo0dReeyYZZu5mvGu/wFI/nUfIPlF5ASZnmEeOaIxg==
   dependencies:
     browser-cookies "^1.2.0"
     core-js "^3.39.0"
@@ -247,13 +247,13 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/js@5.2.1-rc.4":
-  version "5.2.1-rc.4"
-  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.2.1-rc.4.tgz#7262962bea179f6d490bd61ac4224b3c25e0bffd"
-  integrity sha512-8dOS1h+393A+Ni+gvtCT8LEuFQZCdOrJu/ijx4R6f3Tqv+f1TogTYnv7pq2EyDWrdnIXhlGxdJ2hzvKSU131HA==
+"@formio/js@5.2.1-rc.8":
+  version "5.2.1-rc.8"
+  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.2.1-rc.8.tgz#32df2b7a106076aac07a22676a2ba63e2605c5ed"
+  integrity sha512-eiLmTPoxcRsenI5OZOVP6fQRMnBV/e4Qp+2exZFJ0CeorQxmpwcJonkYG1aaxwuIcYWjuB3XG1nda3sxSUT1uA==
   dependencies:
-    "@formio/bootstrap" "3.1.2-rc.1"
-    "@formio/core" "2.5.1-rc.4"
+    "@formio/bootstrap" "3.1.2-rc.3"
+    "@formio/core" "2.5.1-rc.7"
     "@formio/text-mask-addons" "^3.8.0-formio.4"
     "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     abortcontroller-polyfill "^1.7.5"
