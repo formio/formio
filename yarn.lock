@@ -225,10 +225,10 @@
   resolved "https://registry.yarnpkg.com/@formio/bootstrap/-/bootstrap-3.0.0-dev.121.085d187.tgz#7cc8c3a62e531b9b508e68d08fa513241c659da6"
   integrity sha512-V9AgDNTiFuvw0g/+QbUu2e8c061obSInmwn3qjsxkySg1VtpuVO2hrhgS8Lqxa5Q3IKbgmkrbCJGex8GCxNAnA==
 
-"@formio/core@2.4.0-dev.245.326cac7":
-  version "2.4.0-dev.245.326cac7"
-  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.245.326cac7.tgz#3859a319287924df7f4d6f9b8ebebf13a0546926"
-  integrity sha512-u18VsvdZv2PpzQah3ncc3koRMTmYUFL5lfQudPW5SwUourLIoB0SFB59uC0ySB/ldFsNl4cPPAnLE47OJcFNfg==
+"@formio/core@2.4.0-dev.267.2866472":
+  version "2.4.0-dev.267.2866472"
+  resolved "https://registry.yarnpkg.com/@formio/core/-/core-2.4.0-dev.267.2866472.tgz#99dda0e3c7ffc7810fd8feab466e76e805ef5805"
+  integrity sha512-uZVzBQAWgSVQZgIDlNVzMOSHrlxQ+1+B3aljUd4nzVL9jf67pB5zaexqumwt6+YkWNgEzfNdAGAwmQbu546NWA==
   dependencies:
     browser-cookies "^1.2.0"
     core-js "^3.40.0"
@@ -259,13 +259,13 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/js@5.1.0-dev.6102.9a0147c":
-  version "5.1.0-dev.6102.9a0147c"
-  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-dev.6102.9a0147c.tgz#561dedbbd3aa0b6dffe627c9c2f2a7c30895c205"
-  integrity sha512-W3DUnLrITzsQWsZzpRSUoN71j/D1y0FHi7Mxu/vV0/Y/aqj+EswgGbom5PZ+d1PPlo5/XQisQsGzWQn/MdMq+Q==
+"@formio/js@5.1.0-dev.6194.87d4d3f":
+  version "5.1.0-dev.6194.87d4d3f"
+  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.1.0-dev.6194.87d4d3f.tgz#f8b2e545ae660b8f6f6d9dd46a5b02df59007ff9"
+  integrity sha512-0prV8Ky1IAah0yJzknMX+UPLq3dKU+zVyUrSezUTUsJlO8JR9UNo7MvIOTmrNWZm+r0SKl6fivdKIbaMwdaPTQ==
   dependencies:
     "@formio/bootstrap" v3.0.0-dev.121.085d187
-    "@formio/core" "2.4.0-dev.245.326cac7"
+    "@formio/core" "2.4.0-dev.267.2866472"
     "@formio/text-mask-addons" "3.8.0-formio.4"
     "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     abortcontroller-polyfill "^1.7.5"
@@ -276,6 +276,7 @@
     choices.js "^11.0.6"
     compare-versions "^6.1.1"
     core-js "^3.37.1"
+    dayjs "^1.11.13"
     dialog-polyfill "^0.5.6"
     dom-autoscroller "^2.3.4"
     dompurify "^3.2.5"
@@ -1508,7 +1509,7 @@ data-urls@^5.0.0:
     whatwg-mimetype "^4.0.0"
     whatwg-url "^14.0.0"
 
-dayjs@^1.11.12:
+dayjs@^1.11.12, dayjs@^1.11.13:
   version "1.11.13"
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.13.tgz#92430b0139055c3ebb60150aa13e860a4b5a366c"
   integrity sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==
