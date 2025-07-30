@@ -7,7 +7,6 @@ var _ = require('lodash');
 var chance = new (require('chance'))();
 const { Utils } = require('@formio/core/utils');
 const formioUtils = Utils;
-var async = require('async');
 const uniqueValidationCustomMessage = require('./fixtures/forms/uniqueValidationCustomMessage');
 var docker = process.env.DOCKER;
 var customer = process.env.CUSTOMER;
@@ -674,44 +673,33 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('Cant make a Form with invalid Form component keys', function(done) {
-        async.each([
+      it('Cant make a Form with invalid Form component keys', async function() {
+        const invalidKeys = [
           '', 'è', 'é', 'ê', 'ë', 'ē', 'ė', 'ę', 'ÿ', 'û',
           'ü', 'ù', 'ú', 'ū', 'î', 'ï', 'í', 'ī', 'į', 'ì',
           'ô', 'ö', 'ò', 'ó', 'œ', 'ø', 'ō', 'õ', 'à', 'á',
           'â', 'ä', 'æ', 'ã', 'å', 'ā', 'ß', 'ś', 'š', 'ł',
           'ž', 'ź', 'ż', 'ç', 'ć', 'č', 'ñ', 'ń', ' '
-        ], function(_bad, callback) {
-          var temp = _.cloneDeep(tempForm);
+        ];
+      
+        for (const _bad of invalidKeys) {
+          const temp = _.cloneDeep(tempForm);
           temp.name = chance.word({length: 15});
           temp.path = chance.word({length: 15});
           temp.components[0].key = _bad;
-
-          request(app)
+      
+          const res = await request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
             .send(temp)
-            .expect(400)
-            .end(function(err, res) {
-              if (err) {
-                return callback(err);
-              }
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-              callback();
-            });
-        }, function(err) {
-          if (err) {
-            return done(err);
-          }
-
-          done();
-        });
+            .expect(400);
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+        }
       });
 
-      it('Invalid Form component keys are filtered', function(done) {
-        async.each([
+      it('Invalid Form component keys are filtered', async function() {
+        const invalidKeys = [
           // Will be filtered
           'a ', '1a', '.a',
 
@@ -720,40 +708,28 @@ module.exports = function(app, template, hook) {
           'a[', 'a]', 'a\'', 'a!', 'a,', 'a/', 'a?', 'a<', 'a>', 'a~', 'a`', 'a@', 'a#', 'a$', 'a%', 'a^', 'a&',
           '*a', '(a', ')a', '-a', '=a', '+a', '|a', '\\a', '{a', '}a', ';a', ':a', 'a*', 'a(', 'a)', 'a=', 'a+',
           'a|', 'a\\', 'a{', 'a}', 'a;', 'a:'
-
-        ], function(_bad, callback) {
-          var temp = _.cloneDeep(tempForm);
+        ];
+      
+        for (const _bad of invalidKeys) {
+          const temp = _.cloneDeep(tempForm);
           temp.name = chance.word({length: 15});
           temp.path = chance.word({length: 15});
           temp.components[0].key = _bad;
 
-          request(app)
+          const res = await request(app)
             .post(hook.alter('url', '/form', template))
             .set('x-jwt-token', template.users.admin.token)
             .send(temp)
-            .expect(201)
-            .end(function(err, res) {
-              if (err) {
-                return callback(err);
-              }
+            .expect(201);
+          formioUtils.eachComponent(res.body.components, function(component) {
+            if (component.hasOwnProperty('key')) {
+              assert.notEqual(component.key, _bad);
+            }
+          }, true);
 
-              formioUtils.eachComponent(res.body.components, function(component) {
-                if (component.hasOwnProperty('key')) {
-                  assert.notEqual(component.key, _bad);
-                }
-              }, true);
-
-              // Store the JWT for future API calls.
-              template.users.admin.token = res.headers['x-jwt-token'];
-              callback();
-            });
-        }, function(err) {
-          if (err) {
-            return done(err);
-          }
-
-          done();
-        });
+          // Store the JWT for future API calls.
+          template.users.admin.token = res.headers['x-jwt-token'];
+        }
       });
     });
 
@@ -2746,73 +2722,45 @@ module.exports = function(app, template, hook) {
         });
 
         // FOR-155
-        it('None of the reserved form names should be allowed as form paths for new forms', function(done) {
-          async.each(formio.config.reservedForms, function(path, callback) {
-            var form = _.cloneDeep(tempForm);
+        it('None of the reserved form names should be allowed as form paths for new forms', async function() {
+          for (const path of formio.config.reservedForms) {
+            const form = _.cloneDeep(tempForm);
             form.path = path;
 
             // Create the test form
-            request(app)
+            const res = await request(app)
               .post(hook.alter('url', '/form', template))
               .set('x-jwt-token', template.users.admin.token)
               .send(form)
               .expect('Content-Type', /text/)
-              .expect(400)
-              .end(function(err, res) {
-                if (err) {
-                  return callback(err);
-                }
+              .expect(400);
+            const response = res.text;
+            assert.equal(response, 'Form path cannot contain one of the following names: ' + formio.config.reservedForms.join(', '));
 
-                var response = res.text;
-                assert.equal(response, 'Form path cannot contain one of the following names: ' + formio.config.reservedForms.join(', '));
-
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
-
-                callback();
-              });
-          }, function(err) {
-            if (err) {
-              return done(err);
-            }
-
-            return done();
-          });
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+          }
         });
+        
 
         // FOR-156
-        it('None of the reserved form names should be allowed as form paths for existing forms', function(done) {
-          async.each(formio.config.reservedForms, function(path, callback) {
-            // update the test form
-            request(app)
+        it('None of the reserved form names should be allowed as form paths for existing forms', async function() {
+          for (const path of formio.config.reservedForms) {
+            const res = await request(app)
               .put(hook.alter('url', '/form', template) + '/' + form._id)
               .set('x-jwt-token', template.users.admin.token)
-              .send({
-                path: path
-              })
+              .send({path})
               .expect('Content-Type', /text/)
-              .expect(400)
-              .end(function(err, res) {
-                if (err) {
-                  return callback(err);
-                }
+              .expect(400);
+        
+            const response = res.text;
+            assert.equal(response, 'Form path cannot contain one of the following names: ' + formio.config.reservedForms.join(', '));
 
-                var response = res.text;
-                assert.equal(response, 'Form path cannot contain one of the following names: ' + formio.config.reservedForms.join(', '));
-
-                // Store the JWT for future API calls.
-                template.users.admin.token = res.headers['x-jwt-token'];
-
-                callback();
-              });
-          }, function(err) {
-            if (err) {
-              return done(err);
-            }
-
-            return done();
-          });
+            // Store the JWT for future API calls.
+            template.users.admin.token = res.headers['x-jwt-token'];
+          }
         });
+        
       });
 
       // FOR-132 && FOR-182
@@ -4505,7 +4453,8 @@ module.exports = function(app, template, hook) {
       });
 
       var resources = [];
-      it('Should create a few resources', (done) => {
+
+      it('Should create a few resources', async function() {
         resources = [
           {data: {
             firstName: 'Joe',
@@ -4533,21 +4482,21 @@ module.exports = function(app, template, hook) {
             email: chance.email()
           }}
         ];
-        async.eachOf(resources, (resource, index, next) => {
-          request(app)
-            .post(hook.alter('url', '/form/' + resourceForm._id + '/submission', template))
+
+        for (let i = 0; i < resources.length; i++) {
+          const resource = resources[i];
+      
+          const res = await request(app)
+            .post(hook.alter('url', `/form/${resourceForm._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send(resource)
             .expect('Content-Type', /json/)
-            .expect(201)
-            .end(function(err, res) {
-              if (err) {
-                return next(err);
-              }
-              resources[index] = res.body;
-              next();
-            });
-        }, done);
+            .expect(201);
+  
+          resources[i] = res.body;
+          // Store the JWT for future API calls
+          template.users.admin.token = res.headers['x-jwt-token'];
+        }
       });
 
       var referenceForm = null;
@@ -4603,11 +4552,14 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      var references = [];
-      it('Should create a new submission in that form.', (done) => {
-        async.eachOfSeries(resources, (resource, index, next) => {
-          request(app)
-            .post(hook.alter('url', '/form/' + referenceForm._id + '/submission', template))
+      let references = [];
+
+      it('Should create a new submission in that form.', async function() {
+        for (let index = 0; index < resources.length; index++) {
+          const resource = resources[index];
+      
+          const res = await request(app)
+            .post(hook.alter('url', `/form/${referenceForm._id}/submission`, template))
             .set('x-jwt-token', template.users.admin.token)
             .send({
               data: {
@@ -4615,17 +4567,13 @@ module.exports = function(app, template, hook) {
               }
             })
             .expect('Content-Type', /json/)
-            .expect(201)
-            .end(function(err, res) {
-              if (err) {
-                return next(err);
-              }
-              references[index] = res.body;
-              assert.deepEqual(references[index].data.user.data, resource.data);
-              next();
-            });
-        }, done);
+            .expect(201);
+      
+          references[index] = res.body;
+          assert.deepEqual(references[index].data.user.data, resource.data);
+        }
       });
+      
 
       it('Should be able to filter the list of references', (done) => {
         let url = '/form/' + referenceForm._id + '/submission';
@@ -4735,11 +4683,13 @@ module.exports = function(app, template, hook) {
           });
       });
 
-      it('Should be able to alter some of the resources', (done) => {
-        async.eachOf(resources, (resource, index, next) => {
+      it('Should be able to alter some of the resources', async function() {
+        for (let index = 0; index < resources.length; index++) {
+          const resource = resources[index];
+      
           if (index % 2 === 0) {
-            request(app)
-              .put(hook.alter('url', '/form/' + resourceForm._id + '/submission/' + resource._id, template))
+            const res = await request(app)
+              .put(hook.alter('url', `/form/${resourceForm._id}/submission/${resource._id}`, template))
               .send({
                 data: {
                   email: chance.email()
@@ -4747,36 +4697,23 @@ module.exports = function(app, template, hook) {
               })
               .set('x-jwt-token', template.users.admin.token)
               .expect('Content-Type', /json/)
-              .expect(200)
-              .end(function(err, res) {
-                if (err) {
-                  return next(err);
-                }
-                resources[index] = res.body;
-                next();
-              });
+              .expect(200);
+            resources[index] = res.body;
           }
-          else {
-            next();
-          }
-        }, done);
+        }
       });
 
-      it('Should be able to refer to the correct resource references', (done) => {
-        async.eachOf(references, (reference, index, next) => {
-          request(app)
-            .get(hook.alter('url', '/form/' + referenceForm._id + '/submission/' + reference._id, template))
+      it('Should be able to refer to the correct resource references', async function() {
+        for (let index = 0; index < references.length; index++) {
+          const reference = references[index];
+      
+          const res = await request(app)
+            .get(hook.alter('url', `/form/${referenceForm._id}/submission/${reference._id}`, template))
             .set('x-jwt-token', template.users.admin.token)
             .expect('Content-Type', /json/)
-            .expect(200)
-            .end(function(err, res) {
-              if (err) {
-                return next(err);
-              }
-              Helper.assert.propertiesEqual(res.body.data.user, resources[index]);
-              next();
-            });
-        }, done);
+            .expect(200);
+          Helper.assert.propertiesEqual(res.body.data.user, resources[index]);
+        }
       });
 
       it('Should pull in the references even with index queries.', (done) => {

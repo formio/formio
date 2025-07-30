@@ -4,7 +4,6 @@
 const request = require('./formio-supertest');
 var assert = require('assert');
 var _ = require('lodash');
-var async = require('async');
 var chance = new (require('chance'))();
 var docker = process.env.DOCKER;
 var customer = process.env.CUSTOMER;
@@ -477,39 +476,26 @@ module.exports = function(app, template, hook) {
     });
 
     var lastAttempt = 0;
-    it('A Form.io User should get locked out if they keep trying a bad password', function(done) {
-      var count = 0;
-      async.whilst(
-        function(next) { return next(null, count < 4); },
-        function(next) {
-          count++;
-          lastAttempt = (new Date()).getTime();
-          request(app)
-            .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
-            .send({
-              data: {
-                'email': template.users.user1.data.email,
-                'password': 'badpassword' + count + '!'
-              }
-            })
-            .expect(401)
-            .end(function(err, res) {
-              if (err) {
-                return next(err);
-              }
+    it('A Form.io User should get locked out if they keep trying a bad password', async function() {
+      let count = 0;
+      while (count < 4) {
+        count++;
+        lastAttempt = (new Date()).getTime();
+  
+        const res = await request(app)
+          .post(hook.alter('url', `/form/${template.forms.userLogin._id}/submission`, template))
+          .send({
+            data: {
+              email: template.users.user1.data.email,
+              password: `badpassword${count}!`
+            }
+          })
+          .expect(401);
 
-              assert.equal(res.text, count < 4 ? 'User or password was incorrect' : 'Maximum Login attempts. Please wait 4 seconds before trying again.');
-              assert.equal(!res.headers['x-jwt-token'], true);
-              next();
-            });
-        },
-        function(err) {
-          if (err) {
-            return done(err);
-          }
-          done();
-        }
-      );
+          assert.equal(res.text, count < 4 ? 'User or password was incorrect' : 'Maximum Login attempts. Please wait 4 seconds before trying again.');
+          assert.equal(!res.headers['x-jwt-token'], true);
+      }
+      return;
     });
 
     it('Verify that the Form.io user is locked out for 1 seconds even with right password.', function(done) {
@@ -539,39 +525,26 @@ module.exports = function(app, template, hook) {
       }, 4500);
     });
 
-    it('Attempt 4 bad logins to attempt good login after window.', function(done) {
-      var count = 0;
-      async.whilst(
-        function(next) { return next(null, count < 4); },
-        function(next) {
-          count++;
-          lastAttempt = (new Date()).getTime();
-          request(app)
-            .post(hook.alter('url', '/form/' + template.forms.userLogin._id + '/submission', template))
-            .send({
-              data: {
-                'email': template.users.user1.data.email,
-                'password': 'badpassword' + count + '!'
-              }
-            })
-            .expect(401)
-            .end(function(err, res) {
-              if (err) {
-                return next(err);
-              }
+    it('Attempt 4 bad logins to attempt good login after window.', async function() {
+      let count = 0;
+      while (count < 4) {
+        count++;
+        lastAttempt = (new Date()).getTime();
+  
+        const res = await request(app)
+          .post(hook.alter('url', `/form/${template.forms.userLogin._id}/submission`, template))
+          .send({
+            data: {
+              email: template.users.user1.data.email,
+              password: `badpassword${count}!`
+            }
+          })
+          .expect(401);
 
-              assert.equal(res.text, 'User or password was incorrect');
-              assert.equal(!res.headers['x-jwt-token'], true);
-              next();
-            });
-        },
-        function(err) {
-          if (err) {
-            return done(err);
-          }
-          done();
-        }
-      );
+          assert.equal(res.text, 'User or password was incorrect');
+          assert.equal(!res.headers['x-jwt-token'], true);
+      }
+      return;
     });
 
     it('A user should be able to login as an authenticated user', function(done) {
