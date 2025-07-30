@@ -7,7 +7,7 @@ module.exports = (router) => {
   /**
    * Perform hierarchial submissions of sub-forms.
    */
-  const submitSubForms = function(component, data, validation, req, res, path, next) {
+  const submitSubForms = function(component, data, validation, req, res, path, fullPath, next) {
     // Only submit subforms after validation has occurred.
     if (!validation) {
       return next();
@@ -35,7 +35,8 @@ module.exports = (router) => {
         condComp => condComp.conditionallyHidden && (
           condComp.path === path ||
           _.startsWith(path, `${condComp.path}.`) ||
-          _.startsWith(path, `${condComp.path}[`)
+          _.startsWith(path, `${condComp.path}[`) ||
+          _.startsWith(fullPath, `${condComp.path}.`)
         )
       );
     };
@@ -92,7 +93,7 @@ module.exports = (router) => {
       childReq.subPatch = true;
     }
 
-    router.resourcejs[url][method](childReq, childRes, function(err) {
+    router.resourcejs[url][method] (childReq, childRes, function(err) {
       if (err) {
         return next(err);
       }
@@ -163,12 +164,12 @@ module.exports = (router) => {
     return;
   };
 
-  return async (component, data, handler, action, {validation, path, req, res}) => {
+  return async (component, data, handler, action, {validation, path, fullPath, req, res}) => {
     switch (handler) {
       case 'beforePut':
       case 'beforePost':
         return new Promise((resolve, reject) => {
-          submitSubForms(component, data, validation, req, res, path, (err) => {
+          submitSubForms(component, data, validation, req, res, path, fullPath, (err) => {
             if (err) {
               return reject(err);
             }

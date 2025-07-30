@@ -273,9 +273,11 @@ module.exports = (router, resourceName, resourceId) => {
         handler,
         action,
         path,
+        fullPath,
       }) => {
         if (component) {
           const componentPath = util.valuePath(path, component.key);
+          const componentFullPath = util.valuePath(fullPath, component.key);
 
           // Remove not persistent data
           if (
@@ -299,6 +301,7 @@ module.exports = (router, resourceName, resourceId) => {
             {
               validation,
               path: componentPath,
+              fullPath: componentFullPath,
               req,
               res,
             },

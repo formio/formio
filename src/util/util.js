@@ -804,6 +804,7 @@ const Utils = {
     fn,
     context,
     path = '',
+    fullPath = '',
   ) {
     components.forEach((component) => {
       if (component) {
@@ -845,6 +846,7 @@ const Utils = {
               fn,
               context,
               this.valuePath(path, component.key),
+              this.valuePath(fullPath, component.key),
             );
           }
           else if (['tagpad'].includes(component.type)) {
@@ -857,6 +859,7 @@ const Utils = {
                   fn,
                   context,
                   this.valuePath(path, `${component.key}.data`),
+                  this.valuePath(fullPath, `${component.key}.data`),
                 );
               });
             }
@@ -868,6 +871,7 @@ const Utils = {
               fn,
               context,
               path,
+              this.valuePath(fullPath, component.key),
             );
           }
         }
@@ -880,6 +884,7 @@ const Utils = {
               fn,
               context,
               path,
+              this.valuePath(fullPath, component.key),
             );
           });
         }
@@ -894,6 +899,7 @@ const Utils = {
                   fn,
                   context,
                   path,
+                  this.valuePath(fullPath, component.key),
                 );
               });
             }
@@ -907,6 +913,7 @@ const Utils = {
         data,
         component,
         path,
+        fullPath,
       });
     });
   },
