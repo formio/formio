@@ -4,9 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.5.1-rc.9]
+## 4.5.1-rc.9
 ### Changed
+ - Updated @formio/core@2.5.1-rc.8
+ - Updated @formio/js@5.2.1-rc.9
  - FIO-10271-fixed import 400 and 500 errors
+ - FIO-10368:  Fixes an issue where nested Wizard on conditionally hidden page will trigger validation errors
 
 ## 4.5.1-rc.8
 ### Changed
