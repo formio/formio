@@ -522,5 +522,5 @@ module.exports = {
   insertGridRow,
   convertToString,
   formioComponents,
-  //cleanLabelTemplate
+  cleanLabelTemplate
 };
