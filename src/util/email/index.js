@@ -207,7 +207,7 @@ module.exports = (formio) => {
       return resolve(injectedEmail);
     })
     .catch((err) => {
-      return reject();
+      return reject(err);
     });
   });
 
