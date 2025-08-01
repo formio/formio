@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.5.1-rc.10
+### Changed
+ - Updated @formio/js@5.2.1-rc.10
+ - FIO-10043: automatically adding indexes for CosmosDB
+ - FIO-10468: fixed an issue where email error message is not displayed in action logs
+
 ## 4.5.1-rc.9
 ### Changed
  - Updated @formio/core@2.5.1-rc.8
