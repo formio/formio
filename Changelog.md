@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
  - Updated @formio/js@5.2.1-rc.10
  - FIO-10043: automatically adding indexes for CosmosDB
  - FIO-10468: fixed an issue where email error message is not displayed in action logs
+ - FIO-10478: fixed an issue where emails are not sent for forms for select component
 
 ## 4.5.1-rc.9
 ### Changed
