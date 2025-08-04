@@ -15,6 +15,7 @@ module.exports = function(app, template, hook) {
   const testAzureAddress = require('../../fixtures/forms/azureAddressComponent');
   const testGoogleAddress = require('../../fixtures/forms/googleAddressComponent');
   const testNominatimAddress = require('../../fixtures/forms/nominatimAddressComponent');
+  const testManualModeAddress = require('../../fixtures/forms/manualModeAddressComponent');
   const testTimeDate = require('../../fixtures/forms/timeDateComponent.js');
   const wizardTest = require('../../fixtures/forms/wizardFormWithAdvancedConditions.js');
   const formWithLayoutComponents = require('../../fixtures/forms/formWithLayoutComponents.js');
@@ -457,6 +458,31 @@ module.exports = function(app, template, hook) {
             assert.strictEqual(addressLatWithMode, expectedAddressLatWithMode);
             assert.strictEqual(addressLngWithMode, expectedAddressLngWithMode);
             assert.strictEqual(addressNameWithMode, expectedAddressNameWithMode);
+
+            done();
+          });
+        });
+    });
+
+    it(`Test manual address data with manual mode view string`, (done) => {
+      const owner = (app.hasProjects || docker) ? template.formio.owner : template.users.admin;
+      helper = new Helper(owner);
+      helper
+        .form('testManualModeAddress', testManualModeAddress.components)
+        .submission(testManualModeAddress.submission)
+        .execute((err) => {
+          if (err) {
+            return done(err);
+          }
+
+          helper.getExport(helper.template.forms.testManualModeAddress, 'csv', (error, result) => {
+            if (error) {
+              done(error);
+            }
+
+            const addressName = getComponentValue(result.text, 'address.formatted', 0);
+            const expectedAddressName = '"address 1"';
+            assert.strictEqual(addressName, expectedAddressName);
 
             done();
           });
