@@ -513,7 +513,7 @@ const Utils = {
         return;
       }
       if (_.isArray(value)) {
-        value.forEach((arrayEl) => Utils.convertIdsToObjectIds(arrayEl));
+        value.forEach((arrayEl) => Utils.transformIdsToObjectIds(arrayEl));
       }
       else if (_.isObject(value)) {
         Utils.ensureIds(value);
