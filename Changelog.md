@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## 4.5.1-rc.11
+### Changed
+ - Updated @formio/js@5.2.1-rc.12
+ - FIO-10502: Fix unique validation for address component
+ - FIO-10267: fixed an issue where unique validation does not work if value has _id
+
 ## 4.5.1-rc.10
 ### Changed
  - Updated @formio/js@5.2.1-rc.10
