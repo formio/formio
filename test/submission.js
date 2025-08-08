@@ -5172,6 +5172,660 @@ module.exports = function(app, template, hook) {
           });
       });
     })
+
+    describe("Bulk submissions, create endpoint", function() {
+      const bulkFixture = require("./fixtures/forms/bulkCreateForm.js");
+      const formDef = bulkFixture.form;
+      const getBulkPath = (formId) => `/form/${formId}/submissions`;
+      const upsertForm = (cb) => helper.upsertForm(formDef, cb);
+
+      it("returns 400 for empty payload {}", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          request(app)
+            .post(getBulkPath(formDef._id))
+            .send({})
+            .expect(400)
+            .end(done);
+        });
+      });
+
+      it("returns 400 for missing data field", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          request(app)
+            .post(getBulkPath(formDef._id))
+            .send({ metadata: { tag: "missing-data" } })
+            .expect(400)
+            .end(done);
+        });
+      });
+
+      it("returns 400 for empty data array", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          request(app)
+            .post(getBulkPath(formDef._id))
+            .send({ data: [] })
+            .expect(400)
+            .end(done);
+        });
+      });
+
+      it("returns partial success when some submissions are inserted and some fail", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: "ok", requiredTextField2: "abc", uniqueTextField3: "uniq-partial-1" },
+              { textField1: "fail", requiredTextField2: null, uniqueTextField3: "uniq-partial-2" },
+            ],
+            metadata: { tag: "partial-success" }
+          };
+          request(app)
+            .post(getBulkPath(formDef._id))
+            .send(payload)
+            .expect(207)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.successes.length === 1);
+              assert(res.body.failures.length === 1);
+              done();
+            });
+        });
+      });
+
+      it("returns partial failure for duplicate unique field in batch", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: "a", requiredTextField2: "abc", uniqueTextField3: "dupe-batch" },
+              { textField1: "b", requiredTextField2: "def", uniqueTextField3: "dupe-batch" },
+            ],
+            metadata: { tag: "dupe-unique-in-batch" }
+          };
+          request(app)
+            .post(getBulkPath(formDef._id))
+            .send(payload)
+            .expect(207)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.failures.length >= 1);
+              done();
+            });
+        });
+      });
+
+      it("returns partial failure for duplicate with existing DB record", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          // Insert one first
+          helper.submission(formDef.name, { textField1: "exists", requiredTextField2: "abc", uniqueTextField3: "dupe-db" }).execute(function() {
+            const payload = {
+              data: [
+                { textField1: "new", requiredTextField2: "def", uniqueTextField3: "dupe-db" },
+                { textField1: "ok", requiredTextField2: "ghi", uniqueTextField3: "unique-db" },
+              ],
+              metadata: { tag: "dupe-db" }
+            };
+            request(app)
+              .post(getBulkPath(formDef._id))
+              .send(payload)
+              .expect(207)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(res.body.successes.length, 1);
+                assert(res.body.failures.length >= 1);
+                done();
+              });
+          });
+        });
+      });
+
+      it("returns partial failure for invalid BSON/schema", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: { $bad: "value" }, requiredTextField2: "abc", uniqueTextField3: "uniq-bson" },
+              { textField1: "ok", requiredTextField2: "def", uniqueTextField3: "uniq-bson2" },
+            ],
+            metadata: { tag: "bson" }
+          };
+          request(app)
+            .post(getBulkPath(formDef._id))
+            .send(payload)
+            .expect(207)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(res.body.successes.length, 1);
+              assert(res.body.failures.length >= 1);
+              done();
+            });
+        });
+      });
+
+      it("returns partial failure for null or missing required fields", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: "ok", requiredTextField2: null, uniqueTextField3: "uniq-null-1" },
+              { textField1: "ok2", uniqueTextField3: "uniq-null-2" },
+              { textField1: "ok3", requiredTextField2: "abc", uniqueTextField3: "uniq-null-3" },
+            ],
+            metadata: { tag: "null-required" }
+          };
+          request(app)
+            .post(getBulkPath(formDef._id))
+            .send(payload)
+            .expect(207)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.successes.length >= 1);
+              assert(res.body.failures.length >= 1);
+              done();
+            });
+        });
+      });
+
+      it("returns partial failure when other (non uniqueness/non required) validations fail", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              // valid
+              { textField1: "ok", requiredTextField2: "1234567890", uniqueTextField3: "uniq-maxlen-1" }, 
+              // requiredTextField2 has a max length of 10 
+              { textField1: "fail", requiredTextField2: "12345678901", uniqueTextField3: "uniq-maxlen-2" }, 
+            ],
+            metadata: { tag: "maxlen" }
+          };
+          request(app)
+            .post(getBulkPath(formDef._id))
+            .send(payload)
+            .expect(207)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.successes.length >= 1);
+              assert(res.body.failures.length >= 1);
+              done();
+            });
+        });
+      });
+
+      it("successfully creates multiple submissions in batch (large batch size)", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const batch = Array.from({ length: 20 }, (_, i) => ({
+            textField1: `item${i + 1}`,
+            requiredTextField2: `req${i + 1}`.slice(0, 10),
+            uniqueTextField3: `uniq-batch-${i + 1}`
+          }));
+          const payload = { data: batch, metadata: { tag: "large-batch" } };
+          request(app)
+            .post(getBulkPath(formDef._id))
+            .send(payload)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(res.body.insertedCount, 20);
+              done();
+            });
+        });
+      });
+
+      it("successfully creates a submission with extra/unknown fields (which are ignored)", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: "ok", requiredTextField2: "abc", uniqueTextField3: "uniq-extra", extraField: "shouldBeIgnored" },
+            ],
+            metadata: { tag: "extra-field" }
+          };
+          request(app)
+            .post(getBulkPath(formDef._id))
+            .send(payload)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(res.body.insertedCount, 1);
+              done();
+            });
+        });
+      });
+
+      it("returns partial failure for mixed data types", function(done) {
+        upsertForm(function (err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: 123, requiredTextField2: "abc", uniqueTextField3: "uniq-type-1" }, // number instead of string
+              { textField1: "ok", requiredTextField2: 456, uniqueTextField3: "uniq-type-2" }, // number instead of string
+              { textField1: "ok2", requiredTextField2: "abc2", uniqueTextField3: "uniq-type-3" },
+            ],
+            metadata: { tag: "mixed-types" }
+          };
+          request(app)
+            .post(getBulkPath(formDef._id))
+            .send(payload)
+            .expect(207)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.successes.length >= 1);
+              assert(res.body.failures.length >= 1);
+              done();
+            });
+        });
+      });
+
+      it("successfully creates submissions with and without metadata", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payloadWith = {
+            data: [
+              { textField1: "ok", requiredTextField2: "abc", uniqueTextField3: "uniq-meta-1" },
+            ],
+            metadata: { tag: "with-metadata" }
+          };
+          const payloadWithout = {
+            data: [
+              { textField1: "ok2", requiredTextField2: "abc2", uniqueTextField3: "uniq-meta-2" },
+            ]
+          };
+          request(app)
+            .post(getBulkPath(formDef._id))
+            .send(payloadWith)
+            .expect(201)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              request(app)
+                .post(getBulkPath(formDef._id))
+                .send(payloadWithout)
+                .expect(201)
+                .end(function(err2, res2) {
+                  if (err2) {
+                    return done(err2);
+                  }
+                  assert.equal(res.body.insertedCount, 1);
+                  assert.equal(res2.body.insertedCount, 1);
+                  done();
+                });
+            });
+        });
+      });
+    });
+
+    describe("Bulk Submissions, upsert endpoint", function() {
+      const bulkFixture = require("./fixtures/forms/bulkCreateForm.js");
+      const formDef = bulkFixture.form;
+      const getUpsertPath = (formId) => `/form/${formId}/bulk-upsert`;
+      const upsertForm = (cb) => helper.upsertForm(formDef, cb);
+
+      it("returns 400 for empty payload {}", function(done) {
+        upsertForm(function (err) {
+          if (err) {
+            return done(err);
+          }
+          request(app)
+            .put(getUpsertPath(formDef._id))
+            .send({})
+            .expect(400)
+            .end(done);
+        });
+      });
+
+      it("returns 400 for missing data field", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          request(app)
+            .put(getUpsertPath(formDef._id))
+            .send({ metadata: { tag: "missing-data" } })
+            .expect(400)
+            .end(done);
+        });
+      });
+
+      it("returns 400 for empty data array", function(done) {
+        upsertForm(function (err) {
+          if (err) {
+            return done(err);
+          }
+          request(app)
+            .put(getUpsertPath(formDef._id))
+            .send({ data: [] })
+            .expect(400)
+            .end(done);
+        });
+      });
+
+      it("returns partial success when some submissions are inserted and some fail", function(done) {
+        upsertForm(function (err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: "ok", requiredTextField2: "abc", uniqueTextField3: "uniq-upsert-partial-1" },
+              { textField1: "fail", requiredTextField2: null, uniqueTextField3: "uniq-upsert-partial-2" },
+            ],
+            metadata: { tag: "upsert-partial-success" }
+          };
+          request(app)
+            .put(getUpsertPath(formDef._id))
+            .send(payload)
+            .expect(207)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.successes.length === 1);
+              assert(res.body.failures.length === 1);
+              done();
+            });
+        });
+      });
+
+      it("returns partial failure for duplicate unique field in batch", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: "a", requiredTextField2: "abc", uniqueTextField3: "upsert-dupe-batch" },
+              { textField1: "b", requiredTextField2: "def", uniqueTextField3: "upsert-dupe-batch" },
+            ],
+            metadata: { tag: "upsert-dupe-unique-in-batch" }
+          };
+          request(app)
+            .put(getUpsertPath(formDef._id))
+            .send(payload)
+            .expect(207)
+            .end(function (err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.failures.length >= 1);
+              done();
+            });
+        });
+      });
+
+      it("returns partial failure for duplicate with existing DB record", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          // Insert one first
+          helper.submission(formDef.name, { textField1: "exists", requiredTextField2: "abc", uniqueTextField3: "upsert-dupe-db" }).execute(function () {
+            const payload = {
+              data: [
+                { textField1: "new", requiredTextField2: "def", uniqueTextField3: "upsert-dupe-db" },
+                { textField1: "ok", requiredTextField2: "ghi", uniqueTextField3: "upsert-unique-db" },
+              ],
+              metadata: { tag: "upsert-dupe-db" }
+            };
+            request(app)
+              .put(getUpsertPath(formDef._id))
+              .send(payload)
+              .expect(207)
+              .end(function(err, res) {
+                if (err) {
+                  return done(err);
+                }
+                assert.equal(res.body.successes.length, 1);
+                assert(res.body.failures.length >= 1);
+                done();
+              });
+          });
+        });
+      });
+
+      it("returns partial failure for invalid BSON/schema", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: { $bad: "value" }, requiredTextField2: "abc", uniqueTextField3: "upsert-uniq-bson" },
+              { textField1: "ok", requiredTextField2: "def", uniqueTextField3: "upsert-uniq-bson2" },
+            ],
+            metadata: { tag: "upsert-bson" }
+          };
+          request(app)
+            .put(getUpsertPath(formDef._id))
+            .send(payload)
+            .expect(207)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert.equal(res.body.successes.length, 1);
+              assert(res.body.failures.length >= 1);
+              done();
+            });
+        });
+      });
+
+      it("returns partial failure for null or missing required fields", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: "ok", requiredTextField2: null, uniqueTextField3: "upsert-uniq-null-1" },
+              { textField1: "ok2", uniqueTextField3: "upsert-uniq-null-2" },
+              { textField1: "ok3", requiredTextField2: "abc", uniqueTextField3: "upsert-uniq-null-3" },
+            ],
+            metadata: { tag: "upsert-null-required" }
+          };
+          request(app)
+            .put(getUpsertPath(formDef._id))
+            .send(payload)
+            .expect(207)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.successes.length >= 1);
+              assert(res.body.failures.length >= 1);
+              done();
+            });
+        });
+      });
+
+      it("returns partial failure when other (non uniqueness/non required) validations fail", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: "ok", requiredTextField2: "1234567890", uniqueTextField3: "upsert-uniq-maxlen-1" }, // valid
+              { textField1: "fail", requiredTextField2: "12345678901", uniqueTextField3: "upsert-uniq-maxlen-2" }, // too long
+            ],
+            metadata: { tag: "upsert-maxlen" }
+          };
+          request(app)
+            .put(getUpsertPath(formDef._id))
+            .send(payload)
+            .expect(207)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.successes.length >= 1);
+              assert(res.body.failures.length >= 1);
+              done();
+            });
+        });
+      });
+
+      it("successfully upserts multiple submissions in batch (large batch size)", function (done) {
+        upsertForm(function (err) {
+          if (err) return done(err);
+          const batch = Array.from({ length: 20 }, (_, i) => ({
+            textField1: `item${i + 1}`,
+            requiredTextField2: `req${i + 1}`.slice(0, 10),
+            uniqueTextField3: `upsert-uniq-batch-${i + 1}`
+          }));
+          const payload = { data: batch, metadata: { tag: "upsert-large-batch" } };
+          request(app)
+            .put(getUpsertPath(formDef._id))
+            .send(payload)
+            .expect(200)
+            .end(function (err, res) {
+              if (err) return done(err);
+              assert(res.body.upsertedCount === 20 || res.body.insertedCount === 20);
+              done();
+            });
+        });
+      });
+
+      it("successfully upserts a submission with extra/unknown fields (which are ignored)", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: "ok", requiredTextField2: "abc", uniqueTextField3: "upsert-uniq-extra", extraField: "shouldBeIgnored" },
+            ],
+            metadata: { tag: "upsert-extra-field" }
+          };
+          request(app)
+            .put(getUpsertPath(formDef._id))
+            .send(payload)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.upsertedCount === 1 || res.body.insertedCount === 1);
+              done();
+            });
+        });
+      });
+
+      it("returns partial failure for mixed data types", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payload = {
+            data: [
+              { textField1: 123, requiredTextField2: "abc", uniqueTextField3: "upsert-uniq-type-1" }, // number instead of string
+              { textField1: "ok", requiredTextField2: 456, uniqueTextField3: "upsert-uniq-type-2" }, // number instead of string
+              { textField1: "ok2", requiredTextField2: "abc2", uniqueTextField3: "upsert-uniq-type-3" },
+            ],
+            metadata: { tag: "upsert-mixed-types" }
+          };
+          request(app)
+            .put(getUpsertPath(formDef._id))
+            .send(payload)
+            .expect(207)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              assert(res.body.successes.length >= 1);
+              assert(res.body.failures.length >= 1);
+              done();
+            });
+        });
+      });
+
+      it("successfully upserts submissions with and without metadata", function(done) {
+        upsertForm(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const payloadWith = {
+            data: [
+              { textField1: "ok", requiredTextField2: "abc", uniqueTextField3: "upsert-uniq-meta-1" },
+            ],
+            metadata: { tag: "upsert-with-metadata" }
+          };
+          const payloadWithout = {
+            data: [
+              { textField1: "ok2", requiredTextField2: "abc2", uniqueTextField3: "upsert-uniq-meta-2" },
+            ]
+          };
+          request(app)
+            .put(getUpsertPath(formDef._id))
+            .send(payloadWith)
+            .expect(200)
+            .end(function(err, res) {
+              if (err) {
+                return done(err);
+              }
+              request(app)
+                .put(getUpsertPath(formDef._id))
+                .send(payloadWithout)
+                .expect(200)
+                .end(function (err2, res2) {
+                  if (err2) return done(err2);
+                  assert(res.body.upsertedCount === 1 || res.body.insertedCount === 1);
+                  assert(res2.body.upsertedCount === 1 || res2.body.insertedCount === 1);
+                  done();
+                });
+            });
+        });
+      });
+    });
   });
 
   describe('Nested Submissions', function() {
