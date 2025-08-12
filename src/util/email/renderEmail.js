@@ -19,7 +19,8 @@ const {
   isLayoutComponent,
   convertToString,
   cleanLabelTemplate,
-  formioComponents
+  formioComponents,
+  getSelectTemplate
 } = require('./utils');
 const macros = require('./nunjucks-macros');
 
@@ -170,15 +171,33 @@ function renderEmailProcessorSync(context) {
             ? Evaluator.interpolate(template, {item: labelData})
             : convertToString(v);
          };
-        const template = cleanLabelTemplate(component.template) || '{{ item.label }}';
+        const template = getSelectTemplate(component);
         outputValue = component.multiple
           ? rowValue?.map(v => getValueLabel(v, _.get(selectData, v), template)).join(', ')
           : getValueLabel(rowValue, selectData, template);
       }
       else {
+        const getDisplayValue = (v) => {
+          let displayValue = v;
+          if (_.isPlainObject(v) && !_.isEmpty(v)) {
+            const template = getSelectTemplate(component);
+            if (template) {
+              const contextData = component.valueProperty === 'data' && component.dataSrc === 'resource'
+                ? {item: {data: v}}
+                : {item: v};
+              displayValue = Evaluator.interpolate(template, contextData);
+              // cover the case when option label is the stringified object
+              if (displayValue === '[object Object]') {
+                displayValue = v;
+              }
+            }
+          }
+          return convertToString(displayValue);
+        };
+
         outputValue = component.multiple
-          ? rowValue?.map(v => convertToString(v)).join(', ')
-          : convertToString(rowValue);
+          ? rowValue?.map(v => getDisplayValue(v)).join(', ')
+          : getDisplayValue(rowValue);
       }
 
       insertRow(componentRenderContext, outputValue);
