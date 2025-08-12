@@ -112,11 +112,11 @@ const formatAddressValue = (
   }
   if (valueInManualMode) {
     if (component.manualModeViewString && address) {
-      return Evaluator.interpolateString(component.manualModeViewString, {
+      return Evaluator.evaluate(component.manualModeViewString, {
         address,
         component,
-        data,
-      });
+        data: value,
+      }, 'value');
     }
   }
   if (address) {
@@ -437,6 +437,14 @@ const convertToString = (value) => {
   }
 };
 
+const cleanLabelTemplate = (template) => {
+  return (template || '').replace(/<\/?[^>]+(>|$)/g, '');
+};
+
+const getSelectTemplate = (component) => {
+  return cleanLabelTemplate(component.template) || '{{ item.label }}';
+};
+
 const formioComponents = [
   'address',
   'base',
@@ -493,10 +501,6 @@ const formioComponents = [
   'resourcefields',
 ];
 
-const cleanLabelTemplate = (template) => {
-  return (template || '').replace(/<\/?[^>]+(>|$)/g, '');
-};
-
 module.exports = {
   isLayoutComponent,
   isGridBasedComponent,
@@ -521,6 +525,7 @@ module.exports = {
   insertGridHeader,
   insertGridRow,
   convertToString,
+  cleanLabelTemplate,
   formioComponents,
-  cleanLabelTemplate
+  getSelectTemplate
 };
