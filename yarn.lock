@@ -247,10 +247,10 @@
     lodash "^4.17.21"
     moment "^2.29.4"
 
-"@formio/js@5.2.1-rc.12":
-  version "5.2.1-rc.12"
-  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.2.1-rc.12.tgz#b1dc432bad7c12db66e24ac10529c45d6369bae8"
-  integrity sha512-NysQjELZvCnapkGrqB0SBW3FEjRzkNQ4oxmCQyNjbahq3M7eYNDZ8vTWR8eykvxQFCWdKMtC+sr9VRIaHRqhDQ==
+"@formio/js@5.2.1-rc.13":
+  version "5.2.1-rc.13"
+  resolved "https://registry.yarnpkg.com/@formio/js/-/js-5.2.1-rc.13.tgz#107c9a4f68ecb834a86baca8413f7adb2c3204c8"
+  integrity sha512-RaUQ2Eai0zVNodkIZbCYPPYy9rsZIkqOj+KMFusiQVerG3mdd/Oe2wLlZ3ksC1smDNMVqaFKz7E9P9X9Sk5Y6Q==
   dependencies:
     "@formio/bootstrap" "3.1.2-rc.3"
     "@formio/core" "2.5.1-rc.8"
