@@ -3,31 +3,20 @@
 const ResourceFactory = require('resourcejs');
 const Resource = ResourceFactory.Resource;
 const _ = require('lodash');
-const util = require("../util/util");
-const Validator = require("./Validator");
+const util = require('../util/util');
+const Validator = require('./Validator');
 
 /**
  * Utility to recursively find all unique fields in a form definition
  */
 function getUniqueFieldsFromForm(form) {
   const uniqueFields = [];
-  const findUniqueFields = (components) => {
-    for (const comp of components) {
-      if (comp.unique && comp.key) {
-        uniqueFields.push(comp.key);
-      }
-      if (Array.isArray(comp.components)) {
-        findUniqueFields(comp.components);
-      }
-      if (Array.isArray(comp.columns)) {
-        comp.columns.forEach((col) => findUniqueFields(col.components || []));
-      }
-      if (Array.isArray(comp.rows)) {
-        comp.rows.forEach((row) => row.forEach((cell) => findUniqueFields(cell.components || [])));
-      }
+  util.FormioUtils.eachComponent(form.components, function(component) {
+    if (component.unique && component.key) {
+      uniqueFields.push(component.key);
     }
-  };
-  findUniqueFields(form.components || []);
+  });
+
   return uniqueFields;
 }
 
@@ -45,8 +34,8 @@ function getUniqueFieldsFromForm(form) {
  *   - doc: the original submission document
  *   - originalIndex: the index of the doc in the input array
  */
-async function validateAndCheckUniquenessForSubmission({ form, docs, req, formio }) {
-  const duplicateValueErrorMessage = "Duplicate value for unique field";
+async function validateAndCheckUniquenessForSubmission({form, docs, req, formio}) {
+  const duplicateValueErrorMessage = 'Duplicate value for unique field';
   const uniqueFields = getUniqueFieldsFromForm(form);
 
   // Generate unique fields map for checking uniqueness within the submitted batch
@@ -68,11 +57,11 @@ async function validateAndCheckUniquenessForSubmission({ form, docs, req, formio
         if (value !== undefined && value !== null) {
           if (seenMaps[field].has(value)) {
             const msg = `${duplicateValueErrorMessage} ${field}`;
-            errors.push({ type: "unique", message: msg });
+            errors.push({type: 'unique', message: msg});
             // Record for later: add same error to first occurrence
-            duplicatePairs.push({ field, firstIdx: seenMaps[field].get(value), dupIdx: idx, msg });
+            duplicatePairs.push({field, firstIdx: seenMaps[field].get(value), dupIdx: idx, msg});
           }
-          else {
+ else {
             seenMaps[field].set(value, idx);
           }
         }
@@ -88,22 +77,22 @@ async function validateAndCheckUniquenessForSubmission({ form, docs, req, formio
       };
       const validator = new Validator(submissionRequest, formio);
       validator.form = form;
-      validator.options = { abortEarly: false };
+      validator.options = {abortEarly: false};
       const originalId = doc.data._id; // Save before validation
       await new Promise((resolve) => {
         validator.validate(submissionRequest.body, (err) => {
           if (err) {
             const details = Array.isArray(err.details)
-                            ? err.details
-                            : [{ message: err.message || err, level: "error", path: [] }];
+              ? err.details
+              : [{message: err.message || err, level: 'error', path: []}];
 
-            details.forEach((e) => errors.push({ type: "validator", message: e.message || e }));
+            details.forEach((e) => errors.push({type: 'validator', message: e.message || e}));
           }
           resolve();
         });
       });
       // Restore _id for upsert uniqueness check
-      if (req.method && req.method.toUpperCase() === "PUT" && doc.data && doc.data._id === undefined && originalId) {
+      if (req.method && req.method.toUpperCase() === 'PUT' && doc.data && doc.data._id === undefined && originalId) {
         doc.data._id = originalId;
       }
       return {
@@ -116,9 +105,9 @@ async function validateAndCheckUniquenessForSubmission({ form, docs, req, formio
   );
 
   // After results are built, add duplicate errors to the first occurrence
-  duplicatePairs.forEach(({ firstIdx, msg }) => {
-    if (!results[firstIdx].errors.find((e) => e.type === "unique" && e.message === msg)) {
-      results[firstIdx].errors.push({ type: "unique", message: msg });
+  duplicatePairs.forEach(({firstIdx, msg}) => {
+    if (!results[firstIdx].errors.find((e) => e.type === 'unique' && e.message === msg)) {
+      results[firstIdx].errors.push({type: 'unique', message: msg});
       results[firstIdx].valid = false;
     }
   });
@@ -127,12 +116,12 @@ async function validateAndCheckUniquenessForSubmission({ form, docs, req, formio
   for (const field of uniqueFields) {
     const valuesToCheck = Array.from(seenMaps[field].keys());
     if (valuesToCheck.length > 0) {
-      const query = { form: form._id, [`data.${field}`]: { $in: valuesToCheck } };
-      const existing = await formio.resources.submission.model.find(query, { [`data.${field}`]: 1 }).lean();
+      const query = {form: form._id, [`data.${field}`]: {$in: valuesToCheck}};
+      const existing = await formio.resources.submission.model.find(query, {[`data.${field}`]: 1}).lean();
       const existingValues = new Set(existing.map((s) => _.get(s.data, field)));
       results.forEach((result) => {
         const value = _.get(result.doc.data, field);
-        const isUpsert = req && req.method && req.method.toUpperCase() === "PUT";
+        const isUpsert = req && req.method && req.method.toUpperCase() === 'PUT';
         if (existingValues.has(value)) {
           // Find all matching DB docs
           const dbDocs = existing.filter((s) => _.get(s.data, field) === value);
@@ -144,8 +133,8 @@ async function validateAndCheckUniquenessForSubmission({ form, docs, req, formio
           // Only error if NOT updating self (i.e., none of the DB docs match this _id)
           if (!updatingSelf) {
             const msg = `${duplicateValueErrorMessage} ${field}`;
-            if (!result.errors.find((e) => e.type === "unique" && e.message === msg)) {
-              result.errors.push({ type: "unique", message: msg });
+            if (!result.errors.find((e) => e.type === 'unique' && e.message === msg)) {
+              result.errors.push({type: 'unique', message: msg});
               result.valid = false;
             }
           }
@@ -193,11 +182,11 @@ module.exports = (router) => {
         await hook.alter('getSubmissionRevisionModel', router.formio, req, currentForm, false);
         return next();
       }
-      catch (err) {
+ catch (err) {
         return next(err);
       }
     },
-    router.formio.middleware.submissionRevisionLoader
+    router.formio.middleware.submissionRevisionLoader,
   ];
   handlers.beforePut = [
     router.formio.middleware.permissionHandler,
@@ -263,80 +252,85 @@ module.exports = (router) => {
   ];
 
   // Register an exists endpoint to see if a submission exists.
-  router.get('/form/:formId/exists', async (req, res, next) => {
-    const {ignoreCase = false} = req.query;
-    // We need to strip the ignoreCase query out so resourcejs does not use it as a filter
-    if (ignoreCase) {
-      delete req.query['ignoreCase'];
-    }
-    // First load the form.
-    try {
-      const form = await router.formio.cache.loadCurrentForm(req);
-      await hook.alter('getSubmissionModel', router.formio, req, form, false);
-      // Get the find query for this item.
-      const query = router.formio.resources.submission.getFindQuery(req);
-      if (_.isEmpty(query)) {
-        return res.status(400).send('Invalid query');
+  router.get(
+    '/form/:formId/exists',
+    async (req, res, next) => {
+      const {ignoreCase = false} = req.query;
+      // We need to strip the ignoreCase query out so resourcejs does not use it as a filter
+      if (ignoreCase) {
+        delete req.query['ignoreCase'];
       }
+      // First load the form.
+      try {
+        const form = await router.formio.cache.loadCurrentForm(req);
+        await hook.alter('getSubmissionModel', router.formio, req, form, false);
+        // Get the find query for this item.
+        const query = router.formio.resources.submission.getFindQuery(req);
+        if (_.isEmpty(query)) {
+          return res.status(400).send('Invalid query');
+        }
 
-      query.form = form._id;
-      query.deleted = {$eq: null};
-      const submissionModel = req.submissionModel || router.formio.resources.submission.model;
+        query.form = form._id;
+        query.deleted = {$eq: null};
+        const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
-      // Query the submissions for this submission.
-          const submission = await submissionModel.findOne(
-            hook.alter('submissionQuery', query, req),
-            null,
-            (ignoreCase && router.formio.mongoFeatures.collation) ? {collation: {locale: 'en', strength: 2}} : {});
-          // Return not found.
-          if (!submission || !submission._id) {
-            return res.status(404).send('Not found');
-          }
-            // By default check permissions to access the endpoint.
-          const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
+        // Query the submissions for this submission.
+        const submission = await submissionModel.findOne(
+          hook.alter('submissionQuery', query, req),
+          null,
+          ignoreCase && router.formio.mongoFeatures.collation ? {collation: {locale: 'en', strength: 2}} : {}
+        );
+        // Return not found.
+        if (!submission || !submission._id) {
+          return res.status(404).send('Not found');
+        }
+        // By default check permissions to access the endpoint.
+        const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
 
-          if (withoutPermissions) {
-            // Send only the id as a response if the submission exists.
-            return res.status(200).json({
-              _id: submission._id.toString(),
-            });
-          }
-          else {
-            req.subId = submission._id.toString();
-            req.permissionsChecked = false;
-            return next();
-          }
-    }
-    catch (err) {
-      return next(err);
-    }
-  }, router.formio.middleware.permissionHandler, (req, res, next) => {
-    return res.status(200).json({
-      _id: req.subId,
-    });
-  });
-
-  router.delete('/form/:formId/submission',
-    ...handlers.beforeDelete.filter((_, idx) => idx !== 1),
-    ...handlers.afterDelete,
-    (req, res) => {
-      return res.resource
-        ? res.status(res.resource.status).json(res.resource.item)
-        : res.sendStatus(400);
+        if (withoutPermissions) {
+          // Send only the id as a response if the submission exists.
+          return res.status(200).json({
+            _id: submission._id.toString(),
+          });
+        }
+ else {
+          req.subId = submission._id.toString();
+          req.permissionsChecked = false;
+          return next();
+        }
+      }
+ catch (err) {
+        return next(err);
+      }
+    },
+    router.formio.middleware.permissionHandler,
+    (req, res, next) => {
+      return res.status(200).json({
+        _id: req.subId,
+      });
     }
   );
 
-  /** 
+  router.delete(
+    '/form/:formId/submission',
+    ...handlers.beforeDelete.filter((_, idx) => idx !== 1),
+    ...handlers.afterDelete,
+    (req, res) => {
+      return res.resource ? res.status(res.resource.status).json(res.resource.item) : res.sendStatus(400);
+    }
+  );
+
+  /**
    * Helper to prepare bulk submission context (shared by bulk create and upsert endpoints)
-   */ 
-  async function prepareBulkSubmissionContext({ req, res, router, isUpsert }) {
-    const { formId } = req.params;
-    const { formio } = router;
-    const hook = require("../util/hook")(formio);
+   */
+  async function prepareBulkSubmissionContext({req, res, router, isUpsert}) {
+    const {formId} = req.params;
+    const {formio} = router;
+    const hook = require('../util/hook')(formio);
 
     const payload = Array.isArray(req.body) ? req.body[0] : req.body;
-    if (!payload || !Array.isArray(payload.data)) {
-      res.status(400).json({ error: "Payload must contain a 'data' array." });
+    if (!payload || typeof payload !== 'object' || Object.keys(payload).length === 0 || !Array.isArray(payload.data)) {
+      res.status(400).json({error: "Payload must contain a 'data' array."});
       return null;
     }
 
@@ -344,7 +338,7 @@ module.exports = (router) => {
     const submissionModel = req.submissionModel || formio.resources.submission.model;
 
     req.form = form;
-    req.body = { data: {} };
+    req.body = {data: {}};
     await formio.middleware.permissionHandler(req, res, () => {});
 
     const now = new Date();
@@ -354,9 +348,9 @@ module.exports = (router) => {
       const doc = {
         originalIndex: index,
         form: formId,
-        data: { ...item },
+        data: {...item},
         metadata: payload.metadata,
-        state: payload.state || "submitted",
+        state: payload.state || 'submitted',
         owner,
         deleted: null,
         created: now,
@@ -369,7 +363,7 @@ module.exports = (router) => {
       return doc;
     });
 
-    const validationResults = await validateAndCheckUniquenessForSubmission({ form, docs, req, formio });
+    const validationResults = await validateAndCheckUniquenessForSubmission({form, docs, req, formio});
 
     // Build failures and valid docs
     const failures = [];
@@ -381,12 +375,41 @@ module.exports = (router) => {
           errors: result.errors,
           originalIndex: result.originalIndex,
         });
-      } else {
+      }
+ else {
         validDocs.push(result.doc);
       }
     });
 
-    return { form, submissionModel, docs, failures, validDocs, payload, hook };
+    return {form, submissionModel, docs, failures, validDocs, payload, hook};
+  }
+
+  /**
+   * Helper to extract successful inserts and failures from insertMany error
+   */
+  function hydrateBulkInsertSuccessesAndFailures(err, payload, validDocs, util) {
+    let successes = [];
+    if (err.result && typeof err.result.getInsertedIds === 'function') {
+      const insertedIds = err.result.getInsertedIds();
+      successes = insertedIds.map(({index, _id}) => ({
+        original: payload.data[validDocs[index]?.originalIndex],
+        submission: {_id: _id?.toString?.() || String(_id)},
+      }));
+    }
+ else if (Array.isArray(err.insertedDocs)) {
+      successes = err.insertedDocs.map((doc, i) => ({
+        original: payload.data[validDocs[i]?.originalIndex],
+        submission: {_id: doc._id?.toString?.() || String(doc._id)},
+      }));
+    }
+
+    const failures = (err.writeErrors || []).map((e) => ({
+      original: payload.data[e.index],
+      errors: [{type: 'insert', message: e.errmsg || e.message}],
+      originalIndex: validDocs[e.index]?.originalIndex ?? e.index,
+    }));
+
+    return {successes, failures};
   }
 
   /**
@@ -409,7 +432,7 @@ module.exports = (router) => {
    * 3. Bulk Insert - Uses `insertMany` to insert all valid documents into the database. Partial failures do not abort the entire batch.
    * 4. Response Handling:
    *    - On success: Returns a 201 response with the count of inserted documents, details for each successful submission, and any failures.
-   *    - On partial failure (e.g., duplicate key): Returns a 207 response with the number of inserted documents 
+   *    - On partial failure (e.g., duplicate key): Returns a 207 response with the number of inserted documents
    *        and detailed failure information for each failed item.
    *    - On total failure: Returns a 400 response with failure details.
    *
@@ -493,42 +516,81 @@ module.exports = (router) => {
    * }
    * ```
    */
-  router.post("/form/:formId/submissions", async (req, res, next) => {
-    util.log("[submissions] Received bulk create request");
-    const context = await prepareBulkSubmissionContext({ req, res, router, isUpsert: false });
-    if (!context) return;
-    const { form, submissionModel, failures, validDocs, payload, hook } = context;
+  router.post('/form/:formId/submissions', async (req, res, next) => {
+    util.log('[create submissions] Received bulk create request');
+
+    const context = await prepareBulkSubmissionContext({req, res, router, isUpsert: false});
+    if (!context) {
+      return;
+    }
+    const {form, submissionModel, failures, validDocs, payload, hook} = context;
 
     try {
       if (failures.length > 0 && validDocs.length === 0) {
-        return res.status(400).json({ insertedCount: 0, failures });
+        // Total failure: all docs invalid
+        return res.status(400).json({insertedCount: 0, failures});
       }
 
+      util.log('[create submissions] validation complete');
       // Extension point: allows plugins or custom hooks to modify the array of valid submissions
-      // before they are inserted. Any listeners to the 'bulkSubmissionDocuments' hook can alter
-      // validDocs (e.g., enrich data, add audit fields, enforce additional business logic).
-      await hook.alter("bulkSubmissionDocuments", validDocs, req, form);
-      const result = await submissionModel.insertMany(validDocs, { ordered: false });
+      await hook.alter('bulkSubmissionDocuments', validDocs, req, form);
 
-      return res.status(201).json({
+      let result;
+
+      try {
+        result = await submissionModel.insertMany(validDocs, {ordered: false});
+        util.log('[create submissions] post insertmany');
+      }
+ catch (err) {
+        // Partial success: some succeeded, some failed
+        util.log('[create submissions] error in insertmany try catch');
+        if (
+          (err.writeErrors && Array.isArray(err.writeErrors) && err.writeErrors.length > 0) ||
+          (err.result && typeof err.result.nInserted === 'number' && err.result.nInserted > 0)
+        ) {
+          util.log('[create submissions] insertmany try catch block. there are errors');
+          // Some docs may have been inserted before the error
+          const {successes, failures} = hydrateBulkInsertSuccessesAndFailures(err, payload, validDocs, util);
+
+          util.log('[create submissions] 207 insertmany try catch block.');
+          return res.status(207).json({
+            insertedCount: successes.length,
+            successes,
+            failures,
+          });
+        }
+        // Unexpected error
+        util.log('[create submissions] 400 insertmany try catch block total failure.');
+        return res.status(400).json({
+          insertedCount: 0,
+          failures: [{error: err.message || String(err)}],
+        });
+      }
+
+      // Full success or partial (pre-insert validation) success
+      util.log('[create submissions] 201/207 partial or full success');
+      const responseBody = {
         insertedCount: result.length,
         successes: result.map((doc, i) => ({
           original: payload.data[validDocs[i].originalIndex],
-          submission: { _id: doc._id.toString() },
+          submission: {_id: doc._id.toString()},
         })),
         failures,
-      });
-    } catch (err) {
-      if (err.writeErrors) {
-        return res.status(207).json({
-          insertedCount: err.result?.nInserted || 0,
-          failures: err.writeErrors.map((e) => ({
-            original: payload.data[e.index],
-            error: e.errmsg || e.message,
-          })),
-        });
+      };
+      if (failures.length > 0) {
+        util.log('[create submissions] 207 partial success');
+        return res.status(207).json(responseBody);
       }
-      return next(err);
+      util.log('[create submissions] 201 full success');
+      return res.status(201).json(responseBody);
+    }
+ catch (err) {
+      // Unexpected error
+      util.log('[create submissions] 400 total failure');
+      return res.status(400).json({
+        insertedCount: 0,
+        failures: [{error: err.message || String(err)}],
+      });
     }
   });
 
@@ -638,37 +700,40 @@ module.exports = (router) => {
    * - Validation and uniqueness checks are performed for all documents before upserting.
    * - The endpoint is designed for high-throughput, bulk operations, and is resilient to partial failures.
    */
-  router.put("/form/:formId/submissions", async (req, res, next) => {
-    util.log("[submissions] Received bulk submission upsert request");
-    const context = await prepareBulkSubmissionContext({ req, res, router, isUpsert: true });
-    if (!context) return;
-    const { submissionModel, failures, validDocs, payload } = context;
+  router.put('/form/:formId/submissions', async (req, res, next) => {
+    util.log('[submissions] Received bulk submission upsert request');
+    const context = await prepareBulkSubmissionContext({req, res, router, isUpsert: true});
+    if (!context) {
+return;
+}
+    const {submissionModel, failures, validDocs, payload} = context;
 
     try {
       if (failures.length > 0 && validDocs.length === 0) {
-        return res.status(400).json({ upsertedCount: 0, failures });
+        return res.status(400).json({upsertedCount: 0, failures});
       }
       // Prepare bulkWrite operations
-      const operations = validDocs.map(doc => {
+      const operations = validDocs.map((doc) => {
         if (doc.data._id) {
           return {
             updateOne: {
-              filter: { _id: doc.data._id },
-              update: { $set: { ...doc, modified: new Date() } },
+              filter: {_id: doc.data._id},
+              update: {$set: {...doc, modified: new Date()}},
               upsert: true,
-            }
+            },
           };
-        } else {
+        }
+ else {
           return {
             insertOne: {
-              document: doc
-            }
+              document: doc,
+            },
           };
         }
       });
 
       // Perform the bulkWrite operation
-      const result = await submissionModel.bulkWrite(operations, { ordered: false });
+      const result = await submissionModel.bulkWrite(operations, {ordered: false});
 
       // Build response arrays
       // upserted: Documents that did not exist and were created via upsert (updateOne with upsert:true, no match found)
@@ -685,7 +750,11 @@ module.exports = (router) => {
           const doc = validDocs[opIndex];
           upserted.push({
             original: payload.data[doc.originalIndex],
-            submission: { _id: result.upsertedIds[idx]._id ? result.upsertedIds[idx]._id.toString() : result.upsertedIds[idx].toString() }
+            submission: {
+              _id: result.upsertedIds[idx]._id
+                ? result.upsertedIds[idx]._id.toString()
+                : result.upsertedIds[idx].toString(),
+            },
           });
         }
       }
@@ -694,17 +763,17 @@ module.exports = (router) => {
       operations.forEach((op, i) => {
         const doc = validDocs[i];
         // modified: updateOne with upsert:true, matched an existing doc
-        if (op.updateOne && !(result.upsertedIds && (i in result.upsertedIds))) {
+        if (op.updateOne && !(result.upsertedIds && i in result.upsertedIds)) {
           modified.push({
             original: payload.data[doc.originalIndex],
-            submission: { _id: doc.data._id ? doc.data._id.toString() : undefined }
+            submission: {_id: doc.data._id ? doc.data._id.toString() : undefined},
           });
         }
         // inserted: explicit insertOne ops (no _id provided)
         else if (op.insertOne) {
           inserted.push({
             original: payload.data[doc.originalIndex],
-            submission: { _id: doc._id ? doc._id.toString() : undefined }
+            submission: {_id: doc._id ? doc._id.toString() : undefined},
           });
         }
       });
@@ -717,12 +786,12 @@ module.exports = (router) => {
         modifiedCount: modified.length,
         upserted: allUpserted,
         modified,
-        failures
+        failures,
       });
-
-    } catch (err) {
+    }
+ catch (err) {
       // Handle bulkWrite errors
-      const failures = (err.writeErrors || []).map(e => ({
+      const failures = (err.writeErrors || []).map((e) => ({
         original: payload.data[e.index],
         error: e.errmsg || e.message,
       }));
@@ -732,7 +801,7 @@ module.exports = (router) => {
         modifiedCount: 0,
         upserted: [],
         modified: [],
-        failures
+        failures,
       });
     }
   });
@@ -741,31 +810,37 @@ module.exports = (router) => {
     patch(options) {
       options = Resource.getMethodOptions('put', options);
       this.methods.push('patch');
-      this._register('patch', `${this.route}/:${this.name}Id`, (req, res, next) => {
-        // Store the internal method for response manipulation.
-        req.__rMethod = 'patch';
+      this._register(
+        'patch',
+        `${this.route}/:${this.name}Id`,
+        (req, res, next) => {
+          // Store the internal method for response manipulation.
+          req.__rMethod = 'patch';
 
-        if (req.skipResource) {
-          return next();
-        }
-
-        const update = _.omit(req.body, ['_id', '__v']);
-        update.modified = new Date();
-        router.formio.resources.submission.model.findOneAndUpdate(
-          {_id: req.params[`${this.name}Id`]},
-          {$set: update}
-        ).then((item) => {
-          if (!item) {
-            return Resource.setResponse(res, {status: 404}, next);
+          if (req.skipResource) {
+            return next();
           }
 
-          const updatedItem = _.assign(item, update);
+          const update = _.omit(req.body, ['_id', '__v']);
+          update.modified = new Date();
+          router.formio.resources.submission.model
+            .findOneAndUpdate({_id: req.params[`${this.name}Id`]}, {$set: update})
+            .then((item) => {
+              if (!item) {
+                return Resource.setResponse(res, {status: 404}, next);
+              }
 
-          return Resource.setResponse(res, {status: 200, item: updatedItem}, next);
-        }).catch((err) => {
-          return Resource.setResponse(res, {status: 400, error: err}, next);
-        });
-      }, Resource.respond, options);
+              const updatedItem = _.assign(item, update);
+
+              return Resource.setResponse(res, {status: 200, item: updatedItem}, next);
+            })
+            .catch((err) => {
+              return Resource.setResponse(res, {status: 400, error: err}, next);
+            });
+        },
+        Resource.respond,
+        options
+      );
       return this;
     }
   }
@@ -781,21 +856,23 @@ module.exports = (router) => {
     router.formio.mongoose.model('submission'),
     {
       convertIds: /(^|\.)(_id|form|owner)$/,
-    },
-  ).rest(hook.alter('submissionRoutes', {
-    ...handlers,
-    hooks: {
-      put: {
-        before(req, res, item, next) {
-          if (item.data) {
-            item.markModified('data');
-          }
+    }
+  ).rest(
+    hook.alter('submissionRoutes', {
+      ...handlers,
+      hooks: {
+        put: {
+          before(req, res, item, next) {
+            if (item.data) {
+              item.markModified('data');
+            }
 
-          return next();
+            return next();
+          },
         },
       },
-    },
-  }));
+    })
+  );
 
   _.each(handlers, (handler) => {
     _.each(handler, (fn, index) => {
