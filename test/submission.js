@@ -7,6 +7,7 @@ var Chance = require('chance');
 var chance = new Chance();
 var _ = require('lodash');
 var docker = process.env.DOCKER;
+const mongoose = require('mongoose');
 
 module.exports = function (app, template, hook) {
   var Helper = require('./helper')(app);
@@ -5552,6 +5553,7 @@ module.exports = function (app, template, hook) {
 
     describe('Bulk Submissions, upsert endpoint', function () {
       const bulkFixture = require('./fixtures/forms/bulkUpsertForm.js');
+      const upsertFormName = 'bulkEndpointTest-upsert';
       const formDef = bulkFixture.form;
 
       it('creates a test form for bulk submission upsert tests', function (done) {
@@ -5564,18 +5566,17 @@ module.exports = function (app, template, hook) {
       });
 
       it('returns 400 for empty payload {}', function (done) {
-        const form = helper.template.forms['bulkEndpointTest-upsert'];
+        const form = helper.template.forms[upsertFormName];
         const payload = {};
 
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 400], true, function (err, res) {
-          console.log(`helper.getLastBulkSubmission: ${JSON.stringify(helper.getLastBulkSubmission())}`);
           assert.equal(helper.getLastBulkSubmission().error, "Payload must contain a 'data' array.");
           done(err, res);
         });
       });
 
       it('returns 400 for missing data field', function (done) {
-        const form = helper.template.forms['bulkEndpointTest-upsert'];
+        const form = helper.template.forms[upsertFormName];
         const payload = { metadata: { tag: 'missing-data-field' } };
 
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 400], true, function (err, res) {
@@ -5585,7 +5586,7 @@ module.exports = function (app, template, hook) {
       });
 
       it('returns 400 for empty data array', function (done) {
-        const form = helper.template.forms['bulkEndpointTest-upsert'];
+        const form = helper.template.forms[upsertFormName];
         const payload = { data: [] };
 
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 400], true, function (err, res) {
@@ -5595,20 +5596,20 @@ module.exports = function (app, template, hook) {
       });
 
       it('successfully upserts multiple submissions in batch (large batch size)', function (done) {
-        const form = helper.template.forms['bulkEndpointTest-upsert'];
-        const batch = Array.from({ length: 20 }, (_, i) => ({
+        const form = helper.template.forms[upsertFormName];
+        const batch = Array.from({ length: 200 }, (_, i) => ({
           textField1: `item${i + 1}`,
           requiredTextField2: `req${i + 1}`.slice(0, 10),
           uniqueTextField3: `upsert-uniq-batch-${i + 1}`,
         }));
-        helper.bulkCreateUpsertSubmissions(form, batch, null, [/application\/json/, 201], true, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().insertedCount, 20);
+        helper.bulkCreateUpsertSubmissions(form, batch, null, [/application\/json/, 200], true, function (err, res) {
+          assert.equal(helper.getLastBulkSubmission().upsertedCount, 200);
           done(err, res);
         });
       });
 
       it('returns partial success when some submissions are inserted and some fail', function (done) {
-        const form = helper.template.forms['bulkEndpointTest-upsert'];
+        const form = helper.template.forms[upsertFormName];
         const submissions = [
           { textField1: 'ok', requiredTextField2: 'abc', uniqueTextField3: 'uniq-upsert-partial-1' },
           { textField1: 'fail', requiredTextField2: null, uniqueTextField3: 'uniq-upsert-partial-2' },
@@ -5620,88 +5621,90 @@ module.exports = function (app, template, hook) {
           [/application\/json/, 207],
           true,
           function (err, res) {
-            assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
+            assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
             done(err, res);
           }
         );
       });
 
       it('returns partial failure for duplicate unique field in batch', function (done) {
-        const form = helper.template.forms['bulkEndpointTest-upsert'];
+        const form = helper.template.forms[upsertFormName];
         const payload = [
           { textField1: 'a', requiredTextField2: 'abc', uniqueTextField3: 'upsert-dupe-batch' },
           { textField1: 'b', requiredTextField2: 'def', uniqueTextField3: 'upsert-dupe-batch' },
+          { textField1: 'c', requiredTextField2: 'def', uniqueTextField3: 'upsert-dupe-batch-1' },
         ];
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 207], true, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
+          assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
           done(err, res);
         });
       });
 
       it('returns partial failure for duplicate with existing DB record', function (done) {
-        const form = helper.template.forms['bulkEndpointTest-upsert'];
+        const form = helper.template.forms[upsertFormName];
         const payload = [
-          { textField1: 'new', requiredTextField2: 'def', uniqueTextField3: 'upsert-dupe-db' },
+          { textField1: 'new', requiredTextField2: 'def', uniqueTextField3: 'upsert-dupe-batch-1' },
           { textField1: 'ok', requiredTextField2: 'ghi', uniqueTextField3: 'upsert-unique-db' },
         ];
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 207], true, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
+          assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
           done(err, res);
         });
       });
 
       it('returns partial failure for invalid BSON/schema', function (done) {
-        const form = helper.template.forms['bulkEndpointTest-upsert'];
+        const form = helper.template.forms[upsertFormName];
         const payload = [
-          { textField1: { $bad: 'value' }, requiredTextField2: 'abc', uniqueTextField3: 'upsert-uniq-bson' },
+          { textField1: NaN, requiredTextField2: 'abc', uniqueTextField3: 'uniq-bson' },
+          { textField1: Infinity, requiredTextField2: 'abc', uniqueTextField3: 'uniq-bson' },
           { textField1: 'ok', requiredTextField2: 'def', uniqueTextField3: 'upsert-uniq-bson2' },
         ];
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 207], true, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
+          assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
           done(err, res);
         });
       });
 
       it('returns partial failure for null or missing required fields', function (done) {
-        const form = helper.template.forms['bulkEndpointTest-upsert'];
+        const form = helper.template.forms[upsertFormName];
         const payload = [
           { textField1: 'ok', requiredTextField2: null, uniqueTextField3: 'upsert-uniq-null-1' },
           { textField1: 'ok2', uniqueTextField3: 'upsert-uniq-null-2' },
           { textField1: 'ok3', requiredTextField2: 'abc', uniqueTextField3: 'upsert-uniq-null-3' },
         ];
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 207], true, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
+          assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
           done(err, res);
         });
       });
 
       it('returns partial failure when other (non uniqueness/non required) validations fail', function (done) {
-        const form = helper.template.forms['bulkEndpointTest-upsert'];
+        const form = helper.template.forms[upsertFormName];
         const payload = [
           { textField1: 'ok', requiredTextField2: '1234567890', uniqueTextField3: 'upsert-uniq-maxlen-1' }, // valid
           { textField1: 'ok2', requiredTextField2: '12345678901', uniqueTextField3: 'upsert-uniq-maxlen-2' }, // too long
         ];
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 207], true, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
+          assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
           done(err, res);
         });
       });
 
       it('successfully upserts submissions containing mixed data types', function (done) {
-        const form = helper.template.forms['bulkEndpointTest-upsert'];
+        const form = helper.template.forms[upsertFormName];
         const payload = [
           { textField1: 123, requiredTextField2: 'abc', uniqueTextField3: 'upsert-uniq-type-1' },
           { textField1: 'ok', requiredTextField2: 456, uniqueTextField3: 'upsert-uniq-type-2' },
           { textField1: 'ok2', requiredTextField2: 'abc2', uniqueTextField3: 'upsert-uniq-type-3' },
         ];
-        helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 207], true, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
+        helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 200], true, function (err, res) {
+          assert.equal(helper.getLastBulkSubmission().upsertedCount, 3);
           done(err, res);
         });
       });
 
       it('successfully upserts a submission with extra/unknown fields (which are ignored)', function (done) {
-        const form = helper.template.forms['bulkEndpointTest-upsert'];
+        const form = helper.template.forms[upsertFormName];
         const payload = [
           {
             textField1: 'ok',
@@ -5710,10 +5713,100 @@ module.exports = function (app, template, hook) {
             extraField: 'shouldBeIgnored',
           },
         ];
-        helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 207], true, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().insertedCount, 1);
+        helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 200], true, function (err, res) {
+          assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
           done(err, res);
         });
+      });
+
+      let insertedSubmissionId;
+
+      it('creates a single submission for upsert testing', function (done) {
+        const initial = {
+          textField1: 'original',
+          requiredTextField2: 'required',
+          uniqueTextField3: 'upsert-uniq-orig',
+        };
+        helper
+          .submission(upsertFormName, initial)
+          .expect(201)
+          .execute(function (err) {
+            if (err) {
+              return done(err);
+            }
+            const sub = helper.getLastSubmission();
+            insertedSubmissionId = sub._id;
+            assert(sub._id, 'Inserted submission should have an _id');
+            assert.equal(sub.data.textField1, 'original');
+            done();
+          });
+      });
+
+      it('bulk upsert operation with an existing id updates the record if it exists in the database', function (done) {
+        const upsertForm = helper.template.forms[upsertFormName];
+        const updated = {
+          _id: insertedSubmissionId,
+          textField1: 'updated',
+          requiredTextField2: 'required',
+          uniqueTextField3: 'upsert-uniq-orig',
+        };
+        helper.bulkCreateUpsertSubmissions(
+          upsertForm,
+          [updated],
+          null,
+          [/application\/json/, 206],
+          true,
+          function (err, res) {
+            assert.equal(
+              helper.getLastBulkSubmission().upsertedCount + helper.getLastBulkSubmission().modifiedCount,
+              1
+            );
+            // Verify submission was updated
+            helper.getSubmission(upsertFormName, insertedSubmissionId, function (err, sub) {
+              if (err) {
+                return done(err);
+              }
+              const actual = sub.data;
+
+              assert.equal(actual.textField1, updated.textField1);
+              assert.equal(actual.requiredTextField2, updated.requiredTextField2);
+              assert.equal(actual.uniqueTextField3, updated.uniqueTextField3);
+              done();
+            });
+          }
+        );
+      });
+
+      it('bulk upserts with a new id creates a new record', function (done) {
+        const newId = new mongoose.Types.ObjectId();
+        const upsertForm = helper.template.forms[upsertFormName];
+        const newSub = {
+          _id: newId,
+          textField1: 'newrecord',
+          requiredTextField2: 'required',
+          uniqueTextField3: 'upsert-uniq-new',
+        };
+
+        helper.bulkCreateUpsertSubmissions(
+          upsertForm,
+          [newSub],
+          null,
+          [/application\/json/, 200],
+          true,
+          function (err, res) {
+            assert.equal(helper.getLastBulkSubmission().upsertedCount, 1);
+
+            // Verify submission was created
+            helper.getSubmission(upsertFormName, newId.toString(), function (err, sub) {
+              if (err) {
+                return done(err);
+              }
+              assert(sub, 'New upserted submission should exist');
+              assert.equal(sub.data.textField1, 'newrecord');
+              done();
+            });
+          }
+        );
       });
     });
   });

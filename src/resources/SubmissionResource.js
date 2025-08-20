@@ -518,7 +518,6 @@ module.exports = (router) => {
    */
   router.post('/form/:formId/submissions', async (req, res, next) => {
     util.log('[create submissions] Received bulk create request');
-
     const context = await prepareBulkSubmissionContext({req, res, router, isUpsert: false});
     if (!context) {
       return;
@@ -531,7 +530,6 @@ module.exports = (router) => {
         return res.status(400).json({insertedCount: 0, failures});
       }
 
-      util.log('[create submissions] validation complete');
       // Extension point: allows plugins or custom hooks to modify the array of valid submissions
       await hook.alter('bulkSubmissionDocuments', validDocs, req, form);
 
@@ -539,20 +537,16 @@ module.exports = (router) => {
 
       try {
         result = await submissionModel.insertMany(validDocs, {ordered: false});
-        util.log('[create submissions] post insertmany');
       }
- catch (err) {
+      catch (err) {
         // Partial success: some succeeded, some failed
-        util.log('[create submissions] error in insertmany try catch');
         if (
           (err.writeErrors && Array.isArray(err.writeErrors) && err.writeErrors.length > 0) ||
           (err.result && typeof err.result.nInserted === 'number' && err.result.nInserted > 0)
         ) {
-          util.log('[create submissions] insertmany try catch block. there are errors');
           // Some docs may have been inserted before the error
           const {successes, failures} = hydrateBulkInsertSuccessesAndFailures(err, payload, validDocs, util);
 
-          util.log('[create submissions] 207 insertmany try catch block.');
           return res.status(207).json({
             insertedCount: successes.length,
             successes,
@@ -560,7 +554,6 @@ module.exports = (router) => {
           });
         }
         // Unexpected error
-        util.log('[create submissions] 400 insertmany try catch block total failure.');
         return res.status(400).json({
           insertedCount: 0,
           failures: [{error: err.message || String(err)}],
@@ -568,7 +561,6 @@ module.exports = (router) => {
       }
 
       // Full success or partial (pre-insert validation) success
-      util.log('[create submissions] 201/207 partial or full success');
       const responseBody = {
         insertedCount: result.length,
         successes: result.map((doc, i) => ({
@@ -578,15 +570,12 @@ module.exports = (router) => {
         failures,
       };
       if (failures.length > 0) {
-        util.log('[create submissions] 207 partial success');
         return res.status(207).json(responseBody);
       }
-      util.log('[create submissions] 201 full success');
       return res.status(201).json(responseBody);
     }
- catch (err) {
+    catch (err) {
       // Unexpected error
-      util.log('[create submissions] 400 total failure');
       return res.status(400).json({
         insertedCount: 0,
         failures: [{error: err.message || String(err)}],
@@ -702,16 +691,22 @@ module.exports = (router) => {
    */
   router.put('/form/:formId/submissions', async (req, res, next) => {
     util.log('[submissions] Received bulk submission upsert request');
+
     const context = await prepareBulkSubmissionContext({req, res, router, isUpsert: true});
     if (!context) {
-return;
-}
-    const {submissionModel, failures, validDocs, payload} = context;
+      return;
+    }
+    const {form, submissionModel, failures, validDocs, payload} = context;
 
     try {
       if (failures.length > 0 && validDocs.length === 0) {
+        // Total failure: all docs invalid
         return res.status(400).json({upsertedCount: 0, failures});
       }
+
+      // Extension point: allows plugins or custom hooks to modify the array of valid submissions
+      await hook.alter('bulkSubmissionDocuments', validDocs, req, form);
+
       // Prepare bulkWrite operations
       const operations = validDocs.map((doc) => {
         if (doc.data._id) {
@@ -723,7 +718,7 @@ return;
             },
           };
         }
- else {
+        else {
           return {
             insertOne: {
               document: doc,
@@ -734,7 +729,6 @@ return;
 
       // Perform the bulkWrite operation
       const result = await submissionModel.bulkWrite(operations, {ordered: false});
-
       // Build response arrays
       // upserted: Documents that did not exist and were created via upsert (updateOne with upsert:true, no match found)
       // modified: Documents that already existed and were updated (updateOne with upsert:true, match found)
@@ -762,8 +756,10 @@ return;
       // For updateOne ops not in upsertedIds, treat as modified
       operations.forEach((op, i) => {
         const doc = validDocs[i];
+        // Use hasOwnProperty to avoid prototype chain issues with sparse upsertedIds
+        const isUpserted = result.upsertedIds && Object.prototype.hasOwnProperty.call(result.upsertedIds, i);
         // modified: updateOne with upsert:true, matched an existing doc
-        if (op.updateOne && !(result.upsertedIds && i in result.upsertedIds)) {
+        if (op.updateOne && !isUpserted) {
           modified.push({
             original: payload.data[doc.originalIndex],
             submission: {_id: doc.data._id ? doc.data._id.toString() : undefined},
@@ -780,16 +776,21 @@ return;
 
       // Combine upserted and inserted for a single upserted array:
       const allUpserted = [...inserted, ...upserted];
-
-      return res.status(200).json({
+      const responseBody = {
         upsertedCount: allUpserted.length,
         modifiedCount: modified.length,
         upserted: allUpserted,
         modified,
         failures,
-      });
+      };
+      if (failures.length > 0) {
+        util.log('[upsert submissions] 207 partial success');
+        return res.status(207).json(responseBody);
+      }
+      // Always return 200 for all-success
+      return res.status(200).json(responseBody);
     }
- catch (err) {
+    catch (err) {
       // Handle bulkWrite errors
       const failures = (err.writeErrors || []).map((e) => ({
         original: payload.data[e.index],
