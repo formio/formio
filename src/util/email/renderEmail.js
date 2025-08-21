@@ -150,7 +150,12 @@ function renderEmailProcessorSync(context) {
         }
       }
       else {
-        outputValue = component?.values?.filter(v => rowValue === v.value)
+        outputValue = component?.values?.filter(v => {
+          if (typeof rowValue === typeof v.value) {
+            return rowValue === v.value;
+          }
+          return convertToString(rowValue) === convertToString(v.value);
+        })
           .map(v => v.label)
           .join(', ') || '';
       }
