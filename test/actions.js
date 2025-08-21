@@ -13,6 +13,7 @@ const customSaveSubmissionTransformResource = require('./fixtures/forms/customSa
 const selectBoxesSourceTypeForm = require('./fixtures/forms/selectBoxesSourceTypeForm.js');
 const testSelectInEmail = require('./fixtures/forms/testSelectInEmail.js');
 const { wait } = require('./util');
+const testRadioInEmail = require('./fixtures/forms/testRadioInEmail.js');
 const docker = process.env.DOCKER;
 
 module.exports = (app, template, hook) => {
@@ -2194,6 +2195,48 @@ module.exports = (app, template, hook) => {
             .expect(200);
         });
 
+        it('Should render radio component number type value in email', async () => {
+          const form = testRadioInEmail.form;
+
+          const oForm = (await request(app)
+              .post(hook.alter('url', '/form', template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(form)).body;
+          let testAction = createTestAction();
+          testAction.form = oForm._id;
+          // Add the action to the form.
+          const testActionRes = (await request(app)
+              .post(hook.alter('url', `/form/${oForm._id}/action`, template))
+              .set('x-jwt-token', template.users.admin.token)
+              .send(testAction)).body;
+
+          testAction = testActionRes;
+
+          let emailSent = false;
+
+          const event = template.hooks.getEmitter();
+          event.on('newMail', (email) => {
+            const emailTemplateNoWhitespace = email.html.replace(/\s/g, '');
+            assert(emailTemplateNoWhitespace.includes('>one<'));
+            assert(emailTemplateNoWhitespace.includes('>two</'));
+            event.removeAllListeners('newMail');
+            emailSent = true;
+          });
+
+          const submission = testRadioInEmail.submission;
+          // Send submission
+          const savedSubmission = (await request(app)
+            .post(hook.alter('url', `/form/${oForm._id}/submission`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .send(submission)).body;
+          await wait(2000);
+          assert(emailSent);
+
+          await request(app)
+            .delete(hook.alter('url', `/form/${oForm._id}/submission/${savedSubmission._id}`, template))
+            .set('x-jwt-token', template.users.admin.token)
+            .expect(200);
+        });
         it('Should render values of radio type Checkbox component properly', async () => {
           const form =  require('./fixtures/forms/radioTypeCheckboxes.js');
 

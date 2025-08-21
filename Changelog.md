@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 
 ## [Unreleased: 4.5.1-rc.14]
  - Update inquirer@12.9.3 yarn.lock
+ - FIO-10562: fixed an issue where radio value number type is not displayed in email
 
 ## 4.5.1-rc.13
 ### Changed

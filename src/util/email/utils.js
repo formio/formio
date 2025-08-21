@@ -424,7 +424,7 @@ const insertDataMapTable = (
 };
 
 const convertToString = (value) => {
-  if (_.isObject(value)) {
+  if (!_.isString(value) && !_.isNil(value)) {
     try {
       return JSON.stringify(value);
     }
