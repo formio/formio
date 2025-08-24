@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+## [Unreleased: 4.2.8-patch.1]
+### Changed
+ - FIO-10572: Fixed issue where the project configuration is not getting sent over to the evaluator correctly
+
 ## 4.2.8
 ### Changed
  - Official Release
