@@ -4,8 +4,10 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
-## [Unreleased: 4.2.8-patch.1]
+## 4.2.8-patch.1
 ### Changed
+ - Updated @formio/core@2.3.0-patch.1
+ - Updated @formio/vm@0.2.8-patch.1
  - FIO-10572: Fixed issue where the project configuration is not getting sent over to the evaluator correctly
 
 ## 4.2.8
@@ -16,7 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/)//
 ## 4.2.8-rc.3
 ### Changed
  - FIO-9306: fixed an issue where nested forms do not show data in PDF
-   
+
 ## 4.2.8-rc.2
 ### Changed
  - Updated @formio/core@2.3.0-rc.20
