@@ -79,6 +79,10 @@ class InstanceShim {
     );
   }
 
+  get path() {
+    return this._path;
+  }
+
   // Question: Should we allow this?
   // Sets component value
   set dataValue(value) {
