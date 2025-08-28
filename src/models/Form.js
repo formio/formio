@@ -25,7 +25,7 @@ module.exports = (formio) => {
   const componentPaths = (components) => {
     const paths = [];
     util.eachComponent(components, (component, fullPath, components, parent, compPaths) => {
-      const path = compPaths.dataPath;
+      const path = compPaths.fullPath;
       const componentInfo = CoreUtils.componentInfo(component);
       if (
         !componentInfo.layout &&
