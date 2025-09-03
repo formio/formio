@@ -5,6 +5,9 @@ Form.io Community Edition
 Form.io is a revolutionary combined Form and API platform for progressive applications. This repository serves as the core Form and API engine for https://form.io. This system allows you to build data-driven, form-based applications using a simple drag-and-drop form builder interface. These forms can then easily be embedded within your Angular.js and React applications using the
 ```<formio>``` HTML element.
 
+> [!IMPORTANT]
+> As of 2 September 2025, the master branch will be renamed master_old and the default branch will be called main. main will be based on the 4.5.x branch, which is the latest stable release. See [here](https://github.com/formio/formio/issues/2052) for more details about this change.
+
 Form Building & Rendering Demo
 -------------------
 Here is a link to a demo of the Form Building and Form Rendering capability that can be hooked into this API platform.
