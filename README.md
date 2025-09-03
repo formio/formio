@@ -7,7 +7,7 @@ Form.io is a revolutionary combined Form and API platform for Serverless applica
 ```<formio>``` HTML element.
 
 > [!IMPORTANT]
-> As of 2 September 2025, the master branch will be renamed master_old and the default branch will be called main. main will be based on the 5.2.x branch, which is the latest stable release. See [here](https://github.com/formio/core/issues/290) for more details about this change.
+> As of 2 September 2025, the master branch will be renamed master_old and the default branch will be called main. main will be based on the 4.5.x branch, which is the latest stable release. See [here](https://github.com/formio/formio/issues/2052) for more details about this change.
 
 Walkthrough video and tutorial
 -------------------
