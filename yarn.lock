@@ -603,26 +603,26 @@
   resolved "https://registry.npmjs.org/@formio/semantic/-/semantic-2.6.1.tgz#dd224e276da2f27b272131ed6678847a52be299d"
   integrity sha512-obp1BT5UnzD+uYBbqmnsTfO2hGxI2A2iR/cj3P5JUFLYSBpnr3TS2ShQ7Ee5GCRRtJPu0JnljuJj+YSKLCMuhg==
 
-"@formio/text-mask-addons@^3.8.0-formio.2":
-  version "3.8.0-formio.2"
-  resolved "https://registry.npmjs.org/@formio/text-mask-addons/-/text-mask-addons-3.8.0-formio.2.tgz#b9489e68911c70a31997b97dd846d8a7cca6abdb"
-  integrity sha512-H4Sm+1Sx59jbrlKxtKbzethhp5OIcP8Oi4JBpsvH/SB8P/KCRmtjKbN5ACqURnXmYtBHLJC6Yr9KZibOVRGxpA==
+"@formio/text-mask-addons@^3.8.0-formio.4":
+  version "3.8.0-formio.4"
+  resolved "https://registry.yarnpkg.com/@formio/text-mask-addons/-/text-mask-addons-3.8.0-formio.4.tgz#f3ce4bf978c6c5e8f671641d96f6fd116f7c92a3"
+  integrity sha512-vhkeIyuL+1rtC9S4IW8O3JCwroPtvJrkrcMO4wyELNqMIgQRKbiyBAitZfUP4tY04xdB5lxAinbzdwb+NMdX6w==
 
 "@formio/vanilla-text-mask@^5.1.1-formio.1":
   version "5.1.1-formio.1"
   resolved "https://registry.npmjs.org/@formio/vanilla-text-mask/-/vanilla-text-mask-5.1.1-formio.1.tgz#f53fc7f4cb37c6ae38f2857488055e781e5adba9"
   integrity sha512-rYBlvIPMNUd6sAaduOaiIwI4vfTAjHDRonko2qJn2RP1O//TQ7rcFIPYVYePJZ4OtOpwHiHAvAIh79McphZotQ==
 
-"@formio/vm@0.2.8-patch.2":
-  version "0.2.8-patch.2"
-  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.8-patch.2.tgz#5532765755a0c49e34285e1f7915055d4e9638eb"
-  integrity sha512-aNzh0HzU7ydnDnDcBYQciDL07bjFHxnmhlURzcwfP/scTR6UYCe91M+yxr6mZYiiugd7H+dDX6Yql4+XFpGK+g==
+"@formio/vm@0.2.8-patch.3":
+  version "0.2.8-patch.3"
+  resolved "https://registry.yarnpkg.com/@formio/vm/-/vm-0.2.8-patch.3.tgz#7a8ed92144d0db2cfc27f086ad8dc7843af13ec3"
+  integrity sha512-zv8s8DapXwFlO5DVu867uRtF04I5yz6ypO4T9Psg9FN7c/llidit7IpstCgeaEO5pMgQXwRgPEwSyL03PH+SiQ==
   dependencies:
     "@formio/core" "2.3.0-patch.2"
     debug "^4.3.4"
     dotenv "^16.3.1"
     express "^4.18.2"
-    formiojs "4.21.5"
+    formiojs "4.21.7-patch.1"
     inputmask "^5.0.8"
     isolated-vm "^4.6.0"
     lodash "^4.17.21"
@@ -2193,15 +2193,15 @@ formidable@^2.1.2:
     once "^1.4.0"
     qs "^6.11.0"
 
-formiojs@4.21.5:
-  version "4.21.5"
-  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.21.5.tgz#548b82acf2a1bc709e3c5b6f8d7bb01a189c4327"
-  integrity sha512-gHbj+Pj0hejvRYyypFpPzH9EkUkgnp+E3XrnWaHGsiEQ8xJ1oLb56Z8yN0TWP+ktw9hyN/EeFeZrQVkP1k2hcQ==
+formiojs@4.21.7-patch.1:
+  version "4.21.7-patch.1"
+  resolved "https://registry.yarnpkg.com/formiojs/-/formiojs-4.21.7-patch.1.tgz#51beaf5ff0e365dc5230670786172ce5b56cf681"
+  integrity sha512-sv2CsTi8i3vq6K4K3/E/V3q8IG6SYGqy9oiOWyaqJqMAAWKkC3+6retLX8p2UgUaqAl1jtEl4W05vAxhbhFkUA==
   dependencies:
     "@formio/bootstrap3" "2.12.4-rc.1"
     "@formio/choices.js" "10.2.1"
     "@formio/semantic" "2.6.1"
-    "@formio/text-mask-addons" "^3.8.0-formio.2"
+    "@formio/text-mask-addons" "^3.8.0-formio.4"
     "@formio/vanilla-text-mask" "^5.1.1-formio.1"
     abortcontroller-polyfill "^1.7.5"
     autocompleter "^7.0.1"
