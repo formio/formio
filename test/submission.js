@@ -6077,4 +6077,129 @@ module.exports = function(app, template, hook) {
       });
     });
   });
+
+  describe('Custom validation', () => {
+    before((done) => {
+      helper
+        .form('customValidationForm', [
+          {
+            label: 'Your contact details',
+            tableView: false,
+            validate: {
+              required: true,
+              custom:
+                'if (_.isEmpty(_.get(data,`${instance.path}.phone`)) && \n_.isEmpty(_.get(data,`${instance.path}.email`))) {\n  valid=`One of either phone or email must be provided.`;\n}',
+            },
+            key: 'contact',
+            type: 'container',
+            input: true,
+            components: [
+              {
+                label: 'HTML',
+                attrs: [
+                  {
+                    attr: '',
+                    value: '',
+                  },
+                ],
+                content: 'utuut',
+                refreshOnChange: false,
+                key: 'htmloooo',
+                type: 'htmlelement',
+                input: false,
+                tableView: false,
+              },
+              {
+                label: 'Phone',
+                applyMaskOn: 'change',
+                tableView: true,
+                key: 'phone',
+                type: 'textfield',
+                input: true,
+              },
+              {
+                label: 'Email',
+                applyMaskOn: 'change',
+                tableView: true,
+                key: 'email',
+                type: 'email',
+                input: true,
+              },
+            ],
+          },
+          {
+            label: 'Submit',
+            tableView: false,
+            key: 'submit',
+            type: 'button',
+            input: true,
+            saveOnEnter: false,
+          },
+        ])
+        .execute(function (err, res) {
+          if (err) {
+            return done(err);
+          }
+          done();
+        });
+    });
+
+    it('Should throw an error when custom validation fails', function (done) {
+      helper
+        .submission('customValidationForm', {
+          data: {
+            contact: {
+              phone: '',
+              email: '',
+            },
+            submit: true,
+          },
+        })
+        .expect(400)
+        .execute(function (err) {
+          if (err) {
+            return done(err);
+          }
+
+          var submission = helper.getLastSubmission();
+          assert.equal(helper.lastResponse.status, 400);
+          assert.equal(submission.name, 'ValidationError');
+          assert.equal(submission.details[0].context.validator, 'custom');
+          assert.equal(
+            submission.details[0].message,
+            'One of either phone or email must be provided.',
+          );
+          done();
+        });
+    });
+
+    it('Should create a submission when custom validation is met', (done) => {
+      helper
+        .submission('customValidationForm', {
+          data: {
+            contact: {
+              phone: '123',
+              email: '',
+            },
+            submit: true,
+          },
+        })
+        .execute(function(err) {
+          if (err) {
+            return done(err);
+          }
+          const submission = helper.getLastSubmission();
+          assert.equal(helper.lastResponse.status, 201);
+
+          assert.deepEqual(submission.data, {
+            contact: {
+              phone: '123',
+              email: '',
+            },
+            submit: true,
+          });
+          done();
+        });
+    });
+  });
 };
