@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cimg/node:lts
+      - image: cimg/node:20.19
       - image: mongo:4.4
     steps:
       - checkout
