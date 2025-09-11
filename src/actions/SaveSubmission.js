@@ -243,42 +243,28 @@ module.exports = function(router) {
           return then();
         }
 
-        // Load this submission.
-        router.formio.cache.loadSubmission(
-          req,
-          req.body.form,
-          req.body._id,
-          function(err, currentSubmission) {
-            if (err) {
-              log(req, ecode.submission.ESUBLOAD, err, '#resolve');
-              return then(err);
-            }
+        try {
+          const currentSubmission = await router.formio.cache.loadSubmission(req, req.body.form, req.body._id);
+          // Find the external submission.
+          const external = _.find(currentSubmission.externalIds, {
+            type: 'resource',
+            resource: this.settings.resource
+          });
+          if (!external) {
+            return then();
+          }
 
-            // Find the external submission.
-            const external = _.find(currentSubmission.externalIds, {
-              type: 'resource',
-              resource: this.settings.resource
-            });
-            if (!external) {
-              return then();
-            }
-
-            // Load the external submission.
-            router.formio.cache.loadSubmission(
-              req,
-              this.settings.resource,
-              external.id,
-              async function(err, submission) {
-                if (err) {
-                  log(req, ecode.submission.ESUBLOAD, err, '#resolve');
-                  return then();
-                }
-
-                cache.submission = await updateSubmission(submission);
-                then();
-              }
-            );
-          }.bind(this));
+          const submission = await router.formio.cache.loadSubmission(req, this.settings.resource, external.id);
+          if (!submission) {
+            return then();
+          }
+          cache.submission = await updateSubmission(submission);
+          then();
+        }
+        catch (err) {
+          log(req, ecode.submission.ESUBLOAD, err, '#resolve');
+          return then(err);
+        }
       }.bind(this);
 
       // Skip this resource.
