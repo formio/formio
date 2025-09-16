@@ -499,11 +499,11 @@ module.exports = function(router) {
 
       // Get all the subform data.
       const subs = {};
-      const getSubs = (components, outerPath) => util.eachComponent(components, function(component, path, components, parent, compPaths) {
+      const getSubs = (components, outerPath, parent) => util.eachComponent(components, function(component, path, components, parent, compPaths) {
         const dataPath = compPaths.dataPath || path;
         const subData = _.get(submission.data, dataPath);
         if (Array.isArray(subData)) {
-          return subData.forEach((_, idx) => getSubs(component.components, `${dataPath}[${idx}]`));
+          return subData.forEach((_, idx) => getSubs(component.components, {dataPath:dataPath, dataIndex: idx}, component));
         }
         if (component.type === 'form' || component.reference) {
           const subData = _.get(submission.data, dataPath);
@@ -518,7 +518,7 @@ module.exports = function(router) {
             }
           }
         }
-      }, true, outerPath);
+      }, true, outerPath, parent);
 
       getSubs(form.components);
 
