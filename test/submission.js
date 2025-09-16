@@ -4603,6 +4603,34 @@ module.exports = function(app, template, hook) {
               });
             });
         });
+        
+        it('Should change modified date when patch submission', function (done) {
+          const test = require('./fixtures/forms/singlecomponentsSimple');
+          helper
+            .form('patchFormMike', test.components)
+            .submission(test.submission)
+            .execute(function (err) {
+              if (err) {
+                return done(err);
+              }
+              const submissionBeforePatch = helper.getLastSubmission();
+              const update = [
+                {
+                  "op": "replace",
+                  "path": "/data/textField",
+                  "value": "PATCH Update"
+                }
+              ]
+              helper.patchSubmission(submissionBeforePatch, update, (err) => {
+                if (err) {
+                  return done(err);
+                }
+                const submissionAfterPatch = helper.getLastSubmission();
+                assert.notEqual(submissionBeforePatch.modified, submissionAfterPatch.modified)
+                done();
+              });
+            });
+          });
       });
 
     });
