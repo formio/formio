@@ -59,6 +59,14 @@ class CSVExporter extends Exporter {
 
         // If a component has multiple parts, pick what we want.
         if (component.type === 'address') {
+
+          const getAddressComponentValue = (component, value = {}) => {
+            if (component.enableManualMode && value.address) {
+              return value.address;
+            }
+            return value;
+          };
+
           items.push({
             rename: (label) => `${label}.formatted`,
             preprocessor: (value) => {
@@ -66,7 +74,7 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              const address = (value && value.address) || value || {};
+              const address = getAddressComponentValue(component, value);
 
               // OpenStreetMap || Azure || Google
               // eslint-disable-next-line max-len
@@ -80,7 +88,7 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              const address = (value && value.address) || value || {};
+              const address = getAddressComponentValue(component, value);
 
               // OpenStreetMap || Azure || Google
               return address.lat || _.get(address, 'position.lat') || _.get(address, 'geometry.location.lat') || '';
@@ -93,7 +101,7 @@ class CSVExporter extends Exporter {
                 return value;
               }
 
-              const address = (value && value.address) || value || {};
+              const address = getAddressComponentValue(component, value);
 
               // OpenStreetMap || Azure || Google
               return address.lon || _.get(address, 'position.lon') || _.get(address, 'geometry.location.lng') || '';
@@ -278,6 +286,7 @@ class CSVExporter extends Exporter {
               // If we wish to display in submission timezone, and there is submission timezone metadata.
               if (
                 (component.displayInTimezone === 'submission') &&
+                submission &&
                 submission.metadata &&
                 submission.metadata.timezone
               ) {
@@ -539,7 +548,7 @@ class CSVExporter extends Exporter {
         ? `${column.key}.${column.subpath}`
         : column.key;
 
-      return data.map((item) => `"${this.coerceToString(_.get(item, fullPath, item), column)}"`).join(',');
+      return data.map((item) => `${this.coerceToString(_.get(item, fullPath, item), column, submission)}`).join(',');
     }
     else if (_.isString(data)) {
       if (column.type === 'boolean') {
