@@ -25,7 +25,7 @@ module.exports = (formio) => {
   const componentPaths = (components) => {
     const paths = [];
     util.eachComponent(components, (component, fullPath, components, parent, compPaths) => {
-      const path = compPaths.fullPath;
+      const path = process.env.FF_FORBID_DUPLICATED_DATA_PATH ? compPaths.dataPath : compPaths.fullPath ;
       const componentInfo = CoreUtils.componentInfo(component);
       if (
         !componentInfo.layout &&
