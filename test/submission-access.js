@@ -6056,6 +6056,23 @@ module.exports = function(app, template, hook) {
             label: 'Non-Persistent',
             inputType: 'text',
             input: true
+          },
+          {
+            type: 'textfield',
+            validate: {
+              custom: '',
+              pattern: '',
+              maxLength: '',
+              minLength: '',
+              required: false
+            },
+            defaultValue: '',
+            multiple: false,
+            key: 'clientOnly',
+            persistent: 'client-only',
+            label: 'Client only',
+            inputType: 'text',
+            input: true
           }
         ]
       };
@@ -6064,7 +6081,8 @@ module.exports = function(app, template, hook) {
       var tempSubmission = {data: {
         persistent: 'exists',
         implicitPersistent: 'also exists',
-        nonPersistent: 'should not exist'
+        nonPersistent: 'should not exist',
+        clientOnly: 'should also not exist'
       }};
 
       describe('Bootstrap', function() {
@@ -6197,7 +6215,8 @@ module.exports = function(app, template, hook) {
           updateSubmission.data = {
             persistent: 'still exists',
             implicitPersistent: 'still also exists',
-            nonPersistent: 'still should not exist'
+            nonPersistent: 'still should not exist',
+            clientOnly: 'still should also not exist'
           };
 
           request(app)
