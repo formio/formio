@@ -499,26 +499,30 @@ module.exports = function(router) {
 
       // Get all the subform data.
       const subs = {};
-      const getSubs = (components, outerPath, parent) => util.eachComponent(components, function(component, path, components, parent, compPaths) {
-        const dataPath = compPaths.dataPath || path;
-        const subData = _.get(submission.data, dataPath);
-        if (Array.isArray(subData)) {
-          return subData.forEach((_, idx) => getSubs(component.components, {dataPath:dataPath, dataIndex: idx}, component));
-        }
-        if (component.type === 'form' || component.reference) {
+      const getSubs = (components, outerPath, parent) => {
+        util.eachComponent(components, function(component, path, components, parent, compPaths) {
+          const dataPath = compPaths.dataPath || path;
           const subData = _.get(submission.data, dataPath);
-          if (subData && subData._id) {
-            const dataId = subData._id.toString();
-            const subInfo = {component, path: dataPath, data: subData.data};
-            if (subs[dataId] && _.isArray(subs[dataId])) {
-              subs[dataId].push(subInfo);
-            }
-            else {
-              subs[dataId] = [subInfo];
+          if (Array.isArray(subData)) {
+            return subData.forEach((_, idx) => {
+              getSubs(component.components, {dataPath: dataPath, dataIndex: idx}, component);
+            });
+          }
+          if (component.type === 'form' || component.reference) {
+            const subData = _.get(submission.data, dataPath);
+            if (subData && subData._id) {
+              const dataId = subData._id.toString();
+              const subInfo = {component, path: dataPath, data: subData.data};
+              if (subs[dataId] && _.isArray(subs[dataId])) {
+                subs[dataId].push(subInfo);
+              }
+              else {
+                subs[dataId] = [subInfo];
+              }
             }
           }
-        }
-      }, true, outerPath, parent);
+        }, true, outerPath, parent);
+      }
 
       getSubs(form.components);
 
