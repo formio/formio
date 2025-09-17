@@ -340,6 +340,7 @@ class Validator {
         server: true,
         token: this.tokens['x-jwt-token'],
         tokens: this.tokens,
+        // TODO: these database functions should be moved to colocated processors in this repository rather than callbacks in @formio/core
         database: this.hook.alter('validationDatabaseHooks', {
           isUnique: async (context, value) => {
             return this.isUnique(context, submission, value);
