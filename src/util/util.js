@@ -658,8 +658,12 @@ const Utils = {
     if (document._id) {
       query._id = {$ne: document._id};
     }
+    const cursor = model.find(query);
+    if (process.env.FF_DOCUMENT_DB_REGEX_HINT) {
+      cursor.hint({machineName: 1, deleted: 1});
+    }
 
-    model.find(query).lean().exec((err, records) => {
+    cursor.lean().exec((err, records) => {
       if (err) {
         return next(err);
       }
