@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/)//
 
+
+## [Unreleased: 4.0.2-patch.1]
+### Changed
+ - add cursor hint to leverage indexes when making regex queries
+
 ## 4.0.2
 ### Changed
  - Official Release
