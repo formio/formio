@@ -92,7 +92,7 @@ npm run start:dev
 
 Deploy to Hosted Form.io
 --------------------
-If you wish to deploy all of your forms and resources into the Form.io Hosted platform @ https://portal.form.io, you can do this by using the Form.io CLI command line tool.
+If you wish to deploy all of your forms and resources into the Form.io Hosted platform @ https://portal.form.io or on your own Form.io Self-Hosted platform, you can do this by using the Form.io CLI command line tool.
 
 ```
 npm install -g formio-cli
@@ -104,12 +104,16 @@ Once you have this tool installed, you will need to follow these steps.
  - Next, you can execute the following command to deploy your local project into Hosted Form.io.
 
 ```
-formio deploy http://localhost:3001 https://{PROJECTNAME}.form.io --dst-key={APIKEY}
+formio deploy http://localhost:3001 https://{PROJECTNAME}.form.io --src-key {srcAPIKEY} --dst-key {dstAPIKEY}
 ```
 
 You will need to make sure you replace ```{PROJECTNAME}``` and ```{APIKEY}``` with your new Hosted Form.io project name (found in the API url), as well as the API key that was created in the second step above.
 
-This will then ask you to log into the local Form.io server (which can be provided within the Admin resource), and then after it authenticates, it will export the project and deploy that project to the Form.io hosted form.
+Adding API Keys to your server
+--------------------
+API Keys are used for server to server communication. To add API Key(s) to your server you will need to put the property
+API_KEYS in your environment variables when running the server with node. You can do this by running your server using the following command  
+``API_KEYS=<yourapikey(s)> node --no-node-snapshot main.js``
 
 License Change (March 8th, 2020)
 --------------------
