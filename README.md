@@ -9,10 +9,6 @@ Form.io is a revolutionary combined Form and API platform for Serverless applica
 > [!IMPORTANT]
 > As of 2 September 2025, the master branch will be renamed master_old and the default branch will be called main. main will be based on the 4.5.x branch, which is the latest stable release. See [here](https://github.com/formio/formio/issues/2052) for more details about this change.
 
-Walkthrough video and tutorial
--------------------
-For a walkthrough tutorial on how to use this Open Source platform to build a Serverless application, watch the video [0 to M.E.A.N in 30 minutes](https://www.youtube.com/watch?v=d2gTYkPFhPI)
-
 Form Building & Rendering Demo
 -------------------
 Here is a link to a demo of the Form Building and Form Rendering capability that can be hooked into this API platform.
