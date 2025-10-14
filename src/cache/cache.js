@@ -145,7 +145,7 @@ module.exports = function(router) {
         const formRevision = rev.revision || rev.formRevision;
         debug.loadSubForms(`Loading form ${util.idToBson(rev.form)} revision ${formRevision}`);
         const loadRevision = formRevision.length === 24 ? router.formio.resources.formrevision.model.findOne(
-            {_id: util.idToBson(rev.revision)}
+           {$revisionId: util.idToBson(rev.revision)}
         ) :
         router.formio.resources.formrevision.model.findOne(
           await hook.alter('formQuery', {

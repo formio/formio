@@ -160,16 +160,21 @@ module.exports = (router) => {
       if (template.forms[formName].revisions) {
         const revisionId = entity.revision;
         const revisionTemplate = (template.revisions && template.revisions[`${formName}:${revisionId}`]) || {};
-        const revision = revisionTemplate.revisionId ||
-          revisionTemplate.newId ||
-          getFormRevision(template.forms[formName]._vid);
+        let revision;
+        if (revisionTemplate.revisionId) {
+          revision = revisionTemplate.revisionId;
+        }
+        else {
+          revision = revisionTemplate.newId ? revisionTemplate.newId : getFormRevision(template.forms[formName]._vid);
+        }
         updateRevisionProperty(entity, revision);
       }
-      changes = true;
-    }
-    else {
-      fallbacks.push(entity);
-    }
+        changes = true;
+      }
+      else {
+        fallbacks.push(entity);
+      }
+      
 
     // Attempt to add a resource
     if (!changes && template.resources && template.resources[entity.form] && template.resources[entity.form]._id) {
@@ -177,9 +182,14 @@ module.exports = (router) => {
       if (template.resources[formName].revisions) {
         const revisionId = entity.revision;
         const revisionTemplate = template.revisions[`${formName}:${revisionId}`] || {};
-        const revision = revisionTemplate.revisionId ||
-          revisionTemplate.newId ||
-          getFormRevision(template.resources[formName]._vid);
+        let revision;
+        if (revisionTemplate.revisionId) {
+          revision = revisionTemplate.revisionId;
+        }
+        else {
+          revision = revisionTemplate.newId ? revisionTemplate.newId
+          : getFormRevision(template.resources[formName]._vid);
+        }
         updateRevisionProperty(entity, revision);
       }
       changes = true;
@@ -795,6 +805,8 @@ module.exports = (router) => {
                   _id: updatedDoc._id
                 }, {
                   $set: updatedDoc
+                }, {
+                  new: true
                 });
 
                 items[machineName] = result.toObject();
