@@ -2,12 +2,11 @@
 .dccache
 .vscode
 .idea
-.secrets
-.env
 bower_components
 node_modules
 client*
 app*
+!App.tsx
 npm-debug.log
 portal/node_modules
 portal/dist

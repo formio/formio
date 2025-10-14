@@ -6,8 +6,9 @@ A combined form and API platform for Serverless applications
 Form.io is a revolutionary combined Form and API platform for Serverless applications. This repository serves as the core Form and API engine for https://form.io. This system allows you to build "serverless" data management applications using a simple drag-and-drop form builder interface. These forms can then easily be embedded within your Angular.js and React applications using the
 ```<formio>``` HTML element.
 
-> [!IMPORTANT]
-> As of 2 September 2025, the master branch will be renamed master_old and the default branch will be called main. main will be based on the 4.5.x branch, which is the latest stable release. See [here](https://github.com/formio/formio/issues/2052) for more details about this change.
+Walkthrough video and tutorial
+-------------------
+For a walkthrough tutorial on how to use this Open Source platform to build a Serverless application, watch the video [0 to M.E.A.N in 30 minutes](https://www.youtube.com/watch?v=d2gTYkPFhPI)
 
 Form Building & Rendering Demo
 -------------------
@@ -26,6 +27,10 @@ The fastest way to run this library locally is to use [Docker](https://docker.co
     ```
     docker-compose up -d
     ```
+   Or, if you have an older version of the Docker image on your machine
+   ```bash
+   docker-compose up -d --build
+   ```
 
  - Go to the following URL in your browser.
     ```
@@ -59,9 +64,13 @@ Running with Node.js
 -------------------
 You can then download this repository, navigate to the folder in your Terminal, and then type the following.
 
-```
-npm install
-npm start
+```bash
+# install dependencies
+yarn
+# build the client application
+yarn build
+# start the server
+yarn start
 ```
 
 This will walk you through the installation process.  When it is done, you will have a running Form.io management
@@ -70,14 +79,6 @@ application running at the following address in your browser.
 ```
 http://localhost:3001
 ```
-
-The installation process will also ask if you would like to download an application. If selected, the application can be found at the following URL.
-
-```
-http://localhost:8080
-```
-
-You can also see the contents of the application (for modification) within the ```app``` folder which exists inside of the folder where you downloaded this repository.
 
 Development
 --------------------
@@ -88,7 +89,7 @@ npm run start:dev
 
 Deploy to Hosted Form.io
 --------------------
-If you wish to deploy all of your forms and resources into the Form.io Hosted platform @ https://portal.form.io or on your own Form.io Self-Hosted platform, you can do this by using the Form.io CLI command line tool.
+If you wish to deploy all of your forms and resources into the Form.io Hosted platform @ https://portal.form.io, you can do this by using the Form.io CLI command line tool.
 
 ```
 npm install -g formio-cli
@@ -100,16 +101,12 @@ Once you have this tool installed, you will need to follow these steps.
  - Next, you can execute the following command to deploy your local project into Hosted Form.io.
 
 ```
-formio deploy http://localhost:3001 https://{PROJECTNAME}.form.io --src-key {srcAPIKEY} --dst-key {dstAPIKEY}
+formio deploy http://localhost:3001 https://{PROJECTNAME}.form.io --dst-key={APIKEY}
 ```
 
 You will need to make sure you replace ```{PROJECTNAME}``` and ```{APIKEY}``` with your new Hosted Form.io project name (found in the API url), as well as the API key that was created in the second step above.
 
-Adding API Keys to your server
---------------------
-API Keys are used for server to server communication. To add API Key(s) to your server you will need to put the property
-API_KEYS in your environment variables when running the server with node. You can do this by running your server using the following command  
-``API_KEYS=<yourapikey(s)> node --no-node-snapshot main.js``
+This will then ask you to log into the local Form.io server (which can be provided within the Admin resource), and then after it authenticates, it will export the project and deploy that project to the Form.io hosted form.
 
 License Change (March 8th, 2020)
 --------------------
