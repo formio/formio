@@ -2,6 +2,8 @@
 .dccache
 .vscode
 .idea
+.secrets
+.env
 bower_components
 node_modules
 client*
