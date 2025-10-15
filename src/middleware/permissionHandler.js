@@ -594,6 +594,11 @@ module.exports = function(router) {
         return true;
       }
 
+      if (process.env.ADMIN_KEY && process.env.ADMIN_KEY === req.headers['x-admin-key']) {
+        req.isAdmin = true;
+        return true;
+      }
+
       // Check to see if this user has an admin role of the primary project.
       const hasPrimaryAdminRole = access.primaryAdminRole
         ? (_.indexOf(access.roles, access.primaryAdminRole) !== -1)
