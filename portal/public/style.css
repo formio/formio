@@ -1477,7 +1477,7 @@ label {
     box-shadow: var(--cardBoxShadow);
     border: 1px solid var(--gray3);
     overflow: hidden;
-    left: 0 !important
+    left: 0 !important;
 }
 
 .message,

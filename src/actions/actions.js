@@ -839,6 +839,14 @@ module.exports = (router) => {
       // Set the form on the request body.
       req.body.form = req.params.formId;
 
+      // sets a default value in actions where manual input of this data is not expected (e.g. Save Submission).
+      if (!req.body.hasOwnProperty('handler') && req.body.defaults?.handler) {
+        req.body.handler = req.body.defaults.handler;
+      }
+      if (!req.body.hasOwnProperty('method') && req.body.defaults?.method) {
+        req.body.method = req.body.defaults.method;
+      }
+
       // Make sure to store handler to lowercase.
       if (req.body.handler) {
         _.each(req.body.handler, (handler, index) => {
