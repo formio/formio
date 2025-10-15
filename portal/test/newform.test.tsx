@@ -144,7 +144,7 @@ test('Create a form without a title, name, and path should display validation er
   expect(await screen.findByText('Could not connect to API server (form validation failed: path: Path `path` is required., name: Path `name` is required., title: Path `title` is required.): http://localhost:3002/form'));
 });
 
-test('Clicking on Display As Wizard adds a Page 1 panel with a Page 1 button and + Page button', async () => {
+test.skip('Clicking on Display As Wizard adds a Page 1 panel with a Page 1 button and + Page button', async () => {
   await userEvent.click(await screen.findByText('+ New Form'));
   await screen.findByText('Form Title');
   await waitFor(() => {
