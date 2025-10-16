@@ -174,7 +174,6 @@ module.exports = (router) => {
       else {
         fallbacks.push(entity);
       }
-      
 
     // Attempt to add a resource
     if (!changes && template.resources && template.resources[entity.form] && template.resources[entity.form]._id) {

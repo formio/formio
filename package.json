@@ -8,7 +8,7 @@
     "test": "env TEST_SUITE=1 mocha test/test.js -b -t 60000 --no-node-snapshot --exit",
     "start": "node --no-node-snapshot main.js",
     "start:dev": "nodemon --no-node-snapshot main.js",
-    "lint": "eslint .",
+    "lint": "eslint . --fix",
     "build:vm": "webpack --config src/vm/webpack.vm.config.js",
     "build:portal": "cd portal && yarn && yarn build && cd ..",
     "show-coverage": "open coverage/lcov-report/index.html",

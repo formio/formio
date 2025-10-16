@@ -522,7 +522,7 @@ module.exports = function(router) {
             }
           }
         }, true, outerPath, parent);
-      }
+      };
 
       getSubs(form.components);
 
