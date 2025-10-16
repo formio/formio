@@ -10,7 +10,7 @@
     "start:dev": "nodemon --no-node-snapshot main.js",
     "lint": "eslint . --fix",
     "build:vm": "webpack --config src/vm/webpack.vm.config.js",
-    "build:portal": "cd portal && yarn && yarn build && cd ..",
+    "build:portal": "cd portal && npm i --legacy-peer-deps && npm run build && cd ..",
     "show-coverage": "open coverage/lcov-report/index.html",
     "prepare": "npm run build:vm"
   },
