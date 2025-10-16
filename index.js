@@ -97,6 +97,13 @@ module.exports = function(config) {
       // Add the db schema sanity check to each request.
       router.use(router.formio.update.sanityCheck);
       // Add Middleware necessary for REST API's
+      // Add empty body since body-parser 2.x does not do it anymore
+      router.use((req, res, next) => {
+        if (!req.body) {
+          req.body = {};
+        }
+        return next();
+      });
       router.use(bodyParser.urlencoded({extended: true}));
       router.use(bodyParser.json({
         limit: '16mb'
@@ -105,7 +112,10 @@ module.exports = function(config) {
        // Error handler for malformed JSON
       router.use((err, req, res, next) => {
         if (err instanceof SyntaxError) {
-          res.status(400).send(err.message);
+          return res.status(400).send(err.message);
+        }
+        if (err.type === 'entity.too.large') {
+          return res.status(413).send({message: 'Request payload too large'});
         }
         next();
       });
