@@ -254,7 +254,7 @@ module.exports = (router) => {
         }
 
         // Allow anyone to hook and modify the user.
-        hook.alter('user', user, (err, _user) => {
+        hook.alter('user', user, req, (err, _user) => {
           if (err) {
             // Attempt to fail safely and not update the user reference.
             debug.authenticate(err);
