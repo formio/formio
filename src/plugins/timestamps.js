@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = (schema) => {
+module.exports = (schema, options = {index: {created: true, modified: true}}) => {
   const created = {
     type: Date,
     index: true,
@@ -14,7 +14,7 @@ module.exports = (schema) => {
     created,
     modified: {
       type: Date,
-      index: true,
+      index: options?.index?.modified === undefined ? true : !!options?.index?.modified,
       description: 'The date this resource was modified.',
       __readonly: true,
     },
