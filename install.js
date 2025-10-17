@@ -135,7 +135,7 @@ module.exports = function(formio, items, done) {
         }
       ]).then(function(result) {
         util.log('Encrypting password');
-        formio.encrypt(result.password, async function(err, hash) {
+        formio.encrypt(result.password || process.env.ROOT_PASSWORD, async function(err, hash) {
           if (err) {
             return done(err);
           }
@@ -146,7 +146,7 @@ module.exports = function(formio, items, done) {
             await formio.resources.submission.model.create({
               form: project.resources.admin._id,
               data: {
-                email: result.email,
+                email: result.email || process.env.ROOT_EMAIL,
                 password: hash
               },
               roles: [
