@@ -18,57 +18,57 @@ const server = setupServer(
   }),
   http.get('http://localhost:3002/admin/login', () => {
     return HttpResponse.json({
-      'components': [
+      components: [
         {
-          'type': 'email',
-          'persistent': true,
-          'unique': false,
-          'protected': false,
-          'defaultValue': '',
-          'suffix': '',
-          'prefix': '',
-          'placeholder': 'Enter your email address',
-          'key': 'email',
-          'lockKey': true,
-          'label': 'Email',
-          'inputType': 'email',
-          'tableView': true,
-          'input': true
+          type: 'email',
+          persistent: true,
+          unique: false,
+          protected: false,
+          defaultValue: '',
+          suffix: '',
+          prefix: '',
+          placeholder: 'Enter your email address',
+          key: 'email',
+          lockKey: true,
+          label: 'Email',
+          inputType: 'email',
+          tableView: true,
+          input: true,
         },
         {
-          'type': 'password',
-          'persistent': true,
-          'protected': true,
-          'suffix': '',
-          'prefix': '',
-          'placeholder': 'Enter your password.',
-          'key': 'password',
-          'lockKey': true,
-          'label': 'Password',
-          'inputType': 'password',
-          'tableView': false,
-          'input': true
+          type: 'password',
+          persistent: true,
+          protected: true,
+          suffix: '',
+          prefix: '',
+          placeholder: 'Enter your password.',
+          key: 'password',
+          lockKey: true,
+          label: 'Password',
+          inputType: 'password',
+          tableView: false,
+          input: true,
         },
         {
-          'type': 'button',
-          'theme': 'primary',
-          'disableOnInvalid': true,
-          'action': 'submit',
-          'block': false,
-          'rightIcon': '',
-          'leftIcon': '',
-          'size': 'md',
-          'key': 'submit',
-          'tableView': false,
-          'label': 'Submit',
-          'input': true
-        }
-      ]
+          type: 'button',
+          theme: 'primary',
+          disableOnInvalid: true,
+          action: 'submit',
+          block: false,
+          rightIcon: '',
+          leftIcon: '',
+          size: 'md',
+          key: 'submit',
+          tableView: false,
+          label: 'Submit',
+          input: true,
+        },
+      ],
     });
   }),
   http.get('http://localhost:3002/current', () => {
     return HttpResponse.json({});
-  })
+  }),
 );
 
 beforeAll(() => {
@@ -81,7 +81,7 @@ test('Should be on login page if the user is not authenticated', async () => {
       <InfoPanelProvider>
         <App />
       </InfoPanelProvider>
-    </FormioProvider>
+    </FormioProvider>,
   );
   expect(await screen.findByText('Email'));
   expect(await screen.findByText('Password'));
@@ -94,26 +94,31 @@ test('Navigate to the home page if the user is already authenticated', async () 
       <InfoPanelProvider>
         <App />
       </InfoPanelProvider>
-    </FormioProvider>
+    </FormioProvider>,
   );
   expect(await screen.findByText('Resources'));
   expect(await screen.findByText('Forms'));
 });
 
 test('Clicking on the submit button should navigate you to the home page if login was successful', async () => {
-  server.use(http.post('http://localhost:3002/admin/login/submission', () => {
-    return HttpResponse.json({}, {
-      headers: {
-        'x-jwt-token': 'test123'
-      }
-    });
-  }));
+  server.use(
+    http.post('http://localhost:3002/admin/login/submission', () => {
+      return HttpResponse.json(
+        {},
+        {
+          headers: {
+            'x-jwt-token': 'test123',
+          },
+        },
+      );
+    }),
+  );
   render(
     <FormioProvider baseUrl="http://localhost:3002">
       <InfoPanelProvider>
         <App />
       </InfoPanelProvider>
-    </FormioProvider>
+    </FormioProvider>,
   );
   const submitButton = await screen.findByText('Submit');
   await userEvent.click(submitButton);
@@ -127,7 +132,7 @@ test('Clicking the logout button should navigate you back to the home page and r
       <InfoPanelProvider>
         <App />
       </InfoPanelProvider>
-    </FormioProvider>
+    </FormioProvider>,
   );
   localStorage.setItem('formioUser', JSON.stringify({}));
   act(() => {

@@ -316,6 +316,7 @@ const getFormAccessForm = (roles: Role[]): FormType =>
     ],
   }) as FormType;
 
+// TODO: this should use the SDK and not naked fetch
 const fetchRoles = async (token: string): Promise<Role[]> => {
   const response = await fetch('/role', {
     headers: {

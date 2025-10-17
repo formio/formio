@@ -10,7 +10,7 @@ import App from '../src/components/App';
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {
     return HttpResponse.json({});
-  })
+  }),
 );
 
 beforeAll(() => {
@@ -24,7 +24,7 @@ beforeEach(() => {
       <InfoPanelProvider>
         <App />
       </InfoPanelProvider>
-    </FormioProvider>
+    </FormioProvider>,
   );
 });
 
@@ -33,13 +33,13 @@ test('Clicking on delete resource removes the resource from the page', async () 
   window.confirm = () => true;
   const resourceForms = [
     {
-      '_id': '679cfb424554d6489e37cd15',
-      'title': 'test',
-      'name': 'test',
-      'path': 'test',
-      'type': 'resource',
-      'display': 'form'
-    }
+      _id: '679cfb424554d6489e37cd15',
+      title: 'test',
+      name: 'test',
+      path: 'test',
+      type: 'resource',
+      display: 'form',
+    },
   ];
   server.use(
     http.get('http://localhost:3002/form', ({ request }) => {
@@ -53,9 +53,8 @@ test('Clicking on delete resource removes the resource from the page', async () 
     http.delete('http://localhost:3002/form/679cfb424554d6489e37cd15', () => {
       resourceForms.splice(0, 1);
       return HttpResponse.text(null, { status: 200 });
-    })
-  )
-  ;
+    }),
+  );
   await screen.findByText('Resources');
   await screen.findByText('Forms');
   await screen.findByText('test');
@@ -69,7 +68,6 @@ test('Clicking on delete resource removes the resource from the page', async () 
   });
   window.confirm = originalWindowConfirm;
 });
-
 
 afterEach(() => {
   server.resetHandlers();

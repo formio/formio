@@ -1,9 +1,9 @@
-import ResourceFields from "./ResourceFields";
+import ResourceFields from './ResourceFields';
 
 export const AdditionalComponentsModule = () => {
-    return {
-        components: {
-            resourcefields: ResourceFields,
-        },
-    };
+  return {
+    components: {
+      resourcefields: ResourceFields,
+    },
+  };
 };

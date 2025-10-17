@@ -22,6 +22,7 @@ export type FormAction = {
 };
 
 const getActionInfo = async (formId: string, actionName: string, token: string) => {
+  // TODO: this should use the SDK and not naked fetch
   const response = await fetch(`/form/${formId}/actions/${actionName}`, {
     headers: { 'x-jwt-token': token },
   });
@@ -60,14 +61,23 @@ const getPossibleActionsForm = (id: string) => ({
 const isButtonComponent = (comp: Component): comp is ButtonComponent => comp.type === 'button';
 
 export const FormActions = ({ formId, limit }: { formId: string; limit?: number }) => {
-  const [displayedAction, setDisplayedAction] = useState<FormAction | null>(null);
-  const [activeAction, setActiveAction] = useState<{
+  const [
+    displayedAction,
+    setDisplayedAction,
+  ] = useState<FormAction | null>(null);
+  const [
+    activeAction,
+    setActiveAction,
+  ] = useState<{
     form: FormType;
     submission: Submission;
     action: 'Add' | 'Update';
     title: string;
   } | null>(null);
-  const [currentForm, setCurrentForm] = useState<FormType | undefined>();
+  const [
+    currentForm,
+    setCurrentForm,
+  ] = useState<FormType | undefined>();
   const { Formio, token } = useFormioContext();
   const actionToAdd = useRef<FormAction | null>(null);
   const fetchFunction = useCallback(async () => {
@@ -78,13 +88,19 @@ export const FormActions = ({ formId, limit }: { formId: string; limit?: number 
       console.error('Failed to load form actions:', err);
       return [];
     }
-  }, [Formio, formId]);
+  }, [
+    Formio,
+    formId,
+  ]);
   const { data, setPage } = usePagination<FormAction>(1, limit || 10, fetchFunction);
 
   useEffect(() => {
     const formio = new Formio(`/form/${formId}`);
     formio.loadForm().then(setCurrentForm);
-  }, [Formio, formId]);
+  }, [
+    Formio,
+    formId,
+  ]);
 
   const handleActionClick = async (id: string) => {
     const formio = new Formio(`/form/${formId}/action/${id}`);
@@ -145,7 +161,13 @@ export const FormActions = ({ formId, limit }: { formId: string; limit?: number 
       const thisActionFormio = new Formio(`/form/${formId}/action/${id}`);
       const actionPromise = thisActionFormio.loadAction();
       const actionInfoPromise = getActionInfo(formId, name, token);
-      const [action, actionInfo] = await Promise.all([actionPromise, actionInfoPromise]);
+      const [
+        action,
+        actionInfo,
+      ] = await Promise.all([
+        actionPromise,
+        actionInfoPromise,
+      ]);
       // because the `action` param only allows for POST requests, we need to modify the `settingsForm` to emit a custom action on submit
       const settingsForm: FormType = actionInfo.settingsForm;
       const submitButton = settingsForm.components.find(
@@ -191,7 +213,11 @@ export const FormActions = ({ formId, limit }: { formId: string; limit?: number 
     }
   };
 
-  const actionsToMap = displayedAction ? [displayedAction] : data;
+  const actionsToMap = displayedAction
+    ? [
+        displayedAction,
+      ]
+    : data;
 
   return (
     <div className="panel form-actions active">
@@ -242,7 +268,11 @@ export const FormActions = ({ formId, limit }: { formId: string; limit?: number 
               <i className="ri-add-line"></i> Add Action
             </button>
             <p className="helptext">
-              <a target="_blank" rel="noreferrer" href="https://help.form.io/userguide/form-building/actions">
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href="https://help.form.io/userguide/form-building/actions"
+              >
                 View documentation
               </a>{' '}
               on actions.
