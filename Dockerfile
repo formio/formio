@@ -30,9 +30,9 @@ RUN apk update && \
 RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
 # install dependencies
-RUN yarn
+RUN npm install
 # build the client application
-RUN yarn build:portal
+RUN npm run build:portal
 
 RUN apk del git
 
