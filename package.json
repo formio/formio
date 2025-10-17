@@ -56,7 +56,7 @@
     "mongodb": "^6.13.1",
     "mongoose": "^8.11.0",
     "nanoid": "3",
-    "nodemailer": "^6.8.0",
+    "nodemailer": "^7.0.7",
     "nunjucks": "^3.2.4",
     "progress": "^2.0.3",
     "q": "^1.5.0",
