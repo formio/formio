@@ -93,7 +93,7 @@ module.exports = (router) => {
       childReq.subPatch = true;
     }
 
-    router.resourcejs[url][method] (childReq, childRes, function(err) {
+    router.resourcejs[url][method](childReq, childRes, function(err) {
       if (err) {
         return next(err);
       }

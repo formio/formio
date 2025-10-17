@@ -59,7 +59,6 @@ class CSVExporter extends Exporter {
 
         // If a component has multiple parts, pick what we want.
         if (component.type === 'address') {
-
           const getAddressComponentValue = (component, value = {}) => {
             if (component.enableManualMode && value.address) {
               return value.address;
