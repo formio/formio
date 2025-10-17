@@ -101,4 +101,4 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Test
-        run: npm test
+        run: npm run test
