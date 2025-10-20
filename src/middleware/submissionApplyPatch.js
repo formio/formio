@@ -35,11 +35,17 @@ module.exports = router => (req, res, next) => {
     let patch = req.body;
 
     if (!_.isArray(patch) && req.subPatch && !_.isEmpty(req.body)) {
-      patch = jsonPatch.compare(submission.data, req.body.data)
+      const dataPatch = jsonPatch.compare(submission.data, req.body.data)
         .map((operation) => {
           operation.path = `/data${operation.path}`;
           return operation;
         });
+      const metadataPatch = jsonPatch.compare(submission.metadata, req.body.metadata)
+        .map((operation) => {
+          operation.path = `/metadata${operation.path}`;
+          return operation;
+        });
+      patch = [...dataPatch, ...metadataPatch];
     }
 
     try {

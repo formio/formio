@@ -4442,6 +4442,114 @@ module.exports = function(app, template, hook) {
           });
       });
 
+      it('Allows updating select metadata in nested form submissions', (done) => {
+        const patchChildComponents = [
+          {
+            "label": "Select",
+            "widget": "choicesjs",
+            "tableView": true,
+            "data": {
+              "values": [
+                {
+                  "label": "1",
+                  "value": "1"
+                },
+                {
+                  "label": "2",
+                  "value": "2"
+                },
+                {
+                  "label": "3",
+                  "value": "3"
+                }
+              ]
+            },
+            "validateWhenHidden": false,
+            "key": "select",
+            "type": "select",
+            "input": true
+          }
+        ]
+        const patchChildSubmission = {
+          "data": {
+            "select": 1
+          },
+          "metadata": {
+            "selectData": {
+              "form": {
+                "data": {
+                  "select": {
+                    "label": "1"
+                  }
+                }
+              }
+            },
+            "timezone": "America/Chicago",
+            "offset": -300,
+            "origin": "http://localhost:3000",
+            "referrer": "",
+            "browserName": "Netscape",
+            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+            "pathName": "/",
+            "onLine": true
+          },
+          "state": "submitted",
+          "_vnote": ""
+        }
+        helper
+          .form('patchChild', patchChildComponents)
+          .submission(patchChildSubmission)
+          .expect(201)
+          .execute(function(err) {
+            if (err) {
+              return done(err);
+            }
+            const childFormId = helper.getForm('patchChild')._id;
+            const patchParentComponents = [
+              {
+                "label": "Form",
+                "tableView": true,
+                "form": childFormId,
+                "useOriginalRevision": false,
+                "key": "form",
+                "type": "form",
+                "input": true
+              }
+            ]
+            const patchParentSubmission = {data: {form: helper.getLastSubmission()}}
+            const patchParentUpdate = [
+              {
+                "op": "replace",
+                "path": "/data/form/metadata/selectData/form/data/select/label",
+                "value": "3"
+              },
+              {
+                "op": "replace",
+                "path": "/data/form/data/select",
+                "value": 2
+              }
+            ]
+            helper
+              .form('patchParent', patchParentComponents)
+              .submission(patchParentSubmission)
+              .expect(201)
+              .execute(function(err) {
+                if (err) {
+                  return done(err);
+                }
+                const lastSubmission = helper.getLastSubmission();
+                helper
+                  .patchSubmission(lastSubmission, patchParentUpdate, (err, res) => {
+                    if (err) {
+                      return done(err);
+                    }
+                    assert.strictEqual(res.data.form.metadata.selectData.form.data.select.label, "3", "select metadata should be 3");
+                    done();
+                  });
+              })
+          });
+      });
+
       describe('Filtering submissions', () => {
 
         it('Should filter submission for Currency Component', function(done) {
