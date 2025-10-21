@@ -5344,7 +5344,7 @@ module.exports = function (app, template, hook) {
         const payload = {};
 
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 400], false, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().error, "Payload must contain a 'data' array.");
+          assert.equal(helper.getLastBulkSubmission().error, "Payload must be an array of submission objects.");
           done(err, res);
         });
       });
@@ -5354,7 +5354,7 @@ module.exports = function (app, template, hook) {
         const payload = { metadata: { tag: 'missing-data-field' } };
 
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 400], false, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().error, "Payload must contain a 'data' array.");
+          assert.equal(helper.getLastBulkSubmission().error, "Payload must be an array of submission objects.");
           done(err, res);
         });
       });
@@ -5364,7 +5364,7 @@ module.exports = function (app, template, hook) {
         const payload = { data: [] };
 
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 400], false, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().error, "Payload must contain a 'data' array.");
+          assert.equal(helper.getLastBulkSubmission().error, "Payload must be an array of submission objects.");
           done(err, res);
         });
       });
@@ -5570,7 +5570,7 @@ module.exports = function (app, template, hook) {
         const payload = {};
 
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 400], true, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().error, "Payload must contain a 'data' array.");
+          assert.equal(helper.getLastBulkSubmission().error, "Payload must be an array of submission objects.");
           done(err, res);
         });
       });
@@ -5580,7 +5580,7 @@ module.exports = function (app, template, hook) {
         const payload = { metadata: { tag: 'missing-data-field' } };
 
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 400], true, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().error, "Payload must contain a 'data' array.");
+          assert.equal(helper.getLastBulkSubmission().error, "Payload must be an array of submission objects.");
           done(err, res);
         });
       });
@@ -5590,7 +5590,7 @@ module.exports = function (app, template, hook) {
         const payload = { data: [] };
 
         helper.bulkCreateUpsertSubmissions(form, payload, null, [/application\/json/, 400], true, function (err, res) {
-          assert.equal(helper.getLastBulkSubmission().error, "Payload must contain a 'data' array.");
+          assert.equal(helper.getLastBulkSubmission().error, "Payload must be an array of submission objects.");
           done(err, res);
         });
       });

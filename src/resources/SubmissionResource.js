@@ -328,10 +328,18 @@ module.exports = (router) => {
     const {formio} = router;
     const hook = require('../util/hook')(formio);
 
-    const payload = Array.isArray(req.body) ? req.body[0] : req.body;
-    if (!payload || typeof payload !== 'object' || Object.keys(payload).length === 0 || !Array.isArray(payload.data)) {
-      res.status(400).json({error: "Payload must contain a 'data' array."});
+    const payload = Array.isArray(req.body) ? req.body : null;
+    if (!payload || !Array.isArray(payload) || payload.length === 0) {
+      res.status(400).json({error: "Payload must be an array of submission objects."});
       return null;
+    }
+
+    // Validate each item has a 'data' field
+    for (let i = 0; i < payload.length; i++) {
+      if (!payload[i].data || typeof payload[i].data !== 'object') {
+        res.status(400).json({error: `Item at index ${i} must contain a 'data' object.`});
+        return null;
+      }
     }
 
     const form = await router.formio.cache.loadCurrentForm(req);
@@ -344,13 +352,13 @@ module.exports = (router) => {
     const now = new Date();
     const owner = req.user?._id || null;
 
-    const docs = payload.data.map((item, index) => {
+    const docs = payload.map((item, index) => {
       const doc = {
         originalIndex: index,
         form: formId,
-        data: {...item},
-        metadata: payload.metadata,
-        state: payload.state || 'submitted',
+        data: {...item.data},
+        metadata: item.metadata,
+        state: item.state || 'submitted',
         owner,
         deleted: null,
         created: now,
@@ -392,19 +400,19 @@ module.exports = (router) => {
     if (err.result && typeof err.result.getInsertedIds === 'function') {
       const insertedIds = err.result.getInsertedIds();
       successes = insertedIds.map(({index, _id}) => ({
-        original: payload.data[validDocs[index]?.originalIndex],
+        original: payload[validDocs[index]?.originalIndex],
         submission: {_id: _id?.toString?.() || String(_id)},
       }));
     }
  else if (Array.isArray(err.insertedDocs)) {
       successes = err.insertedDocs.map((doc, i) => ({
-        original: payload.data[validDocs[i]?.originalIndex],
+        original: payload[validDocs[i]?.originalIndex],
         submission: {_id: doc._id?.toString?.() || String(doc._id)},
       }));
     }
 
     const failures = (err.writeErrors || []).map((e) => ({
-      original: payload.data[e.index],
+      original: payload[e.index],
       errors: [{type: 'insert', message: e.errmsg || e.message}],
       originalIndex: validDocs[e.index]?.originalIndex ?? e.index,
     }));
@@ -418,7 +426,7 @@ module.exports = (router) => {
    * Handles the creation of multiple submission documents in a single bacth request.
    *
    * Request Body
-   * - `data`: An array of submission objects to be created.
+   * - An array of self-contained submission objects, each with its own `data` and optional `metadata` fields.
    *
    * Steps
    * 1. Validation -  Calls `prepareBulkSubmissionContext` to:
@@ -444,21 +452,14 @@ module.exports = (router) => {
    * Sample Request, on a form that has three fields, with requiredTextField2 marked as required and uniqueTextField3 marked as unique.
    * ```
    * POST /form/12345/submissions
-   * {
-   *   "data": [
-   *       {
+   * [
+   *   {
+   *     "data": {
    *       "textField1": "textField1",
    *       "uniqueTextField3": "UniqueTextField1",
    *       "submit": true
-   *       },
-   *       {
-   *       "textField1": "textField2",
-   *       "requiredTextField2": "req1 longer than 10",
-   *       "uniqueTextField3": "UniqueTextField2",
-   *       "submit": true
-   *       }
-   *   ],
-   *   "metadata": {
+   *     },
+   *     "metadata": {
    *       "timezone": "America/New_York",
    *       "offset": -240,
    *       "origin": "http://localhost:3001",
@@ -467,8 +468,27 @@ module.exports = (router) => {
    *       "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
    *       "pathName": "/",
    *       "onLine": true
+   *     }
+   *   },
+   *   {
+   *     "data": {
+   *       "textField1": "textField2",
+   *       "requiredTextField2": "req1 longer than 10",
+   *       "uniqueTextField3": "UniqueTextField2",
+   *       "submit": true
+   *     },
+   *     "metadata": {
+   *       "timezone": "America/New_York",
+   *       "offset": -240,
+   *       "origin": "http://localhost:3001",
+   *       "referrer": "",
+   *       "browserName": "Netscape",
+   *       "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+   *       "pathName": "/",
+   *       "onLine": true
+   *     }
    *   }
-   * }
+   * ]
    * ```
    * Response:
    * ```
@@ -477,9 +497,12 @@ module.exports = (router) => {
    *   "failures": [
    *       {
    *           "original": {
-   *               "textField1": "textField1",
-   *               "uniqueTextField3": "UniqueTextField1",
-   *               "submit": true
+   *               "data": {
+   *                   "textField1": "textField1",
+   *                   "uniqueTextField3": "UniqueTextField1",
+   *                   "submit": true
+   *               },
+   *               "metadata": {...}
    *           },
    *           "errors": [
    *               {
@@ -495,10 +518,13 @@ module.exports = (router) => {
    *       },
    *       {
    *           "original": {
-   *               "textField1": "textField2",
-   *               "requiredTextField2": "req1 longer than 10",
-   *               "uniqueTextField3": "UniqueTextField2",
-   *               "submit": true
+   *               "data": {
+   *                   "textField1": "textField2",
+   *                   "requiredTextField2": "req1 longer than 10",
+   *                   "uniqueTextField3": "UniqueTextField2",
+   *                   "submit": true
+   *               },
+   *               "metadata": {...}
    *           },
    *           "errors": [
    *               {
@@ -564,7 +590,7 @@ module.exports = (router) => {
       const responseBody = {
         insertedCount: result.length,
         successes: result.map((doc, i) => ({
-          original: payload.data[validDocs[i].originalIndex],
+          original: payload[validDocs[i].originalIndex],
           submission: {_id: doc._id.toString()},
         })),
         failures,
@@ -589,8 +615,8 @@ module.exports = (router) => {
    * Handles the upsert (insert or update) of multiple submission documents in a single request.
    *
    * Request Body
-   * - `data`: An array of submission objects to be upserted.
-   *   - If a document includes an `_id`, it will attempt to update the existing document with that `_id`.
+   * - An array of self-contained submission objects, each with its own `data` and optional `metadata` fields.
+   *   - If a document includes an `_id` in its data, it will attempt to update the existing document with that `_id`.
    *   - If no `_id` is provided, a new document will be inserted.
    *
    * Steps
@@ -620,32 +646,44 @@ module.exports = (router) => {
    * Sample request
    * ```
    * PUT /form/12345/submissions
-   * {
-   *   "data": [
-   *       {
-   *       "_id":"6895f019b3e98f17851b7f86",
+   * [
+   *   {
+   *     "data": {
+   *       "_id": "6895f019b3e98f17851b7f86",
    *       "textField1": "textField1",
    *       "uniqueTextField3": "UniqueTextField1",
    *       "submit": true
-   *       },
-   *       {
-   *       "_id":"6895f019b3e98f17851b7f87",
-   *       "textField1": "textField2",
-   *       "requiredTextField2": "updated ",
-   *       "submit": true
-   *       }
-   *  ],
-   *  "metadata": {
-   *      "timezone": "America/New_York",
-   *      "offset": -240,
+   *     },
+   *     "metadata": {
+   *       "timezone": "America/New_York",
+   *       "offset": -240,
    *       "origin": "http://localhost:3001",
    *       "referrer": "",
    *       "browserName": "Netscape",
    *       "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
    *       "pathName": "/",
    *       "onLine": true
+   *     }
+   *   },
+   *   {
+   *     "data": {
+   *       "_id": "6895f019b3e98f17851b7f87",
+   *       "textField1": "textField2",
+   *       "requiredTextField2": "updated ",
+   *       "submit": true
+   *     },
+   *     "metadata": {
+   *       "timezone": "America/New_York",
+   *       "offset": -240,
+   *       "origin": "http://localhost:3001",
+   *       "referrer": "",
+   *       "browserName": "Netscape",
+   *       "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+   *       "pathName": "/",
+   *       "onLine": true
+   *     }
    *   }
-   * }
+   * ]
    * ```
    * Response
    * ```
@@ -656,10 +694,13 @@ module.exports = (router) => {
    *     "modified": [
    *         {
    *             "original": {
-   *                 "_id": "6895f019b3e98f17851b7f87",
-   *                 "textField1": "textField2",
-   *                 "requiredTextField2": "updated ",
-   *                "submit": true
+   *                 "data": {
+   *                     "_id": "6895f019b3e98f17851b7f87",
+   *                     "textField1": "textField2",
+   *                     "requiredTextField2": "updated ",
+   *                     "submit": true
+   *                 },
+   *                 "metadata": {...}
    *             },
    *             "submission": {
    *                 "_id": "6895f019b3e98f17851b7f87"
@@ -669,10 +710,13 @@ module.exports = (router) => {
    *     "failures": [
    *         {
    *             "original": {
-   *                 "textField1": "textField1",
-   *                 "uniqueTextField3": "UniqueTextField1",
-   *                 "submit": true,
-   *                 "_id": "6895f019b3e98f17851b7f86"
+   *                 "data": {
+   *                     "textField1": "textField1",
+   *                     "uniqueTextField3": "UniqueTextField1",
+   *                     "submit": true,
+   *                     "_id": "6895f019b3e98f17851b7f86"
+   *                 },
+   *                 "metadata": {...}
    *             },
    *             "errors": [
    *                 {
@@ -743,7 +787,7 @@ module.exports = (router) => {
           const opIndex = parseInt(idx, 10);
           const doc = validDocs[opIndex];
           upserted.push({
-            original: payload.data[doc.originalIndex],
+            original: payload[doc.originalIndex],
             submission: {
               _id: result.upsertedIds[idx]._id
                 ? result.upsertedIds[idx]._id.toString()
@@ -761,14 +805,14 @@ module.exports = (router) => {
         // modified: updateOne with upsert:true, matched an existing doc
         if (op.updateOne && !isUpserted) {
           modified.push({
-            original: payload.data[doc.originalIndex],
+            original: payload[doc.originalIndex],
             submission: {_id: doc.data._id ? doc.data._id.toString() : undefined},
           });
         }
         // inserted: explicit insertOne ops (no _id provided)
         else if (op.insertOne) {
           inserted.push({
-            original: payload.data[doc.originalIndex],
+            original: payload[doc.originalIndex],
             submission: {_id: doc._id ? doc._id.toString() : undefined},
           });
         }
@@ -793,7 +837,7 @@ module.exports = (router) => {
     catch (err) {
       // Handle bulkWrite errors
       const failures = (err.writeErrors || []).map((e) => ({
-        original: payload.data[e.index],
+        original: payload[e.index],
         error: e.errmsg || e.message,
       }));
 

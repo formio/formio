@@ -873,7 +873,18 @@ module.exports = function (app) {
     }
     url += '/form/' + this.template.forms[form]._id + '/submissions';
 
-    const payload = { data };
+    // Convert data to self-contained array format
+    let payload;
+    if (Array.isArray(data)) {
+      // Convert array of data objects to array of self-contained submission objects
+      payload = data.map(item => ({
+        data: item,
+        metadata: {}
+      }));
+    } else {
+      // If data is already an object (e.g., empty object) or other type, pass as-is for error testing
+      payload = data;
+    }
 
     let currentRequest = isUpsert ? request(app).put(url).send(payload) : request(app).post(url).send(payload);
 
