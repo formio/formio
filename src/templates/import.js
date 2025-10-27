@@ -828,6 +828,12 @@ module.exports = (router) => {
               }
             };
 
+            const setModified = (document) => {
+              if (document && document.modified) {
+                document.modified = new Date();
+              }
+            };
+
             if (!doc) {
               debug.install(`Existing not found (${document.machineName})`);
               setVid(document, 0);
@@ -839,6 +845,8 @@ module.exports = (router) => {
               debug.install(`Existing found`);
               doc = _.assign(doc, document);
               setVid(doc, 0);
+              // update the modified date
+              setModified(doc);
               debug.install(doc.machineName);
               return saveDoc(doc);
             }

@@ -360,6 +360,62 @@ module.exports = (app, template, hook) => {
       });
     });
 
+    describe('Test Template Multiple Import', function () {
+      const testTemplate = _.cloneDeep(require('../src/templates/default.json'));
+      const _template = _.cloneDeep(testTemplate);
+
+      const getProjectFormsModifiedData = (done) => {
+        return formio.resources.form.model
+          .find({ type: 'form', deleted: { $eq: null } })
+          .then((forms) => {
+            const formsModified = {};
+            forms.forEach((form) => {
+              formsModified[`${form._id}`] = form.modified.getTime();
+            });
+            return formsModified;
+          })
+          .catch(done);
+      };
+
+      describe('Import', function () {
+        it('Should be able to bootstrap the template', function (done) {
+          importer.import.template(_template, alters, (err, template) => {
+            if (err) {
+              return done(err);
+            }
+
+            done();
+          });
+        });
+
+        it('Should update forms modified when importing template', function (done) {
+          getProjectFormsModifiedData(done).then((initialModified) => {
+            setTimeout(() => {
+              importer.import.template(_template, alters, (err, template) => {
+                if (err) {
+                  return done(err);
+                }
+                getProjectFormsModifiedData(done).then((modifiedAfterImport) => {
+                  _.each(initialModified, (time, formId) => {
+                    assert(time < modifiedAfterImport[formId]);
+                  });
+                  done();
+                });
+              });
+            }, 300);
+          });
+        });
+      });
+
+      before(function (done) {
+        template.clearData(done);
+      });
+
+      after(function (done) {
+        template.clearData(done);
+      });
+    });
+
     describe('cyclicalResources Template', function() {
       let testTemplate = require('./fixtures/templates/cyclicalResources.json');
       let _template = _.cloneDeep(testTemplate);
