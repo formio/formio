@@ -20,9 +20,11 @@ module.exports = (schema, options = {index: {created: true, modified: true}}) =>
     },
   });
 
-  // On pre-save, we will update the modified date.
-  schema.pre('save', function(next) {
-    this.modified = new Date();
+  // On pre-save, we will update the modified date if does not have allowTimestampOverride.
+  schema.pre('save', function(next, options) {
+    const override = options?.allowTimestampOverride;
+    this.modified = override && options.modified ? new Date(options.modified) : new Date();
+    this.created = override && options.created ? new Date(options.created) : this.created;
     next();
   });
 };

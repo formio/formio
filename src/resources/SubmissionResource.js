@@ -14,6 +14,7 @@ module.exports = (router) => {
     router.formio.middleware.filterIdCreate,
     router.formio.middleware.permissionHandler,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
+    router.formio.middleware.allowTimestampOverride,
     router.formio.middleware.bootstrapEntityOwner,
     router.formio.middleware.bootstrapSubmissionAccess,
     router.formio.middleware.addSubmissionResourceAccess,
@@ -50,6 +51,7 @@ module.exports = (router) => {
     router.formio.middleware.permissionHandler,
     router.formio.middleware.submissionApplyPatch,
     router.formio.middleware.filterMongooseExists({field: 'deleted', isNull: true}),
+    router.formio.middleware.allowTimestampOverride,
     router.formio.middleware.bootstrapEntityOwner,
     router.formio.middleware.bootstrapSubmissionAccess,
     router.formio.middleware.addSubmissionResourceAccess,
@@ -130,29 +132,29 @@ module.exports = (router) => {
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
 
       // Query the submissions for this submission.
-      const submission = await submissionModel.findOne(
-        hook.alter('submissionQuery', query, req),
-        null,
-        (ignoreCase && router.formio.mongoFeatures.collation) ? {collation: {locale: 'en', strength: 2}} : {}
-      );
-      // Return not found.
-      if (!submission || !submission._id) {
-        return res.status(404).send('Not found');
-      }
-        // By default check permissions to access the endpoint.
-      const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
+          const submission = await submissionModel.findOne(
+            hook.alter('submissionQuery', query, req),
+            null,
+            (ignoreCase && router.formio.mongoFeatures.collation) ? {collation: {locale: 'en', strength: 2}} : {}
+          );
+          // Return not found.
+          if (!submission || !submission._id) {
+            return res.status(404).send('Not found');
+          }
+            // By default check permissions to access the endpoint.
+          const withoutPermissions = _.get(form, 'settings.allowExistsEndpoint', false);
 
-      if (withoutPermissions) {
-        // Send only the id as a response if the submission exists.
-        return res.status(200).json({
-          _id: submission._id.toString(),
-        });
-      }
-      else {
-        req.subId = submission._id.toString();
-        req.permissionsChecked = false;
-        return next();
-      }
+          if (withoutPermissions) {
+            // Send only the id as a response if the submission exists.
+            return res.status(200).json({
+              _id: submission._id.toString(),
+            });
+          }
+          else {
+            req.subId = submission._id.toString();
+            req.permissionsChecked = false;
+            return next();
+          }
     }
     catch (err) {
       return next(err);
