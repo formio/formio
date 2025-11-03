@@ -338,22 +338,27 @@ module.exports = (formio) => {
                 authHeader.Authorization = `Basic ${Buffer.from(payload).toString('base64')}`;
               }
 
-              const response = await fetch(settings.email.custom.url, {
-                  method: 'POST',
-                  headers: {
-                    'content-type': 'application/json',
-                    'accept': 'application/json',
-                    ...authHeader
-                  },
-                  body: JSON.stringify(mail),
-              });
+              try {
+                const response = await fetch(settings.email.custom.url, {
+                    method: 'POST',
+                    headers: {
+                      'content-type': 'application/json',
+                      'accept': 'application/json',
+                      ...authHeader
+                    },
+                    body: JSON.stringify(mail),
+                });
 
-              if (response.ok) {
-                const result = await response.json();
-                return cb(null, result);
+                if (response.ok) {
+                  const result = await response.json();
+                  return cb(null, result);
+                }
+                else {
+                  return cb(new Error(`${response.status  }: ${  response.statusText}`));
+                }
               }
-              else {
-                return cb(new Error(`${response.status  }: ${  response.statusText}`));
+              catch (err) {
+                return cb(err);
               }
             };
           }
