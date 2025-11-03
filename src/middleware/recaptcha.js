@@ -3,10 +3,10 @@
 const querystring = require('querystring');
 const fetch = require('@formio/node-fetch-http-proxy');
 
-module.exports = function(router) {
+module.exports = function (router) {
   const hook = require('../util/hook')(router.formio);
 
-  router.get('/recaptcha', async function(req, res) {
+  router.get('/recaptcha', async function (req, res) {
     try {
       const settings = await hook.settings(req);
       if (!settings.recaptcha || !settings.recaptcha.secretKey) {
@@ -42,12 +42,10 @@ module.exports = function(router) {
           expireAt: Date.now() + expirationTime,
         });
         res.send(body);
-      }
- catch (err) {
+      } catch (err) {
         return res.status(400).send(err.message);
       }
-    }
-    catch (err) {
+    } catch (err) {
       return res.status(400).send('reCAPTCHA settings not set.');
     }
   });
