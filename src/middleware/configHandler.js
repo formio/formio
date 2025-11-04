@@ -31,7 +31,7 @@ module.exports = function(router) {
     }
   }
 
-  return function configHandler(req, res, next) {
+  return function configHandler(req, res, _next) {
     return res.json({config});
   };
 };

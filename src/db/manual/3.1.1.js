@@ -94,9 +94,9 @@ const MongoClient = mongodb.MongoClient;
             return setDateField(field, submission.data) || changed;
           }, false);
           if (changed) {
-            /* eslint-disable no-console */
+             
             console.log(`Updating date fields for submission: ${submission._id}`);
-            /* eslint-enable no-console */
+             
             submissionCollection.updateOne(
               {
                 _id: submission._id
@@ -134,18 +134,16 @@ const MongoClient = mongodb.MongoClient;
     return hasNextForm;
   }, (err) => {
     if (err) {
-      /* eslint-disable no-console */
+       
       return console.log('ERROR', err);
-      /* eslint-enable no-console */
+       
     }
-    /* eslint-disable no-console */
+     
     console.log('Done');
-    /* eslint-enable no-console */
+     
     });
   }
-  catch (err) {
-        /* eslint-disable no-console */
-        return console.log(`Could not connect to database ${config.mongo}`);
-        /* eslint-enable no-console */
+  catch (ignoreErr) {
+    return console.log(`Could not connect to database ${config.mongo}`);
   }
 })();

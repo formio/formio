@@ -8,7 +8,7 @@ const debug = require('debug')('formio:error');
 
 module.exports = (router) => {
   const hook = require('../util/hook')(router.formio);
-  /* eslint-disable new-cap */
+   
   const resource = ResourceFactory(
     router,
     '/form/:formId/export',
@@ -18,7 +18,7 @@ module.exports = (router) => {
       convertIds: /(^|\.)(_id|form|owner)$/
     }
   );
-  /* eslint-enable new-cap */
+   
 
   // Mount the export endpoint using the url.
   router.get('/form/:formId/export', async (req, res, next) => {
@@ -124,7 +124,7 @@ module.exports = (router) => {
       };
 
       // Replace form components to populated subforms
-      /* eslint-disable require-atomic-updates */
+       
       if (form.display === 'wizard') {
         const components = populateWizardComponents(form.components, getSubForms);
         form.components = await Promise.all(components);
@@ -132,7 +132,7 @@ module.exports = (router) => {
       else {
         form.components = await getSubForms(form.components);
       }
-      /* eslint-enable require-atomic-updates */
+       
 
       // Create the exporter.
       const exporter = new exporters[format](form, req, res);
@@ -228,7 +228,7 @@ module.exports = (router) => {
           });
       });
     }
-    catch (err) {
+    catch (ignoreErr) {
       return res.sendStatus(401);
     }
   });

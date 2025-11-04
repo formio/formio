@@ -13,7 +13,7 @@ module.exports = function(router) {
   const promisify = require('util').promisify;
   const _ = require('lodash');
 
-  return async function accessHandler(req, res, next) {
+  return async function accessHandler(req, res, _next) {
     // Load all the roles.
     const roles = {};
 
@@ -34,7 +34,7 @@ module.exports = function(router) {
         }
       });
     }
-    catch (err) {
+    catch (ignoreErr) {
       return res.status(400).send('Could not load the Roles.');
     }
 
@@ -54,15 +54,15 @@ module.exports = function(router) {
 
       formResult.forEach(form => forms[form.name] = form);
     }
-    catch (err) {
+    catch (ignoreErr) {
       return res.status(400).send('Could not load the Forms.');
     }
 
     try {
       // Fetch current user's access
-      /* eslint-disable require-atomic-updates */
+       
       req.userAccess = await promisify(router.formio.access.getAccess)(req, res);
-      /* eslint-enable require-atomic-updates */
+       
 
       // Allow other systems to add to the access information or disable filtering
       const accessInfo = await promisify(hook.alter)('accessInfo', {roles, forms, req, filterEnabled: true});

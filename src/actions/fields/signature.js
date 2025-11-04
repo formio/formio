@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 
-module.exports = (formio) => async (component, data, handler, action, {validation, path, req, res}) => {
+module.exports = (formio) => async (component, data, handler, action, {path, req}) => {
   let value = _.get(data, component.key);
   switch (handler) {
     case 'beforePost':

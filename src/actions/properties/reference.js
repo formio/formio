@@ -5,7 +5,6 @@ const async = require('async');
 
 module.exports = (router) => {
   const hiddenFields = ['deleted', '__v', 'machineName'];
-  const hook = require('../../util/hook')(router.formio);
 
   // Get a subrequest and sub response for a nested request.
   const getSubRequest = function(component, subQuery, req, res, response) {
@@ -103,7 +102,7 @@ module.exports = (router) => {
   };
 
   // Sets a resource object.
-  const setResource = function(component, path, req, res) {
+  const setResource = function(component, path, req) {
     const compValue = _.get(req.body.data, path);
     if (compValue && compValue._id) {
       if (!req.resources) {
@@ -270,7 +269,7 @@ module.exports = (router) => {
     });
   };
 
-  return async (component, data, handler, action, {validation, path, req, res}) => {
+  return async (component, data, handler, action, {path, req, res}) => {
     const resource = _.get(res, 'resource.item');
     const compValue = _.get(resource, `data.${path}`);
     const formId = component.form || component.resource || component.data.resource;
@@ -317,7 +316,7 @@ module.exports = (router) => {
               }
             }
           })
-          .catch((err) => {
+          .catch(() => {
             if (component.multiple) {
               _.set(resource, `data.${path}`, _.map(_.get(resource, `data.${path}`), iData => _.pick(iData, ['_id'])));
             }

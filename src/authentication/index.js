@@ -65,9 +65,9 @@ module.exports = (router) => {
 
     // If no project is provided, then provide it from the token.
     if (decoded.isAdmin && !decoded.project && allowed.length) {
-      /* eslint-disable no-useless-escape */
+       
       const ids = allowed[0].match(/\/project\/([^/]+)/);
-      /* eslint-enable no-useless-escape */
+       
       if (ids && ids[1]) {
         decoded.project = {_id: ids[1]};
       }
@@ -91,7 +91,7 @@ module.exports = (router) => {
           return true;
         }
       }
-      catch (err) {
+      catch (ignoreErr) {
         debug.authenticate('Bad token allow string.');
       }
 
@@ -344,7 +344,7 @@ module.exports = (router) => {
     }
 
     // Look for the user.
-    // eslint-disable-next-line max-len
+     
     query[`data.${userField}`] = router.formio.mongoFeatures.collation ? username : {$regex: new RegExp(`^${util.escapeRegExp(username)}$`, 'i')};
 
     // Find the user object.

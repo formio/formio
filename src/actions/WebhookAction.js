@@ -155,7 +155,7 @@ module.exports = function(router) {
 
         // Continue if were not blocking
         if (!_.get(settings, 'block') || _.get(settings, 'block') === false) {
-          next(); // eslint-disable-line callback-return
+          next();  
         }
 
         const options = {};
@@ -209,7 +209,7 @@ module.exports = function(router) {
           },
         };
         if (credentials.username) {
-        // eslint-disable-next-line max-len
+         
         options.headers.Authorization = `Basic ${Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')}`;
         }
 

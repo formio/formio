@@ -45,7 +45,7 @@ module.exports = (router) => {
         return next(`Cannot load form ${req.params.formId}`);
       }
 
-      /* eslint-disable max-depth */
+       
       util.FormioUtils.eachComponent(form.components, (component, path) => {
         if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
           if (!component.submissionAccess) {
@@ -90,11 +90,11 @@ module.exports = (router) => {
           }
         }
       });
-      /* eslint-enable max-depth */
+       
 
       return next();
     }
-    catch (err) {
+    catch (ignoreErr) {
       return next(`Cannot load form ${req.params.formId}`);
     }
   };

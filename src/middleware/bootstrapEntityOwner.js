@@ -10,7 +10,7 @@ const _ = require('lodash');
  *
  * @param router
  */
-module.exports = function(router) {
+module.exports = function () {
   return function bootstrapEntityOwner(req, res, next) {
     // Util to determine if we have a token to default access.
     const tokenPresent = (_.has(req, 'token') && req.token !== null && _.has(req, 'token.user._id'));

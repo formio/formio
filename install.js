@@ -170,7 +170,7 @@ module.exports = function(formio, items, done) {
     steps.whatTemplate,
     steps.importTemplate,
     steps.createRootUser
-  ], function(err, result) {
+  ], function(err) {
     if (err) {
       util.log(err);
       return done(err);

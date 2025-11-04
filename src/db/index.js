@@ -285,7 +285,7 @@ module.exports = function(formio) {
         await featuresTest.createIndex({test: 1}, {collation: {locale: 'en_US', strength: 1}});
         formio.util.log('Collation indexes are supported.');
       }
-      catch (err) {
+      catch (ignoreErr) {
         formio.util.log('Collation indexes are not supported.');
         config.mongoFeatures.collation = formio.mongoFeatures.collation = false;
       }
@@ -295,7 +295,7 @@ module.exports = function(formio) {
         await featuresTest.createIndex({test: 1, 'nested.test': 1});
         formio.util.log('Compound indexes that contain nested paths are supported.');
       }
-      catch (err) {
+      catch (ignoreErr) {
         formio.util.log('Compound indexes that contain nested paths are not supported.');
         config.mongoFeatures.compoundIndexWithNestedPath = formio.mongoFeatures.compoundIndexWithNestedPath = false;
       }
@@ -307,7 +307,7 @@ module.exports = function(formio) {
         await featuresTest.insertOne({title: 'Test Title', nested: {test: 'value'}});
         await featuresTest.find().sort({title: 1}).limit(1).toArray();
       }
-      catch (err) {
+      catch (ignoreErr) {
         // Create indexes if they don't exist
         const collections = await db.listCollections().toArray();
 
@@ -459,7 +459,7 @@ module.exports = function(formio) {
             : handleResponse(cache.partial.error);
         }
       }
-      catch (err) {
+      catch (ignoreErr) {
         cache.full.isValid = false;
         cache.partial.isValid = false;
 

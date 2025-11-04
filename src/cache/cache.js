@@ -451,7 +451,7 @@ module.exports = function(router) {
            await this.loadAllForms(subForm, req, depth + 1, forms);
          });
     }
-    catch (err) {
+    catch (ignoreErr) {
       return;
     }
     },
@@ -551,7 +551,7 @@ module.exports = function(router) {
           }
         });
       }
-      catch (err) {
+      catch (ignoreErr) {
         return;
       }
     }

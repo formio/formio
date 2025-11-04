@@ -28,7 +28,7 @@ const labelRegexp = /(?:(\.data\.)(?!\.data\.))/g;
  * @constructor
  */
 class CSVExporter extends Exporter {
-  /* eslint-disable max-statements */
+   
   constructor(form, req, res) {
     super(form, req, res);
     this.timezone = _.get(form, 'settings.components.datetime.timezone', '');
@@ -76,7 +76,7 @@ class CSVExporter extends Exporter {
               const address = getAddressComponentValue(component, value);
 
               // OpenStreetMap || Azure || Google
-              // eslint-disable-next-line max-len
+               
               return address.display_name || _.get(address, 'address.freeformAddress') || address.formatted_address || '';
             },
           });
@@ -227,7 +227,7 @@ class CSVExporter extends Exporter {
                   return tempVal;
                 }
                 else if (component.type === 'select') {
-                  // eslint-disable-next-line max-depth
+                   
                   return this.customTransform(path, value);
                 }
               }
@@ -427,7 +427,7 @@ class CSVExporter extends Exporter {
       res.status(400).send(err.message || err);
     }
   }
-  /* eslint-enable max-statements */
+   
 
   /**
    * Start the CSV export by creating the headers.

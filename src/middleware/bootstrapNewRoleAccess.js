@@ -80,7 +80,7 @@ module.exports = function(router) {
       bound.push(async.apply(f, roleId));
     });
 
-    async.series(bound, function(err, result) {
+    async.series(bound, function(err) {
       if (err) {
         debug(err);
         return next(err);

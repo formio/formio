@@ -1,7 +1,6 @@
 'use strict';
 
 const _ = require('lodash');
-const util = require('../../util/util');
 
 module.exports = (router) => {
   /**
@@ -116,7 +115,7 @@ module.exports = (router) => {
   /*
    * Set parent submission id in externalIds of child form component's submission
    */
-  const setChildFormParenthood = async function(component, data, validation, req, res, path, next) {
+  const setChildFormParenthood = async function(component, data, validation, req, res, path) {
     if (
       res.resource &&
       res.resource.item &&

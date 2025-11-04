@@ -167,7 +167,7 @@ module.exports = (router) => {
             ],
             inline: true,
             optionsLabelPosition: 'right',
-            // eslint-disable-next-line max-len
+             
             tooltip: 'Dynamic rendering uses formio.js to render email. While static relies on outdated set of mappers.',
             input: true,
           },
@@ -212,7 +212,7 @@ module.exports = (router) => {
         }
       };
 
-      const fetchTemplate = async function(settings, params, setActionItemMessage) {
+      const fetchTemplate = async function(settings, params) {
         try {
           const response = await fetch(settings.template);
           const body = response.ok ? await response.text() : null;
@@ -221,7 +221,7 @@ module.exports = (router) => {
           }
           return body || settings.message;
         }
-        catch (err) {
+        catch (ignoreErr) {
           return settings.message;
         }
       };
@@ -254,7 +254,7 @@ module.exports = (router) => {
         req.params = reqParams;
       });
 
-      next(); // eslint-disable-line callback-return
+      next();  
 
       try {
         const params = await emailer.getParams(req, res, form, req.body);

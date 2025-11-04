@@ -236,7 +236,7 @@ module.exports = (router) => {
         try {
           json = JSON.parse(action.condition.custom);
         }
-        catch (e) {
+        catch (ignoreErr) {
           json = null;
         }
 
@@ -698,7 +698,7 @@ module.exports = (router) => {
       };
       return finalSettings;
     }
-    catch (err) {
+    catch (ignoreErr) {
       throw new Error('Could not load form components for conditional actions.');
     }
   }

@@ -58,7 +58,7 @@ module.exports = (router) => {
         return next(err);
       }
     }
-    catch (err) {
+    catch (ignoreErr) {
       return res.status(404).send('Unknown Role.');
     }
   };

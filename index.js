@@ -257,7 +257,7 @@ module.exports = function(config) {
                     }
                     const actualValue = _.property(prop)(component);
                     // loose equality so number values can match
-                    return prev && actualValue == value || // eslint-disable-line eqeqeq
+                    return prev && actualValue == value ||  
                       value === 'true' && actualValue === true ||
                       value === 'false' && actualValue === false;
                   }, true);
@@ -288,14 +288,14 @@ module.exports = function(config) {
 
           const swagger = require('./src/util/swagger');
           // Show the swagger for the whole site.
-          router.get('/spec.json', function(req, res, next) {
+          router.get('/spec.json', function(req, res, _next) {
             swagger(req, router, function(spec) {
               res.json(spec);
             });
           });
 
           // Show the swagger for specific forms.
-          router.get('/form/:formId/spec.json', function(req, res, next) {
+          router.get('/form/:formId/spec.json', function(req, res, _next) {
             swagger(req, router, function(spec) {
               res.json(spec);
             });
@@ -339,7 +339,7 @@ module.exports = function(config) {
     // Load the updates and attach them to the router.
     router.formio.update = require('./src/db/index')(router.formio);
     // Run the healthCheck sanity check on /health
-    /* eslint-disable max-statements */
+     
     const db = await router.formio.update.initialize();
     util.log('Initializing API Server.');
     // Add the database connection to the router.

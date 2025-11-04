@@ -140,7 +140,7 @@ module.exports = (router) => {
      * @param next
      * @returns {*}
      */
-    /* eslint-disable max-statements */
+     
     async checkAttempts(error, req, user, next) {
       if (!user || !user._id || !this.settings.allowedAttempts) {
         return next(error);
@@ -232,7 +232,7 @@ module.exports = (router) => {
         return next(error);
       }
     }
-    /* eslint-enable max-statements */
+     
 
     /**
      * Authenticate with Form.io using the JWT Authentication Scheme.
