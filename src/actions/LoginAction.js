@@ -25,8 +25,12 @@ module.exports = (router) => {
         description: 'Provides a way to login to the application.',
         priority: 2,
         defaults: {
-          handler: ['before'],
-          method: ['create'],
+          handler: [
+            'before',
+          ],
+          method: [
+            'create',
+          ],
         },
         access: {
           handler: false,
@@ -54,7 +58,7 @@ module.exports = (router) => {
           key: 'resources',
           placeholder: 'Select the resources we should login against.',
           dataSrc: 'url',
-          data: {url: `${basePath}?type=resource&limit={{ limit }}`},
+          data: { url: `${basePath}?type=resource&limit={{ limit }}` },
           authenticate: true,
           valueProperty: '_id',
           template: '<span>{{ item.title }}</span>',
@@ -72,7 +76,7 @@ module.exports = (router) => {
           placeholder: 'Select the username field',
           template: '<span>{{ item.label || item.key }}</span>',
           dataSrc: 'url',
-          data: {url: dataSrc},
+          data: { url: dataSrc },
           valueProperty: 'key',
           multiple: false,
           validate: {
@@ -87,7 +91,7 @@ module.exports = (router) => {
           placeholder: 'Select the password field',
           template: '<span>{{ item.label || item.key }}</span>',
           dataSrc: 'url',
-          data: {url: dataSrc},
+          data: { url: dataSrc },
           valueProperty: 'key',
           multiple: false,
           validate: {
@@ -116,7 +120,8 @@ module.exports = (router) => {
           key: 'lockWait',
           input: true,
           label: 'Locked Account Wait Time',
-          description: 'The amount of time a person needs to wait before they can try to login again.',
+          description:
+            'The amount of time a person needs to wait before they can try to login again.',
           defaultValue: '1800',
           suffix: 'seconds',
         },
@@ -130,7 +135,7 @@ module.exports = (router) => {
      * @returns {string}
      */
     waitText(time) {
-      return (time > 60) ? `${parseInt(time / 60, 10)} minutes` : `${parseInt(time, 10)} seconds`;
+      return time > 60 ? `${parseInt(time / 60, 10)} minutes` : `${parseInt(time, 10)} seconds`;
     }
 
     /**
@@ -140,7 +145,7 @@ module.exports = (router) => {
      * @param next
      * @returns {*}
      */
-     
+
     async checkAttempts(error, req, user, next) {
       if (!user || !user._id || !this.settings.allowedAttempts) {
         return next(error);
@@ -156,10 +161,8 @@ module.exports = (router) => {
         _.set(user, 'metadata.login', {});
       }
 
-      const now = (new Date()).getTime();
-      const {
-        login: loginMetadata,
-      } = user.metadata;
+      const now = new Date().getTime();
+      const { login: loginMetadata } = user.metadata;
       const lastAttempt = parseInt(loginMetadata.last, 10) || 0;
 
       // See if the login is locked.
@@ -171,25 +174,23 @@ module.exports = (router) => {
         lockWait *= 1000;
 
         // See if the time has expired.
-        if ((lastAttempt + lockWait) < now) {
+        if (lastAttempt + lockWait < now) {
           // Reset the locked state and attempts totals.
           loginMetadata.attempts = 0;
           loginMetadata.locked = false;
           loginMetadata.last = now;
-        }
-        else {
-          const howLong = (lastAttempt + lockWait) - now;
+        } else {
+          const howLong = lastAttempt + lockWait - now;
           return next(`You must wait ${this.waitText(howLong / 1000)} before you can login.`);
         }
-      }
-      else if (error) {
+      } else if (error) {
         let attemptWindow = parseInt(this.settings.attemptWindow, 10) || 30;
 
         // Normalize to milliseconds.
         attemptWindow *= 1000;
 
         // Determine the login attempts within a certain window.
-        const withinWindow = lastAttempt ? ((lastAttempt + attemptWindow) > now) : false;
+        const withinWindow = lastAttempt ? lastAttempt + attemptWindow > now : false;
 
         if (withinWindow) {
           const attempts = (parseInt(loginMetadata.attempts, 10) || 0) + 1;
@@ -203,13 +204,11 @@ module.exports = (router) => {
 
           // Set the login attempts.
           loginMetadata.attempts = attempts;
-        }
-        else {
+        } else {
           loginMetadata.attempts = 0;
           loginMetadata.last = now;
         }
-      }
-      else {
+      } else {
         // If there was no error, then reset the attempts to zero.
         loginMetadata.attempts = 0;
         loginMetadata.last = now;
@@ -218,12 +217,9 @@ module.exports = (router) => {
       // Update the user record
       const submissionModel = req.submissionModel || router.formio.resources.submission.model;
       try {
-        await submissionModel.updateOne(
-          {_id: user._id},
-          {$set: {metadata: user.metadata}});
+        await submissionModel.updateOne({ _id: user._id }, { $set: { metadata: user.metadata } });
         return next(error);
-      }
-      catch (err) {
+      } catch (err) {
         if (err) {
           log(req, ecode.auth.ELOGINCOUNT, err);
           return next(ecode.auth.ELOGINCOUNT);
@@ -232,7 +228,6 @@ module.exports = (router) => {
         return next(error);
       }
     }
-     
 
     /**
      * Authenticate with Form.io using the JWT Authentication Scheme.
@@ -260,9 +255,10 @@ module.exports = (router) => {
       }
 
       if (
-        (!req.submission || !req.submission.hasOwnProperty('data'))
-        || !_.has(req.submission.data, this.settings.username)
-        || !_.has(req.submission.data, this.settings.password)
+        !req.submission ||
+        !req.submission.hasOwnProperty('data') ||
+        !_.has(req.submission.data, this.settings.username) ||
+        !_.has(req.submission.data, this.settings.password)
       ) {
         audit('EAUTH_PASSWORD', req, _.get(req.submission.data, this.settings.username));
         return res.status(401).send('User or password was incorrect.');
@@ -297,21 +293,21 @@ module.exports = (router) => {
             req['x-jwt-token'] = response.token.token;
 
             const role = await hook.alter('getPrimaryProjectAdminRole', req, res);
-              if (req.user.roles.includes(role)) {
-                req.isAdmin = true;
-              }
+            if (req.user.roles.includes(role)) {
+              req.isAdmin = true;
+            }
 
-              hook.alter('oAuthResponse', req, res, () => {
-                router.formio.auth.currentUser(req, res, (err) => {
-                  if (err) {
-                    log(req, ecode.auth.EAUTH, err);
-                    return res.status(401).send(err.message);
-                  }
-                  hook.alter('currentUserLoginAction', req, res);
+            hook.alter('oAuthResponse', req, res, () => {
+              router.formio.auth.currentUser(req, res, (err) => {
+                if (err) {
+                  log(req, ecode.auth.EAUTH, err);
+                  return res.status(401).send(err.message);
+                }
+                hook.alter('currentUserLoginAction', req, res);
 
-                  next();
-                });
+                next();
               });
+            });
           });
         },
       );

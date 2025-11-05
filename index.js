@@ -10,10 +10,10 @@ const events = require('events');
 const nunjucks = require('nunjucks');
 const log = require('debug')('formio:log');
 const gc = require('expose-gc/function');
-const {registerEvaluator} = require('@formio/core');
+const { registerEvaluator } = require('@formio/core');
 
 const util = require('./src/util/util');
-const {IsolateVMEvaluator} = require('./src/vm');
+const { IsolateVMEvaluator } = require('./src/vm');
 
 mongoose.Promise = global.Promise;
 const router = express.Router();
@@ -27,7 +27,7 @@ router.formio.mongoose = mongoose;
 _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
 
 // Allow custom configurations passed to the Form.IO server.
-module.exports = function(config) {
+module.exports = function (config) {
   // Give app a reference to our config.
   router.formio.config = config;
 
@@ -36,7 +36,7 @@ module.exports = function(config) {
 
   // Configure nunjucks to not watch any files
   nunjucks.configure([], {
-    watch: false
+    watch: false,
   });
 
   // Allow events to be triggered.
@@ -64,7 +64,7 @@ module.exports = function(config) {
   /**
    * Initialize the formio server.
    */
-  router.init = async function(hooks) {
+  router.init = async function (hooks) {
     function setupMemoryLeakPrevention() {
       router.use((req, res, next) => {
         util.Formio.forms = {};
@@ -77,8 +77,7 @@ module.exports = function(config) {
               gc();
             }
           }
-        }
-        catch (error) {
+        } catch (error) {
           console.log(error);
         }
 
@@ -104,73 +103,80 @@ module.exports = function(config) {
         }
         return next();
       });
-      router.use(bodyParser.urlencoded({extended: true}));
-      router.use(bodyParser.json({
-        limit: '16mb'
-       }));
+      router.use(bodyParser.urlencoded({ extended: true }));
+      router.use(
+        bodyParser.json({
+          limit: '16mb',
+        }),
+      );
 
-       // Error handler for malformed JSON
+      // Error handler for malformed JSON
       router.use((err, req, res, next) => {
         if (err instanceof SyntaxError) {
           return res.status(400).send(err.message);
         }
         if (err.type === 'entity.too.large') {
-          return res.status(413).send({message: 'Request payload too large'});
+          return res.status(413).send({ message: 'Request payload too large' });
         }
         next();
       });
 
-        // CORS Support
-        const corsRoute = cors(router.formio.hook.alter('cors'));
-        router.use((req, res, next) => {
-          if (req.url === '/') {
-            return next();
-          }
-
-          if (res.headersSent) {
-            return next();
-          }
-
-          corsRoute(req, res, next);
-        });
-
-        // Import our authentication models.
-        router.formio.auth = require('./src/authentication/index')(router);
-
-        // Perform token mutation before all requests.
-        if (!router.formio.hook.invoke('init', 'token', router.formio)) {
-          router.use(router.formio.middleware.tokenHandler);
+      // CORS Support
+      const corsRoute = cors(router.formio.hook.alter('cors'));
+      router.use((req, res, next) => {
+        if (req.url === '/') {
+          return next();
         }
 
-        // The get token handler
-        if (!router.formio.hook.invoke('init', 'getTempToken', router.formio)) {
-          router.get('/token', router.formio.auth.tempToken);
+        if (res.headersSent) {
+          return next();
         }
 
-        // The current user handler.
-        if (!router.formio.hook.invoke('init', 'logout', router.formio)) {
-          router.get('/logout', router.formio.auth.logout);
-        }
+        corsRoute(req, res, next);
+      });
 
-        // The current user handler.
-        if (!router.formio.hook.invoke('init', 'current', router.formio)) {
-          router.get('/current', router.formio.hook.alter('currentUser', [router.formio.auth.currentUser]));
-        }
+      // Import our authentication models.
+      router.formio.auth = require('./src/authentication/index')(router);
 
-        // The access handler.
-        if (!router.formio.hook.invoke('init', 'access', router.formio)) {
-          router.get('/access', router.formio.middleware.accessHandler);
-        }
+      // Perform token mutation before all requests.
+      if (!router.formio.hook.invoke('init', 'token', router.formio)) {
+        router.use(router.formio.middleware.tokenHandler);
+      }
 
-        // The public config handler.
-        if (!router.formio.hook.invoke('init', 'config', router.formio)) {
-          router.use('/config.json', router.formio.middleware.configHandler);
-        }
+      // The get token handler
+      if (!router.formio.hook.invoke('init', 'getTempToken', router.formio)) {
+        router.get('/token', router.formio.auth.tempToken);
+      }
 
-        // Authorize all urls based on roles and permissions.
-        if (!router.formio.hook.invoke('init', 'perms', router.formio)) {
-          router.use(router.formio.middleware.permissionHandler);
-        }
+      // The current user handler.
+      if (!router.formio.hook.invoke('init', 'logout', router.formio)) {
+        router.get('/logout', router.formio.auth.logout);
+      }
+
+      // The current user handler.
+      if (!router.formio.hook.invoke('init', 'current', router.formio)) {
+        router.get(
+          '/current',
+          router.formio.hook.alter('currentUser', [
+            router.formio.auth.currentUser,
+          ]),
+        );
+      }
+
+      // The access handler.
+      if (!router.formio.hook.invoke('init', 'access', router.formio)) {
+        router.get('/access', router.formio.middleware.accessHandler);
+      }
+
+      // The public config handler.
+      if (!router.formio.hook.invoke('init', 'config', router.formio)) {
+        router.use('/config.json', router.formio.middleware.configHandler);
+      }
+
+      // Authorize all urls based on roles and permissions.
+      if (!router.formio.hook.invoke('init', 'perms', router.formio)) {
+        router.use(router.formio.middleware.permissionHandler);
+      }
     }
 
     async function setupMongoDBConnection() {
@@ -198,13 +204,13 @@ module.exports = function(config) {
         };
       }
 
-        // ensure that ObjectIds are serialized as strings, opt out using {transorm: false} when calling
-        // toObject() or toJSON() on a document or model. Note that opting out of transform when calling
-        // toObject() or toJSON will *also* opt out of any existing plugin transformations, e.g. encryption
-        mongoose.ObjectId.set('transform', (val) => val.toString());
+      // ensure that ObjectIds are serialized as strings, opt out using {transorm: false} when calling
+      // toObject() or toJSON() on a document or model. Note that opting out of transform when calling
+      // toObject() or toJSON will *also* opt out of any existing plugin transformations, e.g. encryption
+      mongoose.ObjectId.set('transform', (val) => val.toString());
 
-        // Connect to MongoDB.
-        const connectToMongoDB = async () => {
+      // Connect to MongoDB.
+      const connectToMongoDB = async () => {
         try {
           await mongoose.connect(mongoUrl, mongoConfig);
           util.log(' > Mongo connection established.');
@@ -218,7 +224,8 @@ module.exports = function(config) {
           router.formio.schemas = {
             PermissionSchema: require('./src/models/PermissionSchema')(router.formio),
             AccessSchema: require('./src/models/AccessSchema')(router.formio),
-            FieldMatchAccessPermissionSchema: require('./src/models/FieldMatchAccessPermissionSchema')(router.formio),
+            FieldMatchAccessPermissionSchema:
+              require('./src/models/FieldMatchAccessPermissionSchema')(router.formio),
           };
 
           // Get the models for our project.
@@ -237,36 +244,49 @@ module.exports = function(config) {
           router.formio.cache = require('./src/cache/cache')(router);
 
           // Return the form components.
-          router.get('/form/:formId/components', async function(req, res, next) {
+          router.get('/form/:formId/components', async function (req, res, next) {
             try {
-              const form = await router.formio.resources.form.model.findOne({_id: req.params.formId});
+              const form = await router.formio.resources.form.model.findOne({
+                _id: req.params.formId,
+              });
               if (!form) {
                 return res.status(404).send('Form not found');
               }
               // If query params present, filter components that match params
-              const filter = Object.keys(req.query).length !== 0 ? _.omit(req.query, ['limit', 'skip']) : null;
+              const filter =
+                Object.keys(req.query).length !== 0
+                  ? _.omit(req.query, [
+                      'limit',
+                      'skip',
+                    ])
+                  : null;
               res.json(
                 _(util.flattenComponents(form.components))
-                .filter(function(component) {
-                  if (!filter) {
-                    return true;
-                  }
-                  return _.reduce(filter, function(prev, value, prop) {
-                    if (!value) {
-                      return prev && _.has(component, prop);
+                  .filter(function (component) {
+                    if (!filter) {
+                      return true;
                     }
-                    const actualValue = _.property(prop)(component);
-                    // loose equality so number values can match
-                    return prev && actualValue == value ||  
-                      value === 'true' && actualValue === true ||
-                      value === 'false' && actualValue === false;
-                  }, true);
-                })
-                .values()
-                .value()
+                    return _.reduce(
+                      filter,
+                      function (prev, value, prop) {
+                        if (!value) {
+                          return prev && _.has(component, prop);
+                        }
+                        const actualValue = _.property(prop)(component);
+                        // loose equality so number values can match
+                        return (
+                          (prev && actualValue == value) ||
+                          (value === 'true' && actualValue === true) ||
+                          (value === 'false' && actualValue === false)
+                        );
+                      },
+                      true,
+                    );
+                  })
+                  .values()
+                  .value(),
               );
-            }
-            catch (err) {
+            } catch (err) {
               return next(err);
             }
           });
@@ -280,7 +300,7 @@ module.exports = function(config) {
 
           // Add the available templates.
           router.formio.templates = {
-            default: _.cloneDeep(require('./src/templates/default.json'))
+            default: _.cloneDeep(require('./src/templates/default.json')),
           };
 
           // Add the template functions.
@@ -288,15 +308,15 @@ module.exports = function(config) {
 
           const swagger = require('./src/util/swagger');
           // Show the swagger for the whole site.
-          router.get('/spec.json', function(req, res, _next) {
-            swagger(req, router, function(spec) {
+          router.get('/spec.json', function (req, res, _next) {
+            swagger(req, router, function (spec) {
               res.json(spec);
             });
           });
 
           // Show the swagger for specific forms.
-          router.get('/form/:formId/spec.json', function(req, res, _next) {
-            swagger(req, router, function(spec) {
+          router.get('/form/:formId/spec.json', function (req, res, _next) {
+            swagger(req, router, function (spec) {
               res.json(spec);
             });
           });
@@ -306,19 +326,18 @@ module.exports = function(config) {
           // Say we are done.
           router.formio.db = mongoose.connection;
           return router.formio;
-        }
-        catch (err) {
+        } catch (err) {
           util.log(err.message);
           throw err.message;
         }
-        };
-        await connectToMongoDB();
+      };
+      await connectToMongoDB();
     }
 
     function configureEvaluator() {
-        // Configure the evaluator
-        const evaluator = new IsolateVMEvaluator({timeoutMs: config.vmTimeout}, router.formio.hook);
-        registerEvaluator(evaluator);
+      // Configure the evaluator
+      const evaluator = new IsolateVMEvaluator({ timeoutMs: config.vmTimeout }, router.formio.hook);
+      registerEvaluator(evaluator);
     }
 
     // Hooks system during boot.
@@ -331,7 +350,7 @@ module.exports = function(config) {
     router.formio.hook = require('./src/util/hook')(router.formio);
 
     // Configure Formio, if applicaple.
-    router.formio.hook.alter('configFormio', {Formio: util.Formio});
+    router.formio.hook.alter('configFormio', { Formio: util.Formio });
 
     // Get the encryption system.
     router.formio.encrypt = require('./src/util/encrypt');
@@ -339,7 +358,7 @@ module.exports = function(config) {
     // Load the updates and attach them to the router.
     router.formio.update = require('./src/db/index')(router.formio);
     // Run the healthCheck sanity check on /health
-     
+
     const db = await router.formio.update.initialize();
     util.log('Initializing API Server.');
     // Add the database connection to the router.

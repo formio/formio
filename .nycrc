@@ -1,3 +1,5 @@
 {
-    "exclude": ["src/vm/*"]
+  "exclude": [
+    "src/vm/*"
+  ]
 }

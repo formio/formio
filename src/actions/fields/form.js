@@ -6,7 +6,7 @@ module.exports = (router) => {
   /**
    * Perform hierarchial submissions of sub-forms.
    */
-  const submitSubForms = function(component, data, validation, req, res, path, fullPath, next) {
+  const submitSubForms = function (component, data, validation, req, res, path, fullPath, next) {
     // Only submit subforms after validation has occurred.
     if (!validation) {
       return next();
@@ -31,23 +31,29 @@ module.exports = (router) => {
       const submission = req.body;
       return _.some(
         submission?.scope?.conditionals || [],
-        condComp => condComp.conditionallyHidden && (
-          condComp.path === path ||
-          _.startsWith(path, `${condComp.path}.`) ||
-          _.startsWith(path, `${condComp.path}[`) ||
-          _.startsWith(fullPath, `${condComp.path}.`)
-        )
+        (condComp) =>
+          condComp.conditionallyHidden &&
+          (condComp.path === path ||
+            _.startsWith(path, `${condComp.path}.`) ||
+            _.startsWith(path, `${condComp.path}[`) ||
+            _.startsWith(fullPath, `${condComp.path}.`)),
       );
     };
     // Only execute if the component should save reference and conditions do not apply.
     if (
-      (component.hasOwnProperty('reference') && !component.reference) || isConditionallyHidden()
+      (component.hasOwnProperty('reference') && !component.reference) ||
+      isConditionallyHidden()
     ) {
       return next();
     }
 
     let url = '/form/:formId/submission';
-    if (['PUT', 'PATCH'].includes(req.method)) {
+    if (
+      [
+        'PUT',
+        'PATCH',
+      ].includes(req.method)
+    ) {
       url += '/:submissionId';
     }
     const childRes = router.formio.util.createSubResponse((err) => {
@@ -57,10 +63,11 @@ module.exports = (router) => {
           _.each(err.details, (details) => {
             if (details.path) {
               details.path = `${path}.data.${details.path}`;
-              details.path = details.path.replace(/[[\]]/g, '.')
+              details.path = details.path
+                .replace(/[[\]]/g, '.')
                 .replace(/\.\./g, '.')
                 .split('.')
-                .map(part => _.defaultTo(_.toNumber(part), part));
+                .map((part) => _.defaultTo(_.toNumber(part), part));
             }
           });
         }
@@ -86,13 +93,13 @@ module.exports = (router) => {
     }
 
     // Make the child request.
-    const method = (req.method === 'POST') ? 'post' : 'put';
+    const method = req.method === 'POST' ? 'post' : 'put';
 
     if (req.method === 'PATCH') {
       childReq.subPatch = true;
     }
 
-    router.resourcejs[url][method](childReq, childRes, function(err) {
+    router.resourcejs[url][method](childReq, childRes, function (err) {
       if (err) {
         return next(err);
       }
@@ -105,7 +112,7 @@ module.exports = (router) => {
           }
           req.resources[childRes.resource.item._id.toString()] = childRes.resource.item;
           // Set child submission to { _id } to save only the reference
-          _.set(data, component.key, {_id: childRes.resource.item._id});
+          _.set(data, component.key, { _id: childRes.resource.item._id });
         }
       }
       next();
@@ -115,7 +122,7 @@ module.exports = (router) => {
   /*
    * Set parent submission id in externalIds of child form component's submission
    */
-  const setChildFormParenthood = async function(component, data, validation, req, res, path) {
+  const setChildFormParenthood = async function (component, data, validation, req, res, path) {
     if (
       res.resource &&
       res.resource.item &&
@@ -129,9 +136,9 @@ module.exports = (router) => {
       if (compValue && compValue._id) {
         const submissionModel = req.submissionModel || router.formio.resources.submission.model;
         try {
-          const submission = await submissionModel.findOne(
-            {_id: compValue._id, deleted: {$eq: null}}
-          ).exec();
+          const submission = await submissionModel
+            .findOne({ _id: compValue._id, deleted: { $eq: null } })
+            .exec();
           if (!submission) {
             return router.formio.util.log('No subform found to update external ids.');
           }
@@ -139,7 +146,7 @@ module.exports = (router) => {
           // Update the submission's externalIds.
           let found = false;
           submission.externalIds = submission.externalIds || [];
-          _.each(submission.externalIds, function(externalId) {
+          _.each(submission.externalIds, function (externalId) {
             if (externalId.type === 'parent') {
               found = true;
             }
@@ -147,15 +154,17 @@ module.exports = (router) => {
           if (!found) {
             submission.externalIds.push({
               type: 'parent',
-              id: res.resource.item._id
+              id: res.resource.item._id,
             });
 
-            await submissionModel.updateOne({
-              _id: submission._id},
-              {$set: {externalIds: submission.externalIds}});
+            await submissionModel.updateOne(
+              {
+                _id: submission._id,
+              },
+              { $set: { externalIds: submission.externalIds } },
+            );
           }
-        }
-        catch (err) {
+        } catch (err) {
           return router.formio.util.log(err);
         }
       }
@@ -163,7 +172,7 @@ module.exports = (router) => {
     return;
   };
 
-  return async (component, data, handler, action, {validation, path, fullPath, req, res}) => {
+  return async (component, data, handler, action, { validation, path, fullPath, req, res }) => {
     switch (handler) {
       case 'beforePut':
       case 'beforePost':

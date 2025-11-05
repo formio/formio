@@ -3,7 +3,9 @@
   "appPort": 8080,
   "host": "localhost:3001",
   "protocol": "http",
-  "allowedOrigins": ["*"],
+  "allowedOrigins": [
+    "*"
+  ],
   "domain": "http://localhost:3001",
   "basePath": "",
   "mongo": "mongodb://localhost:27017/oss-formio",

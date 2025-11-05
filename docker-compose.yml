@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 services:
   mongo:
     image: mongo
@@ -16,7 +16,7 @@ services:
     links:
       - mongo
     ports:
-      - "3001:3001"
+      - '3001:3001'
     environment:
       DEBUG: formio:*
       NODE_CONFIG: '{"mongo": "mongodb://mongo:27017/formio"}'

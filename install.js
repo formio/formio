@@ -4,11 +4,11 @@ const inquirer = require('inquirer').default;
 const async = require('async');
 const fs = require('fs-extra');
 const nunjucks = require('nunjucks');
-nunjucks.configure([], {watch: false});
+nunjucks.configure([], { watch: false });
 const util = require('./src/util/util');
 const debug = require('debug')('formio:error');
 
-module.exports = function(formio, items, done) {
+module.exports = function (formio, items, done) {
   // The project that was created.
   let project = {};
   let templateFile = '';
@@ -21,7 +21,7 @@ module.exports = function(formio, items, done) {
      * @param done
      * @return {*}
      */
-    whatTemplate: function(done) {
+    whatTemplate: function (done) {
       if (process.env.ROOT_EMAIL) {
         templateFile = './default-template.json';
         return done();
@@ -29,37 +29,41 @@ module.exports = function(formio, items, done) {
 
       let message = '\nWhich project template would you like to install?\n'.green;
       message += '\n   Please provide the local file path of the template file.'.yellow;
-      message += '\n   Or, just press '.yellow + 'ENTER'.green + ' to use the default template.\n'.yellow;
+      message +=
+        '\n   Or, just press '.yellow + 'ENTER'.green + ' to use the default template.\n'.yellow;
       util.log(message);
-      inquirer.prompt([
-        {
-          name: 'templateFile',
-          message: 'Enter a local file path or press Enter for the default template.',
-          default: './default-template.json',
-          validate: function(input) {
-            if (!input) {
-              return 'Template file is not specified';
-            }
-            return true;
+      inquirer
+        .prompt([
+          {
+            name: 'templateFile',
+            message: 'Enter a local file path or press Enter for the default template.',
+            default: './default-template.json',
+            validate: function (input) {
+              if (!input) {
+                return 'Template file is not specified';
+              }
+              return true;
+            },
           },
-        },
-      ]).then((results) => {
-        if (!results.templateFile) {
-          return done('Cannot find the template file!'.red);
-        }
+        ])
+        .then((results) => {
+          if (!results.templateFile) {
+            return done('Cannot find the template file!'.red);
+          }
 
-        templateFile = results.templateFile;
-        done();
-      }).catch((err) => {
-        done(err);
-      });
+          templateFile = results.templateFile;
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
     },
 
     /**
      * Import the template.
      * @param done
      */
-    importTemplate: function(done) {
+    importTemplate: function (done) {
       if (!items.import) {
         return done();
       }
@@ -72,16 +76,15 @@ module.exports = function(formio, items, done) {
       let template = {};
       try {
         template = JSON.parse(fs.readFileSync(templateFile));
-      }
-      catch (err) {
+      } catch (err) {
         debug(err);
         return done(err);
       }
 
       // Get the form.io service.
       util.log('Importing template...'.green);
-      const importer = require('./src/templates/import')({formio: formio});
-      importer.template(template, function(err, template) {
+      const importer = require('./src/templates/import')({ formio: formio });
+      importer.template(template, function (err, template) {
         if (err) {
           return done(err);
         }
@@ -96,87 +99,93 @@ module.exports = function(formio, items, done) {
      *
      * @param done
      */
-    createRootUser: function(done) {
+    createRootUser: function (done) {
       if (!items.user) {
         return done();
       }
       util.log('Creating root user account...'.green);
-      inquirer.prompt([
-        {
-          name: 'email',
-          message: 'Enter your email address for the root account.',
-          when: function() {
-            return process.env.ROOT_EMAIL ? false : true;
+      inquirer
+        .prompt([
+          {
+            name: 'email',
+            message: 'Enter your email address for the root account.',
+            when: function () {
+              return process.env.ROOT_EMAIL ? false : true;
+            },
+            validate: function (input) {
+              if (!input) {
+                return 'Email is not specified';
+              }
+              const pattern =
+                /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+              if (!pattern.test(input)) {
+                return 'Must be a valid email';
+              }
+              return true;
+            },
           },
-          validate: function(input) {
-            if (!input) {
-              return 'Email is not specified';
+          {
+            name: 'password',
+            type: 'password',
+            message: 'Enter your password for the root account.',
+            when: function () {
+              return process.env.ROOT_PASSWORD ? false : true;
+            },
+            validate: function (input) {
+              if (!input) {
+                return 'Password is not specified';
+              }
+              return true;
+            },
+          },
+        ])
+        .then(function (result) {
+          util.log('Encrypting password');
+          formio.encrypt(result.password || process.env.ROOT_PASSWORD, async function (err, hash) {
+            if (err) {
+              return done(err);
             }
-            const pattern = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-            if (!pattern.test(input)) {
-              return 'Must be a valid email';
-            }
-            return true;
-          },
-        },
-        {
-          name: 'password',
-          type: 'password',
-          message: 'Enter your password for the root account.',
-          when: function() {
-            return process.env.ROOT_PASSWORD ? false : true;
-          },
-          validate: function(input) {
-            if (!input) {
-              return 'Password is not specified';
-            }
-            return true;
-          },
-        }
-      ]).then(function(result) {
-        util.log('Encrypting password');
-        formio.encrypt(result.password || process.env.ROOT_PASSWORD, async function(err, hash) {
-          if (err) {
-            return done(err);
-          }
 
-          // Create the root user submission.
-          util.log('Creating root user account');
-          try {
-            await formio.resources.submission.model.create({
-              form: project.resources.admin._id,
-              data: {
-                email: result.email || process.env.ROOT_EMAIL,
-                password: hash
-              },
-              roles: [
-                project.roles.administrator._id
-              ]
-            });
-          return done();
-          }
-          catch (err) {
-            return done(err);
-          }
+            // Create the root user submission.
+            util.log('Creating root user account');
+            try {
+              await formio.resources.submission.model.create({
+                form: project.resources.admin._id,
+                data: {
+                  email: result.email || process.env.ROOT_EMAIL,
+                  password: hash,
+                },
+                roles: [
+                  project.roles.administrator._id,
+                ],
+              });
+              return done();
+            } catch (err) {
+              return done(err);
+            }
+          });
+        })
+        .catch(function (err) {
+          done(err);
         });
-      }).catch(function(err) {
-        done(err);
-      });
-    }
+    },
   };
 
   util.log('Installing...');
-  async.series([
-    steps.whatTemplate,
-    steps.importTemplate,
-    steps.createRootUser
-  ], function(err) {
-    if (err) {
-      util.log(err);
-      return done(err);
-    }
+  async.series(
+    [
+      steps.whatTemplate,
+      steps.importTemplate,
+      steps.createRootUser,
+    ],
+    function (err) {
+      if (err) {
+        util.log(err);
+        return done(err);
+      }
 
-    util.log('Install successful!'.green);
-    done();
-  });
+      util.log('Install successful!'.green);
+      done();
+    },
+  );
 };

@@ -16,7 +16,7 @@ module.exports = (formio) => {
     });
   };
 
-  const getCurrentSubmission = async req => {
+  const getCurrentSubmission = async (req) => {
     const submission = await formio.cache.loadCurrentSubmission(req);
     if (!submission) {
       throw new Error('No submission found.');
@@ -24,7 +24,7 @@ module.exports = (formio) => {
     return submission;
   };
 
-  return async (component, data, handler, action, {validation, path, req, res}) => {
+  return async (component, data, handler, action, { validation, path, req, res }) => {
     switch (handler) {
       case 'beforeGet':
         req.modelQuery.select(`-data.${path}${component.key}`);
@@ -32,34 +32,37 @@ module.exports = (formio) => {
       case 'beforePut':
         // Only perform password encryption after validation has occurred.
         if (validation) {
-            if (_.has(data, component.key)) {
-              return new Promise((resolve, reject) => {
-                encryptField(component, data, (err) => {
+          if (_.has(data, component.key)) {
+            return new Promise((resolve, reject) => {
+              encryptField(component, data, (err) => {
+                if (err) {
+                  return reject(err);
+                }
+                // Since the password was changed, invalidate all user tokens.
+                hook.alter('invalidateTokens', req, res, (err) => {
                   if (err) {
                     return reject(err);
                   }
-                  // Since the password was changed, invalidate all user tokens.
-                  hook.alter('invalidateTokens', req, res, (err) => {
-                    if (err) {
-                      return reject(err);
-                    }
 
-                    if (!req.skipTokensInvalidation) {
-                      _.set(req.body, 'metadata.jwtIssuedAfter', req.tokenIssued || Math.trunc(Date.now() / 1000));
-                    }
-                    resolve();
-                  });
+                  if (!req.skipTokensInvalidation) {
+                    _.set(
+                      req.body,
+                      'metadata.jwtIssuedAfter',
+                      req.tokenIssued || Math.trunc(Date.now() / 1000),
+                    );
+                  }
+                  resolve();
                 });
               });
-            }
-            else {
-              // If there is no password provided.
-              // Load the current submission.
+            });
+          } else {
+            // If there is no password provided.
+            // Load the current submission.
 
-              const submission = await getCurrentSubmission(req);
-              _.set(data, component.key, _.get(submission.data, path));
-              return;
-            }
+            const submission = await getCurrentSubmission(req);
+            _.set(data, component.key, _.get(submission.data, path));
+            return;
+          }
         }
         break;
       case 'beforePost':
