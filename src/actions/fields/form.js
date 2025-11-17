@@ -41,8 +41,9 @@ module.exports = (router) => {
     };
     // Only execute if the component should save reference and conditions do not apply.
     if (
-      (component.hasOwnProperty('reference') && !component.reference) ||
-      isConditionallyHidden()
+      (component.hasOwnProperty('reference') && !component.reference)
+      || isConditionallyHidden()
+      || (component.hidden && component.clearOnHide !== false)
     ) {
       return next();
     }
