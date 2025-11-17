@@ -10,6 +10,7 @@ const debug = {
   loadSubmission: require('debug')('formio:cache:loadSubmission'),
   loadSubmissions: require('debug')('formio:cache:loadSubmissions'),
   loadSubForms: require('debug')('formio:cache:loadSubForms'),
+  loadFormRevisions: require('debug')('formio:cache:loadFormRevisions'),
   error: require('debug')('formio:error'),
 };
 
@@ -155,7 +156,7 @@ module.exports = function (router) {
           const loadRevision =
             formRevision.length === 24
               ? router.formio.resources.formrevision.model.findOne({
-                  $revisionId: util.idToBson(rev.revision),
+                  revisionId: util.idToBson(rev.revision),
                 })
               : router.formio.resources.formrevision.model.findOne(
                   await hook.alter(
