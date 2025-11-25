@@ -5380,7 +5380,7 @@ module.exports = function (app, template, hook) {
         {
           data: {
             textField1: 'fail',
-            uniqueTextField3: 'uniq-partial-2' 
+            uniqueTextField3: 'uniq-partial-2'
           }
         },
       ];

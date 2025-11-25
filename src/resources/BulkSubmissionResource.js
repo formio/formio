@@ -3,6 +3,8 @@
 const _ = require('lodash');
 const util = require('../util/util');
 const {ObjectId} = require('mongodb');
+const {FEATURE_FLAGS} = require('@formio/feature-flags');
+const config = util.getServerConfig();
 
 class BulkSubmission {
   constructor(router) {
@@ -83,7 +85,7 @@ class BulkSubmission {
 
   /**
    * Process multiple documents through submission handlers
-   * 
+   *
    * @param {Array} payload - Array of documents to process
    * @param {Object} submissionHandlers - The submission handlers object
    * @param {Object} baseReq - Base request object
@@ -105,18 +107,18 @@ class BulkSubmission {
       payload.map(async (item) => {
         const errors = [];
         let processedDoc = item;
-    
+
         const mockReq = {
           ...baseReq,
           body: processedDoc,
           method: baseReq.method,
-          params: {...baseReq.params, submissionId: processedDoc._id}, 
+          params: {...baseReq.params, submissionId: processedDoc._id},
           currentForm: baseReq.currentForm,
           query: baseReq.query || {},
           headers: baseReq.headers || {},
           isAdmin: baseReq.isAdmin
         };
-        
+
         const mockRes = {
           submission: null,
           resource: null,
@@ -132,7 +134,7 @@ class BulkSubmission {
             return this;
           }
         };
-        
+
         try {
           await executeMiddlewareArray(submissionHandlers, mockReq, mockRes);
           processedDoc = {
@@ -147,7 +149,7 @@ class BulkSubmission {
 
           details.forEach((e) => errors.push({type: 'validator', message: e.message || e}));
         }
-        
+
         return {
           valid: errors.length === 0,
           errors,
@@ -156,7 +158,7 @@ class BulkSubmission {
         };
       })
     );
-    
+
     return results;
   }
 
@@ -403,10 +405,10 @@ class BulkSubmission {
    */
   async handleBulkCreate(req, res) {
     util.log('[create submissions] Received bulk create request');
-    
+
     const context = await this.prepareBulkSubmissionContext({req, res, isUpsert: false});
     if (!context) return;
-    
+
     const {form, submissionModel, failures, validDocs, payload} = context;
 
     if (form.submissionRevisions) {
@@ -448,7 +450,7 @@ class BulkSubmission {
         })),
         failures,
       };
-      
+
       return res.status(failures.length > 0 ? 207 : 201).json(responseBody);
     }
     catch (err) {
@@ -589,7 +591,7 @@ class BulkSubmission {
 
     const context = await this.prepareBulkSubmissionContext({req, res, isUpsert: true});
     if (!context) return;
-    
+
     const {form, submissionModel, failures, validDocs, payload} = context;
 
     if (form.submissionRevisions) {
@@ -613,7 +615,7 @@ class BulkSubmission {
       });
 
       const result = await submissionModel.bulkWrite(operations, {ordered: false});
-      
+
       const upserted = [];
       const modified = [];
 
@@ -623,7 +625,7 @@ class BulkSubmission {
 
       validDocs.forEach(doc => {
         const docIdStr = doc._id.toString();
-        
+
         if (upsertedIdSet.has(docIdStr)) {
           upserted.push({
             original: payload[doc.originalIndex],
@@ -644,7 +646,7 @@ class BulkSubmission {
         modified,
         failures,
       };
-      
+
       return res.status(failures.length > 0 ? 207 : 200).json(responseBody);
     }
     catch (err) {
@@ -669,13 +671,15 @@ class BulkSubmission {
    */
   register() {
     this.router.post('/form/:formId/submissions', this.handleBulkCreate.bind(this));
-    this.router.put('/form/:formId/submissions', this.handleBulkUpsert.bind(this));    
+    this.router.put('/form/:formId/submissions', this.handleBulkUpsert.bind(this));
   }
 }
 
 module.exports = function(router) {
-  const bulkSubmission = new BulkSubmission(router);
-  return bulkSubmission.register();
+  if (config.isFeatureEnabled(FEATURE_FLAGS.BULK_S)) {
+    const bulkSubmission = new BulkSubmission(router);
+    return bulkSubmission.register();
+  }
 };
 
 module.exports.BulkSubmission = BulkSubmission;
