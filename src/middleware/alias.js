@@ -7,11 +7,11 @@ const debug = require('debug')('formio:alias');
  *
  * Middleware to resolve a form alias into its components.
  */
-module.exports = function(router) {
+module.exports = function (router) {
   // Setup the reserved forms regex.
   if (!router.formio.config.reservedForms || !router.formio.config.reservedForms.length) {
-     
     router.formio.config.reservedForms = [
+      'submissions',
       'submission',
       'exists',
       'export',
@@ -25,9 +25,8 @@ module.exports = function(router) {
       'captcha',
       'action',
       'actionItem',
-      'tag'
+      'tag',
     ];
-     
   }
 
   /* eslint-disable no-useless-escape */
@@ -40,12 +39,21 @@ module.exports = function(router) {
     const baseUrl = aliasHandler.baseUrl ? aliasHandler.baseUrl(req) : '';
 
     // Get the alias from the request.
-    let alias = url.parse(req.url).pathname.substr(baseUrl.length).replace(formsRegEx, '').substr(1);
+    let alias = url
+      .parse(req.url)
+      .pathname.substr(baseUrl.length)
+      .replace(formsRegEx, '')
+      .substr(1);
     alias = router.formio.hook.alter('alias', alias, req, res);
 
     // If this is normal request, then pass this middleware.
     /* eslint-disable no-useless-escape */
-    if (!alias || alias.match(/^(form$|form[\?\/])/) || alias === 'spec.json' || alias ===  'config.json') {
+    if (
+      !alias ||
+      alias.match(/^(form$|form[\?\/])/) ||
+      alias === 'spec.json' ||
+      alias === 'config.json'
+    ) {
       return next();
     }
     /* eslint-enable no-useless-escape */
@@ -72,8 +80,7 @@ module.exports = function(router) {
       // Create the new URL for the project.
       req.url = `${baseUrl}/form/${form._id}${additional}`;
       return next();
-    }
-    catch (err) {
+    } catch (err) {
       debug(`Error: ${err}`);
       return res.status(400).send('Invalid alias');
     }

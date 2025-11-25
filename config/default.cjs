@@ -15,6 +15,7 @@ module.exports = {
   mongoCA: '',
   mongoSecret: '--- change me now ---',
   reservedForms: [
+    'submissions',
     'submission',
     'exists',
     'export',
