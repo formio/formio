@@ -1,0 +1,30 @@
+{
+  "extends": [
+    "//"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build",
+        "oss-portal#build"
+      ],
+      "inputs": [
+        "!portal/**",
+        "!src/vm/bundles/**",
+        "src/**",
+        "index.js",
+        "logo.txt",
+        "main.js",
+        "package.json",
+        "server.js",
+        "turbo.json",
+        "welcome.txt"
+      ],
+      "outputs": [
+        "src/vm/bundles/**",
+        "dist/**",
+        "lib/**"
+      ]
+    }
+  }
+}
