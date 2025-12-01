@@ -5309,8 +5309,12 @@ module.exports = function (app, template, hook) {
   });
 
   describe('Bulk submissions, create endpoint', function() {
-    const bulkFixture = require('./fixtures/forms/bulkCreateForm.js');
-    const formDef = bulkFixture.form;
+    let bulkFixture, formDef;
+    
+    before(function () {
+      bulkFixture = require('./fixtures/forms/bulkCreateForm.js');
+      formDef = bulkFixture.form;
+    });
 
     it('Creates a test form for bulk submission create tests', function(done) {
       helper.upsertForm(formDef, function (err) {
@@ -5549,10 +5553,14 @@ module.exports = function (app, template, hook) {
   });
 
   describe('Bulk Submissions, upsert endpoint', function() {
-    const bulkFixture = require('./fixtures/forms/bulkUpsertForm.js');
-    const upsertFormName = 'bulkEndpointTest-upsert';
-    const formDef = bulkFixture.form;
-    let existSubmissionId;
+    let existSubmissionId, bulkFixture, upsertFormName, formDef;
+    
+    before(function () {
+      bulkFixture = require('./fixtures/forms/bulkUpsertForm.js');
+      upsertFormName = 'bulkEndpointTest-upsert';
+      formDef = bulkFixture.form;
+      existSubmissionId = bulkFixture.existingSubmissionId;
+    });
 
     it('Creates a test form for bulk submission upsert tests', function(done) {
       helper.upsertForm(formDef, function (err) {

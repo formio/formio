@@ -3,14 +3,22 @@
 const _ = require('lodash');
 const util = require('../util/util');
 const {ObjectId} = require('mongodb');
-const {FEATURE_FLAGS} = require('@formio/feature-flags');
-const config = util.getServerConfig();
 
 class BulkSubmission {
   constructor(router) {
     this.router = router;
     this.formio = router.formio;
     this.hook = require('../util/hook')(this.formio);
+  }
+  
+  /**
+   * Function to identify if the bulk submission feature is enabled
+   */
+  isEnabled() {
+    if (this.hook.alter('isFeatureEnabled', 'BULK_S') === false) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -404,6 +412,9 @@ class BulkSubmission {
    * ```
    */
   async handleBulkCreate(req, res) {
+    if (!this.isEnabled()) {
+      return res.status(403).send('Bulk submission create feature is disabled.');
+    }
     util.log('[create submissions] Received bulk create request');
 
     const context = await this.prepareBulkSubmissionContext({req, res, isUpsert: false});
@@ -587,6 +598,9 @@ class BulkSubmission {
    * - The endpoint is designed for high-throughput, bulk operations, and is resilient to partial failures.
    */
   async handleBulkUpsert(req, res) {
+    if (!this.isEnabled()) {
+      return res.status(403).send('Bulk submission create feature is disabled.');
+    }
     util.log('[submissions] Received bulk submission upsert request');
 
     const context = await this.prepareBulkSubmissionContext({req, res, isUpsert: true});
@@ -676,10 +690,8 @@ class BulkSubmission {
 }
 
 module.exports = function(router) {
-  if (config.isFeatureEnabled(FEATURE_FLAGS.BULK_S)) {
-    const bulkSubmission = new BulkSubmission(router);
-    return bulkSubmission.register();
-  }
+  const bulkSubmission = new BulkSubmission(router);
+  return bulkSubmission.register();
 };
 
 module.exports.BulkSubmission = BulkSubmission;
