@@ -4,16 +4,25 @@
 
 # Use Node image, maintained by Docker:
 # hub.docker.com/r/_/node/
-FROM node:21-alpine3.19
+FROM node:20-alpine3.19
+
 
 # Copy source dependencies
 COPY src/ /app/src/
 COPY config/ /app/config
-COPY portal/ /app/portal/
 COPY *.js /app/
 COPY *.txt /app/
 COPY package.json /app/
+COPY package-lock.json /app/
 COPY default-template.json /app/
+
+COPY portal/src /app/portal/src
+COPY portal/public /app/portal/public
+COPY portal/package.json /app/portal/package.json
+COPY portal/package-lock.json /app/portal/package-lock.json
+COPY portal/tsconfig.json /app/portal/tsconfig.json
+COPY portal/webpack.config.mjs /app/portal/webpack.config.mjs
+
 
 WORKDIR /app
 
@@ -26,13 +35,12 @@ RUN apk update && \
     apk add g++ && \
     apk add git
 
-# Use https to avoid requiring ssh keys for public repos.
-RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
-
 # install dependencies
-RUN npm install
+RUN npm i
 # build the client application
-RUN npm run build:portal
+WORKDIR /app/portal
+RUN npm i
+RUN npm run build
 
 RUN apk del git
 
