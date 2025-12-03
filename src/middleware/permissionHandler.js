@@ -532,8 +532,8 @@ module.exports = function (router) {
                 if (!submission) {
                   const err = new Error();
                   err.statusCode = 404;
+                  err.message = 'Submission not found';
                   throw err;
-                  // return callback(404);
                 }
 
                 // Add the submission owners UserId to the access list.
@@ -549,7 +549,9 @@ module.exports = function (router) {
                 // Load Submission Resource Access.
                 getSubmissionResourceAccess(req, submission, access);
               } catch (err) {
-                err.statusCode = 400;
+                if (!err.statusCode) {
+                  err.statusCode = 400;
+                }
                 throw err;
               }
             },
