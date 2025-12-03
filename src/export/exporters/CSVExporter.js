@@ -441,11 +441,11 @@ class CSVExporter extends Exporter {
   start(resolve) {
     let row = null;
     this.stringifier.on('readable', () => {
-      /* eslint-disable no-cond-assign */
+       
       while ((row = this.stringifier.read())) {
         this.res.write(row.toString());
       }
-      /* eslint-enable no-cond-assign */
+       
 
       resolve();
     });
