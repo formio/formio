@@ -50,11 +50,11 @@ class IsolateVMEvaluator extends DefaultEvaluator {
       // uses the structured clone algorithm to serialize into the sandbox, which means no functions and no setters/getters). To do this,
       // we filter out the instance variable that might be in the context and compile it is a part of the sandboxes' `env`
       let filteredArgs = args;
-      let modifyEnv = '';
+      let modifyEnv = 'const t = function (text) { return text; };';
       if (args.instance) {
         const { instance, ...rest } = args;
         filteredArgs = rest;
-        modifyEnv = `
+        modifyEnv += `
           const root = new RootShim(form, submission, scope);
           // modelType is non-enumerable outside of the vm and so won't get cloned,
           // so calculate it here and attach it to the component
@@ -77,7 +77,6 @@ class IsolateVMEvaluator extends DefaultEvaluator {
       }
 
       modifyEnv = this.hook.alter('dynamicVmDependencies', modifyEnv, context?.form);
-
       try {
         if (this.noeval || options.noeval) {
           console.warn('No evaluations allowed for this renderer.');

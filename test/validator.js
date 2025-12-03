@@ -603,6 +603,49 @@ module.exports = function (app, template, hook) {
       });
     });
 
+    it('Should return validation error when t() is used in custom validation logic', async function () {
+      const form = {
+        components: [{
+            "label": "Text Field",
+            "applyMaskOn": "change",
+            "tableView": true,
+            "validate": {
+              "custom": "valid = (input === 'Joe') ? true : t('joeMsg');"
+            },
+            "validateWhenHidden": false,
+            "key": "textField",
+            "type": "textfield",
+            "input": true
+          },
+          {
+            "label": "Submit",
+            "tableView": false,
+            "key": "submit",
+            "type": "button",
+            "input": true,
+            "saveOnEnter": false
+          }
+        ],
+      };
+      const validator = new Validator({
+          headers: {
+            'x-jwt-token': template.users.admin.token,
+          },
+          currentForm: form,
+        },
+        formio,
+      );
+      const submission = {
+        data: {
+          textField: 'test'
+        },
+      };
+      await validator.validate(submission, (err, data) => {
+        assert.equal(!!err, true);
+        assert.equal(err.details[0].message, 'joeMsg');
+      });
+    });
+
     after(function (done) {
       request(app)
         .delete(hook.alter('url', `/form/${resourceWithFlatComponentsId}`, template))
