@@ -34,11 +34,16 @@
       "submissionAccess": [
         {
           "type": "create_all",
-          "roles": ["anonymous", "everyone"]
+          "roles": [
+            "anonymous",
+            "everyone"
+          ]
         },
         {
           "type": "read_all",
-          "roles": ["everyone"]
+          "roles": [
+            "everyone"
+          ]
         }
       ],
       "access": [],
@@ -55,40 +60,47 @@
       "access": [
         {
           "type": "read_own",
-          "roles": ["authenticated", "anonymous"]
+          "roles": [
+            "authenticated",
+            "anonymous"
+          ]
         },
         {
           "type": "update_all",
-          "roles": ["everyone"]
+          "roles": [
+            "everyone"
+          ]
         }
       ],
-      "components": [{
-        "conditional": {
-          "eq": "",
-          "when": null,
-          "show": ""
-        },
-        "tags": [],
-        "type": "resource",
-        "defaultPermission": "",
-        "validate": {
-          "required": false
-        },
-        "clearOnHide": true,
-        "persistent": true,
-        "protected": false,
-        "multiple": false,
-        "searchFields": "",
-        "selectFields": "",
-        "template": "<span>{{ item.data }}</span>",
-        "defaultValue": "",
-        "resource": "a",
-        "placeholder": "",
-        "key": "a",
-        "label": "a",
-        "tableView": true,
-        "input": true
-      }]
+      "components": [
+        {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "resource",
+          "defaultPermission": "",
+          "validate": {
+            "required": false
+          },
+          "clearOnHide": true,
+          "persistent": true,
+          "protected": false,
+          "multiple": false,
+          "searchFields": "",
+          "selectFields": "",
+          "template": "<span>{{ item.data }}</span>",
+          "defaultValue": "",
+          "resource": "a",
+          "placeholder": "",
+          "key": "a",
+          "label": "a",
+          "tableView": true,
+          "input": true
+        }
+      ]
     },
     "c": {
       "title": "c",
@@ -99,33 +111,35 @@
       "tags": [],
       "submissionAccess": [],
       "access": [],
-      "components": [{
-        "conditional": {
-          "eq": "",
-          "when": null,
-          "show": ""
-        },
-        "tags": [],
-        "type": "resource",
-        "defaultPermission": "",
-        "validate": {
-          "required": false
-        },
-        "clearOnHide": true,
-        "persistent": true,
-        "protected": false,
-        "multiple": false,
-        "searchFields": "",
-        "selectFields": "",
-        "template": "<span>{{ item.data }}</span>",
-        "defaultValue": "",
-        "resource": "b",
-        "placeholder": "",
-        "key": "b",
-        "label": "b",
-        "tableView": true,
-        "input": true
-      }]
+      "components": [
+        {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "resource",
+          "defaultPermission": "",
+          "validate": {
+            "required": false
+          },
+          "clearOnHide": true,
+          "persistent": true,
+          "protected": false,
+          "multiple": false,
+          "searchFields": "",
+          "selectFields": "",
+          "template": "<span>{{ item.data }}</span>",
+          "defaultValue": "",
+          "resource": "b",
+          "placeholder": "",
+          "key": "b",
+          "label": "b",
+          "tableView": true,
+          "input": true
+        }
+      ]
     }
   },
   "forms": {},

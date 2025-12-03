@@ -75,6 +75,5 @@ describe('Initialization', function () {
     require('./export/CSVExporter/CSVExporter')(app, template, hook);
     require('./unit')(app, template, hook);
     require('./validator')(app, template, hook);
-    require('./featureFlags.js')(app, template, hook);
   });
 });

@@ -3,7 +3,7 @@
 const crypto = require('crypto');
 const util = require('../util/util');
 
-module.exports = function(db, schema) {
+module.exports = function (db, schema) {
   return {
     /**
      * Include the formio utils.
@@ -17,18 +17,14 @@ module.exports = function(db, schema) {
      * @returns {Function}
      */
     updateLockVersion(version, callback) {
-      schema.updateOne(
-        {key: 'formio'},
-        {$set: {version: version}},
-        (err) => {
-          if (err) {
-            throw err;
-          }
-
-          util.log(` > Upgrading MongoDB Schema lock to v${version}`);
-          callback();
+      schema.updateOne({ key: 'formio' }, { $set: { version: version } }, (err) => {
+        if (err) {
+          throw err;
         }
-      );
+
+        util.log(` > Upgrading MongoDB Schema lock to v${version}`);
+        callback();
+      });
     },
     /**
      * Encrypt some text
@@ -46,7 +42,7 @@ module.exports = function(db, schema) {
 
       return Buffer.concat([
         cipher.update(decryptedJSON),
-        cipher.final()
+        cipher.final(),
       ]);
     },
     decrypt(secret, cipherbuffer) {
@@ -57,10 +53,10 @@ module.exports = function(db, schema) {
       const decipher = crypto.createDecipher('aes-256-cbc', secret);
       const decryptedJSON = Buffer.concat([
         decipher.update(cipherbuffer), // Buffer contains encrypted utf8
-        decipher.final()
+        decipher.final(),
       ]);
 
-      return JSON.parse(decryptedJSON);  // This can throw a exception
-    }
+      return JSON.parse(decryptedJSON); // This can throw a exception
+    },
   };
 };

@@ -1,4 +1,3 @@
-/* eslint-disable max-depth */
 /* global nunjucks, moment */
 'use strict';
 /**
@@ -17,47 +16,43 @@ var dateFilterDefaultFormat = null;
 // usage: {{ my_date | date(format) }}
 // see: <http://momentjs.com/docs/>
 function dateFilter(date, format) {
-    var result;
-    var errs = [];
-    var args = [];
-    var obj;
-    Array.prototype.push.apply(args, arguments);
+  var result;
+  var errs = [];
+  var args = [];
+  var obj;
+  Array.prototype.push.apply(args, arguments);
+  try {
+    obj = moment.utc(date);
+  } catch (err) {
+    errs.push(err);
+  }
+  if (obj) {
     try {
-        obj = moment.utc(date);
-    }
-    catch (err) {
-        errs.push(err);
-    }
-    if (obj) {
-        try {
-            if (obj[format] && nlib.isFunction(obj[format])) {
-                result = obj[format].apply(obj, args.slice(2));
-            }
-            else {
-                if (dateFilterDefaultFormat !== null) {
-                    result = obj.format(format || dateFilterDefaultFormat);
-                }
-                else {
-                    result = obj.format(format);
-                }
-            }
+      if (obj[format] && nlib.isFunction(obj[format])) {
+        result = obj[format].apply(obj, args.slice(2));
+      } else {
+        if (dateFilterDefaultFormat !== null) {
+          result = obj.format(format || dateFilterDefaultFormat);
+        } else {
+          result = obj.format(format);
         }
-        catch (err) {
-            errs.push(err);
-        }
+      }
+    } catch (err) {
+      errs.push(err);
     }
+  }
 
-    if (errs.length) {
-        return errs.join('\n');
-    }
-    return result;
+  if (errs.length) {
+    return errs.join('\n');
+  }
+  return result;
 }
 
-dateFilter.setDefaultFormat = function(format) {
-    dateFilterDefaultFormat = format;
+dateFilter.setDefaultFormat = function (format) {
+  dateFilterDefaultFormat = format;
 };
-dateFilter.install = function(env, customName) {
-    (env || nunjucks.configure()).addFilter(customName || 'date', dateFilter);
+dateFilter.install = function (env, customName) {
+  (env || nunjucks.configure()).addFilter(customName || 'date', dateFilter);
 };
 
-module.exports = {dateFilter};
+module.exports = { dateFilter };

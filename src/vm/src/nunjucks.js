@@ -1,12 +1,10 @@
-/* eslint-disable max-statements */
-/* eslint-disable max-depth */
 /* global submissionTableHtml */
 'use strict';
 
 const FormioCore = require('@formio/core');
-const _ = require("lodash");
-const moment = require("moment");
-const nunjucks = require("nunjucks");
+const _ = require('lodash');
+const moment = require('moment');
+const nunjucks = require('nunjucks');
 
 /**
  * nunjucks-date-filter
@@ -24,47 +22,43 @@ var dateFilterDefaultFormat = null;
 // usage: {{ my_date | date(format) }}
 // see: <http://momentjs.com/docs/>
 function dateFilter(date, format) {
-    var result;
-    var errs = [];
-    var args = [];
-    var obj;
-    Array.prototype.push.apply(args, arguments);
+  var result;
+  var errs = [];
+  var args = [];
+  var obj;
+  Array.prototype.push.apply(args, arguments);
+  try {
+    obj = moment.utc(date);
+  } catch (err) {
+    errs.push(err);
+  }
+  if (obj) {
     try {
-        obj = moment.utc(date);
-    }
- catch (err) {
-        errs.push(err);
-    }
-    if (obj) {
-        try {
-            if (obj[format] && nlib.isFunction(obj[format])) {
-                result = obj[format].apply(obj, args.slice(2));
-            }
-            else {
-                if (dateFilterDefaultFormat !== null) {
-                    result = obj.format(format || dateFilterDefaultFormat);
-                }
-                else {
-                    result = obj.format(format);
-                }
-            }
+      if (obj[format] && nlib.isFunction(obj[format])) {
+        result = obj[format].apply(obj, args.slice(2));
+      } else {
+        if (dateFilterDefaultFormat !== null) {
+          result = obj.format(format || dateFilterDefaultFormat);
+        } else {
+          result = obj.format(format);
         }
- catch (err) {
-            errs.push(err);
-        }
+      }
+    } catch (err) {
+      errs.push(err);
     }
+  }
 
-    if (errs.length) {
-        return errs.join('\n');
-    }
-    return result;
+  if (errs.length) {
+    return errs.join('\n');
+  }
+  return result;
 }
 
-dateFilter.setDefaultFormat = function(format) {
-    dateFilterDefaultFormat = format;
+dateFilter.setDefaultFormat = function (format) {
+  dateFilterDefaultFormat = format;
 };
-dateFilter.install = function(env, customName) {
-    (env || nunjucks.configure()).addFilter(customName || 'date', dateFilter);
+dateFilter.install = function (env, customName) {
+  (env || nunjucks.configure()).addFilter(customName || 'date', dateFilter);
 };
 
 /**
@@ -79,59 +73,69 @@ const isAutoAddress = (data, component, path) => {
   if (!addressData) {
     return true;
   }
-  return (!addressData.mode || addressData.mode === 'autocomplete');
+  return !addressData.mode || addressData.mode === 'autocomplete';
 };
 
 const convertFormatToMoment = (format) => {
-  return format
-  // Year conversion.
-    .replace(/y/g, 'Y')
-    // Day in month.
-    .replace(/d/g, 'D')
-    // Day in week.
-    .replace(/E/g, 'd')
-    // AM/PM marker
-    .replace(/a/g, 'A')
-    // Unix Timestamp
-    .replace(/U/g, 'X');
+  return (
+    format
+      // Year conversion.
+      .replace(/y/g, 'Y')
+      // Day in month.
+      .replace(/d/g, 'D')
+      // Day in week.
+      .replace(/E/g, 'd')
+      // AM/PM marker
+      .replace(/a/g, 'A')
+      // Unix Timestamp
+      .replace(/U/g, 'X')
+  );
 };
 
 const flattenComponentsForRender = (data, components) => {
   const flattened = {};
-  FormioCore.Utils.eachComponent(components, (component, path) => {
-    const hasColumns = component.columns && Array.isArray(component.columns);
-    const hasRows = component.rows && Array.isArray(component.rows);
-    let hasComps = component.components && Array.isArray(component.components);
-    const autoAddress = isAutoAddress(data, component, path);
-    const isDataArray = ['datagrid', 'editgrid'].includes(component.type) || component.tree;
+  FormioCore.Utils.eachComponent(
+    components,
+    (component, path) => {
+      const hasColumns = component.columns && Array.isArray(component.columns);
+      const hasRows = component.rows && Array.isArray(component.rows);
+      let hasComps = component.components && Array.isArray(component.components);
+      const autoAddress = isAutoAddress(data, component, path);
+      const isDataArray =
+        [
+          'datagrid',
+          'editgrid',
+        ].includes(component.type) || component.tree;
 
-    // Address compoennt with manual mode disabled should not show the nested components.
-    if (autoAddress) {
-      hasComps = false;
-    }
+      // Address compoennt with manual mode disabled should not show the nested components.
+      if (autoAddress) {
+        hasComps = false;
+      }
 
-    if (!isDataArray && (hasColumns || hasRows || hasComps)) {
-      return;
-    }
+      if (!isDataArray && (hasColumns || hasRows || hasComps)) {
+        return;
+      }
 
-    // Containers will get rendered as flat.
-    if (
-      (component.type === 'container') ||
-      (component.type === 'button') ||
-      (component.type === 'hidden')
-    ) {
-      return;
-    }
+      // Containers will get rendered as flat.
+      if (
+        component.type === 'container' ||
+        component.type === 'button' ||
+        component.type === 'hidden'
+      ) {
+        return;
+      }
 
-    flattened[path] = component;
-    if (autoAddress) {
-      return true;
-    }
+      flattened[path] = component;
+      if (autoAddress) {
+        return true;
+      }
 
-    if (isDataArray) {
-      return true;
-    }
-  }, true);
+      if (isDataArray) {
+        return true;
+      }
+    },
+    true,
+  );
   return flattened;
 };
 
@@ -149,7 +153,12 @@ const renderComponentValue = (data, key, components, noRecurse) => {
   const component = components[key];
   let value = _.get(data, key);
 
-  if (component && component.type === 'checkbox' && component.inputType === 'radio' && component.name) {
+  if (
+    component &&
+    component.type === 'checkbox' &&
+    component.inputType === 'radio' &&
+    component.name
+  ) {
     const pathToComponentData = key.slice(0, -component.key.length);
     const formattedPath = pathToComponentData.length ? pathToComponentData.slice(0, -1) : '';
     const compContextData = formattedPath ? _.get(data, formattedPath) : data;
@@ -205,7 +214,7 @@ const renderComponentValue = (data, key, components, noRecurse) => {
       break;
     case 'signature':
       // For now, we will just email YES or NO until we can make signatures work for all email clients.
-      compValue.value = (_.isString(value) && value.startsWith('data:')) ? 'YES' : 'NO';
+      compValue.value = _.isString(value) && value.startsWith('data:') ? 'YES' : 'NO';
       break;
     case 'container':
       compValue.value = '<table border="1" style="width:100%">';
@@ -246,7 +255,8 @@ const renderComponentValue = (data, key, components, noRecurse) => {
       break;
     }
     case 'datetime': {
-      const dateFormat = (component.widget && component.widget.format) || component.format || 'yyyy-MM-dd hh:MM a';
+      const dateFormat =
+        (component.widget && component.widget.format) || component.format || 'yyyy-MM-dd hh:MM a';
       compValue.value = moment(value).format(convertFormatToMoment(dateFormat));
       break;
     }
@@ -255,8 +265,7 @@ const renderComponentValue = (data, key, components, noRecurse) => {
       let values = [];
       if (component.hasOwnProperty('values')) {
         values = component.values;
-      }
-      else if (component.hasOwnProperty('data') && component.data.values) {
+      } else if (component.hasOwnProperty('data') && component.data.values) {
         values = component.data.values;
       }
       for (const i in values) {
@@ -282,10 +291,8 @@ const renderComponentValue = (data, key, components, noRecurse) => {
     case 'file': {
       const file = Array.isArray(compValue.value) ? compValue.value[0] : compValue.value;
       if (file) {
-        // eslint-disable-next-line max-len
         compValue.value = `<a href="${file.url}" target="_blank" download="${file.originalName}">${file.originalName}</a>`;
-      }
-      else {
+      } else {
         compValue.value = '';
       }
       break;
@@ -304,8 +311,14 @@ const renderComponentValue = (data, key, components, noRecurse) => {
 
       compValue.value += '<tbody>';
       _.forIn(value, (value, key) => {
-        const question = _.find(component.questions, ['value', key]);
-        const answer = _.find(component.values, ['value', value]);
+        const question = _.find(component.questions, [
+          'value',
+          key,
+        ]);
+        const answer = _.find(component.values, [
+          'value',
+          value,
+        ]);
 
         if (!question || !answer) {
           return;
@@ -322,10 +335,10 @@ const renderComponentValue = (data, key, components, noRecurse) => {
     }
     // omit recaptcha components from emails
     case 'recaptcha':
-      return {value: false};
+      return { value: false };
     default:
       if (!component.input) {
-        return {value: false};
+        return { value: false };
       }
       break;
   }
@@ -336,11 +349,9 @@ const renderComponentValue = (data, key, components, noRecurse) => {
 
   // Ensure the value is a string.
   compValue.value = compValue.value
-    ? (
-      _.isObject(compValue.value)
-        ? JSON.stringify(compValue.value)
-        : compValue.value.toString()
-    )
+    ? _.isObject(compValue.value)
+      ? JSON.stringify(compValue.value)
+      : compValue.value.toString()
     : '';
 
   return compValue;
@@ -349,7 +360,7 @@ const renderComponentValue = (data, key, components, noRecurse) => {
 const renderFormSubmission = (data, components) => {
   const comps = flattenComponentsForRender(data, components);
   let submission = '<table border="1" style="width:100%">';
-  _.each(comps, function(component, key) {
+  _.each(comps, function (component, key) {
     const cmpValue = renderComponentValue(data, key, comps);
     if (typeof cmpValue.value === 'string') {
       submission += '<tr>';
@@ -380,25 +391,22 @@ const util = {
 // Strip away macros and escape breakout attempts.
 const sanitize = (input) => {
   if (!input) {
-      throw new Error('Input is required for sanitize fn');
+    throw new Error('Input is required for sanitize fn');
   }
-  return input.replace(
-      /{{(.*(\.constructor|\]\().*)}}/g,
-      '{% raw %}{{$1}}{% endraw %}',
-  );
+  return input.replace(/{{(.*(\.constructor|\]\().*)}}/g, '{% raw %}{{$1}}{% endraw %}');
 };
 
 // Unescape HTML sequences
 const unescape = (str) => {
   if (!str) {
-      throw new Error('Input is required for unescape fn');
+    throw new Error('Input is required for unescape fn');
   }
   return str
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&amp;/g, '&');
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
 };
 
 // Configure nunjucks to not watch any files
@@ -415,7 +423,7 @@ environment.addFilter('is_object', (obj) => _.isPlainObject(obj));
 
 environment.addFilter('date', dateFilter);
 
-environment.addFilter('submissionTable', (obj, components, formInstance) => {
+environment.addFilter('submissionTable', (obj, components) => {
   const view = submissionTableHtml ?? util.renderFormSubmission(obj, components);
   return new nunjucks.runtime.SafeString(view);
 });
@@ -434,4 +442,4 @@ environment.addFilter('componentLabel', (key, components) => {
   return component.label || component.placeholder || component.key;
 });
 
-module.exports = {dateFilter, sanitize, unescape, environment};
+module.exports = { dateFilter, sanitize, unescape, environment };

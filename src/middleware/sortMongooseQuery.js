@@ -1,5 +1,5 @@
 'use strict';
-
+const _ = require('lodash');
 /**
  * Middleware to sort the Mongoose query, using the provided settings,
  *
@@ -9,12 +9,12 @@
  *
  * @returns {Function}
  */
-module.exports = function(router) {
+module.exports = function (router) {
   const hook = require('../util/hook')(router.formio);
-  return function(settings) {
+  return function (settings) {
     return function sortMongooseQuery(req, res, next) {
       // Only filter on non empty objects.
-      if (typeof settings !== 'object' || settings === {}) {
+      if (typeof settings !== 'object' || _.isEmpty(settings)) {
         return next();
       }
 

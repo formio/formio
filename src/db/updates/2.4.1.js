@@ -15,51 +15,61 @@ let _ = require('lodash');
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   let forms = db.collection('forms');
   let formsToPurge = {};
 
-  forms.find().toArray().forEach(function(form) {
-    let deleteFns = _(util.flattenComponents(form.components))
-      .filter(function(component) {
-        // Filter for non-persistent components
-        return (component.hasOwnProperty('persistent') && !component.persistent)
-      })
-      .map(function(component, path) {
-        return function(obj) {
-          deleteProp('data.' + path)(obj);
+  forms
+    .find()
+    .toArray()
+    .forEach(
+      function (form) {
+        let deleteFns = _(util.flattenComponents(form.components))
+          .filter(function (component) {
+            // Filter for non-persistent components
+            return component.hasOwnProperty('persistent') && !component.persistent;
+          })
+          .map(function (component, path) {
+            return function (obj) {
+              deleteProp('data.' + path)(obj);
+            };
+          })
+          .value();
+
+        if (deleteFns.length) {
+          // Save delete functions under the form id
+          formsToPurge[form._id.toString()] = deleteFns;
         }
-      })
-      .value();
+      },
+      function () {
+        let submissions = db.collection('submissions');
 
-    if(deleteFns.length) {
-      // Save delete functions under the form id
-      formsToPurge[form._id.toString()] = deleteFns;
-    }
-  }, function() {
-    let submissions = db.collection('submissions');
+        // Create a single query for every form id in formsToPurge
+        let query = _.map(Object.keys(formsToPurge), function (id) {
+          return { form: new ObjectID(id) };
+        });
 
-    // Create a single query for every form id in formsToPurge
-    let query = _.map(Object.keys(formsToPurge), function(id) {
-      return {form: new ObjectID(id)};
-    });
+        let updatePromises = [];
 
-    let updatePromises = [];
-
-    submissions.find({$or: query}).toArray().forEach(function(submission) {
-      // Call each deleteFn with submission as the argument
-      _.invoke(formsToPurge[submission.form.toString()], Function.call, null, submission);
-      // Update new submission
-      updatePromises.push(submissions.updateOne({_id: submission._id}, submission));
-    }, function() {
-      // Finish when all updates are done.
-      Q.all(updatePromises)
-        .then(function() {
-          done();
-        })
-        .catch(done);
-    });
-  });
-
-
+        submissions
+          .find({ $or: query })
+          .toArray()
+          .forEach(
+            function (submission) {
+              // Call each deleteFn with submission as the argument
+              _.invoke(formsToPurge[submission.form.toString()], Function.call, null, submission);
+              // Update new submission
+              updatePromises.push(submissions.updateOne({ _id: submission._id }, submission));
+            },
+            function () {
+              // Finish when all updates are done.
+              Q.all(updatePromises)
+                .then(function () {
+                  done();
+                })
+                .catch(done);
+            },
+          );
+      },
+    );
 };

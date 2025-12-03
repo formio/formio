@@ -5,7 +5,7 @@ const async = require('async');
 const _ = require('lodash');
 const EVERYONE = '000000000000000000000000';
 
-module.exports = function(router) {
+module.exports = function (router) {
   const hook = require('../util/hook')(router.formio);
 
   /**
@@ -20,7 +20,7 @@ module.exports = function(router) {
    * @param {Function} next
    *   The callback function to invoke with the results.
    */
-  const getSubmissionResourceAccess = function(req, submission, access) {
+  const getSubmissionResourceAccess = function (req, submission, access) {
     if (!submission || !access) {
       return;
     }
@@ -28,101 +28,101 @@ module.exports = function(router) {
       return;
     }
 
-    /* eslint-disable camelcase */
-    async.each(submission.access, function(permission, callback) {
-      // Only process the permission if it's in the correct format.
-      if (!_.has(permission, 'type') || !_.has(permission, 'resources')) {
-        return callback();
-      }
+    async.each(
+      submission.access,
+      function (permission, callback) {
+        // Only process the permission if it's in the correct format.
+        if (!_.has(permission, 'type') || !_.has(permission, 'resources')) {
+          return callback();
+        }
 
-      // Coerce all the resource ids into strings.
-      permission.resources = _(permission.resources).map(util.idToString).uniq().value();
+        // Coerce all the resource ids into strings.
+        permission.resources = _(permission.resources).map(util.idToString).uniq().value();
 
-      // Ensure the submission access permissions are defined before accessing them.
-      access.submission = access.submission || {};
-      access.submission.read_all = access.submission.read_all || [];
-      access.submission.create_all = access.submission.create_all || [];
-      access.submission.update_all = access.submission.update_all || [];
-      access.submission.delete_all = access.submission.delete_all || [];
+        // Ensure the submission access permissions are defined before accessing them.
+        access.submission = access.submission || {};
+        access.submission.read_all = access.submission.read_all || [];
+        access.submission.create_all = access.submission.create_all || [];
+        access.submission.update_all = access.submission.update_all || [];
+        access.submission.delete_all = access.submission.delete_all || [];
 
-      // Convert the simplex read/create/write/admin rules into *_all permissions.
-      if (permission.type === 'read') {
-        _.each(permission.resources, function(id) {
-          access.submission.read_all.push(id);
+        // Convert the simplex read/create/write/admin rules into *_all permissions.
+        if (permission.type === 'read') {
+          _.each(permission.resources, function (id) {
+            access.submission.read_all.push(id);
 
-          // Flag this request as not having admin access through submission resource access.
-          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
-          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
-        });
-      }
-      else if (permission.type === 'create') {
-        _.each(permission.resources, function(id) {
-          access.submission.create_all.push(id);
+            // Flag this request as not having admin access through submission resource access.
+            req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+            req.submissionResourceAccessAdminBlock.push(util.idToString(id));
+          });
+        } else if (permission.type === 'create') {
+          _.each(permission.resources, function (id) {
+            access.submission.create_all.push(id);
 
-          // Flag this request as not having admin access through submission resource access.
-          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
-          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
-        });
-      }
-      else if (permission.type === 'update') {
-        _.each(permission.resources, function(id) {
-          access.submission.update_all.push(id);
+            // Flag this request as not having admin access through submission resource access.
+            req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+            req.submissionResourceAccessAdminBlock.push(util.idToString(id));
+          });
+        } else if (permission.type === 'update') {
+          _.each(permission.resources, function (id) {
+            access.submission.update_all.push(id);
 
-          // Flag this request as not having admin access through submission resource access.
-          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
-          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
-        });
-      }
-      else if (permission.type === 'delete') {
-        _.each(permission.resources, function(id) {
-          access.submission.delete_all.push(id);
-        });
-      }
-      else if (permission.type === 'write') {
-        _.each(permission.resources, function(id) {
-          access.submission.read_all.push(id);
-          access.submission.create_all.push(id);
-          access.submission.update_all.push(id);
+            // Flag this request as not having admin access through submission resource access.
+            req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+            req.submissionResourceAccessAdminBlock.push(util.idToString(id));
+          });
+        } else if (permission.type === 'delete') {
+          _.each(permission.resources, function (id) {
+            access.submission.delete_all.push(id);
+          });
+        } else if (permission.type === 'write') {
+          _.each(permission.resources, function (id) {
+            access.submission.read_all.push(id);
+            access.submission.create_all.push(id);
+            access.submission.update_all.push(id);
 
-          // Flag this request as not having admin access through submission resource access.
-          req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
-          req.submissionResourceAccessAdminBlock.push(util.idToString(id));
-        });
-      }
-      else if (permission.type === 'admin') {
-        _.each(permission.resources, function(id) {
-          access.submission.read_all.push(id);
-          access.submission.create_all.push(id);
-          access.submission.update_all.push(id);
-          access.submission.delete_all.push(id);
-        });
-      }
+            // Flag this request as not having admin access through submission resource access.
+            req.submissionResourceAccessAdminBlock = req.submissionResourceAccessAdminBlock || [];
+            req.submissionResourceAccessAdminBlock.push(util.idToString(id));
+          });
+        } else if (permission.type === 'admin') {
+          _.each(permission.resources, function (id) {
+            access.submission.read_all.push(id);
+            access.submission.create_all.push(id);
+            access.submission.update_all.push(id);
+            access.submission.delete_all.push(id);
+          });
+        }
 
-      callback();
-    }, function(err) {
-      // Force all the permissions to be unique, even if an error occurred.
-      access.submission.read_all = _(access.submission.read_all).uniq().value();
-      access.submission.create_all = _(access.submission.create_all).uniq().value();
-      access.submission.update_all = _(access.submission.update_all).uniq().value();
-      access.submission.delete_all = _(access.submission.delete_all).uniq().value();
+        callback();
+      },
+      function (_err) {
+        // Force all the permissions to be unique, even if an error occurred.
+        access.submission.read_all = _(access.submission.read_all).uniq().value();
+        access.submission.create_all = _(access.submission.create_all).uniq().value();
+        access.submission.update_all = _(access.submission.update_all).uniq().value();
+        access.submission.delete_all = _(access.submission.delete_all).uniq().value();
 
-      const adminAccess = _.chain(access.submission.delete_all)
-        .intersection(access.submission.update_all)
-        .intersection(access.submission.create_all)
-        .intersection(access.submission.read_all)
-        .uniq()
-        .value();
+        const adminAccess = _.chain(access.submission.delete_all)
+          .intersection(access.submission.update_all)
+          .intersection(access.submission.create_all)
+          .intersection(access.submission.read_all)
+          .uniq()
+          .value();
 
-      if (_.intersection(req.submissionResourceAccessAdminBlock, adminAccess).length) {
-        req.submissionResourceAccessAdminBlock = _.filter(req.submissionResourceAccessAdminBlock, function(el) {
-          adminAccess.includes(el);
-        });
-      }
-    });
-    /* eslint-enable camelcase */
+        if (_.intersection(req.submissionResourceAccessAdminBlock, adminAccess).length) {
+          req.submissionResourceAccessAdminBlock = _.filter(
+            req.submissionResourceAccessAdminBlock,
+            function (el) {
+              adminAccess.includes(el);
+            },
+          );
+        }
+      },
+    );
   };
 
-  const getSubmissionFieldMatchAccess = function(req, submission, access) {
+  const getSubmissionFieldMatchAccess = function (req, submission, access) {
     if (!submission || !access) {
       return;
     }
@@ -135,12 +135,29 @@ module.exports = function(router) {
 
     // Allowed actions for each permission level
     const permissions = {
-      read: ['read_all'],
-      create: ['create_all'],
-      update: ['update_all'],
-      delete: ['delete_all'],
-      write: ['read_all', 'create_all', 'update_all'],
-      admin: ['read_all', 'create_all', 'update_all', 'delete_all']
+      read: [
+        'read_all',
+      ],
+      create: [
+        'create_all',
+      ],
+      update: [
+        'update_all',
+      ],
+      delete: [
+        'delete_all',
+      ],
+      write: [
+        'read_all',
+        'create_all',
+        'update_all',
+      ],
+      admin: [
+        'read_all',
+        'create_all',
+        'update_all',
+        'delete_all',
+      ],
     };
 
     const isConditionMet = (value, formFieldValue, operator) => {
@@ -148,13 +165,13 @@ module.exports = function(router) {
         case '$eq':
           return value === formFieldValue;
         case '$gte':
-          return (formFieldValue >= value);
+          return formFieldValue >= value;
         case '$lte':
-          return (formFieldValue <= value);
+          return formFieldValue <= value;
         case '$gt':
-          return (formFieldValue > value);
+          return formFieldValue > value;
         case '$lt':
-          return (formFieldValue < value);
+          return formFieldValue < value;
         case '$in':
           return Array.isArray(value) ? _.find(value, formFieldValue) : false;
       }
@@ -172,27 +189,36 @@ module.exports = function(router) {
     };
 
     // Iterate through each permission level
-    Object.entries(req.submissionFieldMatchAccess).forEach(([permissionLevel, conditions]) => {
-      if (!Array.isArray(conditions)) {
-        return;
-      }
-      // Iterate through each condition within a permission level
-      conditions.forEach((condition) => {
-        // Get intersection of roles within condition and the user's roles
-        const rolesIntersection = _.intersectionWith(condition.roles, userRoles, (role, userRole) => {
-          return role.toString() === userRole.toString();
-        }).map((role) => role.toString());
-
-        // If the user has a role specified in condition
-        if (rolesIntersection.length) {
-          const {formFieldPath, operator, value, valueType} = condition;
-          const formFieldValue = _.get(submission, formFieldPath);
-          if (isConditionMet(util.castValue(valueType, value), formFieldValue, operator)) {
-            grantAccess(permissionLevel, rolesIntersection);
-          }
+    Object.entries(req.submissionFieldMatchAccess).forEach(
+      ([
+        permissionLevel,
+        conditions,
+      ]) => {
+        if (!Array.isArray(conditions)) {
+          return;
         }
-      });
-    });
+        // Iterate through each condition within a permission level
+        conditions.forEach((condition) => {
+          // Get intersection of roles within condition and the user's roles
+          const rolesIntersection = _.intersectionWith(
+            condition.roles,
+            userRoles,
+            (role, userRole) => {
+              return role.toString() === userRole.toString();
+            },
+          ).map((role) => role.toString());
+
+          // If the user has a role specified in condition
+          if (rolesIntersection.length) {
+            const { formFieldPath, operator, value, valueType } = condition;
+            const formFieldValue = _.get(submission, formFieldPath);
+            if (isConditionMet(util.castValue(valueType, value), formFieldValue, operator)) {
+              grantAccess(permissionLevel, rolesIntersection);
+            }
+          }
+        });
+      },
+    );
   };
 
   /**
@@ -205,7 +231,7 @@ module.exports = function(router) {
    * @param {Object} access
    *   The compiled access list.
    */
-  const getSelfAccessPermissions = function(req, form, access) {
+  const getSelfAccessPermissions = function (req, form, access) {
     if (!form || !access || !form.submissionAccess || !(form.submissionAccess instanceof Array)) {
       return;
     }
@@ -218,7 +244,10 @@ module.exports = function(router) {
         break;
       }
 
-      if (form.submissionAccess[a].hasOwnProperty('type') && form.submissionAccess[a].type === 'self') {
+      if (
+        form.submissionAccess[a].hasOwnProperty('type') &&
+        form.submissionAccess[a].type === 'self'
+      ) {
         done = true;
 
         // Flag the request for self access, so that the submission permission handler can add it in.
@@ -231,9 +260,13 @@ module.exports = function(router) {
     }
   };
 
-  const getAccessBasedOnMethod = function(req, item, access, roles) {
+  const getAccessBasedOnMethod = function (req, item, access, roles) {
     util.eachComponent(item.components, (component, path) => {
-      if (component && component.key && (component.submissionAccess || component.defaultPermission)) {
+      if (
+        component &&
+        component.key &&
+        (component.submissionAccess || component.defaultPermission)
+      ) {
         if (!component.submissionAccess) {
           component.submissionAccess = [
             {
@@ -246,27 +279,27 @@ module.exports = function(router) {
         let selectValue = _.get(req.body.data, path);
         if (selectValue) {
           if (!Array.isArray(selectValue)) {
-            selectValue = [selectValue];
+            selectValue = [
+              selectValue,
+            ];
           }
 
           const createAccess = component.submissionAccess
-            .filter(({type}) => (roles.includes(type)))
+            .filter(({ type }) => roles.includes(type))
             .map((access) => ({
               ...access,
               roles: _.compact(access.roles || []),
             }));
 
-          selectValue.filter((value) => (value && value._id)).forEach(({_id}) => {
-            createAccess.forEach(({roles}) => {
-              /* eslint-disable camelcase */
-              access.submission.create_all = (access.submission.create_all || []).concat(
-                roles.length
-                  ? roles.map((role) => (`${_id}:${role}`))
-                  : _id,
-              );
-              /* eslint-enable camelcase */
+          selectValue
+            .filter((value) => value && value._id)
+            .forEach(({ _id }) => {
+              createAccess.forEach(({ roles }) => {
+                access.submission.create_all = (access.submission.create_all || []).concat(
+                  roles.length ? roles.map((role) => `${_id}:${role}`) : _id,
+                );
+              });
             });
-          });
         }
       }
     });
@@ -289,251 +322,282 @@ module.exports = function(router) {
      */
     getAccess(req, res, done) {
       const access = {};
-      async.series(hook.alter('getAccess', [
-        // Get the permissions for a Form and Submissions with the given ObjectId.
-        async function getFormAccess() {
-          access.form = access.form || {};
-          access.submission = access.submission || {};
-          access.role = access.role || {};
+      async.series(
+        hook.alter(
+          'getAccess',
+          [
+            // Get the permissions for a Form and Submissions with the given ObjectId.
+            async function getFormAccess() {
+              access.form = access.form || {};
+              access.submission = access.submission || {};
+              access.role = access.role || {};
 
-          // Skip form access if no formId was given.
-          if (!req.formId) {
-            access.form['read_own'] = !req.projectId;
-            return null;
-          }
+              // Skip form access if no formId was given.
+              if (!req.formId) {
+                access.form['read_own'] = !req.projectId;
+                return null;
+              }
 
-          // Load the form, and get its roles/permissions data.
-          const item =await router.formio.cache.loadForm(req, null, req.formId);
-            if (!item) {
-              throw new Error(`No Form found with formId: ${req.formId}`);
-            }
+              // Load the form, and get its roles/permissions data.
+              const item = await router.formio.cache.loadForm(req, null, req.formId);
+              if (!item) {
+                throw new Error(`No Form found with formId: ${req.formId}`);
+              }
 
-            // Attempt to load the Self Access Permissions.
-            getSelfAccessPermissions(req, item, access);
+              // Attempt to load the Self Access Permissions.
+              getSelfAccessPermissions(req, item, access);
 
-            // Add the defined access types for the form.
-            if (item.access) {
-              // Add the submission owners UserId to the access list.
-              access.form.owner = item.owner
-                ? item.owner.toString()
-                : null;
+              // Add the defined access types for the form.
+              if (item.access) {
+                // Add the submission owners UserId to the access list.
+                access.form.owner = item.owner ? item.owner.toString() : null;
 
-              item.access.forEach(function(permission) {
-                // Define this access type.
-                access.form[permission.type] = access.form[permission.type] || [];
+                item.access.forEach(function (permission) {
+                  // Define this access type.
+                  access.form[permission.type] = access.form[permission.type] || [];
 
-                permission.roles.forEach(function(id) {
-                  // Add each roleId to the role array for this access type.
-                  access.form[permission.type].push(id.toString());
+                  permission.roles.forEach(function (id) {
+                    // Add each roleId to the role array for this access type.
+                    access.form[permission.type].push(id.toString());
+                  });
                 });
-              });
-            }
+              }
 
-            // Add the defined access types for the form submissions.
-            if (item.submissionAccess) {
-              item.submissionAccess.forEach(function(permission) {
-                // Define this access type.
-                access.submission[permission.type] = access.submission[permission.type] || [];
-
-                // If the user has update_all permissions, give them create_all access also, to compensate for the
-                // hidden availability of create_all in the formio ui.
-                if (permission.type === 'update_all') {
-                  access.submission.create_all = access.submission.create_all || []; //eslint-disable-line camelcase
-                }
-
-                permission.roles.forEach(function(id) {
-                  // Add each roleId to the role array for this access type.
-                  access.submission[permission.type].push(id.toString());
+              // Add the defined access types for the form submissions.
+              if (item.submissionAccess) {
+                item.submissionAccess.forEach(function (permission) {
+                  // Define this access type.
+                  access.submission[permission.type] = access.submission[permission.type] || [];
 
                   // If the user has update_all permissions, give them create_all access also, to compensate for the
                   // hidden availability of create_all in the formio ui.
                   if (permission.type === 'update_all') {
-                    access.submission.create_all.push(id.toString()); //eslint-disable-line camelcase
+                    access.submission.create_all = access.submission.create_all || [];
                   }
+
+                  permission.roles.forEach(function (id) {
+                    // Add each roleId to the role array for this access type.
+                    access.submission[permission.type].push(id.toString());
+
+                    // If the user has update_all permissions, give them create_all access also, to compensate for the
+                    // hidden availability of create_all in the formio ui.
+                    if (permission.type === 'update_all') {
+                      access.submission.create_all.push(id.toString());
+                    }
+                  });
                 });
+              }
+
+              // check for group permissions, only if creating submission (POST request)
+              if (req.method === 'POST') {
+                getAccessBasedOnMethod(req, item, access, [
+                  'create',
+                  'write',
+                  'admin',
+                ]);
+              }
+
+              if (req.method === 'DELETE') {
+                getAccessBasedOnMethod(req, item, access, [
+                  'delete',
+                  'admin',
+                ]);
+              }
+
+              if (req.method === 'PUT' || req.method === 'PATCH') {
+                getAccessBasedOnMethod(req, item, access, [
+                  'update',
+                  'write',
+                  'admin',
+                ]);
+              }
+
+              // Return the updated access list.
+              return null;
+            },
+
+            // Get a list of all roles associated with this access check.
+            async function getAccessRoles() {
+              // Load all the roles.
+              const roles = await router.formio.resources.role.model.find(
+                hook.alter(
+                  'roleQuery',
+                  {
+                    deleted: { $eq: null },
+                  },
+                  req,
+                ),
+              );
+              const validRoles =
+                roles && roles.length
+                  ? roles.map((role) => {
+                      const roleId = role._id.toString();
+                      if (role.default) {
+                        access.defaultRole = roleId;
+                      }
+                      if (role.admin) {
+                        access.adminRole = roleId;
+                      }
+                      return roleId;
+                    })
+                  : [];
+
+              if (access.primaryAdminRole) {
+                validRoles.push(access.primaryAdminRole);
+              }
+
+              // Default the access roles.
+              access.roles = [
+                access.defaultRole,
+              ];
+
+              // Ensure the user only has valid roles.
+              if (req.user) {
+                let userRoles = _.clone(access.roles);
+                userRoles = _(req.user.roles || [])
+                  .filter()
+                  .map(util.idToString)
+                  .intersection(validRoles)
+                  .uniq()
+                  .value();
+
+                if (req.user._id && req.user._id !== 'external') {
+                  userRoles.push(req.user._id.toString());
+                }
+
+                userRoles = hook.alter('userRoles', userRoles, access.defaultRole, req);
+                access.roles = _.clone(userRoles);
+              }
+
+              // Add the EVERYONE role.
+              access.roles.push(EVERYONE);
+              req.accessRoles = access.roles;
+            },
+
+            // Load the form and set Field Match Access conditions to the request
+            async function setSubmissionFieldMatchAccessToRequest() {
+              if (!req.formId) {
+                return null;
+              }
+              const item = await router.formio.cache.loadForm(req, null, req.formId);
+              if (!item) {
+                throw new Error(`No Form found with formId: ${req.formId}`);
+              }
+
+              if (item.fieldMatchAccess && !_.isEmpty(item.fieldMatchAccess)) {
+                req.submissionFieldMatchAccess = item.fieldMatchAccess;
+              }
+            },
+
+            // Mark the index request to be proccessed by SubmissionFieldMatchAccessFilter
+            function flagIndexRequestAsSubmissionFieldMatchAccess(callback) {
+              const isIndexRequest = (req) =>
+                req.method.toUpperCase() === 'GET' && req.formId && !req.subId;
+              if (!isIndexRequest(req)) {
+                return callback(null);
+              }
+
+              if (req.submissionFieldMatchAccess && _.isObject(req.submissionFieldMatchAccess)) {
+                const hasRoles = Object.keys(req.submissionFieldMatchAccess).some((accessKey) => {
+                  if (!Array.isArray(req.submissionFieldMatchAccess[accessKey])) {
+                    return false;
+                  }
+                  return req.submissionFieldMatchAccess[accessKey].some((item) => {
+                    return item.roles.some((role) => req.accessRoles.includes(role.toString()));
+                  });
+                });
+                req.submissionFieldMatchAccessFilter = hasRoles;
+              }
+              return callback(null);
+            },
+
+            // Get the permissions for a Submission with the given ObjectId.
+            async function getSubmissionAccess() {
+              access.submission = access.submission || {};
+
+              // Skip submission access if no subId was given.
+              if (!req.subId) {
+                // Still need to check if the user allowed to create submissions withing Field Match Access
+                getSubmissionFieldMatchAccess(req, req.body, access);
+                return null;
+              }
+              // Get the submission by request id and query its access.
+              try {
+                const submission = await router.formio.cache.loadSubmission(
+                  req,
+                  req.formId,
+                  req.subId,
+                );
+                // No submission exists.
+                if (!submission) {
+                  const err = new Error();
+                  err.statusCode = 404;
+                  throw err;
+                  // return callback(404);
+                }
+
+                // Add the submission owners UserId to the access list.
+                access.submission.owner = submission.owner ? submission.owner.toString() : null;
+
+                // Add self access if previously defined.
+                if (req.selfAccess && req.selfAccess === true) {
+                  // Add the submission id to the access entity.
+                  access.submission._id = util.idToString(submission._id);
+                }
+                // Load Submission Field Match Access.
+                getSubmissionFieldMatchAccess(req, submission, access);
+                // Load Submission Resource Access.
+                getSubmissionResourceAccess(req, submission, access);
+              } catch (err) {
+                err.statusCode = 400;
+                throw err;
+              }
+            },
+
+            // Determine if this is a possible index request against submissions.
+            async function flagRequestAsSubmissionResourceAccess() {
+              if (req.method.toUpperCase() !== 'GET') {
+                return;
+              }
+
+              if (!req.formId || req.subId) {
+                return;
+              }
+
+              // Does not apply if the user doesn't have any roles.
+              const userRoles = _.get(req, 'user.roles', []);
+              if (!userRoles.length) {
+                return;
+              }
+
+              // Load the form, and get its roles/permissions data.
+              const item = await router.formio.cache.loadForm(req, null, req.formId);
+              if (!item) {
+                throw new Error(`No Form found with formId: ${req.formId}`);
+              }
+
+              // See if any of our components have "submissionAccess" or "defaultPermission" established.
+              util.eachComponent(item.components, (component) => {
+                if (component.submissionAccess || component.defaultPermission) {
+                  req.skipOwnerFilter = true;
+                  req.submissionResourceAccessFilter = true;
+                  return true;
+                }
               });
-            }
+            },
+          ],
+          req,
+          res,
+          access,
+        ),
+        function (err) {
+          if (err) {
+            return done(err);
+          }
 
-            // check for group permissions, only if creating submission (POST request)
-            if (req.method === 'POST') {
-              getAccessBasedOnMethod(req, item, access, ['create', 'write', 'admin']);
-            }
-
-            if (req.method === 'DELETE') {
-              getAccessBasedOnMethod(req, item, access, ['delete', 'admin']);
-            }
-
-            if (req.method === 'PUT' || req.method === 'PATCH') {
-              getAccessBasedOnMethod(req, item, access, ['update', 'write', 'admin']);
-            }
-
-            // Return the updated access list.
-            return null;
+          done(null, access);
         },
-
-        // Get a list of all roles associated with this access check.
-        async function getAccessRoles() {
-          // Load all the roles.
-            const roles = await router.formio.resources.role.model.find(hook.alter('roleQuery', {
-              deleted: {$eq: null}
-            }, req));
-            const validRoles = (roles && roles.length) ? roles.map((role) => {
-              const roleId = role._id.toString();
-              if (role.default) {
-                access.defaultRole = roleId;
-              }
-              if (role.admin) {
-                access.adminRole = roleId;
-              }
-              return roleId;
-            }) : [];
-
-            if (access.primaryAdminRole) {
-              validRoles.push(access.primaryAdminRole);
-            }
-
-            // Default the access roles.
-            access.roles = [access.defaultRole];
-
-            // Ensure the user only has valid roles.
-            if (req.user) {
-              let userRoles = _.clone(access.roles);
-              userRoles = _(req.user.roles || [])
-                .filter()
-                .map(util.idToString)
-                .intersection(validRoles)
-                .uniq()
-                .value();
-
-              if (req.user._id && (req.user._id !== 'external')) {
-                userRoles.push(req.user._id.toString());
-              }
-
-              userRoles = hook.alter('userRoles', userRoles, access.defaultRole, req);
-              access.roles =_.clone( userRoles);
-            }
-
-            // Add the EVERYONE role.
-            access.roles.push(EVERYONE);
-            req.accessRoles = access.roles;
-        },
-
-        // Load the form and set Field Match Access conditions to the request
-        async function setSubmissionFieldMatchAccessToRequest() {
-          if (!req.formId) {
-            return null;
-          }
-          const item = await router.formio.cache.loadForm(req, null, req.formId);
-            if (!item) {
-              throw new Error(`No Form found with formId: ${req.formId}`);
-            }
-
-            if (item.fieldMatchAccess && !_.isEmpty(item.fieldMatchAccess)) {
-              req.submissionFieldMatchAccess = item.fieldMatchAccess;
-            }
-        },
-
-        // Mark the index request to be proccessed by SubmissionFieldMatchAccessFilter
-        function flagIndexRequestAsSubmissionFieldMatchAccess(callback) {
-          const isIndexRequest = (req) => req.method.toUpperCase() === 'GET' && req.formId && !req.subId;
-          if (!isIndexRequest(req)) {
-            return callback(null);
-          }
-
-          if (req.submissionFieldMatchAccess && _.isObject(req.submissionFieldMatchAccess)) {
-            const hasRoles = Object.keys(req.submissionFieldMatchAccess).some(accessKey => {
-              if (!Array.isArray(req.submissionFieldMatchAccess[accessKey])) {
-                return false;
-              }
-              return req.submissionFieldMatchAccess[accessKey].some(item=>{
-                return item.roles.some(role => req.accessRoles.includes(role.toString()));
-              });
-            });
-            req.submissionFieldMatchAccessFilter = hasRoles;
-          }
-          return callback(null);
-        },
-
-        // Get the permissions for a Submission with the given ObjectId.
-        async function getSubmissionAccess() {
-          access.submission = access.submission || {};
-
-          // Skip submission access if no subId was given.
-          if (!req.subId) {
-            // Still need to check if the user allowed to create submissions withing Field Match Access
-            getSubmissionFieldMatchAccess(req, req.body, access);
-            return null;
-          }
-          // Get the submission by request id and query its access.
-          try {
-            const submission = await router.formio.cache.loadSubmission(req, req.formId, req.subId);
-            // No submission exists.
-            if (!submission) {
-              const err = new Error();
-              err.statusCode = 404;
-              throw err;
-              // return callback(404);
-            }
-
-            // Add the submission owners UserId to the access list.
-            access.submission.owner = submission.owner
-              ? submission.owner.toString()
-              : null;
-
-            // Add self access if previously defined.
-            if (req.selfAccess && req.selfAccess === true) {
-              // Add the submission id to the access entity.
-              access.submission._id = util.idToString(submission._id);
-            }
-            // Load Submission Field Match Access.
-            getSubmissionFieldMatchAccess(req, submission, access);
-            // Load Submission Resource Access.
-            getSubmissionResourceAccess(req, submission, access);
-          }
-          catch (err) {
-            err.statusCode = 400;
-            throw err;
-          }
-        },
-
-        // Determine if this is a possible index request against submissions.
-        async function flagRequestAsSubmissionResourceAccess() {
-          if (req.method.toUpperCase() !== 'GET') {
-            return;
-          }
-
-          if (!req.formId || req.subId) {
-            return;
-          }
-
-          // Does not apply if the user doesn't have any roles.
-          const userRoles = _.get(req, 'user.roles', []);
-          if (!userRoles.length) {
-            return;
-          }
-
-          // Load the form, and get its roles/permissions data.
-          const item = await router.formio.cache.loadForm(req, null, req.formId);
-            if (!item) {
-              throw new Error(`No Form found with formId: ${req.formId}`);
-            }
-
-            // See if any of our components have "submissionAccess" or "defaultPermission" established.
-            util.eachComponent(item.components, (component) => {
-              if (component.submissionAccess || component.defaultPermission) {
-                req.skipOwnerFilter = true;
-                req.submissionResourceAccessFilter = true;
-                return true;
-              }
-            });
-        }
-      ], req, res, access), function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        done(null, access);
-      });
+      );
     },
 
     /**
@@ -551,7 +615,7 @@ module.exports = function(router) {
      * @returns boolean
      *   If the user has access to this method, with their given roles.
      */
-    /* eslint-disable max-statements */
+
     hasAccess(req, access, entity, res) {
       const method = req.method.toUpperCase();
       let user = req.user ? util.idToString(req.user._id) : null;
@@ -562,11 +626,11 @@ module.exports = function(router) {
 
       // Determine access based on the given access method.
       const methods = {
-        'POST': {all: 'create_all', own: 'create_own'},
-        'GET': {all: 'read_all', own: 'read_own'},
-        'PUT': {all: 'update_all', own: 'update_own'},
-        'PATCH': {all: 'update_all', own: 'update_own'},
-        'DELETE': {all: 'delete_all', own: 'delete_own'}
+        POST: { all: 'create_all', own: 'create_own' },
+        GET: { all: 'read_all', own: 'read_own' },
+        PUT: { all: 'update_all', own: 'update_own' },
+        PATCH: { all: 'update_all', own: 'update_own' },
+        DELETE: { all: 'delete_all', own: 'delete_own' },
       };
 
       // Using the given method, iterate the 8 available entity access. Compare the given roles with the roles
@@ -575,7 +639,7 @@ module.exports = function(router) {
       if (!search || typeof search === 'undefined') {
         router.formio.util.error({
           method: req.method,
-          _method: method
+          _method: method,
         });
       }
 
@@ -588,7 +652,9 @@ module.exports = function(router) {
       }
 
       // Check to see if this user has an admin role.
-      const hasAdminRole = access.adminRole ? (_.indexOf(access.roles, access.adminRole) !== -1) : false;
+      const hasAdminRole = access.adminRole
+        ? _.indexOf(access.roles, access.adminRole) !== -1
+        : false;
       if (hasAdminRole || hook.alter('isAdmin', req.isAdmin, req)) {
         req.isAdmin = true;
         return true;
@@ -601,7 +667,7 @@ module.exports = function(router) {
 
       // Check to see if this user has an admin role of the primary project.
       const hasPrimaryAdminRole = access.primaryAdminRole
-        ? (_.indexOf(access.roles, access.primaryAdminRole) !== -1)
+        ? _.indexOf(access.roles, access.primaryAdminRole) !== -1
         : false;
 
       if (hasPrimaryAdminRole) {
@@ -615,19 +681,20 @@ module.exports = function(router) {
       }
 
       // Determine the typed access.
-      var typedAccess = function(type) {
-        return access[entity.type][type] &&
-          (
-            (access[entity.type][type] === true) ||
-            (access[entity.type][type].length && _.intersection(access[entity.type][type], access.roles).length)
-          );
+      var typedAccess = function (type) {
+        return (
+          access[entity.type][type] &&
+          (access[entity.type][type] === true ||
+            (access[entity.type][type].length &&
+              _.intersection(access[entity.type][type], access.roles).length))
+        );
       };
 
       // See if the user is the owner.
-      const isOwner = user && (user === access[entity.type].owner);
-      const isIndex = (method === 'GET') && entity.hasOwnProperty('id') && (entity.id === '');
-      const isPost = (method === 'POST') && entity.hasOwnProperty('id') && (entity.id === '');
-      const isDelete = (method === 'DELETE') && entity.hasOwnProperty('id') && (entity.id === '');
+      const isOwner = user && user === access[entity.type].owner;
+      const isIndex = method === 'GET' && entity.hasOwnProperty('id') && entity.id === '';
+      const isPost = method === 'POST' && entity.hasOwnProperty('id') && entity.id === '';
+      const isDelete = method === 'DELETE' && entity.hasOwnProperty('id') && entity.id === '';
       const hasOwnAccess = typedAccess(search.own);
       const hasAllAccess = typedAccess(search.all);
       let _hasAccess = false;
@@ -635,17 +702,15 @@ module.exports = function(router) {
       // Check for self access.
       if (
         user &&
-        (
-          (req.selfAccess && (user === access[entity.type]._id) && hasOwnAccess) ||
-          (isOwner && (user === entity.id))
-        )
+        ((req.selfAccess && user === access[entity.type]._id && hasOwnAccess) ||
+          (isOwner && user === entity.id))
       ) {
         _hasAccess = true;
       }
 
       // Check for all access.
       if (hasAllAccess) {
-        const submissionResourceAdmin = (_.get(req, 'submissionResourceAccessAdminBlock') || []);
+        const submissionResourceAdmin = _.get(req, 'submissionResourceAccessAdminBlock') || [];
         if (
           (req.method === 'POST' || req.method === 'PUT') &&
           !_.intersection(submissionResourceAdmin, access.roles).length
@@ -669,9 +734,11 @@ module.exports = function(router) {
       }
 
       // If resource access or field match access applies, then allow for that to be in the query.
-      if (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter ||
-      _.has(req, 'submissionFieldMatchAccessFilter') && req.submissionFieldMatchAccessFilter) {
-         req.skipOwnerFilter = true;
+      if (
+        (_.has(req, 'submissionResourceAccessFilter') && req.submissionResourceAccessFilter) ||
+        (_.has(req, 'submissionFieldMatchAccessFilter') && req.submissionFieldMatchAccessFilter)
+      ) {
+        req.skipOwnerFilter = true;
         _hasAccess = true;
       }
 
@@ -682,8 +749,7 @@ module.exports = function(router) {
 
       // Return if they have access.
       return _hasAccess;
-    }
-    /* eslint-enable max-statements */
+    },
   };
 
   /**
@@ -708,10 +774,18 @@ module.exports = function(router) {
     // Check for whitelisted paths.
     let skip = false;
     if (req.method === 'GET') {
-      const whitelist = ['/health', '/current', '/logout', '/access', '/token', '/recaptcha', '/captcha'];
+      const whitelist = [
+        '/health',
+        '/current',
+        '/logout',
+        '/access',
+        '/token',
+        '/recaptcha',
+        '/captcha',
+      ];
       const url = req.url.split('?')[0];
-      skip = _.some(whitelist, function(path) {
-        if ((url === path) || (url === hook.alter('path', path, req))) {
+      skip = _.some(whitelist, function (path) {
+        if (url === path || url === hook.alter('path', path, req)) {
           return true;
         }
 
@@ -730,10 +804,12 @@ module.exports = function(router) {
     }
 
     // Determine if we are trying to access an entity of the form or submission.
-    router.formio.access.getAccess(req, res, function(err, access) {
+    router.formio.access.getAccess(req, res, function (err, access) {
       if (err) {
         if (_.isNumber(err)) {
-          return (typeof res.sendStatus === 'function') ? res.sendStatus(err) : next('Invalid Request');
+          return typeof res.sendStatus === 'function'
+            ? res.sendStatus(err)
+            : next('Invalid Request');
         }
 
         return res.status(400).send(err.message || err);
@@ -741,22 +817,20 @@ module.exports = function(router) {
 
       // Check for permissions starting at micro -> macro level.
       let entity = null;
-      if (req.hasOwnProperty('subId') && ((req.subId !== null) && (req.subId !== undefined))) {
+      if (req.hasOwnProperty('subId') && req.subId !== null && req.subId !== undefined) {
         entity = {
           type: 'submission',
-          id: req.subId
+          id: req.subId,
         };
-      }
-      else if (req.hasOwnProperty('formId') && ((req.formId !== null) && (req.formId !== undefined))) {
+      } else if (req.hasOwnProperty('formId') && req.formId !== null && req.formId !== undefined) {
         entity = {
           type: 'form',
-          id: req.formId
+          id: req.formId,
         };
-      }
-      else if (req.hasOwnProperty('roleId') && ((req.roleId !== null) && (req.roleId !== undefined))) {
+      } else if (req.hasOwnProperty('roleId') && req.roleId !== null && req.roleId !== undefined) {
         entity = {
           type: 'role',
-          id: req.roleId
+          id: req.roleId,
         };
       }
 

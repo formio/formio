@@ -1,0 +1,5 @@
+plugins:
+  - prettier-plugin-multiline-arrays
+multilineArraysWrapThreshold: 0
+singleQuote: true
+printWidth: 100

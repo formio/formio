@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function(router) {
+module.exports = function (router) {
   return {
     alias: require('./alias')(router),
     params: require('./params')(router),

@@ -14,7 +14,7 @@ let chain = require('event-chain')();
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   let projects = db.collection('projects');
   let forms = db.collection('forms');
   let roles = db.collection('roles');
@@ -28,24 +28,34 @@ module.exports = function(db, config, tools, done) {
    *
    * @param callback
    */
-  let updateProjects = function(callback) {
-    let projectChain = chain.on(['dropIndex', 'addIndex', 'addDeleted'], callback);
+  let updateProjects = function (callback) {
+    let projectChain = chain.on(
+      [
+        'dropIndex',
+        'addIndex',
+        'addDeleted',
+      ],
+      callback,
+    );
 
-    projects.dropIndex('name_1')
-    .then(() => {
-      projectChain.emit('dropIndex');
-    })
-    .catch(err => callback(err));
+    projects
+      .dropIndex('name_1')
+      .then(() => {
+        projectChain.emit('dropIndex');
+      })
+      .catch((err) => callback(err));
 
-    projects.createIndex('name_1')
-    .then(() => projectChain.emit('addIndex'))
-    .catch(err => callback(err));
+    projects
+      .createIndex('name_1')
+      .then(() => projectChain.emit('addIndex'))
+      .catch((err) => callback(err));
 
-    projects.updateMany({}, {$set: {deleted: null}})
-    .then(() => {
-      rojectChain.emit('addDeleted');
-    })
-    .catch(err => callback(err));
+    projects
+      .updateMany({}, { $set: { deleted: null } })
+      .then(() => {
+        rojectChain.emit('addDeleted');
+      })
+      .catch((err) => callback(err));
   };
 
   /**
@@ -55,10 +65,11 @@ module.exports = function(db, config, tools, done) {
    *
    * @param callback
    */
-  let updateForms = function(callback) {
-    forms.updateMany({}, {$set: {deleted: null}})
-    .then(() =>  callback())
-    .catch(err => callback(err));
+  let updateForms = function (callback) {
+    forms
+      .updateMany({}, { $set: { deleted: null } })
+      .then(() => callback())
+      .catch((err) => callback(err));
   };
 
   /**
@@ -68,10 +79,11 @@ module.exports = function(db, config, tools, done) {
    *
    * @param callback
    */
-  let updateRoles = function(callback) {
-    roles.updateMany({}, {$set: {deleted: null}})
-    .then(() => callback())
-    .catch(err => callback(err));
+  let updateRoles = function (callback) {
+    roles
+      .updateMany({}, { $set: { deleted: null } })
+      .then(() => callback())
+      .catch((err) => callback(err));
   };
 
   /**
@@ -81,10 +93,11 @@ module.exports = function(db, config, tools, done) {
    *
    * @param callback
    */
-  let updateActions = function(callback) {
-    actions.updateMany({}, {$set: {deleted: null}})
-    .then(() => callback())
-    .catch(err => callback(err));
+  let updateActions = function (callback) {
+    actions
+      .updateMany({}, { $set: { deleted: null } })
+      .then(() => callback())
+      .catch((err) => callback(err));
   };
 
   /**
@@ -94,27 +107,30 @@ module.exports = function(db, config, tools, done) {
    *
    * @param callback
    */
-  let updateSubmissions = function(callback) {
-    submissions.updateMany({}, {$set: {deleted: null}})
-    .then(() => callback())
-    .catch(err => callback(err));
+  let updateSubmissions = function (callback) {
+    submissions
+      .updateMany({}, { $set: { deleted: null } })
+      .then(() => callback())
+      .catch((err) => callback(err));
   };
 
   /**
    * The update process for the 2.2.0 access hotfix.
    */
-  async.series([
-    updateProjects,
-    updateForms,
-    updateRoles,
-    updateActions,
-    updateSubmissions
-  ],
-  function(err, results) {
-    if (err) {
-      return done(err);
-    }
+  async.series(
+    [
+      updateProjects,
+      updateForms,
+      updateRoles,
+      updateActions,
+      updateSubmissions,
+    ],
+    function (err, results) {
+      if (err) {
+        return done(err);
+      }
 
-    done();
-  });
+      done();
+    },
+  );
 };

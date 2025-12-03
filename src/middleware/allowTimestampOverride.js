@@ -12,11 +12,11 @@ const _ = require('lodash');
  * @returns {Function}
  */
 module.exports = () => (req, res, next) => {
-    if (_.get(req.headers, 'x-allow-override-timestamps') && (req.adminKey || req.isAdmin)) {
-        req.writeOptions = req.writeOptions || {};
-        req.writeOptions.allowTimestampOverride = true;
-        req.writeOptions.modified = req.body?.modified;
-        req.writeOptions.created = req.body?.created;
-    }
+  if (_.get(req.headers, 'x-allow-override-timestamps') && (req.adminKey || req.isAdmin)) {
+    req.writeOptions = req.writeOptions || {};
+    req.writeOptions.allowTimestampOverride = true;
+    req.writeOptions.modified = req.body?.modified;
+    req.writeOptions.created = req.body?.created;
+  }
   next();
 };

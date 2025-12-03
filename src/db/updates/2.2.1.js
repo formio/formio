@@ -10,15 +10,15 @@
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   let forms = db.collection('forms');
 
-  forms.find().toArray().forEach(function(form) {
-    if(form.path) {
-      forms.updateOne(
-        { _id: form._id },
-        { $set: { path: form.path.toLowerCase() } }
-      );
-    }
-  }, done);
+  forms
+    .find()
+    .toArray()
+    .forEach(function (form) {
+      if (form.path) {
+        forms.updateOne({ _id: form._id }, { $set: { path: form.path.toLowerCase() } });
+      }
+    }, done);
 };

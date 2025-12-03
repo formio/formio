@@ -10,8 +10,13 @@
     "a": {
       "title": "Save Submission",
       "name": "save",
-      "handler": ["before"],
-      "method": ["create", "update"],
+      "handler": [
+        "before"
+      ],
+      "method": [
+        "create",
+        "update"
+      ],
       "priority": 11,
       "settings": {}
     }

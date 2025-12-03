@@ -61,8 +61,8 @@ export default {
       ],
     }),
     new webpack.DefinePlugin({
-      'FORMIO_JS_VERSION': JSON.stringify(formiojsPackage.version),
-      'REACT_FORMIO_VERSION': JSON.stringify(reactPackage.version),
+      FORMIO_JS_VERSION: JSON.stringify(formiojsPackage.version),
+      REACT_FORMIO_VERSION: JSON.stringify(reactPackage.version),
     }),
   ],
 };

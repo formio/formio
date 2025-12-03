@@ -11,7 +11,7 @@ import App from '../src/components/App';
 const server = setupServer(
   http.get('http://localhost:3002/current', () => {
     return HttpResponse.json({});
-  })
+  }),
 );
 
 beforeAll(() => {
@@ -25,7 +25,7 @@ beforeEach(() => {
       <InfoPanelProvider>
         <App />
       </InfoPanelProvider>
-    </FormioProvider>
+    </FormioProvider>,
   );
 });
 
@@ -36,13 +36,13 @@ test('Clicking the enter data tab takes you to /use page and loads the form', as
       if (queryParameters.get('type') === 'form') {
         return HttpResponse.json([
           {
-            '_id': '679d116aa90ca7ccebc38597',
-            'title': 'test',
-            'name': 'test',
-            'path': 'test',
-            'type': 'form',
-            'display': 'form'
-          }
+            _id: '679d116aa90ca7ccebc38597',
+            title: 'test',
+            name: 'test',
+            path: 'test',
+            type: 'form',
+            display: 'form',
+          },
         ]);
       } else {
         return HttpResponse.json([]);
@@ -50,29 +50,29 @@ test('Clicking the enter data tab takes you to /use page and loads the form', as
     }),
     http.get('/form/679d116aa90ca7ccebc38597', () => {
       return HttpResponse.json({
-        '_id': '679d116aa90ca7ccebc38597',
-        'title': 'test',
-        'name': 'test',
-        'path': 'test',
-        'type': 'form',
-        'display': 'form'
+        _id: '679d116aa90ca7ccebc38597',
+        title: 'test',
+        name: 'test',
+        path: 'test',
+        type: 'form',
+        display: 'form',
       });
     }),
     http.get('http://localhost:3002/form/679d116aa90ca7ccebc38597', () => {
       return HttpResponse.json({
-        '_id': '679d116aa90ca7ccebc38597',
-        'title': 'test',
-        'name': 'test',
-        'path': 'test',
-        'type': 'form',
-        'display': 'form',
-        'components': [
+        _id: '679d116aa90ca7ccebc38597',
+        title: 'test',
+        name: 'test',
+        path: 'test',
+        type: 'form',
+        display: 'form',
+        components: [
           {
-            type: 'textfield'
-          }
-        ]
+            type: 'textfield',
+          },
+        ],
       });
-    })
+    }),
   );
   await screen.findByText('Resources');
   await screen.findByText('Forms');
@@ -93,13 +93,13 @@ test('Making a submission takes you to view data page', async () => {
       if (queryParameters.get('type') === 'form') {
         return HttpResponse.json([
           {
-            '_id': '679d116aa90ca7ccebc38597',
-            'title': 'test',
-            'name': 'test',
-            'path': 'test',
-            'type': 'form',
-            'display': 'form'
-          }
+            _id: '679d116aa90ca7ccebc38597',
+            title: 'test',
+            name: 'test',
+            path: 'test',
+            type: 'form',
+            display: 'form',
+          },
         ]);
       } else {
         return HttpResponse.json([]);
@@ -107,33 +107,33 @@ test('Making a submission takes you to view data page', async () => {
     }),
     http.get('/form/679d116aa90ca7ccebc38597', () => {
       return HttpResponse.json({
-        '_id': '679d116aa90ca7ccebc38597',
-        'title': 'test',
-        'name': 'test',
-        'path': 'test',
-        'type': 'form',
-        'display': 'form'
+        _id: '679d116aa90ca7ccebc38597',
+        title: 'test',
+        name: 'test',
+        path: 'test',
+        type: 'form',
+        display: 'form',
       });
     }),
     http.get('http://localhost:3002/form/679d116aa90ca7ccebc38597', () => {
       return HttpResponse.json({
-        '_id': '679d116aa90ca7ccebc38597',
-        'title': 'test',
-        'name': 'test',
-        'path': 'test',
-        'type': 'form',
-        'display': 'form',
-        'components': [
+        _id: '679d116aa90ca7ccebc38597',
+        title: 'test',
+        name: 'test',
+        path: 'test',
+        type: 'form',
+        display: 'form',
+        components: [
           {
             type: 'textfield',
-            key: 'textField'
+            key: 'textField',
           },
           {
             type: 'button',
             label: 'Submit',
-            key: 'button'
-          }
-        ]
+            key: 'button',
+          },
+        ],
       });
     }),
     http.post('http://localhost:3002/form/679d116aa90ca7ccebc38597/submission', () => {
@@ -141,7 +141,7 @@ test('Making a submission takes you to view data page', async () => {
     }),
     http.get('http://localhost:3002/form/679d116aa90ca7ccebc38597/submission', () => {
       return HttpResponse.json([]);
-    })
+    }),
   );
   await screen.findByText('Resources');
   await screen.findByText('Forms');
@@ -152,7 +152,9 @@ test('Making a submission takes you to view data page', async () => {
   await userEvent.click(enterDataTab);
   await userEvent.click(await screen.findByText('Submit'));
   await waitFor(() => {
-    expect(document.querySelector('button.menu-item.enter-data.active')!.textContent).to.equal('View Data');
+    expect(document.querySelector('button.menu-item.enter-data.active')!.textContent).to.equal(
+      'View Data',
+    );
     expect(window.location.href).to.include('/view');
   });
 });
@@ -164,13 +166,13 @@ test('Clicking on view data loads submissions', async () => {
       if (queryParameters.get('type') === 'form') {
         return HttpResponse.json([
           {
-            '_id': '679d116aa90ca7ccebc38597',
-            'title': 'test',
-            'name': 'test',
-            'path': 'test',
-            'type': 'form',
-            'display': 'form'
-          }
+            _id: '679d116aa90ca7ccebc38597',
+            title: 'test',
+            name: 'test',
+            path: 'test',
+            type: 'form',
+            display: 'form',
+          },
         ]);
       } else {
         return HttpResponse.json([]);
@@ -178,45 +180,45 @@ test('Clicking on view data loads submissions', async () => {
     }),
     http.get('/form/679d116aa90ca7ccebc38597', () => {
       return HttpResponse.json({
-        '_id': '679d116aa90ca7ccebc38597',
-        'title': 'test',
-        'name': 'test',
-        'path': 'test',
-        'type': 'form',
-        'display': 'form'
+        _id: '679d116aa90ca7ccebc38597',
+        title: 'test',
+        name: 'test',
+        path: 'test',
+        type: 'form',
+        display: 'form',
       });
     }),
     http.get('http://localhost:3002/form/679d116aa90ca7ccebc38597', () => {
       return HttpResponse.json({
-        '_id': '679d116aa90ca7ccebc38597',
-        'title': 'test',
-        'name': 'test',
-        'path': 'test',
-        'type': 'form',
-        'display': 'form',
-        'components': [
+        _id: '679d116aa90ca7ccebc38597',
+        title: 'test',
+        name: 'test',
+        path: 'test',
+        type: 'form',
+        display: 'form',
+        components: [
           {
             type: 'textfield',
             key: 'textField',
-            label: 'Text Field'
-          }
-        ]
+            label: 'Text Field',
+          },
+        ],
       });
     }),
     http.get('http://localhost:3002/form/679d116aa90ca7ccebc38597/submission', () => {
       return HttpResponse.json([
         {
           data: {
-            textField: 'test1'
-          }
+            textField: 'test1',
+          },
         },
         {
           data: {
-            textField: 'test2'
-          }
-        }
+            textField: 'test2',
+          },
+        },
       ]);
-    })
+    }),
   );
   await screen.findByText('Resources');
   await screen.findByText('Forms');
@@ -242,13 +244,13 @@ test('Clicking on Export JSON makes a request to /form/:formID/export?format=jso
       if (queryParameters.get('type') === 'form') {
         return HttpResponse.json([
           {
-            '_id': '679d116aa90ca7ccebc38597',
-            'title': 'test',
-            'name': 'test',
-            'path': 'test',
-            'type': 'form',
-            'display': 'form'
-          }
+            _id: '679d116aa90ca7ccebc38597',
+            title: 'test',
+            name: 'test',
+            path: 'test',
+            type: 'form',
+            display: 'form',
+          },
         ]);
       } else {
         return HttpResponse.json([]);
@@ -256,43 +258,43 @@ test('Clicking on Export JSON makes a request to /form/:formID/export?format=jso
     }),
     http.get('/form/679d116aa90ca7ccebc38597', () => {
       return HttpResponse.json({
-        '_id': '679d116aa90ca7ccebc38597',
-        'title': 'test',
-        'name': 'test',
-        'path': 'test',
-        'type': 'form',
-        'display': 'form'
+        _id: '679d116aa90ca7ccebc38597',
+        title: 'test',
+        name: 'test',
+        path: 'test',
+        type: 'form',
+        display: 'form',
       });
     }),
     http.get('http://localhost:3002/form/679d116aa90ca7ccebc38597', () => {
       return HttpResponse.json({
-        '_id': '679d116aa90ca7ccebc38597',
-        'title': 'test',
-        'name': 'test',
-        'path': 'test',
-        'type': 'form',
-        'display': 'form',
-        'components': [
+        _id: '679d116aa90ca7ccebc38597',
+        title: 'test',
+        name: 'test',
+        path: 'test',
+        type: 'form',
+        display: 'form',
+        components: [
           {
             type: 'textfield',
             key: 'textField',
-            label: 'Text Field'
-          }
-        ]
+            label: 'Text Field',
+          },
+        ],
       });
     }),
     http.get('http://localhost:3002/form/679d116aa90ca7ccebc38597/submission', () => {
       return HttpResponse.json([
         {
           data: {
-            textField: 'test1'
-          }
+            textField: 'test1',
+          },
         },
         {
           data: {
-            textField: 'test2'
-          }
-        }
+            textField: 'test2',
+          },
+        },
       ]);
     }),
     http.get('/form/679d116aa90ca7ccebc38597/export', ({ request }) => {
@@ -301,7 +303,7 @@ test('Clicking on Export JSON makes a request to /form/:formID/export?format=jso
         exportJSONClicked = true;
         return HttpResponse.json([]);
       }
-    })
+    }),
   );
   await screen.findByText('Resources');
   await screen.findByText('Forms');
@@ -326,13 +328,13 @@ test('Clicking on Export CSV makes a request to /form/:formID/export?format=csv'
       if (queryParameters.get('type') === 'form') {
         return HttpResponse.json([
           {
-            '_id': '679d116aa90ca7ccebc38597',
-            'title': 'test',
-            'name': 'test',
-            'path': 'test',
-            'type': 'form',
-            'display': 'form'
-          }
+            _id: '679d116aa90ca7ccebc38597',
+            title: 'test',
+            name: 'test',
+            path: 'test',
+            type: 'form',
+            display: 'form',
+          },
         ]);
       } else {
         return HttpResponse.json([]);
@@ -340,43 +342,43 @@ test('Clicking on Export CSV makes a request to /form/:formID/export?format=csv'
     }),
     http.get('/form/679d116aa90ca7ccebc38597', () => {
       return HttpResponse.json({
-        '_id': '679d116aa90ca7ccebc38597',
-        'title': 'test',
-        'name': 'test',
-        'path': 'test',
-        'type': 'form',
-        'display': 'form'
+        _id: '679d116aa90ca7ccebc38597',
+        title: 'test',
+        name: 'test',
+        path: 'test',
+        type: 'form',
+        display: 'form',
       });
     }),
     http.get('http://localhost:3002/form/679d116aa90ca7ccebc38597', () => {
       return HttpResponse.json({
-        '_id': '679d116aa90ca7ccebc38597',
-        'title': 'test',
-        'name': 'test',
-        'path': 'test',
-        'type': 'form',
-        'display': 'form',
-        'components': [
+        _id: '679d116aa90ca7ccebc38597',
+        title: 'test',
+        name: 'test',
+        path: 'test',
+        type: 'form',
+        display: 'form',
+        components: [
           {
             type: 'textfield',
             key: 'textField',
-            label: 'Text Field'
-          }
-        ]
+            label: 'Text Field',
+          },
+        ],
       });
     }),
     http.get('http://localhost:3002/form/679d116aa90ca7ccebc38597/submission', () => {
       return HttpResponse.json([
         {
           data: {
-            textField: 'test1'
-          }
+            textField: 'test1',
+          },
         },
         {
           data: {
-            textField: 'test2'
-          }
-        }
+            textField: 'test2',
+          },
+        },
       ]);
     }),
     http.get('/form/679d116aa90ca7ccebc38597/export', ({ request }) => {
@@ -385,7 +387,7 @@ test('Clicking on Export CSV makes a request to /form/:formID/export?format=csv'
         exportCSVClicked = true;
         return HttpResponse.json([]);
       }
-    })
+    }),
   );
   await screen.findByText('Resources');
   await screen.findByText('Forms');

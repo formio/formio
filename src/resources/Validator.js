@@ -1,14 +1,14 @@
 'use strict';
 const _ = require('lodash');
-const {ObjectId} = require('mongodb');
+const { ObjectId } = require('mongodb');
 const FormioCore = require('@formio/core');
 const fetch = require('@formio/node-fetch-http-proxy');
 const debug = {
   validator: require('debug')('formio:validator'),
-  error: require('debug')('formio:error')
+  error: require('debug')('formio:error'),
 };
 const Utils = require('../util/util');
-const {RootShim} = require('../vm');
+const { RootShim } = require('../vm');
 
 // Promisify cache load form.
 async function loadFormById(cache, req, formId) {
@@ -70,26 +70,29 @@ class Validator {
     if (needValuesInArray) {
       pathToValue = pathArray.shift();
       const pathQueryObj = {};
-      _.reduce(pathArray, (pathQueryPath, pathPart, index) => {
-        const isLastPathPart = index === (pathArray.length - 1);
-        const obj = _.get(pathQueryObj, pathQueryPath, pathQueryObj);
-        const addedPath = `$elemMatch['${pathPart}']`;
-        _.set(obj, addedPath, isLastPathPart ? pathQueryParams : {});
-        return pathQueryPath ? `${pathQueryPath}.${addedPath}` : addedPath;
-      }, '');
+      _.reduce(
+        pathArray,
+        (pathQueryPath, pathPart, index) => {
+          const isLastPathPart = index === pathArray.length - 1;
+          const obj = _.get(pathQueryObj, pathQueryPath, pathQueryObj);
+          const addedPath = `$elemMatch['${pathPart}']`;
+          _.set(obj, addedPath, isLastPathPart ? pathQueryParams : {});
+          return pathQueryPath ? `${pathQueryPath}.${addedPath}` : addedPath;
+        },
+        '',
+      );
       query[pathToValue] = pathQueryObj;
-    }
-    else {
+    } else {
       query[pathToValue] = pathQueryParams;
     }
   }
 
   async isUnique(context, submission, value) {
     value = _.cloneDeep(value);
-    const {component} = context;
+    const { component } = context;
     const path = `data.${context.path}`;
     // Build the querys
-    const query = {form: this.form._id};
+    const query = { form: this.form._id };
     let collationOptions = {};
     this.formioUtil.transformIdsToObjectIds(value);
 
@@ -102,20 +105,22 @@ class Validator {
       // aware indexes with case insensitive email searches to make things like login and registration a whole lot faster
       else if (
         (component.type === 'email' ||
-        (
-          component.type === 'textfield' &&
-          component.validate &&
-          component.validate.pattern === '[A-Za-z0-9]+'
-        )) && this.config.mongoFeatures?.collation
+          (component.type === 'textfield' &&
+            component.validate &&
+            component.validate.pattern === '[A-Za-z0-9]+')) &&
+        this.config.mongoFeatures?.collation
       ) {
         this.addPathQueryParams(value, query, path);
-        collationOptions = {collation: {locale: 'en', strength: 2}};
-      }
-      else {
-        this.addPathQueryParams({
-          $regex: new RegExp(`^${FormioCore.escapeRegExCharacters(value)}$`),
-          $options: 'i'
-        }, query, path);
+        collationOptions = { collation: { locale: 'en', strength: 2 } };
+      } else {
+        this.addPathQueryParams(
+          {
+            $regex: new RegExp(`^${FormioCore.escapeRegExCharacters(value)}$`),
+            $options: 'i',
+          },
+          query,
+          path,
+        );
       }
     }
     // FOR-213 - Pluck the unique location id
@@ -125,38 +130,38 @@ class Validator {
       value.address['address_components'] &&
       value.address['place_id']
     ) {
-      this.addPathQueryParams({
-        $regex: new RegExp(`^${FormioCore.escapeRegExCharacters(value.address['place_id'])}$`),
-        $options: 'i'
-      }, query, `${path}.address.place_id`);
+      this.addPathQueryParams(
+        {
+          $regex: new RegExp(`^${FormioCore.escapeRegExCharacters(value.address['place_id'])}$`),
+          $options: 'i',
+        },
+        query,
+        `${path}.address.place_id`,
+      );
     }
     // Compare the contents of arrays vs the order.
     else if (_.isArray(value)) {
-      this.addPathQueryParams({$all: value}, query, path);
-    }
-    else if (_.isObject(value) || _.isNumber(value)) {
-      this.addPathQueryParams({$eq: value}, query, path);
+      this.addPathQueryParams({ $all: value }, query, path);
+    } else if (_.isObject(value) || _.isNumber(value)) {
+      this.addPathQueryParams({ $eq: value }, query, path);
     }
     // Only search for non-deleted items
-    query.deleted = {$eq: null};
+    query.deleted = { $eq: null };
     if (submission.hasOwnProperty('state')) {
       query.state = 'submitted';
-   }
+    }
     const cb = (err, result) => {
       if (err) {
         return false;
-      }
-      else if (result) {
+      } else if (result) {
         // Only OK if it matches the current submission
-        if (submission._id && (result._id.toString() === submission._id)) {
+        if (submission._id && result._id.toString() === submission._id) {
           return true;
-        }
-        else {
+        } else {
           component.conflictId = result._id.toString();
           return false;
         }
-      }
-      else {
+      } else {
         return true;
       }
     };
@@ -164,14 +169,13 @@ class Validator {
     try {
       const result = await this.submissionModel.findOne(query, null, collationOptions);
       return cb(null, result);
-    }
-    catch (err) {
-        return cb(err);
+    } catch (err) {
+      return cb(err);
     }
   }
 
   async validateCaptcha(captchaToken) {
-    const token = await this.tokenModel.findOne({value: captchaToken});
+    const token = await this.tokenModel.findOne({ value: captchaToken });
     if (!token) {
       return false;
     }
@@ -181,7 +185,7 @@ class Validator {
   }
 
   async validateResourceSelectValue(context, value) {
-    const {component} = context;
+    const { component } = context;
     if (!component.data.resource) {
       throw new Error('Did not receive resource ID for resource select validation');
     }
@@ -195,16 +199,24 @@ class Validator {
     // have an _id we can fall back to the data object OR the data object plus the "submit" property
     // (which seems to sometimes be stripped and sometimes not).
     const valueQuery = component.valueProperty
-      ? {[component.valueProperty]: value}
+      ? { [component.valueProperty]: value }
       : value._id
-      ? {_id: value._id}
-      : {$or: [{data: value}, {data: {...value, submit: true}}]};
+        ? { _id: value._id }
+        : {
+            $or: [
+              { data: value },
+              { data: { ...value, submit: true } },
+            ],
+          };
     if (!component.filter) {
       component.filter = '';
     }
     const filterQueries = component.filter.split(',').reduce((acc, filter) => {
-      const [key, value] = filter.split('=');
-      return {...acc, [key]: value};
+      const [
+        key,
+        value,
+      ] = filter.split('=');
+      return { ...acc, [key]: value };
     }, {});
     Utils.coerceQueryTypes(filterQueries, resource, 'data.');
 
@@ -212,34 +224,38 @@ class Validator {
       form: new ObjectId(component.data.resource),
       deleted: null,
       $or: [
-        {state: 'submitted'}, // state is 'submitted'
-        {state: {$exists: false}} // state field does not exist (actual for formio)
+        { state: 'submitted' }, // state is 'submitted'
+        { state: { $exists: false } }, // state field does not exist (actual for formio)
       ],
-      $and:[
+      $and: [
         valueQuery,
-        this.submissionResource.getFindQuery({query: filterQueries})
-      ]
+        this.submissionResource.getFindQuery({ query: filterQueries }),
+      ],
     };
     return submissionQueryExists(this.submissionModel, query);
   }
 
   async dereferenceDataTableComponent(component) {
     if (
-      component.type !== 'datatable'
-      || !component.fetch
-      || component.fetch.dataSrc !== 'resource'
-      || !component.fetch.resource
+      component.type !== 'datatable' ||
+      !component.fetch ||
+      component.fetch.dataSrc !== 'resource' ||
+      !component.fetch.resource
     ) {
       return [];
     }
 
     const resourceId = component.fetch.resource;
-    const resource = await this.formModel.findOne({_id: new ObjectId(resourceId.toString()), deleted: null});
+    const resource = await this.formModel.findOne({
+      _id: new ObjectId(resourceId.toString()),
+      deleted: null,
+    });
     if (!resource) {
       throw new Error(`Resource at ${resourceId} not found for dereferencing`);
     }
-    const dataTableComponents = (component.fetch.components || [])
-      .map(component => FormioCore.Utils.getComponent(resource.components || [], component.path));
+    const dataTableComponents = (component.fetch.components || []).map((component) =>
+      FormioCore.Utils.getComponent(resource.components || [], component.path),
+    );
 
     const filterComponents = (component) => {
       const info = FormioCore.Utils.componentInfo(component);
@@ -251,7 +267,8 @@ class Validator {
           column.components = column.components
             .map((component) => filterComponents(component))
             .filter((component) => {
-              return FormioCore.Utils.getComponent(dataTableComponents, component.key) || (
+              return (
+                FormioCore.Utils.getComponent(dataTableComponents, component.key) ||
                 component.columns?.length > 0 ||
                 component.rows?.length > 0 ||
                 component.components?.length > 0
@@ -259,15 +276,15 @@ class Validator {
             });
           return column;
         });
-      }
-      else if (info.hasRows) {
+      } else if (info.hasRows) {
         component.rows = component.rows.map((row) => {
           if (Array.isArray(row)) {
             return row.map((column) => {
               column.components = column.components
                 .map((component) => filterComponents(component))
                 .filter((component) => {
-                  return FormioCore.Utils.getComponent(dataTableComponents, component.key) || (
+                  return (
+                    FormioCore.Utils.getComponent(dataTableComponents, component.key) ||
                     component.columns?.length > 0 ||
                     component.rows?.length > 0 ||
                     component.components?.length > 0
@@ -278,16 +295,16 @@ class Validator {
           }
           return row;
         });
-      }
-      else {
+      } else {
         component.components = component.components
           .map((component) => filterComponents(component))
           .filter((component) => {
-              return FormioCore.Utils.getComponent(dataTableComponents, component.key) || (
-                component.columns?.length > 0 ||
-                component.rows?.length > 0 ||
-                component.components?.length > 0
-              );
+            return (
+              FormioCore.Utils.getComponent(dataTableComponents, component.key) ||
+              component.columns?.length > 0 ||
+              component.rows?.length > 0 ||
+              component.components?.length > 0
+            );
           });
       }
       return component;
@@ -304,7 +321,7 @@ class Validator {
    * @param next
    *   The callback function to pass the results.
    */
-  /* eslint-disable max-statements */
+
   async validate(submission, next) {
     debug.validator('Starting validation');
 
@@ -315,8 +332,8 @@ class Validator {
     }
 
     const projectAndFormConfig = {
-      ...(this.project ? this.project.config ?? {} : {}),
-      ...(this.form ? this.form.config ?? {} : {}),
+      ...(this.project ? (this.project.config ?? {}) : {}),
+      ...(this.form ? (this.form.config ?? {}) : {}),
     };
 
     const scope = {};
@@ -332,7 +349,7 @@ class Validator {
       scope,
       instances: root.instanceMap,
       options: {
-        server: true
+        server: true,
       },
       config: {
         ...projectAndFormConfig,
@@ -341,14 +358,18 @@ class Validator {
         token: this.tokens['x-jwt-token'],
         tokens: this.tokens,
         // TODO: these database functions should be moved to colocated processors in this repository rather than callbacks in @formio/core
-        database: this.hook.alter('validationDatabaseHooks', {
-          isUnique: async (context, value) => {
-            return this.isUnique(context, submission, value);
+        database: this.hook.alter(
+          'validationDatabaseHooks',
+          {
+            isUnique: async (context, value) => {
+              return this.isUnique(context, submission, value);
+            },
+            validateResourceSelectValue: this.validateResourceSelectValue.bind(this),
+            dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this),
           },
-          validateResourceSelectValue: this.validateResourceSelectValue.bind(this),
-          dereferenceDataTableComponent: this.dereferenceDataTableComponent.bind(this)
-        }, this)
-      }
+          this,
+        ),
+      },
     };
     try {
       // Process the server processes
@@ -358,8 +379,7 @@ class Validator {
       context.scope = await FormioCore.process(context);
       submission.data = context.data;
       submission.scope = context.scope;
-    }
-    catch (err) {
+    } catch (err) {
       debug.error(err.message || err);
       return next(err.message || err);
     }
@@ -368,7 +388,7 @@ class Validator {
     if (context.scope.errors && context.scope.errors.length) {
       return next({
         name: 'ValidationError',
-        details: FormioCore.interpolateErrors(context.scope.errors)
+        details: FormioCore.interpolateErrors(context.scope.errors),
       });
     }
 

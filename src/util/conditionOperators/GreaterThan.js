@@ -12,10 +12,7 @@ module.exports = class GeaterThan extends ConditionOperator {
     return 'Greater Than';
   }
 
-  execute({
-    value,
-    comparedValue,
-  }) {
+  execute({ value, comparedValue }) {
     return _.isNumber(value) && value > comparedValue;
   }
 };

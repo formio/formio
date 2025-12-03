@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const debug = require('debug')('formio:middleware:submissionResourceAccessFilter');
 
-module.exports = function(router) {
+module.exports = function (router) {
   return function submissionResourceAccessFilter(req, res, next) {
     const util = router.formio.util;
 
@@ -14,7 +14,10 @@ module.exports = function(router) {
     }
 
     // Skip this filter, if not flagged in the permission handler.
-    if (!_.has(req, 'submissionFieldMatchAccessFilter') || req.submissionFieldMatchAccessFilter === false) {
+    if (
+      !_.has(req, 'submissionFieldMatchAccessFilter') ||
+      req.submissionFieldMatchAccessFilter === false
+    ) {
       return next();
     }
 
@@ -30,31 +33,49 @@ module.exports = function(router) {
     }
     // Perform our search.
     let query = null;
-    const hasRolesIntersection = (condition) => !!_.intersectionWith(condition.roles, userRoles,
-      (role, userRole) => role.toString() === userRole.toString()).length;
+    const hasRolesIntersection = (condition) =>
+      !!_.intersectionWith(
+        condition.roles,
+        userRoles,
+        (role, userRole) => role.toString() === userRole.toString(),
+      ).length;
 
     // Map permissions to array of Mongo conditions
-    const fieldsToCheck = Object.entries(req.submissionFieldMatchAccess).flatMap(([, conditions]) => {
-      return Array.isArray(conditions) ? conditions.map((condition) => {
-        if (hasRolesIntersection(condition)) {
-          const {formFieldPath, operator, value, valueType} = condition;
+    const fieldsToCheck = Object.entries(req.submissionFieldMatchAccess)
+      .flatMap(
+        ([
+          ,
+          conditions,
+        ]) => {
+          return Array.isArray(conditions)
+            ? conditions.map((condition) => {
+                if (hasRolesIntersection(condition)) {
+                  const { formFieldPath, operator, value, valueType } = condition;
 
-          if (value) {
-            return {[formFieldPath]:  {[operator]: util.castValue(valueType, value)}};
-          }
-        }
-      }) : [];
-    }).filter((condition) => !!condition);
+                  if (value) {
+                    return { [formFieldPath]: { [operator]: util.castValue(valueType, value) } };
+                  }
+                }
+              })
+            : [];
+        },
+      )
+      .filter((condition) => !!condition);
 
     if (userId) {
-      fieldsToCheck.push({owner: util.idToBson(userId)});
+      fieldsToCheck.push({ owner: util.idToBson(userId) });
     }
 
-    query = fieldsToCheck.length !== 0 ? {
-      form: util.idToBson(req.formId),
-      deleted: {$eq: null},
-      $or: [...fieldsToCheck]
-    } : null;
+    query =
+      fieldsToCheck.length !== 0
+        ? {
+            form: util.idToBson(req.formId),
+            deleted: { $eq: null },
+            $or: [
+              ...fieldsToCheck,
+            ],
+          }
+        : null;
 
     // If there no conditions which may give an access to the current user, return the Unauthorized response
     if (!query) {

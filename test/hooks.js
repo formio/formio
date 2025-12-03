@@ -33,14 +33,13 @@ let Emailer = {
       // If events are enabled
       if (this.events) {
         this.events.emit('newMail', mail);
-      }
-      else {
+      } else {
         console.error(`No event emitter is available`);
       }
 
       return cb(null, false);
-    }
-  }
+    },
+  },
 };
 
 module.exports = Emailer;

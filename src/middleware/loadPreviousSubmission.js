@@ -1,7 +1,13 @@
 'use strict';
 
 module.exports = (router) => async (req, res, next) => {
-  if (!['PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+  if (
+    ![
+      'PUT',
+      'PATCH',
+      'DELETE',
+    ].includes(req.method)
+  ) {
     return next();
   }
 
@@ -9,12 +15,12 @@ module.exports = (router) => async (req, res, next) => {
     const previousSubmission = await router.formio.cache.loadSubmission(
       req,
       req.body.form,
-      req.body._id);
+      req.body._id,
+    );
 
     req.previousSubmission = previousSubmission;
     return next();
-  }
-  catch (err) {
+  } catch (err) {
     return next(err);
   }
 };

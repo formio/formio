@@ -2,7 +2,7 @@
 const jsonPatch = require('fast-json-patch');
 const _ = require('lodash');
 
-module.exports = router => (req, res, next) => {
+module.exports = (router) => (req, res, next) => {
   if (req.method !== 'PATCH') {
     return next();
   }
@@ -21,7 +21,7 @@ module.exports = router => (req, res, next) => {
     }
   });
 
-  router.resourcejs[req.route.path]['get'](childReq, childRes, function(err) {
+  router.resourcejs[req.route.path]['get'](childReq, childRes, function (err) {
     if (err) {
       return res.status(400).send(err);
     }
@@ -35,25 +35,27 @@ module.exports = router => (req, res, next) => {
     let patch = req.body;
 
     if (!_.isArray(patch) && req.subPatch && !_.isEmpty(req.body)) {
-      const dataPatch = jsonPatch.compare(submission.data, req.body.data)
-        .map((operation) => {
-          operation.path = `/data${operation.path}`;
-          return operation;
-        });
-      const metadataPatch = jsonPatch.compare(submission.metadata, req.body.metadata)
+      const dataPatch = jsonPatch.compare(submission.data, req.body.data).map((operation) => {
+        operation.path = `/data${operation.path}`;
+        return operation;
+      });
+      const metadataPatch = jsonPatch
+        .compare(submission.metadata, req.body.metadata)
         .map((operation) => {
           operation.path = `/metadata${operation.path}`;
           return operation;
         });
-      patch = [...dataPatch, ...metadataPatch];
+      patch = [
+        ...dataPatch,
+        ...metadataPatch,
+      ];
     }
 
     try {
       req.body = jsonPatch.applyPatch(submission, patch, true).newDocument;
 
       return next();
-    }
-    catch (err) {
+    } catch (err) {
       res.status(400).send(err);
     }
   });

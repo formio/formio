@@ -19,9 +19,9 @@ function encrypt(secret, mixed) {
 
   return Buffer.concat([
     cipher.update(decryptedJSON),
-    cipher.final()
+    cipher.final(),
   ]);
-};
+}
 
 /**
  * Update 1.1.0
@@ -31,19 +31,20 @@ function encrypt(secret, mixed) {
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   // MongoDB Find all oldApps where user has unencrypted settings.
-  db.collection('applications').find({ settings: {$exists: true }}).forEach(function(application) {
+  db.collection('applications')
+    .find({ settings: { $exists: true } })
+    .forEach(function (application) {
       // Encrypt each Application's settings at rest.
       db.collection('applications').updateOne(
-      { _id: application._id },
-      {
-        $unset: { settings: undefined },
-        $set: {
-          settings_encrypted: encrypt(config.mongoSecret, application.settings),
-        }
-      }
-    )
-  },
-  done);
-}
+        { _id: application._id },
+        {
+          $unset: { settings: undefined },
+          $set: {
+            settings_encrypted: encrypt(config.mongoSecret, application.settings),
+          },
+        },
+      );
+    }, done);
+};

@@ -12,10 +12,7 @@ module.exports = class Includes extends ConditionOperator {
     return 'Includes';
   }
 
-  execute({
-    value,
-    comparedValue,
-  }) {
-    return _.includes(value,comparedValue);
+  execute({ value, comparedValue }) {
+    return _.includes(value, comparedValue);
   }
 };

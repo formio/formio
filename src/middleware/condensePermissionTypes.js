@@ -25,18 +25,18 @@ module.exports = function () {
 
     // Attempt to condense the access array if present and populated.
     if (
-      req.body
-      && req.body.hasOwnProperty('access')
-      && req.body.access instanceof Array
-      && req.body.access.length > 0
+      req.body &&
+      req.body.hasOwnProperty('access') &&
+      req.body.access instanceof Array &&
+      req.body.access.length > 0
     ) {
       final = [];
       condensed = {};
 
       // Iterate each defined permission in the access payload, and squash them together.
       req.body.access = _.filter(req.body.access, _.isObject);
-      req.body.access.forEach(function(permission) {
-        permission.roles = _.filter(permission.roles || [], function(item) {
+      req.body.access.forEach(function (permission) {
+        permission.roles = _.filter(permission.roles || [], function (item) {
           if (_.isString(item) && BSON.test(item)) {
             return true;
           }
@@ -51,10 +51,10 @@ module.exports = function () {
         }
       });
 
-      Object.keys(condensed).forEach(function(key) {
+      Object.keys(condensed).forEach(function (key) {
         final.push({
           type: key,
-          roles: condensed[key]
+          roles: condensed[key],
         });
       });
 
@@ -64,18 +64,18 @@ module.exports = function () {
 
     // Attempt to condense the submissionAccess array if present and populated.
     if (
-      req.body
-      && req.body.hasOwnProperty('submissionAccess')
-      && req.body.submissionAccess instanceof Array
-      && req.body.submissionAccess.length > 0
+      req.body &&
+      req.body.hasOwnProperty('submissionAccess') &&
+      req.body.submissionAccess instanceof Array &&
+      req.body.submissionAccess.length > 0
     ) {
       final = [];
       condensed = {};
 
       // Iterate each defined permission in the submissionAccess payload, and squash them together.
       req.body.submissionAccess = _.filter(req.body.submissionAccess, _.isObject);
-      req.body.submissionAccess.forEach(function(permission) {
-        permission.roles = _.filter(permission.roles || [], function(item) {
+      req.body.submissionAccess.forEach(function (permission) {
+        permission.roles = _.filter(permission.roles || [], function (item) {
           if (_.isString(item) && BSON.test(item)) {
             return true;
           }
@@ -84,8 +84,10 @@ module.exports = function () {
         });
 
         if (_.isString(permission.type)) {
-          condensed[permission.type] = condensed[permission.type] || {roles: []};
-          condensed[permission.type].roles = condensed[permission.type].roles.concat(permission.roles);
+          condensed[permission.type] = condensed[permission.type] || { roles: [] };
+          condensed[permission.type].roles = condensed[permission.type].roles.concat(
+            permission.roles,
+          );
           condensed[permission.type].roles = _.compact(_.uniq(condensed[permission.type].roles));
           if (permission.permission) {
             condensed[permission.type].permission = permission.permission;
@@ -93,10 +95,10 @@ module.exports = function () {
         }
       });
 
-      Object.keys(condensed).forEach(function(key) {
+      Object.keys(condensed).forEach(function (key) {
         const access = {
           type: key,
-          roles: condensed[key].roles
+          roles: condensed[key].roles,
         };
         if (condensed[key].permission) {
           access.permission = condensed[key].permission;

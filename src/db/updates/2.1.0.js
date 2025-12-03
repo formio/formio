@@ -18,9 +18,9 @@ function encrypt(secret, mixed) {
 
   return Buffer.concat([
     cipher.update(decryptedJSON),
-    cipher.final()
+    cipher.final(),
   ]);
-};
+}
 
 /**
  * Decrypt some text
@@ -37,11 +37,11 @@ function decrypt(secret, cipherbuffer) {
   let decipher = crypto.createDecipher('aes-256-cbc', secret);
   let decryptedJSON = Buffer.concat([
     decipher.update(cipherbuffer), // Buffer contains encrypted utf8
-    decipher.final()
+    decipher.final(),
   ]);
 
-  return JSON.parse(decryptedJSON);  // This can throw a exception
-};
+  return JSON.parse(decryptedJSON); // This can throw a exception
+}
 
 /**
  * Update 2.1.0
@@ -51,25 +51,27 @@ function decrypt(secret, cipherbuffer) {
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   // Add cors settings to existing projects.
   let projects = db.collection('projects');
-  projects.find({}).toArray().forEach(function(project) {
-    let settings = {
-      cors: '*'
-    }
-    if (project.settings_encrypted) {
-      settings = decrypt(config.mongoSecret, project.settings_encrypted.buffer);
-      settings.cors = '*';
-    }
-    projects.updateOne(
-      { _id: project._id },
-      {
-        $set: {
-          settings_encrypted: encrypt(config.mongoSecret, settings),
-        }
+  projects
+    .find({})
+    .toArray()
+    .forEach(function (project) {
+      let settings = {
+        cors: '*',
+      };
+      if (project.settings_encrypted) {
+        settings = decrypt(config.mongoSecret, project.settings_encrypted.buffer);
+        settings.cors = '*';
       }
-    )
-  },
-  done);
+      projects.updateOne(
+        { _id: project._id },
+        {
+          $set: {
+            settings_encrypted: encrypt(config.mongoSecret, settings),
+          },
+        },
+      );
+    }, done);
 };

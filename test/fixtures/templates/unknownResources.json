@@ -14,33 +14,35 @@
       "tags": [],
       "submissionAccess": [],
       "access": [],
-      "components": [{
-        "conditional": {
-          "eq": "",
-          "when": null,
-          "show": ""
-        },
-        "tags": [],
-        "type": "resource",
-        "defaultPermission": "",
-        "validate": {
-          "required": false
-        },
-        "clearOnHide": true,
-        "persistent": true,
-        "protected": false,
-        "multiple": false,
-        "searchFields": "",
-        "selectFields": "",
-        "template": "<span>{{ item.data }}</span>",
-        "defaultValue": "",
-        "resource": "unknown",
-        "placeholder": "",
-        "key": "unknown",
-        "label": "unknown",
-        "tableView": true,
-        "input": true
-      }]
+      "components": [
+        {
+          "conditional": {
+            "eq": "",
+            "when": null,
+            "show": ""
+          },
+          "tags": [],
+          "type": "resource",
+          "defaultPermission": "",
+          "validate": {
+            "required": false
+          },
+          "clearOnHide": true,
+          "persistent": true,
+          "protected": false,
+          "multiple": false,
+          "searchFields": "",
+          "selectFields": "",
+          "template": "<span>{{ item.data }}</span>",
+          "defaultValue": "",
+          "resource": "unknown",
+          "placeholder": "",
+          "key": "unknown",
+          "label": "unknown",
+          "tableView": true,
+          "input": true
+        }
+      ]
     }
   },
   "forms": {},

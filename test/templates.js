@@ -5,10 +5,14 @@ let _ = require('lodash');
 const { Utils } = require('@formio/core/utils');
 const formioUtils = Utils;
 var docker = process.env.DOCKER;
-const ignoredFormProps = ['revisions', 'submissionRevisions', 'esign'];
+const ignoredFormProps = [
+  'revisions',
+  'submissionRevisions',
+  'esign',
+];
 
 module.exports = (app, template, hook) => {
-  describe('Template Imports', function() {
+  describe('Template Imports', function () {
     if (docker) {
       return;
     }
@@ -31,12 +35,10 @@ module.exports = (app, template, hook) => {
       let resourceName;
       if (project.forms[id]) {
         resourceName = project.forms[id].machineName;
-      }
-      else if (project.resources[id]) {
+      } else if (project.resources[id]) {
         resourceName = project.resources[id].machineName;
-      }
-      else if (project.roles[id]) {
-        resourceName = project.roles[id].machineName
+      } else if (project.roles[id]) {
+        resourceName = project.roles[id].machineName;
       }
 
       return resourceName;
@@ -52,44 +54,53 @@ module.exports = (app, template, hook) => {
     let checkTemplateRoles = (project, input, done) => {
       input = input || {};
 
-      formio.resources.role.model.find({deleted: {$eq: null}}).then(roles => {
-        assert.equal(roles.length, Object.keys(input).length);
+      formio.resources.role.model
+        .find({ deleted: { $eq: null } })
+        .then((roles) => {
+          assert.equal(roles.length, Object.keys(input).length);
 
-        // If the input is empty, skip remaining checks.
-        if (Object.keys(input).length === 0) {
-          return done();
-        }
+          // If the input is empty, skip remaining checks.
+          if (Object.keys(input).length === 0) {
+            return done();
+          }
 
-        // Check that the template data doesnt contain any _id's or machineNames
-        Object.keys(input).forEach(machineName => {
-          let role = input[machineName];
+          // Check that the template data doesnt contain any _id's or machineNames
+          Object.keys(input).forEach((machineName) => {
+            let role = input[machineName];
 
-          assert.equal(role.hasOwnProperty('_id'), false);
-          assert.equal(role.hasOwnProperty('machineName'), false);
-        });
+            assert.equal(role.hasOwnProperty('_id'), false);
+            assert.equal(role.hasOwnProperty('machineName'), false);
+          });
 
-        let given = {};
+          let given = {};
 
-        // Memoize the roles.
-        project.roles = {};
-        roles.forEach(role => {
-          role = role.toObject();
+          // Memoize the roles.
+          project.roles = {};
+          roles.forEach((role) => {
+            role = role.toObject();
 
-          // Check that each role in mongo has an _id and a machineName.
-          assert.equal(role.hasOwnProperty('_id'), true);
-          assert.equal(role.hasOwnProperty('machineName'), true);
+            // Check that each role in mongo has an _id and a machineName.
+            assert.equal(role.hasOwnProperty('_id'), true);
+            assert.equal(role.hasOwnProperty('machineName'), true);
 
-          // Prepare the stored roles for comparison.
-          let machineName = role.machineName;
-          given[machineName] = _.omit(role, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName']);
+            // Prepare the stored roles for comparison.
+            let machineName = role.machineName;
+            given[machineName] = _.omit(role, [
+              '_id',
+              '__v',
+              'created',
+              'deleted',
+              'modified',
+              'machineName',
+            ]);
 
-          project.roles[machineName] = project.roles[role._id] = role;
-        });
+            project.roles[machineName] = project.roles[role._id] = role;
+          });
 
-        assert.deepEqual(hook.alter('templateRoles', given), input);
-        done();
-      })
-      .catch(done);
+          assert.deepEqual(hook.alter('templateRoles', given), input);
+          done();
+        })
+        .catch(done);
     };
 
     /**
@@ -103,71 +114,91 @@ module.exports = (app, template, hook) => {
     let checkTemplateFormsAndResources = (project, type, input, done) => {
       input = input || {};
 
-      formio.resources.form.model.find({type, deleted: {$eq: null}}).then(forms => {
-        assert.equal(forms.length, Object.keys(input).length);
+      formio.resources.form.model
+        .find({ type, deleted: { $eq: null } })
+        .then((forms) => {
+          assert.equal(forms.length, Object.keys(input).length);
 
-        if (Object.keys(input).length === 0) {
-          return done()
-        }
+          if (Object.keys(input).length === 0) {
+            return done();
+          }
 
-        // Check that the template data doesnt contain any _id's or machineNames
-        Object.keys(input).forEach(machineName => {
-          let form = input[machineName];
+          // Check that the template data doesnt contain any _id's or machineNames
+          Object.keys(input).forEach((machineName) => {
+            let form = input[machineName];
 
-          assert.equal(form.hasOwnProperty('_id'), false);
-          assert.equal(form.hasOwnProperty('machineName'), false);
-        });
-
-        let given = {};
-
-        // Memoize the forms.
-        project[`${type}s`] = {};
-        forms.forEach(form => {
-          form = form.toObject();
-
-          // Check that each form in mongo has an _id and machineName.
-          assert.equal(form.hasOwnProperty('_id'), true);
-          assert.equal(form.hasOwnProperty('machineName'), true);
-
-          let machineName = form.machineName;
-          let tempForm = _.omit(form, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName', 'owner', '_vid', ...ignoredFormProps]);
-
-          tempForm.access = tempForm.access.map(access => {
-            access.roles = access.roles.map(role => {
-              return project.roles[role.toString()].machineName;
-            });
-
-            return access;
+            assert.equal(form.hasOwnProperty('_id'), false);
+            assert.equal(form.hasOwnProperty('machineName'), false);
           });
 
-          tempForm.submissionAccess = tempForm.submissionAccess.map(access => {
-            access.roles = access.roles.map(role => {
-              return project.roles[role.toString()].machineName;
+          let given = {};
+
+          // Memoize the forms.
+          project[`${type}s`] = {};
+          forms.forEach((form) => {
+            form = form.toObject();
+
+            // Check that each form in mongo has an _id and machineName.
+            assert.equal(form.hasOwnProperty('_id'), true);
+            assert.equal(form.hasOwnProperty('machineName'), true);
+
+            let machineName = form.machineName;
+            let tempForm = _.omit(form, [
+              '_id',
+              '__v',
+              'created',
+              'deleted',
+              'modified',
+              'machineName',
+              'owner',
+              '_vid',
+              ...ignoredFormProps,
+            ]);
+
+            tempForm.access = tempForm.access.map((access) => {
+              access.roles = access.roles.map((role) => {
+                return project.roles[role.toString()].machineName;
+              });
+
+              return access;
             });
 
-            return access;
+            tempForm.submissionAccess = tempForm.submissionAccess.map((access) => {
+              access.roles = access.roles.map((role) => {
+                return project.roles[role.toString()].machineName;
+              });
+
+              return access;
+            });
+            given[machineName] = tempForm;
+
+            project[`${type}s`][form.machineName] = project[`${type}s`][form._id] = form;
           });
-          given[machineName] = tempForm;
 
-          project[`${type}s`][form.machineName] = project[`${type}s`][form._id] = form;
-        });
-
-        // Reassign the resources after the forms have been memoized.
-        Object.keys(given).forEach(machineName => {
-          let tempForm = given[machineName];
-          // Convert all resources to point to the resource name;
-          formioUtils.eachComponent(tempForm.components, (component) => {
-            hook.alter('exportComponent', component);
-            if (component.hasOwnProperty('resource') && project.resources && project.resources.hasOwnProperty(component.resource)) {
-              component.resource = project.resources[component.resource].name;
-            }
-          }, true);
-          given[machineName] = tempForm;
-        });
-        assert.deepEqual(hook.alter('templateFormsAndResources', given), input);
-        done();
-      })
-      .catch(done);
+          // Reassign the resources after the forms have been memoized.
+          Object.keys(given).forEach((machineName) => {
+            let tempForm = given[machineName];
+            // Convert all resources to point to the resource name;
+            formioUtils.eachComponent(
+              tempForm.components,
+              (component) => {
+                hook.alter('exportComponent', component);
+                if (
+                  component.hasOwnProperty('resource') &&
+                  project.resources &&
+                  project.resources.hasOwnProperty(component.resource)
+                ) {
+                  component.resource = project.resources[component.resource].name;
+                }
+              },
+              true,
+            );
+            given[machineName] = tempForm;
+          });
+          assert.deepEqual(hook.alter('templateFormsAndResources', given), input);
+          done();
+        })
+        .catch(done);
     };
 
     /**
@@ -180,70 +211,82 @@ module.exports = (app, template, hook) => {
     let checkTemplateActions = (project, input, done) => {
       input = input || {};
 
-      formio.actions.model.find({deleted: {$eq: null}}).then(actions => {
-        assert.equal(actions.length, Object.keys(input).length);
+      formio.actions.model
+        .find({ deleted: { $eq: null } })
+        .then((actions) => {
+          assert.equal(actions.length, Object.keys(input).length);
 
-        if (Object.keys(input).length === 0) {
-          return done()
-        }
-
-        // Check that the template data doesnt contain any _id's or machineNames
-        Object.keys(input).forEach(machineName => {
-          let action = input[machineName];
-
-          assert.equal(action.hasOwnProperty('_id'), false);
-          assert.equal(action.hasOwnProperty('machineName'), false);
-        });
-
-        let given = {};
-
-        // Memoize the forms.
-        project.actions = {};
-        actions.forEach(action => {
-          action = action.toObject();
-
-          // Check that each action in mongo has an _id and machineName.
-          assert.equal(action.hasOwnProperty('_id'), true);
-          assert.equal(action.hasOwnProperty('machineName'), true);
-
-          // Prepare the stored actions for comparison.
-          let machineName = action.machineName;
-          let tempAction = _.omit(action, ['_id', '__v', 'created', 'deleted', 'modified', 'machineName']);
-          tempAction.form = getResourceFromId(project, tempAction.form);
-          if (_.has(tempAction, 'settings.resource')) {
-            tempAction.settings.resource = getResourceFromId(project, tempAction.settings.resource);
+          if (Object.keys(input).length === 0) {
+            return done();
           }
-          if (_.has(tempAction, 'settings.resources')) {
-            tempAction.settings.resources = tempAction.settings.resources.map(resource => {
-              return getResourceFromId(project, resource);
-            });
-          }
-          if (_.has(tempAction, 'settings.role')) {
-            tempAction.settings.role = project.roles[tempAction.settings.role].machineName;
-          }
-          given[machineName] = tempAction;
 
-          project.actions[machineName] = project.actions[action._id] = action;
-        });
+          // Check that the template data doesnt contain any _id's or machineNames
+          Object.keys(input).forEach((machineName) => {
+            let action = input[machineName];
 
-        assert.deepEqual(hook.alter('templateActions', given), input);
-        done();
-      })
-      .catch(done);
+            assert.equal(action.hasOwnProperty('_id'), false);
+            assert.equal(action.hasOwnProperty('machineName'), false);
+          });
+
+          let given = {};
+
+          // Memoize the forms.
+          project.actions = {};
+          actions.forEach((action) => {
+            action = action.toObject();
+
+            // Check that each action in mongo has an _id and machineName.
+            assert.equal(action.hasOwnProperty('_id'), true);
+            assert.equal(action.hasOwnProperty('machineName'), true);
+
+            // Prepare the stored actions for comparison.
+            let machineName = action.machineName;
+            let tempAction = _.omit(action, [
+              '_id',
+              '__v',
+              'created',
+              'deleted',
+              'modified',
+              'machineName',
+            ]);
+            tempAction.form = getResourceFromId(project, tempAction.form);
+            if (_.has(tempAction, 'settings.resource')) {
+              tempAction.settings.resource = getResourceFromId(
+                project,
+                tempAction.settings.resource,
+              );
+            }
+            if (_.has(tempAction, 'settings.resources')) {
+              tempAction.settings.resources = tempAction.settings.resources.map((resource) => {
+                return getResourceFromId(project, resource);
+              });
+            }
+            if (_.has(tempAction, 'settings.role')) {
+              tempAction.settings.role = project.roles[tempAction.settings.role].machineName;
+            }
+            given[machineName] = tempAction;
+
+            project.actions[machineName] = project.actions[action._id] = action;
+          });
+
+          assert.deepEqual(hook.alter('templateActions', given), input);
+          done();
+        })
+        .catch(done);
     };
 
     let alters = hook.alter(`templateAlters`, {});
     const reportsEnabled = hook.alter('includeReports');
 
-    describe('Default Template', function() {
-      let testTemplate =  _.cloneDeep(require('../src/templates/default.json'));
+    describe('Default Template', function () {
+      let testTemplate = _.cloneDeep(require('../src/templates/default.json'));
       testTemplate.revisions = {};
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err, template) => {
             if (err) {
               return done(err);
@@ -253,109 +296,110 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should export all its roles', function (done) {
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should export all of its forms', function(done) {
+        it('The template should export all of its forms', function (done) {
           assert.notDeepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should export all of its resources', function(done) {
+        it('The template should export all of its resources', function (done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should export all of its actions', function(done) {
+        it('The template should export all of its actions', function (done) {
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
@@ -416,14 +460,14 @@ module.exports = (app, template, hook) => {
       });
     });
 
-    describe('cyclicalResources Template', function() {
+    describe('cyclicalResources Template', function () {
       let testTemplate = require('./fixtures/templates/cyclicalResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -433,124 +477,125 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should export all of its resources', function(done) {
+        it('The template should export all of its resources', function (done) {
           assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('waterfallResources Template', function() {
+    describe('waterfallResources Template', function () {
       let testTemplate = require('./fixtures/templates/waterfallResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -560,124 +605,125 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should export all of its resources', function(done) {
+        it('The template should export all of its resources', function (done) {
           assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('waterfallResourcesReverse Template', function() {
+    describe('waterfallResourcesReverse Template', function () {
       let testTemplate = require('./fixtures/templates/waterfallResourcesReverse.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -687,124 +733,125 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should export all of its resources', function(done) {
+        it('The template should export all of its resources', function (done) {
           assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('unknownResources Template', function() {
+    describe('unknownResources Template', function () {
       let testTemplate = require('./fixtures/templates/unknownResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -814,124 +861,125 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should export all of its resources', function(done) {
+        it('The template should export all of its resources', function (done) {
           assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('unknownFormResources Template', function() {
+    describe('unknownFormResources Template', function () {
       let testTemplate = require('./fixtures/templates/unknownFormResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -941,124 +989,125 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should export all of its forms', function(done) {
+        it('The template should export all of its forms', function (done) {
           assert.notDeepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('waterfallFormResources Template', function() {
+    describe('waterfallFormResources Template', function () {
       let testTemplate = require('./fixtures/templates/waterfallFormResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -1068,124 +1117,125 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.notDeepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('waterfallFormResourcesReverse Template', function() {
+    describe('waterfallFormResourcesReverse Template', function () {
       let testTemplate = require('./fixtures/templates/waterfallFormResourcesReverse.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -1195,124 +1245,125 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should export all of its forms', function(done) {
+        it('The template should export all of its forms', function (done) {
           assert.notDeepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should export all of its resources', function(done) {
+        it('The template should export all of its resources', function (done) {
           assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('emptyResources Template', function() {
+    describe('emptyResources Template', function () {
       let testTemplate = require('./fixtures/templates/emptyResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -1322,124 +1373,125 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should export all of its forms', function(done) {
+        it('The template should export all of its forms', function (done) {
           assert.notDeepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('selfReferencingResources Template', function() {
+    describe('selfReferencingResources Template', function () {
       let testTemplate = require('./fixtures/templates/selfReferencingResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -1449,124 +1501,125 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should export all of its resources', function(done) {
+        it('The template should export all of its resources', function (done) {
           assert.notDeepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('unknownActionResources Template', function() {
+    describe('unknownActionResources Template', function () {
       let testTemplate = require('./fixtures/templates/unknownActionResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -1576,99 +1629,88 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('Actions with invalid forms and resources should not be imported', function(done) {
+        it('Actions with invalid forms and resources should not be imported', function (done) {
           checkTemplateActions(project, {}, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any malformed actions', function(done) {
+        it('The template should not export any malformed actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
 
           // Update the test template to not contain any of the malformed actions.
@@ -1677,27 +1719,39 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
 
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('emptyActionResources Template', function() {
+    describe('emptyActionResources Template', function () {
       let testTemplate = require('./fixtures/templates/emptyActionResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -1707,99 +1761,88 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('Actions with invalid forms and resources should not be imported', function(done) {
+        it('Actions with invalid forms and resources should not be imported', function (done) {
           checkTemplateActions(project, {}, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should export all its roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any malformed actions', function(done) {
+        it('The template should not export any malformed actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
 
           // Update the test template to not contain any of the malformed actions.
@@ -1808,20 +1851,32 @@ module.exports = (app, template, hook) => {
             assert.deepEqual(exportData.reports, {});
           }
 
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('missingResourceAction', function() {
+    describe('missingResourceAction', function () {
       let testTemplate = require('./fixtures/templates/missingResourceAction.json');
       let _template = _.cloneDeep(testTemplate);
 
@@ -1831,10 +1886,10 @@ module.exports = (app, template, hook) => {
         });
       };
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -1844,85 +1899,74 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('Save submission to resource should be empty', function(done) {
-          formio.actions.model.find({deleted: {$eq: null}}).then((actions) => {
+        it('Save submission to resource should be empty', function (done) {
+          formio.actions.model.find({ deleted: { $eq: null } }).then((actions) => {
             checkMissingResourceActions(actions);
             done();
           });
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should export all forms', function(done) {
+        it('The template should export all forms', function (done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should export all resources', function(done) {
+        it('The template should export all resources', function (done) {
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
@@ -1931,23 +1975,23 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('unknownRoleResources Template', function() {
+    describe('unknownRoleResources Template', function () {
       let testTemplate = require('./fixtures/templates/unknownRoleResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -1957,11 +2001,11 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported with the defined roles only', function(done) {
+        it('All the forms should be imported with the defined roles only', function (done) {
           testTemplate.forms.foo.access[0].roles = [];
           testTemplate.forms.foo.submissionAccess[0].roles = [];
 
@@ -1969,114 +2013,115 @@ module.exports = (app, template, hook) => {
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should export all its roles', function(done) {
+        it('The template should export all its roles', function (done) {
           assert.notDeepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should export its forms without bad roles', function(done) {
+        it('The template should export its forms without bad roles', function (done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('missingRoleResources Template', function() {
+    describe('missingRoleResources Template', function () {
       let testTemplate = require('./fixtures/templates/missingRoleResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -2086,126 +2131,129 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('No roles should be imported', function(done) {
+        it('No roles should be imported', function (done) {
           assert.deepEqual(testTemplate.roles, undefined);
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should export an empty list of roles', function(done) {
+        it('The template should export an empty list of roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.deepEqual(exportData.roles, {});
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'roles', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'roles']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'roles',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'roles',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('missingResourceResources Template', function() {
+    describe('missingResourceResources Template', function () {
       let testTemplate = require('./fixtures/templates/missingResourceResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -2215,125 +2263,128 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('No resources should be imported', function(done) {
+        it('No resources should be imported', function (done) {
           assert.deepEqual(testTemplate.resources, undefined);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.deepEqual(exportData.resources, {});
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'resources', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'resources']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'resources',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'resources',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('missingFormResources Template', function() {
+    describe('missingFormResources Template', function () {
       let testTemplate = require('./fixtures/templates/missingFormResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -2343,125 +2394,128 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('No forms should be imported', function(done) {
+        it('No forms should be imported', function (done) {
           assert.deepEqual(testTemplate.forms, undefined);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.deepEqual(exportData.forms, {});
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'forms', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'forms']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'forms',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'forms',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('missingActionResources Template', function() {
+    describe('missingActionResources Template', function () {
       let testTemplate = require('./fixtures/templates/missingActionResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -2471,126 +2525,129 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('No actions should be imported', function(done) {
+        it('No actions should be imported', function (done) {
           assert.deepEqual(testTemplate.actions, undefined);
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.deepEqual(exportData.actions, {});
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'actions', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'actions']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'actions',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'actions',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('missingTitle Template', function() {
+    describe('missingTitle Template', function () {
       let testTemplate = require('./fixtures/templates/missingTitle.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -2600,125 +2657,128 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.deepEqual(exportData.title, 'Export');
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'title', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'title']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'title',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'title',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('missingName Template', function() {
+    describe('missingName Template', function () {
       let testTemplate = require('./fixtures/templates/missingName.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -2728,124 +2788,127 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'name', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'name']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'name',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'name',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('missingDescription Template', function() {
+    describe('missingDescription Template', function () {
       let testTemplate = require('./fixtures/templates/missingDescription.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -2855,124 +2918,127 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'description', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'description']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'description',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'description',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('missingVersion Template', function() {
+    describe('missingVersion Template', function () {
       let testTemplate = require('./fixtures/templates/missingVersion.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -2982,124 +3048,125 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('extraData Template', function() {
+    describe('extraData Template', function () {
       let testTemplate = require('./fixtures/templates/extraData.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -3109,128 +3176,131 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any roles', function(done) {
+        it('The template should not export any roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('The template should not export any additional information', function() {
+        it('The template should not export any additional information', function () {
           assert.deepEqual(exportData.foo, undefined);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'foo', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'foo']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'foo',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'foo',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('malformedRoles Template', function() {
+    describe('malformedRoles Template', function () {
       let testTemplate = require('./fixtures/templates/malformedRoles.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -3240,125 +3310,128 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           assert.notDeepEqual(testTemplate.roles, {});
           checkTemplateRoles(project, {}, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any malformed roles', function(done) {
+        it('The template should not export any malformed roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'roles', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'roles']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'roles',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'roles',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('malformedResources Template', function() {
+    describe('malformedResources Template', function () {
       let testTemplate = require('./fixtures/templates/malformedResources.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -3368,124 +3441,127 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           assert.notDeepEqual(testTemplate.resources, {});
           checkTemplateFormsAndResources(project, 'resource', {}, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any malformed roles', function(done) {
+        it('The template should not export any malformed roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'resources', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'resources']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'resources',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'resources',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('malformedForms Template', function() {
+    describe('malformedForms Template', function () {
       let testTemplate = require('./fixtures/templates/malformedForms.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -3495,124 +3571,127 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           assert.notDeepEqual(testTemplate.forms, {});
           checkTemplateFormsAndResources(project, 'form', {}, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           checkTemplateActions(project, testTemplate.actions, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any malformed roles', function(done) {
+        it('The template should not export any malformed roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           assert.deepEqual(exportData.forms, {});
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'forms', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'forms']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'forms',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'forms',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('malformedActions Template', function() {
+    describe('malformedActions Template', function () {
       let testTemplate = require('./fixtures/templates/malformedActions.json');
       let _template = _.cloneDeep(testTemplate);
 
-      describe('Import', function() {
-        let project = {title: 'Export', name: 'export'};
+      describe('Import', function () {
+        let project = { title: 'Export', name: 'export' };
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err) => {
             if (err) {
               return done(err);
@@ -3622,138 +3701,150 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('All the roles should be imported', function(done) {
+        it('All the roles should be imported', function (done) {
           checkTemplateRoles(project, testTemplate.roles, done);
         });
 
-        it('All the forms should be imported', function(done) {
+        it('All the forms should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.forms);
           checkTemplateFormsAndResources(project, 'form', testTemplate.forms, done);
         });
 
-        it('All the resources should be imported', function(done) {
+        it('All the resources should be imported', function (done) {
           hook.alter('templateImportComponent', testTemplate.resources);
           checkTemplateFormsAndResources(project, 'resource', testTemplate.resources, done);
         });
 
-        it('All the actions should be imported', function(done) {
+        it('All the actions should be imported', function (done) {
           assert.notDeepEqual(testTemplate.actions, {});
           checkTemplateActions(project, {}, done);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let project = {};
         let exportData = {};
 
-        it('Should be able to export project data', function(done) {
+        it('Should be able to export project data', function (done) {
           importer.export(_template, (err, data) => {
             if (err) {
               return done(err);
             }
 
             exportData = data;
-            exportData.forms = _.mapValues(exportData.forms, (form) => _.omit(form, ignoredFormProps));
-            exportData.resources = _.mapValues(exportData.resources, (resource) => _.omit(resource, ignoredFormProps));
+            exportData.forms = _.mapValues(exportData.forms, (form) =>
+              _.omit(form, ignoredFormProps),
+            );
+            exportData.resources = _.mapValues(exportData.resources, (resource) =>
+              _.omit(resource, ignoredFormProps),
+            );
             return done();
           });
         });
 
-        it('An export should contain the export title', function() {
-          assert.equal(
-            hook.alter('exportTitle', 'Export', exportData),
-            'Export'
-          );
+        it('An export should contain the export title', function () {
+          assert.equal(hook.alter('exportTitle', 'Export', exportData), 'Export');
         });
 
-        it('An export should contain the current export version', function() {
-          assert.equal(
-            exportData.version,
-            '2.0.0'
-          );
+        it('An export should contain the current export version', function () {
+          assert.equal(exportData.version, '2.0.0');
         });
 
-        it('An export should contain the description', function() {
-          assert.equal(
-            hook.alter('exportDescription', '', exportData),
-            ''
-          );
+        it('An export should contain the description', function () {
+          assert.equal(hook.alter('exportDescription', '', exportData), '');
         });
 
-        it('An export should contain the export name', function() {
-          assert.equal(
-            hook.alter('exportName', 'export', exportData),
-            'export'
-          );
+        it('An export should contain the export name', function () {
+          assert.equal(hook.alter('exportName', 'export', exportData), 'export');
         });
 
-        it('An export should contain the export plan', function() {
-          assert.equal(
-            hook.alter('exportPlan', 'community', exportData),
-            'community'
-          );
+        it('An export should contain the export plan', function () {
+          assert.equal(hook.alter('exportPlan', 'community', exportData), 'community');
         });
 
-        it('The template should not export any malformed roles', function(done) {
+        it('The template should not export any malformed roles', function (done) {
           assert.deepEqual(exportData.roles, {});
           checkTemplateRoles(project, exportData.roles, done);
         });
 
-        it('The template should not export any forms', function(done) {
+        it('The template should not export any forms', function (done) {
           checkTemplateFormsAndResources(project, 'form', exportData.forms, done);
         });
 
-        it('The template should not export any resources', function(done) {
+        it('The template should not export any resources', function (done) {
           assert.deepEqual(exportData.resources, {});
           checkTemplateFormsAndResources(project, 'resource', exportData.resources, done);
         });
 
-        it('The template should not export any actions', function(done) {
+        it('The template should not export any actions', function (done) {
           assert.deepEqual(exportData.actions, {});
           hook.alter('templateActionExport', exportData.actions);
           checkTemplateActions(project, exportData.actions, done);
         });
 
-        it('An export should match an import', function() {
+        it('An export should match an import', function () {
           assert.equal(exportData.version, '2.0.0');
           if (reportsEnabled) {
             assert.deepEqual(exportData.reports, {});
           }
-          assert.deepEqual(_.omit(exportData, ['version', 'tag', 'access', 'actions', 'reports']), _.omit(testTemplate, ['version', 'tag', 'access', 'actions']));
+          assert.deepEqual(
+            _.omit(exportData, [
+              'version',
+              'tag',
+              'access',
+              'actions',
+              'reports',
+            ]),
+            _.omit(testTemplate, [
+              'version',
+              'tag',
+              'access',
+              'actions',
+            ]),
+          );
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('Everyone Roles Template', function() {
+    describe('Everyone Roles Template', function () {
       let testTemplate = require('./fixtures/templates/everyoneRoles.json');
       let _template = _.cloneDeep(testTemplate);
       const EVERYONE = '000000000000000000000000';
 
-      it('Should translate all "everyone" roles into 000000000000000000000000', function(done) {
+      it('Should translate all "everyone" roles into 000000000000000000000000', function (done) {
         importer.import.template(_template, alters, (err) => {
           if (err) {
             return done(err);
           }
 
-          assert.equal(_template.resources.a.submissionAccess[0].roles[0].toString(), _template.roles.anonymous._id.toString());
+          assert.equal(
+            _template.resources.a.submissionAccess[0].roles[0].toString(),
+            _template.roles.anonymous._id.toString(),
+          );
           assert.equal(_template.resources.a.submissionAccess[0].roles[1].toString(), EVERYONE);
           assert.equal(_template.resources.a.submissionAccess[1].roles[0].toString(), EVERYONE);
-          assert.equal(_template.resources.b.access[0].roles[0].toString(), _template.roles.authenticated._id.toString());
-          assert.equal(_template.resources.b.access[0].roles[1].toString(), _template.roles.anonymous._id.toString());
+          assert.equal(
+            _template.resources.b.access[0].roles[0].toString(),
+            _template.roles.authenticated._id.toString(),
+          );
+          assert.equal(
+            _template.resources.b.access[0].roles[1].toString(),
+            _template.roles.anonymous._id.toString(),
+          );
           assert.equal(_template.resources.b.access[1].roles[0].toString(), EVERYONE);
           done();
         });
       });
 
-      it('Should convert ObjectID(000000000000000000000000) to "everyone"', function(done) {
+      it('Should convert ObjectID(000000000000000000000000) to "everyone"', function (done) {
         importer.export(_template, (err, data) => {
           if (err) {
             return done(err);
@@ -3769,21 +3860,21 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('No Revisions Block Template', function() {
+    describe('No Revisions Block Template', function () {
       let testTemplate = require('./fixtures/templates/noRevisionsData.json');
       let _template = _.cloneDeep(testTemplate);
       let project;
 
-      it('Should be able to bootstrap the template', function(done) {
+      it('Should be able to bootstrap the template', function (done) {
         importer.import.template(_template, alters, (err, data) => {
           if (err) {
             return done(err);
@@ -3793,32 +3884,74 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      it('All the forms should be imported', function(done) {
-        assert.deepEqual(_.omit(project.forms.inner, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', '_vid', 'project', ...ignoredFormProps]),
-        _.omit(testTemplate.forms.inner, ['revisions']));
-        assert.deepEqual(_.omit(project.forms.outer, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', 'components', '_vid', 'project', ...ignoredFormProps]),
-        _.omit(testTemplate.forms.outer, ['revisions', 'components']));
-        assert.deepEqual(_.omit(project.forms.outer.components[0], ['form']),
-        _.omit(testTemplate.forms.outer.components[0], ['form']));
+      it('All the forms should be imported', function (done) {
+        assert.deepEqual(
+          _.omit(project.forms.inner, [
+            '_id',
+            'created',
+            'modified',
+            '__v',
+            'owner',
+            'machineName',
+            'submissionAccess',
+            'deleted',
+            'access',
+            '_vid',
+            'project',
+            ...ignoredFormProps,
+          ]),
+          _.omit(testTemplate.forms.inner, [
+            'revisions',
+          ]),
+        );
+        assert.deepEqual(
+          _.omit(project.forms.outer, [
+            '_id',
+            'created',
+            'modified',
+            '__v',
+            'owner',
+            'machineName',
+            'submissionAccess',
+            'deleted',
+            'access',
+            'components',
+            '_vid',
+            'project',
+            ...ignoredFormProps,
+          ]),
+          _.omit(testTemplate.forms.outer, [
+            'revisions',
+            'components',
+          ]),
+        );
+        assert.deepEqual(
+          _.omit(project.forms.outer.components[0], [
+            'form',
+          ]),
+          _.omit(testTemplate.forms.outer.components[0], [
+            'form',
+          ]),
+        );
         assert.deepEqual(project.forms.outer.components[1], testTemplate.forms.outer.components[1]);
-       done();
+        done();
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('Revisions Block Template', function() {
+    describe('Revisions Block Template', function () {
       let testTemplate = require('./fixtures/templates/revisionsData.json');
       let _template = _.cloneDeep(testTemplate);
       let project;
 
-      it('Should be able to bootstrap the template', function(done) {
+      it('Should be able to bootstrap the template', function (done) {
         importer.import.template(_template, alters, (err, data) => {
           if (err) {
             return done(err);
@@ -3828,33 +3961,79 @@ module.exports = (app, template, hook) => {
         });
       });
 
-      it('All the forms should be imported', function(done) {
-        assert.deepEqual(_.omit(project.forms.inner, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', '_vid', 'project', 'revisions', 'submissionRevisions', ...ignoredFormProps]),
-        _.omit(testTemplate.forms.inner, ['revisions']));
-        assert.deepEqual(_.omit(project.forms.outer, ['_id', 'created', 'modified', '__v', 'owner', 'machineName', 'submissionAccess', 'deleted', 'access', 'components', '_vid', 'project', 'revisions', 'submissionRevisions', ...ignoredFormProps]),
-        _.omit(testTemplate.forms.outer, ['revisions', 'components']));
-        assert.deepEqual(_.omit(project.forms.outer.components[0], ['form']),
-        _.omit(testTemplate.forms.outer.components[0], ['form']));
+      it('All the forms should be imported', function (done) {
+        assert.deepEqual(
+          _.omit(project.forms.inner, [
+            '_id',
+            'created',
+            'modified',
+            '__v',
+            'owner',
+            'machineName',
+            'submissionAccess',
+            'deleted',
+            'access',
+            '_vid',
+            'project',
+            'revisions',
+            'submissionRevisions',
+            ...ignoredFormProps,
+          ]),
+          _.omit(testTemplate.forms.inner, [
+            'revisions',
+          ]),
+        );
+        assert.deepEqual(
+          _.omit(project.forms.outer, [
+            '_id',
+            'created',
+            'modified',
+            '__v',
+            'owner',
+            'machineName',
+            'submissionAccess',
+            'deleted',
+            'access',
+            'components',
+            '_vid',
+            'project',
+            'revisions',
+            'submissionRevisions',
+            ...ignoredFormProps,
+          ]),
+          _.omit(testTemplate.forms.outer, [
+            'revisions',
+            'components',
+          ]),
+        );
+        assert.deepEqual(
+          _.omit(project.forms.outer.components[0], [
+            'form',
+          ]),
+          _.omit(testTemplate.forms.outer.components[0], [
+            'form',
+          ]),
+        );
         assert.deepEqual(project.forms.outer.components[1], testTemplate.forms.outer.components[1]);
-       done();
+        done();
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('Template With Resource DataTable', function() {
+    describe('Template With Resource DataTable', function () {
       let testTemplate = require('./fixtures/templates/testDataTableWithResource.json');
       let _template = _.cloneDeep(testTemplate);
       let project;
 
-      describe('Import', function() {
-        it('Should be able to bootstrap the template', function(done) {
+      describe('Import', function () {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err, data) => {
             if (err) {
               return done(err);
@@ -3864,16 +4043,19 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it ('The Data Table Fetch Resource should be replaced with valid resource id', function(done) {
-          assert.equal(project.forms.formWithDt.components[0].fetch.resource, project.resources.resourceFormForDt._id.toString());
+        it('The Data Table Fetch Resource should be replaced with valid resource id', function (done) {
+          assert.equal(
+            project.forms.formWithDt.components[0].fetch.resource,
+            project.resources.resourceFormForDt._id.toString(),
+          );
           done();
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let exportData = {};
 
-        it ('Should be able to export project', function(done) {
+        it('Should be able to export project', function (done) {
           importer.export(project, (err, data) => {
             if (err) {
               return done(err);
@@ -3883,27 +4065,32 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it ('The Data Table Fetch Resource should be replaced with resource name', function(done) {
-          assert.equal(exportData.forms.formWithDt.components[0].fetch.resource,  exportData.resources.resourceFormForDt.name);
+        it('The Data Table Fetch Resource should be replaced with resource name', function (done) {
+          assert.equal(
+            exportData.forms.formWithDt.components[0].fetch.resource,
+            exportData.resources.resourceFormForDt.name,
+          );
           done();
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });
 
-    describe('Template with Select Dropdown with Default Value from Resource Data in Export Template with Existing Resources', function() {
-      const existingResourceTemplate = 'projectWithExistingResource'
-      let existingResourceTemplateSchema = require(`./fixtures/templates/${existingResourceTemplate}.json`);
+    describe('Template with Select Dropdown with Default Value from Resource Data in Export Template with Existing Resources', function () {
+      const existingResourceTemplate = 'projectWithExistingResource';
+      let existingResourceTemplateSchema = require(
+        `./fixtures/templates/${existingResourceTemplate}.json`,
+      );
       let _existingTemplate = _.cloneDeep(existingResourceTemplateSchema);
 
-      const selectFormName = 'selectWithResourceDataSrcAndDefaultValueNoResourcesExport'
+      const selectFormName = 'selectWithResourceDataSrcAndDefaultValueNoResourcesExport';
       let testTemplate = require(`./fixtures/templates/${selectFormName}.json`);
       let _template = _.cloneDeep(testTemplate);
       let project;
@@ -3914,8 +4101,8 @@ module.exports = (app, template, hook) => {
 
       let templateDataStartValue = _template.forms[selectFormName].components[0].data.resource;
 
-      describe('Import', function() {
-        it('Import existing resource template', function(done) {
+      describe('Import', function () {
+        it('Import existing resource template', function (done) {
           importer.import.template(_existingTemplate, alters, (err, data) => {
             if (err) {
               return done(err);
@@ -3924,7 +4111,7 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('Should be able to bootstrap the template', function(done) {
+        it('Should be able to bootstrap the template', function (done) {
           importer.import.template(_template, alters, (err, data) => {
             if (err) {
               return done(err);
@@ -3934,30 +4121,29 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('Template on IMPORT checks for existing resource even if not included in export template', function() {
+        it('Template on IMPORT checks for existing resource even if not included in export template', function () {
           assert.notEqual(
             project.forms[selectFormName].components[0].data.resource,
-            templateDataStartValue
+            templateDataStartValue,
           );
 
           assert.equal(
-            formio.mongoose.Types.ObjectId.isValid(project.forms[selectFormName].components[0].data.resource),
-            true
+            formio.mongoose.Types.ObjectId.isValid(
+              project.forms[selectFormName].components[0].data.resource,
+            ),
+            true,
           );
         });
 
-        it('Template on IMPORT should de-ref select components defaultValue if dataSrc == resource', function() {
-          assert.equal(
-            project.forms[selectFormName].defaultValue,
-            undefined
-          );
+        it('Template on IMPORT should de-ref select components defaultValue if dataSrc == resource', function () {
+          assert.equal(project.forms[selectFormName].defaultValue, undefined);
         });
       });
 
-      describe('Export', function() {
+      describe('Export', function () {
         let exportData = {};
 
-        it ('Should be able to export project', function(done) {
+        it('Should be able to export project', function (done) {
           importer.export(project, (err, data) => {
             if (err) {
               return done(err);
@@ -3967,19 +4153,16 @@ module.exports = (app, template, hook) => {
           });
         });
 
-        it('Template on EXPORT should de-ref select components defaultValue if dataSrc == resource', function() {
-          assert.equal(
-            exportData.forms[selectFormName].defaultValue,
-            undefined
-          );
+        it('Template on EXPORT should de-ref select components defaultValue if dataSrc == resource', function () {
+          assert.equal(exportData.forms[selectFormName].defaultValue, undefined);
         });
       });
 
-      before(function(done) {
+      before(function (done) {
         template.clearData(done);
       });
 
-      after(function(done) {
+      after(function (done) {
         template.clearData(done);
       });
     });

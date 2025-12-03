@@ -1,33 +1,3 @@
-const featureFlags = require('@formio/feature-flags');
-
-// Find the config in either an environment variable or docker secret.
-const getConfig = (key, defaultValue) => {
-  // If an environment variable is set.
-  if (process.env.hasOwnProperty(key)) {
-    return process.env[key];
-  }
-  return defaultValue;
-};
-
-// Export the FEATURE_FLAGS constant object for structured access
-//router.config.FEATURE_FLAGS = featureFlags.FEATURE_FLAGS;
-// Parse env var to boolean if it's a string
-const parseBoolean = (value) => {
-  if (typeof value === 'boolean') {
-    return value;
-  }
-  if (value.toLowerCase() === 'false' || value === '0') {
-    return false;
-  }
-  return value.toLowerCase() === 'true' || value === '1';
-};
-
-// Get all feature flags with config overrides
-// Using getConfig allows pulling from env vars, etc.
-const featureConfig = (flag) => {
-  return parseBoolean(getConfig(flag.envVar, flag.defaultValue));
-};
-
 module.exports = {
   port: 3001,
   appPort: 8080,
@@ -91,10 +61,4 @@ module.exports = {
       },
     },
   },
-  FEATURE_FLAGS: featureFlags.FEATURE_FLAGS,
-  featureConfig: featureConfig,
-  featureFlags: featureFlags.getFeatureFlags(featureConfig),
-  isFeatureEnabled : (flag) => {
-      return featureFlags.isFeatureEnabled(flag, featureConfig);
-    }
 };

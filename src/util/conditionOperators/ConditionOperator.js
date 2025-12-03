@@ -2,7 +2,6 @@
 
 const _ = require('lodash');
 
-/* eslint-disable no-unused-vars */
 module.exports = class ConditionOperator {
   static get operatorKey() {
     return '';
@@ -21,12 +20,11 @@ module.exports = class ConditionOperator {
   }
 
   getResult(options = {}) {
-    const {value} = options;
+    const { value } = options;
 
     if (_.isArray(value)) {
-      return _.some(
-        value,
-        valueItem => this.execute({
+      return _.some(value, (valueItem) =>
+        this.execute({
           ...options,
           value: valueItem,
         }),

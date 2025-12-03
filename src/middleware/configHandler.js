@@ -7,7 +7,7 @@ const _ = require('lodash');
  *
  * @param router
  */
-module.exports = function(router) {
+module.exports = function (router) {
   const hook = require('../util/hook')(router.formio);
   const formio = hook.alter('formio', router.formio);
   const config = {};
@@ -24,14 +24,13 @@ module.exports = function(router) {
       _.forOwn(JSON.parse(process.env.PUBLIC_CONFIG), (value, key) => {
         config[key] = value;
       });
-    }
-    catch (err) {
+    } catch (err) {
       debug('Failed to parse public configuration.');
       debug(err);
     }
   }
 
   return function configHandler(req, res, _next) {
-    return res.json({config});
+    return res.json({ config });
   };
 };

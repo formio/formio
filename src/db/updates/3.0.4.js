@@ -16,71 +16,76 @@ let _ = require('lodash');
  * @param tools
  * @param done
  */
-module.exports = function(db, config, tools, done) {
+module.exports = function (db, config, tools, done) {
   let roleCollection = db.collection('roles');
 
-  async.series([
-    function checkDefaultRole(callback) {
-      roleCollection.countDocuments({deleted: {$eq: null}, default: true})
-      .then(count => {
-        // Insert the default role
-        if (count === 0) {
-          roleCollection.insertOne({
-            title: 'Default',
-            description: 'The Default Role.',
-            deleted: null,
-            admin: false,
-            default: true
+  async.series(
+    [
+      function checkDefaultRole(callback) {
+        roleCollection
+          .countDocuments({ deleted: { $eq: null }, default: true })
+          .then((count) => {
+            // Insert the default role
+            if (count === 0) {
+              roleCollection
+                .insertOne({
+                  title: 'Default',
+                  description: 'The Default Role.',
+                  deleted: null,
+                  admin: false,
+                  default: true,
+                })
+                .then((response) => {
+                  callback();
+                })
+                .catch((err) => next(err));
+            }
+            // Default role exists.
+            else if (count === 1) {
+              return callback();
+            } else {
+              console.log('Unknown count of the default role: ' + count);
+              return callback();
+            }
           })
-          .then(response => {
-            callback();
+          .catch((err) => callback(err));
+      },
+      function checkAdminRole(callback) {
+        roleCollection
+          .countDocuments({ deleted: { $eq: null }, admin: true })
+          .then((count) => {
+            // Insert the default role
+            if (count === 0) {
+              roleCollection
+                .insertOne({
+                  title: 'Administrator',
+                  description: 'The Administrator Role.',
+                  deleted: null,
+                  admin: true,
+                  default: false,
+                })
+                .then((response) => {
+                  callback();
+                })
+                .catch((err) => next(err));
+            }
+            // Default role exists.
+            else if (count === 1) {
+              return callback();
+            } else {
+              console.log('Unknown count of the admin role: ' + count);
+              return callback();
+            }
           })
-          .catch(err => next(err));
-        }
-        // Default role exists.
-        else if (count === 1) {
-          return callback();
-        }
-        else {
-          console.log('Unknown count of the default role: ' + count);
-          return callback();
-        }
-      })
-      .catch(err => callback(err));
-    },
-    function checkAdminRole(callback) {
-      roleCollection.countDocuments({deleted: {$eq: null}, admin: true})
-      .then(count => {
-        // Insert the default role
-        if (count === 0) {
-          roleCollection.insertOne({
-            title: 'Administrator',
-            description: 'The Administrator Role.',
-            deleted: null,
-            admin: true,
-            default: false
-          })
-          .then(response => {
-            callback();
-          })
-          .catch(err => next(err));
-        }
-        // Default role exists.
-        else if (count === 1) {
-          return callback();
-        }
-        else {
-          console.log('Unknown count of the admin role: ' + count);
-          return callback();
-        }
-      })
-      .catch(err => callback(err));
-    }
-  ], function(err) {
-    if (err) {
-      return done(err);
-    }
+          .catch((err) => callback(err));
+      },
+    ],
+    function (err) {
+      if (err) {
+        return done(err);
+      }
 
-    done();
-  });
+      done();
+    },
+  );
 };

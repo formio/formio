@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const {skipHookIfNotExists} = require('../util/util');
+const { skipHookIfNotExists } = require('../util/util');
 
 /**
  * Middleware function to filter the response from resourcejs.

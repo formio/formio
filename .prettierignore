@@ -1,0 +1,14 @@
+# Global ignores
+node_modules/
+.circleci/
+.git/
+.nyc_output/
+.vscode/
+build/
+coverage/
+dist/
+docs/
+lib/
+logo.txt
+src/vm/bundles
+src/**/*.nunjucks.html

@@ -12,10 +12,7 @@ module.exports = class GreaterThanOrEqual extends ConditionOperator {
     return 'Greater Than Or Equal To';
   }
 
-  execute({
-    value,
-    comparedValue,
-  }) {
-    return _.isNumber(value) && (value > comparedValue || _.isEqual(value,comparedValue));
+  execute({ value, comparedValue }) {
+    return _.isNumber(value) && (value > comparedValue || _.isEqual(value, comparedValue));
   }
 };

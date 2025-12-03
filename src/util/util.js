@@ -882,10 +882,6 @@ const Utils = {
         .value(),
     );
   },
-  getServerConfig() {
-    const hook = require('../util/hook')(Formio);
-    return hook.alter('getServerConfig') || require('../../config/default.cjs');
-  }
 };
 
 module.exports = Utils;
